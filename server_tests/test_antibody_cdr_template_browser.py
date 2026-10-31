@@ -67,7 +67,7 @@ def test_numbered_interface_template_loads_reviews_and_resets_without_submitting
         assert not prepared["study"]["required_materials"]
         download = page.request.get(base + "/api/assets/" + ref["asset_id"])
         assert download.ok and hashlib.sha256(download.body()).hexdigest() == ref["sha256"]
-        annotation = download.json()
+        annotation = json.loads(prepared["objects"]["antibody_cdr_inputs"]["notes"])
         assert annotation["positions"] == "zero_based_sequence_order"
         next_step = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
         expect(next_step).to_be_enabled(timeout=30000)

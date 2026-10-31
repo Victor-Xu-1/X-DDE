@@ -69,9 +69,14 @@ def test_reviewed_native_numbering_prefills_typed_requests_and_retains_source(se
     obj = prepared.objects["antibody_cdr_inputs"]
     assert obj.id == repeated.objects["antibody_cdr_inputs"].id
     assert str(obj.source_job) == job.id and obj.validation == "file_integrity_only"
-    assert obj.reference in task.scientific_inputs and obj.parent_id is None
-    asset = scientific.assets.get(obj.reference.asset_id)
-    annotation = json.loads(scientific.assets.path(asset).read_bytes())
+    parent = prepared.objects["variable_domains" if capability == "fold" else "structure"]
+    assert obj.reference in task.scientific_inputs and obj.parent_id == parent.id
+    assert obj.kind == parent.kind and obj.reference.asset_id == parent.reference.asset_id
+    assert obj.reference.version_id != parent.reference.version_id
+    annotation = json.loads(obj.notes)
+    # Exercise the actual dispatch input boundary, not just Store.create().
+    bindings = scientific.assets.validate_bindings(task)
+    assert str(obj.reference.asset_id) in bindings
     assert annotation["positions"] == "zero_based_sequence_order"
     assert annotation["numbering_result_sha256"] == pin.artifact_sha256["result.json"]
     groups = annotation["cdr_regions"]
@@ -180,7 +185,7 @@ def test_previous_unannotated_recipe_and_gate_evidence_are_not_rewritten(setting
     output = settings.state_dir / "jobs" / job.id / "output"
     output.mkdir(parents=True)
     # A controlled historical transport record, not a fabricated native fold.
-    raw = b'{"protocol_fixture":true,"gate_passed":false,"cdr_contact_fraction":0}\n'
+    raw = b'{"result":{"protocol_fixture":true,"gate_passed":false,"cdr_contact_fraction":0}}\n'
     (output / "result.json").write_bytes(raw)
     store.bind_environment(job.id, capture(settings, "opendde"))
     store.finish(job.id, Status.SUCCEEDED)

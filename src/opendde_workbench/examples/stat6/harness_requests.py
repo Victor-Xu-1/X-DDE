@@ -99,7 +99,11 @@ def harness_study(capability, objects, sequences, *, antibody=None):
         )
     elif capability == "epitope":
         payloads[capability]["cdr_regions"] = antibody["groups"]
-    paths = {str(obj.reference.asset_id): obj.reference for obj in objects.values()}
+    paths = {
+        str(obj.reference.asset_id): obj.reference
+        for key, obj in objects.items()
+        if key != "antibody_cdr_inputs"
+    }
     references = []
 
     def visit(value):

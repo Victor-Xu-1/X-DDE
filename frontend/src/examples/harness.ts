@@ -153,7 +153,8 @@ export function exampleHarnessInputs(
   const references = Object.entries(example.objects)
     .filter(
       ([key, obj]) =>
-        files.has(obj.reference.asset_id) || sources.includes(key),
+        key !== "antibody_cdr_inputs" &&
+        (files.has(obj.reference.asset_id) || sources.includes(key)),
     )
     .map(([, obj]) => obj.reference);
   if (
@@ -163,6 +164,11 @@ export function exampleHarnessInputs(
     for (const reference of example.request.scientific_inputs ?? [])
       if (
         files.has(reference.asset_id) &&
+        !(
+          example.objects.antibody_cdr_inputs &&
+          reference.version_id ===
+            example.objects.antibody_cdr_inputs.reference.version_id
+        ) &&
         !references.some(
           (value) => JSON.stringify(value) === JSON.stringify(reference),
         )

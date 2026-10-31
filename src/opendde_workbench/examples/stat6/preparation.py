@@ -220,15 +220,17 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         from .antibody_cdr_inputs import reviewed_antibody_cdr
         from .antibody_structure_input import variable_domain_atoms
 
+        if capability == "epitope":
+            for chain, role in (("A", "heavy"), ("B", "light")):
+                variable_domain_atoms(verified_input("dupilumab_complex"), sequences[role], chain)
         antibody = reviewed_antibody_cdr(
-            scientific, records, objects["variable_domains"], sequences
+            scientific,
+            records,
+            objects["variable_domains"],
+            sequences,
+            structure_parent=objects["structure"] if capability == "epitope" else None,
         )
         if antibody is not None:
-            if capability == "epitope":
-                for chain, role in (("A", "heavy"), ("B", "light")):
-                    variable_domain_atoms(
-                        verified_input("dupilumab_complex"), sequences[role], chain
-                    )
             objects["antibody_cdr_inputs"] = antibody["object"]
     from .experimental_inputs import evidence_draft
     from .requests import study_request

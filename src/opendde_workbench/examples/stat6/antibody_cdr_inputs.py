@@ -33,7 +33,9 @@ def interface_positions(result, sequences):
     return groups
 
 
-def reviewed_antibody_cdr(scientific, records, parent, sequences):
+def reviewed_antibody_cdr(
+    scientific, records, sequence_parent, sequences, *, structure_parent=None
+):
     """Curate immutable input provenance without inference or rewriting old results."""
     if records is None:
         return None
@@ -45,8 +47,8 @@ def reviewed_antibody_cdr(scientific, records, parent, sequences):
     job = scientific.store.get(str(pin.job_id))
     if job.request.operation != "antibody_number":
         raise ValueError("Interface annotations require a reviewed native numbering task.")
-    scientific.validate_reference(parent.reference)
-    if job.request.sequences.sha256 != parent.reference.sha256:
+    scientific.validate_reference(sequence_parent.reference)
+    if job.request.sequences.sha256 != sequence_parent.reference.sha256:
         raise ValueError("Numbering source differs from the selected variable-domain material.")
     source = scientific.assets.get(job.request.sequences.asset_id)
     output = records.settings.state_dir / "jobs" / str(pin.job_id) / "output"
@@ -63,7 +65,7 @@ def reviewed_antibody_cdr(scientific, records, parent, sequences):
     provenance = {
         "numbering_job": str(pin.job_id),
         "numbering_result_sha256": pin.artifact_sha256["result.json"],
-        "sequence_source": parent.reference.model_dump(mode="json"),
+        "sequence_source": sequence_parent.reference.model_dump(mode="json"),
         "scheme": result.scheme,
         "positions": "zero_based_sequence_order",
         "chains": {"A": sequences["heavy"], "B": sequences["light"]},
@@ -71,24 +73,23 @@ def reviewed_antibody_cdr(scientific, records, parent, sequences):
         "method": "Native IMGT region labels mapped by source_position minus one; no inference.",
         "scope": "6WGL deposited Fab / IL4Ralpha; STAT6 pathway, not direct STAT6 binding.",
     }
-    data = json.dumps(provenance, sort_keys=True).encode() + b"\n"
-    asset = scientific.assets.save("6WGL-variable-domain-CDR-inputs.json", "config", data)
+    # Annotation versions retain actual task-input bytes. A provenance-only
+    # config attachment is not an accepted Harness scientific input.
+    parent = structure_parent or sequence_parent
+    scientific.validate_reference(parent.reference)
+    if structure_parent is not None:
+        provenance["coordinate_source"] = parent.reference.model_dump(mode="json")
+    notes = json.dumps(provenance, sort_keys=True)
     obj = scientific.create(
         VersionInput(
-            asset_id=asset.id,
-            kind="analysis",
+            asset_id=parent.reference.asset_id,
+            kind=parent.kind,
             label="STAT6 pathway · Native-numbered Fv CDR inputs",
+            parent_id=parent.id,
             relation="prepared_from",
-            notes=json.dumps(
-                {
-                    key: value
-                    for key, value in provenance.items()
-                    if key not in {"chains", "cdr_regions"}
-                },
-                sort_keys=True,
-            ),
+            notes=notes,
         ),
-        uuid5(NAMESPACE, str(pin.job_id) + ":" + asset.sha256),
+        uuid5(NAMESPACE, str(pin.job_id) + ":" + str(parent.id) + ":" + notes),
         source_job=pin.job_id,
         validation="file_integrity_only",
     )

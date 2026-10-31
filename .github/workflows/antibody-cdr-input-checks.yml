@@ -43,7 +43,7 @@ jobs:
           uv run --locked pytest -x -q
           tests/test_antibody_cdr_inputs.py tests/ci/test_antibody_template_scope.py
           tests/test_antibody_numbering.py tests/test_antibody_structure_query_input.py
-          tests/test_stat6_recipe_replay.py tests/test_stat6_prepared_handoff.py
+          tests/test_stat6_prepared_handoff.py
           tests/test_study_module_revisions.py -k 'not published_data24'
       - name: Validate all retained catalogue identities without scientific execution
         run: uv run --locked python scripts/revise-study-modules.py

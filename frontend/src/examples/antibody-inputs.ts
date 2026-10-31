@@ -42,7 +42,7 @@ export function antibodyInputReference(
   const request = example.request;
   if (
     !object ||
-    object.kind !== "analysis" ||
+    object.kind !== (tool === "fold" ? "sequence" : "structure") ||
     request?.operation !== "harness" ||
     request.tool !== tool
   )

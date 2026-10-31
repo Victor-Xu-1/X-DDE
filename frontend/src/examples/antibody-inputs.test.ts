@@ -30,14 +30,19 @@ function fixture(tool: string): PreparedExample & { request: HarnessTask } {
           },
         }
       : {
-          structure_path: "asset:00000000-0000-4000-8000-000000000003",
+          structure_path: `asset:${reference.asset_id}`,
           antibody_chains: ["A", "B"],
           antigen_chains: ["C"],
           cdr_regions: groups,
           cutoff: 4.5,
         };
   return {
-    objects: { antibody_cdr_inputs: { kind: "analysis", reference } },
+    objects: {
+      antibody_cdr_inputs: {
+        kind: tool === "fold" ? "sequence" : "structure",
+        reference,
+      },
+    },
     sequences: {},
     request: {
       operation: "harness",
