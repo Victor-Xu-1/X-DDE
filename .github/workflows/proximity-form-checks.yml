@@ -4,6 +4,7 @@ on:
   push:
     paths: &form_paths
       - 'frontend/src/proximity/Form*'
+      - 'frontend/src/proximity/PartnerQuestion*'
       - 'frontend/src/proximity/Plan.tsx'
       - 'frontend/src/proximity/ExecutionSettings.tsx'
       - 'frontend/src/proximity/execution.ts'
@@ -23,9 +24,13 @@ jobs:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Bilingual resource choices, invalid seed, navigation and exact submitted request
+      - name: Bilingual resource choices, verified fragment mapping and exact submitted request
         working-directory: frontend
-        run: npx vitest run src/proximity/Form.test.tsx
+        run: >-
+          npx vitest run src/proximity/Form.test.tsx
+          src/proximity/PartnerQuestion.test.tsx
+          src/diffsbdd/ReferencePicker.test.tsx
+          src/diffsbdd/ReferencePickerLifecycle.test.tsx
       - name: Existing backend budget and chemical-input contract
         run: |
           uv sync --locked --group dev
