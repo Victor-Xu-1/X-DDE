@@ -215,6 +215,21 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         domain = reviewed_antibody_structure(scientific, originals["dupilumab_complex"])
         objects["receptor"] = domain
         objects["structure"] = domain
+    antibody = None
+    if capability in {"fold", "epitope"} and native_request is None:
+        from .antibody_cdr_inputs import reviewed_antibody_cdr
+        from .antibody_structure_input import variable_domain_atoms
+
+        antibody = reviewed_antibody_cdr(
+            scientific, records, objects["variable_domains"], sequences
+        )
+        if antibody is not None:
+            if capability == "epitope":
+                for chain, role in (("A", "heavy"), ("B", "light")):
+                    variable_domain_atoms(
+                        verified_input("dupilumab_complex"), sequences[role], chain
+                    )
+            objects["antibody_cdr_inputs"] = antibody["object"]
     from .experimental_inputs import evidence_draft
     from .requests import study_request
 
@@ -259,6 +274,17 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             if isinstance(reference, dict) and reference.get("version_id"):
                 objects[role] = scientific.get(reference["version_id"])
     study = study_context(capability)
+    if capability in {"fold", "epitope"} and native_request is None and antibody is None:
+        study = {
+            **study,
+            "required_materials": [
+                (
+                    "先完成并核对这对可变域的抗体编号，再加载完整 CDR 注释。",
+                    "Complete and review native numbering of these variable domains "
+                    "before loading their CDR annotations.",
+                )
+            ],
+        }
     if capability in {"evolution", "compare"} and "proposal_history" in objects:
         study = {
             **study,
@@ -319,7 +345,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         workflow_plan=workflow_plan,
         request=native_request
         if native_request is not None
-        else study_request(capability, objects, sequences),
+        else study_request(capability, objects, sequences, antibody=antibody),
         campaign_draft={
             "targetName": "STAT6 pathway · IL-4R alpha · 6WGL",
             "targets": {"C": sequences["antigen"]},

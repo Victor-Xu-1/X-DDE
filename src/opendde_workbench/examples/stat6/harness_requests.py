@@ -4,7 +4,9 @@ from ...harness_contract import HarnessTask
 from .catalogue import MANIFEST
 
 
-def harness_study(capability, objects, sequences):
+def harness_study(capability, objects, sequences, *, antibody=None):
+    if capability in {"fold", "epitope"} and antibody is None:
+        return None
     structure = "asset:" + str(objects["receptor"].reference.asset_id)
     complex_path = "asset:" + str(objects["structure"].reference.asset_id)
     sequence = sequences["protein"]
@@ -91,6 +93,12 @@ def harness_study(capability, objects, sequences):
     }
     if capability not in payloads:
         return None
+    if capability == "fold":
+        payloads[capability]["options"].update(
+            cdr_regions=antibody["cdr_regions"], cdr3_positions=antibody["cdr3_positions"]
+        )
+    elif capability == "epitope":
+        payloads[capability]["cdr_regions"] = antibody["groups"]
     paths = {str(obj.reference.asset_id): obj.reference for obj in objects.values()}
     references = []
 
@@ -120,6 +128,8 @@ def harness_study(capability, objects, sequences):
         reference = objects[role].reference
         if reference not in references:
             references.append(reference)
+    if capability in {"fold", "epitope"}:
+        references.append(objects["antibody_cdr_inputs"].reference)
     return HarnessTask(
         name=(
             "STAT6 pathway · "

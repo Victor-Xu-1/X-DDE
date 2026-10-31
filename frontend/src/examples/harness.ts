@@ -1,5 +1,6 @@
 import type { PreparedExample } from "./types";
 import { stat6HarnessPayload } from "./stat6-harness";
+import { antibodyInputReference } from "./antibody-inputs";
 
 export function exampleHarnessPayload(
   tool: string,
@@ -169,6 +170,8 @@ export function exampleHarnessInputs(
         references.push(reference);
   }
   const seen = new Set<string>();
+  const annotation = antibodyInputReference(tool, payload, example);
+  if (annotation) references.push(annotation);
   return references.filter((reference) => {
     const key = JSON.stringify(reference);
     if (seen.has(key)) return false;
