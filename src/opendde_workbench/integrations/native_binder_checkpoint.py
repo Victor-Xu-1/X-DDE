@@ -100,9 +100,15 @@ def inventory(root, count):
             if len(indices) != len(set(indices)):
                 raise ValueError("Checkpoint design indices contain ambiguous aliases.")
     for name in files:
+        parts = PurePosixPath(name).parts
+        if len(parts) == 3 and parts[1] == "fold_out_npz" and name.endswith(".npz"):
+            paired = f"{parts[0]}/refold_cif/{PurePosixPath(name).stem}.cif"
+            # The native writer saves NPZ before CIF, but --reuse checks only NPZ.
+            # Reject this interrupted write instead of silently skipping its structure.
+            if paired not in files:
+                raise ValueError("A calculated complex refold has no matching CIF structure.")
         if name.endswith(".cif") and name[:-4] + ".npz" not in files:
             # Native refold CIFs have their arrays in a sibling stage directory.
-            parts = PurePosixPath(name).parts
             sibling = {"refold_cif": "fold_out_npz", "refold_design_cif": "fold_out_design_npz"}
             paired = (
                 f"{parts[0]}/{sibling[parts[1]]}/{PurePosixPath(name).stem}.npz"

@@ -181,6 +181,35 @@ def test_native_checkpoint_rejects_truncated_arrays_missing_pairs_symlinks_and_o
         inventory(root, 2)
 
 
+def test_complex_refold_npz_written_before_cif_cannot_be_admitted_or_copied(source, tmp_path):
+    job, store, directory = source
+    root = directory / "output/native/designs"
+    folder = root / "intermediate_designs_inverse_folded"
+    arrays = folder / "fold_out_npz"
+    arrays.mkdir(parents=True)
+    array = arrays / "design_00.npz"
+    array.write_bytes((root / "intermediate_designs/design_00.npz").read_bytes())
+    before = array.read_bytes()
+    for check in (
+        lambda: inventory(root, 2),
+        lambda: describe(tmp_path, store, job.id),
+        lambda: restore(root, tmp_path / "child", {}, 2),
+    ):
+        with pytest.raises(ValueError, match="complex refold.*matching CIF"):
+            check()
+    assert array.read_bytes() == before
+    assert not (tmp_path / "child").exists()
+
+    structures = folder / "refold_cif"
+    structures.mkdir()
+    (structures / "design_00.cif").write_text("data_complete_native_pair_fixture\n")
+    summary = describe(tmp_path, store, job.id)
+    assert summary["counts"]["complex_refolded"] == 1
+    complete = inventory(root, 2)
+    restore(root, tmp_path / "child", complete, 2)
+    assert inventory(tmp_path / "child", 2) == complete == inventory(root, 2)
+
+
 def test_checkpoint_inspection_api_is_read_only_and_redacts_storage_errors(source, tmp_path):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
