@@ -4,6 +4,10 @@ from ...capabilities.definitions import CAPABILITIES
 from .simulation_guidance import simulation_steps
 
 OBJECTIVES = {
+    "epitope": (
+        "分析 6WGL Fab 与 IL-4Rα 的 STAT6 通路参考接触。",
+        "Analyze contacts in the deposited 6WGL Fab–IL-4Rα STAT6-pathway reference.",
+    ),
     "fold": (
         "重新预测 6WGL 抗体可变域与 IL-4Rα 的 STAT6 通路参考复合物。",
         "Re-predict the deposited 6WGL Fv–IL-4Rα STAT6-pathway reference complex.",
@@ -131,14 +135,36 @@ def steps(capability):
                 "reference, not a direct anti-STAT6 antibody.",
             ),
             (
-                "选择构象数量及可用计算资源；预测与实验参考分开保存。",
-                "Choose the sample count and available compute resources; "
+                "为任务命名并确认是否允许调用已配置的计算服务；预测与实验参考分开保存。",
+                "Name the task and approve the configured compute service; "
                 "keep the prediction separate from the experimental reference.",
             ),
             (
                 "比较预测与 6WGL 的链对应、界面和置信度；预测不能替代亲和力或功能实验。",
                 "Compare chain correspondence, interfaces and confidence against 6WGL; "
                 "prediction does not replace affinity or functional experiments.",
+            ),
+        ]
+    if capability == "epitope":
+        return [
+            (
+                "载入 6WGL 沉积复合物：Fab 链 A/B 与 IL-4Rα 链 C；这是 STAT6 通路参考。",
+                "Load deposited 6WGL: Fab chains A/B and IL-4Rα chain C, "
+                "a STAT6-pathway reference.",
+            ),
+            (
+                "核对原生编号提供的六个 CDR 区域和接触距离；重链与轻链分别统计。",
+                "Review the six native-numbered CDR regions and contact cutoff; "
+                "heavy and light chains are counted separately.",
+            ),
+            (
+                "为本次接触分析命名，再进入确认页。",
+                "Name this contact analysis and continue to review.",
+            ),
+            (
+                "确认结构、链和 CDR 区域；几何接触不代表亲和力或经验证的药效。",
+                "Confirm the structure, chains and CDR regions; geometric contacts "
+                "do not establish affinity or functional activity.",
             ),
         ]
     if capability == "protrek-structure":

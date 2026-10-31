@@ -7,6 +7,7 @@ on:
       - 'src/opendde_workbench/examples/stat6/preparation.py'
       - 'src/opendde_workbench/examples/stat6/requests.py'
       - 'src/opendde_workbench/examples/stat6/harness_requests.py'
+      - 'src/opendde_workbench/examples/stat6/guidance.py'
       - 'src/opendde_workbench/examples/stat6/module-revisions.json'
       - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - 'frontend/src/examples/antibody-inputs*'
@@ -77,6 +78,7 @@ jobs:
           src/opendde_workbench/examples/stat6/preparation.py
           src/opendde_workbench/examples/stat6/requests.py
           src/opendde_workbench/examples/stat6/harness_requests.py
+          src/opendde_workbench/examples/stat6/guidance.py
           tests/antibody_cdr_case.py tests/test_antibody_cdr_inputs.py
           tests/test_study_module_revisions.py tests/ci/test_antibody_template_scope.py
           scripts/antibody_template_scope.py server_tests/test_native_antibody_cdr_gate.py

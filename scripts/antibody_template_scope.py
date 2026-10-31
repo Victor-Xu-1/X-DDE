@@ -14,6 +14,7 @@ PATHS = (
     "src/opendde_workbench/examples/stat6/preparation.py",
     "src/opendde_workbench/examples/stat6/requests.py",
     "src/opendde_workbench/examples/stat6/harness_requests.py",
+    "src/opendde_workbench/examples/stat6/guidance.py",
     "src/opendde_workbench/examples/stat6/module-revisions.json",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "frontend/src/examples/harness.ts",

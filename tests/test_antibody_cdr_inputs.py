@@ -97,6 +97,10 @@ def test_reviewed_native_numbering_prefills_typed_requests_and_retains_source(se
     assert scientific.store.get(job.id).model_dump(mode="json") == before
     assert len(scientific.store.list_jobs()) == 1
     assert not prepared.study["required_materials"]
+    for wording in prepared.study["guide"]["steps"][0]:
+        assert "6WGL" in wording
+    if capability == "epitope":
+        assert "six native-numbered CDR" in prepared.study["guide"]["steps"][1][1]
 
 
 @pytest.mark.parametrize("reviewed", [False, True])
