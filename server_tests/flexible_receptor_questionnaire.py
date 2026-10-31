@@ -1,5 +1,7 @@
 """Inspect the bounded native sidechain selector without starting another model."""
 
+import json
+
 from playwright.sync_api import expect
 
 
@@ -67,5 +69,28 @@ def inspect_questionnaire(page, base, source, pair, zh, root, before, confirm):
     page.screenshot(path=root / (language + "-sidechain-selector.png"), full_page=True)
     next_button.click()
     expect(page.get_by_text("A:111", exact=True)).to_be_visible()
-    page.screenshot(path=root / (language + "-sidechain-review.png"), full_page=True)
+    submit = page.get_by_role(
+        "button", name="局部最小化" if zh else "Local minimization", exact=True
+    )
+    expect(submit).to_be_visible()
+
+    def appearance():
+        return submit.evaluate(
+            """(button) => {
+                const style = getComputedStyle(button);
+                return {text: button.textContent, disabled: button.disabled,
+                    hover: button.matches(':hover'), color: style.color,
+                    background: style.backgroundColor, image: style.backgroundImage,
+                    opacity: style.opacity};
+            }"""
+        )
+
+    initial = appearance()
+    page.mouse.move(0, 0)
+    page.screenshot(
+        path=root / (language + "-sidechain-review.png"), full_page=True, animations="disabled"
+    )
+    (root / (language + "-review-control-appearance.json")).write_text(
+        json.dumps({"initial": initial, "stable": appearance()}, indent=2)
+    )
     assert {job["id"] for job in page.request.get(base + "/api/jobs").json()} == before
