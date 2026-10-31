@@ -49,13 +49,24 @@ vi.mock("../examples/context", () => ({
 // checked by the real ReferencePicker consumer suite in this same focused gate.
 vi.mock("./PartnerStep", () => ({
   PartnerStep: ({
+    source,
+    onSource,
     arm,
     onArm,
   }: {
+    source: MoleculeRef | null;
+    onSource(v: MoleculeRef | null): void;
     arm: MoleculeRef | null;
     onArm(v: MoleculeRef | null): void;
   }) => (
     <>
+      <button
+        onClick={() => {
+          if (source) onSource({ ...source, version_id: "next-protein" });
+        }}
+      >
+        Choose protein version
+      </button>
       <button
         onClick={() => {
           onArm(null);
@@ -198,3 +209,20 @@ it("keeps the editor unavailable after failed verification and a later missing m
   fireEvent.click(screen.getByRole("button", { name: "Clear full molecule" }));
   expect(screen.queryByText(label("en"), { exact: true })).toBeNull();
 });
+
+it.each(["en", "zh"] as const)(
+  "resets local invalid correspondence when a cached protein version changes in %s",
+  (language) => {
+    render(<Study language={language} side="a" />);
+    fireEvent.click(screen.getByText(label(language), { exact: true }));
+    fireEvent.change(field(language), { target: { value: "1, 1, 2" } });
+    expect(field(language)).toHaveAttribute("aria-invalid", "true");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose protein version" }),
+    );
+    if (!field(language).closest("details")?.hasAttribute("open"))
+      fireEvent.click(screen.getByText(label(language), { exact: true }));
+    expect(field(language)).toHaveValue("");
+    expect(field(language)).toHaveAttribute("aria-invalid", "false");
+  },
+);

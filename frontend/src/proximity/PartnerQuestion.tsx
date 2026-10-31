@@ -54,7 +54,7 @@ export function PartnerQuestion({
       />
       {d.binary && d.ligand && protein && arm && (
         <AtomMapping
-          key={referenceKey(arm) + ":" + referenceKey(d.ligand)}
+          key={[protein, arm, d.ligand].map(referenceKey).join(":")}
           value={a ? d.payload.arm_a_map : d.payload.arm_b_map}
           language={language}
           onValid={a ? d.setMappingValidA : d.setMappingValidB}
