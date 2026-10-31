@@ -20,6 +20,7 @@ from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.result_download_probe import selected_pose_download
 
 
 def native_source(settings, store, original, name):
@@ -73,9 +74,15 @@ def scaling_metadata(scientific, job):
         )
 
 
+TRIALS = int(os.environ.get("WB_HANDOFF_TRIALS", "1"))
+if not 1 <= TRIALS <= 6:
+    raise ValueError("Archived download diagnosis permits at most six trials per language.")
+
+
+@pytest.mark.parametrize("trial", range(TRIALS))
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_registration(
-    language, width
+    language, width, trial
 ):
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
@@ -97,7 +104,7 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
     assert len(poses) >= 2, "Actual multi-pose native output is required for selection acceptance"
     before_jobs = {job.id for job in store.list_jobs(1000)}
     before_bytes = {pose.artifact: (root / pose.artifact).read_bytes() for pose in poses}
-    evidence = Path("outputs/result-handoff") / language
+    evidence = Path("outputs/result-handoff") / language / str(trial)
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     with (
@@ -167,13 +174,12 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
         )[0]
         assert expected not in scientific.list(200, source_job=source.id)
         try:
-            with page.expect_download() as event:
-                download.click()
+            downloaded = selected_pose_download(page, download, evidence)
         except Exception:
             page.screenshot(path=str(evidence / "download-failure.png"))
             (evidence / "download-failure.txt").write_text(page.locator("main").inner_text())
             raise
-        saved = Path(event.value.path())
+        saved = Path(downloaded.path())
         assert saved.read_bytes() == before_bytes[second.artifact]
         page.screenshot(path=str(evidence / "large-history-selected-pose.png"))
         follow.click()
