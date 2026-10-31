@@ -13,7 +13,10 @@ from opendde_workbench.examples.bundle_archive import sha256
 from opendde_workbench.examples.catalogue_profiles import historical_study_catalogue
 from opendde_workbench.examples.contracts import ExampleReview
 from opendde_workbench.examples.pins import ExamplePins
-from opendde_workbench.examples.stat6.antibody_cdr_inputs import interface_positions
+from opendde_workbench.examples.stat6.antibody_cdr_inputs import (
+    interface_positions,
+    replayed_antibody_cdr,
+)
 from opendde_workbench.examples.stat6.antibody_structure_input import (
     variable_domain_atoms,
     variable_domain_pdb,
@@ -129,6 +132,17 @@ def test_changed_domain_artifact_is_not_replaced_or_renumbered(settings):
         prepare_stat6("fold", scientific, records=records)
 
 
+@pytest.mark.parametrize("capability", ["fold", "epitope"])
+def test_retained_annotation_cannot_be_rebound_to_edited_cdr_positions(settings, capability):
+    scientific, records, *_ = numbering_case(settings)
+    prepared = prepare_stat6(capability, scientific, records=records)
+    changed = json.loads(json.dumps(prepared.request))
+    owner = changed["payload"]["options"] if capability == "fold" else changed["payload"]
+    owner["cdr_regions"] = {}
+    with pytest.raises(ValueError, match="differs from its interface annotation"):
+        replayed_antibody_cdr(scientific, changed)
+
+
 def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers(
     settings, tmp_path
 ):
@@ -167,18 +181,22 @@ def test_only_interface_module_revisions_advance_and_published_snapshots_remain_
 
 
 @pytest.mark.parametrize("capability", ["fold", "epitope"])
-def test_previous_unannotated_recipe_and_gate_evidence_are_not_rewritten(settings, capability):
+@pytest.mark.parametrize("annotated", [False, True])
+def test_sealed_recipe_and_gate_evidence_replay_exactly_with_their_annotation_scope(
+    settings, capability, annotated
+):
     scientific, records, *_ = numbering_case(settings)
     prepared = prepare_stat6(capability, scientific, records=records)
     request = json.loads(json.dumps(prepared.request))
-    owner = request["payload"]["options"] if capability == "fold" else request["payload"]
-    owner["cdr_regions"] = {}
-    owner.pop("cdr3_positions", None)
-    request["scientific_inputs"] = [
-        ref
-        for ref in request["scientific_inputs"]
-        if ref != prepared.objects["antibody_cdr_inputs"].reference.model_dump(mode="json")
-    ]
+    if not annotated:
+        owner = request["payload"]["options"] if capability == "fold" else request["payload"]
+        owner["cdr_regions"] = {}
+        owner.pop("cdr3_positions", None)
+        request["scientific_inputs"] = [
+            ref
+            for ref in request["scientific_inputs"]
+            if ref != prepared.objects["antibody_cdr_inputs"].reference.model_dump(mode="json")
+        ]
     store = scientific.store
     job = store.create(TASK_ADAPTER.validate_python(request), str(uuid4()), 20, 500)
     store.claim(job.id)
@@ -190,8 +208,9 @@ def test_previous_unannotated_recipe_and_gate_evidence_are_not_rewritten(setting
     store.bind_environment(job.id, capture(settings, "opendde"))
     store.finish(job.id, Status.SUCCEEDED)
     old = historical_study_catalogue(PREVIOUS)
-    previous = prepared.model_copy(update={"module": old.modules[capability]})
-    pins = ExamplePins(store, settings.state_dir, modules=old.modules)
+    modules = MODULES if annotated else old.modules
+    previous = prepared.model_copy(update={"module": modules[capability]})
+    pins = ExamplePins(store, settings.state_dir, modules=modules)
     pin = pins.pin(
         capability,
         job.id,
@@ -210,9 +229,13 @@ def test_previous_unannotated_recipe_and_gate_evidence_are_not_rewritten(setting
             ),
         ),
     )
-    replay = prepare_stat6(capability, scientific, records=records, modules=old.modules)
+    replay = prepare_stat6(capability, scientific, records=records, modules=modules)
     assert replay.request == request
     assert pins.get(capability, verify=True) == pin
     assert (output / "result.json").read_bytes() == raw
-    assert "antibody_cdr_inputs" not in replay.objects
-    assert ExamplePins(store, settings.state_dir, modules=MODULES).get(capability) is None
+    if annotated:
+        assert replay.objects["antibody_cdr_inputs"] == prepared.objects["antibody_cdr_inputs"]
+        scientific.assets.validate_bindings(TASK_ADAPTER.validate_python(replay.request))
+    else:
+        assert "antibody_cdr_inputs" not in replay.objects
+        assert ExamplePins(store, settings.state_dir, modules=MODULES).get(capability) is None

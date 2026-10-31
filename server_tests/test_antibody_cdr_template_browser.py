@@ -80,7 +80,11 @@ def test_numbered_interface_template_loads_reviews_and_resets_without_submitting
                 "checkbox", name="允许向配置" if zh else "Allow sending", exact=False
             ).check()
         next_step.click()
-        expect(page.locator(".questionnaire-review")).to_be_visible()
+        expect(
+            page.locator(".questionnaire-review").filter(
+                has_text="研究方法" if zh else "Research method"
+            )
+        ).to_be_visible()
         if tool == "fold":
             expect(
                 page.get_by_role("table", name="候选链 1" if zh else "Candidate chains 1")

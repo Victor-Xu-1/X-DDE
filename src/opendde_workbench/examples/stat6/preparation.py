@@ -216,6 +216,12 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         objects["receptor"] = domain
         objects["structure"] = domain
     antibody = None
+    if capability in {"fold", "epitope"} and native_request is not None:
+        from .antibody_cdr_inputs import replayed_antibody_cdr
+
+        retained = replayed_antibody_cdr(scientific, native_request)
+        if retained is not None:
+            objects["antibody_cdr_inputs"] = retained
     if capability in {"fold", "epitope"} and native_request is None:
         from .antibody_cdr_inputs import reviewed_antibody_cdr
         from .antibody_structure_input import variable_domain_atoms

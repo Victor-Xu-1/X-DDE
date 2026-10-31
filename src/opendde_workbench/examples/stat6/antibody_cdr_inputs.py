@@ -63,6 +63,8 @@ def reviewed_antibody_cdr(
     )
     groups = interface_positions(result, sequences)
     provenance = {
+        "kind": "antibody_interface_inputs",
+        "schema_version": 1,
         "numbering_job": str(pin.job_id),
         "numbering_result_sha256": pin.artifact_sha256["result.json"],
         "sequence_source": sequence_parent.reference.model_dump(mode="json"),
@@ -99,3 +101,46 @@ def reviewed_antibody_cdr(
         "cdr_regions": {chain: sum(regions.values(), []) for chain, regions in groups.items()},
         "cdr3_positions": {chain: regions["CDR3"] for chain, regions in groups.items()},
     }
+
+
+def replayed_antibody_cdr(scientific, request):
+    """Hydrate the sealed annotation version, independent of later numbering defaults."""
+    expected_kind = "sequence" if request["tool"] == "fold" else "structure"
+    candidates = []
+    for reference in request.get("scientific_inputs", []):
+        if not reference.get("version_id"):
+            continue
+        obj = scientific.get(reference["version_id"])
+        try:
+            notes = json.loads(obj.notes)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(notes, dict) or notes.get("kind") != "antibody_interface_inputs":
+            continue
+        if obj.kind != expected_kind or notes.get("schema_version") != 1:
+            raise ValueError("The saved interface annotation has a different input kind or schema.")
+        groups = notes["cdr_regions"]
+        payload = request["payload"]
+        if request["tool"] == "fold":
+            options = payload.get("options", {})
+            matches = (
+                [value.get("chains") for value in payload.get("candidates", [])]
+                == [notes["chains"]]
+                and options.get("binder_chain_ids") == list(notes["chains"])
+                and options.get("cdr_regions")
+                == {chain: sum(value.values(), []) for chain, value in groups.items()}
+                and options.get("cdr3_positions")
+                == {chain: value["CDR3"] for chain, value in groups.items()}
+            )
+        else:
+            matches = (
+                payload.get("structure_path") == "asset:" + str(obj.reference.asset_id)
+                and payload.get("antibody_chains") == list(notes["chains"])
+                and payload.get("cdr_regions") == groups
+            )
+        if not matches:
+            raise ValueError("The saved task differs from its interface annotation version.")
+        candidates.append(obj)
+    if len(candidates) > 1:
+        raise ValueError("The saved task has ambiguous interface annotation versions.")
+    return candidates[0] if candidates else None
