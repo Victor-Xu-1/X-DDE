@@ -5,7 +5,8 @@ import json
 
 def selected_pose_download(page, link, evidence):
     errors = []
-    record_error = errors.append
+    def record_error(error):
+        errors.append(error)
     page.on("pageerror", record_error)
     page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
     page.evaluate("""() => {
