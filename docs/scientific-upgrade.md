@@ -151,3 +151,37 @@ Source projects: [Boltz](https://github.com/jwohlwend/boltz),
 [APBS](https://github.com/Electrostatics/apbs),
 [PLIP](https://github.com/pharmai/plip),
 [Chemprop](https://github.com/chemprop/chemprop).
+# Optional local receptor sidechain refinement
+
+The GNINA existing-pose minimization task can optionally adjust one to eight
+explicitly selected, complete standard amino-acid sidechains. The default keeps
+the receptor fixed. Selection belongs to one exact receptor version and is cleared
+when that version changes. New docking searches and score-only tasks do not accept
+this option. Use a prepared heavy-atom receptor; the original user file is preserved.
+Unsupported residues, ambiguous alternates, declared external links, disulfides and
+metal-adjacent selected sidechains are rejected rather than silently omitted.
+
+The existing adapter runs the installed GNINA version with explicit residues and
+full receptor output, under the same task queue, immutable source snapshot, resource
+budget and container cleanup. It preserves the input receptor, raw native receptor,
+raw native ligand and a paired result. A shared native/host validator checks exact
+heavy-atom identity, requested native residue selection, fixed/backbone/cofactor
+coordinates, selected-residue bonds and original local handedness. Normalized output
+retains source identifiers, metadata and every fixed atom exactly; selected
+sidechain coordinates come from the native result, without alignment or atom-name
+reassignment. Checksums bind that receptor to the actual native ligand file.
+
+The preview and subsequent score/pose-quality tasks use the registered receptor
+from the same refinement. If that paired receptor is unavailable, those actions stay
+disabled instead of falling back to the input protein. Raw diagnostic receptor
+copies are downloadable but are not registered as qualified research versions.
+Historical rigid requests/results omit the new optional fields and keep their
+canonical representations, existing example pins and original assets.
+
+This is local empirical optimization of a structural hypothesis. GNINA does not
+report a convergence certificate in this protocol; the UI retains that limitation.
+An improved score, native exit success or these basic geometry checks do not prove
+correct binding, ternary cooperativity, degradation or experimental activity.
+Whole-assembly steric/contact/stereochemical checks remain necessary before a
+STAT6 result can be promoted to a research example. This feature does not rebuild
+missing receptor segments or introduce molecular dynamics/FEP.

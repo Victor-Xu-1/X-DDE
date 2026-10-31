@@ -1,6 +1,14 @@
 import type { BaseTask } from "../operations/types";
 import type { MoleculeRef } from "../research/types";
 export type DockingMode = "dock" | "score" | "minimize";
+export interface FlexibleResidue {
+  chain: string;
+  number: number;
+  insertion_code: string;
+}
+export interface FlexibleReceptor {
+  residues: FlexibleResidue[];
+}
 export interface SearchBox {
   center: [number, number, number];
   size: [number, number, number];
@@ -23,6 +31,7 @@ export interface DockingTask extends BaseTask {
   pose_frame: MoleculeRef | null;
   pose_coordinate_basis: "user_confirmed" | null;
   options: Record<string, unknown>;
+  flexible_receptor?: FlexibleReceptor;
 }
 export interface PoseResult {
   record: number;
@@ -77,6 +86,13 @@ export interface DockingResult {
   };
   poses: PoseResult[];
   scientific_outcome: string;
+  receptor_refinement?: FlexibleReceptor & {
+    method: "gnina_local_sidechains_v1";
+    input_receptor_artifact: "input-receptor.pdb";
+    moved_sidechain_atoms: number;
+    maximum_sidechain_displacement_angstrom: number;
+    convergence: "not_reported";
+  };
   reference_comparison?: {
     reference: MoleculeRef;
     role: "search_reference" | "input_pose";
