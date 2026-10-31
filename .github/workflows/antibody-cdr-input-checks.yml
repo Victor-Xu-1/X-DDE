@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 18
     env:
       WB_AUTO_DEPLOY: '0'
-      PYTHONPATH: tests:src
+      PYTHONPATH: .:tests:src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
