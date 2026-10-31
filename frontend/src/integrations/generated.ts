@@ -29,6 +29,7 @@ export const nativeDefaults = {
     candidates: 20,
     retain: 5,
     scaffold_chain: null,
+    continuation: null,
   },
   openmm: {
     kind: "openmm",

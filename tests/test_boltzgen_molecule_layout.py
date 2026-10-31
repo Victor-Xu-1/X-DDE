@@ -60,8 +60,9 @@ def test_flat_archive_readiness_and_missing_extracted_component_fail_closed(tmp_
 
 
 @pytest.mark.parametrize("modality", ["protein", "peptide"])
+@pytest.mark.parametrize("continuation", [False, True])
 def test_native_dispatch_points_to_the_actual_verified_flat_library(
-    tmp_path, monkeypatch, modality
+    tmp_path, monkeypatch, modality, continuation
 ):
     root = Path(__file__).resolve().parents[1] / "src/opendde_workbench/integrations"
     monkeypatch.syspath_prepend(str(root))
@@ -77,6 +78,18 @@ def test_native_dispatch_points_to_the_actual_verified_flat_library(
     monkeypatch.setattr(
         native, "Path", lambda value: models if value == "/models" else output / "native"
     )
+    restored = []
+    if continuation:
+        import sys
+        from types import SimpleNamespace
+
+        monkeypatch.setitem(
+            sys.modules,
+            "native_binder_checkpoint",
+            SimpleNamespace(
+                restore_bound_checkpoint=lambda request, target: restored.append(target)
+            ),
+        )
     captured = []
 
     class NativeInvocationReached(Exception):
@@ -98,6 +111,11 @@ def test_native_dispatch_points_to_the_actual_verified_flat_library(
                     "length": [70, 90],
                     "candidates": 4,
                     "retain": 2,
+                    **(
+                        {"continuation": {"job_id": "stopped-source", "sha256": "a" * 64}}
+                        if continuation
+                        else {}
+                    ),
                 }
             }
         )
@@ -111,6 +129,8 @@ def test_native_dispatch_points_to_the_actual_verified_flat_library(
     assert "--seed" not in captured
     assert captured[captured.index("--use_kernels") + 1] == "false"
     assert captured[captured.index("--protocol") + 1] == modality + "-anything"
+    assert ("--reuse" in captured) is continuation
+    assert restored == ([output / "native/designs"] if continuation else [])
     import yaml
 
     specification = yaml.safe_load((output / "native/design.yaml").read_text())

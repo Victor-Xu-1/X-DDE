@@ -1,4 +1,5 @@
 import { ConstraintReceipt } from "./constraints/ConstraintReceipt";
+import { BinderContinuation } from "./integrations/BinderContinuation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { api, artifactUrl } from "./api";
 import { translator } from "./i18n";
@@ -203,6 +204,12 @@ export function TaskDetail({
           {t("connectionError")}
         </div>
       )}
+      <BinderContinuation
+        job={job}
+        language={language}
+        onCreated={onChange}
+        available={retryAvailable}
+      />
       {job.status === "succeeded" &&
         job.request.operation &&
         job.request.operation !== "predict" && (
