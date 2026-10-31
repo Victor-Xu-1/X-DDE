@@ -217,10 +217,13 @@ def test_declared_external_links_and_hydrogen_profile_keep_the_original_files_in
 
 
 def test_receipt_is_bound_to_the_requested_selection_and_immutable_receptor(tmp_path):
+    from types import SimpleNamespace
+
     from test_docking_reference import body
 
     from opendde_workbench.docking.flexible_validation import verify_refinement
     from opendde_workbench.docking.result import DockingResult
+    from opendde_workbench.workflows.quality_bindings import validate_source
 
     source = protein()
     output, receipt = normalize(
@@ -247,6 +250,15 @@ def test_receipt_is_bound_to_the_requested_selection_and_immutable_receptor(tmp_
     ):
         (tmp_path / name).write_bytes(raw)
     verify_refinement(tmp_path, request, result)
+    (tmp_path / "result.json").write_text(result.model_dump_json())
+    # Workflow bindings also accept the updated receptor, never require the old digest.
+    request = request.model_copy(update={"ligand": result.ligand, "options": result.options})
+    validate_source(
+        SimpleNamespace(target="quality_protein"),
+        SimpleNamespace(request=request),
+        tmp_path,
+        tmp_path / "receptor.pdb",
+    )
     changed = request.model_copy(
         update={"flexible_receptor": FlexibleReceptor(residues=[{"chain": "A", "number": 2}])}
     )

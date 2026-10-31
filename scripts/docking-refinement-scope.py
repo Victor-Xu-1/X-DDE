@@ -4,6 +4,10 @@ import os
 import subprocess
 
 FILES = {
+    "src/opendde_workbench/research/pose_minimization.py",
+    "src/opendde_workbench/workflows/quality_bindings.py",
+    "tests/test_docking.py",
+    ".github/workflows/workflow-quality-checks.yml",
     "src/opendde_workbench/docking/contract.py",
     "src/opendde_workbench/docking/native.py",
     "src/opendde_workbench/docking/result.py",

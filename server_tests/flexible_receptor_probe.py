@@ -102,6 +102,10 @@ def inspect_refinement(settings, receptor_raw, ligand_reference, evidence):
         ligand = next(v["reference"] for v in versions if v["label"] == "pose-001.sdf")
         assert receptor["sha256"] == receipt["receptor_sha256"]
         assert receptor["sha256"] != source["sha256"]
+        saved = client.post("/api/research/poses/" + identifier + "/save", json={})
+        assert saved.status_code == 200, saved.text
+        assert saved.json()["receptor"] == receptor
+        assert saved.json()["pose"]["reference"] == ligand
         followup = {
             "operation": "docking",
             "name": "Rescore the exact refined pair",
