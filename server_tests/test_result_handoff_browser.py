@@ -74,9 +74,15 @@ def scaling_metadata(scientific, job):
         )
 
 
+TRIALS = int(os.environ.get("WB_HANDOFF_TRIALS", "1"))
+if not 1 <= TRIALS <= 6:
+    raise ValueError("Archived download diagnosis permits at most six trials per language.")
+
+
+@pytest.mark.parametrize("trial", range(TRIALS))
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_registration(
-    language, width
+    language, width, trial
 ):
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
@@ -98,7 +104,7 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
     assert len(poses) >= 2, "Actual multi-pose native output is required for selection acceptance"
     before_jobs = {job.id for job in store.list_jobs(1000)}
     before_bytes = {pose.artifact: (root / pose.artifact).read_bytes() for pose in poses}
-    evidence = Path("outputs/result-handoff") / language
+    evidence = Path("outputs/result-handoff") / language / str(trial)
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     with (

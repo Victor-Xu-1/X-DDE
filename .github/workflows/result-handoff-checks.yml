@@ -1,6 +1,12 @@
 name: Exact result material handoff checks
 on:
   workflow_dispatch:
+    inputs:
+      trials:
+        description: Bounded repetitions of this exact archived download path
+        type: choice
+        default: '1'
+        options: ['1', '6']
   push:
     paths: &handoff_paths
       - "frontend/src/docking/usePoseAssets*"
@@ -31,6 +37,7 @@ jobs:
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: "0"
+      WB_HANDOFF_TRIALS: ${{ inputs.trials || '1' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
