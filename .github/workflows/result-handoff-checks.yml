@@ -16,6 +16,7 @@ on:
       - "src/opendde_workbench/research/storage.py"
       - "tests/test_result_version_lookup.py"
       - "server_tests/test_result_handoff_browser.py"
+      - "server_tests/result_download_probe.py"
       - ".github/workflows/result-handoff-checks.yml"
       # Candidate inspection has direct handoff regressions in the fixed-stage gate.
       - "!frontend/src/datasets/CandidateView*"

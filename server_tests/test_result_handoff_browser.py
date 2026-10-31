@@ -20,6 +20,7 @@ from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.result_download_probe import selected_pose_download
 
 
 def native_source(settings, store, original, name):
@@ -167,13 +168,12 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
         )[0]
         assert expected not in scientific.list(200, source_job=source.id)
         try:
-            with page.expect_download() as event:
-                download.click()
+            downloaded = selected_pose_download(page, download, evidence)
         except Exception:
             page.screenshot(path=str(evidence / "download-failure.png"))
             (evidence / "download-failure.txt").write_text(page.locator("main").inner_text())
             raise
-        saved = Path(event.value.path())
+        saved = Path(downloaded.path())
         assert saved.read_bytes() == before_bytes[second.artifact]
         page.screenshot(path=str(evidence / "large-history-selected-pose.png"))
         follow.click()
