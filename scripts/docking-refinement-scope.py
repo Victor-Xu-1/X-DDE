@@ -55,6 +55,10 @@ def selected(changed):
 
 def main():
     base = os.environ.get("BASE", "")
+    if os.environ.get("GITHUB_REF_NAME", "main") != "main":
+        base = subprocess.check_output(
+            ["git", "merge-base", "origin/main", "HEAD"], text=True
+        ).strip()
     if os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch" and (
         not base or set(base) == {"0"}
     ):
