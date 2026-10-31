@@ -5,6 +5,7 @@ from pathlib import Path
 
 from opendde_workbench.container_supervision import attach
 from opendde_workbench.docking.contract import DockingTask
+from opendde_workbench.docking.flexible_validation import verify_refinement
 from opendde_workbench.docking.result import DockingResult
 from opendde_workbench.research.constraint_contract import ConstraintExecution
 
@@ -26,6 +27,7 @@ def main():
         or result.constraint_reference != request.constraints
     ):
         raise ValueError("Native result does not match the exact task request.")
+    verify_refinement(directory / "output", request, result)
     if request.constraints:
         receipt = ConstraintExecution.model_validate_json(
             (directory / "constraint-execution.json").read_text()

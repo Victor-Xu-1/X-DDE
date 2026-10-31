@@ -42,6 +42,7 @@ jobs:
   scope:
     runs-on: ubuntu-24.04
     outputs:
+      refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       comparison_only: ${{ steps.scope.outputs.comparison_only }}
     steps:
       - uses: actions/checkout@v4
@@ -66,9 +67,14 @@ jobs:
           done < <(git diff --name-only "$BASE" HEAD)
           [[ "$found" = true ]] || only=false
           echo "comparison_only=$only" >> "$GITHUB_OUTPUT"
+      - id: refinement
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/docking-refinement-scope.py
+
   reference-comparison:
     needs: scope
-    if: needs.scope.outputs.comparison_only == 'true'
+    if: needs.scope.outputs.comparison_only == 'true' && needs.scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -86,7 +92,7 @@ jobs:
           src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
     needs: scope
-    if: needs.scope.outputs.comparison_only != 'true'
+    if: needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

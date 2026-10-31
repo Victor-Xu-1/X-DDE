@@ -12,6 +12,11 @@ NATIVE_FILES = (
     "receptor_input.py",
     "reference.py",
     "scoring.py",
+    "flexible_contract.py",
+    "receptor_atoms.py",
+    "flexible_receptor.py",
+    "residue_geometry.py",
+    "receptor_links.py",
 )
 
 

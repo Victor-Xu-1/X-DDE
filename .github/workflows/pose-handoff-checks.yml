@@ -45,7 +45,21 @@ on:
 permissions:
   contents: read
 jobs:
+  refinement-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      refinement_only: ${{ steps.refinement.outputs.refinement_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: refinement
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/docking-refinement-scope.py
   pose-continuity:
+    needs: refinement-scope
+    if: needs.refinement-scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

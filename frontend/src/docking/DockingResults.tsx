@@ -1,4 +1,5 @@
 import { searchNotice } from "./searchNotice";
+import { ReceptorRefinementSummary } from "./ReceptorRefinementSummary";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
@@ -56,8 +57,18 @@ export function DockingResults({
   const target: PoseAssetTarget | null = selected?.artifact
     ? { name: selected.artifact, kind: "molecule", record: 0 }
     : null;
-  const assets = usePoseAssets(job.id, target ? [target] : []);
+  const receptorTarget: PoseAssetTarget | null =
+    result.receptor_refinement && target
+      ? { name: result.receptor_artifact, kind: "structure", record: 0 }
+      : null;
+  const assets = usePoseAssets(
+    job.id,
+    target ? [target, ...(receptorTarget ? [receptorTarget] : [])] : [],
+  );
   const version = target ? assets.object(target) : undefined;
+  const pairedReceptor = receptorTarget
+    ? assets.object(receptorTarget)?.reference
+    : result.receptor;
   const frame = {
     urls: selected?.artifact
       ? [
@@ -95,7 +106,7 @@ export function DockingResults({
             language={language}
             initialMolecule={nextInput}
             initialProtein={
-              handoff.value?.selection.receptor ?? result.receptor
+              handoff.value?.selection.receptor ?? pairedReceptor ?? null
             }
             onCreated={() =>
               setMessage(zh ? "质控任务已创建。" : "Quality task created.")
@@ -106,7 +117,7 @@ export function DockingResults({
             mode={next}
             language={language}
             initialReceptor={
-              handoff.value?.selection.receptor ?? result.receptor
+              handoff.value?.selection.receptor ?? pairedReceptor ?? null
             }
             initialLigand={nextInput}
             initialBox={
@@ -129,6 +140,11 @@ export function DockingResults({
           ? "经验评分用于同一方法下比较候选，不是实测亲和力。化学与坐标检查通过也不等于结合模式已被实验确认。"
           : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
       </p>
+      <ReceptorRefinementSummary
+        jobId={job.id}
+        result={result}
+        language={language}
+      />
       {result.mode === "dock" && (
         <p className="field-help">
           {searchNotice(language, result.search_report)}
@@ -217,11 +233,18 @@ export function DockingResults({
                                   disabled={
                                     !selection.ready ||
                                     ((v === "score" || v === "quality") &&
-                                      selection.displayed &&
-                                      selection.receptor === null)
+                                      ((selection.displayed &&
+                                        selection.receptor === null) ||
+                                        (!selection.displayed &&
+                                          !pairedReceptor)))
                                   }
                                   onClick={() => {
-                                    handoff.open(v, selection);
+                                    handoff.open(v, {
+                                      ...selection,
+                                      receptor: selection.displayed
+                                        ? selection.receptor
+                                        : pairedReceptor,
+                                    });
                                   }}
                                 >
                                   {
@@ -294,6 +317,21 @@ export function DockingResults({
           <PoseViolations poses={result.poses} language={language} />
         </div>
       </StructureWorkbench>
+      {receptorTarget && !pairedReceptor && (
+        <p role="status">
+          {zh
+            ? "后续姿势研究需要读取同次优化的蛋白。"
+            : "Further pose studies need the receptor from this same refinement."}{" "}
+          <button
+            type="button"
+            className="text-button"
+            disabled={assets.busy}
+            onClick={() => void assets.refresh()}
+          >
+            {zh ? "读取成对蛋白" : "Load paired receptor"}
+          </button>
+        </p>
+      )}
       {assets.busy && (
         <button type="button" className="text-button" onClick={assets.cancel}>
           {zh ? "取消读取" : "Cancel loading"}

@@ -16,8 +16,11 @@ from chemistry import (
     plain_smiles,
     summarize_poses,
 )
+from flexible_contract import FlexibleReceptor, ReceptorRefinement
+from flexible_receptor import normalize, validate_selection
 from manifest import BINARY_SHA256, VERSION
 from options import DockingOptions, SearchBox, arguments, parse_search_report
+from receptor_atoms import parse_atoms
 from receptor_input import require_explicit_alternates
 from reference import ReferenceGeometry
 from scoring import parse_score_only
@@ -43,12 +46,25 @@ def main():
     receptor = MoleculeRef.model_validate(request["receptor"])
     ligand = MoleculeRef.model_validate(request["ligand"])
     mode = request["mode"]
+    flexible = (
+        FlexibleReceptor.model_validate(request["flexible_receptor"])
+        if request.get("flexible_receptor") is not None
+        else None
+    )
+    if flexible is not None and mode != "minimize":
+        raise ValueError("Selected sidechains require existing-pose local minimization.")
     binary = Path("/opt/gnina/gnina")
     if digest(binary) != BINARY_SHA256:
         raise ValueError("Native executable failed its pinned digest check.")
     protein = bound(receptor, bindings, ".pdb")
     require_explicit_alternates(protein.read_bytes())
     protein_text = protein.read_text()
+    if flexible is not None:
+        validate_selection(
+            parse_atoms(protein.read_bytes(), reject_hydrogens=True),
+            flexible.tokens,
+            protein.read_bytes(),
+        )
     if protein_text.count("MODEL ") > 1 or not any(
         line.startswith("ATOM  ") for line in protein_text.splitlines()
     ):
@@ -76,6 +92,16 @@ def main():
         writer.write(export_molecule(original))
     output = root / "poses.sdf"
     args = [str(binary), "-r", str(protein), "-l", str(normalized)] + arguments(options, mode)
+    if flexible is not None:
+        args.extend(
+            [
+                "--flexres",
+                ",".join(flexible.tokens),
+                "--out_flex",
+                str(root / "native-flex-receptor.pdb"),
+                "--full_flex_output",
+            ]
+        )
     search = request.get("search")
     reference_geometry = None
     if mode == "dock":
@@ -176,7 +202,23 @@ def main():
             with Chem.SDWriter(str(file)) as writer:
                 writer.write(export_molecule(comparison_graph(supplier[pose["record"]])))
             pose["diagnostic_artifact"] = file.name
-    shutil.copyfile(protein, root / "receptor.pdb")
+    refinement = None
+    if flexible is None:
+        shutil.copyfile(protein, root / "receptor.pdb")
+    else:
+        raw_receptor = root / "native-flex-receptor.pdb"
+        if raw_receptor.is_symlink() or raw_receptor.stat().st_size > 25 * 1024**2:
+            raise ValueError("Native full-receptor output is unsafe or oversized.")
+        prepared, receipt = normalize(
+            protein.read_bytes(),
+            raw_receptor.read_bytes(),
+            flexible.tokens,
+            text,
+            output.read_bytes(),
+        )
+        refinement = ReceptorRefinement.model_validate(receipt).model_dump(mode="json")
+        shutil.copyfile(protein, root / "input-receptor.pdb")
+        (root / "receptor.pdb").write_bytes(prepared)
     result = {
         "operation": "docking",
         "complete": True,
@@ -198,6 +240,7 @@ def main():
         "raw_pose_artifact": "poses.sdf",
         "constraint_reference": request.get("constraints"),
         "receptor_artifact": "receptor.pdb",
+        **({"receptor_refinement": refinement} if refinement is not None else {}),
         "scientific_outcome": "candidates" if any(p["valid"] for p in poses) else "no_valid_pose",
         "scientific_acceptance": "pending_server_validation",
         "coordinate_provenance": "user_confirmed"

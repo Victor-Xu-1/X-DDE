@@ -65,6 +65,18 @@ on:
 permissions:
   contents: read
 jobs:
+  refinement-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      refinement_only: ${{ steps.refinement.outputs.refinement_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: refinement
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/docking-refinement-scope.py
   coordinate-confirmation:
     if: github.event_name == 'workflow_dispatch' && inputs.coordinate_confirmation_only
     runs-on: ubuntu-24.04
@@ -90,7 +102,8 @@ jobs:
           name: coordinate-confirmation-evidence
           path: outputs/coordinate-confirmation
   inputs:
-    if: ${{ !inputs.coordinate_confirmation_only }}
+    needs: refinement-scope
+    if: ${{ !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

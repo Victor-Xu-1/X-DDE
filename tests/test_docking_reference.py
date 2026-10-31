@@ -84,6 +84,7 @@ def test_reference_distances_preserve_native_status_and_legacy_results():
     old = DockingResult.model_validate(legacy)
     assert old.reference_comparison is None
     serialized = old.model_dump(mode="json")
+    assert "receptor_refinement" not in serialized
     assert "reference_comparison" not in serialized
     assert "reference_rmsd" not in serialized["poses"][0]
     assert value == original
