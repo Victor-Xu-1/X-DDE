@@ -7,6 +7,7 @@ from pydantic import Field, model_serializer, model_validator
 from ..research.constraint_contract import ConstraintReference
 from ..scientific_objects import MoleculeRef, ScientificModel
 from .contract import Search
+from .flexible_contract import ReceptorRefinement
 from .manifest import BINARY_SHA256, VERSION
 from .options import DockingOptions, SearchReport
 from .quality import BoundsCheck
@@ -122,6 +123,7 @@ class DockingResult(ScientificModel):
     coordinate_provenance: Literal["user_confirmed", "receptor_anchored_box"]
     notes: str = Field(max_length=2000)
     reference_comparison: ReferenceComparison | None = None
+    receptor_refinement: ReceptorRefinement | None = None
 
     @model_serializer(mode="wrap")
     def serialize(self, handler):
@@ -130,10 +132,17 @@ class DockingResult(ScientificModel):
             value.pop("reference_comparison", None)
         if self.search_report is None:
             value.pop("search_report", None)
+        if self.receptor_refinement is None:
+            value.pop("receptor_refinement", None)
         return value
 
     @model_validator(mode="after")
     def provenance(self) -> Self:
+        if self.receptor_refinement is not None and (
+            self.mode != "minimize"
+            or self.receptor_refinement.original_receptor_sha256 != self.receptor.sha256
+        ):
+            raise ValueError("Refined receptor requires the exact local-minimization source.")
         if self.search_report is not None and self.mode != "dock":
             raise ValueError("A search box report is only valid for docking.")
         if (

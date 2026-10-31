@@ -7,6 +7,7 @@ from ..chemistry.minimization_contract import MoleculeMinimizeTask
 from ..chemistry.minimization_options import MinimizationOptions
 from ..chemistry.minimization_result import validate_minimization
 from ..docking.contract import DockingTask
+from ..docking.flexible_validation import verify_refinement
 from ..docking.options import DockingOptions
 from ..docking.result import DockingResult
 from ..models import Status
@@ -66,6 +67,7 @@ class PoseMinimization:
             }
         elif job.request.operation == "docking" and job.request.mode == "minimize":
             result = DockingResult.model_validate(value)
+            verify_refinement(root, job.request, result)
             if (
                 result.mode != "minimize"
                 or result.ligand != job.request.ligand
@@ -87,6 +89,13 @@ class PoseMinimization:
                 "scope": "whole_pose",
             }
             receptor = job.request.receptor.model_dump(mode="json")
+            if result.receptor_refinement is not None:
+                _, structures = self.sources.outputs.preserve(
+                    job.id, contained(root, result.receptor_artifact), "structure"
+                )
+                if len(structures) != 1:
+                    raise ValueError("Refined pose must retain its exact paired receptor version.")
+                receptor = structures[0].reference.model_dump(mode="json")
         else:
             raise ValueError("This task is not a preview pose minimization.")
         _, versions = self.sources.outputs.preserve(job.id, contained(root, artifact), "ligand")

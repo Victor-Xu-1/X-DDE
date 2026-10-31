@@ -50,6 +50,14 @@ class OutputCatalog:
         from ..docking.result import DockingResult
 
         result = DockingResult.model_validate_json(report.read_text())
+        from ..docking.flexible_validation import verify_refinement
+
+        verify_refinement(root, job.request, result)
+        if result.receptor_refinement is not None and (
+            file.name in {"input-receptor.pdb", "native-flex-receptor.pdb"}
+            or (file.name == result.receptor_artifact and not any(p.valid for p in result.poses))
+        ):
+            raise ValueError("Diagnostic receptor copies are not a qualified paired result.")
         if (result.raw_pose_artifact and file.name == result.raw_pose_artifact) or any(
             file.name == p.diagnostic_artifact for p in result.poses
         ):
@@ -550,7 +558,20 @@ class OutputCatalog:
                         raise ValueError("Docking output report exceeds its typed limit.")
                     result = DockingResult.model_validate_json(manifest.read_text())
                     if (
-                        any(artifact.name == p.diagnostic_artifact for p in result.poses)
+                        (
+                            result.receptor_refinement is not None
+                            and artifact.name
+                            in {
+                                "input-receptor.pdb",
+                                "native-flex-receptor.pdb",
+                            }
+                        )
+                        or (
+                            result.receptor_refinement is not None
+                            and artifact.name == result.receptor_artifact
+                            and not any(p.valid for p in result.poses)
+                        )
+                        or any(artifact.name == p.diagnostic_artifact for p in result.poses)
                         or artifact.name == result.raw_pose_artifact
                         or (
                             artifact.name == result.pose_artifact
