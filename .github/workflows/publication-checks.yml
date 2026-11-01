@@ -86,7 +86,23 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: change
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/case-data-scope.py
   publication:
+    needs: scope
+    # Exact original-file menu bounds and real downloads use the retained-stage gate.
+    if: needs.scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

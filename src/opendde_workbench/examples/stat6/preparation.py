@@ -147,13 +147,15 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
     }:
         objects["ligand"] = originals["calculated_pose"]
         objects["receptor"] = originals["calculated_receptor"]
-    if capability in {"diffsbdd.diversify", "diffsbdd.optimize"}:
+    if capability in {"diffsbdd.diversify", "diffsbdd.optimize"} or (
+        capability == "reinvent.design" and module.revision >= 5
+    ):
         from .prepared_inputs import reviewed_protein_only_receptor
 
         experimental = reviewed_protein_only_receptor(scientific, records)
         if experimental is not None:
-            # A curated control input, not a replacement for the native paired
-            # prediction frame or permission to admit arbitrary follow-up roots.
+            # A reviewed downstream/comparison control never rewrites the sealed
+            # native request or admits arbitrary follow-up roots.
             objects["experimental_receptor_control"] = experimental
     if capability in {"chemprop.train", "chemistry.screen"}:
         library_key = (

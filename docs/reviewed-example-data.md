@@ -4,12 +4,37 @@ These immutable archives contain actual native inputs, outputs, provenance and m
 
 | Archive | Primary module examples | Additional workflow example | Native scope |
 | --- | ---: | ---: | --- |
-| STAT6 data 34 | 57 | 1 | Defined-molecule studies, reviewed SH2 pose hypotheses, independent quality of the supplied ligand against observed 9BIG, native ESM2 and backbone-conditioned surface-construct proposals, complete alignments, an antibody-family structural search, and a bounded research workflow |
+| STAT6 data 35 | 57 | 1 | Defined-molecule studies, linked R-group state/docking/quality stages, reviewed SH2 pose hypotheses, native ESM2 and backbone-conditioned surface-construct proposals, complete alignments, an experimental antibody contact reference, an antibody-family structural search, and a bounded research workflow |
 | DEL data 4 | 9 | 0 | Public UNC DEL006 / BRD4 selection data, including independent held-out building-block validation |
 
 The required primary-module acceptance ledger is **66/71**. Five primary cases remain unaccepted; MD and FEP remain excluded and paused. Archive installation is a technical data-delivery check, separate from experimental validation of a scientific conclusion.
 
-Data 34 advances only the pose-quality example to revision 4. The supplied ligand's
+Data 35 advances the original-exit R-group example to revision 5. Its unchanged
+generation has 18 candidates; analogue 001 retains 10 states and 20 minimized
+free conformers. Its neutral and monocation docking tasks keep their exact native
+poses, receptor frame and fresh frontend-submitted quality reports. Each quality
+report has 15 assessed passes, six unassessed water/cofactor checks and one
+inapplicable check. Native copies of the reviewed receptor require the original
+preparation job, exact source version and unchanged output bytes; matching file
+content alone never authorizes another case. Neither a state number nor a docking
+score is a microstate population or binding free energy.
+
+The retained neutral and monocation poses use the original aromatic tautomer,
+with the positive charge on the N-methylpiperazine nitrogen. Their starting
+conformers are converged minima within each generated chemical state. Shared
+conformer records 2 and 9 correspond to chemical states 0 and 5, respectively
+(zero-based); these indices are not interchangeable. The native enumeration
+range is pH 6.8–7.8. It does not calculate experimental pKa or state populations,
+and force-field energies must not be compared across those charge states.
+
+The package also carries the already reviewed revision-4 experimental 6WGL
+antibody contact reference: 281 direct protein pairs and 13 water-involving pairs,
+reported separately. This is an IL-4Rα reference in the STAT6 pathway, not a new
+STAT6 binder prediction. Other module identities and results remain unchanged;
+the primary acceptance count does not increase. Data 34 remains an immutable
+historical cohort and replay must preserve both newer pins.
+
+The supplied ligand's revision-4 pose-quality example was introduced in data 34. Its
 native first docking pose was independently checked through the released frontend:
 15 checks passed, six water/cofactor checks were unassessed, and one was inapplicable.
 Its exact coordinates, report and receptor lineage are retained alongside earlier

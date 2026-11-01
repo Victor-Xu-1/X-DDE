@@ -106,6 +106,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       del_only: ${{ steps.change.outputs.del_only }}
+      native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -114,9 +115,13 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
+      - id: case_scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/case-data-scope.py
   view-alignment:
     needs: [scope, model-context]
-    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
@@ -184,7 +189,7 @@ jobs:
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
     needs: [scope, model-context]
-    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
