@@ -30,6 +30,35 @@ PREVIEWS = (
 )
 
 
+def retained_aromatic_state_selection(settings, store):
+    output = settings.state_dir / "jobs" / STAGES[0] / "output/result.json"
+    states = json.loads(output.read_bytes())
+    assert (states["options"]["ph_min"], states["options"]["ph_max"]) == (6.8, 7.8)
+    assert states["options"]["force_field"] == "MMFF94s"
+    assert states["coverage"]["population_probabilities"] == "not_computed"
+    selected = (
+        (0, 0, "CN1CCN(c2ccc3cc(C(=O)N(C)C)[nH]c3c2F)CC1"),
+        (5, 1, "CN(C)C(=O)c1cc2ccc(N3CC[NH+](C)CC3)c(F)c2[nH]1"),
+    )
+    for identifier, (state_index, charge, smiles) in zip(STAGES[1:3], selected, strict=True):
+        ligand = store.get(identifier).request.ligand
+        conformer = states["conformers"][ligand.record]
+        # These are records 2/9 of the conformer bundle, not chemical states 2/9.
+        assert ligand.sha256 == states["artifact_sha256"]["conformers.sdf"]
+        assert conformer["record"] == ligand.record
+        assert conformer["state_index"] == state_index
+        assert (
+            states["states"][state_index]["charge"],
+            states["states"][state_index]["smiles"],
+        ) == (charge, smiles)
+        assert conformer["converged"]
+        assert conformer["energy"] == min(
+            row["energy"]
+            for row in states["conformers"]
+            if row["state_index"] == state_index and row["converged"]
+        )
+
+
 def test_real_rgroup_followups_keep_native_pose_identity_across_old_archive_replay(settings):
     filename = os.environ.get("WB_REVIEWED_STAT6_ARCHIVE")
     previous = os.environ.get("WB_TEST_PREVIOUS_STAT6_ARCHIVE")
@@ -44,6 +73,7 @@ def test_real_rgroup_followups_keep_native_pose_identity_across_old_archive_repl
     assert fixed.revision == 5 and str(fixed.job_id) == PRIMARY
     assert [str(row.job_id) for row in fixed.supporting_evidence] == STAGES
     assert str(current["epitope"].job_id) == "84bca36f-6a5f-4f02-b97f-58ac18964548"
+    retained_aromatic_state_selection(settings, store)
     for dock, quality, expected, preview_sha in zip(
         STAGES[1:3], STAGES[3:5], (2.856476436100953, 2.872098022352299), PREVIEWS, strict=True
     ):

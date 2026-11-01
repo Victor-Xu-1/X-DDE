@@ -19,6 +19,14 @@ preparation job, exact source version and unchanged output bytes; matching file
 content alone never authorizes another case. Neither a state number nor a docking
 score is a microstate population or binding free energy.
 
+The retained neutral and monocation poses use the original aromatic tautomer,
+with the positive charge on the N-methylpiperazine nitrogen. Their starting
+conformers are converged minima within each generated chemical state. Shared
+conformer records 2 and 9 correspond to chemical states 0 and 5, respectively
+(zero-based); these indices are not interchangeable. The native enumeration
+range is pH 6.8–7.8. It does not calculate experimental pKa or state populations,
+and force-field energies must not be compared across those charge states.
+
 The package also carries the already reviewed revision-4 experimental 6WGL
 antibody contact reference: 281 direct protein pairs and 13 water-involving pairs,
 reported separately. This is an IL-4Rα reference in the STAT6 pathway, not a new
