@@ -479,6 +479,8 @@ on:
       - "!frontend/src/viewer/native-interface-context.test.ts"
       - "!frontend/src/viewer/scientific-data.ts"
       - "!.github/workflows/task-layout-checks.yml"
+      # Campaign review and permission use their exact focused gate.
+      - "!frontend/src/operations/CampaignForm*"
   workflow_dispatch:
     inputs:
       result_controls_only:

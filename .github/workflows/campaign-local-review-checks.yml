@@ -1,0 +1,29 @@
+name: Campaign local review and explicit launch controls
+on:
+  push:
+    paths: &campaign_review_paths
+      - "frontend/src/operations/CampaignForm*"
+      - "tests/fixtures/campaign_review/**"
+      - "server_tests/test_campaign_local_review_browser.py"
+      - ".github/workflows/campaign-local-review-checks.yml"
+  pull_request:
+    paths: *campaign_review_paths
+permissions:
+  contents: read
+jobs:
+  campaign-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+      PYTHONPATH: .:src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Only local plan review and explicit launch controls
+        working-directory: frontend
+        run: npx vitest run src/operations/CampaignForm.test.tsx src/operations/CampaignForm.review.test.tsx

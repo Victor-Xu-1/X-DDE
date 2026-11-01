@@ -327,6 +327,8 @@ on:
       - "!frontend/src/integrations/ProteinInterface*"
       - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
+      # Campaign review and permission use their exact focused gate.
+      - "!frontend/src/operations/CampaignForm*"
   pull_request:
     paths:
       - "frontend/src/presentation/**"
@@ -608,6 +610,8 @@ on:
       - "!frontend/src/integrations/ProteinInterface*"
       - "!frontend/src/viewer/modified-polymer*"
       - "!.github/workflows/user-interface-checks.yml"
+      # Campaign review and permission use their exact focused gate.
+      - "!frontend/src/operations/CampaignForm*"
   workflow_dispatch:
 jobs:
   model-context:
