@@ -44,6 +44,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       antibody_only: ${{ steps.scope.outputs.antibody_only }}
+      native_receptor_only: ${{ steps.scope.outputs.native_receptor_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +67,7 @@ jobs:
         run: python scripts/workflow-quality-scope.py
   module-examples:
     needs: [workflow-scope, antibody-scope]
-    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true'
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:

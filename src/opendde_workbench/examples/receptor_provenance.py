@@ -4,11 +4,36 @@ import json
 
 from ..artifacts import contained
 from ..docking.contract import DockingTask
+from ..quality.contract import PoseQualityTask
 from ..receptors.contract import ReceptorEnsembleTask
 from ..receptors.preparation_contract import StructurePrepareTask
 from ..receptors.result import validate_result
 from .evidence import capture_job
 from .input_lineage import MAX_SOURCE_DEPTH
+
+
+def approved_native_receptor_aliases(scientific, state, request, allowed_inputs):
+    """Keep exact native receptor-copy identities without accepting uploaded lookalikes."""
+    reference = (
+        request.receptor
+        if isinstance(request, DockingTask)
+        else request.protein
+        if isinstance(request, PoseQualityTask)
+        else None
+    )
+    if (
+        reference is None
+        or reference.version_id is None
+        or str(reference.asset_id) in allowed_inputs
+    ):
+        return set()
+    try:
+        scientific.validate_reference(reference)
+        version = scientific.get(reference.version_id)
+        origin, _ = prepared_receptor_origin(scientific, state, version)
+    except KeyError as error:
+        raise ValueError("The native receptor-copy source version is unavailable.") from error
+    return {str(reference.asset_id)} if str(origin.reference.asset_id) in allowed_inputs else set()
 
 
 def prepared_receptor_origin(scientific, state, version):
@@ -40,9 +65,7 @@ def prepared_receptor_origin(scientific, state, version):
             report_path = contained(output, "result.json")
             if report_path.stat().st_size > 16 * 1024**2:
                 raise ValueError("The ensemble receptor report exceeds the provenance size budget.")
-            report = validate_result(
-                json.loads(report_path.read_text()), source.request, output
-            )
+            report = validate_result(json.loads(report_path.read_text()), source.request, output)
             member = report.members[report.options.reference_index]
             original = member.source.structure
             evidence = capture_job(scientific.store, state, source.id)

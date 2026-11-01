@@ -81,6 +81,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       antibody_only: ${{ steps.scope.outputs.antibody_only }}
+      native_receptor_only: ${{ steps.scope.outputs.native_receptor_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -110,9 +111,43 @@ jobs:
   spr-training:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'spr-training'
     uses: ./.github/workflows/stat6-training-input-checks.yml
+  native-receptors:
+    needs: antibody-scope
+    if: needs.antibody-scope.outputs.native_receptor_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: '0'
+      PYTHONPATH: .:tests:src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact native-copy, generated-input and immutable follow-up contracts
+        run: >-
+          uv run --locked pytest -x -q
+          tests/test_receptor_case_aliases.py tests/test_receptor_copy_provenance.py
+          tests/test_stat6_prepared_handoff.py tests/test_example_supporting.py
+          tests/test_record_example_supporting.py tests/test_example_pins.py
+          tests/test_examples.py tests/ci/test_case_data_scope.py tests/ci/test_antibody_template_scope.py
+      - name: Direct retained-stage and prepared-recipe presentation consumers
+        working-directory: frontend
+        run: npx vitest run src/examples/ExampleResultSet.test.tsx src/examples/ExampleActions.test.tsx src/examples/RecipeInputs.test.tsx
+      - name: Changed source and regression files only
+        run: >-
+          uv run --locked ruff check
+          src/opendde_workbench/examples/receptor_provenance.py
+          src/opendde_workbench/examples/supporting.py
+          src/opendde_workbench/examples/stat6/preparation.py
+          tests/test_receptor_case_aliases.py tests/test_study_module_revisions.py
+          scripts/case-data-scope.py scripts/antibody_template_scope.py tests/ci/test_case_data_scope.py
   templates:
     needs: [workflow-scope, antibody-scope]
-    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training')
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
