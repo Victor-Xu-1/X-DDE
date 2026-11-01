@@ -1,5 +1,8 @@
 """Bind exact FASTA sequence versions used by native Harness sequence tools."""
 
+from .harness_chains import fold_chains, native_chain_sequences
+from .harness_msa import msa_bindings
+
 
 def used_sequences(request):
     payload = request.payload
@@ -10,9 +13,10 @@ def used_sequences(request):
     if request.tool == "fold":
         return [
             sequence
-            for candidate in payload.get("candidates", [])
-            for sequence in candidate.get("chains", {}).values()
-        ] + list(payload.get("options", {}).get("target_chains", {}).values())
+            for chains in fold_chains(payload)
+            for sequence in native_chain_sequences(chains).values()
+            if isinstance(sequence, str)
+        ]
     if request.tool in {"target-msa", "protrek-sequence"}:
         return [payload.get("sequence", "")]
     return []
@@ -45,7 +49,7 @@ def fasta_sequences(path):
 
 def sequence_bindings(request, assets):
     sequences = used_sequences(request)
-    result = {}
+    result = msa_bindings(request, assets)
     for ref in request.scientific_inputs:
         asset = assets.get(ref.asset_id)
         if asset.kind != "sequences":

@@ -149,6 +149,28 @@ def test_retained_annotation_cannot_be_rebound_to_edited_cdr_positions(settings,
         replayed_antibody_cdr(scientific, changed)
 
 
+def test_replayed_native_msa_chains_keep_numbered_source(settings):
+    scientific, records, *_ = numbering_case(settings)
+    prepared = prepare_stat6("fold", scientific, records=records)
+    original = json.loads(json.dumps(prepared.request))
+    request = json.loads(json.dumps(original))
+    chains = request["payload"]["candidates"][0]["chains"]
+    for chain, sequence in list(chains.items()):
+        msa = scientific.assets.save(chain + ".a3m", "msa", f">query\n{sequence}\n".encode())
+        chains[chain] = {"sequence": sequence, "unpairedMsaPath": "asset:" + msa.id}
+    expected = prepared.objects["antibody_cdr_inputs"]
+    assert replayed_antibody_cdr(scientific, request) == expected
+    scientific.assets.validate_bindings(TASK_ADAPTER.validate_python(request))
+    chains["invalid_extra_chain"] = None
+    with pytest.raises(ValueError, match="differs from its interface annotation"):
+        replayed_antibody_cdr(scientific, request)
+    del chains["invalid_extra_chain"]
+    chains["A"]["sequence"] += "A"
+    with pytest.raises(ValueError, match="differs from its interface annotation"):
+        replayed_antibody_cdr(scientific, request)
+    assert prepared.request == original
+
+
 def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers(
     settings, tmp_path
 ):

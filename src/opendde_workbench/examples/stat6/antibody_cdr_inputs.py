@@ -5,6 +5,7 @@ from uuid import UUID, uuid5
 
 from ...antibodies.result import validate_numbering
 from ...artifacts import contained
+from ...harness_chains import native_chain_sequences
 from ...research.contracts import VersionInput
 from ..pins import ExamplePins
 
@@ -135,7 +136,10 @@ def replayed_antibody_cdr(scientific, request):
         if request["tool"] == "fold":
             options = payload.get("options", {})
             matches = (
-                [value.get("chains") for value in payload.get("candidates", [])]
+                [
+                    native_chain_sequences(value.get("chains", {}))
+                    for value in payload.get("candidates", [])
+                ]
                 == [notes["chains"]]
                 and options.get("binder_chain_ids") == list(notes["chains"])
                 and options.get("cdr_regions")

@@ -68,6 +68,9 @@ describe("native-numbered interface input provenance", () => {
     };
     candidate.chains.B = { sequence: light };
     expect(exampleHarnessInputs("fold", payload, example)).toEqual([reference]);
+    candidate.chains.C = null;
+    expect(exampleHarnessInputs("fold", payload, example)).toEqual([]);
+    delete candidate.chains.C;
     (candidate.chains.A as { sequence: string }).sequence += "A";
     expect(exampleHarnessInputs("fold", payload, example)).toEqual([]);
     expect(example.request.payload).toEqual(original);

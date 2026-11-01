@@ -64,9 +64,7 @@ def test_fold_msa_chain_values_keep_exact_fasta_provenance(tmp_path, rich):
         tool="fold",
         allow_external=True,
         payload={
-            "candidates": [
-                {"candidate_id": "Fv", "chains": {c: chains[c] for c in ("A", "B")}}
-            ],
+            "candidates": [{"candidate_id": "Fv", "chains": {c: chains[c] for c in ("A", "B")}}],
             "options": {"target_chains": {"C": chains["C"]}},
         },
         scientific_inputs=[{"asset_id": source.id, "sha256": source.sha256}],
@@ -93,6 +91,7 @@ def test_fold_msa_chain_values_keep_exact_fasta_provenance(tmp_path, rich):
         else changed.payload["candidates"][0]["chains"]
     )
     owner[chain]["sequence"] += "A"
+    owner[chain].pop("unpairedMsaPath")
     with pytest.raises(ValueError, match="differs from"):
         assets.validate_bindings(changed)
     assert request.model_dump(mode="json") == original
