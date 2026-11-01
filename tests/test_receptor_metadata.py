@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from test_flexible_receptor import moved, protein
 
-from opendde_workbench.docking.flexible_receptor import normalize, verify_pair
+from opendde_workbench.docking.flexible_receptor import normalize, validate_selection, verify_pair
 from opendde_workbench.docking.receptor_atoms import parse_atoms
 
 FIXTURE = Path(__file__).with_name("fixtures") / "docking_metadata"
@@ -67,3 +67,18 @@ def test_utf8_annotation_cannot_hide_a_declared_external_bond():
     original = TITLE + protein() + b"CONECT    6    7\n"
     with pytest.raises(ValueError, match="external bond"):
         normalize(original, moved(original), ["A:1"], "Flexible residues: A:1\n", b"ligand")
+
+
+@pytest.mark.parametrize("record", [b"CONECT    6    7", b"LINK  ", b"SSBOND"])
+def test_unicode_in_bond_records_is_rejected_before_fixed_column_interpretation(record):
+    original = TITLE + protein() + record + "·\n".encode()
+    with pytest.raises(ValueError, match="structural records must be ASCII"):
+        validate_selection(parse_atoms(original), ["A:1"], original)
+
+
+def test_invalid_utf8_metadata_and_multiple_models_remain_invalid():
+    with pytest.raises(ValueError, match="metadata must use valid UTF-8"):
+        parse_atoms(b"COMPND    invalid \xff\n" + protein())
+    multiple = TITLE + b"MODEL        1\n" + protein() + b"ENDMDL\nMODEL        2\n" + protein()
+    with pytest.raises(ValueError, match="one receptor model"):
+        parse_atoms(multiple)
