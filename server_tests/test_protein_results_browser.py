@@ -106,7 +106,7 @@ def test_fold_has_one_explicit_candidate_structure_and_reachable_sequence(protei
 
 def test_comparison_compact_metrics_preserve_raw_values_and_input_boundaries(protein_page):
     page, root = protein_page
-    open_result(page, "对齐目标后比较结合姿势")
+    open_result(page, "蛋白界面与构象比较")
     panel = page.get_by_role("region", name="结构比较结果", exact=True)
     expect(panel.get_by_text("97", exact=True)).to_be_visible()
     expect(panel.get_by_text("275", exact=True)).to_be_visible()
