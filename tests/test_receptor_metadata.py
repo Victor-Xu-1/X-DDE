@@ -76,6 +76,31 @@ def test_unicode_in_bond_records_is_rejected_before_fixed_column_interpretation(
         validate_selection(parse_atoms(original), ["A:1"], original)
 
 
+@pytest.mark.parametrize(
+    "record", [b"CONECT    6    7", b"LINK  ", b"SSBOND", b"ANISOU", b"TER   ", b"CUSTOM"]
+)
+def test_unicode_in_native_structural_records_cannot_pass_normalization_or_pair_verification(
+    record, tmp_path
+):
+    source = protein()
+    valid = moved(source)
+    log = "Flexible residues: A:1\n"
+    normalized, receipt = normalize(source, valid, ["A:1"], log, b"ligand")
+    corrupted = valid + record + "·\n".encode()
+    with pytest.raises(ValueError, match="structural records must be ASCII"):
+        normalize(source, corrupted, ["A:1"], log, b"ligand")
+    for name, raw in (
+        ("input-receptor.pdb", source),
+        ("native-flex-receptor.pdb", corrupted),
+        ("receptor.pdb", normalized),
+        ("poses.sdf", b"ligand"),
+        ("native.log", log.encode()),
+    ):
+        (tmp_path / name).write_bytes(raw)
+    with pytest.raises(ValueError, match="structural records must be ASCII"):
+        verify_pair(tmp_path, receipt["original_receptor_sha256"], ["A:1"], receipt)
+
+
 def test_invalid_utf8_metadata_and_multiple_models_remain_invalid():
     with pytest.raises(ValueError, match="metadata must use valid UTF-8"):
         parse_atoms(b"COMPND    invalid \xff\n" + protein())

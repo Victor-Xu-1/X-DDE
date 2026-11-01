@@ -5,25 +5,24 @@ from collections.abc import Iterator
 from typing import NamedTuple
 
 BACKBONE = frozenset({"N", "CA", "C", "O", "OXT"})
+FREE_TEXT_RECORDS = frozenset({"COMPND", "TITLE ", "REMARK"})
 
 
 def pdb_records(raw: bytes, kinds: tuple[str, ...]) -> Iterator[tuple[int, str]]:
-    """Read UTF-8 annotations without changing byte-based structural line identities."""
+    """Validate encoding before filtering; only explicit free-text records allow UTF-8."""
     for index, encoded in enumerate(raw.splitlines()):
         try:
             kind = encoded[:6].decode("ascii")
         except UnicodeDecodeError as exc:
             raise ValueError("PDB record names must be ASCII.") from exc
-        if kind not in kinds:
-            try:
-                encoded.decode("utf-8")
-            except UnicodeDecodeError as exc:
-                raise ValueError("PDB metadata must use valid UTF-8.") from exc
-            continue
         try:
-            yield index, encoded.decode("ascii")
+            line = encoded.decode("utf-8" if kind in FREE_TEXT_RECORDS else "ascii")
         except UnicodeDecodeError as exc:
+            if kind in FREE_TEXT_RECORDS:
+                raise ValueError("PDB metadata must use valid UTF-8.") from exc
             raise ValueError("PDB structural records must be ASCII.") from exc
+        if kind in kinds:
+            yield index, line
 
 
 class Atom(NamedTuple):
