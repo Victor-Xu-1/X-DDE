@@ -80,6 +80,7 @@ jobs:
   workflow-scope:
     runs-on: ubuntu-24.04
     outputs:
+      refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
     steps:
       - uses: actions/checkout@v4
@@ -89,12 +90,17 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
+      - id: refinement
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/docking-refinement-scope.py
+
   spr-training:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'spr-training'
     uses: ./.github/workflows/stat6-training-input-checks.yml
   templates:
     needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training')
+    if: needs.workflow-scope.outputs.workflow_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training') && needs.workflow-scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

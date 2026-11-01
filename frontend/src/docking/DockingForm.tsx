@@ -16,6 +16,8 @@ import { defaults } from "./generated";
 import { task, parseBox } from "./model";
 import { DockingOptions } from "./DockingOptions";
 import { DockingReview } from "./DockingReview";
+import { FlexibleReceptorSettings } from "./FlexibleReceptorSettings";
+import { useReceptorRefinement } from "./useReceptorRefinement";
 import type { DockingMode, SearchBox } from "./types";
 export function DockingForm({
   language,
@@ -64,6 +66,7 @@ export function DockingForm({
     [expert, setExpert] = useState(false),
     [name, setName] = useState("");
   const [error, setError] = useState("");
+  const refinement = useReceptorRefinement(mode, receptor);
   const {
     ready,
     error: readinessError,
@@ -85,7 +88,7 @@ export function DockingForm({
     minimize: ["局部最小化", "Local minimization"],
   };
   function buildTask() {
-    return task(
+    const base = task(
       mode,
       receptor,
       ligand,
@@ -98,6 +101,7 @@ export function DockingForm({
       name.trim() || labels[mode][zh ? 0 : 1],
       language,
     );
+    return { ...base, ...refinement.request(language) };
   }
   let regionValid = false;
   try {
@@ -169,6 +173,16 @@ export function DockingForm({
   );
   const settings = (
     <>
+      {mode === "minimize" && receptor && (
+        <FlexibleReceptorSettings
+          key={referenceKey(receptor)}
+          receptor={receptor}
+          ligand={ligand}
+          language={language}
+          value={refinement.value}
+          onChange={refinement.setValue}
+        />
+      )}
       <label className="field">
         {zh ? "运行方案" : "Run preset"}
         <select
@@ -260,7 +274,7 @@ export function DockingForm({
   const review = (
     <DockingReview
       getTask={buildTask}
-      enabled={Boolean(receptor && ligand) && regionValid}
+      enabled={Boolean(receptor && ligand) && regionValid && refinement.valid}
       language={language}
     />
   );
@@ -292,12 +306,12 @@ export function DockingForm({
         {
           title: zh ? "选择方案" : "Choose settings",
           content: settings,
-          valid: true,
+          valid: refinement.valid,
         },
         {
           title: zh ? "确认启动" : "Review & start",
           content: review,
-          valid: Boolean(receptor && ligand) && regionValid,
+          valid: Boolean(receptor && ligand) && regionValid && refinement.valid,
         },
       ]}
     />

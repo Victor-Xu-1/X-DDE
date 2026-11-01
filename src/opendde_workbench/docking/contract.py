@@ -3,10 +3,11 @@
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_serializer, model_validator
 
 from ..scientific_objects import MoleculeRef, ScientificModel
 from ..task_metadata import TaskMetadata
+from .flexible_contract import FlexibleReceptor
 from .options import DockingOptions, SearchBox
 
 
@@ -38,9 +39,21 @@ class DockingTask(TaskMetadata):
     pose_frame: MoleculeRef | None = None
     pose_coordinate_basis: Literal["user_confirmed"] | None = None
     options: DockingOptions = Field(default_factory=DockingOptions)
+    flexible_receptor: FlexibleReceptor | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        if self.flexible_receptor is None:
+            value.pop("flexible_receptor", None)
+        return value
 
     @model_validator(mode="after")
     def frames(self) -> Self:
+        if self.flexible_receptor is not None and self.mode != "minimize":
+            raise ValueError(
+                "Selected receptor sidechains are supported only for local minimization."
+            )
         if not self.name.strip():
             raise ValueError("Task name cannot be blank.")
         if self.mode == "score" and self.options.cnn_scoring not in {"none", "rescore"}:

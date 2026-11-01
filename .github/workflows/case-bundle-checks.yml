@@ -74,6 +74,7 @@ jobs:
   workflow-scope:
     runs-on: ubuntu-24.04
     outputs:
+      refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
       case_data_only: ${{ steps.data.outputs.case_data_only }}
       managed_compute_only: ${{ steps.managed.outputs.managed_compute_only }}
@@ -93,9 +94,14 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/managed_compute_scope.py
+      - id: refinement
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/docking-refinement-scope.py
+
   scoped-delivery:
     needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.managed_compute_only != 'true'
+    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.managed_compute_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -184,7 +190,7 @@ jobs:
 
   archive-publication-windows:
     needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.case_data_only != 'true'
+    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.case_data_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true'
     runs-on: windows-latest
     timeout-minutes: 10
     steps:

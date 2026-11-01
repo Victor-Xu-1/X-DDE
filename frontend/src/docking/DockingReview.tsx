@@ -117,6 +117,16 @@ export function DockingReview({
           : "Native default"
         : String(options.minimize_iters),
     ]);
+    rows.push([
+      zh ? "蛋白处理" : "Receptor treatment",
+      request.flexible_receptor
+        ? request.flexible_receptor.residues
+            .map((r) => `${r.chain}:${r.number}${r.insertion_code}`)
+            .join(", ")
+        : zh
+          ? "固定蛋白"
+          : "Fixed receptor",
+    ]);
   }
   return (
     <section aria-label={zh ? "对接方案核对" : "Docking plan review"}>
