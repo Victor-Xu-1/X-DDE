@@ -43,7 +43,10 @@ RECEPTOR_PATHS = {
     "tests/test_rgroup_reviewed_case_data.py",
     "tests/stat6_original_port_case.py",
     "server_tests/test_rgroup_reviewed_stages_browser.py",
+    "frontend/src/viewer/viewer.css",
     ".github/workflows/example-result-set-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/structure-layout-checks.yml",
     "docs/reviewed-example-data.md",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "src/opendde_workbench/examples/stat6/module-revisions.json",
@@ -70,6 +73,15 @@ RECEPTOR_PATHS = {
 
 def native_receptor_only(changed):
     changed = set(changed)
+    if (
+        "frontend/src/viewer/viewer.css" in changed
+        and not {
+            "server_tests/test_rgroup_reviewed_stages_browser.py",
+            ".github/workflows/example-result-set-checks.yml",
+        }
+        <= changed
+    ):
+        return False
     return RECEPTOR_CORE <= changed and RECEPTOR_TEST in changed and changed <= RECEPTOR_PATHS
 
 

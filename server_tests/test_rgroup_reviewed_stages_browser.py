@@ -44,18 +44,26 @@ def records(state):
 
 def check_native_download(page, identifier, name, digest, target):
     selector = f'a[href="/api/jobs/{identifier}/download?name={name}"]'
+    menu = page.locator("details.viewer-original-downloads:visible").filter(
+        has=page.locator(selector)
+    )
     if not page.locator(selector + ":visible").count():
-        menu = page.locator("details.viewer-original-downloads:visible").filter(
-            has=page.locator(selector)
-        )
         expect(menu).to_have_count(1)
         menu.locator("summary").click()
+    geometry = None
+    if menu.count() and menu.get_attribute("open") is not None:
+        box = menu.locator("div").bounding_box()
+        assert box is not None
+        assert box["x"] >= 0
+        assert box["x"] + box["width"] <= page.viewport_size["width"] + 0.5
+        geometry = {"viewport_width": page.viewport_size["width"], **box}
     link = page.locator(selector + ":visible")
     expect(link).to_have_count(1)
     with page.expect_download() as transfer:
         link.click()
     transfer.value.save_as(target)
     assert hashlib.sha256(target.read_bytes()).hexdigest() == digest
+    return geometry
 
 
 @pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
@@ -76,7 +84,7 @@ def test_native_rgroup_stages_preserve_exact_poses_and_source_aware_quality(lang
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
         page = browser.new_page(viewport={"width": width, "height": 1000}, accept_downloads=True)
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
-        errors, mutations = [], []
+        errors, mutations, download_menus = [], [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -131,11 +139,23 @@ def test_native_rgroup_stages_preserve_exact_poses_and_source_aware_quality(lang
             expect(summary).to_contain_text(re.compile(r"(?:未评估|Not assessed): 6"))
             expect(summary).to_contain_text(re.compile(r"(?:不适用|Not applicable): 1"))
             ready_structure(page, zh)
-            check_native_download(
-                page, identifier, "molecule-preview.sdf", digest, evidence / (identifier + ".sdf")
+            download_menus.append(
+                check_native_download(
+                    page,
+                    identifier,
+                    "molecule-preview.sdf",
+                    digest,
+                    evidence / (identifier + ".sdf"),
+                )
             )
-            check_native_download(
-                page, identifier, "protein-preview.pdb", RECEPTOR, evidence / (identifier + ".pdb")
+            download_menus.append(
+                check_native_download(
+                    page,
+                    identifier,
+                    "protein-preview.pdb",
+                    RECEPTOR,
+                    evidence / (identifier + ".pdb"),
+                )
             )
             page.screenshot(path=str(evidence / (identifier + ".png")), full_page=True)
         stage.select_option(PRIMARY)
@@ -147,6 +167,7 @@ def test_native_rgroup_stages_preserve_exact_poses_and_source_aware_quality(lang
                     "stages": [PRIMARY, STATES, *DOCKS, *QUALITY],
                     "errors": errors,
                     "mutations": mutations,
+                    "download_menu_bounds": download_menus,
                 }
             )
         )

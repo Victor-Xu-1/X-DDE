@@ -28,6 +28,15 @@ class NativeReceptorScopeTests(unittest.TestCase):
         ):
             self.assertFalse(SCOPE["native_receptor_only"](paths))
 
+    def test_viewer_menu_change_requires_its_actual_download_browser_gate(self):
+        core = [*SCOPE["RECEPTOR_CORE"], SCOPE["RECEPTOR_TEST"], "frontend/src/viewer/viewer.css"]
+        browser = "server_tests/test_rgroup_reviewed_stages_browser.py"
+        gate = ".github/workflows/example-result-set-checks.yml"
+        self.assertFalse(SCOPE["native_receptor_only"](core))
+        self.assertFalse(SCOPE["native_receptor_only"]([*core, browser]))
+        self.assertFalse(SCOPE["native_receptor_only"]([*core, gate]))
+        self.assertTrue(SCOPE["native_receptor_only"]([*core, browser, gate]))
+
 
 class CaseDataScopeTests(unittest.TestCase):
     def test_current_release_metadata_and_direct_consumers(self):
