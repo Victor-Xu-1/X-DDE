@@ -77,7 +77,9 @@ try {
     if ($launch -and '--no-browser' -notin $arguments) { $arguments += '--no-browser' }
     $networkEnvironment = @(Get-XddeNetworkEnvironment $config)
     # Never inherit a Windows working directory whose drive mount may be stalled.
-    $output = & wsl.exe -d $config.distribution -u $config.user --cd / -- env "WB_HOME=$($config.home)" "WB_WINDOWS_SYSTEMROOT=$($env:SystemRoot -replace '\\', '/')" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin" @networkEnvironment "$($config.prefix)/bin/xdde" @arguments
+    # WSL exposes its Windows-managed NVIDIA utilities here; retain a fixed,
+    # Linux-only search path without importing the caller's Windows PATH.
+    $output = & wsl.exe -d $config.distribution -u $config.user --cd / -- env "WB_HOME=$($config.home)" "WB_WINDOWS_SYSTEMROOT=$($env:SystemRoot -replace '\\', '/')" "PATH=$($config.prefix)/bin:/usr/local/bin:/usr/bin:/bin:/usr/lib/wsl/lib" @networkEnvironment "$($config.prefix)/bin/xdde" @arguments
     $result = $LASTEXITCODE
     $output | ForEach-Object { Write-Output $_ }
     if ($result -eq 0 -and $open) {
