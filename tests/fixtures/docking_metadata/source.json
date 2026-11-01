@@ -1,0 +1,34 @@
+{
+  "source_job": "273fa1a6-0121-451a-a22f-0b99b87d0115",
+  "source_main": "52d90b343fbd51575b0a20cb47f1e57c9b7219b5",
+  "engine": "GNINA1.3.3/6fe1ce2",
+  "image": "sha256:0711d7cc53426e8930b024cc83f81de09f55deed42489b5d50c792ef8d6efec4",
+  "source_task_state": "failed: whole-file ASCII decoding of native UTF-8 COMPND metadata",
+  "scope": "Retained raw outputs for parser/pair contracts; not a qualified ternary template",
+  "residues": [
+    "A:152",
+    "A:353",
+    "B:590",
+    "B:595",
+    "B:608",
+    "B:611"
+  ],
+  "files": {
+    "input-receptor.pdb": {
+      "sha256": "b0b47656d02a2cea67cf6d9f9ed17c79d22d9187bca8f05fcf855d8adbb7762c",
+      "bytes": 492567
+    },
+    "native-flex-receptor.pdb": {
+      "sha256": "0befb00ce17983c2fc87ef874651fea8046a7d6793328ace3b9a53132d024000",
+      "bytes": 925446
+    },
+    "poses.sdf": {
+      "sha256": "edb8cc337c526fe03782fa381edfd38903a949329128ab04e2cf147b3cfd500b",
+      "bytes": 5940
+    },
+    "native.log": {
+      "sha256": "dcb4723b0fd2bded32391a4e28aee573cddd6e6a5b8af1fec5c5781cc100019a",
+      "bytes": 845
+    }
+  }
+}

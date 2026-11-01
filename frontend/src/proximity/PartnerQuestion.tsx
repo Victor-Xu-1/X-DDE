@@ -2,6 +2,7 @@ import { PartnerStep } from "./PartnerStep";
 import { BindingRegion } from "./BindingRegion";
 import { AtomMapping } from "./AtomMapping";
 import { partnerRoles } from "./types";
+import { referenceKey } from "../research/input-catalog";
 import type { ProximityDraft } from "./useProximityDraft";
 import type { Language } from "../types";
 export function PartnerQuestion({
@@ -15,7 +16,9 @@ export function PartnerQuestion({
 }) {
   const a = side === "a",
     zh = language === "zh",
-    roles = partnerRoles(d.payload.mechanism, zh);
+    roles = partnerRoles(d.payload.mechanism, zh),
+    protein = a ? d.first : d.second,
+    arm = a ? d.armA : d.armB;
   return (
     <>
       <label className="proximity-partner-name">
@@ -49,11 +52,9 @@ export function PartnerQuestion({
         sameSource={!a && d.region ? d.first : null}
         onSameSource={() => d.onSecond(d.first)}
       />
-      {d.binary && (
+      {d.binary && d.ligand && protein && arm && (
         <AtomMapping
-          key={
-            (a ? d.armA?.asset_id : d.armB?.asset_id) + ":" + d.ligand?.asset_id
-          }
+          key={[protein, arm, d.ligand].map(referenceKey).join(":")}
           value={a ? d.payload.arm_a_map : d.payload.arm_b_map}
           language={language}
           onValid={a ? d.setMappingValidA : d.setMappingValidB}

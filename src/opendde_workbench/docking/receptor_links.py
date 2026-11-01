@@ -1,5 +1,10 @@
 """Protect declared inter-residue bonds; never infer bonds from clashing coordinates."""
 
+if __package__:
+    from .receptor_atoms import pdb_records
+else:
+    from receptor_atoms import pdb_records
+
 
 def declared_links(raw: bytes, atoms: dict, selected: list[str], backbone: frozenset) -> None:
     by_serial = {atom.serial: atom for atom in atoms.values()}
@@ -10,7 +15,7 @@ def declared_links(raw: bytes, atoms: dict, selected: list[str], backbone: froze
     def token(chain, number, insertion):
         return f"{chain}:{int(number)}" + (":" + insertion.strip() if insertion.strip() else "")
 
-    for line in raw.decode("ascii").splitlines():
+    for _, line in pdb_records(raw, ("CONECT", "LINK  ", "SSBOND")):
         if line.startswith("CONECT"):
             numbers = [
                 int(line[i : i + 5]) for i in range(6, len(line), 5) if line[i : i + 5].strip()

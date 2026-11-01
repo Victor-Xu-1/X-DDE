@@ -1,0 +1,56 @@
+name: Binder checkpoint continuation scoped checks
+on:
+  workflow_dispatch:
+  push:
+    paths: &binder_continuation_paths
+      - "src/opendde_workbench/integrations/binder_checkpoints.py"
+      - "src/opendde_workbench/integrations/native_binder_checkpoint.py"
+      - "tests/test_binder_checkpoints.py"
+      - "frontend/src/integrations/BinderContinuation*"
+      - ".github/workflows/binder-continuation-checks.yml"
+  pull_request:
+    paths: *binder_continuation_paths
+permissions:
+  contents: read
+jobs:
+  binder-continuation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Reproduce and verify the shared generated input contract
+        run: |
+          uv run --locked python scripts/generate-capability-catalog.py
+          git diff --exit-code -- frontend/src
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: binder-continuation-generated-contract
+          path: frontend/src/integrations/generated.ts
+      - name: Check only changed checkpoint boundaries and native bridge
+        run: >-
+          uv run --locked ruff check src/opendde_workbench/integrations/binder_checkpoints.py
+          src/opendde_workbench/integrations/native_binder_checkpoint.py
+          src/opendde_workbench/integrations/backend.py src/opendde_workbench/integrations/bindings.py
+          src/opendde_workbench/integrations/native_boltzgen.py src/opendde_workbench/integrations/options.py
+          src/opendde_workbench/integrations/result.py src/opendde_workbench/integrations/routes.py
+          tests/test_binder_checkpoints.py tests/test_boltzgen_molecule_layout.py
+      - name: Only checkpoint byte boundaries, native bridge and task contracts
+        run: >-
+          uv run --locked --with PyYAML==6.0.3 pytest -q
+          tests/test_binder_checkpoints.py tests/test_boltzgen_molecule_layout.py
+          tests/test_integrated_science.py tests/test_scientific_identity.py
+      - name: Only explicit continuation, review and task-action consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/BinderContinuation.test.tsx
+          src/integrations/ScientificReview.test.tsx
+          src/TaskDetail.actions.test.tsx src/TaskDetail.test.tsx

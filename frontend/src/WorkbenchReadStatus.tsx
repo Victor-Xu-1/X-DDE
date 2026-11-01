@@ -1,5 +1,6 @@
 import type { Language } from "./types";
 import type { useWorkbench } from "./useWorkbench";
+import "./workbench-read-status.css";
 
 export function WorkbenchReadStatus({
   work,
@@ -53,7 +54,7 @@ export function WorkbenchReadStatus({
     },
   ];
   return (
-    <>
+    <div className="workbench-read-status">
       {failures
         .filter(({ error }) => error)
         .map(({ source, text }) => (
@@ -79,6 +80,6 @@ export function WorkbenchReadStatus({
           {zh ? "正在读取任务文件…" : "Loading task files…"}
         </p>
       )}
-    </>
+    </div>
   );
 }

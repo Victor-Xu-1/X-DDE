@@ -80,6 +80,7 @@ jobs:
         run: |
           export WB_HOME="$RUNNER_TEMP/x-dde-antibody-cdr"
           export WB_STATE_DIR="$WB_HOME/state"
+          sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked python -m playwright install --with-deps chromium
           uv run --locked pytest -x -q server_tests/test_antibody_cdr_template_browser.py
       - name: Changed Python files only
