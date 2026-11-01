@@ -227,6 +227,9 @@ def main() -> None:
         + json.dumps(ChannelOptions().model_dump(mode="json"), indent=2)
         + ";\n",
         "proximity/generated.ts": header
+        + "export const samplingSizes = "
+        + json.dumps(TernaryPayload.model_json_schema()["properties"]["samples"]["enum"])
+        + " as const;\n"
         + "export const defaults = "
         + json.dumps(
             TernaryPayload(partner_a_chain="A", partner_b_chain="B").model_dump(), indent=2

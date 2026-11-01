@@ -35,9 +35,11 @@ def wait_deployment(client, identifiers):
     raise TimeoutError("Reviewed ternary installation did not complete.")
 
 
-def run_platform(protocol):
+def run_platform(protocol, *, samples=3, pin_example=True):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Native scientific execution belongs in isolated CI.")
+    if samples not in (3, 40) or (samples != 3 and pin_example):
+        raise ValueError("Expanded sampling is a capacity check, not a replacement example pin.")
     output = protocol / "platform"
     output.mkdir()
     settings = Settings(
@@ -111,8 +113,8 @@ def run_platform(protocol):
                 partner_b_chain="B",
                 partner_a_name="VHL",
                 partner_b_name="BRD4",
-                samples=3,
-                attempt_budget=3,
+                samples=samples,
+                attempt_budget=3 if samples == 3 else 60,
                 wall_seconds=600,
                 binding_region_a=list(range(32)),
                 binding_region_b=list(range(42, 69)),
@@ -137,10 +139,12 @@ def run_platform(protocol):
         response = client.get("/api/jobs/" + identifier + "/result")
         assert response.status_code == 200, response.text
         result = response.json()
-        assert len(result["proximity"]["assemblies"]) == 3
+        assert len(result["proximity"]["assemblies"]) == samples
+        assert result["proximity"]["search"]["requested"] == samples
+        assert result["proximity"]["search"]["returned"] == samples
         geometry = result["proximity"]["attachment_geometry"]
         assert geometry["scope"] == "observed_bond_direction_not_allowed_growth_or_clearance"
-        assert len(geometry["assemblies"]) == 3
+        assert len(geometry["assemblies"]) == samples
         for row in geometry["assemblies"]:
             assert row["sha256"] == result["artifact_sha256"][row["ligand_artifact"]]
             assert {bond["region"] for bond in row["bonds"]} == {"a", "b"}
@@ -164,6 +168,26 @@ def run_platform(protocol):
         from proximity_result_negatives import check_forgery
 
         check_forgery(client, settings.state_dir, identifier, result, task)
+        if not pin_example:
+            receipt = {
+                "source_revision": os.environ["GITHUB_SHA"],
+                "job_id": identifier,
+                "immutable_image": entry["image"],
+                "native_installer": True,
+                "native_queue_and_supervisor": True,
+                "idempotent_submission": True,
+                "assemblies": samples,
+                "attempt_budget": task["payload"]["attempt_budget"],
+                "options": task["options"],
+                "changed_input_output_and_graph_rejected": True,
+                "scientific_accuracy_accepted": False,
+                "example_pinned": False,
+                "owner_inference": False,
+            }
+            (output / "result.json").write_text(json.dumps(result))
+            (output / "acceptance.json").write_text(json.dumps(receipt, indent=2))
+            print(json.dumps(receipt))
+            return output
         pin = client.post(
             "/api/examples/deepternary.model/pin?profile=archive", json={"job_id": identifier}
         )

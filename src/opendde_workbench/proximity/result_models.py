@@ -5,6 +5,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ..scientific_objects import MoleculeRef
+from .options import MAX_TERNARY_SAMPLES, TernarySampleCount
 
 
 class EvidenceModel(BaseModel):
@@ -132,9 +133,9 @@ class TernarySearch(EvidenceModel):
         Field(default=None, exclude_if=lambda value: value is None)
     )
     attempted: int = Field(ge=0, le=60)
-    requested: Literal[3, 10, 20]
+    requested: TernarySampleCount
     attempt_budget: int = Field(ge=3, le=60)
-    returned: int = Field(ge=0, le=20)
+    returned: int = Field(ge=0, le=MAX_TERNARY_SAMPLES)
     status: Literal["requested_samples", "attempt_budget", "time_budget"]
     seconds: float = Field(ge=0)
     failures: list[SearchFailure] = Field(max_length=60)
@@ -170,7 +171,7 @@ class TernaryResult(EvidenceModel):
     ligand_atom_indices: list[int] = Field(min_length=3, max_length=256)
     partner_mapping: tuple[PartnerMapping, PartnerMapping]
     arm_maps: list[list[int]] = Field(max_length=2)
-    assemblies: list[AssemblyProposal] = Field(max_length=20)
+    assemblies: list[AssemblyProposal] = Field(max_length=MAX_TERNARY_SAMPLES)
     search: TernarySearch
     versions: dict[str, str] = Field(min_length=3, max_length=6)
 

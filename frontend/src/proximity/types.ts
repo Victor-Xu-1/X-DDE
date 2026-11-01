@@ -1,4 +1,6 @@
 import type { MoleculeRef } from "../research/types";
+import type { samplingSizes } from "./generated";
+export type TernarySampleCount = (typeof samplingSizes)[number];
 export type ProximityMechanism =
   "protac" | "riptac" | "proximity" | "molecular_glue";
 export interface TernaryPayload {
@@ -9,7 +11,7 @@ export interface TernaryPayload {
   partner_b_name: string;
   partner_a_chain: string;
   partner_b_chain: string;
-  samples: 3 | 10 | 20;
+  samples: TernarySampleCount;
   attempt_budget: number;
   wall_seconds: number;
   arm_a_map: number[];

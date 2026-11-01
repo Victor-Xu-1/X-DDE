@@ -25,6 +25,22 @@ their actual native chemistry/representation support before submission is enable
 Molecular-glue discovery does not reuse a two-fragment linker generator as a
 substitute for interface design.
 
+## Bounded ensemble choices
+
+The questionnaire offers 3, 10, 20 or 40 requested assemblies. Three remains the
+default; selecting forty never increases the chosen CPU, memory or wall-time
+limits. Attempts remain capped at sixty, and partial native output retains its
+actual attempted/returned counts and stopping reason. Requesting forty accepted
+native outputs is distinct from the publication's forty initial conformers and
+does not establish a geometry pass, affinity, degradation or protocol equivalence.
+The single payload schema generates the frontend choices and bounds native result
+serialization. Sealed older three/ten/twenty requests retain their values.
+
+The explicit `bounded_sampling` CI scope executes the existing installer, queue
+and native CPU adapter on the published MZ1 control, requests forty assemblies,
+validates original outputs and checks bilingual selection/download of assembly40.
+It does not replace or pin a STAT6 study, and it performs no owner-machine inference.
+
 ## Methods selected for implementation
 
 | Method | Intended role | Verified source / current boundary |

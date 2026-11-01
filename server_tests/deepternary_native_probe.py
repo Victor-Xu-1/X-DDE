@@ -14,7 +14,7 @@ from opendde_workbench.integrations.image import lock_digest, prepare_context
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
 
-def main(root, *, profile_only=False, preview_only=False):
+def main(root, *, profile_only=False, preview_only=False, sampling_only=False):
     if os.environ.get("CI") != "true":
         raise RuntimeError("Run this scientific baseline in the isolated CI environment.")
     root.mkdir(parents=True, exist_ok=False)
@@ -55,12 +55,12 @@ def main(root, *, profile_only=False, preview_only=False):
             if len(data) > 5 * 1024**2:
                 raise ValueError("Official case exceeds the reviewed member limit.")
             (inputs / name).write_bytes(data)
-    if preview_only:
+    if preview_only or sampling_only:
         # One genuine native result through the existing installer/Router is
         # sufficient for a presentation regression; do not rerun other methods.
         from proximity_api_acceptance import run_platform
 
-        run_platform(root)
+        run_platform(root, samples=40 if sampling_only else 3, pin_example=not sampling_only)
         return
     image = "xdde-deepternary-probe:" + uuid4().hex
     with (root / "build.log").open("wb") as log:
@@ -167,5 +167,11 @@ if __name__ == "__main__":
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--profile-only", action="store_true")
     scope.add_argument("--preview-only", action="store_true")
+    scope.add_argument("--sampling-only", action="store_true")
     args = parser.parse_args()
-    main(args.output.resolve(), profile_only=args.profile_only, preview_only=args.preview_only)
+    main(
+        args.output.resolve(),
+        profile_only=args.profile_only,
+        preview_only=args.preview_only,
+        sampling_only=args.sampling_only,
+    )

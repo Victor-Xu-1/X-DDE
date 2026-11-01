@@ -4,8 +4,9 @@ on:
   push:
     paths: &form_paths
       - 'frontend/src/proximity/Form*'
+      - 'frontend/src/proximity/Plan*'
+      - 'frontend/src/proximity/sampling.ts'
       - 'frontend/src/proximity/PartnerQuestion*'
-      - 'frontend/src/proximity/Plan.tsx'
       - 'frontend/src/proximity/ExecutionSettings.tsx'
       - 'frontend/src/proximity/execution.ts'
       - '.github/workflows/proximity-form-checks.yml'
@@ -28,6 +29,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/proximity/Form.test.tsx
+          src/proximity/Plan.test.tsx
           src/proximity/PartnerQuestion.test.tsx
           src/diffsbdd/ReferencePicker.test.tsx
           src/diffsbdd/ReferencePickerLifecycle.test.tsx

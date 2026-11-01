@@ -3,6 +3,7 @@ import { validExecution, type TernaryExecution } from "./execution";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
 import { mechanismLabels, partnerRoles, type TernaryPayload } from "./types";
+import { samplingOptions, type SamplingValue } from "./sampling";
 import type { Language } from "../types";
 export function ProximityPlan({
   execution,
@@ -21,39 +22,17 @@ export function ProximityPlan({
     roles = partnerRoles(payload.mechanism, zh);
   return (
     <>
-      <ChoiceCards<"3" | "10" | "20">
+      <ChoiceCards<SamplingValue>
         label={zh ? "探索多少个装配？" : "How many assemblies?"}
-        value={String(payload.samples) as "3" | "10" | "20"}
+        value={String(payload.samples) as SamplingValue}
         onChange={(samples) =>
           setPayload({
             ...payload,
-            samples: Number(samples) as 3 | 10 | 20,
+            samples: Number(samples) as TernaryPayload["samples"],
             attempt_budget: Math.min(60, Number(samples) * 4),
           })
         }
-        options={[
-          {
-            value: "3",
-            title: zh ? "初步探索 · 推荐" : "Initial exploration · recommended",
-            note: zh
-              ? "3 个装配，先查看几何与两端保持情况。"
-              : "3 assemblies to inspect geometry and arm retention.",
-          },
-          {
-            value: "10",
-            title: zh ? "更多比较" : "Broader comparison",
-            note: zh
-              ? "10 个装配，比较不同空间排列。"
-              : "10 assemblies to compare alternative arrangements.",
-          },
-          {
-            value: "20",
-            title: zh ? "扩展探索" : "Extended exploration",
-            note: zh
-              ? "20 个装配，需要更多计算资源。"
-              : "20 assemblies; requires more compute.",
-          },
-        ]}
+        options={samplingOptions(language, payload.mechanism)}
       />
       <dl className="questionnaire-review">
         <dt>{zh ? "研究类型" : "Mechanism"}</dt>
