@@ -3,7 +3,8 @@
   position: fixed;
   inset-inline-end: 16px;
   inset-block-start: 76px;
-  z-index: 40;
+  /* Below the header's dropdown context, above ordinary workspace content. */
+  z-index: 9;
   display: grid;
   gap: 8px;
   max-inline-size: min(420px, calc(100vw - 32px));
