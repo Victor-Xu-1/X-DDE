@@ -12,6 +12,9 @@ on:
       - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - 'frontend/src/examples/antibody-inputs*'
       - 'frontend/src/examples/harness.ts'
+      - 'frontend/src/examples/harness.test.ts'
+      - 'src/opendde_workbench/harness_sequences.py'
+      - 'tests/test_harness_sequences.py'
       - 'frontend/src/operations/HarnessField.tsx'
       - 'frontend/src/operations/HarnessCdrInputs.test.tsx'
       - 'tests/antibody_cdr_case.py'
@@ -41,6 +44,13 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
+      - name: Exact FASTA sources with native MSA chain values
+        id: sequence_binding
+        run: uv run --locked pytest -q tests/test_harness_sequences.py
+      - name: Frontend FASTA and native-CDR source identity regressions
+        if: success() || steps.sequence_binding.outcome == 'failure'
+        working-directory: frontend
+        run: npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
       - name: Exact input changes and delegated source/replay/coordinate consumers
         run: >-
           uv run --locked pytest -x -q
@@ -53,8 +63,7 @@ jobs:
       - name: Frontend annotation edits and direct questionnaire/result consumers
         working-directory: frontend
         run: >-
-          npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
-          src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
+          npx vitest run src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
           src/operations/HarnessReview.test.tsx src/operations/useHarnessSources.test.tsx
           src/operations/HarnessCdrInputs.test.tsx src/operations/ToolQuestionnaires.test.tsx
           src/operations/fold-assessment.test.ts src/operations/FoldAssessment.test.tsx
@@ -96,6 +105,7 @@ jobs:
           tests/test_study_module_revisions.py tests/ci/test_antibody_template_scope.py
           scripts/antibody_template_scope.py server_tests/test_native_antibody_cdr_gate.py
           server_tests/test_antibody_cdr_template_browser.py
+          src/opendde_workbench/harness_sequences.py tests/test_harness_sequences.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

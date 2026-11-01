@@ -55,6 +55,23 @@ function fixture(tool: string): PreparedExample & { request: HarnessTask } {
 }
 
 describe("native-numbered interface input provenance", () => {
+  it("keeps native CDR provenance when unchanged binder sequences acquire MSA files", () => {
+    const example = fixture("fold");
+    const original = structuredClone(example.request.payload);
+    const payload = structuredClone(original);
+    const candidate = (
+      payload.candidates as { chains: Record<string, unknown> }[]
+    )[0];
+    candidate.chains.A = {
+      sequence: heavy,
+      unpairedMsaPath: "asset:00000000-0000-4000-8000-000000000004",
+    };
+    candidate.chains.B = { sequence: light };
+    expect(exampleHarnessInputs("fold", payload, example)).toEqual([reference]);
+    (candidate.chains.A as { sequence: string }).sequence += "A";
+    expect(exampleHarnessInputs("fold", payload, example)).toEqual([]);
+    expect(example.request.payload).toEqual(original);
+  });
   it.each(["fold", "epitope"])(
     "keeps exact %s annotations across compute settings and key order changes",
     (tool) => {

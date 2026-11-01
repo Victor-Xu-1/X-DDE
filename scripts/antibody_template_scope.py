@@ -8,6 +8,11 @@ CORE = {
     "src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py",
     "frontend/src/examples/antibody-inputs.ts",
 }
+SOURCE_REGRESSIONS = {
+    "tests/test_harness_sequences.py",
+    "frontend/src/examples/harness.test.ts",
+    "frontend/src/examples/antibody-inputs.test.ts",
+}
 PATHS = (
     *CORE,
     "src/opendde_workbench/examples/stat6/antibody_structure_input.py",
@@ -18,6 +23,9 @@ PATHS = (
     "src/opendde_workbench/examples/stat6/module-revisions.json",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "frontend/src/examples/harness.ts",
+    "frontend/src/examples/harness.test.ts",
+    "src/opendde_workbench/harness_sequences.py",
+    "tests/test_harness_sequences.py",
     "frontend/src/operations/HarnessField.tsx",
     "frontend/src/operations/HarnessCdrInputs.test.tsx",
     "frontend/src/examples/antibody-inputs.test.ts",
@@ -31,6 +39,7 @@ PATHS = (
     "server_tests/test_antibody_cdr_template_browser.py",
     "scripts/antibody_template_scope.py",
     ".github/workflows/antibody-cdr-input-checks.yml",
+    ".github/workflows/harness-checks.yml",
     ".github/workflows/stat6-template-checks.yml",
     ".github/workflows/examples-checks.yml",
     ".github/workflows/module-example-checks.yml",
@@ -50,7 +59,8 @@ PATHS = (
 
 
 def selected(changed):
-    return bool(CORE.intersection(changed)) and all(
+    relevant = bool(CORE.intersection(changed)) or SOURCE_REGRESSIONS.issubset(changed)
+    return relevant and all(
         any(fnmatch.fnmatchcase(path, pattern) for pattern in PATHS) for path in changed
     )
 
