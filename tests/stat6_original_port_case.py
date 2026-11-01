@@ -17,12 +17,15 @@ def retained_original_port(settings, store, pins):
     def output(identifier, name="result.json"):
         return settings.state_dir / "jobs" / identifier / "output" / name
 
-    generated = pins.get("reinvent.design", verify=True)
-    # The analogue study is deliberately revision 4. The current revision 5
-    # studies the supplied warhead; it cannot stand in for this historical case.
+    # Keep both original revision-4 pins. The current R-group revision adds
+    # follow-up stages; the current docking case studies the supplied warhead.
+    # Neither may silently replace this historical analogue-control assertion.
     modules = dict(pins.modules)
+    modules["reinvent.design"] = modules["reinvent.design"].model_copy(update={"revision": 4})
     modules["gnina.dock"] = modules["gnina.dock"].model_copy(update={"revision": 4})
-    docked = ExamplePins(store, settings.state_dir, modules=modules).get("gnina.dock", verify=True)
+    historical = ExamplePins(store, settings.state_dir, modules=modules)
+    generated = historical.get("reinvent.design", verify=True)
+    docked = historical.get("gnina.dock", verify=True)
     assert generated.revision == docked.revision == 4
     assert str(generated.job_id) == GENERATION and str(docked.job_id) == DOCKING
     assert [str(row.job_id) for row in generated.supporting_evidence] == [STATES]

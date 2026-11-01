@@ -45,6 +45,8 @@ on:
       - "frontend/src/operations/OperationResults*"
       - "frontend/src/examples/types.ts"
       - "server_tests/test_reviewed_example_previews_browser.py"
+      - "server_tests/test_rgroup_reviewed_stages_browser.py"
+      - "tests/test_rgroup_reviewed_case_data.py"
       - "server_tests/test_receptor_case_comparison_browser.py"
       - "server_tests/reviewed_receptor_audit.py"
       - "server_tests/test_dataset_browser.py"
@@ -67,6 +69,7 @@ jobs:
       del_only: ${{ steps.change.outputs.del_only }}
       review_only: ${{ steps.review_scope.outputs.review_only }}
       loader_changed: ${{ steps.review_scope.outputs.loader_changed }}
+      native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,6 +78,10 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
+      - id: case_scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/case-data-scope.py
       - id: review_scope
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -227,13 +234,27 @@ jobs:
           echo "WB_TEST_REVIEWED_BUNDLE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP"
+      - name: Retain the exact prior native cohort for non-destructive replay
+        if: needs.scope.outputs.native_receptor_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download examples-v2 --repo "$GITHUB_REPOSITORY" --pattern stat6-reviewed-results-v34.zip --dir "$RUNNER_TEMP"
+          echo "WB_TEST_PREVIOUS_STAT6_ARCHIVE=$RUNNER_TEMP/stat6-reviewed-results-v34.zip" >> "$GITHUB_ENV"
+      - name: Exact R-group source chain and historical cohort replay
+        if: needs.scope.outputs.native_receptor_only == 'true'
+        run: uv run --locked pytest -x -q tests/test_rgroup_reviewed_case_data.py
       - name: Install and idempotently replay the exact native case data through the component queue
         run: uv run --locked pytest -q tests/test_stat6_case_data.py
       - name: Native Ketcher only; no model or scientific engine installation
         run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - run: uv run --locked playwright install chromium --with-deps
       - name: Cold-restored native structures, distinct stages, 2D/3D and downloads without calculation
+        if: needs.scope.outputs.native_receptor_only != 'true'
         run: uv run --locked pytest -x -q server_tests/test_reviewed_example_previews_browser.py
+      - name: Exact R-group states, docking and quality stages in English and Chinese
+        if: needs.scope.outputs.native_receptor_only == 'true'
+        run: uv run --locked pytest -x -q server_tests/test_rgroup_reviewed_stages_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

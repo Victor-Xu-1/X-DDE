@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       antibody_only: ${{ steps.scope.outputs.antibody_only }}
+      native_receptor_only: ${{ steps.scope.outputs.native_receptor_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,7 +54,7 @@ jobs:
         run: python scripts/antibody_template_scope.py
   contracts-and-frame:
     needs: antibody-scope
-    if: needs.antibody-scope.outputs.antibody_only != 'true'
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

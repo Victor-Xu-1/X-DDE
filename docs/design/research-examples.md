@@ -603,3 +603,18 @@ into the active workspace: library definition, member structures, read decoding,
 and full-cohort enrichment. It preserves the original BRD4 target, all 518,285 observed members,
 methods and limitations. Installation needs no DELi calculation environment and launches no
 scientific tasks. Each submodule opens its own Example results; personal history is preserved.
+
+R-group 示例的第五版保留原始生成任务，并将分子状态、同一受体中的中性态/单阳离子态
+对接和对应姿势质控作为有序研究阶段。原生对接保存的受体副本可以保留不同文件 ID；
+仅当其确切科学版本沿已验证的原生复制链回溯到本案例允许的准备结构、且文件字节保持
+不变时，才能关联。相同校验和的普通上传不构成原生来源；配体仍须来自前一阶段的确切
+结果版本。旧固定版本、原始坐标和原生检查标志不改写。蛋白单独准备的案例不评估水和
+辅因子；适用几何检查通过不证明亲和力或活性。
+
+The fifth R-group example revision retains its original generation task and ordered molecular-state,
+neutral/monocation docking and exact-pose quality stages. A native docking receptor copy may keep a
+different asset ID only when its exact version traces through the verified native-copy chain to an
+allowed prepared receptor with unchanged bytes. An uploaded lookalike is insufficient; ligands must
+still consume an exact earlier output version. Historical pins, coordinates and native flags remain
+unchanged. Protein-only cases leave waters and cofactors unassessed; plausible geometry establishes
+neither affinity nor activity.

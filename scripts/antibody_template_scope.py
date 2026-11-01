@@ -2,7 +2,9 @@
 
 import fnmatch
 import os
+import runpy
 import subprocess
+from pathlib import Path
 
 CORE = {
     "src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py",
@@ -68,8 +70,13 @@ def main():
         if base and set(base) != {"0"}
         else []
     )
+    native_scope = runpy.run_path(str(Path(__file__).with_name("case-data-scope.py")))[
+        "native_receptor_only"
+    ]
+    native = os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch" and native_scope(changed)
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("antibody_only=" + str(selected(changed)).lower() + "\n")
+        output.write("native_receptor_only=" + str(native).lower() + "\n")
     print("CDR input delegation:", selected(changed), "changed files:", len(changed))
 
 

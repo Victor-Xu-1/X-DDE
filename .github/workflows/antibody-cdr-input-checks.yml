@@ -27,7 +27,21 @@ on:
 permissions:
   contents: read
 jobs:
+  case-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      native_receptor_only: ${{ steps.scope.outputs.native_receptor_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/antibody_template_scope.py
   cdr-inputs:
+    needs: case-scope
+    if: needs.case-scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

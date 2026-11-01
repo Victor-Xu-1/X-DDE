@@ -72,12 +72,22 @@ def _followups(store, state, roots, allowed_inputs, identifiers):
         descendants = {row["asset_id"] for row in outputs}
         versions = {row["id"] for row in outputs}
         inputs = input_identifiers(job.request)
+        accepted_inputs = allowed_inputs | descendants
+        if not inputs <= accepted_inputs:
+            from ..assets import AssetStore
+            from ..research.storage import ScientificStore
+            from .receptor_provenance import approved_native_receptor_aliases
+
+            scientific = ScientificStore(store, AssetStore(store, state / "assets"))
+            accepted_inputs |= approved_native_receptor_aliases(
+                scientific, state, job.request, accepted_inputs
+            )
         # Content-addressed files can be shared by distinct scientific versions.
         # Consume the exact earlier output version, not just coincident file bytes.
         if (
             not inputs
             or not references(job.request.model_dump(mode="json")) & versions
-            or not inputs <= allowed_inputs | descendants
+            or not inputs <= accepted_inputs
         ):
             raise ValueError(
                 "Supporting results must consume computed case outputs in dependency order; "
