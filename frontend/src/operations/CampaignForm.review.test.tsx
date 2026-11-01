@@ -46,7 +46,7 @@ it.each<Language>(["en", "zh"])(
       }),
     );
     await user.click(
-      screen.getByRole("button", { name: zh ? "下一步" : "Next", exact: true }),
+      screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
     fireEvent.change(
       screen.getByRole("textbox", {
@@ -57,11 +57,10 @@ it.each<Language>(["en", "zh"])(
       },
     );
     await user.click(
-      screen.getByRole("button", { name: zh ? "下一步" : "Next", exact: true }),
+      screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
     const next = screen.getByRole("button", {
       name: zh ? "下一步" : "Next",
-      exact: true,
     });
     expect(next).toBeEnabled();
     await user.click(next);
@@ -70,7 +69,6 @@ it.each<Language>(["en", "zh"])(
     });
     const start = screen.getByRole("button", {
       name: zh ? "启动设计" : "Start design",
-      exact: true,
     });
     expect(permission).not.toBeChecked();
     expect(start).toBeDisabled();
