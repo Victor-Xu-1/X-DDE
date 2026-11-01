@@ -26,10 +26,21 @@ def test_only_the_authored_module_identities_advance():
     current = bundle_catalogue("stat6")
     assert set(old.modules) == set(current.modules)
     for key, previous in old.modules.items():
-        revisions = {"gnina.dock": 5, "posebusters.check": 4}
+        revisions = {"gnina.dock": 5, "posebusters.check": 4, "fold": 5, "epitope": 4}
         expected = (
             previous.model_copy(update={"revision": revisions.get(key, 4)})
-            if (key in CHANGED | {"workflows", "predict", "pose_exploration", "posebusters.check"})
+            if (
+                key
+                in CHANGED
+                | {
+                    "workflows",
+                    "predict",
+                    "pose_exploration",
+                    "posebusters.check",
+                    "fold",
+                    "epitope",
+                }
+            )
             else previous
         )
         assert current.modules[key] == expected
@@ -43,7 +54,9 @@ def test_quality_successor_preserves_every_other_authored_module():
     assert set(previous.modules) == set(current.modules)
     for key, module in previous.modules.items():
         expected = (
-            module.model_copy(update={"revision": 4}) if key == "posebusters.check" else module
+            module.model_copy(update={"revision": {"fold": 5, "epitope": 4}.get(key, 4)})
+            if key in {"posebusters.check", "fold", "epitope"}
+            else module
         )
         assert current.modules[key] == expected
     assert previous.modules["posebusters.check"].revision == 3

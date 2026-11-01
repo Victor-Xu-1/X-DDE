@@ -1,7 +1,7 @@
 """Only complete study requests are prefilled; missing experiment inputs stay explicit."""
 
 
-def study_request(capability, objects, sequences):
+def study_request(capability, objects, sequences, *, antibody=None):
     if capability == "rmsd":
         from ...structure_comparison.contract import StructureComparisonTask
 
@@ -126,6 +126,6 @@ def study_request(capability, objects, sequences):
 
     return (
         integrated_study(capability, objects, sequences)
-        or harness_study(capability, objects, sequences)
+        or harness_study(capability, objects, sequences, antibody=antibody)
         or study_task(capability, objects, sequences)
     )

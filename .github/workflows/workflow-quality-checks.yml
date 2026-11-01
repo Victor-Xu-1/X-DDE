@@ -23,6 +23,18 @@ on:
 permissions:
   contents: read
 jobs:
+  antibody-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      antibody_only: ${{ steps.scope.outputs.antibody_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/antibody_template_scope.py
   refinement-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -36,8 +48,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
   measured-handoff:
-    needs: refinement-scope
-    if: needs.refinement-scope.outputs.refinement_only != 'true'
+    needs: [antibody-scope, refinement-scope]
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.refinement-scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
