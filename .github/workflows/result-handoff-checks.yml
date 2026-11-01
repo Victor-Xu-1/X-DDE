@@ -23,6 +23,11 @@ on:
       - "tests/test_result_version_lookup.py"
       - "server_tests/test_result_handoff_browser.py"
       - "server_tests/result_download_probe.py"
+      - "server_tests/test_result_status_layout_browser.py"
+      - "frontend/src/WorkbenchReadStatus*"
+      - "frontend/src/workbench-read-status.css"
+      - "scripts/ci-browser-network.py"
+      - "tests/ci/test_ci_browser_network.py"
       - ".github/workflows/result-handoff-checks.yml"
       # Candidate inspection has direct handoff regressions in the fixed-stage gate.
       - "!frontend/src/datasets/CandidateView*"
@@ -56,7 +61,7 @@ jobs:
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/DatasetResults.test.tsx
       - name: Real SQLite filtering, route validation and preserved asset contracts
-        run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py
+        run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py tests/ci/test_ci_browser_network.py
       - name: Restore the actual archived native source; no new scientific calculations
         env:
           GH_TOKEN: ${{ github.token }}
@@ -68,8 +73,9 @@ jobs:
       - name: Bilingual desktop and narrow native handoff and original downloads
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          sudo --non-interactive python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
-          uv run --locked python -m pytest -x -q server_tests/test_result_handoff_browser.py
+          uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py server_tests/test_result_status_layout_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
