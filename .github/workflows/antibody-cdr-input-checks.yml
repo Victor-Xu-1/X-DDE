@@ -64,6 +64,18 @@ jobs:
         run: >-
           uv run --locked --with biotite==1.6.0 --with numpy==1.26.4 --with pyyaml==6.0.3
           pytest -x -q server_tests/test_native_antibody_cdr_gate.py
+      - name: Preserve actual historical epitope results under their authored catalogue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive_path="$(uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          print(download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data'))
+          PY
+          )"
+          WB_REVIEWED_STAT6_ARCHIVE="$archive_path" uv run --locked pytest -q tests/test_reviewed_stat6_case_data.py
       - name: English desktop and Chinese mobile template preparation, review, download and blank reset
         run: |
           export WB_HOME="$RUNNER_TEMP/x-dde-antibody-cdr"

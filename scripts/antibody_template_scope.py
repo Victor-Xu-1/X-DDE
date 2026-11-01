@@ -24,6 +24,7 @@ PATHS = (
     "tests/antibody_cdr_case.py",
     "tests/test_antibody_cdr_inputs.py",
     "tests/test_study_module_revisions.py",
+    "tests/test_reviewed_stat6_case_data.py",
     "tests/fixtures/stat6/antibody_cdr/*",
     "tests/ci/test_antibody_template_scope.py",
     "server_tests/test_native_antibody_cdr_gate.py",

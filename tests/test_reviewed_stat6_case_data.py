@@ -15,6 +15,8 @@ from opendde_workbench.api import create_app
 from opendde_workbench.deployment.catalog import PACKAGES, dependencies
 from opendde_workbench.examples import stat6_bundle_release as source
 from opendde_workbench.examples.bundle import restore_bundle, verify_examples
+from opendde_workbench.examples.catalogue_profiles import historical_study_catalogue
+from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.store import Store
 
 NATIVE_EXAMPLES = {
@@ -197,15 +199,29 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
         )
     summary = {"modules": 58, "computed": 58, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
-    assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
+    authored = historical_study_catalogue(manifest["catalogue_sha256"])
+    assert (
+        verify_examples(settings, source.CAPABILITIES, profile="stat6", catalogue=authored)
+        == summary
+    )
+    retained = ExamplePins(store, settings.state_dir, modules=authored.modules)
+    with pytest.raises(ValueError, match="lacks a fixed example for epitope"):
+        verify_examples(settings, ("epitope",), profile="stat6")
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
         for capability, identifier in NATIVE_EXAMPLES.items():
             response = client.get("/api/examples/" + capability)
             assert response.status_code == 200
             value = response.json()
-            assert value["computed_result_available"]
-            assert value["pin"]["job_id"] == identifier
-            assert value["pin"]["review"]["scope"] == "reviewed_computational_example"
+            if capability == "epitope":
+                assert value["module"]["revision"] == 4
+                assert authored.modules[capability].revision == 3
+                assert not value["computed_result_available"] and value["pin"] is None
+                pin = retained.get(capability, verify=True).model_dump(mode="json")
+            else:
+                assert value["computed_result_available"]
+                pin = value["pin"]
+            assert pin["job_id"] == identifier
+            assert pin["review"]["scope"] == "reviewed_computational_example"
             assert store.get(identifier).status == "succeeded"
         check_complete_alignment_downloads(client, settings)
         check_exploratory_model_limits(settings)
