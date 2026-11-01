@@ -41,7 +41,12 @@ def test_native_forty_assemblies_retain_selection_and_original_downloads(languag
         expect(table.locator("tbody tr")).to_have_count(20)
         page.get_by_role("button", name="下一页" if zh else "Next page", exact=True).click()
         expect(table.locator("tbody tr")).to_have_count(20)
-        table.get_by_role("button", name="装配 40" if zh else "Assembly 40", exact=True).click()
+        label = "装配 40" if zh else "Assembly 40"
+        row = table.get_by_role("row").filter(has=page.get_by_text(label, exact=True))
+        expect(row).to_be_visible()
+        page.screenshot(path=str(evidence / "second-page.png"), full_page=True)
+        row.get_by_text(label, exact=True).click()
+        expect(row).to_have_attribute("aria-selected", "true")
         active = proposals[39]
         ready_structure(page, zh)
         link = page.get_by_role(
