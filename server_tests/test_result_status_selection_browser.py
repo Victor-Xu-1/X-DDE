@@ -25,7 +25,10 @@ def test_completing_artifact_read_preserves_the_pressed_pose(language, width):
     evidence = Path("outputs/result-handoff") / ("read-status-" + language)
     evidence.mkdir(parents=True)
     zh = language == "zh"
-    with platform(settings.state_dir, evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 1000})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
@@ -57,7 +60,6 @@ def test_completing_artifact_read_preserves_the_pressed_pose(language, width):
         page.screenshot(path=evidence / "completed-read-selection.png", full_page=True)
         (evidence / "gesture.json").write_text(json.dumps({"before": before, "after": after}))
         expect(button).to_have_attribute("aria-pressed", "true")
-        expect(result.get_by_role("button", name="姿势 1" if zh else "Pose 1", exact=True)).to_have_attribute(
-            "aria-pressed", "false"
-        )
+        first = result.get_by_role("button", name="姿势 1" if zh else "Pose 1", exact=True)
+        expect(first).to_have_attribute("aria-pressed", "false")
         browser.close()
