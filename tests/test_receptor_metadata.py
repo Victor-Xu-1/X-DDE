@@ -97,8 +97,10 @@ def test_unicode_in_native_structural_records_cannot_pass_normalization_or_pair_
         ("native.log", log.encode()),
     ):
         (tmp_path / name).write_bytes(raw)
-    with pytest.raises(ValueError, match="structural records must be ASCII"):
-        verify_pair(tmp_path, receipt["original_receptor_sha256"], ["A:1"], receipt)
+    # Even a self-consistent raw-byte digest cannot legitimize corrupted structure fields.
+    forged = {**receipt, "raw_receptor_sha256": hashlib.sha256(corrupted).hexdigest()}
+    with pytest.raises(ValueError):
+        verify_pair(tmp_path, receipt["original_receptor_sha256"], ["A:1"], forged)
 
 
 def test_invalid_utf8_metadata_and_multiple_models_remain_invalid():
