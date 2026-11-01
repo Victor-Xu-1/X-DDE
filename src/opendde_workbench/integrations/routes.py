@@ -21,6 +21,17 @@ class MsaInspection(BaseModel):
 
 
 def register_scientific_routes(app, store, settings, assets, mutation):
+    @app.get("/api/scientific/binder-checkpoints/{identifier}")
+    def binder_checkpoint(identifier: UUID):
+        from .binder_checkpoints import describe
+
+        try:
+            return describe(settings.state_dir, store, identifier)
+        except (OSError, ValueError, KeyError) as exc:
+            raise HTTPException(
+                409, "The original binder stage checkpoint is unavailable or changed."
+            ) from exc
+
     @app.post("/api/scientific/boltz/msa-check", dependencies=[Depends(mutation)])
     def inspect_msa(value: MsaInspection):
         from .boltz_inputs import checked_msa

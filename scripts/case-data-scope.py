@@ -1,4 +1,4 @@
-"""Select direct archive consumers for immutable STAT6 and DEL data updates."""
+"""Select direct consumers for immutable case data and verified native source aliases."""
 
 import os
 import subprocess
@@ -29,6 +29,61 @@ PATHS = {
     "install.ps1",
 }
 
+RECEPTOR_CORE = {
+    "src/opendde_workbench/examples/receptor_provenance.py",
+    "src/opendde_workbench/examples/supporting.py",
+    "src/opendde_workbench/examples/stat6/preparation.py",
+}
+RECEPTOR_TEST = "tests/test_receptor_case_aliases.py"
+RECEPTOR_PATHS = {
+    *RECEPTOR_CORE,
+    RECEPTOR_TEST,
+    "src/opendde_workbench/examples/stat6_bundle_release.py",
+    "tests/test_reviewed_stat6_case_data.py",
+    "tests/test_rgroup_reviewed_case_data.py",
+    "tests/stat6_original_port_case.py",
+    "server_tests/test_rgroup_reviewed_stages_browser.py",
+    "frontend/src/viewer/viewer.css",
+    ".github/workflows/example-result-set-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/structure-layout-checks.yml",
+    "docs/reviewed-example-data.md",
+    "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
+    "src/opendde_workbench/examples/stat6/module-revisions.json",
+    "tests/test_study_module_revisions.py",
+    "scripts/case-data-scope.py",
+    "scripts/antibody_template_scope.py",
+    "tests/ci/test_case_data_scope.py",
+    ".github/workflows/stat6-template-checks.yml",
+    ".github/workflows/module-example-checks.yml",
+    ".github/workflows/examples-checks.yml",
+    ".github/workflows/structure-comparison-checks.yml",
+    ".github/workflows/workflow-quality-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/antibody-cdr-input-checks.yml",
+    "docs/design/research-examples.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def native_receptor_only(changed):
+    changed = set(changed)
+    if (
+        "frontend/src/viewer/viewer.css" in changed
+        and not {
+            "server_tests/test_rgroup_reviewed_stages_browser.py",
+            ".github/workflows/example-result-set-checks.yml",
+        }
+        <= changed
+    ):
+        return False
+    return RECEPTOR_CORE <= changed and RECEPTOR_TEST in changed and changed <= RECEPTOR_PATHS
+
 
 def selected(changed):
     changed = set(changed)
@@ -51,6 +106,10 @@ def main():
     value = os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch" and selected(changed)
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("case_data_only=" + str(value).lower() + "\n")
+        native = os.environ.get(
+            "GITHUB_EVENT_NAME"
+        ) != "workflow_dispatch" and native_receptor_only(changed)
+        output.write("native_receptor_only=" + str(native).lower() + "\n")
 
 
 if __name__ == "__main__":

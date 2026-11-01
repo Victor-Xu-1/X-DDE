@@ -6,6 +6,10 @@ from .property_models import verified_property_model
 
 
 def validate_bindings(request, assets):
+    if request.operation == "boltzgen_design" and request.payload.continuation:
+        from .binder_checkpoints import validate_continuation
+
+        validate_continuation(request, assets.root.parent, assets.store)
     result = {}
     for item in request.inputs:
         ref = item.source

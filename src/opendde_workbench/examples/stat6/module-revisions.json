@@ -1,8 +1,10 @@
 {
+  "epitope": 4,
+  "fold": 5,
   "gnina.dock": 5,
   "pose_exploration": 4,
   "posebusters.check": 4,
   "predict": 4,
-  "reinvent.design": 4,
+  "reinvent.design": 5,
   "workflows": 4
 }

@@ -86,7 +86,23 @@ on:
 permissions:
   contents: read
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: change
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/case-data-scope.py
   publication:
+    needs: scope
+    # Exact original-file menu bounds and real downloads use the retained-stage gate.
+    if: needs.scope.outputs.native_receptor_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
@@ -134,14 +150,14 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
         run: |
-          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
-          test "${#source[@]}" -eq 2
-          tag="${source[0]}"
-          asset="${source[1]}"
-          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          [[ "$asset" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
-          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP" --skip-existing
-          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/$asset" >> "$GITHUB_ENV"
+          archive_path="$(uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          print(download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data'))
+          PY
+          )"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$archive_path" >> "$GITHUB_ENV"
           uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Real desktop and narrow structure, candidate controls, native exit and figure downloads
         env:

@@ -15,12 +15,13 @@ from opendde_workbench.api import create_app
 from opendde_workbench.deployment.catalog import PACKAGES, dependencies
 from opendde_workbench.examples import stat6_bundle_release as source
 from opendde_workbench.examples.bundle import restore_bundle, verify_examples
+from opendde_workbench.examples.catalogue_profiles import historical_study_catalogue
 from opendde_workbench.store import Store
 
 NATIVE_EXAMPLES = {
     "predict": "716024e7-0a4a-4b9f-8962-fae4257bba48",
     "boltz.predict": "1190e938-51af-44a3-9dbc-4aacc77b5821",
-    "epitope": "2d356d5b-b02d-4dea-be17-118234f9c62c",
+    "epitope": "84bca36f-6a5f-4f02-b97f-58ac18964548",
     "esm": "081476d2-6fcf-4e17-b7c0-18576f848938",
     "esm2": "c689b556-3e00-4f94-a578-c631ef7717e4",
     "mpnn": "e9ccf58d-d7c9-41ec-ae8b-f952a4b9fd3d",
@@ -169,7 +170,7 @@ def check_native_antibody_structure_search(client, settings, store):
 
 def test_stat6_data_component_uses_the_existing_data_authority():
     package = PACKAGES["public-stat6-examples"]
-    assert package.kind == "data" and package.version == source.VERSION == "34"
+    assert package.kind == "data" and package.version == source.VERSION == "35"
     assert package.url == source.URL and package.checksum == source.SHA256
     assert dependencies(package.id) == [package.id]
     assert len(source.CAPABILITIES) == len(set(source.CAPABILITIES)) == 58
@@ -197,6 +198,11 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
         )
     summary = {"modules": 58, "computed": 58, "validated": 0}
     assert restore_bundle(archive, settings, source.SHA256) == summary
+    authored = historical_study_catalogue(manifest["catalogue_sha256"])
+    assert (
+        verify_examples(settings, source.CAPABILITIES, profile="stat6", catalogue=authored)
+        == summary
+    )
     assert verify_examples(settings, source.CAPABILITIES, profile="stat6") == summary
     with TestClient(app, base_url="http://127.0.0.1:4322") as client:
         for capability, identifier in NATIVE_EXAMPLES.items():
@@ -204,8 +210,9 @@ def test_actual_stat6_archive_restores_complete_results_without_execution(settin
             assert response.status_code == 200
             value = response.json()
             assert value["computed_result_available"]
-            assert value["pin"]["job_id"] == identifier
-            assert value["pin"]["review"]["scope"] == "reviewed_computational_example"
+            pin = value["pin"]
+            assert pin["job_id"] == identifier
+            assert pin["review"]["scope"] == "reviewed_computational_example"
             assert store.get(identifier).status == "succeeded"
         check_complete_alignment_downloads(client, settings)
         check_exploratory_model_limits(settings)

@@ -1,6 +1,12 @@
 name: Exact result material handoff checks
 on:
   workflow_dispatch:
+    inputs:
+      trials:
+        description: Bounded repetitions of this exact archived download path
+        type: choice
+        default: '1'
+        options: ['1', '6']
   push:
     paths: &handoff_paths
       - "frontend/src/docking/usePoseAssets*"
@@ -16,6 +22,12 @@ on:
       - "src/opendde_workbench/research/storage.py"
       - "tests/test_result_version_lookup.py"
       - "server_tests/test_result_handoff_browser.py"
+      - "server_tests/result_download_probe.py"
+      - "server_tests/test_result_status_selection_browser.py"
+      - "frontend/src/WorkbenchReadStatus*"
+      - "frontend/src/workbench-read-status.css"
+      - "scripts/ci-browser-network.py"
+      - "tests/ci/test_ci_browser_network.py"
       - ".github/workflows/result-handoff-checks.yml"
       # Candidate inspection has direct handoff regressions in the fixed-stage gate.
       - "!frontend/src/datasets/CandidateView*"
@@ -30,6 +42,7 @@ jobs:
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: "0"
+      WB_HANDOFF_TRIALS: ${{ inputs.trials || '1' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,8 +60,9 @@ jobs:
           npx vitest run src/docking/usePoseAssets.test.tsx
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/DatasetResults.test.tsx
+          src/App.live-status.test.tsx src/App.missing-task.test.tsx
       - name: Real SQLite filtering, route validation and preserved asset contracts
-        run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py
+        run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py tests/ci/test_ci_browser_network.py
       - name: Restore the actual archived native source; no new scientific calculations
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,8 +74,9 @@ jobs:
       - name: Bilingual desktop and narrow native handoff and original downloads
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
+          sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
-          uv run --locked python -m pytest -x -q server_tests/test_result_handoff_browser.py
+          uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py server_tests/test_result_status_selection_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
