@@ -24,6 +24,10 @@ STAGES = [
     "bf974dc3-5686-40bd-ae8c-bb889ca58cf3",
     "d3c19f28-4221-458f-9bd2-248d057c0fa7",
 ]
+PREVIEWS = (
+    "11d15ac05c77b3101f1dd6ce8d8e5d9424d406ea5321d7f7ae997174abaae91f",
+    "77135e25d91286e34201083816ccd37326d15a331ad819104f33687eccc9b605",
+)
 
 
 def test_real_rgroup_followups_keep_native_pose_identity_across_old_archive_replay(settings):
@@ -40,13 +44,23 @@ def test_real_rgroup_followups_keep_native_pose_identity_across_old_archive_repl
     assert fixed.revision == 5 and str(fixed.job_id) == PRIMARY
     assert [str(row.job_id) for row in fixed.supporting_evidence] == STAGES
     assert str(current["epitope"].job_id) == "84bca36f-6a5f-4f02-b97f-58ac18964548"
-    for dock, quality, expected in zip(
-        STAGES[1:3], STAGES[3:5], (2.856476436100953, 2.872098022352299), strict=True
+    for dock, quality, expected, preview_sha in zip(
+        STAGES[1:3], STAGES[3:5], (2.856476436100953, 2.872098022352299), PREVIEWS, strict=True
     ):
         native = settings.state_dir / "jobs" / dock / "output" / "pose-001.sdf"
         output = settings.state_dir / "jobs" / quality / "output"
         report = json.loads((output / "result.json").read_bytes())
-        assert (output / "molecule-preview.sdf").read_bytes() == native.read_bytes()
+        preview = (output / "molecule-preview.sdf").read_bytes()
+        # Native extraction adds one blank separator after SD properties. Keep
+        # each full file's own exact hash and compare the whole molecular block
+        # byte-for-byte: atom identities, coordinates, bonds and stereo flags.
+        assert preview.count(b"M  END\n") == native.read_bytes().count(b"M  END\n") == 1
+        assert preview.partition(b"M  END\n")[0] == native.read_bytes().partition(b"M  END\n")[0]
+        assert (
+            hashlib.sha256(preview).hexdigest()
+            == report["previews_sha256"]["molecule-preview.sdf"]
+            == preview_sha
+        )
         assert (
             hashlib.sha256(native.read_bytes()).hexdigest()
             == report["inputs"]["molecule"]["sha256"]

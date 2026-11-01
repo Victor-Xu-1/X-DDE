@@ -19,12 +19,16 @@ from opendde_workbench.settings import Settings
 PRIMARY = "23e97ba7-f90e-484d-a21d-0813454c608d"
 STATES = "ff3d98a3-9465-4cbb-a240-8d52996c2104"
 DOCKS = ("4ca90aae-aaa5-4b1c-8cbb-ecf45df97b64", "d53a9735-3e0e-4651-91f4-e93cfe067df9")
+DOCK_SHA = (
+    "9aefa9b74dcbfe4f20e0e824f4cd99f98a9d0e813ab7752e82f41bb4aa567185",
+    "01cbb8506b9301962e60589b9cf7ffe457b24a384fe2d14fb4d272d48cba362a",
+)
 QUALITY = {
     "bf974dc3-5686-40bd-ae8c-bb889ca58cf3": (
-        "9aefa9b74dcbfe4f20e0e824f4cd99f98a9d0e813ab7752e82f41bb4aa567185"
+        "11d15ac05c77b3101f1dd6ce8d8e5d9424d406ea5321d7f7ae997174abaae91f"
     ),
     "d3c19f28-4221-458f-9bd2-248d057c0fa7": (
-        "01cbb8506b9301962e60589b9cf7ffe457b24a384fe2d14fb4d272d48cba362a"
+        "77135e25d91286e34201083816ccd37326d15a331ad819104f33687eccc9b605"
     ),
 }
 RECEPTOR = "3250c6da6a3f406b62db8824e4ef8b27c89027da42d846393ec9601898a5ffa4"
@@ -39,10 +43,15 @@ def records(state):
 
 
 def check_native_download(page, identifier, name, digest, target):
-    link = page.locator(f'a[href="/api/jobs/{identifier}/download?name={name}"]')
-    details = page.locator("details").filter(has=link)
-    if details.count() and details.get_attribute("open") is None:
-        details.locator("summary").click()
+    selector = f'a[href="/api/jobs/{identifier}/download?name={name}"]'
+    if not page.locator(selector + ":visible").count():
+        menu = page.locator("details.viewer-original-downloads:visible").filter(
+            has=page.locator(selector)
+        )
+        expect(menu).to_have_count(1)
+        menu.locator("summary").click()
+    link = page.locator(selector + ":visible")
+    expect(link).to_have_count(1)
     with page.expect_download() as transfer:
         link.click()
     transfer.value.save_as(target)
@@ -97,9 +106,9 @@ def test_native_rgroup_stages_preserve_exact_poses_and_source_aware_quality(lang
         ).to_be_visible()
         ready_structure(page, zh)
         page.get_by_role("tab", name="二维结构" if zh else "2D structure", exact=True).click()
-        expect(page.locator(".molecule-image:visible")).to_have_attribute(
-            "data-drawing-state", "ready", timeout=60000
-        )
+        expect(
+            page.locator(".molecular-preview:visible .molecule-image:visible")
+        ).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         page.get_by_role("tab", name="三维结构" if zh else "3D structure", exact=True).click()
         ready_structure(page, zh)
         page.screenshot(path=str(evidence / "states.png"), full_page=True)
@@ -110,7 +119,7 @@ def test_native_rgroup_stages_preserve_exact_poses_and_source_aware_quality(lang
                 page,
                 identifier,
                 "pose-001.sdf",
-                list(QUALITY.values())[DOCKS.index(identifier)],
+                DOCK_SHA[DOCKS.index(identifier)],
                 evidence / (identifier + ".sdf"),
             )
         for identifier, digest in QUALITY.items():
