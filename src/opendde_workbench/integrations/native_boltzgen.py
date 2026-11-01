@@ -15,6 +15,11 @@ def run(request):
     payload = request["payload"]
     raw = Path("/output/native")
     raw.mkdir()
+    continuation = payload.get("continuation")
+    if continuation:
+        from native_binder_checkpoint import restore_bound_checkpoint
+
+        restore_bound_checkpoint(request, raw / "designs")
     reserved = set(payload["target_chains"])
     chain = next((c for c in "ZYXWVUTSRQPONMLKJIHGFEDCBA" if c not in reserved), None)
     if chain is None:
@@ -53,6 +58,7 @@ def run(request):
             "boltzgen",
             "run",
             file,
+            *(["--reuse"] if continuation else []),
             "--output",
             raw / "designs",
             "--protocol",

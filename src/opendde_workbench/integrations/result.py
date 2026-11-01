@@ -1,6 +1,7 @@
 """Scientific outputs are typed and bound to original requests and actual artifact bytes."""
 
 import hashlib
+import json
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -152,6 +153,22 @@ def validate_result(value, request, output):
             raise ValueError("Native scientific artifact bytes changed.")
     if request.operation == "chemprop_train" and not result.model_artifact:
         raise ValueError("Property training produced no reusable native checkpoint.")
+    if request.operation == "boltzgen_design" and request.payload.continuation:
+        name = "binder-continuation-source.json"
+        if name not in result.artifact_sha256:
+            raise ValueError("The continued binder result has no sealed source checkpoint receipt.")
+        receipt = contained(output, name)
+        if receipt.stat().st_size > 2 * 1024**2:
+            raise ValueError("The binder continuation receipt exceeds its size boundary.")
+        manifest = json.loads(receipt.read_bytes())
+        digest = hashlib.sha256(
+            json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        if (
+            digest != request.payload.continuation.sha256
+            or manifest.get("job_id") != str(request.payload.continuation.job_id)
+        ):
+            raise ValueError("Continued binder output belongs to a different source checkpoint.")
     if request.operation == "electrostatics" and not (
         result.potential_artifact and result.structure_artifact and result.potential_unit == "kBT/e"
     ):
