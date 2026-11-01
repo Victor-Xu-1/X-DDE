@@ -57,6 +57,7 @@ PATHS = (
     ".github/workflows/defined-site-checks.yml",
     ".github/workflows/workflow-quality-checks.yml",
     ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/publication-checks.yml",
     "docs/research/stat6-study.md",
     "pyproject.toml",
     "uv.lock",
