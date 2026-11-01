@@ -1,9 +1,28 @@
 """Strict heavy-atom PDB identities shared by native execution and host validation."""
 
 import math
+from collections.abc import Iterator
 from typing import NamedTuple
 
 BACKBONE = frozenset({"N", "CA", "C", "O", "OXT"})
+FREE_TEXT_RECORDS = frozenset({"COMPND", "TITLE ", "REMARK"})
+
+
+def pdb_records(raw: bytes, kinds: tuple[str, ...]) -> Iterator[tuple[int, str]]:
+    """Validate encoding before filtering; only explicit free-text records allow UTF-8."""
+    for index, encoded in enumerate(raw.splitlines()):
+        try:
+            kind = encoded[:6].decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise ValueError("PDB record names must be ASCII.") from exc
+        try:
+            line = encoded.decode("utf-8" if kind in FREE_TEXT_RECORDS else "ascii")
+        except UnicodeDecodeError as exc:
+            if kind in FREE_TEXT_RECORDS:
+                raise ValueError("PDB metadata must use valid UTF-8.") from exc
+            raise ValueError("PDB structural records must be ASCII.") from exc
+        if kind in kinds:
+            yield index, line
 
 
 class Atom(NamedTuple):
@@ -29,7 +48,7 @@ def parse_atoms(raw: bytes, *, reject_hydrogens: bool = False) -> dict[tuple, At
     result = {}
     serials = set()
     models = 0
-    for index, line in enumerate(raw.decode("ascii").splitlines()):
+    for index, line in pdb_records(raw, ("MODEL ", "ATOM  ", "HETATM")):
         if line.startswith("MODEL "):
             models += 1
             if models > 1:

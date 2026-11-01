@@ -23,6 +23,7 @@ on:
       - "!frontend/src/proximity/useProximityDraft.ts"
       # Form-only budgets use the focused form gate; native model/geometry is unchanged.
       - "!frontend/src/proximity/Form*"
+      - "!frontend/src/proximity/PartnerQuestion*"
       - "!frontend/src/proximity/Plan.tsx"
       - "!frontend/src/proximity/ExecutionSettings.tsx"
       - "!frontend/src/proximity/execution.ts"
@@ -36,8 +37,47 @@ concurrency:
   group: proximity-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  scope:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    outputs:
+      input_only: ${{ steps.scope.outputs.input_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Route only the verified-input editor to its dedicated form gate
+        id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          editor = {'frontend/src/proximity/PartnerQuestion.tsx',
+                    'frontend/src/proximity/PartnerQuestion.test.tsx'}
+          allowed = editor | {
+              '.github/workflows/proximity-form-checks.yml',
+              '.github/workflows/proximity-checks.yml',
+              'pyproject.toml', 'uv.lock', 'frontend/package.json',
+              'frontend/package-lock.json', 'install.sh', 'install.ps1',
+          }
+          base = os.environ['BASE']
+          valid = subprocess.run(['git', 'cat-file', '-e', base],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+          changed = set(subprocess.check_output(
+              ['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()) if valid else set()
+          input_only = bool(changed & editor) and changed <= allowed
+          with Path(os.environ['GITHUB_OUTPUT']).open('a') as stream:
+              stream.write('input_only=' + str(input_only).lower() + '\n')
+          PY
   native:
-    if: github.event_name != 'workflow_dispatch' || inputs.scope != 'memory_profile'
+    needs: scope
+    if: >-
+      !cancelled() &&
+      (github.event_name == 'workflow_dispatch' && inputs.scope != 'memory_profile' ||
+       github.event_name != 'workflow_dispatch' && needs.scope.result == 'success' &&
+       needs.scope.outputs.input_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

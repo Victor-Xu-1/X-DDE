@@ -224,6 +224,39 @@ def expect_cancelled(page, cancelled, *paths):
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+@pytest.mark.parametrize("entry", ["search", "notifications"])
+def test_read_error_does_not_intercept_header_task_choices(fixture_page, language, width, entry):
+    page, state, _, _, capture = fixture_page
+    state["health_failed"] = state["fresh_jobs"] = True
+    state["statuses"][A] = state["statuses"][B] = "failed"
+    open_task(page)
+    warning = page.locator('[data-read-error="health"]')
+    expect(warning).to_be_visible()
+    if entry == "search":
+        if width < 960:
+            page.get_by_role(
+                "button", name="搜索任务" if language == "zh" else "Search tasks", exact=True
+            ).click()
+        page.get_by_placeholder(
+            "搜索任务名称" if language == "zh" else "Search tasks by name or ID"
+        ).fill("Browser control task B")
+        choice = page.locator(".search-results button").filter(has_text="Browser control task B")
+    else:
+        page.locator(".top-popover summary").click()
+        choice = page.locator(".top-popover button").filter(has_text="Browser control task B")
+    expect(choice).to_be_visible()
+    capture(
+        entry + "-during-outage", "An existing health error must not intercept header task choices."
+    )
+    bounds = choice.bounding_box()
+    assert bounds
+    page.mouse.click(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2)
+    expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
+    expect(page).to_have_url(re.compile("task=" + B))
+    expect(warning).to_be_visible()
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_health_outage_does_not_hide_terminal_status(fixture_page, language, width):
     page, state, counts, _, capture = fixture_page
     open_task(page)
