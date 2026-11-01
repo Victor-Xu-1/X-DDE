@@ -14,10 +14,13 @@ NETWORK = (
 
 
 def configure(root):
-    changed = 0
-    sources = [root / "sources.list"]
+    policy = root / "apt.conf.d/99-xdde-browser-ci"
+    if policy.is_symlink() or (policy.exists() and policy.read_text() != NETWORK):
+        raise ValueError("Preserve unknown browser CI network configuration.")
+    sources = [root / "sources.list", root / "apt-mirrors.txt"]
     sources += sorted((root / "sources.list.d").glob("*.list"))
     sources += sorted((root / "sources.list.d").glob("*.sources"))
+    updates = []
     for path in sources:
         if path.is_symlink():
             raise ValueError("Do not rewrite linked repository configuration.")
@@ -26,14 +29,12 @@ def configure(root):
         old = path.read_text()
         new = AZURE_MIRROR.sub("https://archive.ubuntu.com/ubuntu", old)
         if new != old:
-            path.write_text(new)
-            changed += 1
-    policy = root / "apt.conf.d/99-xdde-browser-ci"
-    if policy.is_symlink() or (policy.exists() and policy.read_text() != NETWORK):
-        raise ValueError("Preserve unknown browser CI network configuration.")
+            updates.append((path, new))
+    for path, new in updates:
+        path.write_text(new)
     policy.parent.mkdir(exist_ok=True)
     policy.write_text(NETWORK)
-    return changed
+    return len(updates)
 
 
 def main():

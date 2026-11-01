@@ -1,0 +1,23 @@
+/* Read completion must not move a control beneath an active pointer gesture. */
+.workbench-read-status {
+  position: fixed;
+  inset-inline-end: 16px;
+  inset-block-start: 76px;
+  z-index: 40;
+  display: grid;
+  gap: 8px;
+  max-inline-size: min(420px, calc(100vw - 32px));
+  max-block-size: 32dvh;
+  overflow: auto;
+  pointer-events: none;
+}
+.workbench-read-status:empty {
+  display: none;
+}
+.studio-app .workbench-read-status > :is(.notice, .error-box) {
+  margin: 0;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-panel);
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}

@@ -60,6 +60,7 @@ jobs:
           npx vitest run src/docking/usePoseAssets.test.tsx
           src/docking/DockingResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/DatasetResults.test.tsx
+          src/App.live-status.test.tsx src/App.missing-task.test.tsx
       - name: Real SQLite filtering, route validation and preserved asset contracts
         run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py tests/ci/test_ci_browser_network.py
       - name: Restore the actual archived native source; no new scientific calculations

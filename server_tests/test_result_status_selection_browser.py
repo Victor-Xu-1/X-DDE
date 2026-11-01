@@ -46,7 +46,20 @@ def test_completing_artifact_read_preserves_the_pressed_pose(language, width):
         expect(button).to_be_enabled()
         notice = page.get_by_text("正在读取任务文件…" if zh else "Loading task files…", exact=True)
         expect(notice).to_be_visible()
+        expect(
+            result.get_by_role(
+                "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
+            )
+        ).to_be_enabled()
+        expect(
+            result.get_by_role(
+                "button",
+                name="登记并读取这个姿势" if zh else "Register and load this pose",
+                exact=True,
+            )
+        ).to_be_visible()
         button.scroll_into_view_if_needed()
+        page.screenshot(path=evidence / "pending-read-selection.png", full_page=True)
         before = button.bounding_box()
         assert before and held
         x, y = before["x"] + before["width"] / 2, before["y"] + before["height"] / 2
@@ -60,6 +73,7 @@ def test_completing_artifact_read_preserves_the_pressed_pose(language, width):
         page.screenshot(path=evidence / "completed-read-selection.png", full_page=True)
         (evidence / "gesture.json").write_text(json.dumps({"before": before, "after": after}))
         expect(button).to_have_attribute("aria-pressed", "true")
+        assert after and abs(after["y"] - before["y"]) < 1
         first = result.get_by_role("button", name="姿势 1" if zh else "Pose 1", exact=True)
         expect(first).to_have_attribute("aria-pressed", "false")
         browser.close()

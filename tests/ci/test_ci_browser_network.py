@@ -33,9 +33,40 @@ def test_existing_unknown_network_policy_is_preserved(tmp_path):
     folder.mkdir()
     policy = folder / "99-xdde-browser-ci"
     policy.write_text("Existing owner policy\n")
+    source = tmp_path / "sources.list"
+    source_text = "deb http://azure.archive.ubuntu.com/ubuntu noble main\n"
+    source.write_text(source_text)
     with pytest.raises(ValueError, match="Preserve unknown"):
         module["configure"](tmp_path)
     assert policy.read_text() == "Existing owner policy\n"
+    assert source.read_text() == source_text
+
+
+def test_runner_mirror_list_preserves_source_signatures_and_other_entries(tmp_path):
+    sources = tmp_path / "sources.list.d"
+    sources.mkdir()
+    source = sources / "ubuntu.sources"
+    source_text = (
+        "URIs: mirror+file:/etc/apt/apt-mirrors.txt\n"
+        "Suites: noble noble-updates noble-backports noble-security\n"
+        "Components: main restricted universe multiverse\n"
+        "Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n"
+    )
+    source.write_text(source_text)
+    mirrors = tmp_path / "apt-mirrors.txt"
+    mirrors.write_text(
+        "http://azure.archive.ubuntu.com/ubuntu\tpriority:1\n"
+        "https://archive.ubuntu.com/ubuntu\tpriority:2\n"
+        "https://vendor.example/ubuntu\tpriority:3\n"
+    )
+    assert module["configure"](tmp_path) == 1
+    assert source.read_text() == source_text
+    assert mirrors.read_text() == (
+        "https://archive.ubuntu.com/ubuntu\tpriority:1\n"
+        "https://archive.ubuntu.com/ubuntu\tpriority:2\n"
+        "https://vendor.example/ubuntu\tpriority:3\n"
+    )
+    assert module["configure"](tmp_path) == 0
 
 
 def test_entry_cannot_modify_an_owner_machine(monkeypatch):
