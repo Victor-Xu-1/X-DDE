@@ -63,15 +63,29 @@ it.each<Language>(["en", "zh"])(
       name: zh ? "下一步" : "Next",
     });
     expect(next).toBeEnabled();
-    await user.click(next);
     const permission = screen.getByRole("checkbox", {
       name: zh ? /允许本设计任务调用/ : /Allow this campaign/,
     });
-    const start = screen.getByRole("button", {
-      name: zh ? "启动设计" : "Start design",
-    });
     expect(permission).not.toBeChecked();
-    expect(start).toBeDisabled();
+    await user.click(next);
+    const start = () =>
+      screen.getByRole("button", {
+        name: zh ? "启动设计" : "Start design",
+      });
+    async function togglePermissionInSettings() {
+      await user.click(
+        screen.getByRole("button", { name: zh ? "上一步" : "Back" }),
+      );
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: zh ? /允许本设计任务调用/ : /Allow this campaign/,
+        }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
+      );
+    }
+    expect(start()).toBeDisabled();
     expect(post).not.toHaveBeenCalled();
     await user.click(
       screen.getByRole("button", {
@@ -90,15 +104,15 @@ it.each<Language>(["en", "zh"])(
         name: zh ? /已确认目标/ : /I have reviewed the target/,
       }),
     );
-    expect(start).toBeDisabled();
-    await user.click(permission);
-    expect(start).toBeEnabled();
+    expect(start()).toBeDisabled();
+    await togglePermissionInSettings();
+    expect(start()).toBeEnabled();
     expect(post).toHaveBeenCalledTimes(1);
-    await user.click(permission);
-    expect(start).toBeDisabled();
+    await togglePermissionInSettings();
+    expect(start()).toBeDisabled();
     expect(post).toHaveBeenCalledTimes(1);
-    await user.click(permission);
-    await user.click(start);
+    await togglePermissionInSettings();
+    await user.click(start());
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith("/harness/plans/reviewed-plan/start", {
         digest: validated.digest,
