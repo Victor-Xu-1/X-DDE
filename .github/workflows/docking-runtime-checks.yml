@@ -24,6 +24,8 @@ on:
       - "src/opendde_workbench/docking/receptor_links.py"
       - "src/opendde_workbench/docking/residue_geometry.py"
       - "tests/test_flexible_receptor.py"
+      - "tests/test_receptor_metadata.py"
+      - "tests/fixtures/docking_metadata/**"
       - "scripts/docking-refinement-scope.py"
       - "tests/ci/test_docking_refinement_scope.py"
       - "server_tests/flexible_receptor_probe.py"
@@ -98,7 +100,8 @@ jobs:
           uv run --locked ruff check server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
           uv run --locked python -c "import sys; sys.path.insert(0, 'server_tests'); import flexible_receptor_browser"
           uv run --locked ruff check src/opendde_workbench/docking/flexible_contract.py src/opendde_workbench/docking/receptor_atoms.py src/opendde_workbench/docking/receptor_links.py src/opendde_workbench/docking/residue_geometry.py src/opendde_workbench/docking/flexible_receptor.py src/opendde_workbench/docking/flexible_validation.py server_tests/flexible_receptor_probe.py tests/test_flexible_receptor.py
-          uv run --locked pytest -q tests/test_flexible_receptor.py
+          uv run --locked ruff check tests/test_receptor_metadata.py
+          uv run --locked pytest -q tests/test_flexible_receptor.py tests/test_receptor_metadata.py
           uv run --locked pytest -q tests/test_workflow_quality_binding.py
           uv run --locked pytest -q tests/test_research_assets.py tests/test_result_metadata.py tests/test_input_catalog.py tests/test_example_pins.py tests/test_case_output_witnesses.py
           uv run --locked ruff check src/opendde_workbench/docking/image.py src/opendde_workbench/docking/receptor_input.py src/opendde_workbench/docking/native.py src/opendde_workbench/docking/chemistry.py src/opendde_workbench/docking/scoring.py src/opendde_workbench/docking/snapshot.py src/opendde_workbench/docking/reference.py src/opendde_workbench/docking/reference_contract.py src/opendde_workbench/docking/result.py src/opendde_workbench/assets.py src/opendde_workbench/container_supervision.py tests/test_docking_scoring.py tests/test_docking_reference.py tests/test_docking_runtime_qualification.py tests/test_native_container_cleanup.py server_tests/reference_geometry_checks.py server_tests/docking_scoring_checks.py server_tests/test_native_docking.py
@@ -122,6 +125,7 @@ jobs:
         env:
           WB_TEST_NATIVE_DOCKING: "1"
         run: |
+          sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
           uv run --locked pytest -x -q server_tests/test_native_docking.py
       - name: Preserve the exact frontend for candidate-only browser acceptance
