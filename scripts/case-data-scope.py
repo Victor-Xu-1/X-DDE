@@ -41,6 +41,7 @@ RECEPTOR_PATHS = {
     "src/opendde_workbench/examples/stat6_bundle_release.py",
     "tests/test_reviewed_stat6_case_data.py",
     "tests/test_rgroup_reviewed_case_data.py",
+    "tests/stat6_original_port_case.py",
     "server_tests/test_rgroup_reviewed_stages_browser.py",
     ".github/workflows/example-result-set-checks.yml",
     "docs/reviewed-example-data.md",
