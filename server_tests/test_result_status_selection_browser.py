@@ -52,11 +52,11 @@ def test_completing_artifact_read_preserves_the_pressed_pose(language, width):
         x, y = before["x"] + before["width"] / 2, before["y"] + before["height"] / 2
         page.mouse.move(x, y)
         page.mouse.down()
-        page.unroute(f"**/api/jobs/{source.id}/artifacts", hold_artifacts)
         held[0][0].fulfill(response=held[0][1])
         expect(notice).not_to_be_visible()
         after = button.bounding_box()
         page.mouse.up()
+        page.unroute(f"**/api/jobs/{source.id}/artifacts", hold_artifacts)
         page.screenshot(path=evidence / "completed-read-selection.png", full_page=True)
         (evidence / "gesture.json").write_text(json.dumps({"before": before, "after": after}))
         expect(button).to_have_attribute("aria-pressed", "true")
