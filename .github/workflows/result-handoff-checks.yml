@@ -73,7 +73,7 @@ jobs:
       - name: Bilingual desktop and narrow native handoff and original downloads
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
-          sudo --non-interactive python scripts/ci-browser-network.py
+          sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py server_tests/test_result_status_selection_browser.py
       - uses: actions/upload-artifact@v4
