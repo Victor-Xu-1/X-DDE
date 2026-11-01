@@ -24,6 +24,7 @@ def request_for(native, ligand, kind):
             name="Controlled native-copy handoff",
             molecule=ligand,
             protein=native.reference,
+            scientific_inputs=[ligand, native.reference],
             coordinate_basis="user_confirmed",
             options={"profile": "dock", "cpu": 1, "memory_mib": 2048},
         )

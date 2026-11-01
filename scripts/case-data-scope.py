@@ -38,6 +38,12 @@ RECEPTOR_TEST = "tests/test_receptor_case_aliases.py"
 RECEPTOR_PATHS = {
     *RECEPTOR_CORE,
     RECEPTOR_TEST,
+    "src/opendde_workbench/examples/stat6_bundle_release.py",
+    "tests/test_reviewed_stat6_case_data.py",
+    "tests/test_rgroup_reviewed_case_data.py",
+    "server_tests/test_rgroup_reviewed_stages_browser.py",
+    ".github/workflows/example-result-set-checks.yml",
+    "docs/reviewed-example-data.md",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "src/opendde_workbench/examples/stat6/module-revisions.json",
     "tests/test_study_module_revisions.py",
