@@ -1,0 +1,42 @@
+name: Campaign local review and explicit launch controls
+on:
+  push:
+    paths: &campaign_review_paths
+      - "frontend/src/operations/CampaignForm*"
+      - "tests/fixtures/campaign_review/**"
+      - "server_tests/test_campaign_local_review_browser.py"
+      - ".github/workflows/campaign-local-review-checks.yml"
+  pull_request:
+    paths: *campaign_review_paths
+permissions:
+  contents: read
+jobs:
+  campaign-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+      PYTHONPATH: .:src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Only local plan review and explicit launch controls
+        working-directory: frontend
+        run: npx vitest run src/operations/CampaignForm.test.tsx src/operations/CampaignForm.review.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Only changed browser fixture lint
+        run: uv run --locked ruff check server_tests/test_campaign_local_review_browser.py
+      - name: Bilingual actual form navigation with controlled plan responses and no model calls
+        run: |
+          sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
+          uv run --locked python -m playwright install --with-deps chromium
+          uv run --locked pytest -x -q --basetemp "$RUNNER_TEMP/campaign-review-pytest" server_tests/test_campaign_local_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: campaign-local-review-evidence
+          path: outputs/campaign-review

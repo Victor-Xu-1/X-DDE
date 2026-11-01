@@ -281,7 +281,7 @@ export function CampaignForm({ language }: { language: Language }) {
       <button
         type="button"
         className="secondary-button"
-        disabled={busy || !external}
+        disabled={busy}
         onClick={() => void validate()}
       >
         {zh ? "检查配置并生成任务摘要" : "Validate and review campaign"}
@@ -333,9 +333,13 @@ export function CampaignForm({ language }: { language: Language }) {
             (plan.state === "validated" && reviewed && external)),
         )}
         unavailable={
-          zh
-            ? "请先检查设计配置并确认方案，再启动任务。"
-            : "Validate server configuration and confirm the plan before launch."
+          !external
+            ? zh
+              ? "可先检查方案；启动前请在选择方案中允许服务调用。"
+              : "Review the plan first; allow service calls in Choose settings before launch."
+            : zh
+              ? "请先检查设计配置并确认方案，再启动任务。"
+              : "Validate server configuration and confirm the plan before launch."
         }
         submitLabel={
           plan?.state === "uncertain"
@@ -370,7 +374,7 @@ export function CampaignForm({ language }: { language: Language }) {
           {
             title: zh ? "选择方案" : "Choose settings",
             content: settings,
-            valid: external,
+            valid: true,
           },
           {
             title: zh ? "确认启动" : "Review & start",

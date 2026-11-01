@@ -29,6 +29,7 @@ from opendde_workbench.models import Status
 from opendde_workbench.requests import TASK_ADAPTER
 
 PREVIOUS = "cb530494b4f7b6113f6b6b3b6e919078b69bda46c7c1f78fb92156e05ba64cdb"
+INTERFACE_PUBLICATION = "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee8e82ea"
 
 
 def test_native_fixture_and_deposited_coordinate_prefixes_keep_exact_identity():
@@ -177,13 +178,17 @@ def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers
 
 def test_only_interface_module_revisions_advance_and_published_snapshots_remain_exact():
     old = historical_study_catalogue(PREVIOUS)
+    published = historical_study_catalogue(INTERFACE_PUBLICATION)
+    assert set(old.modules) == set(published.modules)
     for key, module in old.modules.items():
         expected = (
             module.model_copy(update={"revision": module.revision + 1})
             if key in {"fold", "epitope"}
             else module
         )
-        assert MODULES[key] == expected
+        # Compare the exact publication cohorts. Later unrelated module releases
+        # retain their own immutable snapshots and successor checks.
+        assert published.modules[key] == expected
 
 
 @pytest.mark.parametrize("capability", ["fold", "epitope"])
