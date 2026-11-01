@@ -88,6 +88,9 @@ foreach ($command in @('UI','DASHBOARD','START')) {
     if ($invocation -notmatch ' --cd / (?:-- )?env ' -or $invocation -notmatch '/environment/bin/xdde') {
         throw 'Startup did not enter the registered distribution from an explicit Linux directory.'
     }
+    if (!$invocation.Contains('PATH=/environment/bin:/usr/local/bin:/usr/bin:/bin:/usr/lib/wsl/lib')) {
+        throw 'Startup hid WSL native NVIDIA tools or inherited an unreviewed search path.'
+    }
 }
 Write-Output 'Low physical capacity blocks startup; offline controls do not boot WSL and running controls do not create temporary storage.'
 $configuration = Join-Path $bin 'workbench.json'
