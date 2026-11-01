@@ -1,8 +1,11 @@
 """Mechanism-aware choices for the reviewed core two-protein ternary model."""
 
-from typing import Literal, Self
+from typing import Literal, Self, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+TernarySampleCount = Literal[3, 10, 20, 40]
+MAX_TERNARY_SAMPLES = max(get_args(TernarySampleCount))
 
 
 class TernaryPayload(BaseModel):
@@ -18,7 +21,7 @@ class TernaryPayload(BaseModel):
     )
     partner_a_chain: str = Field(min_length=1, max_length=1, pattern=r"^[A-Za-z0-9]$")
     partner_b_chain: str = Field(min_length=1, max_length=1, pattern=r"^[A-Za-z0-9]$")
-    samples: Literal[3, 10, 20] = 3
+    samples: TernarySampleCount = 3
     attempt_budget: int = Field(default=12, ge=3, le=60)
     wall_seconds: int = Field(default=600, ge=60, le=1800)
     arm_a_map: list[int] = Field(default_factory=list, max_length=256)

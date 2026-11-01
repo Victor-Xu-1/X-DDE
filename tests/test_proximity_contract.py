@@ -39,6 +39,51 @@ def test_mechanisms_retain_explicit_partner_roles_and_cpu_contract(mechanism):
     assert value.options.device == "cpu"
 
 
+@pytest.mark.parametrize("samples", [3, 10, 20, 40])
+def test_ensemble_size_round_trips_without_expanding_execution_resources(samples):
+    original = task()
+    selected = task(samples=samples, attempt_budget=min(60, samples * 4))
+    replay = IntegratedTask.model_validate_json(selected.model_dump_json())
+    assert replay.payload.samples == samples
+    assert replay.payload.attempt_budget <= 60
+    assert replay.options == original.options
+    assert original.payload.samples == 3
+    assert original.payload.attempt_budget == 12
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"samples": 39, "attempt_budget": 60},
+        {"samples": 41, "attempt_budget": 60},
+        {"samples": 40, "attempt_budget": 39},
+        {"samples": 40, "attempt_budget": 61},
+    ],
+)
+def test_extended_sampling_retains_discrete_and_finite_attempt_bounds(change):
+    with pytest.raises(ValidationError):
+        task(**change)
+
+
+def test_extended_native_search_retains_explicit_complete_and_partial_counts():
+    from opendde_workbench.proximity.result_models import TernarySearch
+
+    body = {
+        "attempted": 40,
+        "requested": 40,
+        "attempt_budget": 60,
+        "returned": 40,
+        "status": "requested_samples",
+        "seconds": 42.0,
+        "failures": [],
+    }
+    assert TernarySearch.model_validate(body).returned == 40
+    partial = {**body, "attempted": 12, "returned": 10, "status": "time_budget"}
+    assert TernarySearch.model_validate(partial).returned == 10
+    with pytest.raises(ValidationError):
+        TernarySearch.model_validate({**body, "returned": 41})
+
+
 @pytest.mark.parametrize(
     "change",
     [

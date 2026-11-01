@@ -5,7 +5,7 @@ on:
       scope:
         description: Native method checks or the bounded memory investigation
         type: choice
-        options: [native, memory_profile, result_preview]
+        options: [native, memory_profile, result_preview, bounded_sampling]
         default: native
   push:
     branches: [main]
@@ -17,6 +17,7 @@ on:
       - "server_tests/protac_initialization_checks.py"
       - "server_tests/molecular_glue*"
       - "server_tests/test_proximity_browser.py"
+      - "server_tests/test_proximity_sampling_browser.py"
       - "tests/test_proximity*"
       - "frontend/src/proximity/**"
       # Study-only prefills use the STAT6 template gate, without native model execution.
@@ -72,6 +73,8 @@ jobs:
                                        'frontend/src/proximity/Results.test.tsx'}) and changed <= allowed
           with Path(os.environ['GITHUB_OUTPUT']).open('a') as stream:
               stream.write('preview_only=' + str(preview).lower() + '\n')
+              sampling = os.environ['EVENT'] == 'workflow_dispatch' and os.environ['REQUESTED_SCOPE'] == 'bounded_sampling'
+              stream.write('sampling_only=' + str(sampling).lower() + '\n')
           PY
       - uses: actions/setup-node@v4
         with:
@@ -100,16 +103,27 @@ jobs:
         if: steps.scope.outputs.preview_only == 'true'
         run: uv run --locked python server_tests/deepternary_native_probe.py --preview-only --output "$RUNNER_TEMP/deepternary"
       - name: Official native CPU baseline on the complete MZ1 ternary case
-        if: steps.scope.outputs.preview_only != 'true'
+        if: steps.scope.outputs.preview_only != 'true' && steps.scope.outputs.sampling_only != 'true'
         run: uv run --locked python server_tests/deepternary_native_probe.py --output "$RUNNER_TEMP/deepternary"
+      - name: Explicit forty-assembly native capacity check through the shared queue
+        if: steps.scope.outputs.sampling_only == 'true'
+        run: uv run --locked python server_tests/deepternary_native_probe.py --sampling-only --output "$RUNNER_TEMP/deepternary"
       - name: Review real ternary result displays and downloads
+        if: steps.scope.outputs.sampling_only != 'true'
         env:
           WB_PROXIMITY_CASE: ${{ runner.temp }}/deepternary/platform
         run: |
           uv run --locked --group browser python -m playwright install --with-deps chromium
           uv run --locked --group browser pytest -q server_tests/test_proximity_browser.py
+      - name: Inspect forty real assemblies and their original downloads
+        if: steps.scope.outputs.sampling_only == 'true'
+        env:
+          WB_PROXIMITY_CASE: ${{ runner.temp }}/deepternary/platform
+        run: |
+          uv run --locked --group browser python -m playwright install --with-deps chromium
+          uv run --locked --group browser pytest -q server_tests/test_proximity_sampling_browser.py
       - name: Verify accepted data installation preserves historical state
-        if: steps.scope.outputs.preview_only != 'true'
+        if: steps.scope.outputs.preview_only != 'true' && steps.scope.outputs.sampling_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -150,6 +164,7 @@ jobs:
             ${{ runner.temp }}/deepternary/platform/*.sdf
             ${{ runner.temp }}/deepternary/platform/*.zip
             ${{ runner.temp }}/deepternary/platform/*.png
+            ${{ runner.temp }}/deepternary/platform/sampling-browser-*/**
             ${{ runner.temp }}/proximity-data-install/*.json
 
   memory-profile:

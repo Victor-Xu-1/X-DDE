@@ -127,6 +127,33 @@ it("submits the visible4GiB default through the real questionnaire and retains a
   );
   expect(request.payload.ligand_correction).toBe(true);
 });
+it("submits an explicit forty-assembly choice without changing scientific inputs or resources", async () => {
+  const user = await review();
+  await user.click(
+    screen.getByRole("radio", { name: "Detailed PROTAC exploration · 40" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Start ternary modeling" }),
+  );
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  const request = mocks.submit.mock.calls[0][0] as ScientificTask;
+  expect(request.payload.samples).toBe(40);
+  expect(request.payload.attempt_budget).toBe(60);
+  expect(request.options).toEqual({
+    device: "cpu",
+    cpu: 2,
+    memory_mib: 4096,
+    seed: 31,
+  });
+  expect(request.inputs.map((input) => input.role)).toEqual([
+    "ligand",
+    "partner_a",
+    "partner_b",
+    "arm_a",
+    "arm_b",
+  ]);
+});
+
 it("submits selected CPU/memory/seed values and keeps them when returning to the previous step", async () => {
   const user = await review();
   await user.click(screen.getByText("Expert settings"));
