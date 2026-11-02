@@ -43,6 +43,39 @@ def test_legacy_dynamics_bytes_do_not_gain_empty_optional_conditions():
     assert value.payload.restraints[0].force_kj_mol_nm2 == 1000
 
 
+def test_result_cannot_claim_success_without_the_exact_native_force_receipt(tmp_path):
+    import json
+    from types import SimpleNamespace
+
+    from opendde_workbench.simulations.restraint_result import validate_restraint_result
+
+    value = IntegratedTask.model_validate(task())
+    result = SimpleNamespace(artifact_sha256={})
+    with pytest.raises(ValueError, match="requested restraint forces"):
+        validate_restraint_result(result, value, tmp_path)
+    receipt = {
+        "method": "OpenMM harmonic positional/distance restraints",
+        "scope": "soft_restraints_not_rigid_constraints_or_binding_energy",
+        "force_constant_unit": "kJ mol^-1 nm^-2",
+        "display_distance_unit": "angstrom",
+        "position_reference": "exact_original_input_coordinates",
+        "conditions": [
+            {
+                "condition": value.payload.restraints[0].model_dump(mode="json"),
+                "system_atom_indices": [7],
+            }
+        ],
+    }
+    file = tmp_path / "restraints.json"
+    file.write_text(json.dumps(receipt))
+    result.artifact_sha256["restraints.json"] = "a" * 64
+    validate_restraint_result(result, value, tmp_path)
+    receipt["conditions"][0]["condition"]["force_kj_mol_nm2"] = 100
+    file.write_text(json.dumps(receipt))
+    with pytest.raises(ValueError, match="exact submitted"):
+        validate_restraint_result(result, value, tmp_path)
+
+
 def test_restraints_cannot_follow_another_material_or_preparation_version():
     value = task()
     value["payload"]["restraints"][0]["atom"]["source"] = source()

@@ -85,7 +85,7 @@ def test_every_native_file_requires_an_exact_bound_role_and_version():
     value = IntegratedTask.model_validate(data)
     native = inference_input(value, "msa_job", {identifier: "/input/assets/exact.a3m"})
     assert native[0]["sequences"][0]["proteinChain"]["unpairedMsaPath"] == "/input/assets/exact.a3m"
-    data["inputs"][0]["source"]["sha256"] = "b" * 64
+    data["inputs"][0]["source"] = {**source, "sha256": "b" * 64}
     with pytest.raises(ValidationError, match="exact scientific input versions"):
         IntegratedTask.model_validate(data)
 

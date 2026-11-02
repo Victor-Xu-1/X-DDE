@@ -7,7 +7,10 @@ import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
 import { RestraintEditor } from "../simulations/RestraintEditor";
-import type { SimulationRestraint } from "../simulations/restraints";
+import type {
+  SimulationRestraint,
+  RestraintAtom,
+} from "../simulations/restraints";
 import {
   boltzMaterialInputs,
   boltzMsaKey,
@@ -126,7 +129,21 @@ export function ScientificForm({
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
   const [expert, setExpert] = useState(false);
-  const [restraints, setRestraints] = useState<SimulationRestraint[]>([]);
+  const [restraints, setRestraints] = useState<SimulationRestraint[]>(() => {
+    const saved = (preset?.payload.restraints ?? []) as SimulationRestraint[];
+    const matches = (atom: RestraintAtom) => {
+      const source = atom.role === "structure" ? structure : ligand;
+      return source && referenceKey(source) === referenceKey(atom.source);
+    };
+    return program === "openmm" &&
+      saved.every((row) =>
+        row.kind === "position"
+          ? matches(row.atom)
+          : matches(row.first) && matches(row.second),
+      )
+      ? structuredClone(saved)
+      : [];
+  });
   const [name, setName] = useState(
     preset?.name ?? example?.case.label[zh ? 0 : 1] ?? "",
   );

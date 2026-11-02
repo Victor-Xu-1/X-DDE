@@ -195,6 +195,9 @@ def validate_result(value, request, output):
         raise ValueError("Ternary evidence belongs only to its exact native operation.")
     validate_simulation(result, request)
     validate_mol1_result(result, request, output)
+    from ..simulations.restraint_result import validate_restraint_result
+
+    validate_restraint_result(result, request, output)
     from .binder_evidence import binder_evidence
 
     quality = binder_evidence(output, request, result.candidates)
