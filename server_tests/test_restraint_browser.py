@@ -32,7 +32,7 @@ def test_real_3d_selection_and_native_refinement():
                 page.get_by_label("Upload Choose target structure", exact=True).set_input_files(
                     root / "STAT6-SH2-source.pdb"
                 )
-            assert upload.value.status == 201 and upload.value.json()["kind"] == "structure"
+            assert upload.value.status == 201 and "kind=structure" in upload.value.url
             next_step = page.get_by_role("button", name="Next", exact=True)
             expect(next_step).to_be_enabled(timeout=30000)
             page.screenshot(path=str(root / "openmm-input-en.png"), full_page=True)
