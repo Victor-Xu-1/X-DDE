@@ -68,6 +68,15 @@ Source Apache-2.0 terms, upstream notices, model distribution and wwPDB data ter
 remain separate from X-DDE's own license; see the
 [upstream documentation](https://github.com/molence/Mol-1).
 
+For installation networks that truncate large PyPI downloads, an operator may
+start X-DDE with `WB_INSTALL_PYPI_MIRROR=tuna`. This selects the reviewed Tsinghua
+PyPI mirror for hash-locked Python dependencies inside native image builds.
+The default remains official PyPI (`official`). Source archives, model resources,
+dependency versions and SHA-256 requirements remain unchanged. A truncated or
+different wheel is rejected. The setting does not change scientific task network
+permissions, runtime packages or already installed environments. Other selector
+values are rejected; no arbitrary index URLs or credentials are accepted.
+
 The Mol-1/3D-condition workflow limits automatic checks to the changed contracts,
 forms and direct consumers. Explicit native CI builds this actual profile and
 submits one bounded CPU engineering prediction through the compiled frontend.

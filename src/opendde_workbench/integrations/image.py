@@ -103,8 +103,10 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None,
         shutil.copyfile(locked, destination / "requirements.txt")
         lines += [
             "COPY requirements.txt /tmp/requirements.txt",
+            "ARG XDDE_PYPI_INDEX=https://pypi.org/simple",
             "RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt "
             f"--timeout {PIP_READ_TIMEOUT_SECONDS} --retries {PIP_DOWNLOAD_RETRIES} "
+            '--index-url "$XDDE_PYPI_INDEX" '
             "&& python -m pip check",
         ]
     if source:

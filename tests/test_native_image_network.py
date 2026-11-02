@@ -8,7 +8,7 @@ from opendde_workbench.integrations import image
 from opendde_workbench.integrations.specs import PROGRAMS, recipe_digest
 
 
-@pytest.mark.parametrize("program", ["deepternary", "boltz", "chemprop"])
+@pytest.mark.parametrize("program", ["deepternary", "boltz", "chemprop", "mol1"])
 def test_native_image_retains_dependency_bytes_hash_check_and_finite_transport(tmp_path, program):
     spec = PROGRAMS[program]
     before_recipe = recipe_digest(program)
@@ -33,6 +33,10 @@ def test_native_image_retains_dependency_bytes_hash_check_and_finite_transport(t
     command = next(line for line in dockerfile.splitlines() if "--require-hashes" in line)
     assert "--timeout 120" in command and "--retries 3" in command
     assert "--require-hashes -r /tmp/requirements.txt" in command
+    assert '--index-url "$XDDE_PYPI_INDEX"' in command
+    assert dockerfile.index("ARG XDDE_PYPI_INDEX=https://pypi.org/simple") < dockerfile.index(
+        command
+    )
     assert "&& python -m pip check" in command
     assert "--trusted-host" not in command and "|| true" not in command
     assert f'org.xdde.science.recipe="{before_recipe}"' in dockerfile
@@ -49,3 +53,4 @@ def test_conda_only_environment_keeps_its_existing_installation_transaction(tmp_
     dockerfile = (context / "Dockerfile").read_text()
     assert "micromamba install -y -n base --file /tmp/conda-explicit.txt" in dockerfile
     assert "--timeout" not in dockerfile and "--retries" not in dockerfile
+    assert "XDDE_PYPI_INDEX" not in dockerfile
