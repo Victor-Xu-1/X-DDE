@@ -4,8 +4,10 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/image.py"
+      - "src/opendde_workbench/deployment/network.py"
       - "src/opendde_workbench/integrations/recipes.json"
       - "tests/test_native_image_network.py"
+      - "tests/test_install_network.py"
       - "tests/test_scientific_entrypoint.py"
       - "scripts/verify-native-system-libraries.py"
       - ".github/workflows/native-image-network-checks.yml"
