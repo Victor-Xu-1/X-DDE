@@ -27,6 +27,11 @@ on:
         type: boolean
         default: false
         description: Build the real Mol-1 profile and submit one engineering prediction from the UI
+      native_engine:
+        type: choice
+        default: mol1
+        options: [mol1, openmm]
+        description: Real engine to verify; OpenMM uses refinement only, never dynamics/FEP
 permissions:
   contents: read
 concurrency:
@@ -63,7 +68,7 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/integrations/Mol1Form.test.tsx src/simulations/RestraintEditor.test.tsx src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx src/studio/MethodSwitch.test.tsx
   native-mol1-browser:
-    if: github.event_name == 'workflow_dispatch' && inputs.native
+    if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine != 'openmm'
     runs-on: ubuntu-24.04
     timeout-minutes: 100
     env:
@@ -81,7 +86,7 @@ jobs:
       - run: uv sync --locked --python 3.12 --group dev --group browser
       - run: uv run --locked playwright install --with-deps chromium
       - name: Install only Mol-1, its verified resources and the structure viewer
-        run: uv run --locked python server_tests/prepare_mol1_environment.py
+        run: uv run --locked python server_tests/prepare_guided_native.py --program mol1
       - name: Submit and inspect a real native prediction through the compiled frontend
         run: uv run --locked pytest -x -q server_tests/test_mol1_browser.py
       - uses: actions/upload-artifact@v4
@@ -93,3 +98,32 @@ jobs:
             ${{ runner.temp }}/mol1-acceptance/*.png
             ${{ runner.temp }}/mol1-acceptance/*.log
             ${{ runner.temp }}/mol1-acceptance/components/**/install.log
+  native-openmm-3d:
+    if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine == 'openmm'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      WB_TEST_OPENMM_CONDITIONS: "1"
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "WB_MOL1_CASE=$RUNNER_TEMP/openmm-condition-acceptance" >> "$GITHUB_ENV"
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: uv sync --locked --python 3.12 --group dev --group browser
+      - run: uv run --locked playwright install --with-deps chromium
+      - run: uv run --locked python server_tests/prepare_guided_native.py --program openmm
+      - run: uv run --locked pytest -x -q server_tests/test_restraint_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openmm-native-3d-evidence
+          path: |
+            ${{ runner.temp }}/openmm-condition-acceptance/*.json
+            ${{ runner.temp }}/openmm-condition-acceptance/*.png
+            ${{ runner.temp }}/openmm-condition-acceptance/*.log
+            ${{ runner.temp }}/openmm-condition-acceptance/components/**/install.log

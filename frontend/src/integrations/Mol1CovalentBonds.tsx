@@ -96,8 +96,18 @@ export function Mol1CovalentBonds({
       </label>
       <label className="field">
         {zh
-          ? "原子名称或配体原始索引（从 0 开始）"
-          : "Atom name or original ligand index (0-based)"}
+          ? component?.ligand_file
+            ? "配体原始原子索引（从 0 开始）"
+            : component?.kind === "ligand" &&
+                !component.value.startsWith("CCD_")
+              ? "SMILES 中显式标记的原子映射号（从 1 开始）"
+              : "原生原子名称"
+          : component?.ligand_file
+            ? "Original ligand atom index (0-based)"
+            : component?.kind === "ligand" &&
+                !component.value.startsWith("CCD_")
+              ? "Explicit SMILES atom-map number (1-based)"
+              : "Native atom name"}
         <input
           value={current.atom}
           onChange={(e) =>
@@ -164,7 +174,8 @@ export function Mol1CovalentBonds({
             if (
               selection?.pick_mode !== "distance" &&
               Number.isInteger(selection?.source_atom_index) &&
-              selection!.count === 1
+              selection!.count === 1 &&
+              !["H", "D"].includes(selection!.element)
             )
               setCurrent({
                 ...current,

@@ -48,6 +48,7 @@ class ScientificBackend(PreparedContainerBackend):
             shared.update(
                 {
                     "native_mol1.py": Path(__file__).with_name("native_mol1.py"),
+                    "native_mol1_bonds.py": Path(__file__).with_name("native_mol1_bonds.py"),
                     "native_mol1_results.py": Path(__file__).with_name("native_mol1_results.py"),
                     "native_mol1_confidence.py": Path(__file__).with_name(
                         "native_mol1_confidence.py"

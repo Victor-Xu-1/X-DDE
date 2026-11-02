@@ -14,6 +14,7 @@ from layout_browser_helpers import (
     viewport_overflow_evidence,
 )
 from playwright.sync_api import expect, sync_playwright
+
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 
 

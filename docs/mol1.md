@@ -48,6 +48,15 @@ separate supported 3D harmonic-restraint editor; see [simulation use](simulation
 The pinned Mol-1 native profile uses Torch triangle/LayerNorm kernels. Alternative
 CUDA extension profiles are not claimed to be verified by this integration.
 
+Prediction calls the pinned public `inference_jsons` API used by `mol pred`; the
+GUI's paired-MSA setting passes through that API's configuration map. It is not
+sent as an unsupported CLI option. Native preprocessing operates on a verified
+task-owned writable copy, while the submitted specification and scientific files
+remain read-only. File-ligand covalent selections are translated from original
+atom indices to actual native atom names after checking graph, atom and coordinate
+correspondence, including hydrogen removal and SDF atom maps. SMILES connections
+require explicit unique heavy-atom map numbers; CCD connections use atom names.
+
 ## Provenance, installation and verification
 
 The source is pinned to `molence/Mol-1` commit

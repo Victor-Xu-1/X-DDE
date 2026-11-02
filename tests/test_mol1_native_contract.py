@@ -21,16 +21,14 @@ def test_native_options_are_executed_not_just_stored(native):
     from test_mol1 import task
 
     value = task(additional_seeds=[102], msa_pair_as_unpair=False).model_dump(mode="json")
-    command = native[0].arguments(value, "/input/specification.json", "/output/native")
-    options = dict(zip(command[2::2], command[3::2], strict=True))
-    assert command[:2] == ["mol", "pred"]
-    assert options["--load_checkpoint_path"] == "/models/mol-1-base.pt"
-    assert options["--seeds"] == "101,102"
-    assert options["--msa_pair_as_unpair"] == "false"
-    assert options["--use_msa"] == "false"
-    assert options["--use_rna_msa"] == "false"
-    assert options["--triatt_kernel"] == options["--trimul_kernel"] == "torch"
-    assert options["--infer_setting.chunk_size"] == 512
+    options = native[0].inference_options(value, "/input/specification.json", "/output/native")
+    assert options["load_checkpoint_path"] == "/models/mol-1-base.pt"
+    assert options["seeds"] == [101, 102]
+    assert options["memory_settings"]["msa_pair_as_unpair"] is False
+    assert options["use_msa"] is False
+    assert options["use_rna_msa"] is False
+    assert options["triatt_kernel"] == options["trimul_kernel"] == "torch"
+    assert options["memory_settings"]["infer_setting.chunk_size"] == 512
 
 
 def test_confidence_preserves_native_axes_scale_and_original_identity(native, tmp_path):

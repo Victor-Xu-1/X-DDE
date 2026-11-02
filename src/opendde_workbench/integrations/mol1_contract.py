@@ -62,6 +62,19 @@ class Mol1Payload(BaseModel):
         if not self.use_template and any(c.template_hits for c in self.components):
             raise ValueError("Enable structural templates to use the selected template files.")
         for bond in self.covalent_bonds:
+            for atom in (bond.left, bond.right):
+                component = self.components[atom.entity - 1]
+                if component.ligand_file and not atom.atom.isdecimal():
+                    raise ValueError("File-ligand covalent endpoints use original atom indices.")
+                if component.kind == "ligand" and not component.ligand_file:
+                    if component.value.startswith("CCD_") and atom.atom.isdecimal():
+                        raise ValueError("CCD covalent endpoints require their native atom names.")
+                    if not component.value.startswith("CCD_") and (
+                        not atom.atom.isdecimal() or int(atom.atom) < 1
+                    ):
+                        raise ValueError(
+                            "SMILES covalent endpoints require positive explicit atom-map numbers."
+                        )
             if (bond.left.copy_index is None) != (bond.right.copy_index is None):
                 raise ValueError("Specify both covalent-bond copy indices, or neither.")
             if bond.left.copy_index is None and (
