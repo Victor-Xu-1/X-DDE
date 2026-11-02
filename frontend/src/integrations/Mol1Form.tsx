@@ -40,9 +40,11 @@ export function Mol1Form({
   );
   const [advanced, setAdvanced] = useState(false);
   const [name, setName] = useState(preset?.name ?? "");
-  const [device, setDevice] = useState<"cpu" | "cuda">("cuda");
-  const [memory, setMemory] = useState(32768);
-  const [seed, setSeed] = useState(101);
+  const [device, setDevice] = useState<"cpu" | "cuda">(
+    preset?.options.device ?? "cuda",
+  );
+  const [memory, setMemory] = useState(preset?.options.memory_mib ?? 32768);
+  const [seed, setSeed] = useState(preset?.options.seed ?? 101);
   const [inputError, setInputError] = useState("");
   const [preparing, setPreparing] = useState(false);
   const preparation = useRef<AbortController | null>(null);
@@ -197,6 +199,25 @@ export function Mol1Form({
                   {zh ? "共价连接（可选）" : "Covalent connections (optional)"}
                 </summary>
                 <Mol1CovalentBonds
+                  key={JSON.stringify(
+                    components.map(
+                      ({
+                        kind,
+                        value,
+                        count,
+                        chain_ids,
+                        ligand_file,
+                        modifications,
+                      }) => ({
+                        kind,
+                        value,
+                        count,
+                        chain_ids,
+                        ligand_file,
+                        modifications,
+                      }),
+                    ),
+                  )}
                   components={components}
                   value={bonds}
                   onChange={setBonds}
