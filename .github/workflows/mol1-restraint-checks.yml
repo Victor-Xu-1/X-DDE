@@ -97,6 +97,7 @@ jobs:
             ${{ runner.temp }}/mol1-acceptance/*.json
             ${{ runner.temp }}/mol1-acceptance/*.png
             ${{ runner.temp }}/mol1-acceptance/*.log
+            ${{ runner.temp }}/mol1-acceptance/*.cif
             ${{ runner.temp }}/mol1-acceptance/components/**/install.log
             ${{ runner.temp }}/mol1-acceptance/native-parser-probe/*
   native-openmm-3d:

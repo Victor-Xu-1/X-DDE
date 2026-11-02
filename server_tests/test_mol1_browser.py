@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from browser_platform import platform
+from native_viewer_evidence import capture_structure
 from playwright.sync_api import expect, sync_playwright
 
 pytestmark = pytest.mark.skipif(
@@ -23,7 +24,7 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
     errors = []
     with platform(root / "state", root / "browser-server.log") as base:
         with sync_playwright() as driver:
-            browser = driver.chromium.launch()
+            browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
             page = browser.new_page(viewport={"width": 1600, "height": 1100})
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(base + "/#view=new&tool=mol1.predict")
@@ -39,7 +40,7 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
             next_step.click()
             page.get_by_role("spinbutton", name="Structures per seed").fill("1")
             page.get_by_role("spinbutton", name="Recycling cycles").fill("1")
-            page.get_by_role("spinbutton", name="Diffusion steps").fill("1")
+            page.get_by_role("spinbutton", name="Diffusion steps").fill("20")
             page.get_by_role("combobox", name="Compute device").select_option("cpu")
             page.get_by_role("spinbutton", name="Memory limit (MiB)").fill("12288")
             next_step.click()
@@ -83,10 +84,15 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
                 data = page.request.get(base + f"/api/jobs/{identifier}/download?name={file}")
                 assert data.ok, file
                 assert hashlib.sha256(data.body()).hexdigest() == digest, file
+                if file == candidate["artifact"]:
+                    (root / "native-structure.cif").write_bytes(data.body())
             page.goto(base + "/#task=" + identifier)
             expect(page.get_by_role("combobox", name="Confidence view")).to_be_visible(
                 timeout=60000
             )
+            page.get_by_role("button", name="Backbone", exact=True).click()
+            page.get_by_role("button", name="Full structure", exact=True).click()
+            pixels = capture_structure(page, root / "mol1-structure-en.png")
             for view in ("atom_plddt", "token_pair_pae", "token_pair_pde", "contact_probs"):
                 page.get_by_role("combobox", name="Confidence view").select_option(view)
                 expect(page.locator(".mol1-confidence .js-plotly-plot")).to_be_visible(
@@ -106,6 +112,7 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
                         "native_result": True,
                         "downloads_verified": True,
                         "confidence_views": 4,
+                        "rendered_structure_pixels": pixels,
                         "languages": ["en", "zh"],
                         "scientific_template_promotion": False,
                     },

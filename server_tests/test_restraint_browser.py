@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from browser_platform import platform
+from native_viewer_evidence import capture_structure
 from playwright.sync_api import expect, sync_playwright
 
 pytestmark = pytest.mark.skipif(
@@ -21,7 +22,7 @@ def test_real_3d_selection_and_native_refinement():
     assert root.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     with platform(root / "state", root / "browser-server.log") as base:
         with sync_playwright() as driver:
-            browser = driver.chromium.launch()
+            browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
             page = browser.new_page(viewport={"width": 1600, "height": 1100})
             page.goto(base + "/#view=new&tool=openmm.refine")
             with page.expect_response(
@@ -43,6 +44,7 @@ def test_real_3d_selection_and_native_refinement():
             view = page.frame_locator('iframe[title="Interactive molecular structure"]')
             canvas = view.locator("canvas").first
             expect(canvas).to_be_visible(timeout=60000)
+            pixels = capture_structure(page, root / "openmm-structure-en.png")
             # Exercise mouse picking itself; no internal viewer or React state injection.
             for y in (0.5, 0.4, 0.6, 0.3, 0.7):
                 for x in (0.5, 0.4, 0.6, 0.3, 0.7):
@@ -100,6 +102,7 @@ def test_real_3d_selection_and_native_refinement():
                         "actual_canvas_selection": True,
                         "frontend_submission": True,
                         "native_harmonic_force_receipt": True,
+                        "rendered_structure_pixels": pixels,
                         "dynamics_or_fep_executed": False,
                     },
                     indent=2,
