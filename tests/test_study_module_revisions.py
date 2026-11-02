@@ -25,7 +25,8 @@ RGROUP_PREDECESSOR = "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee
 def test_only_the_authored_module_identities_advance():
     old = historical_study_catalogue(PREVIOUS)
     current = bundle_catalogue("stat6")
-    assert set(old.modules) == set(current.modules)
+    assert set(current.modules) - set(old.modules) == {"mol1.predict"}
+    assert set(old.modules) <= set(current.modules)
     for key, previous in old.modules.items():
         revisions = {
             "reinvent.design": 5,
@@ -58,7 +59,8 @@ def test_only_the_authored_module_identities_advance():
 def test_quality_successor_preserves_every_other_authored_module():
     previous = historical_study_catalogue(QUALITY_PREDECESSOR)
     current = bundle_catalogue("stat6")
-    assert set(previous.modules) == set(current.modules)
+    assert set(current.modules) - set(previous.modules) == {"mol1.predict"}
+    assert set(previous.modules) <= set(current.modules)
     for key, module in previous.modules.items():
         expected = (
             module.model_copy(
@@ -75,7 +77,8 @@ def test_quality_successor_preserves_every_other_authored_module():
 def test_rgroup_successor_preserves_all_prior_module_identities():
     previous = historical_study_catalogue(RGROUP_PREDECESSOR)
     current = bundle_catalogue("stat6")
-    assert set(previous.modules) == set(current.modules)
+    assert set(current.modules) - set(previous.modules) == {"mol1.predict"}
+    assert set(previous.modules) <= set(current.modules)
     for key, module in previous.modules.items():
         expected = module.model_copy(update={"revision": 5}) if key == "reinvent.design" else module
         assert current.modules[key] == expected

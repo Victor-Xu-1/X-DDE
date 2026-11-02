@@ -1,0 +1,142 @@
+name: Mol-1 and 3D condition checks
+on:
+  pull_request:
+    paths: &paths
+      - "src/opendde_workbench/integrations/mol1*"
+      - "src/opendde_workbench/integrations/native_mol1*"
+      - "src/opendde_workbench/integrations/contract.py"
+      - "src/opendde_workbench/integrations/bindings.py"
+      - "src/opendde_workbench/integrations/recipes/mol1*"
+      - "src/opendde_workbench/integrations/recipes.json"
+      - "src/opendde_workbench/simulations/restraints.py"
+      - "src/opendde_workbench/simulations/native_restraints.py"
+      - "src/opendde_workbench/simulations/options.py"
+      - "frontend/src/integrations/Mol1*"
+      - "frontend/src/integrations/mol1*"
+      - "frontend/src/simulations/*estraint*"
+      - "tests/test_mol1*"
+      - "tests/test_simulation_restraints.py"
+      - "server_tests/test_openmm_restraints.py"
+      - "server_tests/*viewer_evidence.py"
+      - ".github/workflows/mol1-restraint-checks.yml"
+  push:
+    branches: [main]
+    paths: *paths
+  workflow_dispatch:
+    inputs:
+      native:
+        type: boolean
+        default: false
+        description: Build the real Mol-1 profile and submit one engineering prediction from the UI
+      native_engine:
+        type: choice
+        default: mol1
+        options: [mol1, openmm]
+        description: Real engine to verify; OpenMM uses refinement only, never dynamics/FEP
+permissions:
+  contents: read
+concurrency:
+  group: mol1-condition-${{ github.ref }}-${{ inputs.native_engine || 'contracts' }}
+  cancel-in-progress: true
+jobs:
+  visual-evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --group dev --group browser --no-install-project
+      - run: uv run --locked --no-sync playwright install --with-deps chromium
+      - name: Reject blank white, black, colored and transparent canvases
+        run: uv run --locked --no-sync pytest -q server_tests/test_native_viewer_evidence.py
+  contracts-and-native-forces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --group dev
+      - name: Typed model inputs and exact source-bound conditions
+        run: uv run --locked pytest -q tests/test_mol1.py tests/test_mol1_native_contract.py tests/test_simulation_restraints.py
+      - name: Actual OpenMM forces and analytical energies; no dynamics
+        run: uv run --locked --with openmm==8.6.1 pytest -q server_tests/test_openmm_restraints.py
+  interface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - name: Changed forms and direct method-selection consumers
+        working-directory: frontend
+        run: npx vitest run src/integrations/Mol1Form.test.tsx src/simulations/RestraintEditor.test.tsx src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx src/studio/MethodSwitch.test.tsx
+  native-mol1-browser:
+    if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine != 'openmm'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      WB_TEST_MOL1_NATIVE: "1"
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "WB_MOL1_CASE=$RUNNER_TEMP/mol1-acceptance" >> "$GITHUB_ENV"
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: uv sync --locked --python 3.12 --group dev --group browser
+      - run: uv run --locked playwright install --with-deps chromium
+      - name: Install only Mol-1, its verified resources and the structure viewer
+        run: uv run --locked python server_tests/prepare_guided_native.py --program mol1
+      - name: Submit and inspect a real native prediction through the compiled frontend
+        run: uv run --locked pytest -x -q server_tests/test_mol1_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mol1-native-browser-evidence
+          path: |
+            ${{ runner.temp }}/mol1-acceptance/*.json
+            ${{ runner.temp }}/mol1-acceptance/*.png
+            ${{ runner.temp }}/mol1-acceptance/*.log
+            ${{ runner.temp }}/mol1-acceptance/*.cif
+            ${{ runner.temp }}/mol1-acceptance/components/**/install.log
+            ${{ runner.temp }}/mol1-acceptance/native-parser-probe/*
+  native-openmm-3d:
+    if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine == 'openmm'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      WB_TEST_OPENMM_CONDITIONS: "1"
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "WB_MOL1_CASE=$RUNNER_TEMP/openmm-condition-acceptance" >> "$GITHUB_ENV"
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: uv sync --locked --python 3.12 --group dev --group browser
+      - run: uv run --locked playwright install --with-deps chromium
+      - run: uv run --locked python server_tests/prepare_guided_native.py --program openmm
+      - run: uv run --locked pytest -x -q server_tests/test_restraint_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openmm-native-3d-evidence
+          path: |
+            ${{ runner.temp }}/openmm-condition-acceptance/*.json
+            ${{ runner.temp }}/openmm-condition-acceptance/*.png
+            ${{ runner.temp }}/openmm-condition-acceptance/*.log
+            ${{ runner.temp }}/openmm-condition-acceptance/components/**/install.log

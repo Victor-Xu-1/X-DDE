@@ -22,6 +22,7 @@ import {
   type SimulationPayload,
 } from "./types";
 import "./simulations.css";
+import { RestraintEditor } from "./RestraintEditor";
 
 export function SimulationForm({
   form,
@@ -161,7 +162,10 @@ export function SimulationForm({
               <ReferencePicker
                 kind="structure"
                 value={structure}
-                onChange={setStructure}
+                onChange={(source) => {
+                  setStructure(source);
+                  if (program === "openmm") update({ restraints: [] });
+                }}
                 language={language}
                 label={zh ? "蛋白结构" : "Protein structure"}
                 allowedSuffixes={[".pdb", ".cif"]}
@@ -170,7 +174,10 @@ export function SimulationForm({
                 <ChoiceCards
                   label={zh ? "研究对象" : "Study system"}
                   value={bound ? "complex" : "protein"}
-                  onChange={(v) => setBound(v === "complex")}
+                  onChange={(v) => {
+                    setBound(v === "complex");
+                    if (program === "openmm") update({ restraints: [] });
+                  }}
                   options={[
                     {
                       value: "protein",
@@ -214,7 +221,10 @@ export function SimulationForm({
                   <ReferencePicker
                     kind="ligand"
                     value={ligand}
-                    onChange={setLigand}
+                    onChange={(source) => {
+                      setLigand(source);
+                      if (program === "openmm") update({ restraints: [] });
+                    }}
                     language={language}
                     label={zh ? "结合小分子" : "Bound ligand"}
                     allowedSuffixes={[".sdf", ".mol"]}
@@ -296,6 +306,27 @@ export function SimulationForm({
             />
           ),
         },
+        ...(!fep && program === "openmm" && structure
+          ? [
+              {
+                title: zh ? "三维约束（可选）" : "3D restraints (optional)",
+                valid: true,
+                content: (
+                  <RestraintEditor
+                    key={
+                      referenceKey(structure) +
+                      (bound ? referenceKey(ligand) : "")
+                    }
+                    structure={structure}
+                    ligand={bound ? ligand : null}
+                    value={payload.restraints ?? []}
+                    onChange={(restraints) => update({ restraints })}
+                    language={language}
+                  />
+                ),
+              },
+            ]
+          : []),
         {
           title: zh ? "确认并提交" : "Review and submit",
           valid: inputValid && selectionValid && settingsValid,

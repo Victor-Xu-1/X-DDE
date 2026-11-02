@@ -7,6 +7,7 @@ from .definitions import CAPABILITIES
 _METHOD_LABELS = {
     "deepternary": "DeepTernary",
     "boltz": "Boltz-2",
+    "mol1": "Mol-1",
     "reinvent": "REINVENT4",
     "boltzgen": "BoltzGen",
     "ligandmpnn": "LigandMPNN",
@@ -45,6 +46,15 @@ _GROUPS = (
                     "复合物结构与可选亲和力模型；参数和置信度不能与其他方法直接混用。",
                     "Complex structures and optional model affinity; "
                     "parameters and confidence are method-specific.",
+                ),
+            },
+            {
+                "id": "mol1.predict",
+                "label": "Mol-1",
+                "note": (
+                    "已公开的全原子基础模型；几何约束版未公开；需按体系验证计算资源与结果。",
+                    "Released base model; the geometric-constraint variant is not released. "
+                    "Validate resources and results for the actual system.",
                 ),
             },
         ),

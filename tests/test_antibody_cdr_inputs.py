@@ -177,13 +177,18 @@ def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers
 
 def test_only_interface_module_revisions_advance_and_published_snapshots_remain_exact():
     old = historical_study_catalogue(PREVIOUS)
+    # This regression owns the authored interface release, not later R-group successors.
+    authored = historical_study_catalogue(
+        "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee8e82ea"
+    )
+    assert set(authored.modules) == set(old.modules)
     for key, module in old.modules.items():
         expected = (
             module.model_copy(update={"revision": module.revision + 1})
             if key in {"fold", "epitope"}
             else module
         )
-        assert MODULES[key] == expected
+        assert authored.modules[key] == expected
 
 
 @pytest.mark.parametrize("capability", ["fold", "epitope"])

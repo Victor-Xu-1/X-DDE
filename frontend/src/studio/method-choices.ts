@@ -20,6 +20,14 @@ export const methodChoices = [
           "Complex structures and optional model affinity; parameters and confidence are method-specific.",
         ],
       },
+      {
+        id: "mol1.predict",
+        label: "Mol-1",
+        note: [
+          "已公开的全原子基础模型；几何约束版未公开；需按体系验证计算资源与结果。",
+          "Released base model; the geometric-constraint variant is not released. Validate resources and results for the actual system.",
+        ],
+      },
     ],
     default: "predict",
     default_basis: [

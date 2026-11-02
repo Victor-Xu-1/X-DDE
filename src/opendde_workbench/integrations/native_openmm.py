@@ -134,6 +134,9 @@ def run(request):
     system = forcefield.createSystem(
         modeller.topology, nonbondedMethod=app.NoCutoff, constraints=app.HBonds
     )
+    from native_restraints import apply_restraints
+
+    user_positions = apply_restraints(request, modeller, system, source)
     if payload["restrain_backbone"]:
         restraint = openmm.CustomExternalForce("0.5*k*((x-x0)^2+(y-y0)^2+(z-z0)^2)")
         restraint.addGlobalParameter("k", payload["restraint_kj_mol_nm2"])
@@ -141,28 +144,33 @@ def run(request):
             restraint.addPerParticleParameter(name)
         positions = modeller.positions.value_in_unit(unit.nanometer)
         for atom in modeller.topology.atoms():
-            if atom.residue.name in {
-                "ALA",
-                "ARG",
-                "ASN",
-                "ASP",
-                "CYS",
-                "GLN",
-                "GLU",
-                "GLY",
-                "HIS",
-                "ILE",
-                "LEU",
-                "LYS",
-                "MET",
-                "PHE",
-                "PRO",
-                "SER",
-                "THR",
-                "TRP",
-                "TYR",
-                "VAL",
-            } and atom.name in {"N", "CA", "C", "O"}:
+            if (
+                atom.residue.name
+                in {
+                    "ALA",
+                    "ARG",
+                    "ASN",
+                    "ASP",
+                    "CYS",
+                    "GLN",
+                    "GLU",
+                    "GLY",
+                    "HIS",
+                    "ILE",
+                    "LEU",
+                    "LYS",
+                    "MET",
+                    "PHE",
+                    "PRO",
+                    "SER",
+                    "THR",
+                    "TRP",
+                    "TYR",
+                    "VAL",
+                }
+                and atom.name in {"N", "CA", "C", "O"}
+                and atom.index not in user_positions
+            ):
                 restraint.addParticle(atom.index, positions[atom.index])
         system.addForce(restraint)
     integrator = openmm.VerletIntegrator(0.001 * unit.picoseconds)

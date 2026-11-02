@@ -7,6 +7,7 @@ from ...integrations.options import MolecularComponent
 def integrated_study(capability, objects, sequences):
     programs = {
         "boltz.predict": ("boltz_predict", "boltz"),
+        "mol1.predict": ("mol1_predict", "mol1"),
         "reinvent.design": ("reinvent_design", "reinvent"),
         "ligandmpnn.design": ("ligandmpnn_design", "ligandmpnn"),
         "boltzgen.design": ("boltzgen_design", "boltzgen"),
@@ -39,6 +40,25 @@ def integrated_study(capability, objects, sequences):
             binder_chains=["B"],
             candidate_names=["STAT6 4Y5U phosphorylated A/B dimer"],
         )
+    elif kind == "mol1":
+        ligand = add("ligand", "study_ligand")
+        sequence = add("sequence", "protein_sequence")
+        msa = add("msa", "prediction_msa") if "prediction_msa" in objects else None
+        payload.update(
+            components=[
+                {
+                    "kind": "protein",
+                    "value": sequences["protein"],
+                    "chain_ids": ["A"],
+                    "source_sequence": str(sequence.asset_id),
+                    **({"unpaired_msa": str(msa.asset_id)} if msa else {}),
+                },
+                {"kind": "ligand", "ligand_file": str(ligand.asset_id), "chain_ids": ["B"]},
+            ],
+            feature_mode="uploaded" if msa else "none",
+            samples=1,
+        )
+        options.update(device="cuda", memory_mib=32768, seed=101)
     elif kind == "boltz":
         ligand = add("ligand", "study_ligand")
         msa = add("msa", "prediction_msa") if "prediction_msa" in objects else None

@@ -15,6 +15,7 @@ from ..simulations.options import (
     payload_tag,
 )
 from ..task_metadata import TaskMetadata
+from .mol1_contract import Mol1Payload
 from .options import (
     BoltzGenPayload,
     BoltzPayload,
@@ -29,6 +30,7 @@ from .options import (
 )
 
 OPERATIONS = {
+    "mol1_predict": "mol1",
     "ternary_model": "deepternary",
     "boltz_predict": "boltz",
     "reinvent_design": "reinvent",
@@ -65,12 +67,15 @@ class MaterialInput(BaseModel):
         "arm_a",
         "arm_b",
         "msa",
+        "template",
+        "sequence",
     ]
     source: MoleculeRef
 
 
 Payload = Annotated[
     Annotated[BoltzPayload, Tag("boltz")]
+    | Annotated[Mol1Payload, Tag("mol1")]
     | Annotated[ReinventPayload, Tag("reinvent")]
     | Annotated[LigandMPNNPayload, Tag("ligandmpnn")]
     | Annotated[BoltzGenPayload, Tag("boltzgen")]
@@ -90,6 +95,7 @@ Payload = Annotated[
 class IntegratedTask(TaskMetadata):
     model_config = ConfigDict(extra="forbid")
     operation: Literal[
+        "mol1_predict",
         "ternary_model",
         "boltz_predict",
         "reinvent_design",
@@ -107,7 +113,7 @@ class IntegratedTask(TaskMetadata):
     ]
     name: str = Field(min_length=1, max_length=80, pattern=r"^[^\x00-\x1f\x7f]+$")
     project_id: UUID | None = None
-    inputs: list[MaterialInput] = Field(default_factory=list, max_length=8)
+    inputs: list[MaterialInput] = Field(default_factory=list, max_length=32)
     payload: Payload
     options: ExecutionOptions = Field(default_factory=ExecutionOptions)
 
@@ -122,7 +128,11 @@ class IntegratedTask(TaskMetadata):
         interface = isinstance(self.payload, ProteinInterfacePayload)
         if (self.operation == "protein_interface") != interface:
             raise ValueError("Choose the protein-interface protocol for this operation.")
-        if not interface and self.payload.kind != "boltz" and len(roles) != len(self.inputs):
+        if (
+            not interface
+            and self.payload.kind not in {"boltz", "mol1"}
+            and len(roles) != len(self.inputs)
+        ):
             raise ValueError("Select each input role exactly once.")
         if interface:
             from .protein_interface_contract import validate_interface_inputs
@@ -139,6 +149,16 @@ class IntegratedTask(TaskMetadata):
                 "Whole structures/libraries use record zero and the original conformer."
             )
         kind = self.payload.kind
+        if kind != "mol1" and len(self.inputs) > 8:
+            raise ValueError("This scientific adapter supports at most eight input files.")
+        if kind == "mol1":
+            from .mol1_contract import validate_input_contract
+
+            validate_input_contract(self)
+        if kind in {"openmm", "gromacs"}:
+            from ..simulations.restraints import validate_restraint_sources
+
+            validate_restraint_sources(self)
         if (self.operation in {"molecular_dynamics", "gromacs_dynamics"}) != isinstance(
             self.payload, DynamicsPayload
         ):
@@ -204,6 +224,8 @@ class IntegratedTask(TaskMetadata):
                 raise ValueError("Choose a complete X-DDE-trained model with its exact checksum.")
             if roles != expected:
                 raise ValueError("Choose one whole SDF library for property modeling.")
+        elif kind == "mol1":
+            pass  # Exact component-file roles and versions were checked above.
         elif kind == "boltz":
             from .boltz_inputs import validate_input_contract
 

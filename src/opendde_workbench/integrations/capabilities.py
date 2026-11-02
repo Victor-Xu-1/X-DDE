@@ -4,6 +4,19 @@ from ..capabilities.contract import CapabilitySpec
 
 _ROWS = (
     (
+        "mol1.predict",
+        "structure",
+        "mol1",
+        "mol1_predict",
+        ("Mol-1 全原子复合物预测", "Mol-1 all-atom complex prediction"),
+        (
+            "蛋白、配体、核酸、离子、修饰与共价连接；使用已公开的基础模型。",
+            "Proteins, ligands, nucleic acids, ions, modifications and covalent bonds "
+            "with the released base model.",
+        ),
+        ("chemical", "small_molecule", "biologic", "protein", "antibody", "rna", "dna"),
+    ),
+    (
         "openmm.dynamics",
         "analyze",
         "openmm",
@@ -172,7 +185,9 @@ CAPABILITIES = tuple(
         source=engine,
         modalities=modalities,
         modality_role="research_object",
-        frontend_form="simulation"
+        frontend_form="mol1"
+        if engine == "mol1"
+        else "simulation"
         if identifier in {"openmm.dynamics", "gromacs.dynamics", "openfe.rbfe"}
         else "integrated",
     )

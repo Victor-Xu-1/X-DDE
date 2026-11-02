@@ -172,7 +172,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
     )
     for key in ("heavy", "light"):
         sequences[key] = "".join(verified_input("dupilumab_" + key).decode().splitlines()[1:])
-    if capability in {"boltz.predict", "predict"}:
+    if capability in {"boltz.predict", "mol1.predict", "predict"}:
         from .prediction_inputs import reviewed_prediction_inputs
 
         prediction_inputs = reviewed_prediction_inputs(scientific, records, sequence)
@@ -180,7 +180,14 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
             objects.update(prediction_inputs["objects"])
             objects["protein_sequence"] = objects["prediction_construct"]
             sequences["protein"] = prediction_inputs["sequence"]
-    if capability in {"boltz.predict", "predict", "mpnn", "esm2", "boltzgen.design"}:
+    if capability in {
+        "boltz.predict",
+        "mol1.predict",
+        "predict",
+        "mpnn",
+        "esm2",
+        "boltzgen.design",
+    }:
         from .domain_inputs import reviewed_domain_inputs
 
         domain = reviewed_domain_inputs(
@@ -189,7 +196,7 @@ def prepare_stat6(capability, scientific, *, records=None, modules=MODULES):
         if domain is not None:
             objects.update(domain["objects"])
             sequences["sh2"] = domain["sequence"]
-            if capability in {"boltz.predict", "predict"}:
+            if capability in {"boltz.predict", "mol1.predict", "predict"}:
                 objects["prediction_construct"] = objects["sh2_sequence"]
                 objects["protein_sequence"] = objects["sh2_sequence"]
                 objects["prediction_msa"] = objects["sh2_msa"]

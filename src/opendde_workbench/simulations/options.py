@@ -4,6 +4,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .restraints import SimulationRestraint
+
 
 class DynamicsPayload(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
@@ -20,6 +22,9 @@ class DynamicsPayload(BaseModel):
     repeats: int = Field(default=1, ge=1, le=3)
     time_limit_seconds: int = Field(default=86400, ge=300, le=604800)
     output_bytes: int = Field(default=8 * 1024**3, ge=128 * 1024**2, le=64 * 1024**3)
+    restraints: list[SimulationRestraint] = Field(
+        default_factory=list, max_length=64, exclude_if=lambda value: not value
+    )
 
     @model_validator(mode="after")
     def sampling(self) -> Self:
@@ -62,6 +67,8 @@ class GromacsDynamicsPayload(DynamicsPayload):
 
     @model_validator(mode="after")
     def regular_sampling(self) -> Self:
+        if self.restraints:
+            raise ValueError("User-selected harmonic restraints currently require OpenMM.")
         steps = round(self.production_ns * 1_000_000 / self.timestep_fs)
         if steps % self.frames:
             raise ValueError(

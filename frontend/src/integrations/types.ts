@@ -23,7 +23,9 @@ export interface ScientificTask extends BaseTask {
       | "partner_b"
       | "arm_a"
       | "arm_b"
-      | "msa";
+      | "msa"
+      | "template"
+      | "sequence";
     source: MoleculeRef;
   }[];
   payload: ScientificPayload;
@@ -62,6 +64,19 @@ export interface NativeInteraction {
   bridge_position?: [number, number, number] | null;
 }
 export interface NativeResult {
+  mol1?: {
+    model: "mol-1-base";
+    samples: {
+      candidate_id: string;
+      seed: number;
+      rank: number;
+      summary_artifact: string;
+      full_data_artifact: string | null;
+      preview_artifact: string | null;
+    }[];
+    confidence_axes: "token_indices_not_residue_numbers";
+    scope: "model_confidence_not_experimental_binding";
+  } | null;
   operation: ScientificOperation;
   program: ScientificProgram;
   version: string;

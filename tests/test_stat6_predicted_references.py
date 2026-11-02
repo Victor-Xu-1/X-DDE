@@ -170,7 +170,9 @@ def test_only_retained_optional_sources_add_their_notices():
 
 
 def test_known_published_catalogue_accepts_only_unchanged_sources_and_modules(monkeypatch):
-    assert set(compatible_modules(HISTORICAL_CATALOGUE, profile="stat6")) == set(catalogue.MODULES)
+    assert set(compatible_modules(HISTORICAL_CATALOGUE, profile="stat6")) == set(
+        catalogue.MODULES
+    ) - {"mol1.predict"}
     with pytest.raises(ValueError, match="reviewed published"):
         compatible_modules("0" * 64, profile="stat6")
     changed = copy.deepcopy(catalogue.MANIFEST)
