@@ -5,6 +5,13 @@ X-DDE original code is licensed under the Apache License, Version 2.0.
 Integrated third-party software, model resources and reference artwork retain
 their respective upstream licenses, copyright notices and attribution.
 
+Mol-1 integration (candidate)
+Mol-1 by Molence Bio is provisioned separately from the X-DDE wheel from the
+pinned upstream source under Apache-2.0. Its upstream THIRD_PARTY_NOTICES,
+provider-distributed model terms and wwPDB reference-data terms remain applicable.
+HMMER and Kalign retain their upstream licenses in that isolated environment.
+Source and resource identities: docs/mol1.md and the native scientific recipe.
+
 Reference-conditioned structural comparison (candidate v0.6.42)
 DockQ 2.1.3 by Claudio Mirabello and Bjorn Wallner is integrated under its MIT license.
 Its native license and copyright notices remain in the installed distribution.

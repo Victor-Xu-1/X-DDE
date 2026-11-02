@@ -27,6 +27,7 @@ from opendde_workbench.humanization.manifest import MAX_RECORDS as HUMANIZATION_
 from opendde_workbench.humanization.manifest import VERSIONS as HUMANIZATION_VERSIONS
 from opendde_workbench.humanization.options import HumanizationOptions
 from opendde_workbench.integrations.contract import OPERATIONS
+from opendde_workbench.integrations.mol1_contract import Mol1Payload
 from opendde_workbench.integrations.options import (
     BoltzGenPayload,
     BoltzPayload,
@@ -144,6 +145,7 @@ def main() -> None:
                 }
                 for name, model in {
                     "boltz": BoltzPayload,
+                    "mol1": Mol1Payload,
                     "reinvent": ReinventPayload,
                     "ligandmpnn": LigandMPNNPayload,
                     "boltzgen": BoltzGenPayload,

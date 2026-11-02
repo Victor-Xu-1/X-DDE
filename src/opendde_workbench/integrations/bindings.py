@@ -6,6 +6,21 @@ from .property_models import verified_property_model
 
 
 def validate_bindings(request, assets):
+    if request.operation == "mol1_predict":
+        from .mol1_contract import entity_request
+        from .mol1_features import validate_features
+
+        bindings = assets.validate_bindings(entity_request(request))
+        for component in request.payload.components:
+            validate_features(component, bindings, assets)
+            if request.payload.use_template and component.template_hits:
+                template = bindings[str(component.template_hits)]
+                if template.suffix != ".json" and not request.payload.allow_network:
+                    raise ValueError(
+                        "Template-hit files require permission to retrieve native structures; "
+                        "use embedded JSON templates for offline prediction."
+                    )
+        return bindings
     if request.operation == "boltzgen_design" and request.payload.continuation:
         from .binder_checkpoints import validate_continuation
 

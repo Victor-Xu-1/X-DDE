@@ -56,13 +56,23 @@ it.each(["openmm.dynamics", "gromacs.dynamics"] as const)(
       "cpu",
     );
     await user.click(screen.getByRole("button", { name: "Next" }));
+    if (form === "openmm.dynamics") {
+      expect(
+        screen.getByRole("button", { name: "Add to task" }),
+      ).toBeDisabled();
+      await user.click(screen.getByRole("button", { name: "Next" }));
+    }
     expect(await screen.findByText("BRD4-protein.pdb")).toBeVisible();
     expect(api.submit).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Back" }));
+    if (form === "openmm.dynamics")
+      await user.click(screen.getByRole("button", { name: "Back" }));
     expect(
       screen.getByRole("combobox", { name: "Compute device" }),
     ).toHaveValue("cpu");
     await user.click(screen.getByRole("button", { name: "Next" }));
+    if (form === "openmm.dynamics")
+      await user.click(screen.getByRole("button", { name: "Next" }));
     await user.click(screen.getByRole("button", { name: "Submit simulation" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Server calculation is not running",

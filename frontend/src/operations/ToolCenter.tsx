@@ -45,6 +45,7 @@ import { ScientificForm } from "../integrations/ScientificForm";
 import { ProteinInterfaceForm } from "../integrations/ProteinInterfaceForm";
 import { isScientificForm } from "../integrations/types";
 import { SimulationForm } from "../simulations/SimulationForm";
+import { Mol1Form } from "../integrations/Mol1Form";
 import { isSimulationForm } from "../simulations/types";
 import { DatasetForm } from "../datasets/DatasetForm";
 import { isDatasetTool } from "../datasets/dataset-model";
@@ -139,6 +140,8 @@ export function ToolCenter({
                 />
               ) : selected === "deepternary.model" ? (
                 <ProximityForm language={language} onCreated={onCreated} />
+              ) : selected === "mol1.predict" ? (
+                <Mol1Form language={language} onCreated={onCreated} />
               ) : isSimulationForm(selected) ? (
                 <SimulationForm
                   form={selected}

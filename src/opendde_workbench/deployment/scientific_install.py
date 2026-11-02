@@ -138,7 +138,7 @@ def model_archive(archive, destination, checkpoint):
                 ):
                     shutil.copyfileobj(stream, output)
     else:
-        with tarfile.open(archive, "r:") as source:
+        with tarfile.open(archive, "r:*") as source:
             for row in source:
                 if row.isdir():
                     continue
@@ -270,7 +270,7 @@ def _install_models(identifier, root, report, checkpoint, attempt):
             continue
         target = destination / name
         shutil.copyfile(archive, target)
-        if name.endswith((".zip", ".tar")):
+        if name.endswith((".zip", ".tar", ".tar.gz", ".tgz")):
             model_archive(target, destination, checkpoint)
     files = []
     for file in sorted(destination.rglob("*")):

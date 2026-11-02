@@ -8,7 +8,7 @@ from .native_probe import run_probe
 
 def verify_native_entrypoint(identifier, image, execute, directory):
     """Probe the declared native entry points without loading models or research inputs."""
-    if identifier not in {"reinvent", "plip", "ligandmpnn"}:
+    if identifier not in {"reinvent", "plip", "ligandmpnn", "mol1"}:
         return
     args = [
         "--network",
@@ -44,7 +44,10 @@ def verify_native_entrypoint(identifier, image, execute, directory):
         "NUMBA_CACHE_DIR=/tmp/numba",
     ]
     args += torch_cache_arguments(identifier)
-    if identifier == "reinvent":
+    if identifier == "mol1":
+        args += ["--env", "LAYERNORM_TYPE=torch"]
+        entrypoint = ["--entrypoint", "mol", image, "--help"]
+    elif identifier == "reinvent":
         entrypoint = ["--entrypoint", "reinvent", image, "--help"]
     elif identifier == "ligandmpnn":
         entrypoint = ["--entrypoint", "python", image, "/opt/native/run.py", "--help"]

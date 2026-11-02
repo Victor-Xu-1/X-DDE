@@ -28,6 +28,14 @@ export function SimulationReview({
   const zh = language === "zh";
   const planning = fep && payload.stage !== "calculate";
   const rows = [
+    ...(!fep && program === "openmm"
+      ? [
+          {
+            label: zh ? "用户谐和约束" : "User harmonic restraints",
+            value: String(payload.restraints?.length ?? 0),
+          },
+        ]
+      : []),
     {
       label: zh ? "计算引擎" : "Backend",
       value:

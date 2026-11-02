@@ -6,6 +6,8 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
+import { RestraintEditor } from "../simulations/RestraintEditor";
+import type { SimulationRestraint } from "../simulations/restraints";
 import {
   boltzMaterialInputs,
   boltzMsaKey,
@@ -124,6 +126,7 @@ export function ScientificForm({
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
   const [expert, setExpert] = useState(false);
+  const [restraints, setRestraints] = useState<SimulationRestraint[]>([]);
   const [name, setName] = useState(
     preset?.name ?? example?.case.label[zh ? 0 : 1] ?? "",
   );
@@ -162,7 +165,7 @@ export function ScientificForm({
             component.msa_mode === "single" ||
             Boolean(
               component.msa &&
-                msaVerified[component.id] === boltzMsaKey(component),
+              msaVerified[component.id] === boltzMsaKey(component),
             ),
         )
       : program === "reinvent"
@@ -171,8 +174,8 @@ export function ScientificForm({
         : program === "chemprop"
           ? Boolean(
               ligand &&
-                verifiedLibrary &&
-                referenceKey(ligand) === referenceKey(verifiedLibrary),
+              verifiedLibrary &&
+              referenceKey(ligand) === referenceKey(verifiedLibrary),
             )
           : Boolean(structure) &&
             (program !== "boltzgen" ||
@@ -186,7 +189,7 @@ export function ScientificForm({
       !["antibody", "nanobody"].includes(String(payload.modality)) ||
       Boolean(
         payload.scaffold_chain &&
-          (payload.scaffold_residues as string[] | undefined)?.length,
+        (payload.scaffold_residues as string[] | undefined)?.length,
       ));
   const optionsValid =
     validScientificChoices(payload) &&
@@ -218,7 +221,7 @@ export function ScientificForm({
           name: name.trim() || (zh ? "研究计算" : "Research calculation"),
           inputs,
           scientific_inputs: inputs.map((item) => item.source),
-          payload,
+          payload: program === "openmm" ? { ...payload, restraints } : payload,
           options,
         })
       }
@@ -243,6 +246,7 @@ export function ScientificForm({
               structure={structure}
               onStructure={(value) => {
                 setStructure(value);
+                setRestraints([]);
                 update(
                   program === "ligandmpnn"
                     ? { redesigned_residues: [] }
@@ -254,7 +258,10 @@ export function ScientificForm({
                 );
               }}
               ligand={ligand}
-              onLigand={setLigand}
+              onLigand={(value) => {
+                setLigand(value);
+                setRestraints([]);
+              }}
               scaffold={scaffold}
               onScaffold={(value) => {
                 setScaffold(value);
@@ -295,6 +302,29 @@ export function ScientificForm({
             </>
           ),
         },
+        ...(program === "openmm" && structure
+          ? [
+              {
+                title: zh
+                  ? "设置三维约束（可选）"
+                  : "Set 3D restraints (optional)",
+                valid: true,
+                content: (
+                  <RestraintEditor
+                    key={
+                      referenceKey(structure) +
+                      (ligand ? referenceKey(ligand) : "")
+                    }
+                    structure={structure}
+                    ligand={ligand}
+                    value={restraints}
+                    onChange={setRestraints}
+                    language={language}
+                  />
+                ),
+              },
+            ]
+          : []),
         {
           title: zh ? "选择计算方案" : "Choose a calculation plan",
           valid: optionsValid,
@@ -332,6 +362,11 @@ export function ScientificForm({
                 inputs={inputs}
                 options={options}
               />
+              {program === "openmm" && (
+                <p>
+                  {zh ? "三维约束" : "3D restraints"}: {restraints.length}
+                </p>
+              )}
             </>
           ),
         },

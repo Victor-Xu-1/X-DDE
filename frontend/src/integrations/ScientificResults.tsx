@@ -24,6 +24,7 @@ import { SequenceDesignOverview } from "./SequenceDesignOverview";
 import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
+import { Mol1Confidence } from "./Mol1Confidence";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -278,6 +279,14 @@ export function ScientificResults({
               onSelect={(row) => setSelected(row.id)}
               exportName="scientific-candidates.csv"
             />
+            {result.mol1 && active && (
+              <Mol1Confidence
+                job={job.id}
+                result={result}
+                candidate={active.id}
+                language={language}
+              />
+            )}
           </StructureWorkbench>
         </>
       )}

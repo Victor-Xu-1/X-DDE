@@ -4,7 +4,7 @@ export const assetFormats: Record<AssetKind, readonly string[]> = {
   structure: [".pdb", ".cif"],
   ligand: [".sdf", ".mol", ".mol2", ".pdb"],
   msa: [".a3m"],
-  template: [".a3m", ".hhr"],
+  template: [".a3m", ".hhr", ".json"],
   config: [".json", ".yaml", ".yml"],
   sequences: [".fasta", ".fa"],
   library: [

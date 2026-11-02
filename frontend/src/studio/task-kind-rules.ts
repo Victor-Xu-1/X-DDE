@@ -7,6 +7,12 @@ export const taskKindRules = [
     value: null,
   },
   {
+    id: "mol1.predict",
+    operation: "mol1_predict",
+    field: null,
+    value: null,
+  },
+  {
     id: "openmm.dynamics",
     operation: "molecular_dynamics",
     field: null,
