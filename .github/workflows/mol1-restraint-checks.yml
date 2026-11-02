@@ -35,7 +35,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: mol1-condition-${{ github.ref }}
+  group: mol1-condition-${{ github.ref }}-${{ inputs.native_engine || 'contracts' }}
   cancel-in-progress: true
 jobs:
   contracts-and-native-forces:
@@ -98,6 +98,7 @@ jobs:
             ${{ runner.temp }}/mol1-acceptance/*.png
             ${{ runner.temp }}/mol1-acceptance/*.log
             ${{ runner.temp }}/mol1-acceptance/components/**/install.log
+            ${{ runner.temp }}/mol1-acceptance/native-parser-probe/*
   native-openmm-3d:
     if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine == 'openmm'
     runs-on: ubuntu-24.04
