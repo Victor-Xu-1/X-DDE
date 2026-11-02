@@ -62,11 +62,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 100
     env:
-      WB_MOL1_CASE: ${{ runner.temp }}/mol1-acceptance
       WB_TEST_MOL1_NATIVE: "1"
       WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
+      - run: echo "WB_MOL1_CASE=$RUNNER_TEMP/mol1-acceptance" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v6
       - uses: actions/setup-node@v4
         with:
