@@ -69,6 +69,10 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
                     break
                 time.sleep(2)
             (root / "job.json").write_text(json.dumps(job, indent=2))
+            if job["status"] != "succeeded":
+                diagnostic = page.request.get(base + f"/api/jobs/{identifier}/logs").json()["text"]
+                (root / "native-task.log").write_text(diagnostic)
+                print(diagnostic[-18000:])
             assert job["status"] == "succeeded", job
             native = page.request.get(base + "/api/jobs/" + identifier + "/result").json()
             (root / "native-result.json").write_text(json.dumps(native, indent=2))
