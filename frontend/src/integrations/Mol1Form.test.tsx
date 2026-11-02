@@ -33,7 +33,7 @@ it.each(["en", "zh"] as const)(
       screen.queryByLabelText(
         zh ? "序列进化信息" : "Sequence evolutionary information",
       ),
-    ).toBeNull();
+    ).not.toBeVisible();
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
@@ -53,7 +53,7 @@ it.each(["en", "zh"] as const)(
       screen.queryByLabelText(
         zh ? "序列进化信息" : "Sequence evolutionary information",
       ),
-    ).toBeNull();
+    ).not.toBeVisible();
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );

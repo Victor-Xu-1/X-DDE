@@ -11,6 +11,7 @@ PREDICTED_CAPABILITIES = frozenset(
         "openmm.refine",
         "predict",
         "boltz.predict",
+        "mol1.predict",
         "mpnn",
         "esm2",
         "boltzgen.design",

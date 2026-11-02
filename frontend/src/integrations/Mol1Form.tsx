@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { request } from "../api";
+import { useExampleTask } from "../examples/context";
 import { validate } from "../form-model";
 import { MolecularInputs } from "../guided/MolecularInputs";
 import { Questionnaire } from "../guided/Questionnaire";
@@ -21,14 +22,24 @@ export function Mol1Form({
   onCreated(job: Job): void;
 }) {
   const zh = language === "zh";
-  const [components, setComponents] = useState<Component[]>([
-    { kind: "protein", value: "", count: 1, chain_ids: ["A"] },
-    { kind: "ligand", value: "", count: 1, chain_ids: ["B"] },
-  ]);
-  const [settings, setSettings] = useState(mol1Defaults);
-  const [bonds, setBonds] = useState<CovalentBond[]>([]);
+  const preset = useExampleTask("mol1_predict");
+  const [components, setComponents] = useState<Component[]>(
+    () =>
+      (preset?.payload.components as Component[]) ?? [
+        { kind: "protein", value: "", count: 1, chain_ids: ["A"] },
+        { kind: "ligand", value: "", count: 1, chain_ids: ["B"] },
+      ],
+  );
+  const [settings, setSettings] = useState(() => ({
+    ...mol1Defaults(),
+    ...preset?.payload,
+    kind: "mol1" as const,
+  }));
+  const [bonds, setBonds] = useState<CovalentBond[]>(
+    () => (preset?.payload.covalent_bonds as CovalentBond[]) ?? [],
+  );
   const [advanced, setAdvanced] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(preset?.name ?? "");
   const [device, setDevice] = useState<"cpu" | "cuda">("cuda");
   const [memory, setMemory] = useState(32768);
   const [seed, setSeed] = useState(101);

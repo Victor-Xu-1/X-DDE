@@ -499,6 +499,20 @@
       ],
       "files": ["tyk2_protein", "tyk2_ligands"],
       "id": "tyk2-free-energy"
+    },
+    {
+      "id": "stat6-mol1-study",
+      "revision": 1,
+      "label": ["STAT6 · Mol-1 结构研究", "STAT6 · Mol-1 structure study"],
+      "description": [
+        "STAT6 与指定分子的可加载研究输入；实际计算结果另存。",
+        "Loadable STAT6 and supplied-molecule research inputs; computed outputs are saved separately."
+      ],
+      "files": [],
+      "sources": [
+        "https://www.uniprot.org/uniprotkb/P42226/entry",
+        "https://www.rcsb.org/structure/9BIG"
+      ]
     }
   ],
   "modules": {
@@ -958,6 +972,12 @@
       "case_id": "brd4-jq1",
       "capability_id": "gromacs.dynamics",
       "revision": 1
+    },
+    "mol1.predict": {
+      "case_id": "stat6-mol1-study",
+      "capability_id": "mol1.predict",
+      "revision": 1,
+      "pinned_run_required": true
     }
   },
   "result_policy": "Only native successful tasks can be pinned as computed results. Experimental structures retain their public source identity."
