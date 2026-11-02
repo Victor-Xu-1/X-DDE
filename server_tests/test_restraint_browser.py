@@ -24,9 +24,18 @@ def test_real_3d_selection_and_native_refinement():
             browser = driver.chromium.launch()
             page = browser.new_page(viewport={"width": 1600, "height": 1100})
             page.goto(base + "/#view=new&tool=openmm.refine")
-            page.locator("input[type=file]").first.set_input_files(root / "STAT6-SH2-source.pdb")
+            with page.expect_response(
+                lambda response: (
+                    "/api/assets?" in response.url and response.request.method == "POST"
+                )
+            ) as upload:
+                page.get_by_label("Upload Choose target structure", exact=True).set_input_files(
+                    root / "STAT6-SH2-source.pdb"
+                )
+            assert upload.value.status == 201 and upload.value.json()["kind"] == "structure"
             next_step = page.get_by_role("button", name="Next", exact=True)
             expect(next_step).to_be_enabled(timeout=30000)
+            page.screenshot(path=str(root / "openmm-input-en.png"), full_page=True)
             next_step.click()
             next_step.click()
             add = page.get_by_role("button", name="Add to task", exact=True)
