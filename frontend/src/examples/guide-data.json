@@ -1079,6 +1079,30 @@
       "Compare poses within receptor groups before interpreting scores."
     ]
   },
+  "mol1.predict": {
+    "steps": [
+      [
+        "载入 STAT6 序列与指定研究分子，核对组分和拷贝。",
+        "Load STAT6 and the supplied study molecule; confirm components and copies."
+      ],
+      [
+        "提供或明确授权检索 MSA，按需要加入结构模板和已知共价连接。",
+        "Supply MSAs or authorize their search; optionally add structural templates and known covalent bonds."
+      ],
+      [
+        "选择构象数和计算方案，确认后提交原生预测。",
+        "Choose samples and computation settings, review the inputs and submit a native prediction."
+      ],
+      [
+        "在三维视图检查各构象，用 pLDDT、PAE、PDE 与接触概率评估可信度，再下载结果。",
+        "Inspect each structure and its pLDDT, PAE, PDE and contact probabilities, then download the results."
+      ]
+    ],
+    "interpretation": [
+      "结构和置信度均来自该模型真实运行；未计算时只显示输入参考。置信度不是亲和力，共价连接不是几何约束。",
+      "Structures and confidence must come from this model's actual run; uncomputed examples show input references only. Confidence is not affinity; covalent connectivity is not a geometric restraint."
+    ]
+  },
   "boltz.predict": {
     "steps": [
       [

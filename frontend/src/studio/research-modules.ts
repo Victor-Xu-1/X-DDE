@@ -53,6 +53,7 @@ export const researchModules: readonly ResearchModule[] = [
     tools: [
       "predict",
       "boltz.predict",
+      "mol1.predict",
       "biopython.prepare",
       "biopython.ensemble",
       "features",
