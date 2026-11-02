@@ -251,7 +251,7 @@ export function RestraintEditor({
               <tr>
                 <td colSpan={3}>
                   {zh
-                    ? "不添加约束，进行自由模拟"
+                    ? "未添加自定义约束"
                     : "No user restraints; simulate without these conditions"}
                 </td>
               </tr>

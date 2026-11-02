@@ -90,7 +90,11 @@ def translate_file_endpoints(request, document):
             if entity not in mappings:
                 native = document[0]["sequences"][entity - 1]["ligand"]["ligand"]
                 file = Path(native.removeprefix("FILE_"))
-                if not native.startswith("FILE_") or file.parent != Path("/input/assets"):
+                if (
+                    not native.startswith("FILE_")
+                    or file.parent != Path("/input/assets")
+                    or file.stem != str(component["ligand_file"])
+                ):
                     raise ValueError("Native ligand input does not belong to the task snapshot.")
                 mappings[entity] = file_atom_names(file)
             atom_name = mappings[entity].get(endpoint)
