@@ -17,6 +17,7 @@ on:
       - "tests/test_mol1*"
       - "tests/test_simulation_restraints.py"
       - "server_tests/test_openmm_restraints.py"
+      - "server_tests/*viewer_evidence.py"
       - ".github/workflows/mol1-restraint-checks.yml"
   push:
     branches: [main]
@@ -38,6 +39,16 @@ concurrency:
   group: mol1-condition-${{ github.ref }}-${{ inputs.native_engine || 'contracts' }}
   cancel-in-progress: true
 jobs:
+  visual-evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --group dev --group browser --no-install-project
+      - run: uv run --locked --no-sync playwright install --with-deps chromium
+      - name: Reject blank white, black, colored and transparent canvases
+        run: uv run --locked --no-sync pytest -q server_tests/test_native_viewer_evidence.py
   contracts-and-native-forces:
     runs-on: ubuntu-latest
     timeout-minutes: 20
