@@ -31,7 +31,7 @@ def test_real_3d_selection_and_native_refinement():
             next_step.click()
             add = page.get_by_role("button", name="Add to task", exact=True)
             expect(add).to_be_disabled()
-            view = page.frame_locator('iframe[title="3D structure viewer"]')
+            view = page.frame_locator('iframe[title="Interactive molecular structure"]')
             canvas = view.locator("canvas").first
             expect(canvas).to_be_visible(timeout=60000)
             # Exercise mouse picking itself; no internal viewer or React state injection.
