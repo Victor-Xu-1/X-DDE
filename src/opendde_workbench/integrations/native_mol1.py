@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-from native_io import digest
+from native_io import digest, input_file
 from native_mol1_bonds import translate_file_endpoints
 from native_mol1_results import collect_results
 
@@ -44,6 +44,9 @@ def inference_options(request, specification, output):
 
 def run(request):
     payload = request["payload"]
+    for item in request["inputs"]:
+        # Shared hash/path verification, including repeated MSA/template roles.
+        input_file({"inputs": [item]}, item["role"])
     if payload["feature_mode"] == "search" and not payload["allow_network"]:
         raise ValueError("Remote sequence search requires explicit task permission.")
     raw = Path("/output/native")
