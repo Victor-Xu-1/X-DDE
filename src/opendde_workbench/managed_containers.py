@@ -3,6 +3,7 @@
 from uuid import UUID
 
 CONTAINER_STYLES = {
+    "mol1": "preparation",
     "datasets": "preparation",
     "drugclip": "preparation",
     "deli": "preparation",

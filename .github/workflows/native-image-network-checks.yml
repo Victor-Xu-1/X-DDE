@@ -4,8 +4,15 @@ on:
   push:
     paths:
       - "src/opendde_workbench/integrations/image.py"
+      - "src/opendde_workbench/integrations/image_installer.py"
+      - "src/opendde_workbench/integrations/image_identity.py"
+      - "src/opendde_workbench/integrations/recipes/mol1-installer.txt"
+      - "src/opendde_workbench/deployment/network.py"
       - "src/opendde_workbench/integrations/recipes.json"
       - "tests/test_native_image_network.py"
+      - "tests/test_install_network.py"
+      - "server_tests/test_pip_download_resume.py"
+      - "server_tests/pip_download_fixture.py"
       - "tests/test_scientific_entrypoint.py"
       - "scripts/verify-native-system-libraries.py"
       - ".github/workflows/native-image-network-checks.yml"
@@ -34,9 +41,15 @@ jobs:
         run: >-
           python scripts/verify-native-system-libraries.py
           --program drugclip --program deli --program chemprop --program reinvent
+      - name: Real pinned installer resumes partial downloads and rejects changed bytes
+        env:
+          WB_TEST_PIP_RESUME: "1"
+        run: uv run --locked pytest -x -q server_tests/test_pip_download_resume.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: native-system-library-evidence
-          path: server_tests/evidence/native-system-libraries.json
+          path: |
+            server_tests/evidence/native-system-libraries.json
+            outputs/pip-resume
           if-no-files-found: error

@@ -55,6 +55,9 @@ def prepare(request):
         constraints=app.HBonds,
         rigidWater=True,
     )
+    from native_restraints import apply_restraints
+
+    apply_restraints(request, modeller, system, source)
     solvent = {"HOH", "WAT", "NA", "CL"}
     atoms = list(modeller.topology.atoms())
     solute_indices = [a.index for a in atoms if a.residue.name not in solvent]

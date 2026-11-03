@@ -80,6 +80,26 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "mol1.predict",
+    group: "structure",
+    label: ["Mol-1 全原子复合物预测", "Mol-1 all-atom complex prediction"],
+    note: [
+      "蛋白、配体、核酸、离子、修饰与共价连接；使用已公开的基础模型。",
+      "Proteins, ligands, nucleic acids, ions, modifications and covalent bonds with the released base model.",
+    ],
+    source: "Mol-1",
+    modalities: [
+      "chemical",
+      "small_molecule",
+      "biologic",
+      "protein",
+      "antibody",
+      "rna",
+      "dna",
+    ],
+    modality_role: "research_object",
+  },
+  {
     id: "openmm.dynamics",
     group: "analyze",
     label: ["分子动力学", "Molecular dynamics"],

@@ -43,6 +43,9 @@ class PreparedContainerBackend:
         """Default isolation budget; reviewed multi-context protocols may specialize it."""
         return 64
 
+    def network_mode(self, job):
+        return "none"
+
     def image_for(self, job, directory):
         return self.configuration(self.settings)
 
@@ -70,7 +73,7 @@ class PreparedContainerBackend:
             "--name",
             self.container(job.id),
             "--network",
-            "none",
+            self.network_mode(job),
             "--read-only",
             "--user",
             f"{os.getuid()}:{os.getgid()}",

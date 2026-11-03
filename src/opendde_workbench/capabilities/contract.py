@@ -36,6 +36,7 @@ class CapabilitySpec(BaseModel):
         "admet",
         "sapiens",
         "boltz",
+        "mol1",
         "reinvent",
         "ligandmpnn",
         "boltzgen",

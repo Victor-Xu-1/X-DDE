@@ -121,6 +121,21 @@ def test_original_material_cannot_be_submitted_while_replacement_is_pending(
         next_button.click()
         next_button.click()
         next_button.click()
+        expect(
+            module.get_by_role(
+                "heading",
+                name="4. 三维约束（可选）" if zh else "4. 3D restraints (optional)",
+                exact=True,
+            )
+        ).to_be_visible()
+        # Keep optional restraints empty: this gate verifies immutable input handoff,
+        # while the native condition gate covers 3D picking and actual force creation.
+        next_button.click()
+        expect(
+            module.get_by_role(
+                "heading", name="5. 确认并提交" if zh else "5. Review and submit", exact=True
+            )
+        ).to_be_visible()
         inputs = module.get_by_role(
             "region", name="所选研究材料" if zh else "Selected research inputs"
         )

@@ -1,5 +1,32 @@
 # Molecular dynamics and FEP / 分子动力学与结合自由能
 
+## Interactive 3D restraints / 三维交互约束
+
+OpenMM dynamics and energy refinement have an optional questionnaire step with a
+large molecular view on the left. Select one heavy atom to restrain its original
+position, or two heavy atoms to set a target distance. Protein atoms retain chain,
+author residue number, insertion code and atom name; ligand atoms retain their
+original SDF record and zero-based atom index. Each condition retains the selected
+file's exact scientific reference and coordinates. Replacing an input clears the
+conditions instead of transferring them to a different structure.
+
+OpenMM 动力学和能量优化增加可选的三维约束步骤：左侧大视图点击一个重原子保持其初始位置，
+或点击两个重原子设置目标距离。更换材料会清空旧约束；确认后再提交真实计算。
+
+These are harmonic restraints, not rigid constraints or binding-force estimates.
+Strength is in kJ mol⁻¹ nm⁻²; displayed distances in Å are converted to nm before
+the native forces are created. The compiler resolves unique original/prepared atom
+identities, checks unchanged coordinates, and records the actual system atom
+indices in the result receipt. Position-restrained atoms are excluded from the
+separate blanket backbone spring in energy refinement to avoid double counting.
+Periodic systems use periodic distances; isolated refinement uses Euclidean
+distances. GROMACS rejects these OpenMM-specific user conditions rather than
+silently ignoring them. Existing unrestrained requests keep their prior behavior.
+
+这是允许有限移动的谐和约束，会改变采样分布，不代表绝对固定或实验结合力。
+GROMACS 当前不接收这套 OpenMM 专用约束。Mol-1 的结构预测和共价连接见
+[Mol-1 capability boundary](mol1.md)。
+
 Long calculations use the shared [physical storage capacity guard](storage-capacity.md)
 before execution and while running, including the Windows backing drive for WSL.
 长计算在启动前和运行中共用[物理存储容量保护](storage-capacity.md)，WSL 同时检查其所在的 Windows 磁盘。

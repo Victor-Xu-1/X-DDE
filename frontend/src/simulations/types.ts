@@ -10,6 +10,7 @@ export const isSimulationForm = (
   value: string | null,
 ): value is SimulationFormId => value !== null && value in simulationForms;
 export interface SimulationPayload extends ScientificPayload {
+  restraints?: import("./restraints").SimulationRestraint[];
   production_ns: number;
   equilibration_ns: number;
   temperature_kelvin: number;

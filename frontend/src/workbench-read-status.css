@@ -2,7 +2,7 @@
 .workbench-read-status {
   position: fixed;
   inset-inline-end: 16px;
-  inset-block-start: 76px;
+  inset-block-end: 16px;
   /* Below the header's dropdown context, above ordinary workspace content. */
   z-index: 9;
   display: grid;
@@ -20,5 +20,8 @@
   padding: 10px 14px;
   box-shadow: var(--shadow-panel);
   overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.workbench-read-status :is(button, a) {
   pointer-events: auto;
 }

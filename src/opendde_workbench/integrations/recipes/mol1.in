@@ -1,0 +1,22 @@
+# Native Mol-1 source is installed separately from its exact reviewed archive.
+torch==2.10.0
+click>=8.1.0
+numpy>=2.0
+scipy>=1.9.0
+pandas>=2.0
+networkx>=3.4.2
+ml_collections==1.1.0
+PyYAML>=6.0
+tqdm>=4.67
+pydantic>=2.0.0
+optree>=0.17
+protobuf>=6.0
+biotite==1.7.1
+biopython>=1.85
+rdkit>=2025.3
+gemmi>=0.6.7
+modelcif>=1.4
+pdbeccdutils>=1.0.0
+scikit-learn>=1.5
+requests>=2.31.0
+setuptools>=77.0.3

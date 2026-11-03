@@ -11,6 +11,7 @@ from ..proximity.result_models import TernaryResult
 from ..scientific_objects import MoleculeRef
 from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
 from .binder_result import BinderQuality
+from .mol1_result import Mol1Evidence, validate_mol1_result
 from .sequence_design_result import SequenceDesignResult, validate_sequence_design
 
 
@@ -34,6 +35,7 @@ class NativeCandidate(BaseModel):
 
 
 class NativeResult(BaseModel):
+    mol1: Mol1Evidence | None = Field(default=None, exclude_if=lambda value: value is None)
     model_config = ConfigDict(extra="forbid")
     operation: str
     schema_version: Literal[1] = 1
@@ -164,9 +166,8 @@ def validate_result(value, request, output):
         digest = hashlib.sha256(
             json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
-        if (
-            digest != request.payload.continuation.sha256
-            or manifest.get("job_id") != str(request.payload.continuation.job_id)
+        if digest != request.payload.continuation.sha256 or manifest.get("job_id") != str(
+            request.payload.continuation.job_id
         ):
             raise ValueError("Continued binder output belongs to a different source checkpoint.")
     if request.operation == "electrostatics" and not (
@@ -193,6 +194,10 @@ def validate_result(value, request, output):
     elif result.proximity is not None:
         raise ValueError("Ternary evidence belongs only to its exact native operation.")
     validate_simulation(result, request)
+    validate_mol1_result(result, request, output)
+    from ..simulations.restraint_result import validate_restraint_result
+
+    validate_restraint_result(result, request, output)
     from .binder_evidence import binder_evidence
 
     quality = binder_evidence(output, request, result.candidates)

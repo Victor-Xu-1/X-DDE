@@ -35,10 +35,26 @@ FILES = (
 
 
 class ScientificBackend(PreparedContainerBackend):
+    def network_mode(self, job):
+        if self.program == "mol1" and job.request.payload.allow_network:
+            return "bridge"
+        return super().network_mode(job)
+
     def __init__(self, settings, identifier):
         self.program = identifier
         root = Path(__file__).parent.parent
         shared = {}
+        if identifier == "mol1":
+            shared.update(
+                {
+                    "native_mol1.py": Path(__file__).with_name("native_mol1.py"),
+                    "native_mol1_bonds.py": Path(__file__).with_name("native_mol1_bonds.py"),
+                    "native_mol1_results.py": Path(__file__).with_name("native_mol1_results.py"),
+                    "native_mol1_confidence.py": Path(__file__).with_name(
+                        "native_mol1_confidence.py"
+                    ),
+                }
+            )
         if identifier == "boltzgen":
             shared["native_binder_checkpoint.py"] = Path(__file__).with_name(
                 "native_binder_checkpoint.py"
@@ -61,11 +77,19 @@ class ScientificBackend(PreparedContainerBackend):
             shared["molfile_stereo.py"] = root / "chemistry/molfile_stereo.py"
         if identifier in {"openmm", "openfe", "gromacs"}:
             names = {
-                "openmm": ("md_input", "md_system", "md_analysis", "dynamics", "md_outputs"),
+                "openmm": (
+                    "md_input",
+                    "md_system",
+                    "md_analysis",
+                    "dynamics",
+                    "md_outputs",
+                    "restraints",
+                ),
                 "openfe": ("md_input", "fep_input", "openfe", "fep_plan", "fep_result", "fep_leg"),
                 "gromacs": (
                     "md_input",
                     "md_system",
+                    "restraints",
                     "md_analysis",
                     "md_outputs",
                     "gromacs",
@@ -134,6 +158,20 @@ class ScientificBackend(PreparedContainerBackend):
             "--env",
             "NUMBA_CACHE_DIR=/tmp/numba",
         ]
+        if self.program == "mol1":
+            source = directory / "input.json"
+            if source.is_symlink() or not source.is_file() or "," in str(source):
+                raise ValueError("Mol-1 requires its exact compiled input snapshot.")
+            args += [
+                "--mount",
+                f"type=bind,source={source},target=/input/specification.json,readonly",
+            ]
+            args += [
+                "--env",
+                "LAYERNORM_TYPE=torch",
+                "--env",
+                "TORCHINDUCTOR_CACHE_DIR=/tmp/torch-inductor",
+            ]
         if self.program == "boltzgen" and job.request.payload.continuation:
             from ..container_runtime import RECEIPT, document, read
             from .binder_checkpoints import validate_continuation

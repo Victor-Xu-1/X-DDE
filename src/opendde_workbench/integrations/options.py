@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..scientific_objects import MoleculeRef
+from ..simulations.restraints import SimulationRestraint
 
 
 class ExecutionOptions(BaseModel):
@@ -88,6 +89,9 @@ class RefinementPayload(BaseModel):
     iterations: int = Field(default=500, ge=1, le=5000)
     restrain_backbone: bool = True
     restraint_kj_mol_nm2: float = Field(default=1000, ge=100, le=10000, allow_inf_nan=False)
+    restraints: list[SimulationRestraint] = Field(
+        default_factory=list, max_length=64, exclude_if=lambda value: not value
+    )
 
 
 class ElectrostaticsPayload(BaseModel):

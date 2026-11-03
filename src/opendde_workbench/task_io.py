@@ -16,6 +16,16 @@ def prepare(job: Job, directory: Path, assets: AssetStore) -> None:
         (directory / "input.json").write_text(
             json.dumps(job.request.inference_input(job.id, bindings)), encoding="utf-8"
         )
+    elif job.request.operation == "mol1_predict":
+        from .integrations.mol1_contract import inference_input
+
+        paths = {
+            identifier: path.replace("/job/assets/", "/input/assets/", 1)
+            for identifier, path in bindings.items()
+        }
+        (directory / "input.json").write_text(
+            json.dumps(inference_input(job.request, job.id, paths)), encoding="utf-8"
+        )
     (directory / "output").mkdir(exist_ok=True)
 
 
