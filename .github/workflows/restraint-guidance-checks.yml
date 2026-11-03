@@ -30,3 +30,50 @@ jobs:
           src/guided/Questionnaire.test.tsx src/examples/TemplateStepHelp.test.tsx
           src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx
           src/integrations/Mol1Form.test.tsx
+  corrected-baseline:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend
+      - name: Validate old failures are guidance assertions with complete template fixtures
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          shim = Path('scripts/check-restraint-guide-baseline.py')
+          assert not shim.exists()
+          original = subprocess.check_output([
+              'git', 'show', '7697b5411aeca149fd055c9ab5d677cf6072157b:scripts/check-restraint-guide-baseline.py'
+          ])
+          shim.write_bytes(original)
+          try:
+              subprocess.run(['python', str(shim)], check=True)
+              temporary = Path(os.environ['RUNNER_TEMP'])
+              data = json.loads((temporary / 'restraint-guide-baseline-vitest.json').read_text())
+              failed = [case for group in data['testResults'] for case in group['assertionResults']
+                        if case['status'] == 'failed']
+              assert len(failed) == 4
+              for case in failed:
+                  messages = case['failureMessages']
+                  assert messages and all('AssertionError' in msg and 'to be null' in msg for msg in messages)
+              proof = json.loads((temporary / 'restraint-guide-baseline.json').read_text())
+              proof['failures_are_optional_step_guidance_assertions'] = True
+              proof['fixture_errors_accepted'] = False
+              proof['failed_case_names'] = [case['fullName'] for case in failed]
+              (temporary / 'restraint-guide-baseline.json').write_text(json.dumps(proof, indent=2))
+          finally:
+              assert shim.read_bytes() == original
+              shim.unlink()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: corrected-restraint-guide-baseline
+          path: ${{ runner.temp }}/restraint-guide-baseline*.json

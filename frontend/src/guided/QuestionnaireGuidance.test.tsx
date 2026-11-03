@@ -38,7 +38,7 @@ const source = {
   record: 0,
   conformer: 0,
 };
-const instructions = [
+const instructions: [string, string][] = [
   ["核对真实结构材料", "Check the original structure"],
   ["保留主链约束", "Keep the backbone restraints"],
   ["检查 pH 与计算预算", "Review pH and the calculation budget"],
@@ -60,20 +60,33 @@ it.each(
       sha256: source.sha256,
       name: "STAT6-reference.pdb",
     });
-    const example = {
+    const example: PreparedExample = {
       template_active: true,
       module: {
         capability_id:
           method === "refinement" ? "openmm.refine" : `${method}.dynamics`,
+        case_id: "stat6-guidance",
+        revision: 1,
+      },
+      case: {
+        id: "stat6-guidance",
+        revision: 1,
+        label: ["STAT6 条件引导", "STAT6 condition guidance"],
+        description: ["仅验证界面提示", "Interface instructions only"],
+        sources: [],
       },
       objects: {},
       sequences: {},
+      sources: [],
       study: {
         id: "stat6",
+        target: "STAT6",
+        organism: "Homo sapiens",
+        template_kind: "research_study",
         required_materials: [],
         guide: { steps: instructions, interpretation: ["", ""] },
       },
-    } as unknown as PreparedExample;
+    };
     const initialTask = {
       operation:
         method === "gromacs" ? "gromacs_dynamics" : "molecular_dynamics",
