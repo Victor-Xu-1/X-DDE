@@ -3,18 +3,21 @@ import { viewTitle, type View } from "./navigation-model";
 import { TaskSearch } from "./TaskSearch";
 import { TaskNotifications } from "./TaskNotifications";
 import "./header.css";
+import type { ReactNode } from "react";
 export function Header({
   view,
   language,
   jobs,
   onJob,
   storageWarning,
+  workspace,
 }: {
   view: View;
   language: Language;
   jobs: Job[];
   onJob(id: string): void;
   storageWarning: boolean;
+  workspace?: ReactNode;
 }) {
   const zh = language === "zh";
   return (
@@ -27,6 +30,7 @@ export function Header({
           {viewTitle(view, language)}
         </span>
       </div>
+      {workspace}
       <TaskSearch jobs={jobs} language={language} onJob={onJob} />
       <div className="top-actions">
         <TaskNotifications jobs={jobs} language={language} onJob={onJob} />

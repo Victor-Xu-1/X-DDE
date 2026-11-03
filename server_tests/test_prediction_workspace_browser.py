@@ -1,0 +1,83 @@
+"""Compiled prediction pages and real WebGL/Plotly; controlled fixtures, no inference."""
+
+import hashlib
+from pathlib import Path
+
+import pytest
+from playwright.sync_api import expect, sync_playwright
+
+from server_tests.browser_platform import platform
+from server_tests.prediction_workspace_case import INPUTS, case
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, language, width):
+    evidence = Path("outputs/prediction-workspace") / f"{language}-{width}"
+    evidence.mkdir(parents=True, exist_ok=True)
+    state = tmp_path / "state"
+    identifier, sequence = case(state)
+    errors, submissions = [], []
+    zh = language == "zh"
+    with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
+        browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
+        page = browser.new_page(viewport={"width": width, "height": 1000})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda request: (
+                submissions.append(request.url)
+                if request.method == "POST"
+                and request.url.split("?")[0].endswith(("/api/jobs", "/api/batches"))
+                else None
+            ),
+        )
+        page.goto(base + "/#task=" + identifier)
+        strip = page.get_by_role("region", name="构象与置信度" if zh else "Sample and confidence")
+        expect(strip).to_be_visible(timeout=30000)
+        plot = page.locator(".confidence-panel .research-plot").first
+        expect(plot.get_by_role("application")).to_have_attribute(
+            "aria-busy", "false", timeout=30000
+        )
+        expect(
+            page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True)
+        ).to_have_attribute("aria-pressed", "true")
+        page.get_by_role("button", name="构象 1" if zh else "Sample 1", exact=True).click()
+        download = strip.get_by_role("link")
+        expect(download).to_have_attribute(
+            "href", f"/api/jobs/{identifier}/download?name=reference_sample_1.cif"
+        )
+        expect(strip).to_contain_text("81.0")
+        expect(plot.get_by_role("application")).to_have_attribute(
+            "aria-busy", "false", timeout=30000
+        )
+        with page.expect_download() as transfer:
+            download.click()
+        path = evidence / "selected-model.cif"
+        transfer.value.save_as(path)
+        assert (
+            hashlib.sha256(path.read_bytes()).digest()
+            == hashlib.sha256((INPUTS / "9BIG.cif").read_bytes()).digest()
+        )
+        preview = page.locator(".prediction-result .structure-workbench-view")
+        inspector = page.locator(".prediction-result .structure-workbench-details")
+        a, b = preview.bounding_box(), inspector.bounding_box()
+        assert a and b
+        if width > 1000:
+            assert a["x"] < b["x"] and a["width"] > b["width"] and abs(a["y"] - b["y"]) < 2
+        else:
+            assert a["y"] < b["y"]
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        page.screenshot(path=str(evidence / "result.png"), full_page=True)
+        page.goto(base + "/#view=new&tool=mol1.predict")
+        page.locator("#molecule-0").fill(sequence)
+        page.locator("#molecule-1").fill("CCD_ATP")
+        summary = page.get_by_role("complementary", name="研究设置概览" if zh else "Study setup")
+        expect(summary).to_contain_text("输入可继续检查与确认" if zh else "Inputs ready to review")
+        page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
+        expect(page.locator(".questionnaire > fieldset:not([hidden])")).to_have_count(1)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        page.screenshot(path=str(evidence / "supporting-inputs.png"), full_page=True)
+        assert not errors and not submissions, (errors, submissions)
+        assert len(page.request.get(base + "/api/jobs").json()) == 1
+        browser.close()

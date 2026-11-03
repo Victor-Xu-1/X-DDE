@@ -1,0 +1,181 @@
+.prediction-setup-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 276px;
+  align-items: start;
+  gap: 24px;
+  margin-top: 14px;
+}
+.prediction-form-body {
+  min-width: 0;
+}
+.studio-app .prediction-setup-layout .tool-form {
+  background: transparent;
+}
+.prediction-setup {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+}
+.prediction-setup h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.prediction-setup dl {
+  margin: 0;
+}
+.prediction-setup dl > div {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+.prediction-setup dt {
+  color: var(--muted);
+}
+.prediction-setup dd {
+  margin: 0;
+  max-width: 55%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+.prediction-entity-summary {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.prediction-entity-summary li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+  font-size: 12px;
+}
+.prediction-entity-summary small {
+  color: var(--muted);
+}
+.prediction-entity-number {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--success-soft);
+}
+.prediction-input-state {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font-size: 11px;
+}
+.prediction-input-state.is-provided {
+  color: var(--success);
+}
+.prediction-setup-status {
+  border-top: 1px solid var(--line);
+  margin: 12px 0 0;
+  padding-top: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.prediction-setup-status.is-valid {
+  color: var(--success);
+}
+.studio-app .prediction-setup-layout .questionnaire-steps {
+  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  padding: 0 0 14px;
+  margin-bottom: 20px;
+}
+.prediction-setup-layout .questionnaire-page-heading {
+  margin-bottom: 18px;
+}
+.prediction-setup-layout .questionnaire-heading {
+  font-size: 22px;
+  font-weight: 600;
+}
+.studio-app
+  .prediction-setup-layout
+  .questionnaire-steps
+  button[aria-current="step"]
+  > span:first-child {
+  background: var(--accent);
+}
+.studio-app .prediction-setup-layout .molecular-fields,
+.studio-app .prediction-setup-layout .scientific-input-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+.studio-app .prediction-setup-layout .component-card,
+.studio-app .prediction-setup-layout .scientific-component-input {
+  padding: 20px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgb(37 45 50 / 2%);
+}
+.studio-app .prediction-setup-layout .component-heading {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  margin: -20px -20px 18px;
+  border-radius: 20px 20px 0 0;
+  border-bottom: 1px solid var(--line);
+  background: #e4efeb;
+}
+.prediction-setup-layout [data-entity-kind="ligand"] .component-heading {
+  background: #f0ece3;
+}
+.prediction-setup-layout [data-entity-kind="rna"] .component-heading,
+.prediction-setup-layout [data-entity-kind="dna"] .component-heading {
+  background: #ece9f5;
+}
+.prediction-setup-layout .component-heading strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.prediction-setup-layout .component-heading strong::before {
+  content: attr(data-entity-index);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+  font-size: 12px;
+}
+.studio-app .prediction-setup-layout textarea {
+  min-height: 112px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #fcfbf8;
+  border: 1px solid #dedfd9;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.prediction-setup-layout .entity-options {
+  margin-top: 12px;
+}
+.studio-app .prediction-setup-layout .questionnaire-actions {
+  padding: 16px 0;
+  background: var(--canvas);
+}
+.studio-app .prediction-setup-layout .questionnaire-actions button {
+  min-height: 42px;
+  border-radius: 999px;
+  padding-inline: 24px;
+}

@@ -1,0 +1,98 @@
+@import url("./prediction-shell.css");
+@import url("./prediction-inputs.css");
+@import url("./prediction-results.css");
+
+:root[data-theme="dark"]
+  .studio-app:has(.studio-content[data-prediction-layout="true"]) {
+  --canvas: #151c20;
+  --ink: #e9efed;
+  --muted: #b2c1bf;
+  --line: #34413f;
+  --accent: #91b9ef;
+  --accent-secondary: #91b9ef;
+  --accent-soft: #25394d;
+  --surface-muted: #222d2c;
+  --surface-hover: #2d3a38;
+  --focus: #91b9ef;
+}
+:root[data-theme="dark"] .prediction-setup-layout .component-heading,
+:root[data-theme="dark"] .prediction-confidence-metrics > div {
+  background: #253632;
+}
+:root[data-theme="dark"] .studio-app .prediction-setup-layout textarea {
+  background: var(--surface-muted);
+  border-color: var(--line);
+}
+@media (max-width: 1250px) {
+  .prediction-setup-layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 18px;
+  }
+  .prediction-setup {
+    padding: 20px;
+  }
+  .prediction-confidence-metrics {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 1000px) {
+  .prediction-result .structure-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .prediction-setup-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .prediction-setup {
+    position: static;
+  }
+  .prediction-entity-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .prediction-setup dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+}
+@media (max-width: 600px) {
+  .studio-app:has(.studio-content[data-prediction-layout="true"])
+    .studio-topbar {
+    margin: 8px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .studio-app:has(.studio-content[data-prediction-layout="true"])
+    .module-workspace-navigation {
+    order: 3;
+    margin-left: 0;
+    max-width: 100%;
+  }
+  .studio-app .studio-content[data-prediction-layout="true"] {
+    padding: 12px;
+  }
+  .prediction-sample-bar {
+    gap: 12px;
+    padding: 14px;
+  }
+  .prediction-confidence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .prediction-result-heading .result-task-name {
+    font-size: 21px;
+    overflow-wrap: anywhere;
+  }
+  .prediction-sample-options {
+    max-width: 180px;
+  }
+  .prediction-setup-layout .questionnaire-heading {
+    font-size: 20px;
+  }
+  .prediction-result .structure-workbench-view,
+  .prediction-result .structure-workbench-details {
+    padding: 12px;
+  }
+}

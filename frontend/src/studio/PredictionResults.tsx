@@ -8,6 +8,7 @@ import { StructureViewer } from "../viewer/StructureViewer";
 import { translator } from "../i18n";
 import { useTaskLabel } from "../examples/useTaskLabel";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
+import { PredictionSamples } from "../presentation/PredictionSamples";
 export type PredictionResultsProps = Pick<
   PredictionWorkspaceProps,
   | "language"
@@ -32,8 +33,50 @@ export function PredictionResults(p: PredictionResultsProps) {
   const zh = p.language === "zh",
     t = translator(p.language),
     taskLabel = useTaskLabel(p.job, p.language);
+  const confidenceAvailable =
+    p.job &&
+    p.candidate &&
+    (!("parameters" in p.job.request) ||
+      p.job.request.parameters.atom_confidence !== false);
+  const samples = (p.analysis?.candidates ?? []).map((row) => {
+    const match = /^(?:seed-(\d+)-)?sample-(\d+)$/.exec(row.id);
+    return {
+      id: row.id,
+      artifact: row.artifact,
+      seed: match?.[1]
+        ? Number(match[1])
+        : p.job && "parameters" in p.job.request
+          ? p.job.request.parameters.seed
+          : null,
+      sample: match ? Number(match[2]) : null,
+      metrics: [
+        { name: "Ranking score", value: row.ranking_score, unit: "" },
+        { name: "pTM", value: row.ptm, unit: "0–1" },
+        { name: "ipTM", value: row.iptm, unit: "0–1" },
+        { name: "pLDDT", value: row.plddt, unit: "0–100" },
+      ],
+    };
+  });
   return (
-    <div className="prediction-workspace task-workspace is-result">
+    <div className="prediction-workspace prediction-result task-workspace is-result">
+      <header className="prediction-result-heading">
+        <h2 className="result-task-name">{taskLabel}</h2>
+        {p.job && (
+          <span className={"status " + p.job.status}>{t(p.job.status)}</span>
+        )}
+      </header>
+      {p.job && p.candidate && (
+        <PredictionSamples
+          job={p.job.id}
+          rows={samples}
+          selected={p.candidate.id}
+          language={p.language}
+          onSelect={(id) => {
+            p.onCompare([]);
+            p.onCandidate(id);
+          }}
+        />
+      )}
       <StructureWorkbench
         preview={
           <div className="viewer-column">
@@ -47,27 +90,39 @@ export function PredictionResults(p: PredictionResultsProps) {
         }
       >
         <div className="candidate-column">
-          <h2 className="result-task-name">
-            {taskLabel}{" "}
-            <span className={"status " + p.job?.status}>
-              {p.job ? t(p.job.status) : ""}
-            </span>
-          </h2>
-          <CandidatePanel
-            key={p.job?.id || "empty"}
-            job={p.job}
-            analysis={p.analysis}
-            loading={p.loadingAnalysis}
-            error={p.analysisError}
-            onRetry={p.onRetry}
-            language={p.language}
-            selected={p.candidate?.id ?? null}
-            onSelect={p.onCandidate}
-            compared={p.compared}
-            onCompare={p.onCompare}
-          />
+          {confidenceAvailable && p.job && p.candidate ? (
+            <ConfidencePanel
+              jobId={p.job.id}
+              candidate={p.candidate.id}
+              language={p.language}
+            />
+          ) : (
+            <section className="prediction-confidence-empty">
+              <h3>{zh ? "预测对齐误差" : "Predicted aligned error"}</h3>
+              <p>
+                {zh
+                  ? "此构象尚无可显示的逐原子置信度。"
+                  : "No atom-level confidence is available for this conformer."}
+              </p>
+            </section>
+          )}
         </div>
       </StructureWorkbench>
+      <section className="prediction-conformer-table">
+        <CandidatePanel
+          key={p.job?.id || "empty"}
+          job={p.job}
+          analysis={p.analysis}
+          loading={p.loadingAnalysis}
+          error={p.analysisError}
+          onRetry={p.onRetry}
+          language={p.language}
+          selected={p.candidate?.id ?? null}
+          onSelect={p.onCandidate}
+          compared={p.compared}
+          onCompare={p.onCompare}
+        />
+      </section>
       <details className="preview-properties">
         <summary>
           {zh ? "性质与结构指标" : "Properties and structure metrics"}
@@ -81,23 +136,6 @@ export function PredictionResults(p: PredictionResultsProps) {
         />
       </details>
 
-      {p.job &&
-        p.candidate &&
-        (!("parameters" in p.job.request) ||
-          p.job.request.parameters.atom_confidence !== false) && (
-          <details className="confidence-details">
-            <summary>
-              {zh
-                ? "详细置信度分析（PAE / PDE）"
-                : "Detailed confidence analysis (PAE / PDE)"}
-            </summary>
-            <ConfidencePanel
-              jobId={p.job.id}
-              candidate={p.candidate.id}
-              language={p.language}
-            />
-          </details>
-        )}
       {p.job && (
         <details className="execution-detail">
           <summary>

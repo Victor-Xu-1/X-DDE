@@ -92,9 +92,13 @@ export function MolecularInputs({
                     : ["抗体轻链", "Antibody light chain"])[i]
               : info.name[i];
           return (
-            <div className="component-card" key={index}>
+            <div
+              className="component-card"
+              key={index}
+              data-entity-kind={item.kind}
+            >
               <div className="component-heading">
-                <strong>
+                <strong data-entity-index={index + 1}>
                   {role} {index + 1}
                 </strong>
                 {(expert ||
