@@ -11,6 +11,11 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { ChainControls } from "./ChainControls";
+import { DisplayReadiness, displayCommands } from "./display-readiness";
+import {
+  StructureDisplayControls,
+  StructureSequence,
+} from "./StructureInspection";
 import { SurfaceLegend } from "./SurfaceLegend";
 import { InteractionControls } from "./InteractionControls";
 import { PoseScore, type NativePoseScore } from "./PoseScore";
@@ -45,7 +50,6 @@ import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
-  predictionControls?: boolean;
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   trajectoryKey?: string;
@@ -73,7 +77,6 @@ export interface StructureViewerProps {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewport({
-  predictionControls = false,
   sourceSnapshot = false,
   trajectoryKey,
   ligandContext = true,
@@ -145,6 +148,10 @@ export function StructureViewport({
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
+  const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
+  const [displayPending, setDisplayPending] = useState(false);
+  const [displayRevision, setDisplayRevision] = useState(0);
+  const displayWork = useRef(new DisplayReadiness());
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
@@ -155,8 +162,20 @@ export function StructureViewport({
     matched: number;
   } | null>(null);
   function send(type: string, value?: unknown) {
+    const requestId = displayCommands.includes(type)
+      ? crypto.randomUUID()
+      : undefined;
+    if (requestId) {
+      displayWork.current.begin(requestId);
+      setDisplayPending(true);
+    }
     frame.current?.contentWindow?.postMessage(
-      { channel: "opendde-viewer", type, value },
+      {
+        channel: "opendde-viewer",
+        type,
+        value,
+        ...(requestId ? { requestId } : {}),
+      },
       location.origin,
     );
   }
@@ -207,6 +226,21 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "residue-selection" &&
+        Array.isArray(detail) &&
+        detail.every((key) => typeof key === "string")
+      )
+        setSelectedResidues(detail);
+      if (type === "rendering" && typeof detail === "boolean") {
+        displayWork.current.render(detail);
+        setDisplayPending(displayWork.current.pending);
+        if (!detail) setDisplayRevision((value) => value + 1);
+      }
+      if (type === "display-complete" && displayWork.current.complete(detail)) {
+        setDisplayPending(displayWork.current.pending);
+        setDisplayRevision((value) => value + 1);
+      }
+      if (
         type === "chain-display" &&
         Array.isArray(detail) &&
         detail.every((chain) => typeof chain === "string")
@@ -232,6 +266,9 @@ export function StructureViewport({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setHiddenChains([]);
+        displayWork.current.reset();
+        setDisplayPending(false);
+        setSelectedResidues([]);
         setStatus("loaded");
         setLoadedKey(requestedKey.current);
         setError("");
@@ -258,6 +295,10 @@ export function StructureViewport({
     lastRequest.current = ready ? request : null;
     focusedLigand.current = null;
     setSelection(null);
+    setSelectedResidues([]);
+    setHiddenChains([]);
+    displayWork.current.reset();
+    setDisplayPending(false);
     setDistance(null);
     setContacts(null);
     setAttachmentCount(0);
@@ -322,6 +363,7 @@ export function StructureViewport({
       send("residue", focusResidue.residue);
   }, [ready, status, loadedKey, sceneKey, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
+  const hadAtomRegion = useRef(false);
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {
     if (
@@ -333,8 +375,15 @@ export function StructureViewport({
       send("site-region", residueRegion);
   }, [ready, status, loadedKey, sceneKey, siteKey]);
   useEffect(() => {
-    if (ready && status === "loaded" && loadedKey === sceneKey)
+    if (
+      ready &&
+      status === "loaded" &&
+      loadedKey === sceneKey &&
+      (highlightedAtoms !== undefined || hadAtomRegion.current)
+    ) {
       send("atom-region", highlightedAtoms ?? []);
+      hadAtomRegion.current = highlightedAtoms !== undefined;
+    }
   }, [ready, status, loadedKey, sceneKey, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
     if (value.mode) setSurface(null);
@@ -343,8 +392,12 @@ export function StructureViewport({
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
+  const hadSearchBox = useRef(false);
   useEffect(() => {
-    if (loaded) send("search-box", searchBox);
+    if (loaded && (searchBox !== undefined || hadSearchBox.current)) {
+      send("search-box", searchBox);
+      hadSearchBox.current = searchBox !== undefined;
+    }
   }, [loaded, key, searchBoxKey]);
   return (
     <section className="studio-panel viewer-panel">
@@ -428,8 +481,10 @@ export function StructureViewport({
               siteKey,
               attachmentKey,
               hiddenChains,
+              selectedResidues,
+              displayRevision,
             ])}
-            sourceReady={loaded}
+            sourceReady={loaded && !displayPending}
             language={language}
             filename="X-DDE-structure"
             format="png"
@@ -439,12 +494,12 @@ export function StructureViewport({
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;
             }}
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             render={(settings) => snapshot.figure(send, settings)}
           />
           <button
             type="button"
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
             title={zh ? "生成三维视图图片" : "Capture 3D view"}
             onClick={() => snapshot.begin(send, imageScale)}
@@ -486,7 +541,7 @@ export function StructureViewport({
                 {zh ? cn : en}
               </button>
             ))}
-          {predictionControls && !overlay && scene.chains.length > 0 && (
+          {!overlay && scene.chains.length > 0 && (
             <ChainControls
               language={language}
               chains={scene.chains}
@@ -495,6 +550,13 @@ export function StructureViewport({
               )}
               onDisplay={(value) => send("chain-display", value)}
               onFocus={(chain) => send("chain", chain)}
+            />
+          )}
+          {!overlay && scene.hasPolymer && (
+            <StructureDisplayControls
+              language={language}
+              options={options}
+              onChange={configure}
             />
           )}
         </div>
@@ -664,7 +726,7 @@ export function StructureViewport({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {(!predictionControls || comparison || overlay) &&
+            {(comparison || overlay) &&
               scene.chains
                 .filter((chain) => chain.trim())
                 .slice(0, 8)
@@ -750,6 +812,16 @@ export function StructureViewport({
             />
           )}
         </>
+      )}
+      {loaded && scene.residues.length > 0 && !overlay && !comparison && (
+        <StructureSequence
+          language={language}
+          residues={scene.residues}
+          selected={selectedResidues}
+          hiddenChains={hiddenChains}
+          onSelect={(key, mode) => send("sequence-selection", { key, mode })}
+          onClear={() => send("selection-action", "clear")}
+        />
       )}
       {!sourceSnapshot &&
         !comparison &&

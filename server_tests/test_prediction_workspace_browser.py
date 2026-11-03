@@ -73,6 +73,33 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             hashlib.sha256(path.read_bytes()).digest()
             == hashlib.sha256((INPUTS / "9BIG.cif").read_bytes()).digest()
         )
+        sequence_view = page.get_by_role(
+            "region", name="结构中的残基" if zh else "Residues in structure"
+        )
+        expect(sequence_view).to_be_visible()
+        native_residues = sequence_view.get_by_role("checkbox")
+        assert native_residues.count() > 100
+        first, second = native_residues.nth(0), native_residues.nth(1)
+        first.click()
+        expect(first).to_have_attribute("aria-checked", "true")
+        second.click(modifiers=["Shift"])
+        expect(sequence_view.get_by_role("status")).to_contain_text("2 ")
+        first.click(modifiers=["Control"])
+        expect(first).to_have_attribute("aria-checked", "false")
+        expect(second).to_have_attribute("aria-checked", "true")
+        sequence_view.get_by_role(
+            "button", name="清除选择" if zh else "Clear sequence selection", exact=True
+        ).click()
+        expect(second).to_have_attribute("aria-checked", "false")
+        for name in ("全部原子" if zh else "All atoms", "侧链" if zh else "Side chains"):
+            toggle = page.get_by_role("switch", name=name, exact=True)
+            toggle.click()
+            expect(toggle).to_be_checked()
+            expect(
+                page.get_by_role("button", name="生成三维视图图片" if zh else "Capture 3D view")
+            ).to_be_enabled()
+            toggle.click()
+            expect(toggle).not_to_be_checked()
         page.locator(".viewer-chain-menu > summary").click()
         visibility = page.get_by_role("group", name="链显示" if zh else "Chain visibility")
         menu = visibility.bounding_box()
@@ -82,6 +109,8 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         ).click()
         expect(visibility.get_by_role("checkbox").first).not_to_be_checked()
         expect(page.locator(".viewer-chain-menu > summary")).to_contain_text("0 / 1")
+        expect(first).to_be_disabled()
+        expect(sequence_view.get_by_role("status")).to_contain_text("0 ")
         visibility.get_by_role(
             "button", name="显示全部链" if zh else "Show all chains", exact=True
         ).click()

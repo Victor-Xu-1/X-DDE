@@ -17,6 +17,13 @@ PATTERNS = (
     "frontend/src/viewer/scene.ts",
     "frontend/src/viewer/frame.ts",
     "frontend/src/viewer/style.test.ts",
+    "frontend/src/viewer/style.ts",
+    "frontend/src/viewer/protocol.ts",
+    "frontend/src/viewer/StructureInspection*",
+    "frontend/src/viewer/structure-inspection.css",
+    "frontend/src/viewer/polymer-detail.ts",
+    "frontend/src/viewer/residue-selection*",
+    "frontend/src/viewer/display-readiness*",
     "frontend/src/integrations/prediction-presentation*",
     "frontend/src/integrations/Mol1Form.tsx",
     "frontend/src/integrations/Mol1Confidence.tsx",
@@ -45,6 +52,7 @@ PATTERNS = (
     ".github/workflows/landscape-checks.yml",
     "docs/frontend-layout.md",
     "docs/quality/frontend.md",
+    "docs/quality/frontend-coverage.md",
     "pyproject.toml",
     "uv.lock",
     "frontend/package*.json",
@@ -56,7 +64,12 @@ PATTERNS = (
 def selected(changed, event="push"):
     return (
         event in {"push", "pull_request"}
-        and any(name.startswith("frontend/src/presentation/Prediction") for name in changed)
+        and any(
+            name.startswith(
+                ("frontend/src/presentation/Prediction", "frontend/src/viewer/StructureInspection")
+            )
+            for name in changed
+        )
         and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
     )
 

@@ -1,0 +1,30 @@
+import { expect, it } from "vitest";
+import { DisplayReadiness } from "./display-readiness";
+it("an older render or command completion cannot release a newer in-flight command", () => {
+  const state = new DisplayReadiness();
+  state.begin("first");
+  state.render(true);
+  state.begin("second");
+  state.render(false);
+  state.complete("first");
+  expect(state.pending).toBe(true);
+  expect(state.complete("foreign")).toBe(false);
+  state.render(true);
+  state.complete("second");
+  expect(state.pending).toBe(true);
+  state.render(false);
+  expect(state.pending).toBe(false);
+});
+it("source replacement rejects late acknowledgments and keeps native clicks busy until rendering ends", () => {
+  const state = new DisplayReadiness();
+  state.begin("previous");
+  state.reset();
+  state.begin("new-source");
+  expect(state.complete("previous")).toBe(false);
+  expect(state.pending).toBe(true);
+  state.complete("new-source");
+  state.render(true);
+  expect(state.pending).toBe(true);
+  state.render(false);
+  expect(state.pending).toBe(false);
+});

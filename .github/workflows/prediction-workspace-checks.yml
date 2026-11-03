@@ -14,6 +14,13 @@ on:
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/frame.ts"
       - "frontend/src/viewer/style.test.ts"
+      - "frontend/src/viewer/style.ts"
+      - "frontend/src/viewer/protocol.ts"
+      - "frontend/src/viewer/StructureInspection*"
+      - "frontend/src/viewer/structure-inspection.css"
+      - "frontend/src/viewer/polymer-detail.ts"
+      - "frontend/src/viewer/residue-selection*"
+      - "frontend/src/viewer/display-readiness*"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Confidence.tsx"
@@ -81,6 +88,8 @@ jobs:
           src/presentation/PredictionSetup.test.tsx
           src/presentation/prediction-heading-focus.test.tsx
           src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
+          src/viewer/StructureInspection.test.tsx src/viewer/residue-selection.test.ts
+          src/viewer/display-readiness.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/donor-hydrogens.test.ts
           src/guided/MolecularInputs.test.tsx
@@ -103,3 +112,9 @@ jobs:
         with:
           name: prediction-workspace-evidence
           path: outputs/prediction-workspace/**
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prediction-interface-web
+          path: src/opendde_workbench/web
+          retention-days: 3

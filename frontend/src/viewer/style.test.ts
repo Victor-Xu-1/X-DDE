@@ -102,6 +102,42 @@ it("standalone ligands use thin element-colored sticks while keeping original co
   expect(source(model.selectedAtoms({}))).toEqual(before);
   expect(before[0].orders).toContain(2);
 });
+it("sequence range and polymer detail operate on native residues, preserve cartoons and clear on hidden chains", async () => {
+  const pdb =
+    "ATOM      1  CA  ASN A  10       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CB  ASN A  10       1.300   0.000   0.000  1.00 20.00           C  \nATOM      3  CA  LEU A  14       3.800   0.000   0.000  1.00 20.00           C  \nATOM      4  CB  LEU A  14       5.100   0.000   0.000  1.00 20.00           C  \nATOM      5  N   LEU A  14       2.500   0.000   0.000  1.00 20.00           N  \nEND\n";
+  const { model, scene, emit, viewer } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  await scene.configure({ allAtoms: true });
+  expectSticks(model.selectedAtoms({}));
+  await scene.configure({ allAtoms: false, sideChains: true });
+  expect(model.selectedAtoms({ atom: "CB" })[0].style?.stick?.radius).toBe(
+    ligandBondRadius,
+  );
+  expect(model.selectedAtoms({ atom: "N" })[0].style?.stick).toBeUndefined();
+  await scene.selectSequence({
+    key: scene.info.residues[0].key,
+    mode: "replace",
+  });
+  await scene.selectSequence({
+    key: scene.info.residues[1].key,
+    mode: "range",
+  });
+  expect(emit).toHaveBeenLastCalledWith(
+    "residue-selection",
+    scene.info.residues.map((row) => row.key),
+  );
+  expect(viewer.zoomTo).not.toHaveBeenCalled();
+  expect(emit).toHaveBeenCalledWith("selected", null);
+  expect(
+    model.selectedAtoms({}).every((atom) => atom.style?.cartoon?.opacity === 1),
+  ).toBe(true);
+  await scene.displayChains({ action: "hide", chain: "A" });
+  await expect(
+    scene.selectSequence({ key: scene.info.residues[0].key, mode: "replace" }),
+  ).rejects.toThrow();
+  expect(emit).toHaveBeenCalledWith("residue-selection", []);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
 it.each(["blueCarbon", "orangeCarbon", "purpleCarbon"])(
   "true molecular comparisons retain distinguishable %s carbon colors without moving atoms",
   (scheme) => {
@@ -272,6 +308,40 @@ it("resetting the source while a surface is generating cannot publish stale cove
   expect(
     emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
   ).toHaveLength(0);
+});
+it("keeps rendering busy through overlapping surface, representation and sequence commands", async () => {
+  const { model, scene, viewer, emit } = fixture(
+    "ATOM      1  CA  ASN A  10       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CB  ASN A  10       1.300   0.000   0.000  1.00 20.00           C  \nEND\n",
+    "pdb",
+  );
+  const before = source(model.selectedAtoms({}));
+  const releases: (() => void)[] = [];
+  vi.mocked(viewer.addSurface).mockImplementation(
+    () => new Promise<void>((resolve) => releases.push(resolve)) as never,
+  );
+  const first = scene.configure({ mode: "surface" });
+  await vi.waitFor(() => expect(releases).toHaveLength(1));
+  const second = scene.configure({ sideChains: true });
+  const third = scene.selectSequence({
+    key: scene.info.residues[0].key,
+    mode: "replace",
+  });
+  releases[0]();
+  await vi.waitFor(() => expect(releases).toHaveLength(2));
+  expect(
+    emit.mock.calls.filter(([type, busy]) => type === "rendering" && !busy),
+  ).toHaveLength(0);
+  releases[1]();
+  await vi.waitFor(() => expect(releases).toHaveLength(3));
+  expect(
+    emit.mock.calls.filter(([type, busy]) => type === "rendering" && !busy),
+  ).toHaveLength(0);
+  releases[2]();
+  await Promise.all([first, second, third]);
+  expect(
+    emit.mock.calls.filter(([type]) => type === "rendering").at(-1),
+  ).toEqual(["rendering", false]);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
 });
 
 it("an aligned receptor and source pose colors only the receptor, while true comparisons retain their own colors", async () => {
