@@ -574,3 +574,12 @@ scientific accuracy claim. Experimental B-factors are not pLDDT. Native token
 indices remain distinct from residue numbers until a source-bound mapping is
 verified. Native files and downloads retain their original bytes. Upstream
 [confidence implementation](https://github.com/aurekaresearch/OpenDDE/blob/main/opendde/model/sample_confidence.py).
+
+
+### Source-bound prediction confidence inspection
+
+The full native OpenDDE CIF can expose confidence coloring and linked sequence/PAE inspection through the existing viewer and confidence route. This is a display annotation: no coordinate, B-factor, charge, topology or scientific constraint is changed. The current candidate, task, artifact URL, exact structure-byte SHA256 and exact full-confidence-byte SHA256 jointly identify the annotation. Streamed structure bytes retain the 10 MB viewer limit and are hashed before decoding.
+
+The reviewed native dumper writes the complete AtomArray to CIF without an output mask and serializes atom/token confidence in that same order ([writer](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/runner/dumper.py), [CIF serialization](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/opendde/data/utils.py)). The adapter additionally validates all array dimensions, tokens and units; the viewer resolves each original CIF row to a unique renderer atom by chain/residue/atom identity and original coordinates. Atom serials, numeric chain offsets and experimental B-factors are never confidence authorities. CIF pLDDT stored in B fields only corroborates the known native writer order within its rounding tolerance. Missing, duplicate, filtered, alternate-location, insertion-code or multi-model records whose identities cannot be proven retain chain colors and the valid native matrix/download.
+
+Residue confidence is the mean of its native atom pLDDT values. PAE keeps native token axes and labels the corresponding real residue; multiple ligand atom tokens can refer to one residue. Chain borders come from the observed mapping. Point selection and double-axis range selection use mapped atoms, clear scientific atom-pick callbacks, respect hidden chains and share the existing renderer completion/export gate. Matrix navigation does not change a user's chosen color scheme. Experimental structures and other adapters without this verified binding keep their existing styles; further native protocol adapters remain separately gated.

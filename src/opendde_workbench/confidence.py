@@ -4,6 +4,7 @@ import json
 import math
 
 from .artifacts import contained
+from .confidence_binding import confidence_binding
 
 
 def confidence_view(root, artifact, metric, bins=200):
@@ -14,7 +15,8 @@ def confidence_view(root, artifact, metric, bins=200):
         raise ValueError(
             "Confidence data exceeds the64MiB interactive limit; download the native file."
         )
-    data = json.loads(full.read_text())
+    full_bytes = full.read_bytes()
+    data = json.loads(full_bytes)
     field = {"pae": "token_pair_pae", "pde": "token_pair_pde", "contacts": "contact_probs"}[metric]
     matrix = data.get(field)
     if not isinstance(matrix, list) or not matrix or len(matrix) > 10000:
@@ -51,4 +53,6 @@ def confidence_view(root, artifact, metric, bins=200):
         "atom_stride": atom_stride,
         "atom_plddt_unit": "0-1",
         "native_artifact": full.relative_to(root).as_posix(),
+        "structure_artifact": artifact,
+        "binding": confidence_binding(path, full_bytes, data, atoms, count),
     }

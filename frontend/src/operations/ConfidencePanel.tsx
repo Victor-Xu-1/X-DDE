@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { artifactUrl, request } from "../api";
 import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { Language } from "../types";
+import type {
+  ConfidenceBinding,
+  NativeConfidence,
+  ConfidenceInspection,
+} from "../viewer/confidence-types";
+import { confidencePlotLayout } from "./confidence-plot";
 
 interface Confidence {
   metric: string;
@@ -13,20 +19,38 @@ interface Confidence {
   atom_stride: number;
   atom_plddt_unit?: string;
   native_artifact: string;
+  structure_artifact?: string;
+  binding?: NativeConfidence | null;
 }
 
 export function ConfidencePanel({
   jobId,
   candidate,
   language,
+  onBinding,
+  inspection,
+  selectedResidues = [],
+  selectedTokens = [],
+  onTokens,
 }: {
   jobId: string;
   candidate: string;
   language: Language;
+  onBinding?(value: ConfidenceBinding | null): void;
+  inspection?: ConfidenceInspection | null;
+  selectedResidues?: string[];
+  selectedTokens?: number[];
+  onTokens?(tokens: number[]): void;
 }) {
   const zh = language === "zh";
   const [metric, setMetric] = useState("pae");
   const [attempt, setAttempt] = useState(0);
+  const [borders, setBorders] = useState(true);
+  const bindingCallback = useRef(onBinding);
+  bindingCallback.current = onBinding;
+  useEffect(() => {
+    bindingCallback.current?.(null);
+  }, [jobId, candidate]);
   const key = jobId + ":" + candidate + ":" + metric + ":" + attempt;
   const [state, setState] = useState<{
     key: string;
@@ -52,6 +76,19 @@ export function ConfidencePanel({
   }, [jobId, candidate, metric, key]);
   const data = state.key === key ? state.data : undefined;
   const error = state.key === key ? state.error : undefined;
+  useEffect(() => {
+    if (!data) return;
+    bindingCallback.current?.(
+      data.binding && data.structure_artifact
+        ? {
+            ...data.binding,
+            job: jobId,
+            candidate,
+            url: artifactUrl(jobId, data.structure_artifact),
+          }
+        : null,
+    );
+  }, [data, jobId, candidate]);
   const atomScores =
     data?.atom_plddt_unit === "0-1" &&
     data.atom_plddt.every(
@@ -97,10 +134,39 @@ export function ConfidencePanel({
         </p>
       ) : (
         <>
+          {inspection && (
+            <label className="confidence-chain-borders">
+              <input
+                type="checkbox"
+                checked={borders}
+                onChange={(e) => setBorders(e.target.checked)}
+              />
+              {zh ? "链边界" : "Chain borders"}
+            </label>
+          )}
           <InteractivePlot
             title={labels[metric]}
             language={language}
             height={420}
+            selectable={Boolean(inspection && onTokens)}
+            onPoint={(point) => {
+              if (inspection && Number.isInteger(point.x))
+                onTokens?.([Number(point.x)]);
+            }}
+            onRange={(range) => {
+              if (!inspection) return;
+              onTokens?.(
+                inspection.tokens
+                  .filter((token) =>
+                    [range.x, range.y].some(
+                      (axis) =>
+                        token.index >= Math.min(...axis) &&
+                        token.index <= Math.max(...axis),
+                    ),
+                  )
+                  .map((token) => token.index),
+              );
+            }}
             data={[
               {
                 type: "heatmap",
@@ -108,6 +174,13 @@ export function ConfidencePanel({
                 y: data.indices,
                 z: data.matrix,
                 colorscale: "Viridis",
+                text: data.indices.map((y) =>
+                  data.indices.map(
+                    (x) =>
+                      `${inspection?.tokens[x]?.label ?? x} · ${inspection?.tokens[y]?.label ?? y}`,
+                  ),
+                ),
+                hovertemplate: "%{text}<br>%{z}<extra></extra>",
                 zmin: 0,
                 zmax: metric === "contacts" ? 1 : 30,
                 colorbar: {
@@ -123,6 +196,12 @@ export function ConfidencePanel({
               },
             ]}
             layout={{
+              ...confidencePlotLayout(
+                inspection,
+                selectedResidues,
+                borders,
+                selectedTokens,
+              ),
               xaxis: {
                 title: { text: zh ? "原始 token 索引" : "Native token index" },
               },
@@ -134,9 +213,13 @@ export function ConfidencePanel({
           <p className="small">
             {data.token_count} tokens · {zh ? "显示步长" : "Display stride"}{" "}
             {data.stride}.
-            {zh
-              ? " 原始 token 索引不等同于残基编号。"
-              : " Native token indices are not residue numbers."}
+            {inspection
+              ? zh
+                ? " 点击选择横轴对应的残基；切换到选择并拖动可选取双轴范围。"
+                : "Click to inspect the X-axis residue; choose Select and drag to select both axis ranges."
+              : zh
+                ? " 原始 token 索引不等同于残基编号。"
+                : " Native token indices are not residue numbers."}
           </p>
           {data.atom_plddt.length > 0 && atomScores !== null && (
             <details>

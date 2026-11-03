@@ -6,6 +6,13 @@ on:
       - "frontend/src/presentation/Prediction*"
       - "frontend/src/presentation/prediction-*.css"
       - "frontend/src/presentation/prediction-heading-focus*"
+      - "frontend/src/viewer/confidence-*"
+      - "frontend/src/viewer/ConfidenceControls*"
+      - "frontend/src/viewer/structure-bytes*"
+      - "frontend/src/operations/confidence-*"
+      - "frontend/src/presentation/plots/InteractivePlot*"
+      - "src/opendde_workbench/confidence_binding.py"
+      - "tests/test_confidence_binding.py"
       - "frontend/src/viewer/ChainControls*"
       - "frontend/src/viewer/chain-controls.css"
       - "frontend/src/viewer/chain-visibility*"
@@ -97,6 +104,8 @@ jobs:
           src/presentation/prediction-heading-focus.test.tsx
           src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
           src/viewer/StructureInspection.test.tsx src/viewer/residue-selection.test.ts
+          src/viewer/confidence-mapping.test.ts src/viewer/structure-bytes.test.ts src/operations/confidence-plot.test.ts
+          src/presentation/plots/InteractivePlot.test.tsx
           src/viewer/display-readiness.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/donor-hydrogens.test.ts
@@ -119,8 +128,8 @@ jobs:
       - name: Native fractional pLDDT contract and invalid source values
         if: needs.scope.outputs.confidence_changed == 'true'
         run: |
-          uv run --locked python -m pytest -q tests/test_import_confidence.py
-          uv run --locked ruff check src/opendde_workbench/confidence.py tests/test_import_confidence.py server_tests/native_confidence_case.py server_tests/test_native_confidence_browser.py
+          uv run --locked python -m pytest -q tests/test_import_confidence.py tests/test_confidence_binding.py
+          uv run --locked ruff check src/opendde_workbench/confidence.py src/opendde_workbench/confidence_binding.py tests/test_confidence_binding.py tests/test_import_confidence.py server_tests/native_confidence_case.py server_tests/test_native_confidence_browser.py
       - name: Obtain the existing sealed STAT6 output archive without running engines
         if: needs.scope.outputs.confidence_changed == 'true'
         env:

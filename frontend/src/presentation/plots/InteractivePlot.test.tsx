@@ -94,3 +94,71 @@ it("keeps SDK normalization out of source values and stable render readiness", a
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled();
 });
+
+it("exposes box selection only when requested and drops callbacks from a superseded native trace", async () => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+  const first = vi.fn(),
+    second = vi.fn(),
+    range = vi.fn();
+  const layout = { xaxis: { title: { text: "Native token index" } } };
+  const view = render(
+    <InteractivePlot
+      title="PAE"
+      data={[{ x: [0], y: [0] }]}
+      layout={layout}
+      language="en"
+      selectable
+      onPoint={first}
+      onRange={range}
+    />,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
+  );
+  await userEvent.selectOptions(
+    screen.getByRole("combobox", { name: "Chart interaction" }),
+    "select",
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
+  );
+  const element = screen.getByRole("application") as HTMLElement & {
+    on: ReturnType<typeof vi.fn>;
+  };
+  const oldClick = element.on.mock.calls.find(
+    ([name]) => name === "plotly_click",
+  )![1];
+  const selected = element.on.mock.calls.find(
+    ([name]) => name === "plotly_selected",
+  )![1];
+  selected({ range: { x: [1, 4], y: [6, 8] } });
+  expect(range).toHaveBeenCalledWith({ x: [1, 4], y: [6, 8] });
+  selected({ range: { x: [NaN, 4], y: [6, 8] } });
+  expect(range).toHaveBeenCalledOnce();
+  view.rerender(
+    <InteractivePlot
+      title="PAE"
+      data={[{ x: [1], y: [1] }]}
+      layout={layout}
+      language="en"
+      onPoint={second}
+    />,
+  );
+  oldClick({ points: [{ x: 0, y: 0 }] });
+  expect(first).not.toHaveBeenCalled();
+  expect(second).not.toHaveBeenCalled();
+  expect(screen.queryByRole("option", { name: "Select" })).toBeNull();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
+  );
+  expect(
+    screen.getByRole("combobox", { name: "Chart interaction" }),
+  ).toHaveValue("zoom");
+  expect(native.react.mock.calls.at(-1)?.[2].dragmode).toBe("zoom");
+});

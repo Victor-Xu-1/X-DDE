@@ -1,6 +1,7 @@
 import type { Language } from "../types";
 import { residueLabel, type Residue, type ViewerOptions } from "./protocol";
 import type { ResidueSelectionMode } from "./residue-selection";
+import { confidenceColor } from "./confidence-types";
 import "./structure-inspection.css";
 const names =
   "ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR VAL".split(
@@ -59,6 +60,8 @@ export function StructureSequence({
   hiddenChains,
   onSelect,
   onClear,
+  confidence,
+  nativeSelectionCount = 0,
 }: {
   language: Language;
   residues: Residue[];
@@ -66,6 +69,8 @@ export function StructureSequence({
   hiddenChains: string[];
   onSelect(key: string, mode: ResidueSelectionMode): void;
   onClear(): void;
+  confidence?: Record<string, number>;
+  nativeSelectionCount?: number;
 }) {
   const zh = language === "zh";
   const chains = [...new Set(residues.map((row) => row.chain))];
@@ -76,11 +81,30 @@ export function StructureSequence({
       aria-label={zh ? "结构中的残基" : "Residues in structure"}
     >
       <header>
-        <h3>{zh ? "序列与结构" : "Sequence and structure"}</h3>
+        <h3>
+          {confidence
+            ? zh
+              ? "序列与残基置信度"
+              : "Sequences and residue confidence"
+            : zh
+              ? "序列与结构"
+              : "Sequence and structure"}
+        </h3>
         <span role="status">
-          {selected.length} {zh ? "个残基已选" : "residues selected"}
+          {selected.length || nativeSelectionCount}{" "}
+          {selected.length || !nativeSelectionCount
+            ? zh
+              ? "个残基已选"
+              : "residues selected"
+            : zh
+              ? "个原子 token 已选"
+              : "atom tokens selected"}
         </span>
-        <button type="button" disabled={!selected.length} onClick={onClear}>
+        <button
+          type="button"
+          disabled={!selected.length && !nativeSelectionCount}
+          onClick={onClear}
+        >
           {zh ? "清除选择" : "Clear sequence selection"}
         </button>
       </header>
@@ -108,8 +132,28 @@ export function StructureSequence({
                   type="button"
                   role="checkbox"
                   aria-checked={selectedKeys.has(row.key)}
-                  aria-label={residueLabel(row)}
-                  title={residueLabel(row)}
+                  aria-label={
+                    residueLabel(row) +
+                    (confidence?.[row.key] !== undefined
+                      ? ` · pLDDT ${confidence[row.key].toFixed(1)}`
+                      : "")
+                  }
+                  title={
+                    residueLabel(row) +
+                    (confidence?.[row.key] !== undefined
+                      ? ` · pLDDT ${confidence[row.key].toFixed(1)} (${zh ? "逐原子置信度均值" : "mean atom confidence"})`
+                      : "")
+                  }
+                  style={
+                    confidence?.[row.key] !== undefined
+                      ? {
+                          borderBottomColor: confidenceColor(
+                            confidence[row.key],
+                          ),
+                          borderBottomWidth: 3,
+                        }
+                      : undefined
+                  }
                   disabled={hiddenChains.includes(chain)}
                   onClick={(event) =>
                     onSelect(
