@@ -9,8 +9,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
-
-from server_tests.pip_download_fixture import FILENAME, InterruptedWheelServer, fixture_wheel
+from pip_download_fixture import FILENAME, InterruptedWheelServer, fixture_wheel
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("CI") != "true" or os.environ.get("WB_TEST_PIP_RESUME") != "1",
