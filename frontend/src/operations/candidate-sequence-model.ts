@@ -2,11 +2,15 @@ export const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+export function chainSequence(value: unknown): string | undefined {
+  const sequence = typeof value === "string" ? value : record(value).sequence;
+  return typeof sequence === "string" ? sequence : undefined;
+}
 export function candidateChains(value: Record<string, unknown>) {
   const metadata = record(value.metadata),
     chains = record(value.chains ?? metadata.chains);
   const found = Object.entries(chains).flatMap(([chain, raw]) => {
-    const sequence = typeof raw === "string" ? raw : record(raw).sequence;
+    const sequence = chainSequence(raw);
     return typeof sequence === "string" && sequence.length
       ? [{ chain, sequence }]
       : [];

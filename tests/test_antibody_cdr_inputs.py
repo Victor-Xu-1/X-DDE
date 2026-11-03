@@ -29,6 +29,7 @@ from opendde_workbench.models import Status
 from opendde_workbench.requests import TASK_ADAPTER
 
 PREVIOUS = "cb530494b4f7b6113f6b6b3b6e919078b69bda46c7c1f78fb92156e05ba64cdb"
+INTERFACE_PUBLICATION = "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee8e82ea"
 
 
 def test_native_fixture_and_deposited_coordinate_prefixes_keep_exact_identity():
@@ -149,6 +150,28 @@ def test_retained_annotation_cannot_be_rebound_to_edited_cdr_positions(settings,
         replayed_antibody_cdr(scientific, changed)
 
 
+def test_replayed_native_msa_chains_keep_numbered_source(settings):
+    scientific, records, *_ = numbering_case(settings)
+    prepared = prepare_stat6("fold", scientific, records=records)
+    original = json.loads(json.dumps(prepared.request))
+    request = json.loads(json.dumps(original))
+    chains = request["payload"]["candidates"][0]["chains"]
+    for chain, sequence in list(chains.items()):
+        msa = scientific.assets.save(chain + ".a3m", "msa", f">query\n{sequence}\n".encode())
+        chains[chain] = {"sequence": sequence, "unpairedMsaPath": "asset:" + msa.id}
+    expected = prepared.objects["antibody_cdr_inputs"]
+    assert replayed_antibody_cdr(scientific, request) == expected
+    scientific.assets.validate_bindings(TASK_ADAPTER.validate_python(request))
+    chains["invalid_extra_chain"] = None
+    with pytest.raises(ValueError, match="differs from its interface annotation"):
+        replayed_antibody_cdr(scientific, request)
+    del chains["invalid_extra_chain"]
+    chains["A"]["sequence"] += "A"
+    with pytest.raises(ValueError, match="differs from its interface annotation"):
+        replayed_antibody_cdr(scientific, request)
+    assert prepared.request == original
+
+
 def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers(
     settings, tmp_path
 ):
@@ -177,18 +200,17 @@ def test_numbering_only_cold_restore_prepares_same_cdr_positions_without_workers
 
 def test_only_interface_module_revisions_advance_and_published_snapshots_remain_exact():
     old = historical_study_catalogue(PREVIOUS)
-    # This regression owns the authored interface release, not later R-group successors.
-    authored = historical_study_catalogue(
-        "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee8e82ea"
-    )
-    assert set(authored.modules) == set(old.modules)
+    published = historical_study_catalogue(INTERFACE_PUBLICATION)
+    assert set(old.modules) == set(published.modules)
     for key, module in old.modules.items():
         expected = (
             module.model_copy(update={"revision": module.revision + 1})
             if key in {"fold", "epitope"}
             else module
         )
-        assert authored.modules[key] == expected
+        # Compare the exact publication cohorts. Later unrelated module releases
+        # retain their own immutable snapshots and successor checks.
+        assert published.modules[key] == expected
 
 
 @pytest.mark.parametrize("capability", ["fold", "epitope"])

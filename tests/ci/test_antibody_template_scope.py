@@ -13,6 +13,26 @@ def test_exact_cdr_batch_and_publication_companions_use_the_focused_gate():
             CORE,
             "frontend/src/operations/HarnessField.tsx",
             ".github/workflows/task-layout-checks.yml",
+            ".github/workflows/publication-checks.yml",
+        ]
+    )
+    assert selected(
+        [
+            "frontend/src/examples/antibody-inputs.ts",
+            "frontend/src/examples/harness.ts",
+            "src/opendde_workbench/harness_sequences.py",
+            "tests/test_harness_sequences.py",
+            "frontend/src/examples/harness.test.ts",
+            ".github/workflows/harness-checks.yml",
+        ]
+    )
+    assert selected(
+        [
+            "tests/test_harness_sequences.py",
+            "frontend/src/examples/harness.test.ts",
+            "frontend/src/examples/antibody-inputs.test.ts",
+            ".github/workflows/antibody-cdr-input-checks.yml",
+            "scripts/antibody_template_scope.py",
         ]
     )
 
@@ -32,3 +52,7 @@ def test_empty_and_companion_only_edits_do_not_delegate():
     assert not selected([])
     assert not selected(["src/opendde_workbench/examples/stat6/preparation.py"])
     assert not selected(["pyproject.toml", ".github/workflows/stat6-template-checks.yml"])
+    assert not selected([".github/workflows/publication-checks.yml"])
+    assert not selected(
+        ["src/opendde_workbench/harness_sequences.py", "tests/test_harness_sequences.py"]
+    )

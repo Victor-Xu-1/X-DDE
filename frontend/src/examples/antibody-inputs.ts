@@ -1,4 +1,5 @@
 import type { PreparedExample } from "./types";
+import { chainSequence, record } from "../operations/candidate-sequence-model";
 
 type Payload = Record<string, unknown>;
 
@@ -14,7 +15,14 @@ function bindings(tool: string, payload: Payload) {
     const candidates = payload.candidates as { chains?: unknown }[] | undefined;
     const options = payload.options as Payload | undefined;
     return [
-      candidates?.map((value) => value.chains),
+      candidates?.map((value) =>
+        Object.fromEntries(
+          Object.entries(record(value.chains)).map(([chain, raw]) => [
+            chain,
+            chainSequence(raw) ?? null,
+          ]),
+        ),
+      ),
       options?.binder_chain_ids,
       options?.cdr_regions,
       options?.cdr3_positions,

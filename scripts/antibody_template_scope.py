@@ -10,6 +10,11 @@ CORE = {
     "src/opendde_workbench/examples/stat6/antibody_cdr_inputs.py",
     "frontend/src/examples/antibody-inputs.ts",
 }
+SOURCE_REGRESSIONS = {
+    "tests/test_harness_sequences.py",
+    "frontend/src/examples/harness.test.ts",
+    "frontend/src/examples/antibody-inputs.test.ts",
+}
 PATHS = (
     *CORE,
     "src/opendde_workbench/examples/stat6/antibody_structure_input.py",
@@ -20,7 +25,14 @@ PATHS = (
     "src/opendde_workbench/examples/stat6/module-revisions.json",
     "src/opendde_workbench/examples/stat6/catalogue-profiles.json",
     "frontend/src/examples/harness.ts",
+    "frontend/src/examples/harness.test.ts",
+    "src/opendde_workbench/harness_sequences.py",
+    "src/opendde_workbench/harness_chains.py",
+    "src/opendde_workbench/harness_msa.py",
+    "tests/test_harness_sequences.py",
+    "tests/test_harness_msa.py",
     "frontend/src/operations/HarnessField.tsx",
+    "frontend/src/operations/candidate-sequence-model.ts",
     "frontend/src/operations/HarnessCdrInputs.test.tsx",
     "frontend/src/examples/antibody-inputs.test.ts",
     "tests/antibody_cdr_case.py",
@@ -31,8 +43,12 @@ PATHS = (
     "tests/ci/test_antibody_template_scope.py",
     "server_tests/test_native_antibody_cdr_gate.py",
     "server_tests/test_antibody_cdr_template_browser.py",
+    "server_tests/test_fold_msa_sources_browser.py",
+    "server_tests/test_native_fold_chain_contract.py",
     "scripts/antibody_template_scope.py",
+    "scripts/check-fold-source-baseline.py",
     ".github/workflows/antibody-cdr-input-checks.yml",
+    ".github/workflows/harness-checks.yml",
     ".github/workflows/stat6-template-checks.yml",
     ".github/workflows/examples-checks.yml",
     ".github/workflows/module-example-checks.yml",
@@ -41,6 +57,7 @@ PATHS = (
     ".github/workflows/defined-site-checks.yml",
     ".github/workflows/workflow-quality-checks.yml",
     ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/publication-checks.yml",
     "docs/research/stat6-study.md",
     "pyproject.toml",
     "uv.lock",
@@ -52,7 +69,8 @@ PATHS = (
 
 
 def selected(changed):
-    return bool(CORE.intersection(changed)) and all(
+    relevant = bool(CORE.intersection(changed)) or SOURCE_REGRESSIONS.issubset(changed)
+    return relevant and all(
         any(fnmatch.fnmatchcase(path, pattern) for pattern in PATHS) for path in changed
     )
 

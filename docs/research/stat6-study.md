@@ -183,3 +183,15 @@ CC-BY-SA-3.0。
 
 公开结构数据、UniProt 序列、用户提供的分子定义分别保留来源和许可；
 软件 Apache-2.0 许可不替代研究数据本身的许可。
+
+原生折叠的逐链 MSA 输入可以包含 `sequence`、`unpairedMsaPath` 和 `pairedMsaPath`。
+FASTA 与 CDR 来源按实际序列和链身份核对；添加 MSA 不改变该来源，编辑序列则需要重新核对。
+递交前，完整 A3M 的查询行和匹配列必须与实际输入链一致，且遵守原有文件身份和大小限制。
+真实同源比对仍是预测输入；查询行本身、单条配对记录或更深的比对均不能充当复合物准确性或亲和力证据。
+
+Native fold chains may carry `sequence`, `unpairedMsaPath` and `pairedMsaPath`.
+FASTA and CDR provenance follows exact sequences and chain identities; adding an MSA keeps
+matching provenance, while sequence edits invalidate it. Before admission, complete A3M
+query identities and match columns must agree with the effective native chains under the
+existing file identity and size limits. An alignment remains an input, not evidence of
+complex accuracy, affinity or inter-chain coevolution when a paired file contains only its query.

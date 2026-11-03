@@ -1,6 +1,10 @@
 import type { PreparedExample } from "./types";
 import { stat6HarnessPayload } from "./stat6-harness";
 import { antibodyInputReference } from "./antibody-inputs";
+import {
+  candidateChains,
+  record,
+} from "../operations/candidate-sequence-model";
 
 export function exampleHarnessPayload(
   tool: string,
@@ -131,16 +135,16 @@ export function exampleHarnessInputs(
       : ["esm2", "mpnn"].includes(tool)
         ? Object.values(payload.parent_chains as Record<string, string>)
         : tool === "fold"
-          ? (payload.candidates as { chains: Record<string, string> }[])
-              .flatMap((c) => Object.values(c.chains))
-              .concat(
-                Object.values(
-                  (
-                    payload.options as {
-                      target_chains?: Record<string, string>;
-                    }
-                  )?.target_chains ?? {},
+          ? (payload.candidates as Record<string, unknown>[])
+              .flatMap((c) =>
+                candidateChains({ chains: c.chains }).map(
+                  ({ sequence }) => sequence,
                 ),
+              )
+              .concat(
+                candidateChains({
+                  chains: record(payload.options).target_chains,
+                }).map(({ sequence }) => sequence),
               )
           : ["target-msa", "protrek-sequence"].includes(tool)
             ? [payload.sequence as string]

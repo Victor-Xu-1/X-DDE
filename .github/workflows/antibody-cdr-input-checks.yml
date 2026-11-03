@@ -12,15 +12,25 @@ on:
       - 'src/opendde_workbench/examples/stat6/catalogue-profiles.json'
       - 'frontend/src/examples/antibody-inputs*'
       - 'frontend/src/examples/harness.ts'
+      - 'frontend/src/examples/harness.test.ts'
+      - 'src/opendde_workbench/harness_sequences.py'
+      - 'src/opendde_workbench/harness_chains.py'
+      - 'src/opendde_workbench/harness_msa.py'
+      - 'tests/test_harness_sequences.py'
+      - 'tests/test_harness_msa.py'
       - 'frontend/src/operations/HarnessField.tsx'
+      - 'frontend/src/operations/candidate-sequence-model.ts'
       - 'frontend/src/operations/HarnessCdrInputs.test.tsx'
       - 'tests/antibody_cdr_case.py'
       - 'tests/test_antibody_cdr_inputs.py'
       - 'tests/fixtures/stat6/antibody_cdr/**'
       - 'tests/ci/test_antibody_template_scope.py'
       - 'scripts/antibody_template_scope.py'
+      - 'scripts/check-fold-source-baseline.py'
       - 'server_tests/test_native_antibody_cdr_gate.py'
       - 'server_tests/test_antibody_cdr_template_browser.py'
+      - 'server_tests/test_fold_msa_sources_browser.py'
+      - 'server_tests/test_native_fold_chain_contract.py'
       - '.github/workflows/antibody-cdr-input-checks.yml'
   pull_request:
     paths: *cdr_paths
@@ -49,12 +59,23 @@ jobs:
       PYTHONPATH: .:tests:src
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
+      - name: Original replay and stale-MSA failures with unconditional source restoration
+        run: uv run --locked python scripts/check-fold-source-baseline.py
+      - name: Exact FASTA sources with native MSA chain values
+        id: sequence_binding
+        run: uv run --locked pytest -q tests/test_harness_sequences.py tests/test_harness_msa.py
+      - name: Frontend FASTA and native-CDR source identity regressions
+        if: success() || steps.sequence_binding.outcome == 'failure'
+        working-directory: frontend
+        run: npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
       - name: Exact input changes and delegated source/replay/coordinate consumers
         run: >-
           uv run --locked pytest -x -q
@@ -67,17 +88,18 @@ jobs:
       - name: Frontend annotation edits and direct questionnaire/result consumers
         working-directory: frontend
         run: >-
-          npx vitest run src/examples/antibody-inputs.test.ts src/examples/harness.test.ts
-          src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
+          npx vitest run src/examples/stat6-harness.test.ts src/operations/HarnessFoldInputs.test.tsx
           src/operations/HarnessReview.test.tsx src/operations/useHarnessSources.test.tsx
           src/operations/HarnessCdrInputs.test.tsx src/operations/ToolQuestionnaires.test.tsx
           src/operations/fold-assessment.test.ts src/operations/FoldAssessment.test.tsx
+          src/operations/CandidateSequenceResults.test.tsx
       - name: Unchanged native gate and six-region epitope analysis on deposited coordinates
         env:
           WB_NATIVE_CDR_GATE: '1'
         run: >-
           uv run --locked --with biotite==1.6.0 --with numpy==1.26.4 --with pyyaml==6.0.3
           pytest -x -q server_tests/test_native_antibody_cdr_gate.py
+          server_tests/test_native_fold_chain_contract.py
       - name: Preserve actual historical epitope results under their authored catalogue
         env:
           GH_TOKEN: ${{ github.token }}
@@ -96,7 +118,7 @@ jobs:
           export WB_STATE_DIR="$WB_HOME/state"
           sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked python -m playwright install --with-deps chromium
-          uv run --locked pytest -x -q server_tests/test_antibody_cdr_template_browser.py
+          uv run --locked pytest -x -q server_tests/test_antibody_cdr_template_browser.py server_tests/test_fold_msa_sources_browser.py
       - name: Changed Python files only
         run: >-
           uv run --locked ruff check
@@ -110,6 +132,11 @@ jobs:
           tests/test_study_module_revisions.py tests/ci/test_antibody_template_scope.py
           scripts/antibody_template_scope.py server_tests/test_native_antibody_cdr_gate.py
           server_tests/test_antibody_cdr_template_browser.py
+          server_tests/test_fold_msa_sources_browser.py server_tests/test_native_fold_chain_contract.py
+          src/opendde_workbench/harness_sequences.py tests/test_harness_sequences.py
+          tests/test_harness_msa.py
+          src/opendde_workbench/harness_chains.py src/opendde_workbench/harness_msa.py
+          scripts/check-fold-source-baseline.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

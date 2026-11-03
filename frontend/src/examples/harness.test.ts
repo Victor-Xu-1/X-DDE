@@ -99,6 +99,56 @@ describe("native example input provenance", () => {
       exampleHarnessInputs("esm", { sequences: [heavy + "A", light] }, example),
     ).toEqual([]);
   });
+  it("keeps exact target and Fv FASTA sources when native chains carry MSA files", () => {
+    const target = "MKVLQEPTCVSDYMSISTCEWK";
+    const targetSource = {
+      ...object("00000000-0000-4000-8000-000000000004"),
+      kind: "sequence" as const,
+    };
+    const rich = {
+      ...example,
+      objects: { antibody_chains: fasta, target_sequence: targetSource },
+      sequence_sources: {
+        antibody_chains: [heavy, light],
+        target_sequence: [target],
+      },
+    };
+    const payload = {
+      candidates: [
+        {
+          candidate_id: "Fv",
+          chains: {
+            A: { sequence: heavy, unpairedMsaPath: `asset:${structure.id}` },
+            B: light,
+          },
+        },
+      ],
+      options: {
+        target_chains: {
+          C: { sequence: target, unpairedMsaPath: `asset:${unused.id}` },
+        },
+      },
+    };
+    const before = structuredClone(payload);
+    expect(exampleHarnessInputs("fold", payload, rich)).toEqual([
+      fasta.reference,
+      targetSource.reference,
+    ]);
+    payload.options.target_chains.C.sequence += "A";
+    expect(exampleHarnessInputs("fold", payload, rich)).toEqual([
+      fasta.reference,
+    ]);
+    payload.options.target_chains.C.sequence = target;
+    payload.candidates[0].chains.A.sequence += "A";
+    expect(exampleHarnessInputs("fold", payload, rich)).toEqual([
+      targetSource.reference,
+    ]);
+    expect(rich.sequence_sources).toEqual({
+      antibody_chains: [heavy, light],
+      target_sequence: [target],
+    });
+    expect(before.candidates[0].chains.A.sequence).toBe(heavy);
+  });
   it("loads the immutable native request without changing its source record", () => {
     const request = {
       operation: "harness" as const,
@@ -120,13 +170,20 @@ describe("native example input provenance", () => {
     const domain = {
       ...example,
       objects: { sh2_sequence: fasta, protein_sequence: unused },
-      sequence_sources: { sh2_sequence: [heavy], protein_sequence: [heavy + light] },
+      sequence_sources: {
+        sh2_sequence: [heavy],
+        protein_sequence: [heavy + light],
+      },
     };
     expect(
       exampleHarnessInputs("esm2", { parent_chains: { A: heavy } }, domain),
     ).toEqual([fasta.reference]);
     expect(
-      exampleHarnessInputs("esm2", { parent_chains: { A: heavy + "A" } }, domain),
+      exampleHarnessInputs(
+        "esm2",
+        { parent_chains: { A: heavy + "A" } },
+        domain,
+      ),
     ).toEqual([]);
   });
 });
