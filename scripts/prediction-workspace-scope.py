@@ -14,6 +14,7 @@ PATTERNS = (
     "frontend/src/integrations/ScientificForm.tsx",
     "frontend/src/integrations/ScientificResults.tsx",
     "frontend/src/studio/PredictionResults.tsx",
+    "frontend/src/studio/HomeWorkspace.test.tsx",
     "frontend/src/studio/Header.tsx",
     "frontend/src/operations/ConfidencePanel*",
     "frontend/src/guided/MolecularInputs.tsx",

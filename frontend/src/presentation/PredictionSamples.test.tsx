@@ -80,10 +80,9 @@ it("preserves native identifiers when a backend supplies no sample or seed mappi
       language="zh"
     />,
   );
-  expect(screen.getByRole("button", { name: "structure-017" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  expect(
+    screen.getByRole("button", { name: "构象 structure-017" }),
+  ).toHaveAttribute("aria-pressed", "true");
   expect(
     within(screen.getByRole("combobox", { name: "选择随机种子" })).getByRole(
       "option",

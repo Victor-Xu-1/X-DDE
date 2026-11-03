@@ -36,7 +36,7 @@ export function PredictionSamples({
   const group = rows.filter((row) => row.seed === active.seed);
   const current = group.findIndex((row) => row.id === active.id);
   const label = (row: PredictionSample) =>
-    row.sample === null ? row.id : `${zh ? "构象" : "Sample"} ${row.sample}`;
+    `${zh ? "构象" : "Sample"} ${row.sample ?? row.id}`;
   return (
     <section
       className="prediction-sample-bar"
