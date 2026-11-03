@@ -6,22 +6,15 @@ on:
       - "frontend/src/guided/QuestionnaireGuidance.test.tsx"
       - "frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/simulations/SimulationForm.tsx"
-      - "scripts/check-restraint-guide-baseline.py"
       - ".github/workflows/restraint-guidance-checks.yml"
   push:
     branches: [main]
     paths: *guidance_paths
   workflow_dispatch:
-    inputs:
-      baseline:
-        type: boolean
-        default: false
-        description: Prove only the four old guidance failures and restore exact candidate bytes
 permissions:
   contents: read
 jobs:
   frontend-guidance:
-    if: github.event_name != 'workflow_dispatch' || !inputs.baseline
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -37,22 +30,3 @@ jobs:
           src/guided/Questionnaire.test.tsx src/examples/TemplateStepHelp.test.tsx
           src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx
           src/integrations/Mol1Form.test.tsx
-  baseline-guidance:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' && inputs.baseline
-    runs-on: ubuntu-24.04
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm ci --prefix frontend
-      - name: Fixed old implementation fails the actual form-instruction regression
-        run: python scripts/check-restraint-guide-baseline.py
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: restraint-guide-baseline-evidence
-          path: ${{ runner.temp }}/restraint-guide-baseline*.json

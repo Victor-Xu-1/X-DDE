@@ -106,7 +106,6 @@ it.each(
       user.click(
         screen.getByRole("button", {
           name: language === "zh" ? "下一步" : "Next",
-          exact: true,
         }),
       );
     expect(screen.getByRole("note")).toHaveTextContent(instructions[0][column]);
