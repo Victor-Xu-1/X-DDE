@@ -42,7 +42,9 @@ export function ConfidenceLegend({ language }: { language: Language }) {
           {["> 90", "70–90", "50–70", "< 50"][i]}
         </span>
       ))}
-      <span>pLDDT · {zh ? "局部模型置信度" : "Local model confidence"}</span>
+      <span>
+        pLDDT · {zh ? "聚合物模型置信度" : "Polymer model confidence"}
+      </span>
     </div>
   );
 }

@@ -141,7 +141,7 @@ export function StructureSequence({
                   title={
                     residueLabel(row) +
                     (confidence?.[row.key] !== undefined
-                      ? ` · pLDDT ${confidence[row.key].toFixed(1)} (mean atom confidence)`
+                      ? ` · pLDDT ${confidence[row.key].toFixed(1)} (${zh ? "逐原子置信度均值" : "mean atom confidence"})`
                       : "")
                   }
                   style={

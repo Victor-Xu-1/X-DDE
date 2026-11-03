@@ -640,7 +640,7 @@ export function StructureViewport({
               onChange={configure}
             />
           )}
-          {!overlay && confidence && (
+          {!overlay && confidence && scene.hasPolymer && (
             <ConfidenceControls
               language={language}
               ready={Boolean(currentConfidence)}

@@ -7,7 +7,12 @@ import {
 import { paintBase, paintOverlayModel } from "./style";
 import { chainDisplay, hiddenChainIds } from "./chain-visibility";
 import { paintPolymerDetail } from "./polymer-detail";
-import { confidenceColor, type ConfidenceInspection } from "./confidence-types";
+import type { ConfidenceInspection } from "./confidence-types";
+import {
+  paintConfidence,
+  selectedConfidenceTokens,
+  confidenceSelection,
+} from "./confidence-display";
 import type { MappedConfidence } from "./confidence-mapping";
 import {
   emptyResidueSelection,
@@ -350,20 +355,8 @@ export class MolecularScene {
     }
     paintBase(v, this.info, this.options, [...this.hidden]);
     paintPolymerDetail(v, this.info, this.options, this.selected);
-    if (this.options.color === "confidence" && this.confidence) {
-      const polymers = new Set(this.info.residues.map((r) => r.key));
-      const colors = new Map<string, number[]>();
-      for (const atom of v.selectedAtoms({ model: 0 })) {
-        const score = this.confidence.atomScores.get(atom.index!);
-        if (score === undefined || !polymers.has(ref(atom).key)) continue;
-        const color = confidenceColor(score),
-          indices = colors.get(color) ?? [];
-        indices.push(atom.index!);
-        colors.set(color, indices);
-      }
-      for (const [color, index] of colors)
-        v.addStyle({ model: 0, index }, { cartoon: { color, opacity: 1 } });
-    }
+    if (this.options.color === "confidence" && this.confidence)
+      paintConfidence(v, this.info, this.confidence);
     for (const region of this.siteRegions)
       v.addStyle({ model: region.model, index: region.indices }, regionStyle());
     this.drawContacts();
@@ -402,14 +395,11 @@ export class MolecularScene {
     if (this.confidence)
       this.emit("confidence-selected", {
         key: this.confidence.key,
-        tokens: [
-          ...new Set(
-            this.selected
-              .filter((i) => !this.hidden.has(i))
-              .map((i) => this.confidence!.atomTokens.get(i))
-              .filter((i): i is number => i !== undefined),
-          ),
-        ],
+        tokens: selectedConfidenceTokens(
+          this.confidence,
+          this.selected,
+          this.hidden,
+        ),
       });
   }
   async showAttachments(value: unknown) {
@@ -617,38 +607,16 @@ export class MolecularScene {
   async selectConfidence(value: unknown) {
     if (!this.confidence || this.overlay || !value || typeof value !== "object")
       return;
-    const { key, tokens } = value as { key?: string; tokens?: number[] };
-    if (
-      key !== this.confidence.key ||
-      !Array.isArray(tokens) ||
-      tokens.length > this.confidence.tokens.length ||
-      tokens.some(
-        (i) =>
-          !Number.isInteger(i) || i < 0 || i >= this.confidence!.tokens.length,
-      )
-    )
-      return;
-    const requested = new Set(tokens);
-    const atoms = this.viewer.selectedAtoms({ model: 0 });
-    this.selected = atoms
-      .filter(
-        (atom) =>
-          requested.has(this.confidence!.atomTokens.get(atom.index!)!) &&
-          !this.hidden.has(atom.index!),
-      )
-      .map((atom) => atom.index!);
-    const selectedSet = new Set(this.selected);
-    const keys = new Set(
-      atoms
-        .filter((atom) => selectedSet.has(atom.index!))
-        .map((atom) => ref(atom).key),
+    const selected = confidenceSelection(
+      value,
+      this.confidence,
+      this.viewer.selectedAtoms({ model: 0 }),
+      this.info,
+      this.hidden,
     );
-    this.residueSelection = {
-      keys: [...keys].filter((key) =>
-        this.info.residues.some((r) => r.key === key),
-      ),
-      anchor: null,
-    };
+    if (!selected) return;
+    this.selected = selected.atoms;
+    this.residueSelection = { keys: selected.residues, anchor: null };
     this.measurement = [];
     this.emit("selected", null);
     this.emit("distance", null);
