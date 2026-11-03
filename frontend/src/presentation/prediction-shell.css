@@ -25,6 +25,7 @@
 }
 .studio-app:has(.studio-content[data-prediction-layout="true"]) .studio-topbar {
   min-height: 68px;
+  height: auto;
   margin: 18px 28px 8px;
   padding: 10px 24px;
   border: 1px solid var(--line);

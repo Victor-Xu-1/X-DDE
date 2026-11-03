@@ -49,6 +49,11 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
                 "aria-busy", "false", timeout=30000
             )
         expect(
+            page.get_by_role("button", name="构象 1" if zh else "Sample 1", exact=True)
+        ).to_have_attribute("aria-pressed", "true")
+        page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True).click()
+        expect(strip).to_contain_text("80.0")
+        expect(
             page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True)
         ).to_have_attribute("aria-pressed", "true")
         page.get_by_role("button", name="构象 1" if zh else "Sample 1", exact=True).click()

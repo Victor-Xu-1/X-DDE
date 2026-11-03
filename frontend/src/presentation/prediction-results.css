@@ -131,7 +131,12 @@
   padding: 0;
   background: transparent;
 }
-.studio-app .prediction-result .viewer-panel:not(:fullscreen) .molecular-stage {
+.studio-app
+  .studio-content[data-prediction-layout="true"]
+  .prediction-result
+  .structure-workbench:not(:fullscreen)
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
   height: clamp(360px, 46vh, 520px);
   min-height: 360px;
 }
