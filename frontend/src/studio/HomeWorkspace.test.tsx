@@ -128,21 +128,28 @@ it("separates task entry from structure review while preserving the draft", asyn
   fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));
   expect(sequence).not.toBeVisible();
   expect(screen.getByTitle("可交互分子结构")).toBeVisible();
-  expect(screen.getByRole("heading", { name: "研究结果" })).toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "研究结果" }).closest("header"),
+    screen.getByRole("heading", { name: /^研究结果$/, level: 2 }),
+  ).toBeVisible();
+  expect(
+    screen
+      .getByRole("heading", { name: /^研究结果$/, level: 2 })
+      .closest("header"),
   ).toHaveTextContent("已完成");
   expect(
-    screen.queryByRole("heading", { name: "已完成的任务 已完成" }),
+    screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
   ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "新建预测" }));
   expect(sequence).toBeVisible();
   expect(sequence).toHaveValue("ACDE");
   rerender(<HomeWorkspace {...props} resultsVersion={1} />);
   expect(sequence).not.toBeVisible();
-  expect(
-    await screen.findByRole("heading", { name: "已完成的任务 已完成" }),
-  ).toBeVisible();
+  const resultHeading = await screen.findByRole("heading", {
+    name: /^已完成的任务$/,
+    level: 2,
+  });
+  expect(resultHeading).toBeVisible();
+  expect(resultHeading.closest("header")).toHaveTextContent("已完成");
   expect(transport).toHaveBeenCalledWith(
     "/task-history/job/identity",
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
