@@ -664,7 +664,7 @@ export function StructureViewport({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {!predictionControls &&
+            {(!predictionControls || comparison || overlay) &&
               scene.chains
                 .filter((chain) => chain.trim())
                 .slice(0, 8)
