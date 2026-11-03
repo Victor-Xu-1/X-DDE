@@ -53,6 +53,10 @@ export function PredictionResults(p: PredictionResultsProps) {
     tokens: number[];
     nonce: number;
   } | null>(null);
+  const [actualTokens, setActualTokens] = useState<{
+    key: string;
+    tokens: number[];
+  } | null>(null);
   const receiveBinding = useCallback(
     (value: ConfidenceBinding | null) =>
       setAnnotation({ key: selectedKey, value }),
@@ -123,6 +127,7 @@ export function PredictionResults(p: PredictionResultsProps) {
               confidenceSelection={
                 mapped?.key === tokenSelection?.key ? tokenSelection : null
               }
+              onConfidenceSelected={setActualTokens}
               onResiduesSelected={(value) =>
                 setResidueSelection({ key: selectedKey, value })
               }
@@ -142,6 +147,9 @@ export function PredictionResults(p: PredictionResultsProps) {
                 residueSelection?.key === selectedKey
                   ? residueSelection.value
                   : []
+              }
+              selectedTokens={
+                actualTokens?.key === mapped?.key ? actualTokens?.tokens : []
               }
               onTokens={(tokens) => {
                 if (mapped)

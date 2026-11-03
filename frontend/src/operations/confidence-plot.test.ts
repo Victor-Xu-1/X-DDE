@@ -13,3 +13,18 @@ it("keeps native token positions, maps chain borders from observed chains, and h
   expect(confidencePlotLayout(mapped, [], false).shapes).toEqual([]);
   expect(confidencePlotLayout(null, [], true)).toEqual({});
 });
+it("preserves one ligand atom token when multiple tokens share the same residue", () => {
+  const mapped = {
+    key: "native",
+    residueScores: {},
+    tokens: [0, 1, 2].map((index) => ({
+      index,
+      chain: "L",
+      residue: "L:LIG:1:",
+      label: "L:LIG1",
+    })),
+  };
+  const layout = confidencePlotLayout(mapped, [], false, [1]);
+  expect(layout.shapes).toHaveLength(2);
+  expect(layout.shapes?.[0]).toMatchObject({ x0: 0.5, x1: 1.5 });
+});

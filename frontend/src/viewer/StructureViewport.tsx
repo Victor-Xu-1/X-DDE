@@ -85,6 +85,7 @@ export interface StructureViewerProps {
   confidenceSelection?: { key: string; tokens: number[]; nonce: number } | null;
   onConfidenceInspection?(value: ConfidenceInspection | null): void;
   onResiduesSelected?(keys: string[]): void;
+  onConfidenceSelected?(value: { key: string; tokens: number[] }): void;
 }
 export function StructureViewport({
   sourceSnapshot = false,
@@ -112,6 +113,7 @@ export function StructureViewport({
   confidenceSelection,
   onConfidenceInspection,
   onResiduesSelected,
+  onConfidenceSelected,
   optimization,
 }: StructureViewerProps & { optimization: PoseController }) {
   const { urls, records, score: nativeScore } = optimization.pose;
@@ -170,7 +172,12 @@ export function StructureViewport({
   confidenceCallback.current = onConfidenceInspection;
   const residueCallback = useRef(onResiduesSelected);
   residueCallback.current = onResiduesSelected;
+  const [nativeTokens, setNativeTokens] = useState<number[]>([]);
+  const tokenCallback = useRef(onConfidenceSelected);
+  tokenCallback.current = onConfidenceSelected;
   const confidenceKey = confidence ? confidenceIdentity(confidence) : "";
+  const currentConfidence =
+    confidenceView?.key === confidenceKey ? confidenceView : null;
   const expectedConfidence = useRef(confidenceKey);
   expectedConfidence.current = confidenceKey;
   const [displayPending, setDisplayPending] = useState(false);
@@ -260,11 +267,19 @@ export function StructureViewport({
       if (type === "confidence-inspection") {
         if (!detail || detail.key === expectedConfidence.current) {
           setConfidenceView(detail);
+          setNativeTokens([]);
           setConfidenceUnavailable(false);
           confidenceCallback.current?.(detail);
         }
       }
       if (type === "confidence-unavailable") setConfidenceUnavailable(true);
+      if (
+        type === "confidence-selected" &&
+        detail?.key === expectedConfidence.current
+      ) {
+        setNativeTokens(detail.tokens);
+        tokenCallback.current?.(detail);
+      }
       if (
         type === "confidence-color" &&
         ["chain", "confidence"].includes(detail)
@@ -454,11 +469,11 @@ export function StructureViewport({
   useEffect(() => {
     if (
       loaded &&
-      confidenceView &&
-      confidenceSelection?.key === confidenceView.key
+      currentConfidence &&
+      confidenceSelection?.key === currentConfidence.key
     )
       send("confidence-selection", confidenceSelection);
-  }, [loaded, confidenceView?.key, selectionKey]);
+  }, [loaded, currentConfidence?.key, selectionKey]);
   useEffect(() => {
     if (loaded && (searchBox !== undefined || hadSearchBox.current)) {
       send("search-box", searchBox);
@@ -628,7 +643,7 @@ export function StructureViewport({
           {!overlay && confidence && (
             <ConfidenceControls
               language={language}
-              ready={Boolean(confidenceView)}
+              ready={Boolean(currentConfidence)}
               color={options.color}
               onColor={(color) => configure({ color })}
             />
@@ -642,6 +657,18 @@ export function StructureViewport({
             : "Blue / orange / purple identify conformers. Leave overlay to edit an individual structure's display."}
         </p>
       )}
+      {loaded &&
+        currentConfidence &&
+        !scene.hasPolymer &&
+        nativeTokens.length > 0 && (
+          <button
+            type="button"
+            onClick={() => send("selection-action", "clear")}
+          >
+            {zh ? "清除置信度选择" : "Clear confidence selection"} (
+            {nativeTokens.length})
+          </button>
+        )}
       {confidenceUnavailable && (
         <p role="status" className="field-help">
           {zh
@@ -896,7 +923,7 @@ export function StructureViewport({
       )}
       {loaded && scene.residues.length > 0 && !overlay && !comparison && (
         <>
-          {confidenceView && options.color === "confidence" && (
+          {currentConfidence && options.color === "confidence" && (
             <ConfidenceLegend language={language} />
           )}
           <StructureSequence
@@ -904,7 +931,8 @@ export function StructureViewport({
             residues={scene.residues}
             selected={selectedResidues}
             hiddenChains={hiddenChains}
-            confidence={confidenceView?.residueScores}
+            confidence={currentConfidence?.residueScores}
+            nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
             onSelect={(key, mode) => send("sequence-selection", { key, mode })}
             onClear={() => send("selection-action", "clear")}
           />

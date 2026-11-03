@@ -6,9 +6,11 @@ export function confidencePlotLayout(
   inspection: ConfidenceInspection | null | undefined,
   selected: string[],
   borders: boolean,
+  selectedTokens: number[] = [],
 ): Partial<Layout> {
   if (!inspection) return {};
   const shapes: Partial<Shape>[] = [];
+  const selectedSet = new Set(selectedTokens);
   for (const [i, token] of inspection.tokens.entries()) {
     if (borders && i && token.chain !== inspection.tokens[i - 1].chain)
       for (const axis of ["x", "y"] as const)
@@ -33,7 +35,11 @@ export function confidencePlotLayout(
                 line: { color: "#fff", width: 1.5 },
               },
         );
-    if (selected.includes(token.residue)) {
+    if (
+      selectedTokens.length
+        ? selectedSet.has(token.index)
+        : selected.includes(token.residue)
+    ) {
       shapes.push({
         type: "rect",
         x0: i - 0.5,

@@ -30,6 +30,7 @@ export function ConfidencePanel({
   onBinding,
   inspection,
   selectedResidues = [],
+  selectedTokens = [],
   onTokens,
 }: {
   jobId: string;
@@ -38,6 +39,7 @@ export function ConfidencePanel({
   onBinding?(value: ConfidenceBinding | null): void;
   inspection?: ConfidenceInspection | null;
   selectedResidues?: string[];
+  selectedTokens?: number[];
   onTokens?(tokens: number[]): void;
 }) {
   const zh = language === "zh";
@@ -194,7 +196,12 @@ export function ConfidencePanel({
               },
             ]}
             layout={{
-              ...confidencePlotLayout(inspection, selectedResidues, borders),
+              ...confidencePlotLayout(
+                inspection,
+                selectedResidues,
+                borders,
+                selectedTokens,
+              ),
               xaxis: {
                 title: { text: zh ? "原始 token 索引" : "Native token index" },
               },

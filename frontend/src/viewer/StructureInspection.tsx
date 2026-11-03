@@ -61,6 +61,7 @@ export function StructureSequence({
   onSelect,
   onClear,
   confidence,
+  nativeSelectionCount = 0,
 }: {
   language: Language;
   residues: Residue[];
@@ -69,6 +70,7 @@ export function StructureSequence({
   onSelect(key: string, mode: ResidueSelectionMode): void;
   onClear(): void;
   confidence?: Record<string, number>;
+  nativeSelectionCount?: number;
 }) {
   const zh = language === "zh";
   const chains = [...new Set(residues.map((row) => row.chain))];
@@ -89,9 +91,20 @@ export function StructureSequence({
               : "Sequence and structure"}
         </h3>
         <span role="status">
-          {selected.length} {zh ? "个残基已选" : "residues selected"}
+          {selected.length || nativeSelectionCount}{" "}
+          {selected.length || !nativeSelectionCount
+            ? zh
+              ? "个残基已选"
+              : "residues selected"
+            : zh
+              ? "个原子 token 已选"
+              : "atom tokens selected"}
         </span>
-        <button type="button" disabled={!selected.length} onClick={onClear}>
+        <button
+          type="button"
+          disabled={!selected.length && !nativeSelectionCount}
+          onClick={onClear}
+        >
           {zh ? "清除选择" : "Clear sequence selection"}
         </button>
       </header>

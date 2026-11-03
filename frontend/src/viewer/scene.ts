@@ -201,9 +201,13 @@ export class MolecularScene {
     this.options.pick = this.info.hasPolymer ? "residue" : "atom";
     this.options.mode =
       ligands.length && residues.length ? "pocket" : "cartoon";
+    this.enablePicking();
+    return this.info;
+  }
+  private enablePicking() {
     this.viewer.setClickable(
       {},
-      !overlay,
+      !this.overlay,
       (atom: mol.AtomSpec, _viewer: mol.GLViewer, event?: MouseEvent) => {
         if (
           this.options.pick === "residue" &&
@@ -216,7 +220,6 @@ export class MolecularScene {
         else void this.pick(atom);
       },
     );
-    return this.info;
   }
   async configure(value: Partial<ViewerOptions>) {
     const revision = this.revision;
@@ -396,6 +399,18 @@ export class MolecularScene {
     if (hydrogenIndices.length)
       v.setStyle({ model: 0, index: hydrogenIndices }, {});
     v.render();
+    if (this.confidence)
+      this.emit("confidence-selected", {
+        key: this.confidence.key,
+        tokens: [
+          ...new Set(
+            this.selected
+              .filter((i) => !this.hidden.has(i))
+              .map((i) => this.confidence!.atomTokens.get(i))
+              .filter((i): i is number => i !== undefined),
+          ),
+        ],
+      });
   }
   async showAttachments(value: unknown) {
     if (this.overlay && value !== undefined)
@@ -622,9 +637,10 @@ export class MolecularScene {
           !this.hidden.has(atom.index!),
       )
       .map((atom) => atom.index!);
+    const selectedSet = new Set(this.selected);
     const keys = new Set(
       atoms
-        .filter((atom) => this.selected.includes(atom.index!))
+        .filter((atom) => selectedSet.has(atom.index!))
         .map((atom) => ref(atom).key),
     );
     this.residueSelection = {
@@ -717,9 +733,7 @@ export class MolecularScene {
       this.edits.clear();
       this.selected = [];
       this.measurement = [];
-      this.viewer.setClickable({}, true, (a: mol.AtomSpec) => {
-        void this.pick(a);
-      });
+      this.enablePicking();
       this.emit("selected", null);
       this.emit("distance", null);
     } else if (action === "clear") {
@@ -765,11 +779,7 @@ export class MolecularScene {
     this.measurement = [];
     this.emit("selected", null);
     this.emit("distance", null);
-    this.viewer.setClickable(
-      {},
-      true,
-      (atom: mol.AtomSpec) => void this.pick(atom),
-    );
+    this.enablePicking();
     await this.paint();
     this.emitChainDisplay();
   }

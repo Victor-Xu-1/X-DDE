@@ -39,12 +39,14 @@ export function InteractivePlot({
   const [dragMode, setDragMode] = useState<"zoom" | "pan" | "select">("zoom");
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
+  const effectiveDragMode =
+    dragMode === "select" && !selectable ? "zoom" : dragMode;
   const signature = JSON.stringify({
     data,
     layout,
     height,
     title,
-    dragMode,
+    effectiveDragMode,
     selectable,
   });
   const currentSignature = useRef(signature);
@@ -96,7 +98,7 @@ export function InteractivePlot({
             paper_bgcolor: "transparent",
             plot_bgcolor: "transparent",
             hovermode: "closest",
-            dragmode: dragMode,
+            dragmode: effectiveDragMode,
             uirevision: title,
             legend: { orientation: "h", y: -0.26, x: 0 },
             ...layout,
@@ -156,7 +158,7 @@ export function InteractivePlot({
         <div className="research-chart-controls">
           <select
             aria-label={zh ? "图表操作" : "Chart interaction"}
-            value={dragMode}
+            value={effectiveDragMode}
             onChange={(event) =>
               setDragMode(event.target.value as "zoom" | "pan" | "select")
             }

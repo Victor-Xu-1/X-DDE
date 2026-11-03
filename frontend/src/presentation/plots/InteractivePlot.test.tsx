@@ -121,6 +121,13 @@ it("exposes box selection only when requested and drops callbacks from a superse
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
   );
+  await userEvent.selectOptions(
+    screen.getByRole("combobox", { name: "Chart interaction" }),
+    "select",
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
+  );
   const element = screen.getByRole("application") as HTMLElement & {
     on: ReturnType<typeof vi.fn>;
   };
@@ -147,4 +154,11 @@ it("exposes box selection only when requested and drops callbacks from a superse
   expect(first).not.toHaveBeenCalled();
   expect(second).not.toHaveBeenCalled();
   expect(screen.queryByRole("option", { name: "Select" })).toBeNull();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled(),
+  );
+  expect(
+    screen.getByRole("combobox", { name: "Chart interaction" }),
+  ).toHaveValue("zoom");
+  expect(native.react.mock.calls.at(-1)?.[2].dragmode).toBe("zoom");
 });

@@ -234,6 +234,7 @@ async function command(type: string, value: unknown, requestId?: string) {
       const revision = ++confidenceRevision;
       // Optional annotations must never turn a readable protein into a fatal blank view.
       try {
+        await scene.annotateConfidence(null);
         const mapped =
           value && confidenceSource && !scene.isOverlay
             ? await mapNativeConfidence(
@@ -283,6 +284,8 @@ window.addEventListener("message", (event) => {
   const { type, value, requestId } = event.data;
   if (type === "ready-request") notify("ready", { instanceId });
   if (type === "clear") {
+    confidenceSource = null;
+    confidenceRevision++;
     loadedSourceIdentity = null;
     controller?.abort();
     generation++;

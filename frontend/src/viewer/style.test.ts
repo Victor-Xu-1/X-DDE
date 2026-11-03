@@ -59,10 +59,45 @@ function expectSticks(atoms: AtomSpec[]) {
     expect(atom.style?.stick?.radius).toBe(ligandBondRadius);
   }
 }
+it("keeps one selected ligand atom token distinct and makes clear-selection feedback exact", async () => {
+  const { model, scene, emit } = fixture();
+  const key = residueRef(model.selectedAtoms({})[0]).key;
+  await scene.annotateConfidence({
+    key: "ligand-bound",
+    atomScores: new Map([
+      [0, 90],
+      [1, 80],
+      [2, 70],
+    ]),
+    atomTokens: new Map([
+      [0, 0],
+      [1, 1],
+      [2, 2],
+    ]),
+    residueScores: { [key]: 80 },
+    tokens: [0, 1, 2].map((index) => ({
+      index,
+      chain: "",
+      residue: key,
+      label: "Ligand",
+    })),
+  });
+  await scene.selectConfidence({ key: "ligand-bound", tokens: [1] });
+  expect(emit).toHaveBeenCalledWith("confidence-selected", {
+    key: "ligand-bound",
+    tokens: [1],
+  });
+  expect(emit).toHaveBeenLastCalledWith("residue-selection", []);
+  await scene.action("clear");
+  expect(emit).toHaveBeenCalledWith("confidence-selected", {
+    key: "ligand-bound",
+    tokens: [],
+  });
+});
 it("confidence styling and linked token selection preserve geometry, native atom properties and chain recovery", async () => {
   const pdb =
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY B  10       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
-  const { model, scene, emit } = fixture(pdb, "pdb");
+  const { model, scene, emit, clicks, viewer } = fixture(pdb, "pdb");
   const before = source(model.selectedAtoms({}));
   const [aKey, bKey] = [
     residueRef(model.selectedAtoms({})[0]).key,
@@ -99,6 +134,24 @@ it("confidence styling and linked token selection preserve geometry, native atom
   await scene.displayChains({ action: "only", chain: "A" });
   await scene.selectConfidence({ key: "sample-bound", tokens: [1] });
   expect(emit).toHaveBeenLastCalledWith("residue-selection", []);
+  expect(emit).toHaveBeenCalledWith("confidence-selected", {
+    key: "sample-bound",
+    tokens: [],
+  });
+  // The same modifier-aware callback must survive both chain changes and restore.
+  for (const restore of [
+    () => scene.displayChains({ action: "show", chain: "B" }),
+    () => scene.action("restore"),
+  ]) {
+    await restore();
+    const click = clicks.mock.calls
+      .filter((call) => call[0] && !Object.keys(call[0]).length)
+      .at(-1)![2];
+    click(model.selectedAtoms({})[0], viewer, { ctrlKey: true });
+    await scene.paint();
+    expect(emit).toHaveBeenCalledWith("residue-selection", [aKey]);
+    await scene.action("clear");
+  }
   await scene.annotateConfidence(null);
   expect(scene.options.color).toBe("chain");
   expect(model.selectedAtoms({})[0].style?.cartoon?.color).toBe("#9772d6");
