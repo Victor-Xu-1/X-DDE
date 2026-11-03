@@ -60,7 +60,7 @@ it("retains chain focus when prediction conformers are overlaid instead of offer
   );
   expect(screen.queryByText(/Chains 2/)).toBeNull();
   fireEvent.click(
-    screen.getByRole("button", { name: "Chain AB", exact: true }),
+    screen.getByRole("button", { name: /^Chain AB$/ }),
   );
   expect(post).toHaveBeenLastCalledWith(
     { channel: "opendde-viewer", type: "chain", value: "AB" },
