@@ -156,7 +156,7 @@ it("keeps long sequence inspection bounded and updates positions after an input 
   const dialog = screen.getByRole("dialog");
   expect(dialog.querySelectorAll("[data-position]")).toHaveLength(600);
   fireEvent.click(
-    within(dialog).getByRole("button", { name: "Next segment", exact: true }),
+    within(dialog).getByRole("button", { name: /^Next segment$/ }),
   );
   expect(dialog).toHaveTextContent("601–1000 / 1000");
   view.rerender(<Form items={[{ kind: "rna", value: "AUGC", count: 1 }]} />);
