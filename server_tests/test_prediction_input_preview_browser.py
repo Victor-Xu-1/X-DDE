@@ -96,7 +96,7 @@ def test_current_prediction_inputs_and_edit_return(language, width):
         dialog.get_by_role("button", name="返回编辑" if zh else "Back to edit", exact=True).click()
         expect(trigger).to_be_focused()
         models = []
-        for tool, model in (("fold", "OpenDDE"), ("boltz.predict", "Boltz-2")):
+        for tool, model in (("predict", "OpenDDE"), ("boltz.predict", "Boltz-2")):
             page.goto(base + "/#view=new&tool=" + tool)
             other_trigger = page.get_by_role(
                 "button", name="预览输入" if zh else "Preview inputs", exact=True
