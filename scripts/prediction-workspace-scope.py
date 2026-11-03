@@ -91,6 +91,20 @@ def native_confidence_only(changed):
     )
 
 
+def confidence_changed(changed):
+    return any(
+        name.startswith("frontend/src/operations/ConfidencePanel")
+        or name
+        in {
+            "src/opendde_workbench/confidence.py",
+            "tests/test_import_confidence.py",
+            "server_tests/native_confidence_case.py",
+            "server_tests/test_native_confidence_browser.py",
+        }
+        for name in changed
+    )
+
+
 def selected(changed, event="push"):
     if event in {"push", "pull_request"} and native_confidence_only(changed):
         return True
@@ -120,6 +134,7 @@ def main():
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+        stream.write("confidence_changed=" + str(confidence_changed(changed)).lower() + "\n")
         stream.write("native_confidence=" + str(native_confidence_only(changed)).lower() + "\n")
         stream.write(
             "prediction_only="

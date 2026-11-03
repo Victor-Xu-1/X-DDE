@@ -77,6 +77,7 @@ def test_native_confidence_units_delegate_only_to_their_real_data_and_view_gate(
         ".github/workflows/prediction-workspace-checks.yml",
     ]
     assert scope.native_confidence_only(changes)
+    assert scope.confidence_changed(changes)
     assert scope.selected(changes)
     assert scope.selected(changes, "pull_request")
     assert not scope.selected(changes, "workflow_dispatch")
@@ -87,3 +88,5 @@ def test_native_confidence_units_delegate_only_to_their_real_data_and_view_gate(
     ]:
         assert not scope.native_confidence_only(changes + [unrelated])
         assert not scope.selected(changes + [unrelated])
+        assert scope.confidence_changed(changes + [unrelated])
+    assert not scope.confidence_changed(["frontend/src/presentation/PredictionSetup.tsx"])
