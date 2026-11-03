@@ -23,10 +23,77 @@ function announceReady(frame: HTMLIFrameElement) {
   });
 }
 
+it("shares native sequence and representation controls beyond predictions, waits for renderer acknowledgment and resets on source change", () => {
+  const view = render(
+    <StructureViewer urls={["/api/assets/native"]} language="en" />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const emit = (type: string, detail: unknown) =>
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  announceReady(frame);
+  const residue = {
+    key: "A:ASN:10:B",
+    chain: "A",
+    resn: "ASN",
+    resi: 10,
+    icode: "B",
+  };
+  emit("loaded", {
+    atoms: 50,
+    chains: ["A"],
+    hasPolymer: true,
+    ligands: [],
+    residues: [residue],
+    options: defaultOptions,
+  });
+  fireEvent.click(screen.getByRole("switch", { name: "All atoms" }));
+  expect(post).toHaveBeenLastCalledWith(
+    { channel: "opendde-viewer", type: "options", value: { allAtoms: true } },
+    location.origin,
+  );
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("display-options", { ...defaultOptions, allAtoms: true });
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("checkbox", { name: "A:ASN10B" }));
+  expect(post).toHaveBeenLastCalledWith(
+    {
+      channel: "opendde-viewer",
+      type: "sequence-selection",
+      value: { key: residue.key, mode: "replace" },
+    },
+    location.origin,
+  );
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "false",
+  );
+  emit("residue-selection", [residue.key]);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  view.rerender(
+    <StructureViewer urls={["/api/assets/another"]} language="en" />,
+  );
+  expect(screen.queryByRole("checkbox", { name: "A:ASN10B" })).toBeNull();
+});
+
 it("retains chain focus when prediction conformers are overlaid instead of offering visibility edits", () => {
   render(
     <StructureViewer
-      predictionControls
       comparison
       urls={["/api/assets/pose-a", "/api/assets/pose-b"]}
       language="en"
@@ -59,9 +126,7 @@ it("retains chain focus when prediction conformers are overlaid instead of offer
     ),
   );
   expect(screen.queryByText(/Chains 2/)).toBeNull();
-  fireEvent.click(
-    screen.getByRole("button", { name: /^Chain AB$/ }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: /^Chain AB$/ }));
   expect(post).toHaveBeenLastCalledWith(
     { channel: "opendde-viewer", type: "chain", value: "AB" },
     location.origin,

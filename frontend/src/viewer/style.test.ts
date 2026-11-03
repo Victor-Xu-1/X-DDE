@@ -102,6 +102,42 @@ it("standalone ligands use thin element-colored sticks while keeping original co
   expect(source(model.selectedAtoms({}))).toEqual(before);
   expect(before[0].orders).toContain(2);
 });
+it("sequence range and polymer detail operate on native residues, preserve cartoons and clear on hidden chains", async () => {
+  const pdb =
+    "ATOM      1  CA  ASN A  10       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CB  ASN A  10       1.300   0.000   0.000  1.00 20.00           C  \nATOM      3  CA  LEU A  14       3.800   0.000   0.000  1.00 20.00           C  \nATOM      4  CB  LEU A  14       5.100   0.000   0.000  1.00 20.00           C  \nATOM      5  N   LEU A  14       2.500   0.000   0.000  1.00 20.00           N  \nEND\n";
+  const { model, scene, emit, viewer } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  await scene.configure({ allAtoms: true });
+  expectSticks(model.selectedAtoms({}));
+  await scene.configure({ allAtoms: false, sideChains: true });
+  expect(model.selectedAtoms({ atom: "CB" })[0].style?.stick?.radius).toBe(
+    ligandBondRadius,
+  );
+  expect(model.selectedAtoms({ atom: "N" })[0].style?.stick).toBeUndefined();
+  await scene.selectSequence({
+    key: scene.info.residues[0].key,
+    mode: "replace",
+  });
+  await scene.selectSequence({
+    key: scene.info.residues[1].key,
+    mode: "range",
+  });
+  expect(emit).toHaveBeenLastCalledWith(
+    "residue-selection",
+    scene.info.residues.map((row) => row.key),
+  );
+  expect(viewer.zoomTo).not.toHaveBeenCalled();
+  expect(emit).toHaveBeenCalledWith("selected", null);
+  expect(
+    model.selectedAtoms({}).every((atom) => atom.style?.cartoon?.opacity === 1),
+  ).toBe(true);
+  await scene.displayChains({ action: "hide", chain: "A" });
+  await expect(
+    scene.selectSequence({ key: scene.info.residues[0].key, mode: "replace" }),
+  ).rejects.toThrow();
+  expect(emit).toHaveBeenCalledWith("residue-selection", []);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
 it.each(["blueCarbon", "orangeCarbon", "purpleCarbon"])(
   "true molecular comparisons retain distinguishable %s carbon colors without moving atoms",
   (scheme) => {

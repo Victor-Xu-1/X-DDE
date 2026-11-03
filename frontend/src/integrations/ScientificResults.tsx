@@ -201,13 +201,7 @@ export function ScientificResults({
           {
             id: "structure",
             label: zh ? "三维结构" : "3D structure",
-            content: (
-              <StructureViewer
-                predictionControls={prediction}
-                urls={[url]}
-                language={language}
-              />
-            ),
+            content: <StructureViewer urls={[url]} language={language} />,
           },
           {
             id: "sequence",
@@ -217,11 +211,7 @@ export function ScientificResults({
         ]}
       />
     ) : (
-      <StructureViewer
-        predictionControls={prediction}
-        urls={[url]}
-        language={language}
-      />
+      <StructureViewer urls={[url]} language={language} />
     )
   ) : (
     sequence

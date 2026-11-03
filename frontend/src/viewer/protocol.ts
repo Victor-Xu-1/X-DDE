@@ -9,6 +9,8 @@ export interface ViewerOptions {
   pick: PickMode;
   interactions: boolean;
   contactLimit: ContactLimit;
+  allAtoms: boolean;
+  sideChains: boolean;
 }
 export const defaultOptions: ViewerOptions = {
   mode: "cartoon",
@@ -18,6 +20,8 @@ export const defaultOptions: ViewerOptions = {
   pick: "residue",
   interactions: true,
   contactLimit: 5,
+  allAtoms: false,
+  sideChains: false,
 };
 export interface Residue {
   key: string;

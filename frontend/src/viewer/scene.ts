@@ -6,6 +6,11 @@ import {
 } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
 import { chainDisplay, hiddenChainIds } from "./chain-visibility";
+import { paintPolymerDetail } from "./polymer-detail";
+import {
+  emptyResidueSelection,
+  selectObservedResidues,
+} from "./residue-selection";
 import {
   nonExchangeableHydrogens,
   hideNonExchangeableHydrogens,
@@ -75,6 +80,7 @@ export class MolecularScene {
     hasPolymer: false,
   };
   private selected: number[] = [];
+  private residueSelection = emptyResidueSelection();
   private highlighted: number[] = [];
   private siteRegions: ReturnType<typeof modelResidueRegion>["selections"] = [];
   private hidden = new Set<number>();
@@ -105,6 +111,7 @@ export class MolecularScene {
     this.potential = undefined;
     this.revision++;
     this.selected = [];
+    this.clearResidueSelection();
     this.highlighted = [];
     this.siteRegions = [];
     this.hidden.clear();
@@ -172,6 +179,11 @@ export class MolecularScene {
     return this.info;
   }
   async configure(value: Partial<ViewerOptions>) {
+    const revision = this.revision;
+    if (typeof value.allAtoms === "boolean")
+      this.options.allAtoms = value.allAtoms;
+    if (typeof value.sideChains === "boolean")
+      this.options.sideChains = value.sideChains;
     if (value.mode && ["cartoon", "pocket", "surface"].includes(value.mode))
       this.options.mode = value.mode;
     if (value.radius && [3, 4, 5, 6, 8].includes(value.radius))
@@ -193,6 +205,8 @@ export class MolecularScene {
       this.emit("distance", null);
     }
     await this.paint();
+    if (revision !== this.revision) return;
+    this.emit("display-options", { ...this.options });
     if (value.mode === "pocket" || value.ligand) this.focusLigand();
   }
   async highlightAtoms(value: unknown) {
@@ -282,6 +296,7 @@ export class MolecularScene {
       return;
     }
     paintBase(v, this.info, this.options, [...this.hidden]);
+    paintPolymerDetail(v, this.info, this.options, this.selected);
     for (const region of this.siteRegions)
       v.addStyle({ model: region.model, index: region.indices }, regionStyle());
     this.drawContacts();
@@ -436,6 +451,15 @@ export class MolecularScene {
     this.selected = atoms
       .map((a) => a.index!)
       .filter((n) => Number.isInteger(n));
+    this.residueSelection = {
+      keys:
+        this.options.pick === "residue" &&
+        this.info.residues.some((row) => row.key === ref(atom).key)
+          ? [ref(atom).key]
+          : [],
+      anchor: ref(atom).key,
+    };
+    this.emit("residue-selection", this.residueSelection.keys);
     this.emit("selected", {
       pick_mode: this.options.pick,
       chain: atom.chain ?? "",
@@ -481,6 +505,39 @@ export class MolecularScene {
       await this.pick(atoms[0]);
       this.focusAtoms(atoms);
     }
+  }
+  async selectSequence(value: unknown) {
+    const revision = this.revision;
+    if (this.overlay)
+      throw new Error("Choose one structure to select its sequence.");
+    const atoms = this.viewer.selectedAtoms({ model: 0 });
+    const visibleKeys = new Set(
+      atoms
+        .filter((atom) => !this.hidden.has(atom.index!))
+        .map((atom) => ref(atom).key),
+    );
+    const visible = this.info.residues.filter((row) =>
+      visibleKeys.has(row.key),
+    );
+    const next = selectObservedResidues(value, visible, this.residueSelection);
+    this.residueSelection = next;
+    const keys = new Set(next.keys);
+    this.selected = atoms
+      .filter(
+        (atom) => keys.has(ref(atom).key) && !this.hidden.has(atom.index!),
+      )
+      .map((atom) => atom.index!);
+    this.measurement = [];
+    // A range is a display selection, never a single scientific constraint atom.
+    this.emit("selected", null);
+    this.emit("distance", null);
+    await this.paint();
+    if (revision !== this.revision) return;
+    this.emit("residue-selection", next.keys);
+  }
+  private clearResidueSelection() {
+    this.residueSelection = emptyResidueSelection();
+    this.emit("residue-selection", []);
   }
   private focusAtoms(anchors: mol.AtomSpec[]) {
     if (!anchors.length) return;
@@ -549,6 +606,7 @@ export class MolecularScene {
   async action(action: string) {
     if (this.overlay) return;
     if (action === "restore") {
+      this.clearResidueSelection();
       this.hidden.clear();
       this.edits.clear();
       this.selected = [];
@@ -559,6 +617,7 @@ export class MolecularScene {
       this.emit("selected", null);
       this.emit("distance", null);
     } else if (action === "clear") {
+      this.clearResidueSelection();
       this.selected = [];
       this.measurement = [];
       this.emit("selected", null);
@@ -568,6 +627,7 @@ export class MolecularScene {
         this.viewer.selectedAtoms({ model: 0, index: this.selected }),
       );
     } else if (action === "hide") {
+      this.clearResidueSelection();
       for (const index of this.selected) this.hidden.add(index);
       this.selected = [];
       this.emit("selected", null);
@@ -594,6 +654,7 @@ export class MolecularScene {
       throw new Error("Choose one structure to adjust chain visibility.");
     const atoms = this.viewer.selectedAtoms({ model: 0 });
     this.hidden = chainDisplay(value, this.info.chains, atoms, this.hidden);
+    this.clearResidueSelection();
     this.selected = [];
     this.measurement = [];
     this.emit("selected", null);

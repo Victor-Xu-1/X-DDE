@@ -11,6 +11,10 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { ChainControls } from "./ChainControls";
+import {
+  StructureDisplayControls,
+  StructureSequence,
+} from "./StructureInspection";
 import { SurfaceLegend } from "./SurfaceLegend";
 import { InteractionControls } from "./InteractionControls";
 import { PoseScore, type NativePoseScore } from "./PoseScore";
@@ -45,7 +49,6 @@ import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
-  predictionControls?: boolean;
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   trajectoryKey?: string;
@@ -73,7 +76,6 @@ export interface StructureViewerProps {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewport({
-  predictionControls = false,
   sourceSnapshot = false,
   trajectoryKey,
   ligandContext = true,
@@ -145,6 +147,8 @@ export function StructureViewport({
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
+  const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
+  const [displayPending, setDisplayPending] = useState(false);
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
@@ -207,6 +211,16 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "residue-selection" &&
+        Array.isArray(detail) &&
+        detail.every((key) => typeof key === "string")
+      )
+        setSelectedResidues(detail);
+      if (type === "display-options" && detail && typeof detail === "object") {
+        setOptions(detail);
+        setDisplayPending(false);
+      }
+      if (
         type === "chain-display" &&
         Array.isArray(detail) &&
         detail.every((chain) => typeof chain === "string")
@@ -232,6 +246,8 @@ export function StructureViewport({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setHiddenChains([]);
+        setDisplayPending(false);
+        setSelectedResidues([]);
         setStatus("loaded");
         setLoadedKey(requestedKey.current);
         setError("");
@@ -258,6 +274,9 @@ export function StructureViewport({
     lastRequest.current = ready ? request : null;
     focusedLigand.current = null;
     setSelection(null);
+    setSelectedResidues([]);
+    setHiddenChains([]);
+    setDisplayPending(false);
     setDistance(null);
     setContacts(null);
     setAttachmentCount(0);
@@ -337,6 +356,7 @@ export function StructureViewport({
       send("atom-region", highlightedAtoms ?? []);
   }, [ready, status, loadedKey, sceneKey, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
+    setDisplayPending(true);
     if (value.mode) setSurface(null);
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);
@@ -428,8 +448,9 @@ export function StructureViewport({
               siteKey,
               attachmentKey,
               hiddenChains,
+              selectedResidues,
             ])}
-            sourceReady={loaded}
+            sourceReady={loaded && !displayPending}
             language={language}
             filename="X-DDE-structure"
             format="png"
@@ -439,12 +460,12 @@ export function StructureViewport({
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;
             }}
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             render={(settings) => snapshot.figure(send, settings)}
           />
           <button
             type="button"
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
             title={zh ? "生成三维视图图片" : "Capture 3D view"}
             onClick={() => snapshot.begin(send, imageScale)}
@@ -486,7 +507,7 @@ export function StructureViewport({
                 {zh ? cn : en}
               </button>
             ))}
-          {predictionControls && !overlay && scene.chains.length > 0 && (
+          {!overlay && scene.chains.length > 0 && (
             <ChainControls
               language={language}
               chains={scene.chains}
@@ -498,6 +519,13 @@ export function StructureViewport({
             />
           )}
         </div>
+      )}
+      {loaded && scene.hasPolymer && !comparison && !overlay && (
+        <StructureDisplayControls
+          language={language}
+          options={options}
+          onChange={configure}
+        />
       )}
       {comparison && (
         <p className="viewer-comparison">
@@ -664,7 +692,7 @@ export function StructureViewport({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {(!predictionControls || comparison || overlay) &&
+            {(comparison || overlay) &&
               scene.chains
                 .filter((chain) => chain.trim())
                 .slice(0, 8)
@@ -750,6 +778,16 @@ export function StructureViewport({
             />
           )}
         </>
+      )}
+      {loaded && scene.residues.length > 0 && !overlay && !comparison && (
+        <StructureSequence
+          language={language}
+          residues={scene.residues}
+          selected={selectedResidues}
+          hiddenChains={hiddenChains}
+          onSelect={(key, mode) => send("sequence-selection", { key, mode })}
+          onClear={() => send("selection-action", "clear")}
+        />
       )}
       {!sourceSnapshot &&
         !comparison &&

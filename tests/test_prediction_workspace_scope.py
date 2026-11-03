@@ -43,3 +43,23 @@ def test_only_bounded_prediction_presentation_is_delegated():
     assert not scope.selected(changes + ["src/opendde_workbench/integrations/native_mol1.py"])
     assert not scope.selected(changes + ["frontend/src/datasets/DatasetResults.tsx"])
     assert not scope.selected(changes + ["frontend/src/viewer/PoseSession.tsx"])
+
+
+def test_shared_inspection_has_exact_native_view_checks_without_global_task_suites():
+    changes = [
+        "frontend/src/viewer/StructureInspection.tsx",
+        "frontend/src/viewer/residue-selection.ts",
+        "frontend/src/viewer/protocol.ts",
+        "frontend/src/viewer/polymer-detail.ts",
+        "frontend/src/viewer/style.ts",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/integrations/ScientificResults.tsx",
+        "docs/quality/frontend-coverage.md",
+    ]
+    assert scope.selected(changes)
+    for unrelated in [
+        "frontend/src/simulations/SimulationForm.tsx",
+        "frontend/src/deployment/ComponentCard.tsx",
+        "src/opendde_workbench/confidence.py",
+    ]:
+        assert not scope.selected(changes + [unrelated])

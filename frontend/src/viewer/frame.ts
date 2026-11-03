@@ -225,6 +225,7 @@ async function load(input: ViewerLoad) {
 async function command(type: string, value: unknown) {
   try {
     if (type === "chain-display") await scene.displayChains(value);
+    if (type === "sequence-selection") await scene.selectSequence(value);
     if (type === "options" && value && typeof value === "object")
       await scene.configure(value);
     if (type === "selection-action" && typeof value === "string")
@@ -271,6 +272,7 @@ window.addEventListener("message", (event) => {
     [
       "options",
       "chain-display",
+      "sequence-selection",
       "selection-action",
       "residue",
       "atom-region",
