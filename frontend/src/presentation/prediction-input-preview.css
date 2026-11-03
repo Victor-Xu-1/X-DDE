@@ -9,7 +9,11 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   box-shadow: 0 24px 80px #142b3c24;
-  overflow: auto;
+  overflow: hidden;
+}
+.prediction-input-preview[open] {
+  display: flex;
+  flex-direction: column;
 }
 .prediction-input-preview::backdrop {
   background: #13233666;
@@ -21,6 +25,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px var(--preview-space);
+  flex-shrink: 0;
 }
 .prediction-input-preview > header {
   border-bottom: 1px solid var(--line);
@@ -48,6 +53,8 @@
 }
 .prediction-input-preview-body {
   padding: var(--preview-space);
+  min-height: 0;
+  overflow-y: auto;
 }
 .prediction-preview-settings {
   display: grid;
@@ -166,6 +173,12 @@
   }
   .prediction-preview-entity-body {
     padding: 12px;
+  }
+  .prediction-preview-entity-body
+    .molecule-inspection-view
+    .figure-preview-sheet {
+    height: 240px;
+    min-height: 220px;
   }
   .prediction-input-preview > footer button {
     width: 100%;

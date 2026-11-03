@@ -84,6 +84,14 @@ def test_current_prediction_inputs_and_edit_return(language, width):
         assert dialog.evaluate("element => element.scrollWidth <= element.clientWidth + 1")
         box = dialog.bounding_box()
         assert box and box["x"] >= 0 and box["x"] + box["width"] <= width + 1
+        for control in (
+            dialog.get_by_role(
+                "heading", name="预览研究输入" if zh else "Preview study inputs", exact=True
+            ),
+            dialog.get_by_role("button", name="返回编辑" if zh else "Back to edit", exact=True),
+        ):
+            bounds = control.bounding_box()
+            assert bounds and bounds["y"] >= 0 and bounds["y"] + bounds["height"] <= 1000
         page.screenshot(path=str(evidence / "native-molecule-review.png"))
         dialog.locator(".figure-export-trigger").click()
         figure = page.get_by_role(
