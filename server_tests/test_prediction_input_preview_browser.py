@@ -85,6 +85,16 @@ def test_current_prediction_inputs_and_edit_return(language, width):
         box = dialog.bounding_box()
         assert box and box["x"] >= 0 and box["x"] + box["width"] <= width + 1
         page.screenshot(path=str(evidence / "native-molecule-review.png"))
+        dialog.locator(".figure-export-trigger").click()
+        figure = page.get_by_role(
+            "dialog", name="导出文献图" if zh else "Export research figure", exact=True
+        )
+        expect(figure).to_be_visible()
+        page.keyboard.press("Escape")
+        expect(figure).to_have_count(0)
+        expect(dialog).to_be_visible()
+        expect(drawing).to_be_visible()
+        page.screenshot(path=str(evidence / "nested-export-return.png"))
         page.keyboard.press("Escape")
         expect(dialog).to_have_count(0)
         expect(trigger).to_be_focused()

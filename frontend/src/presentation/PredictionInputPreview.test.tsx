@@ -205,6 +205,20 @@ it("handles Escape and removes the preview when the operation leaves prediction 
   expect(screen.queryByRole("dialog")).toBeNull();
 });
 
+it("keeps input review open when a nested figure dialog handles Escape", () => {
+  render(<Form items={[]} />);
+  fireEvent.click(screen.getByRole("button", { name: "Preview inputs" }));
+  const parent = screen.getByRole("dialog");
+  const figure = document.createElement("dialog");
+  parent.append(figure);
+  fireEvent(figure, new Event("cancel", { bubbles: true, cancelable: true }));
+  expect(screen.getByRole("dialog")).toBe(parent);
+  expect(parent).toHaveAttribute("open");
+  figure.remove();
+  fireEvent(parent, new Event("cancel", { cancelable: true }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
 it("uses the shared single-FASTA normalization and retains a nonzero selected molecular record", () => {
   render(
     <Form

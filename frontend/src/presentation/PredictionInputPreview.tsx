@@ -44,6 +44,7 @@ export function PredictionInputPreview({
       ref={dialog}
       aria-labelledby={title}
       onCancel={(event) => {
+        if (event.target !== event.currentTarget) return;
         event.preventDefault();
         dismiss();
       }}
