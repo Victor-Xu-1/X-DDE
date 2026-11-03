@@ -1,3 +1,10 @@
+.viewer-panel > .viewer-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
 .structure-display-controls {
   display: flex;
   align-items: center;
@@ -5,6 +12,9 @@
   gap: 12px 24px;
   padding: 0;
   margin-inline-start: auto;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
 }
 .structure-display-controls label {
   display: inline-flex;
@@ -12,10 +22,15 @@
   gap: 10px;
   font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .structure-display-controls input {
   appearance: none;
+  box-sizing: border-box;
+  padding: 0;
   width: 30px;
+  min-width: 30px;
+  flex: 0 0 30px;
   min-height: 18px;
   height: 18px;
   border: 1px solid var(--line);

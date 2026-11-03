@@ -249,6 +249,15 @@ it("keeps atom selection on the exact source and never offers or starts pose cha
   expect(
     screen.queryByLabelText("Pose optimization and history"),
   ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  const request = [...post.mock.calls]
+    .reverse()
+    .find(([data]) => data.type === "options")?.[0];
+  expect(request?.requestId).toEqual(expect.any(String));
+  message("rendering", false);
+  message("display-complete", request.requestId);
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   message("initial-pose-required");
   expect(submit).not.toHaveBeenCalled();
@@ -458,6 +467,7 @@ it("centers only a selected ligand in the current loaded source, without resetti
       channel: "opendde-viewer",
       type: "options",
       value: { ligand: "B:LIG301" },
+      requestId: expect.any(String),
     },
     location.origin,
   );
@@ -504,6 +514,7 @@ it("waits for the new pose before sending atom selections and clears prior displ
     <StructureViewer
       urls={["/api/jobs/a/download?name=one.sdf"]}
       language="zh"
+      highlightedAtoms={[17]}
     />,
   );
   const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
@@ -541,6 +552,7 @@ it("waits for the new pose before sending atom selections and clears prior displ
     <StructureViewer
       urls={["/api/jobs/a/download?name=two.sdf"]}
       language="zh"
+      highlightedAtoms={[17]}
     />,
   );
   expect(post.mock.calls.some(([data]) => data.type === "load")).toBe(true);
@@ -662,6 +674,7 @@ it("focuses the actual pose and enables interactions without pretending comparis
       channel: "opendde-viewer",
       type: "options",
       value: { interactions: false },
+      requestId: expect.any(String),
     },
     location.origin,
   );
