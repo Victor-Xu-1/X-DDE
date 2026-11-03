@@ -59,7 +59,7 @@ def case(state):
     (analysis / "workbench-analysis.json").write_text(
         json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": 4,
                 "candidates": candidates,
                 "ligands": [],
                 "metric_notes": {

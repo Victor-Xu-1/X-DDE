@@ -39,15 +39,13 @@ export function PredictionResults(p: PredictionResultsProps) {
     (!("parameters" in p.job.request) ||
       p.job.request.parameters.atom_confidence !== false);
   const samples = (p.analysis?.candidates ?? []).map((row) => {
-    const match = /^(?:seed-(\d+)-)?sample-(\d+)$/.exec(row.id);
+    const match = /^(?:seed-(\d+)-)?sample-(\d+)(?:-[0-9a-f]{12})?$/.exec(
+      row.id,
+    );
     return {
       id: row.id,
       artifact: row.artifact,
-      seed: match?.[1]
-        ? Number(match[1])
-        : p.job && "parameters" in p.job.request
-          ? p.job.request.parameters.seed
-          : null,
+      seed: match?.[1] ? Number(match[1]) : null,
       sample: match ? Number(match[2]) : null,
       metrics: [
         { name: "Ranking score", value: row.ranking_score, unit: "" },
