@@ -1,9 +1,10 @@
 import { useState } from "react";
 import "./inputs.css";
 import { Questionnaire } from "../guided/Questionnaire";
+import { PredictionSetup } from "../presentation/PredictionSetup";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import type { Job, Language } from "../types";
+import type { Component, Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
 import { RestraintEditor } from "../simulations/RestraintEditor";
@@ -219,7 +220,7 @@ export function ScientificForm({
     Number.isInteger(options.seed) &&
     options.seed >= 0 &&
     options.seed <= 2147483647;
-  return (
+  const questionnaire = (
     <Questionnaire
       language={language}
       busy={run.busy}
@@ -389,5 +390,27 @@ export function ScientificForm({
         },
       ]}
     />
+  );
+  return (
+    <PredictionSetup
+      enabled={program === "boltz"}
+      language={language}
+      components={
+        program === "boltz"
+          ? (payload.components as BoltzComponent[]).map((row) => ({
+              kind: row.kind as Component["kind"],
+              value: row.value,
+              count: 1,
+              ligand_file: row.source?.asset_id,
+            }))
+          : []
+      }
+      model="Boltz-2"
+      seeds={[options.seed]}
+      samples={Number(payload.samples ?? 1)}
+      valid={inputValid}
+    >
+      {questionnaire}
+    </PredictionSetup>
   );
 }

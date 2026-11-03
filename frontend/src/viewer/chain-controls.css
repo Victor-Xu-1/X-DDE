@@ -1,0 +1,63 @@
+.viewer-chain-menu {
+  position: relative;
+  z-index: 3;
+  font-size: 12px;
+}
+.viewer-chain-menu > summary {
+  cursor: pointer;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.viewer-chain-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: min(320px, calc(100vw - 48px));
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+}
+.viewer-chain-list > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.viewer-chain-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.viewer-chain-list input {
+  width: 14px;
+  min-height: 14px;
+  flex: 0 0 14px;
+  accent-color: var(--accent);
+}
+.viewer-chain-list button {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.viewer-chain-list > button {
+  margin-top: 10px;
+}
+@media (max-width: 600px) {
+  .viewer-modes:has(.viewer-chain-menu) {
+    position: relative;
+  }
+  .viewer-chain-menu {
+    position: static;
+  }
+}

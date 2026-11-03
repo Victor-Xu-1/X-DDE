@@ -22,6 +22,7 @@ import { ExpertParameters } from "./operations/ExpertParameters";
 import { CovalentEditor } from "./operations/CovalentEditor";
 import type { CovalentBond } from "./operations/types";
 import type { MoleculeRef } from "./research/types";
+import { PredictionSetup } from "./presentation/PredictionSetup";
 interface Props {
   language: Language;
   ready: boolean;
@@ -311,6 +312,10 @@ export function TaskForm({
       />
       <div hidden={previewing}>
         <ExampleContext.Provider value={example}>
+          <PredictionSetup language={language} components={components}
+            model={parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"}
+            seeds={[parameters.seed, ...(parameters.additional_seeds ?? [])]}
+            samples={parameters.samples} valid={inputValid}>
           <Questionnaire
             key={templateRevision}
             language={language}
@@ -350,6 +355,7 @@ export function TaskForm({
               },
             ]}
           />
+          </PredictionSetup>
         </ExampleContext.Provider>
       </div>
     </>

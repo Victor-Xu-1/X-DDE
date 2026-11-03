@@ -135,6 +135,12 @@ export function App() {
       : requestedView;
   const scopedResults = resultModule(view);
   const showingResults = Boolean(scopedResults) || view === "tasks";
+  const predictionLayout =
+    view === "home" ||
+    ["fold", "boltz.predict", "mol1.predict"].includes(
+      toolForView(view) ?? "",
+    ) ||
+    scopedResults === "structures";
   const analysis = science.analysis;
   const candidate =
     analysis?.candidates.find((x) => x.id === candidateId) ??
@@ -306,11 +312,21 @@ export function App() {
             jobs={jobs}
             onJob={showJob}
             storageWarning={storageWarning}
+            workspace={
+              predictionLayout ? (
+                <ModuleWorkspaceNavigation
+                  view={view}
+                  language={language}
+                  onView={navigate}
+                />
+              ) : undefined
+            }
           />
           <main
             className="studio-content"
             ref={content}
             tabIndex={-1}
+            data-prediction-layout={predictionLayout ? "true" : undefined}
             data-module-theme={workspaceTheme(
               view,
               toolForView(view),
@@ -418,11 +434,13 @@ export function App() {
                     : "Compute resources are unavailable; submitted tasks remain queued."}
                 </p>
               )}
-            <ModuleWorkspaceNavigation
-              view={view}
-              language={language}
-              onView={navigate}
-            />
+            {!predictionLayout && (
+              <ModuleWorkspaceNavigation
+                view={view}
+                language={language}
+                onView={navigate}
+              />
+            )}
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"

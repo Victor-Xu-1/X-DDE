@@ -1,5 +1,55 @@
 # Task page layout
 
+## Structure-prediction workspace
+
+Structure and complex prediction follows the owner's selected Molence Lab visual
+reference: a 68 px floating toolbar, paper-white canvas, blue pill actions,
+24 px content rhythm, compact entity sections and an aligned live setup summary.
+This scoped composition supersedes the earlier fully flat treatment for prediction
+pages only. The original X-DDE raster brand and research-module navigation remain.
+Plus Jakarta Sans is bundled from a pinned Google Fonts revision with its OFL and
+checksum under `frontend/public/fonts/plus-jakarta`; no reference-site assets or
+private research data are redistributed.
+
+The existing questionnaire still exposes one step at a time. The setup sidebar is
+a projection of the current form values, not another draft, task or validation
+authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
+readiness checks. The public Mol-1 base model does not gain unsupported geometric
+constraint capabilities from a change in presentation.
+
+Each entity in the setup summary expands to its current sequence or structure
+identifier. An uploaded structure takes precedence over any retained text and
+downloads from its selected immutable asset; no internal file path is displayed.
+The summary reads the live form values and never submits or prepares a task.
+Step entry retains the questionnaire's own keyboard focus and positions its heading
+below the measured floating toolbar, including the wrapped narrow-screen toolbar.
+
+Prediction results expose seed/sample navigation and the selected candidate's
+native score, pTM, ipTM and pLDDT where available. The exact selected artifact owns
+the structure download. The large live structure is on the left and the confidence
+inspector on the right; the complete native candidate table stays accessible below.
+PAE is shown initially rather than hidden in a disclosure. The shared Plotly
+renderer provides zoom, pan, hover and figure export for PAE/PDE/contact maps;
+the old separate heatmap canvas is retired. Missing confidence remains explicit.
+Changing candidates cannot reuse a previous candidate's late confidence response.
+Native token and atom indices are not relabeled as residue numbers; no unverified
+PAE-to-residue mapping is invented. Boltz's 0–1 pLDDT and Mol-1/OpenDDE's 0–100
+values retain their reported scales and units.
+
+The prediction viewer's chain menu displays the actual native chain identifiers,
+including unnamed and multi-character IDs. Hide, show, only and restore update
+display styles and contact neighborhoods, not input coordinates or downloads.
+The renderer acknowledges visibility before checkboxes change. Candidate changes
+reset this display state; conformer overlays keep their existing controls. Figure
+previews invalidate when chain visibility changes. Other modules retain their
+existing chain-focus buttons.
+
+Prediction-specific CI covers the changed controls and their direct questionnaire,
+navigation and result consumers. A bounded path classifier delegates this batch
+from the historical whole-workbench layout sweeps to that exact gate; mixed or
+backend changes retain the broader gates. Controlled chart fixtures are clearly
+marked as presentation fixtures and never promoted to scientific templates.
+
 ## Commercial workflow references and graphical results
 
 Molecular-property results use linked candidate and selected-molecule columns.

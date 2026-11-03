@@ -1,0 +1,84 @@
+/* Structure-prediction composition. The existing task/viewer owns all state. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/fonts/plus-jakarta/PlusJakartaSans.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+.studio-app:has(.studio-content[data-prediction-layout="true"]) {
+  --canvas: #faf8f3;
+  --ink: #252d32;
+  --muted: #4b555c;
+  --font:
+    "Plus Jakarta Sans", "Inter", "Segoe UI", "Microsoft YaHei", sans-serif;
+  --line: #e6e7e2;
+  --accent: #2f67b2;
+  --accent-secondary: #2f67b2;
+  --accent-soft: #eaf0f8;
+  --surface-muted: #f4f3ed;
+  --surface-hover: #eef2f3;
+  --focus: #2f67b2;
+  --success-soft: #e5f0e8;
+  background: var(--canvas);
+  font-family: var(--font);
+}
+.studio-app:has(.studio-content[data-prediction-layout="true"]) .studio-topbar {
+  min-height: 68px;
+  height: auto;
+  margin: 18px 28px 8px;
+  padding: 10px 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgb(37 45 50 / 3%);
+}
+.studio-app:has(.studio-content[data-prediction-layout="true"])
+  .page-context-signature {
+  display: none;
+}
+.studio-app .studio-content[data-prediction-layout="true"] {
+  max-width: 1376px;
+  width: 100%;
+  margin-inline: auto;
+  padding-top: 12px;
+  background: transparent;
+}
+.studio-app:has(.studio-content[data-prediction-layout="true"])
+  .module-workspace-navigation {
+  display: inline-flex;
+  width: auto;
+  gap: 6px;
+  padding: 5px;
+  margin: 0 0 0 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.studio-app:has(main[data-prediction-layout="true"])
+  .module-workspace-navigation
+  button {
+  border: 0;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 7px 18px;
+  background: transparent;
+}
+.studio-app:has(main[data-prediction-layout="true"])
+  .module-workspace-navigation
+  button.selected {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.studio-app .studio-content[data-prediction-layout="true"] .module-task-picker {
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+.studio-content[data-prediction-layout="true"] .module-template {
+  padding-block: 8px;
+}

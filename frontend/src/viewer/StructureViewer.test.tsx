@@ -23,6 +23,51 @@ function announceReady(frame: HTMLIFrameElement) {
   });
 }
 
+it("retains chain focus when prediction conformers are overlaid instead of offering visibility edits", () => {
+  render(
+    <StructureViewer
+      predictionControls
+      comparison
+      urls={["/api/assets/pose-a", "/api/assets/pose-b"]}
+      language="en"
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  announceReady(frame);
+  act(() =>
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: location.origin,
+        source: frame.contentWindow,
+        data: {
+          channel: "opendde-viewer",
+          type: "loaded",
+          detail: {
+            atoms: 100,
+            chains: ["A", "AB"],
+            hasPolymer: true,
+            hasInteractionContext: false,
+            ligands: [],
+            residues: [],
+            options: defaultOptions,
+          },
+        },
+      }),
+    ),
+  );
+  expect(screen.queryByText(/Chains 2/)).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", { name: /^Chain AB$/ }),
+  );
+  expect(post).toHaveBeenLastCalledWith(
+    { channel: "opendde-viewer", type: "chain", value: "AB" },
+    location.origin,
+  );
+});
+
 it("reads a fixed-case pose through the shared example scope without submitting initial preparation", () => {
   const submit = vi.spyOn(api, "post");
   const url =

@@ -10,6 +10,7 @@ import {
 } from "@ant-design/icons";
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
+import { ChainControls } from "./ChainControls";
 import { SurfaceLegend } from "./SurfaceLegend";
 import { InteractionControls } from "./InteractionControls";
 import { PoseScore, type NativePoseScore } from "./PoseScore";
@@ -44,6 +45,7 @@ import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
 import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
+  predictionControls?: boolean;
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   trajectoryKey?: string;
@@ -71,6 +73,7 @@ export interface StructureViewerProps {
   onSceneLoaded?(scene: SceneInfo): void;
 }
 export function StructureViewport({
+  predictionControls = false,
   sourceSnapshot = false,
   trajectoryKey,
   ligandContext = true,
@@ -141,6 +144,7 @@ export function StructureViewport({
     [error, setError] = useState("");
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
+  const [hiddenChains, setHiddenChains] = useState<string[]>([]);
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
@@ -203,6 +207,12 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "chain-display" &&
+        Array.isArray(detail) &&
+        detail.every((chain) => typeof chain === "string")
+      )
+        setHiddenChains(detail);
+      if (
         type === "attachments" &&
         Number.isInteger(detail) &&
         detail >= 0 &&
@@ -221,6 +231,7 @@ export function StructureViewport({
       }
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
+        setHiddenChains([]);
         setStatus("loaded");
         setLoadedKey(requestedKey.current);
         setError("");
@@ -416,6 +427,7 @@ export function StructureViewport({
               focusModel,
               siteKey,
               attachmentKey,
+              hiddenChains,
             ])}
             sourceReady={loaded}
             language={language}
@@ -474,6 +486,17 @@ export function StructureViewport({
                 {zh ? cn : en}
               </button>
             ))}
+          {predictionControls && !overlay && scene.chains.length > 0 && (
+            <ChainControls
+              language={language}
+              chains={scene.chains}
+              hidden={hiddenChains.filter((chain) =>
+                scene.chains.includes(chain),
+              )}
+              onDisplay={(value) => send("chain-display", value)}
+              onFocus={(chain) => send("chain", chain)}
+            />
+          )}
         </div>
       )}
       {comparison && (
@@ -641,19 +664,20 @@ export function StructureViewport({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {scene.chains
-              .filter((chain) => chain.trim())
-              .slice(0, 8)
-              .map((chain) => (
-                <button
-                  type="button"
-                  key={chain}
-                  onClick={() => send("chain", chain)}
-                >
-                  {zh ? "链 " : "Chain "}
-                  {chain}
-                </button>
-              ))}
+            {(!predictionControls || comparison || overlay) &&
+              scene.chains
+                .filter((chain) => chain.trim())
+                .slice(0, 8)
+                .map((chain) => (
+                  <button
+                    type="button"
+                    key={chain}
+                    onClick={() => send("chain", chain)}
+                  >
+                    {zh ? "链 " : "Chain "}
+                    {chain}
+                  </button>
+                ))}
             <span>
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>

@@ -5,6 +5,7 @@ import {
   focusedViewScale,
 } from "./appearance";
 import { paintBase, paintOverlayModel } from "./style";
+import { chainDisplay, hiddenChainIds } from "./chain-visibility";
 import {
   nonExchangeableHydrogens,
   hideNonExchangeableHydrogens,
@@ -585,5 +586,31 @@ export class MolecularScene {
       });
     }
     await this.paint();
+    this.emitChainDisplay();
+  }
+
+  async displayChains(value: unknown) {
+    if (this.overlay)
+      throw new Error("Choose one structure to adjust chain visibility.");
+    const atoms = this.viewer.selectedAtoms({ model: 0 });
+    this.hidden = chainDisplay(value, this.info.chains, atoms, this.hidden);
+    this.selected = [];
+    this.measurement = [];
+    this.emit("selected", null);
+    this.emit("distance", null);
+    this.viewer.setClickable(
+      {},
+      true,
+      (atom: mol.AtomSpec) => void this.pick(atom),
+    );
+    await this.paint();
+    this.emitChainDisplay();
+  }
+
+  private emitChainDisplay() {
+    this.emit(
+      "chain-display",
+      hiddenChainIds(this.viewer.selectedAtoms({ model: 0 }), this.hidden),
+    );
   }
 }

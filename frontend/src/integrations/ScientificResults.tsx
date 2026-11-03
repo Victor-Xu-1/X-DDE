@@ -25,6 +25,8 @@ import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 import { Mol1Confidence } from "./Mol1Confidence";
+import { PredictionSamples } from "../presentation/PredictionSamples";
+import { nativePredictionSamples } from "./prediction-presentation";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
   "Initial potential energy": ["优化前势能", "Initial energy"],
@@ -46,6 +48,8 @@ export function ScientificResults({
 }) {
   const zh = language === "zh",
     rows = result.candidates;
+  const prediction =
+    result.operation === "mol1_predict" || result.operation === "boltz_predict";
   const initial = initialCandidateId ?? rows[0]?.id ?? "";
   const [choice, setChoice] = useState({ job: job.id, initial, id: initial });
   const selected =
@@ -197,7 +201,13 @@ export function ScientificResults({
           {
             id: "structure",
             label: zh ? "三维结构" : "3D structure",
-            content: <StructureViewer urls={[url]} language={language} />,
+            content: (
+              <StructureViewer
+                predictionControls={prediction}
+                urls={[url]}
+                language={language}
+              />
+            ),
           },
           {
             id: "sequence",
@@ -207,13 +217,30 @@ export function ScientificResults({
         ]}
       />
     ) : (
-      <StructureViewer urls={[url]} language={language} />
+      <StructureViewer
+        predictionControls={prediction}
+        urls={[url]}
+        language={language}
+      />
     )
   ) : (
     sequence
   );
   return (
-    <div className="scientific-results">
+    <div
+      className={
+        "scientific-results" + (prediction ? " prediction-result" : "")
+      }
+    >
+      {prediction && active && (
+        <PredictionSamples
+          job={job.id}
+          rows={nativePredictionSamples(job, result)}
+          selected={active.id}
+          onSelect={setSelected}
+          language={language}
+        />
+      )}
       {result.operation === "chemprop_train" && (
         <PropertyModelResults result={result} language={language} />
       )}
@@ -266,19 +293,21 @@ export function ScientificResults({
                 language={language}
               />
             )}
-            <ResearchTable
-              rows={rows}
-              columns={columns}
-              initialVisibleColumns={columns
-                .slice(0, 4)
-                .map((column) => column.key)}
-              rowId={(row) => row.id}
-              language={language}
-              title={zh ? "研究候选" : "Research candidates"}
-              selected={active?.id}
-              onSelect={(row) => setSelected(row.id)}
-              exportName="scientific-candidates.csv"
-            />
+            {!(result.mol1 && active) && (
+              <ResearchTable
+                rows={rows}
+                columns={columns}
+                initialVisibleColumns={columns
+                  .slice(0, 4)
+                  .map((column) => column.key)}
+                rowId={(row) => row.id}
+                language={language}
+                title={zh ? "研究候选" : "Research candidates"}
+                selected={active?.id}
+                onSelect={(row) => setSelected(row.id)}
+                exportName="scientific-candidates.csv"
+              />
+            )}
             {result.mol1 && active && (
               <Mol1Confidence
                 job={job.id}
@@ -288,6 +317,21 @@ export function ScientificResults({
               />
             )}
           </StructureWorkbench>
+          {result.mol1 && active && (
+            <ResearchTable
+              rows={rows}
+              columns={columns}
+              initialVisibleColumns={columns
+                .slice(0, 4)
+                .map((column) => column.key)}
+              rowId={(row) => row.id}
+              language={language}
+              title={zh ? "研究候选" : "Research candidates"}
+              selected={active.id}
+              onSelect={(row) => setSelected(row.id)}
+              exportName="scientific-candidates.csv"
+            />
+          )}
         </>
       )}
       {result.model_artifact && (
