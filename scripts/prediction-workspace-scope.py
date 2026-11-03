@@ -51,6 +51,7 @@ PATTERNS = (
     "frontend/src/App.tsx",
     "server_tests/prediction_workspace_case.py",
     "server_tests/test_prediction_workspace_browser.py",
+    "server_tests/test_prediction_input_preview_browser.py",
     "server_tests/test_prediction_entry_browser.py",
     "server_tests/test_template_controls_browser.py",
     "server_tests/test_ensemble_results_browser.py",
@@ -70,6 +71,40 @@ PATTERNS = (
     "install.sh",
     "install.ps1",
 )
+
+INPUT_PREVIEW_FILES = {
+    "frontend/src/presentation/PredictionSetup.tsx",
+    "frontend/src/presentation/PredictionInputPreview.tsx",
+    "frontend/src/presentation/PredictionEntityPreview.tsx",
+    "frontend/src/presentation/PredictionInputPreview.test.tsx",
+    "frontend/src/presentation/prediction-input-preview.css",
+    "frontend/src/integrations/ScientificForm.tsx",
+    "server_tests/test_prediction_input_preview_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def input_preview_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and {
+            "frontend/src/presentation/PredictionSetup.tsx",
+            "frontend/src/presentation/PredictionInputPreview.tsx",
+            "frontend/src/presentation/PredictionInputPreview.test.tsx",
+        }.issubset(changed)
+        and changed.issubset(INPUT_PREVIEW_FILES)
+    )
+
 
 CONFIDENCE_PATTERNS = (
     "src/opendde_workbench/confidence.py",
@@ -147,6 +182,11 @@ def main():
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+        stream.write(
+            "input_preview="
+            + str(input_preview_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
+            + "\n"
+        )
         stream.write("confidence_changed=" + str(confidence_changed(changed)).lower() + "\n")
         stream.write("native_confidence=" + str(native_confidence_only(changed)).lower() + "\n")
         stream.write(

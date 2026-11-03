@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
-import type { Component, Language } from "../types";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { Language } from "../types";
+import type { PreviewComponent } from "./PredictionEntityPreview";
 import { usePredictionHeadingFocus } from "./prediction-heading-focus";
+import { PredictionInputPreview } from "./PredictionInputPreview";
 import "./prediction-workspace.css";
 
 /** A view of the form's current values; never a second draft or task authority. */
@@ -15,7 +17,7 @@ export function PredictionSetup({
   enabled = true,
 }: {
   language: Language;
-  components: Pick<Component, "kind" | "value" | "count" | "ligand_file">[];
+  components: PreviewComponent[];
   model: string;
   seeds: number[];
   samples: number;
@@ -24,6 +26,11 @@ export function PredictionSetup({
   enabled?: boolean;
 }) {
   const root = usePredictionHeadingFocus(enabled);
+  const [preview, setPreview] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!enabled) setPreview(false);
+  }, [enabled]);
   if (!enabled) return children;
   const zh = language === "zh";
   const names = {
@@ -134,7 +141,28 @@ export function PredictionSetup({
               ? "填写材料后继续"
               : "Complete the study inputs"}
         </p>
+        <button
+          ref={trigger}
+          type="button"
+          className="prediction-preview-open"
+          onClick={() => setPreview(true)}
+        >
+          {zh ? "预览输入" : "Preview inputs"}
+        </button>
       </aside>
+      {preview && (
+        <PredictionInputPreview
+          components={components}
+          model={model}
+          seeds={seeds}
+          samples={samples}
+          language={language}
+          onClose={() => {
+            setPreview(false);
+            trigger.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -46,6 +46,16 @@
 
 ## Molence comparison after v0.7.55
 
+Prediction input overview continuation (Issue #151): the shared setup now exposes
+a read-only dialog using the form's current props. OpenDDE, Boltz-2 and Mol-1
+retain their existing admission, validation and submission paths. Review covers
+bounded sequence positions, exact selected molecular-file records through native
+Ketcher depiction, current chain/modification metadata and return-to-edit focus.
+It is an input overview, not the compiled native job or a calculation result.
+Candidate component/browser checks are scoped to this presentation and direct
+consumers; native owner visual review and release acceptance must be recorded
+before claiming delivery. No scientific calculation or installation is authorized.
+
 The comparison covers the complete input, interaction, preview and result journeys,
 not only a prediction stylesheet. The live capability registry above remains the
 module authority. Check every registered submodule against these applicable states:

@@ -48,6 +48,7 @@ on:
       - "frontend/src/App.tsx"
       - "server_tests/prediction_workspace_case.py"
       - "server_tests/test_prediction_workspace_browser.py"
+      - "server_tests/test_prediction_input_preview_browser.py"
       - "server_tests/test_prediction_entry_browser.py"
       - "scripts/prediction-workspace-scope.py"
       - "tests/test_prediction_workspace_scope.py"
@@ -73,6 +74,7 @@ jobs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       native_confidence: ${{ steps.select.outputs.native_confidence }}
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
+      input_preview: ${{ steps.select.outputs.input_preview }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,7 +98,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Prediction presentation, selection identity and direct form/navigation consumers
-        if: needs.scope.outputs.native_confidence != 'true'
+        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
@@ -116,6 +118,14 @@ jobs:
           src/integrations/ScientificForm.test.tsx src/studio/MethodSwitch.test.tsx
           src/studio/Header.test.tsx src/App.test.tsx src/App.live-status.test.tsx
           src/studio/HomeWorkspace.test.tsx
+      - name: Current prediction input review and its direct form, sequence and depiction consumers
+        if: needs.scope.outputs.input_preview == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/PredictionInputPreview.test.tsx
+          src/presentation/PredictionSetup.test.tsx src/presentation/SequenceTrack.test.tsx
+          src/presentation/MoleculeImage.test.tsx src/guided/MolecularInputs.test.tsx
+          src/TaskForm.test.tsx src/integrations/Mol1Form.test.tsx src/integrations/ScientificForm.test.tsx
       - name: Native confidence interpretation and direct prediction result consumer
         if: needs.scope.outputs.native_confidence == 'true'
         working-directory: frontend
@@ -143,8 +153,11 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
-        if: needs.scope.outputs.native_confidence != 'true'
+        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
+      - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
+        if: needs.scope.outputs.input_preview == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
@@ -155,6 +168,7 @@ jobs:
           path: |
             outputs/prediction-workspace/**
             outputs/native-confidence/**
+            outputs/prediction-input-preview/**
       - uses: actions/upload-artifact@v4
         if: always()
         with:
