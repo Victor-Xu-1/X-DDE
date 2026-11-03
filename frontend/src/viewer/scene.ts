@@ -216,12 +216,15 @@ export class MolecularScene {
       (atom: mol.AtomSpec, _viewer: mol.GLViewer, event?: MouseEvent) => {
         if (
           this.options.pick === "residue" &&
+          this.info.residues.some((residue) => residue.key === ref(atom).key) &&
           (event?.shiftKey || event?.ctrlKey || event?.metaKey)
         )
           void this.selectSequence({
             key: ref(atom).key,
             mode: event.shiftKey ? "range" : "toggle",
-          });
+          }).catch(() =>
+            this.emit("error", "Could not update residue selection."),
+          );
         else void this.pick(atom);
       },
     );

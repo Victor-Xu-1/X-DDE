@@ -94,6 +94,30 @@ it("keeps one selected ligand atom token distinct and makes clear-selection feed
     tokens: [],
   });
 });
+it("modified ligand clicks retain ordinary native picking instead of rejecting through polymer sequence selection", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nHETATM    2  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nEND\n";
+  const { model, scene, clicks, viewer, emit } = fixture(pdb, "pdb");
+  const sequence = vi.spyOn(scene, "selectSequence");
+  const ligand = model.selectedAtoms({ hetflag: true })[0];
+  const click = clicks.mock.calls.at(-1)![2];
+  for (const modifiers of [
+    { shiftKey: true },
+    { ctrlKey: true },
+    { metaKey: true },
+  ]) {
+    click(ligand, viewer, modifiers);
+    await scene.paint();
+  }
+  expect(sequence).not.toHaveBeenCalled();
+  expect(emit).toHaveBeenCalledWith(
+    "selected",
+    expect.objectContaining({
+      identity: expect.objectContaining({ is_ligand: true }),
+      source_atom_index: ligand.serial,
+    }),
+  );
+});
 it("confidence styling and linked token selection preserve geometry, native atom properties and chain recovery", async () => {
   const pdb =
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY B  10       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
