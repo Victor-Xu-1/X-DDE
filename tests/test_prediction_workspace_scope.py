@@ -63,3 +63,30 @@ def test_shared_inspection_has_exact_native_view_checks_without_global_task_suit
         "src/opendde_workbench/confidence.py",
     ]:
         assert not scope.selected(changes + [unrelated])
+
+
+def test_native_confidence_units_delegate_only_to_their_real_data_and_view_gate():
+    changes = [
+        "src/opendde_workbench/confidence.py",
+        "frontend/src/operations/ConfidencePanel.tsx",
+        "frontend/src/operations/ConfidencePanel.test.tsx",
+        "tests/test_import_confidence.py",
+        "server_tests/native_confidence_case.py",
+        "server_tests/test_native_confidence_browser.py",
+        "server_tests/prediction_workspace_case.py",
+        ".github/workflows/prediction-workspace-checks.yml",
+    ]
+    assert scope.native_confidence_only(changes)
+    assert scope.confidence_changed(changes)
+    assert scope.selected(changes)
+    assert scope.selected(changes, "pull_request")
+    assert not scope.selected(changes, "workflow_dispatch")
+    for unrelated in [
+        "src/opendde_workbench/models.py",
+        "frontend/src/integrations/Mol1Confidence.tsx",
+        "frontend/src/TaskForm.tsx",
+    ]:
+        assert not scope.native_confidence_only(changes + [unrelated])
+        assert not scope.selected(changes + [unrelated])
+        assert scope.confidence_changed(changes + [unrelated])
+    assert not scope.confidence_changed(["frontend/src/presentation/PredictionSetup.tsx"])

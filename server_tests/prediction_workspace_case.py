@@ -36,7 +36,7 @@ def case(state):
             "token_pair_pae": matrix,
             "token_pair_pde": matrix,
             "contact_probs": [[1 / (1 + v) for v in row] for row in matrix],
-            "atom_plddt": [80 + index] * 16,
+            "atom_plddt": [(80 + index) / 100] * 16,
         }
         (output / f"reference_full_data_sample_{index}.json").write_text(json.dumps(confidence))
         candidates.append(

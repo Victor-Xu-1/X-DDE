@@ -31,6 +31,10 @@ on:
       - "frontend/src/studio/HomeWorkspace.test.tsx"
       - "frontend/src/studio/Header.tsx"
       - "frontend/src/operations/ConfidencePanel*"
+      - "src/opendde_workbench/confidence.py"
+      - "tests/test_import_confidence.py"
+      - "server_tests/native_confidence_case.py"
+      - "server_tests/test_native_confidence_browser.py"
       - "frontend/src/guided/MolecularInputs.tsx"
       - "frontend/src/guided/MolecularInputs.test.tsx"
       - "frontend/src/TaskForm.tsx"
@@ -60,6 +64,8 @@ jobs:
     timeout-minutes: 3
     outputs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
+      native_confidence: ${{ steps.select.outputs.native_confidence }}
+      confidence_changed: ${{ steps.select.outputs.confidence_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,6 +75,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/prediction-workspace-scope.py
   interface:
+    needs: scope
     if: ${{ !inputs.scope_only }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
@@ -82,6 +89,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Prediction presentation, selection identity and direct form/navigation consumers
+        if: needs.scope.outputs.native_confidence != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
@@ -99,19 +107,45 @@ jobs:
           src/integrations/ScientificForm.test.tsx src/studio/MethodSwitch.test.tsx
           src/studio/Header.test.tsx src/App.test.tsx src/App.live-status.test.tsx
           src/studio/HomeWorkspace.test.tsx
+      - name: Native confidence interpretation and direct prediction result consumer
+        if: needs.scope.outputs.native_confidence == 'true'
+        working-directory: frontend
+        run: npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
       - run: uv sync --locked --group dev --group browser
       - name: Scope contract and changed browser fixture checks
         run: |
           uv run --locked python -m pytest -q tests/test_prediction_workspace_scope.py
           uv run --locked ruff check scripts/prediction-workspace-scope.py tests/test_prediction_workspace_scope.py server_tests/prediction_workspace_case.py server_tests/test_prediction_workspace_browser.py
+      - name: Native fractional pLDDT contract and invalid source values
+        if: needs.scope.outputs.confidence_changed == 'true'
+        run: |
+          uv run --locked python -m pytest -q tests/test_import_confidence.py
+          uv run --locked ruff check src/opendde_workbench/confidence.py tests/test_import_confidence.py server_tests/native_confidence_case.py server_tests/test_native_confidence_browser.py
+      - name: Obtain the existing sealed STAT6 output archive without running engines
+        if: needs.scope.outputs.confidence_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
+        if: needs.scope.outputs.native_confidence != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
+      - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
+        if: needs.scope.outputs.confidence_changed == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: prediction-workspace-evidence
-          path: outputs/prediction-workspace/**
+          path: |
+            outputs/prediction-workspace/**
+            outputs/native-confidence/**
       - uses: actions/upload-artifact@v4
         if: always()
         with:
