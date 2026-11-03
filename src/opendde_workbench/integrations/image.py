@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from .image_identity import composer_digest
+from .image_installer import prepare_installer
 from .offline_context import stage_archives
 from .specs import PROGRAMS, recipe_digest
 
@@ -16,7 +17,10 @@ PIP_DOWNLOAD_RETRIES = 3
 
 def lock_digest(identifier):
     root = Path(__file__).parent / "recipes"
-    files = [root / (identifier + suffix) for suffix in (".txt", ".conda.txt", "-engine.conda.txt")]
+    files = [
+        root / (identifier + suffix)
+        for suffix in (".txt", ".conda.txt", "-engine.conda.txt", "-installer.txt")
+    ]
     hasher = hashlib.sha256()
     for file in files:
         if file.is_file():
@@ -104,9 +108,21 @@ def prepare_context(identifier, destination, source=None, *, extra_sources=None,
         lines += [
             "COPY requirements.txt /tmp/requirements.txt",
             "ARG XDDE_PYPI_INDEX=https://pypi.org/simple",
+        ]
+        installer, resume = prepare_installer(
+            identifier,
+            spec,
+            destination,
+            recipes,
+            timeout=PIP_READ_TIMEOUT_SECONDS,
+            retries=PIP_DOWNLOAD_RETRIES,
+        )
+        lines += installer
+        lines += [
             "RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt "
             f"--timeout {PIP_READ_TIMEOUT_SECONDS} --retries {PIP_DOWNLOAD_RETRIES} "
-            '--index-url "$XDDE_PYPI_INDEX" '
+            + resume
+            + '--index-url "$XDDE_PYPI_INDEX" '
             "&& python -m pip check",
         ]
     if source:

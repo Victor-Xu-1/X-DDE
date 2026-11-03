@@ -5,6 +5,9 @@
       "version": "e6e64866ee89640a91cef7ee777a85f1d8be03bb",
       "name": "Mol-1",
       "gpu": true,
+    "pip_installer": {
+      "resume_retries": 5
+    },
       "system_packages": ["hmmer", "kalign"],
       "base": "docker.io/library/python@sha256:2986c55feb36e6cae00fa1fefb454283e4b33f35e75ff8bdd123b134130be301",
       "pip": ["torch==2.10.0", "biotite==1.7.1", "ml_collections==1.1.0"],
