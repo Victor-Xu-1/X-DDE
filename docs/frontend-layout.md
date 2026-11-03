@@ -556,3 +556,21 @@ The large molecular view stays on the left. The right-hand table initially expos
 ## Docking candidate worksheet
 
 The default docking worksheet prioritizes pose identity, original score units and available reference-pose deviations. Atom-mapping and unchanged reusable-status fields remain optional columns. Failed or evaluated spatial conditions stay visible by default, including failed soft conditions on otherwise valid candidates. Rejected poses remain non-selectable and retain their diagnostic view. Atom-region reselection guidance appears once for the selected pose. Core-metric reset, comparison, sorting and complete original CSV/SDF downloads preserve native record identity; these presentation choices do not qualify a pose scientifically or change its atoms, coordinates or scores.
+
+
+## Native confidence scales
+
+The OpenDDE full-data contract stores `atom_plddt` as fractions on 0–1; its
+native summary multiplies their mean by 100. The confidence API preserves those
+raw values and sampled atom indices and declares `atom_plddt_unit: "0-1"`.
+The atom chart converts verified fractional values to the labeled 0–100 axis,
+as the Mol-1 view already does. Zero is a valid score. Wrong-scale, boolean,
+non-finite or out-of-range values cannot be silently plotted or normalized by
+examining their range. An unrecognized unit leaves the valid matrix and original
+download available without inventing an atom-confidence plot.
+
+This is a display conversion, not a new prediction, residue/atom mapping or
+scientific accuracy claim. Experimental B-factors are not pLDDT. Native token
+indices remain distinct from residue numbers until a source-bound mapping is
+verified. Native files and downloads retain their original bytes. Upstream
+[confidence implementation](https://github.com/aurekaresearch/OpenDDE/blob/main/opendde/model/sample_confidence.py).

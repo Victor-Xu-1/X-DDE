@@ -60,8 +60,40 @@ PATTERNS = (
     "install.ps1",
 )
 
+CONFIDENCE_PATTERNS = (
+    "src/opendde_workbench/confidence.py",
+    "tests/test_import_confidence.py",
+    "frontend/src/operations/ConfidencePanel*",
+    "server_tests/prediction_workspace_case.py",
+    "server_tests/native_confidence_case.py",
+    "server_tests/test_native_confidence_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/frontend-layout.md",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package*.json",
+    "install.sh",
+    "install.ps1",
+)
+
+
+def native_confidence_only(changed):
+    return (
+        "src/opendde_workbench/confidence.py" in changed
+        and "frontend/src/operations/ConfidencePanel.tsx" in changed
+        and all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in CONFIDENCE_PATTERNS)
+            for name in changed
+        )
+    )
+
 
 def selected(changed, event="push"):
+    if event in {"push", "pull_request"} and native_confidence_only(changed):
+        return True
     return (
         event in {"push", "pull_request"}
         and any(
@@ -88,6 +120,7 @@ def main():
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+        stream.write("native_confidence=" + str(native_confidence_only(changed)).lower() + "\n")
         stream.write(
             "prediction_only="
             + str(selected(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()

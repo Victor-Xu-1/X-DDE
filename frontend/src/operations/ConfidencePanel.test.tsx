@@ -59,3 +59,63 @@ it("drops late confidence from the previous sample and never labels token indice
   expect(screen.queryByRole("link")).toBeNull();
   expect(screen.getByRole("status")).toHaveTextContent("Loading confidence");
 });
+
+it("converts explicitly fractional native atom confidence to the percent axis, including zero", async () => {
+  render(<ConfidencePanel jobId="native" candidate="sample" language="en" />);
+  await act(async () =>
+    pending.at(-1)!.resolve({
+      metric: "pae",
+      token_count: 1,
+      indices: [0],
+      stride: 1,
+      matrix: [[0]],
+      atom_plddt_unit: "0-1",
+      atom_plddt: [
+        { index: 0, value: 0 },
+        { index: 1, value: 0.87 },
+        { index: 2, value: 1 },
+      ],
+      atom_stride: 1,
+      native_artifact: "full_data.json",
+    }),
+  );
+  fireEvent.click(screen.getByText("Atom confidence"));
+  const trace = JSON.parse(screen.getByLabelText("Atom pLDDT").textContent!)[0];
+  expect(trace.x).toEqual([0, 1, 2]);
+  expect(trace.y).toEqual([0, 87, 100]);
+  expect(screen.getByRole("link")).toHaveAttribute(
+    "href",
+    "native/full_data.json",
+  );
+});
+
+it.each([undefined, "0-100", "unknown"])(
+  "does not guess atom confidence units (%s) while keeping the valid matrix and raw download",
+  async (unit) => {
+    render(<ConfidencePanel jobId="native" candidate="sample" language="en" />);
+    await act(async () =>
+      pending.at(-1)!.resolve({
+        metric: "pae",
+        token_count: 1,
+        indices: [0],
+        stride: 1,
+        matrix: [[0]],
+        atom_plddt_unit: unit,
+        atom_plddt: [{ index: 0, value: 0.87 }],
+        atom_stride: 1,
+        native_artifact: "full_data.json",
+      }),
+    );
+    expect(screen.queryByText("Atom confidence")).toBeNull();
+    expect(
+      screen.getByText(/The atom-confidence scale could not be verified/),
+    ).toBeVisible();
+    expect(
+      screen.getByLabelText("Predicted aligned error (PAE)"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "native/full_data.json",
+    );
+  },
+);

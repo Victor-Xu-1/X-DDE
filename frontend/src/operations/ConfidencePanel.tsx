@@ -11,6 +11,7 @@ interface Confidence {
   matrix: number[][];
   atom_plddt: { index: number; value: number }[];
   atom_stride: number;
+  atom_plddt_unit?: string;
   native_artifact: string;
 }
 
@@ -51,6 +52,13 @@ export function ConfidencePanel({
   }, [jobId, candidate, metric, key]);
   const data = state.key === key ? state.data : undefined;
   const error = state.key === key ? state.error : undefined;
+  const atomScores =
+    data?.atom_plddt_unit === "0-1" &&
+    data.atom_plddt.every(
+      (row) => Number.isFinite(row.value) && row.value >= 0 && row.value <= 1,
+    )
+      ? data.atom_plddt.map((row) => 100 * row.value)
+      : null;
   const labels: Record<string, string> = {
     pae: zh ? "预测对齐误差 PAE" : "Predicted aligned error (PAE)",
     pde: zh ? "预测距离误差 PDE" : "Predicted distance error (PDE)",
@@ -130,7 +138,7 @@ export function ConfidencePanel({
               ? " 原始 token 索引不等同于残基编号。"
               : " Native token indices are not residue numbers."}
           </p>
-          {data.atom_plddt.length > 0 && (
+          {data.atom_plddt.length > 0 && atomScores !== null && (
             <details>
               <summary>{zh ? "逐原子置信度" : "Atom confidence"}</summary>
               <InteractivePlot
@@ -142,7 +150,7 @@ export function ConfidencePanel({
                     type: "scatter",
                     mode: "lines",
                     x: data.atom_plddt.map((row) => row.index),
-                    y: data.atom_plddt.map((row) => row.value),
+                    y: atomScores,
                     name: "pLDDT",
                   },
                 ]}
@@ -157,6 +165,13 @@ export function ConfidencePanel({
                 {zh ? "显示步长" : "Display stride"} {data.atom_stride}
               </p>
             </details>
+          )}
+          {data.atom_plddt.length > 0 && atomScores === null && (
+            <p role="status" className="small">
+              {zh
+                ? "逐原子置信度的数值范围尚无法核验，请下载原生数据查看。"
+                : "The atom-confidence scale could not be verified. Download the native data to inspect it."}
+            </p>
           )}
           <a href={artifactUrl(jobId, data.native_artifact)} download>
             {zh ? "下载完整原生置信度" : "Download full native confidence"}
