@@ -28,6 +28,7 @@ PATTERNS = (
     ".github/workflows/task-layout-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/structure-layout-checks.yml",
+    ".github/workflows/landscape-checks.yml",
     "docs/frontend-layout.md",
     "docs/quality/frontend.md",
     "pyproject.toml",

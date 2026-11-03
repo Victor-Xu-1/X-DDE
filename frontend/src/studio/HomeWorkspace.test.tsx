@@ -128,13 +128,9 @@ it("separates task entry from structure review while preserving the draft", asyn
   fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));
   expect(sequence).not.toBeVisible();
   expect(screen.getByTitle("可交互分子结构")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "研究结果" })).toBeVisible();
   expect(
-    screen.getByRole("heading", { name: "研究结果", exact: true }),
-  ).toBeVisible();
-  expect(
-    screen
-      .getByRole("heading", { name: "研究结果", exact: true })
-      .closest("header"),
+    screen.getByRole("heading", { name: "研究结果" }).closest("header"),
   ).toHaveTextContent("已完成");
   expect(
     screen.queryByRole("heading", { name: "已完成的任务 已完成" }),
