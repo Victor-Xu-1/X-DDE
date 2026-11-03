@@ -79,6 +79,7 @@ export function PredictionResults(p: PredictionResultsProps) {
         preview={
           <div className="viewer-column">
             <StructureViewer
+              predictionControls
               urls={p.urls}
               language={p.language}
               focusResidue={p.focusResidue}

@@ -73,6 +73,22 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             hashlib.sha256(path.read_bytes()).digest()
             == hashlib.sha256((INPUTS / "9BIG.cif").read_bytes()).digest()
         )
+        page.locator(".viewer-chain-menu > summary").click()
+        visibility = page.get_by_role("group", name="链显示" if zh else "Chain visibility")
+        visibility.get_by_role(
+            "checkbox", name="显示链 A" if zh else "Show chain A", exact=True
+        ).uncheck()
+        expect(visibility.get_by_role("checkbox").first).not_to_be_checked()
+        expect(page.locator(".viewer-chain-menu > summary")).to_contain_text("0 / 1")
+        visibility.get_by_role(
+            "button", name="显示全部链" if zh else "Show all chains", exact=True
+        ).click()
+        expect(visibility.get_by_role("checkbox").first).to_be_checked()
+        visibility.get_by_role(
+            "button", name="只显示链 A" if zh else "Show only chain A", exact=True
+        ).click()
+        expect(visibility.get_by_role("checkbox").first).to_be_checked()
+        page.locator(".viewer-chain-menu > summary").click()
         preview = page.locator(".prediction-result .structure-workbench-view")
         inspector = page.locator(".prediction-result .structure-workbench-details")
         a, b = preview.bounding_box(), inspector.bounding_box()

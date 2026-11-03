@@ -58,6 +58,37 @@ function expectSticks(atoms: AtomSpec[]) {
     expect(atom.style?.stick?.radius).toBe(ligandBondRadius);
   }
 }
+it("chain display updates actual styles, clickability and contacts without altering native coordinates", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nHETATM    3  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nHETATM    4  O1  LIG B   2       1.200   2.000   0.000  1.00 20.00           O  \nCONECT    3    4\nCONECT    4    3\nEND\n";
+  const { model, scene, emit, clicks } = fixture(pdb, "pdb");
+  const original = source(model.selectedAtoms({}));
+  await scene.displayChains({ action: "only", chain: "A" });
+  expect(
+    model
+      .selectedAtoms({ chain: "B" })
+      .every((a) => Object.keys(a.style ?? {}).length === 0),
+  ).toBe(true);
+  expect(emit).toHaveBeenLastCalledWith("chain-display", ["B"]);
+  expect(emit).toHaveBeenCalledWith(
+    "contacts",
+    expect.objectContaining({ total: 0 }),
+  );
+  await scene.displayChains({ action: "show", chain: "B" });
+  expectSticks(model.selectedAtoms({ chain: "B" }));
+  expect(clicks).toHaveBeenCalledWith({}, true, expect.any(Function));
+  await scene.displayChains({ action: "hide", chain: "A" });
+  await scene.action("restore");
+  expect(emit).toHaveBeenLastCalledWith("chain-display", []);
+  expect(source(model.selectedAtoms({}))).toEqual(original);
+  await expect(
+    scene.displayChains({ action: "hide", chain: "unknown" }),
+  ).rejects.toThrow();
+  scene.inspect(true, false, ["pdb", "sdf"]);
+  await expect(
+    scene.displayChains({ action: "only", chain: "A" }),
+  ).rejects.toThrow("Choose one structure");
+});
 it("standalone ligands use thin element-colored sticks while keeping original coordinates and double bonds", async () => {
   const { model, scene } = fixture(),
     before = source(model.selectedAtoms({}));

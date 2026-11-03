@@ -6,6 +6,14 @@ on:
       - "frontend/src/presentation/Prediction*"
       - "frontend/src/presentation/prediction-*.css"
       - "frontend/src/presentation/prediction-heading-focus*"
+      - "frontend/src/viewer/ChainControls*"
+      - "frontend/src/viewer/chain-controls.css"
+      - "frontend/src/viewer/chain-visibility*"
+      - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/viewer/StructureViewer.test.tsx"
+      - "frontend/src/viewer/scene.ts"
+      - "frontend/src/viewer/frame.ts"
+      - "frontend/src/viewer/style.test.ts"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Confidence.tsx"
@@ -72,6 +80,9 @@ jobs:
           npx vitest run src/presentation/PredictionSamples.test.tsx
           src/presentation/PredictionSetup.test.tsx
           src/presentation/prediction-heading-focus.test.tsx
+          src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
+          src/viewer/StructureViewer.test.tsx src/viewer/style.test.ts
+          src/viewer/contacts.test.ts src/viewer/donor-hydrogens.test.ts
           src/guided/MolecularInputs.test.tsx
           src/integrations/prediction-presentation.test.ts src/operations/ConfidencePanel.test.tsx
           src/studio/PredictionResults.test.tsx src/integrations/ScientificResults.test.tsx

@@ -36,6 +36,14 @@ Native token and atom indices are not relabeled as residue numbers; no unverifie
 PAE-to-residue mapping is invented. Boltz's 0–1 pLDDT and Mol-1/OpenDDE's 0–100
 values retain their reported scales and units.
 
+The prediction viewer's chain menu displays the actual native chain identifiers,
+including unnamed and multi-character IDs. Hide, show, only and restore update
+display styles and contact neighborhoods, not input coordinates or downloads.
+The renderer acknowledges visibility before checkboxes change. Candidate changes
+reset this display state; conformer overlays keep their existing controls. Figure
+previews invalidate when chain visibility changes. Other modules retain their
+existing chain-focus buttons.
+
 Prediction-specific CI covers the changed controls and their direct questionnaire,
 navigation and result consumers. A bounded path classifier delegates this batch
 from the historical whole-workbench layout sweeps to that exact gate; mixed or

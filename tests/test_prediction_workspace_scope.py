@@ -27,6 +27,13 @@ def test_only_bounded_prediction_presentation_is_delegated():
             "server_tests/test_template_controls_browser.py",
             "frontend/src/presentation/prediction-heading-focus.ts",
             "frontend/src/presentation/prediction-heading-focus.test.tsx",
+            "frontend/src/viewer/ChainControls.tsx",
+            "frontend/src/viewer/chain-controls.css",
+            "frontend/src/viewer/chain-visibility.ts",
+            "frontend/src/viewer/StructureViewport.tsx",
+            "frontend/src/viewer/scene.ts",
+            "frontend/src/viewer/frame.ts",
+            "frontend/src/viewer/style.test.ts",
         ]
     )
     assert not scope.selected(changes, "workflow_dispatch")
@@ -34,3 +41,4 @@ def test_only_bounded_prediction_presentation_is_delegated():
     assert not scope.selected(["frontend/src/integrations/ScientificResults.tsx"])
     assert not scope.selected(changes + ["src/opendde_workbench/integrations/native_mol1.py"])
     assert not scope.selected(changes + ["frontend/src/datasets/DatasetResults.tsx"])
+    assert not scope.selected(changes + ["frontend/src/viewer/PoseSession.tsx"])
