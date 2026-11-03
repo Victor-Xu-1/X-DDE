@@ -9,6 +9,11 @@ import { translator } from "../i18n";
 import { useTaskLabel } from "../examples/useTaskLabel";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 import { PredictionSamples } from "../presentation/PredictionSamples";
+import { useCallback, useState } from "react";
+import type {
+  ConfidenceBinding,
+  ConfidenceInspection,
+} from "../viewer/confidence-types";
 export type PredictionResultsProps = Pick<
   PredictionWorkspaceProps,
   | "language"
@@ -30,6 +35,30 @@ export type PredictionResultsProps = Pick<
   | "onChanged"
 >;
 export function PredictionResults(p: PredictionResultsProps) {
+  const selectedKey = `${p.job?.id}:${p.candidate?.id}`;
+  const [annotation, setAnnotation] = useState<{
+    key: string;
+    value: ConfidenceBinding | null;
+  }>();
+  const [inspection, setInspection] = useState<{
+    key: string;
+    value: ConfidenceInspection | null;
+  }>();
+  const [residueSelection, setResidueSelection] = useState<{
+    key: string;
+    value: string[];
+  }>();
+  const [tokenSelection, setTokenSelection] = useState<{
+    key: string;
+    tokens: number[];
+    nonce: number;
+  } | null>(null);
+  const receiveBinding = useCallback(
+    (value: ConfidenceBinding | null) =>
+      setAnnotation({ key: selectedKey, value }),
+    [selectedKey],
+  );
+  const mapped = inspection?.key === selectedKey ? inspection.value : null;
   const zh = p.language === "zh",
     t = translator(p.language),
     taskLabel = useTaskLabel(p.job, p.language);
@@ -83,6 +112,20 @@ export function PredictionResults(p: PredictionResultsProps) {
               language={p.language}
               focusResidue={p.focusResidue}
               comparison={p.compared.length > 1}
+              confidence={
+                p.compared.length > 1 || annotation?.key !== selectedKey
+                  ? null
+                  : annotation?.value
+              }
+              onConfidenceInspection={(value) =>
+                setInspection({ key: selectedKey, value })
+              }
+              confidenceSelection={
+                mapped?.key === tokenSelection?.key ? tokenSelection : null
+              }
+              onResiduesSelected={(value) =>
+                setResidueSelection({ key: selectedKey, value })
+              }
             />
           </div>
         }
@@ -93,6 +136,21 @@ export function PredictionResults(p: PredictionResultsProps) {
               jobId={p.job.id}
               candidate={p.candidate.id}
               language={p.language}
+              onBinding={receiveBinding}
+              inspection={p.compared.length > 1 ? null : mapped}
+              selectedResidues={
+                residueSelection?.key === selectedKey
+                  ? residueSelection.value
+                  : []
+              }
+              onTokens={(tokens) => {
+                if (mapped)
+                  setTokenSelection({
+                    key: mapped.key,
+                    tokens,
+                    nonce: Date.now(),
+                  });
+              }}
             />
           ) : (
             <section className="prediction-confidence-empty">

@@ -10,6 +10,8 @@ export const displayCommands = [
   "focus-site",
   "attachment-geometry",
   "search-box",
+  "confidence",
+  "confidence-selection",
 ];
 
 export class DisplayReadiness {

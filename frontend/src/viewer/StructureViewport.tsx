@@ -48,6 +48,12 @@ import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
+import { ConfidenceControls, ConfidenceLegend } from "./ConfidenceControls";
+import {
+  confidenceIdentity,
+  type ConfidenceBinding,
+  type ConfidenceInspection,
+} from "./confidence-types";
 import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
@@ -75,6 +81,10 @@ export interface StructureViewerProps {
   electrostaticMap?: PotentialMap;
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
+  confidence?: ConfidenceBinding | null;
+  confidenceSelection?: { key: string; tokens: number[]; nonce: number } | null;
+  onConfidenceInspection?(value: ConfidenceInspection | null): void;
+  onResiduesSelected?(keys: string[]): void;
 }
 export function StructureViewport({
   sourceSnapshot = false,
@@ -98,6 +108,10 @@ export function StructureViewport({
   electrostaticMap,
   onAtomSelected,
   onSceneLoaded,
+  confidence,
+  confidenceSelection,
+  onConfidenceInspection,
+  onResiduesSelected,
   optimization,
 }: StructureViewerProps & { optimization: PoseController }) {
   const { urls, records, score: nativeScore } = optimization.pose;
@@ -149,6 +163,16 @@ export function StructureViewport({
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
   const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
+  const [confidenceView, setConfidenceView] =
+    useState<ConfidenceInspection | null>(null);
+  const [confidenceUnavailable, setConfidenceUnavailable] = useState(false);
+  const confidenceCallback = useRef(onConfidenceInspection);
+  confidenceCallback.current = onConfidenceInspection;
+  const residueCallback = useRef(onResiduesSelected);
+  residueCallback.current = onResiduesSelected;
+  const confidenceKey = confidence ? confidenceIdentity(confidence) : "";
+  const expectedConfidence = useRef(confidenceKey);
+  expectedConfidence.current = confidenceKey;
   const [displayPending, setDisplayPending] = useState(false);
   const [displayRevision, setDisplayRevision] = useState(0);
   const displayWork = useRef(new DisplayReadiness());
@@ -229,8 +253,23 @@ export function StructureViewport({
         type === "residue-selection" &&
         Array.isArray(detail) &&
         detail.every((key) => typeof key === "string")
-      )
+      ) {
         setSelectedResidues(detail);
+        residueCallback.current?.(detail);
+      }
+      if (type === "confidence-inspection") {
+        if (!detail || detail.key === expectedConfidence.current) {
+          setConfidenceView(detail);
+          setConfidenceUnavailable(false);
+          confidenceCallback.current?.(detail);
+        }
+      }
+      if (type === "confidence-unavailable") setConfidenceUnavailable(true);
+      if (
+        type === "confidence-color" &&
+        ["chain", "confidence"].includes(detail)
+      )
+        setOptions((o) => ({ ...o, color: detail }));
       if (type === "rendering" && typeof detail === "boolean") {
         displayWork.current.render(detail);
         setDisplayPending(displayWork.current.pending);
@@ -296,6 +335,10 @@ export function StructureViewport({
     focusedLigand.current = null;
     setSelection(null);
     setSelectedResidues([]);
+    setConfidenceView(null);
+    setConfidenceUnavailable(false);
+    confidenceCallback.current?.(null);
+    residueCallback.current?.([]);
     setHiddenChains([]);
     displayWork.current.reset();
     setDisplayPending(false);
@@ -393,6 +436,29 @@ export function StructureViewport({
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
   const hadSearchBox = useRef(false);
+  const hadConfidence = useRef(false);
+  const lastConfidenceRequest = useRef("");
+  useEffect(() => {
+    const request = sceneKey + ":" + confidenceKey;
+    if (
+      loaded &&
+      (confidence || hadConfidence.current) &&
+      request !== lastConfidenceRequest.current
+    ) {
+      send("confidence", confidence ?? null);
+      hadConfidence.current = Boolean(confidence);
+      lastConfidenceRequest.current = request;
+    }
+  }, [loaded, sceneKey, confidenceKey]);
+  const selectionKey = JSON.stringify(confidenceSelection);
+  useEffect(() => {
+    if (
+      loaded &&
+      confidenceView &&
+      confidenceSelection?.key === confidenceView.key
+    )
+      send("confidence-selection", confidenceSelection);
+  }, [loaded, confidenceView?.key, selectionKey]);
   useEffect(() => {
     if (loaded && (searchBox !== undefined || hadSearchBox.current)) {
       send("search-box", searchBox);
@@ -559,6 +625,14 @@ export function StructureViewport({
               onChange={configure}
             />
           )}
+          {!overlay && confidence && (
+            <ConfidenceControls
+              language={language}
+              ready={Boolean(confidenceView)}
+              color={options.color}
+              onColor={(color) => configure({ color })}
+            />
+          )}
         </div>
       )}
       {comparison && (
@@ -566,6 +640,13 @@ export function StructureViewport({
           {zh
             ? "蓝 / 橙 / 紫表示不同构象。退出叠加后可编辑单个结构的显示。"
             : "Blue / orange / purple identify conformers. Leave overlay to edit an individual structure's display."}
+        </p>
+      )}
+      {confidenceUnavailable && (
+        <p role="status" className="field-help">
+          {zh
+            ? "此构象的原子对应关系无法核验，继续按链显示。"
+            : "Atom identities could not be verified for this conformer. Chain colors remain available."}
         </p>
       )}
       <div className="molecular-stage">
@@ -814,14 +895,20 @@ export function StructureViewport({
         </>
       )}
       {loaded && scene.residues.length > 0 && !overlay && !comparison && (
-        <StructureSequence
-          language={language}
-          residues={scene.residues}
-          selected={selectedResidues}
-          hiddenChains={hiddenChains}
-          onSelect={(key, mode) => send("sequence-selection", { key, mode })}
-          onClear={() => send("selection-action", "clear")}
-        />
+        <>
+          {confidenceView && options.color === "confidence" && (
+            <ConfidenceLegend language={language} />
+          )}
+          <StructureSequence
+            language={language}
+            residues={scene.residues}
+            selected={selectedResidues}
+            hiddenChains={hiddenChains}
+            confidence={confidenceView?.residueScores}
+            onSelect={(key, mode) => send("sequence-selection", { key, mode })}
+            onClear={() => send("selection-action", "clear")}
+          />
+        </>
       )}
       {!sourceSnapshot &&
         !comparison &&

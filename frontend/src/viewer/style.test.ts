@@ -58,6 +58,50 @@ function expectSticks(atoms: AtomSpec[]) {
     expect(atom.style?.stick?.radius).toBe(ligandBondRadius);
   }
 }
+it("confidence styling and linked token selection preserve geometry, native atom properties and chain recovery", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY B  10       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
+  const { model, scene, emit } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  const properties = model
+    .selectedAtoms({})
+    .map((a) => ({ ...a.properties, b: a.b }));
+  await scene.annotateConfidence({
+    key: "sample-bound",
+    atomScores: new Map([
+      [0, 95],
+      [1, 95],
+      [2, 40],
+    ]),
+    atomTokens: new Map([
+      [0, 0],
+      [1, 0],
+      [2, 1],
+    ]),
+    residueScores: { "A:ALA:1:": 95, "B:GLY:10:": 40 },
+    tokens: [
+      { index: 0, chain: "A", residue: "A:ALA:1:", label: "A:ALA1" },
+      { index: 1, chain: "B", residue: "B:GLY:10:", label: "B:GLY10" },
+    ],
+  });
+  expect(model.selectedAtoms({})[0].style?.cartoon?.color).toBe("#0053d6");
+  expect(model.selectedAtoms({})[2].style?.cartoon?.color).toBe("#ff7d45");
+  await scene.selectConfidence({ key: "stale", tokens: [1] });
+  expect(emit).not.toHaveBeenLastCalledWith("residue-selection", ["B:GLY:10:"]);
+  await scene.selectConfidence({ key: "sample-bound", tokens: [1] });
+  expect(emit).toHaveBeenCalledWith("residue-selection", ["B:GLY:10:"]);
+  expect(emit).toHaveBeenCalledWith("selected", null); // Display picks never become scientific constraints.
+  await scene.displayChains({ action: "only", chain: "A" });
+  await scene.selectConfidence({ key: "sample-bound", tokens: [1] });
+  expect(emit).toHaveBeenLastCalledWith("residue-selection", []);
+  await scene.annotateConfidence(null);
+  expect(scene.options.color).toBe("chain");
+  expect(model.selectedAtoms({})[0].style?.cartoon?.color).toBe("#9772d6");
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+  expect(
+    model.selectedAtoms({}).map((a) => ({ ...a.properties, b: a.b })),
+  ).toEqual(properties);
+});
 it("chain display updates actual styles, clickability and contacts without altering native coordinates", async () => {
   const pdb =
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nHETATM    3  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nHETATM    4  O1  LIG B   2       1.200   2.000   0.000  1.00 20.00           O  \nCONECT    3    4\nCONECT    4    3\nEND\n";

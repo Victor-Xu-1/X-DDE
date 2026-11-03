@@ -60,7 +60,7 @@ def test_shared_inspection_has_exact_native_view_checks_without_global_task_suit
     for unrelated in [
         "frontend/src/simulations/SimulationForm.tsx",
         "frontend/src/deployment/ComponentCard.tsx",
-        "src/opendde_workbench/confidence.py",
+        "src/opendde_workbench/models.py",
     ]:
         assert not scope.selected(changes + [unrelated])
 
@@ -90,3 +90,20 @@ def test_native_confidence_units_delegate_only_to_their_real_data_and_view_gate(
         assert not scope.selected(changes + [unrelated])
         assert scope.confidence_changed(changes + [unrelated])
     assert not scope.confidence_changed(["frontend/src/presentation/PredictionSetup.tsx"])
+
+
+def test_linked_confidence_always_keeps_native_contract_and_render_consumer_checks():
+    changes = [
+        "frontend/src/viewer/StructureInspection.tsx",
+        "frontend/src/viewer/confidence-mapping.ts",
+        "frontend/src/viewer/structure-bytes.ts",
+        "frontend/src/presentation/plots/InteractivePlot.tsx",
+        "src/opendde_workbench/confidence.py",
+        "src/opendde_workbench/confidence_binding.py",
+        "tests/test_confidence_binding.py",
+        "server_tests/test_native_confidence_browser.py",
+    ]
+    assert scope.selected(changes)
+    assert scope.confidence_changed(changes)
+    assert not scope.native_confidence_only(changes)
+    assert not scope.selected(changes + ["src/opendde_workbench/backend.py"])

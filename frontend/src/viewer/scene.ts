@@ -7,6 +7,8 @@ import {
 import { paintBase, paintOverlayModel } from "./style";
 import { chainDisplay, hiddenChainIds } from "./chain-visibility";
 import { paintPolymerDetail } from "./polymer-detail";
+import { confidenceColor, type ConfidenceInspection } from "./confidence-types";
+import type { MappedConfidence } from "./confidence-mapping";
 import {
   emptyResidueSelection,
   selectObservedResidues,
@@ -91,6 +93,29 @@ export class MolecularScene {
   >();
   private measurement: mol.AtomSpec[] = [];
   private overlay = false;
+  private confidence: MappedConfidence | null = null;
+  get isOverlay() {
+    return this.overlay;
+  }
+  async annotateConfidence(value: MappedConfidence | null) {
+    if (this.confidence?.key !== value?.key) {
+      this.selected = [];
+      this.clearResidueSelection();
+      this.emit("selected", null);
+    }
+    this.confidence = value;
+    this.options.color = value ? "confidence" : "chain";
+    const inspection: ConfidenceInspection | null = value
+      ? {
+          key: value.key,
+          residueScores: value.residueScores,
+          tokens: value.tokens,
+        }
+      : null;
+    this.emit("confidence-inspection", inspection);
+    this.emit("confidence-color", this.options.color);
+    await this.paint();
+  }
   private formats: string[] = [];
   private inputCharges: boolean[] = [];
   private complexModel: number | null = null;
@@ -110,6 +135,8 @@ export class MolecularScene {
     this.attachmentGeometry = undefined;
     this.attachmentCount = 0;
     this.potential = undefined;
+    this.confidence = null;
+    this.emit("confidence-inspection", null);
     this.revision++;
     this.selected = [];
     this.clearResidueSelection();
@@ -174,9 +201,21 @@ export class MolecularScene {
     this.options.pick = this.info.hasPolymer ? "residue" : "atom";
     this.options.mode =
       ligands.length && residues.length ? "pocket" : "cartoon";
-    this.viewer.setClickable({}, !overlay, (atom: mol.AtomSpec) => {
-      void this.pick(atom);
-    });
+    this.viewer.setClickable(
+      {},
+      !overlay,
+      (atom: mol.AtomSpec, _viewer: mol.GLViewer, event?: MouseEvent) => {
+        if (
+          this.options.pick === "residue" &&
+          (event?.shiftKey || event?.ctrlKey || event?.metaKey)
+        )
+          void this.selectSequence({
+            key: ref(atom).key,
+            mode: event.shiftKey ? "range" : "toggle",
+          });
+        else void this.pick(atom);
+      },
+    );
     return this.info;
   }
   async configure(value: Partial<ViewerOptions>) {
@@ -185,6 +224,11 @@ export class MolecularScene {
       this.options.allAtoms = value.allAtoms;
     if (typeof value.sideChains === "boolean")
       this.options.sideChains = value.sideChains;
+    if (
+      value.color === "chain" ||
+      (value.color === "confidence" && this.confidence)
+    )
+      this.options.color = value.color;
     if (value.mode && ["cartoon", "pocket", "surface"].includes(value.mode))
       this.options.mode = value.mode;
     if (value.radius && [3, 4, 5, 6, 8].includes(value.radius))
@@ -303,6 +347,20 @@ export class MolecularScene {
     }
     paintBase(v, this.info, this.options, [...this.hidden]);
     paintPolymerDetail(v, this.info, this.options, this.selected);
+    if (this.options.color === "confidence" && this.confidence) {
+      const polymers = new Set(this.info.residues.map((r) => r.key));
+      const colors = new Map<string, number[]>();
+      for (const atom of v.selectedAtoms({ model: 0 })) {
+        const score = this.confidence.atomScores.get(atom.index!);
+        if (score === undefined || !polymers.has(ref(atom).key)) continue;
+        const color = confidenceColor(score),
+          indices = colors.get(color) ?? [];
+        indices.push(atom.index!);
+        colors.set(color, indices);
+      }
+      for (const [color, index] of colors)
+        v.addStyle({ model: 0, index }, { cartoon: { color, opacity: 1 } });
+    }
     for (const region of this.siteRegions)
       v.addStyle({ model: region.model, index: region.indices }, regionStyle());
     this.drawContacts();
@@ -540,6 +598,48 @@ export class MolecularScene {
     await this.paint();
     if (revision !== this.revision) return;
     this.emit("residue-selection", next.keys);
+  }
+  async selectConfidence(value: unknown) {
+    if (!this.confidence || this.overlay || !value || typeof value !== "object")
+      return;
+    const { key, tokens } = value as { key?: string; tokens?: number[] };
+    if (
+      key !== this.confidence.key ||
+      !Array.isArray(tokens) ||
+      tokens.length > this.confidence.tokens.length ||
+      tokens.some(
+        (i) =>
+          !Number.isInteger(i) || i < 0 || i >= this.confidence!.tokens.length,
+      )
+    )
+      return;
+    const requested = new Set(tokens);
+    const atoms = this.viewer.selectedAtoms({ model: 0 });
+    this.selected = atoms
+      .filter(
+        (atom) =>
+          requested.has(this.confidence!.atomTokens.get(atom.index!)!) &&
+          !this.hidden.has(atom.index!),
+      )
+      .map((atom) => atom.index!);
+    const keys = new Set(
+      atoms
+        .filter((atom) => this.selected.includes(atom.index!))
+        .map((atom) => ref(atom).key),
+    );
+    this.residueSelection = {
+      keys: [...keys].filter((key) =>
+        this.info.residues.some((r) => r.key === key),
+      ),
+      anchor: null,
+    };
+    this.measurement = [];
+    this.emit("selected", null);
+    this.emit("distance", null);
+    const revision = this.revision;
+    await this.paint();
+    if (revision === this.revision)
+      this.emit("residue-selection", this.residueSelection.keys);
   }
   private clearResidueSelection() {
     this.residueSelection = emptyResidueSelection();

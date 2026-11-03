@@ -11,6 +11,7 @@ export interface ViewerOptions {
   contactLimit: ContactLimit;
   allAtoms: boolean;
   sideChains: boolean;
+  color: "chain" | "confidence";
 }
 export const defaultOptions: ViewerOptions = {
   mode: "cartoon",
@@ -22,6 +23,7 @@ export const defaultOptions: ViewerOptions = {
   contactLimit: 5,
   allAtoms: false,
   sideChains: false,
+  color: "chain",
 };
 export interface Residue {
   key: string;

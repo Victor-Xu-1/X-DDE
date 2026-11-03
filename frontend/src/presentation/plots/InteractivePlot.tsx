@@ -13,6 +13,8 @@ export function InteractivePlot({
   layout,
   language,
   onPoint,
+  onRange,
+  selectable = false,
   height = 280,
 }: {
   title: string;
@@ -20,6 +22,8 @@ export function InteractivePlot({
   layout?: Partial<Plotly.Layout>;
   language: Language;
   onPoint?(point: Plotly.PlotDatum): void;
+  onRange?(range: { x: number[]; y: number[] }): void;
+  selectable?: boolean;
   height?: number;
 }) {
   const element = useRef<(HTMLDivElement & Plotly.PlotlyHTMLElement) | null>(
@@ -27,13 +31,24 @@ export function InteractivePlot({
   );
   const callback = useRef(onPoint);
   callback.current = onPoint;
+  const rangeCallback = useRef(onRange);
+  rangeCallback.current = onRange;
   const queue = useRef(Promise.resolve());
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState("");
-  const [dragMode, setDragMode] = useState<"zoom" | "pan">("zoom");
+  const [dragMode, setDragMode] = useState<"zoom" | "pan" | "select">("zoom");
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
-  const signature = JSON.stringify({ data, layout, height, title, dragMode });
+  const signature = JSON.stringify({
+    data,
+    layout,
+    height,
+    title,
+    dragMode,
+    selectable,
+  });
+  const currentSignature = useRef(signature);
+  currentSignature.current = signature;
   useEffect(() => {
     const target = element.current!;
     let disposed = false;
@@ -95,7 +110,32 @@ export function InteractivePlot({
         );
         target.removeAllListeners("plotly_click");
         target.on("plotly_click", (event) => {
-          if (event.points[0]) callback.current?.(event.points[0]);
+          if (
+            active &&
+            currentSignature.current === signature &&
+            event.points[0]
+          )
+            callback.current?.(event.points[0]);
+        });
+        target.removeAllListeners("plotly_selected");
+        target.on("plotly_selected", (event) => {
+          const range = event?.range;
+          if (
+            active &&
+            currentSignature.current === signature &&
+            selectable &&
+            range &&
+            [range.x, range.y].every(
+              (axis) =>
+                Array.isArray(axis) &&
+                axis.length === 2 &&
+                axis.every(Number.isFinite),
+            )
+          )
+            rangeCallback.current?.({
+              x: range.x as number[],
+              y: range.y as number[],
+            });
         });
         if (active) {
           setError(false);
@@ -118,11 +158,14 @@ export function InteractivePlot({
             aria-label={zh ? "图表操作" : "Chart interaction"}
             value={dragMode}
             onChange={(event) =>
-              setDragMode(event.target.value as "zoom" | "pan")
+              setDragMode(event.target.value as "zoom" | "pan" | "select")
             }
           >
             <option value="zoom">{zh ? "缩放" : "Zoom"}</option>
             <option value="pan">{zh ? "平移" : "Pan"}</option>
+            {selectable && (
+              <option value="select">{zh ? "选择" : "Select"}</option>
+            )}
           </select>
           <button
             type="button"

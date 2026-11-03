@@ -67,3 +67,6 @@ boundaries. Sequence display selection cannot create scientific atom restraints.
 All-atom detail remains subject to the platform donor-only hydrogen display rule.
 Overlays retain their established model colors and separate selection contracts.
 No row above constitutes full-product parity acceptance without recorded evidence.
+
+
+Source-bound confidence increment: targeted acceptance must include the retained native STAT6 943-atom/116-token result in English desktop and Chinese narrow compiled UI; exact input/download hashes; real confidence/chain coloring, sequence selection, PAE clicks and two-axis ranges; stale candidate/source rejection; unsupported mapping fallback; hidden-chain behavior; source geometry and hydrogen policy preservation. This is not whole-module pixel parity or a new scientific inference. Mol-1 and unsupported historical formats need their own source mapping and remain separate acceptance items.
