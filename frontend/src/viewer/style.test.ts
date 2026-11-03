@@ -11,6 +11,7 @@ import {
   type AtomSpec,
 } from "3dmol";
 import { MolecularScene } from "./scene";
+import { residueRef } from "./geometry";
 import { paintOverlayModel } from "./style";
 import { ligandBondRadius } from "./appearance";
 const sdf =
@@ -63,6 +64,10 @@ it("confidence styling and linked token selection preserve geometry, native atom
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY B  10       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
   const { model, scene, emit } = fixture(pdb, "pdb");
   const before = source(model.selectedAtoms({}));
+  const [aKey, bKey] = [
+    residueRef(model.selectedAtoms({})[0]).key,
+    residueRef(model.selectedAtoms({})[2]).key,
+  ];
   const properties = model
     .selectedAtoms({})
     .map((a) => ({ ...a.properties, b: a.b }));
@@ -78,18 +83,18 @@ it("confidence styling and linked token selection preserve geometry, native atom
       [1, 0],
       [2, 1],
     ]),
-    residueScores: { "A:ALA:1:": 95, "B:GLY:10:": 40 },
+    residueScores: { [aKey]: 95, [bKey]: 40 },
     tokens: [
-      { index: 0, chain: "A", residue: "A:ALA:1:", label: "A:ALA1" },
-      { index: 1, chain: "B", residue: "B:GLY:10:", label: "B:GLY10" },
+      { index: 0, chain: "A", residue: aKey, label: "A:ALA1" },
+      { index: 1, chain: "B", residue: bKey, label: "B:GLY10" },
     ],
   });
   expect(model.selectedAtoms({})[0].style?.cartoon?.color).toBe("#0053d6");
   expect(model.selectedAtoms({})[2].style?.cartoon?.color).toBe("#ff7d45");
   await scene.selectConfidence({ key: "stale", tokens: [1] });
-  expect(emit).not.toHaveBeenLastCalledWith("residue-selection", ["B:GLY:10:"]);
+  expect(emit).not.toHaveBeenLastCalledWith("residue-selection", [bKey]);
   await scene.selectConfidence({ key: "sample-bound", tokens: [1] });
-  expect(emit).toHaveBeenCalledWith("residue-selection", ["B:GLY:10:"]);
+  expect(emit).toHaveBeenCalledWith("residue-selection", [bKey]);
   expect(emit).toHaveBeenCalledWith("selected", null); // Display picks never become scientific constraints.
   await scene.displayChains({ action: "only", chain: "A" });
   await scene.selectConfidence({ key: "sample-bound", tokens: [1] });

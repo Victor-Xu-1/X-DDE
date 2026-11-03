@@ -8,6 +8,7 @@ import { mapNativeConfidence } from "./confidence-mapping";
 import { confidenceIdentity, type ConfidenceBinding } from "./confidence-types";
 const cif = `data_native_predicted_by_opendde
 loop_
+_atom_site.id
 _atom_site.group_PDB
 _atom_site.type_symbol
 _atom_site.label_atom_id
@@ -25,10 +26,10 @@ _atom_site.Cartn_x
 _atom_site.Cartn_y
 _atom_site.Cartn_z
 _atom_site.pdbx_PDB_model_num
-ATOM N N . ALA Q 1 . 10 ALA Z N 86.53 0 0 0 1
-ATOM C CA . ALA Q 1 . 10 ALA Z CA 98 1.4 0 0 1
-ATOM N N . GLY Q 2 . 12 GLY Z N 70 2.7 0 0 1
-HETATM C C1 . LIG LC . . 1 LIG K C1 50 0 3 0 1
+1 ATOM N N . ALA Q 1 . 10 ALA Z N 86.53 0 0 0 1
+2 ATOM C CA . ALA Q 1 . 10 ALA Z CA 98 1.4 0 0 1
+3 ATOM N N . GLY Q 2 . 12 GLY Z N 70 2.7 0 0 1
+4 HETATM C C1 . LIG LC . . 1 LIG K C1 50 0 3 0 1
 #
 `;
 const binding: ConfidenceBinding = {
