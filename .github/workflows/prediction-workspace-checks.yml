@@ -75,6 +75,7 @@ jobs:
       native_confidence: ${{ steps.select.outputs.native_confidence }}
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
       input_preview: ${{ steps.select.outputs.input_preview }}
+      preview_changed: ${{ steps.select.outputs.preview_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,6 +104,7 @@ jobs:
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
           src/presentation/PredictionSetup.test.tsx
+          src/presentation/PredictionInputPreview.test.tsx
           src/presentation/prediction-heading-focus.test.tsx
           src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
           src/viewer/StructureInspection.test.tsx src/viewer/residue-selection.test.ts
@@ -152,11 +154,17 @@ jobs:
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
+      - name: Prepare the existing native drawing component in isolated CI state
+        if: needs.scope.outputs.preview_changed == 'true'
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-input-preview" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-input-preview/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-input-preview" WB_STATE_DIR="$RUNNER_TEMP/x-dde-input-preview/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
         if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
-        if: needs.scope.outputs.input_preview == 'true'
+        if: needs.scope.outputs.preview_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'

@@ -32,6 +32,22 @@ def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
         assert not scope.input_preview_only(changes + [unrelated])
 
 
+def test_preview_regressions_are_detected_independently_of_batch_delegation():
+    for path in [
+        "frontend/src/presentation/PredictionSetup.tsx",
+        "frontend/src/presentation/PredictionInputPreview.test.tsx",
+        "frontend/src/presentation/prediction-input-preview.css",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "server_tests/test_prediction_input_preview_browser.py",
+    ]:
+        assert scope.preview_changed([path])
+        assert not scope.input_preview_only([path])
+        assert scope.preview_changed([path, "frontend/src/viewer/style.ts"])
+    assert scope.preview_changed([], "workflow_dispatch")
+    assert not scope.preview_changed([])
+    assert not scope.preview_changed(["frontend/src/viewer/confidence-mapping.ts"])
+
+
 def test_only_bounded_prediction_presentation_is_delegated():
     changes = [
         "frontend/src/presentation/PredictionSetup.tsx",

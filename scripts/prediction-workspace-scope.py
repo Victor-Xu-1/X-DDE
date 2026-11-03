@@ -106,6 +106,32 @@ def input_preview_only(changed, event="push"):
     )
 
 
+def preview_changed(changed, event="push"):
+    return event == "workflow_dispatch" or any(
+        name.startswith(
+            (
+                "frontend/src/presentation/PredictionSetup",
+                "frontend/src/presentation/PredictionInputPreview",
+                "frontend/src/presentation/PredictionEntityPreview",
+            )
+        )
+        or name
+        in {
+            "frontend/src/presentation/prediction-input-preview.css",
+            "frontend/src/presentation/prediction-inputs.css",
+            "frontend/src/presentation/prediction-shell.css",
+            "frontend/src/presentation/prediction-workspace.css",
+            "frontend/src/integrations/ScientificForm.tsx",
+            "frontend/src/integrations/Mol1Form.tsx",
+            "frontend/src/TaskForm.tsx",
+            "server_tests/test_prediction_input_preview_browser.py",
+            "scripts/prediction-workspace-scope.py",
+            ".github/workflows/prediction-workspace-checks.yml",
+        }
+        for name in changed
+    )
+
+
 CONFIDENCE_PATTERNS = (
     "src/opendde_workbench/confidence.py",
     "tests/test_import_confidence.py",
@@ -182,6 +208,11 @@ def main():
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+        stream.write(
+            "preview_changed="
+            + str(preview_changed(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
+            + "\n"
+        )
         stream.write(
             "input_preview="
             + str(input_preview_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()

@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 import re
 import sqlite3
 import xml.etree.ElementTree as ET
@@ -17,10 +18,11 @@ WARHEAD = "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3"
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_current_prediction_inputs_and_edit_return(tmp_path, language, width):
+def test_current_prediction_inputs_and_edit_return(language, width):
     evidence = Path("outputs/prediction-input-preview") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
-    state = tmp_path / "state"
+    state = Path(os.environ["WB_STATE_DIR"])
+    assert state.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     sequence = "".join((INPUTS / "STAT6-human-P42226.fasta").read_text().splitlines()[1:])
     zh = language == "zh"
     errors, writes = [], []
@@ -69,6 +71,7 @@ def test_current_prediction_inputs_and_edit_return(tmp_path, language, width):
         expect(dialog.locator(f'[data-position="{len(sequence)}"]')).to_be_visible()
         page.screenshot(path=str(evidence / "sequence-review.png"))
         dialog.locator(".prediction-preview-entity > summary").nth(1).click()
+        dialog.locator(".molecule-image").scroll_into_view_if_needed()
         drawing = dialog.get_by_role("img", name=re.compile("二维分子结构|2D molecular structure"))
         expect(drawing).to_be_visible(timeout=60000)
         assert drawing.evaluate("image => image.complete && image.naturalWidth > 0")
