@@ -75,6 +75,8 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         )
         page.locator(".viewer-chain-menu > summary").click()
         visibility = page.get_by_role("group", name="链显示" if zh else "Chain visibility")
+        menu = visibility.bounding_box()
+        assert menu and menu["x"] >= 0 and menu["x"] + menu["width"] <= width + 1
         visibility.get_by_role(
             "checkbox", name="显示链 A" if zh else "Show chain A", exact=True
         ).click()

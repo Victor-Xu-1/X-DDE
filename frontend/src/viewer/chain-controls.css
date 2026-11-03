@@ -53,3 +53,11 @@
 .viewer-chain-list > button {
   margin-top: 10px;
 }
+@media (max-width: 600px) {
+  .viewer-modes:has(.viewer-chain-menu) {
+    position: relative;
+  }
+  .viewer-chain-menu {
+    position: static;
+  }
+}
