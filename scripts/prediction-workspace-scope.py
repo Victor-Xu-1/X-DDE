@@ -23,6 +23,7 @@ PATTERNS = (
     "frontend/src/viewer/structure-inspection.css",
     "frontend/src/viewer/polymer-detail.ts",
     "frontend/src/viewer/residue-selection*",
+    "frontend/src/viewer/display-readiness*",
     "frontend/src/integrations/prediction-presentation*",
     "frontend/src/integrations/Mol1Form.tsx",
     "frontend/src/integrations/Mol1Confidence.tsx",

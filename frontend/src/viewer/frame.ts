@@ -8,6 +8,7 @@ import {
   type ViewerLoad,
 } from "./source-layout";
 import { MolecularScene } from "./scene";
+import { displayCommands } from "./display-readiness";
 import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { spatialMolecule } from "./initial-geometry";
@@ -222,7 +223,8 @@ async function load(input: ViewerLoad) {
     }
   }
 }
-async function command(type: string, value: unknown) {
+async function command(type: string, value: unknown, requestId?: string) {
+  const current = generation;
   try {
     if (type === "chain-display") await scene.displayChains(value);
     if (type === "sequence-selection") await scene.selectSequence(value);
@@ -242,6 +244,9 @@ async function command(type: string, value: unknown) {
     }
   } catch {
     notify("error", "Could not update structure display.");
+  } finally {
+    if (current === generation && requestId)
+      notify("display-complete", requestId);
   }
 }
 window.addEventListener("message", (event) => {
@@ -251,7 +256,7 @@ window.addEventListener("message", (event) => {
     event.data?.channel !== "opendde-viewer"
   )
     return;
-  const { type, value } = event.data;
+  const { type, value, requestId } = event.data;
   if (type === "ready-request") notify("ready", { instanceId });
   if (type === "clear") {
     loadedSourceIdentity = null;
@@ -268,21 +273,14 @@ window.addEventListener("message", (event) => {
       notify("error", "Invalid structure request.");
     }
   }
-  if (
-    [
-      "options",
-      "chain-display",
-      "sequence-selection",
-      "selection-action",
-      "residue",
-      "atom-region",
-      "site-region",
-      "focus-site",
-      "attachment-geometry",
-      "search-box",
-    ].includes(type)
-  )
-    void command(type, value);
+  if (displayCommands.includes(type))
+    void command(
+      type,
+      value,
+      typeof requestId === "string" && /^[0-9a-f-]{36}$/.test(requestId)
+        ? requestId
+        : undefined,
+    );
   if (
     type === "focus-model" &&
     typeof value === "number" &&

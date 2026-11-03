@@ -20,6 +20,7 @@ on:
       - "frontend/src/viewer/structure-inspection.css"
       - "frontend/src/viewer/polymer-detail.ts"
       - "frontend/src/viewer/residue-selection*"
+      - "frontend/src/viewer/display-readiness*"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Confidence.tsx"
@@ -88,6 +89,7 @@ jobs:
           src/presentation/prediction-heading-focus.test.tsx
           src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
           src/viewer/StructureInspection.test.tsx src/viewer/residue-selection.test.ts
+          src/viewer/display-readiness.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/style.test.ts
           src/viewer/contacts.test.ts src/viewer/donor-hydrogens.test.ts
           src/guided/MolecularInputs.test.tsx

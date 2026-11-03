@@ -10,9 +10,11 @@ const letters = "ARNDCQEGHILKMFPSTWYV";
 const residueLetter = (name: string) =>
   names.includes(name)
     ? letters[names.indexOf(name)]
-    : ["A", "C", "G", "U", "T"].includes(name)
-      ? name
-      : "X";
+    : ["DA", "DC", "DG", "DT", "DU"].includes(name)
+      ? name.slice(1)
+      : ["A", "C", "G", "U", "T"].includes(name)
+        ? name
+        : "X";
 
 export function StructureDisplayControls({
   language,

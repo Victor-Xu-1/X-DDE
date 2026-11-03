@@ -309,6 +309,40 @@ it("resetting the source while a surface is generating cannot publish stale cove
     emit.mock.calls.filter(([type, summary]) => type === "surface" && summary),
   ).toHaveLength(0);
 });
+it("keeps rendering busy through overlapping surface, representation and sequence commands", async () => {
+  const { model, scene, viewer, emit } = fixture(
+    "ATOM      1  CA  ASN A  10       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CB  ASN A  10       1.300   0.000   0.000  1.00 20.00           C  \nEND\n",
+    "pdb",
+  );
+  const before = source(model.selectedAtoms({}));
+  const releases: (() => void)[] = [];
+  vi.mocked(viewer.addSurface).mockImplementation(
+    () => new Promise<void>((resolve) => releases.push(resolve)) as never,
+  );
+  const first = scene.configure({ mode: "surface" });
+  await vi.waitFor(() => expect(releases).toHaveLength(1));
+  const second = scene.configure({ sideChains: true });
+  const third = scene.selectSequence({
+    key: scene.info.residues[0].key,
+    mode: "replace",
+  });
+  releases[0]();
+  await vi.waitFor(() => expect(releases).toHaveLength(2));
+  expect(
+    emit.mock.calls.filter(([type, busy]) => type === "rendering" && !busy),
+  ).toHaveLength(0);
+  releases[1]();
+  await vi.waitFor(() => expect(releases).toHaveLength(3));
+  expect(
+    emit.mock.calls.filter(([type, busy]) => type === "rendering" && !busy),
+  ).toHaveLength(0);
+  releases[2]();
+  await Promise.all([first, second, third]);
+  expect(
+    emit.mock.calls.filter(([type]) => type === "rendering").at(-1),
+  ).toEqual(["rendering", false]);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
 
 it("an aligned receptor and source pose colors only the receptor, while true comparisons retain their own colors", async () => {
   const pdb =

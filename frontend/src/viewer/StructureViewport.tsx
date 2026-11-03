@@ -11,6 +11,7 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { ChainControls } from "./ChainControls";
+import { DisplayReadiness, displayCommands } from "./display-readiness";
 import {
   StructureDisplayControls,
   StructureSequence,
@@ -149,6 +150,8 @@ export function StructureViewport({
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
   const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
   const [displayPending, setDisplayPending] = useState(false);
+  const [displayRevision, setDisplayRevision] = useState(0);
+  const displayWork = useRef(new DisplayReadiness());
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
@@ -159,8 +162,20 @@ export function StructureViewport({
     matched: number;
   } | null>(null);
   function send(type: string, value?: unknown) {
+    const requestId = displayCommands.includes(type)
+      ? crypto.randomUUID()
+      : undefined;
+    if (requestId) {
+      displayWork.current.begin(requestId);
+      setDisplayPending(true);
+    }
     frame.current?.contentWindow?.postMessage(
-      { channel: "opendde-viewer", type, value },
+      {
+        channel: "opendde-viewer",
+        type,
+        value,
+        ...(requestId ? { requestId } : {}),
+      },
       location.origin,
     );
   }
@@ -216,9 +231,14 @@ export function StructureViewport({
         detail.every((key) => typeof key === "string")
       )
         setSelectedResidues(detail);
-      if (type === "display-options" && detail && typeof detail === "object") {
-        setOptions(detail);
-        setDisplayPending(false);
+      if (type === "rendering" && typeof detail === "boolean") {
+        displayWork.current.render(detail);
+        setDisplayPending(displayWork.current.pending);
+        if (!detail) setDisplayRevision((value) => value + 1);
+      }
+      if (type === "display-complete" && displayWork.current.complete(detail)) {
+        setDisplayPending(displayWork.current.pending);
+        setDisplayRevision((value) => value + 1);
       }
       if (
         type === "chain-display" &&
@@ -246,6 +266,7 @@ export function StructureViewport({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setHiddenChains([]);
+        displayWork.current.reset();
         setDisplayPending(false);
         setSelectedResidues([]);
         setStatus("loaded");
@@ -276,6 +297,7 @@ export function StructureViewport({
     setSelection(null);
     setSelectedResidues([]);
     setHiddenChains([]);
+    displayWork.current.reset();
     setDisplayPending(false);
     setDistance(null);
     setContacts(null);
@@ -341,6 +363,7 @@ export function StructureViewport({
       send("residue", focusResidue.residue);
   }, [ready, status, loadedKey, sceneKey, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
+  const hadAtomRegion = useRef(false);
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {
     if (
@@ -352,19 +375,29 @@ export function StructureViewport({
       send("site-region", residueRegion);
   }, [ready, status, loadedKey, sceneKey, siteKey]);
   useEffect(() => {
-    if (ready && status === "loaded" && loadedKey === sceneKey)
+    if (
+      ready &&
+      status === "loaded" &&
+      loadedKey === sceneKey &&
+      (highlightedAtoms !== undefined || hadAtomRegion.current)
+    ) {
       send("atom-region", highlightedAtoms ?? []);
+      hadAtomRegion.current = highlightedAtoms !== undefined;
+    }
   }, [ready, status, loadedKey, sceneKey, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
-    setDisplayPending(true);
     if (value.mode) setSurface(null);
     setOptions((o) => ({ ...o, ...value }));
     send("options", value);
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
+  const hadSearchBox = useRef(false);
   useEffect(() => {
-    if (loaded) send("search-box", searchBox);
+    if (loaded && (searchBox !== undefined || hadSearchBox.current)) {
+      send("search-box", searchBox);
+      hadSearchBox.current = searchBox !== undefined;
+    }
   }, [loaded, key, searchBoxKey]);
   return (
     <section className="studio-panel viewer-panel">
@@ -449,6 +482,7 @@ export function StructureViewport({
               attachmentKey,
               hiddenChains,
               selectedResidues,
+              displayRevision,
             ])}
             sourceReady={loaded && !displayPending}
             language={language}

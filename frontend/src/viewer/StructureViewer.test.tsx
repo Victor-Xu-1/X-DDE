@@ -59,19 +59,30 @@ it("shares native sequence and representation controls beyond predictions, waits
   });
   fireEvent.click(screen.getByRole("switch", { name: "All atoms" }));
   expect(post).toHaveBeenLastCalledWith(
-    { channel: "opendde-viewer", type: "options", value: { allAtoms: true } },
+    {
+      channel: "opendde-viewer",
+      type: "options",
+      value: { allAtoms: true },
+      requestId: expect.any(String),
+    },
     location.origin,
   );
   expect(
     screen.getByRole("button", { name: "Capture 3D view" }),
   ).toBeDisabled();
-  emit("display-options", { ...defaultOptions, allAtoms: true });
+  const optionsId = post.mock.calls.at(-1)?.[0].requestId;
+  emit("rendering", false);
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("display-complete", optionsId);
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   fireEvent.click(screen.getByRole("checkbox", { name: "A:ASN10B" }));
   expect(post).toHaveBeenLastCalledWith(
     {
       channel: "opendde-viewer",
       type: "sequence-selection",
+      requestId: expect.any(String),
       value: { key: residue.key, mode: "replace" },
     },
     location.origin,
@@ -80,11 +91,31 @@ it("shares native sequence and representation controls beyond predictions, waits
     "aria-checked",
     "false",
   );
+  const sequenceId = post.mock.calls.at(-1)?.[0].requestId;
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("rendering", false);
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("display-complete", sequenceId);
   emit("residue-selection", [residue.key]);
   expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
     "aria-checked",
     "true",
   );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear sequence selection" }),
+  );
+  const clearId = post.mock.calls.at(-1)?.[0].requestId;
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("rendering", false);
+  emit("display-complete", clearId);
+  emit("residue-selection", []);
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   view.rerender(
     <StructureViewer urls={["/api/assets/another"]} language="en" />,
   );

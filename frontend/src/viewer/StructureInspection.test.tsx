@@ -49,3 +49,27 @@ it("uses exact observed identities, keyboard-accessible selection and modifiers;
   );
   expect(clear).toHaveBeenCalledOnce();
 });
+it("displays standard DNA nucleotide letters while retaining deposited residue labels", () => {
+  const names = ["DA", "DC", "DG", "DT"];
+  render(
+    <StructureSequence
+      language="zh"
+      residues={names.map((resn, index) => ({
+        key: `DNA-${index}`,
+        chain: "DNA",
+        resn,
+        resi: index + 1,
+        icode: "",
+      }))}
+      selected={[]}
+      hiddenChains={[]}
+      onSelect={vi.fn()}
+      onClear={vi.fn()}
+    />,
+  );
+  names.forEach((name, index) =>
+    expect(
+      screen.getByRole("checkbox", { name: `DNA:${name}${index + 1}` }),
+    ).toHaveTextContent(name.slice(1)),
+  );
+});

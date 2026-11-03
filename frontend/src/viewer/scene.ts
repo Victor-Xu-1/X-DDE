@@ -95,6 +95,7 @@ export class MolecularScene {
   private inputCharges: boolean[] = [];
   private complexModel: number | null = null;
   private painting = Promise.resolve();
+  private pendingPaints = 0;
   private revision = 0;
   constructor(
     private viewer: mol.GLViewer,
@@ -206,7 +207,6 @@ export class MolecularScene {
     }
     await this.paint();
     if (revision !== this.revision) return;
-    this.emit("display-options", { ...this.options });
     if (value.mode === "pocket" || value.ligand) this.focusLigand();
   }
   async highlightAtoms(value: unknown) {
@@ -252,11 +252,17 @@ export class MolecularScene {
   }
   paint(): Promise<void> {
     const revision = this.revision;
+    this.pendingPaints++;
+    this.emit("rendering", true);
     // Surface generation is asynchronous. Serialize style updates to avoid stale layers.
     const next = this.painting
       .catch(() => undefined)
       .then(async () => {
         if (revision === this.revision) await this.draw();
+      })
+      .finally(() => {
+        this.pendingPaints--;
+        this.emit("rendering", this.pendingPaints > 0);
       });
     this.painting = next;
     return next;
