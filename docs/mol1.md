@@ -77,6 +77,13 @@ different wheel is rejected. The setting does not change scientific task network
 permissions, runtime packages or already installed environments. Other selector
 values are rejected; no arbitrary index URLs or credentials are accepted.
 
+The Mol-1 native profile bootstraps a separately hash-locked pip 26.2.2 installer
+before resolving scientific dependencies. It permits at most five attempts to
+resume interrupted downloads. The final complete wheel still has to match the
+unchanged scientific dependency hashes. This changes the installation transport
+only; it does not update Torch, the model, scientific parameters or other installed
+environments. An incomplete or altered payload is never accepted as an installation.
+
 The Mol-1/3D-condition workflow limits automatic checks to the changed contracts,
 forms and direct consumers. Explicit native CI builds this actual profile and
 submits one bounded CPU engineering prediction through the compiled frontend.
