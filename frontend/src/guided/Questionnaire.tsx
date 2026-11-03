@@ -18,7 +18,8 @@ import { availabilityError } from "./task-availability";
 import { EnvironmentRecheck } from "./EnvironmentRecheck";
 export interface QuestionStep {
   title: string;
-  guideStep?: number;
+  /** Stable template instruction index; null keeps self-guided optional pages separate. */
+  guideStep?: number | null;
   actions?: ReactNode;
   content: ReactNode;
   valid: boolean;
@@ -181,7 +182,7 @@ export function GuidedSteps<T extends { id: string }>({
           </fieldset>
         )}
       </header>
-      {current < resultIndex && (
+      {current < resultIndex && steps[current].guideStep !== null && (
         <TemplateStepHelp
           step={steps[current].guideStep ?? current}
           language={language}

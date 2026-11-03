@@ -490,6 +490,10 @@ on:
 permissions:
   contents: read
 jobs:
+  guidance-scope:
+    uses: ./.github/workflows/restraint-guidance-checks.yml
+    with:
+      scope_only: true
   prediction-scope:
     uses: ./.github/workflows/prediction-workspace-checks.yml
     with:
@@ -512,8 +516,8 @@ jobs:
     with:
       scope_only: true
   scoped-layout:
-    needs: [model-context, antibody-scope, prediction-scope]
-    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true'
+    needs: [model-context, antibody-scope, prediction-scope, guidance-scope]
+    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:

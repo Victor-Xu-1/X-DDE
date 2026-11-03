@@ -1,0 +1,65 @@
+name: Optional 3D template instruction checks
+on:
+  pull_request:
+    paths: &guidance_paths
+      - "frontend/src/guided/Questionnaire.tsx"
+      - "frontend/src/guided/QuestionnaireGuidance.test.tsx"
+      - "frontend/src/integrations/ScientificForm.tsx"
+      - "frontend/src/simulations/SimulationForm.tsx"
+      - ".github/workflows/restraint-guidance-checks.yml"
+      - "scripts/restraint-guidance-scope.py"
+      - "tests/test_restraint_guidance_scope.py"
+      - ".github/workflows/task-layout-checks.yml"
+      - ".github/workflows/user-interface-checks.yml"
+      - ".github/workflows/structure-layout-checks.yml"
+  push:
+    branches: [main]
+    paths: *guidance_paths
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      scope_only:
+        type: boolean
+        default: false
+    outputs:
+      guidance_only:
+        value: ${{ jobs.scope.outputs.guidance_only }}
+permissions:
+  contents: read
+jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      guidance_only: ${{ steps.select.outputs.guidance_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/restraint-guidance-scope.py
+  frontend-guidance:
+    needs: scope
+    if: ${{ !inputs.scope_only }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev
+      - name: Exact bounded scope contract
+        run: |
+          uv run --locked pytest -q tests/test_restraint_guidance_scope.py
+          uv run --locked ruff check scripts/restraint-guidance-scope.py tests/test_restraint_guidance_scope.py
+      - name: Exact bilingual optional-step instructions and direct form consumers; no calculations
+        working-directory: frontend
+        run: >-
+          npx vitest run src/guided/QuestionnaireGuidance.test.tsx
+          src/guided/Questionnaire.test.tsx src/examples/TemplateStepHelp.test.tsx
+          src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx
+          src/integrations/Mol1Form.test.tsx
