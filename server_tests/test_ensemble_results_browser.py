@@ -33,7 +33,10 @@ def brd4_archive(page, capability):
     archived = response.json()
     assert archived["case"]["id"] == "brd4-jq1"
     assert current["module"]["revision"] == bundle_catalogue("current").modules[capability].revision
-    assert archived["module"]["revision"] == bundle_catalogue("archive").modules[capability].revision
+    assert (
+        archived["module"]["revision"]
+        == bundle_catalogue("archive").modules[capability].revision
+    )
     assert archived["module"]["revision"] < current["module"]["revision"]
     assert archived["computed_result_available"]
     pin = archived["pin"] or archived["record_pin"]
