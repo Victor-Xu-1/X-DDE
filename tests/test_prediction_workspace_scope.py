@@ -24,6 +24,7 @@ def test_only_bounded_prediction_presentation_is_delegated():
             "frontend/src/studio/PredictionResults.test.tsx",
             "frontend/src/guided/MolecularInputs.test.tsx",
             "server_tests/test_prediction_entry_browser.py",
+            "server_tests/test_template_controls_browser.py",
         ]
     )
     assert not scope.selected(changes, "workflow_dispatch")

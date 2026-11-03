@@ -25,6 +25,7 @@ PATTERNS = (
     "server_tests/prediction_workspace_case.py",
     "server_tests/test_prediction_workspace_browser.py",
     "server_tests/test_prediction_entry_browser.py",
+    "server_tests/test_template_controls_browser.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",
