@@ -79,12 +79,20 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "result.png"), full_page=True)
         page.goto(base + "/#view=new&tool=mol1.predict")
-        page.locator("#molecule-0").fill(sequence)
-        page.locator("#molecule-1").fill("CCD_ATP")
+        page.get_by_role(
+            "textbox",
+            name="单字母氨基酸序列" if zh else "One-letter amino-acid sequence",
+            exact=True,
+        ).fill(sequence)
+        page.get_by_role(
+            "textbox",
+            name="SMILES 或 CCD_ 编号" if zh else "SMILES or CCD_ identifier",
+            exact=True,
+        ).fill("CCD_ATP")
         summary = page.get_by_role("complementary", name="研究设置概览" if zh else "Study setup")
         expect(summary).to_contain_text("输入可继续检查与确认" if zh else "Inputs ready to review")
         page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
-        expect(page.locator(".questionnaire > fieldset:not([hidden])")).to_have_count(1)
+        expect(page.locator(".questionnaire:visible > fieldset:not([hidden])")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "supporting-inputs.png"), full_page=True)
         assert not errors and not submissions, (errors, submissions)

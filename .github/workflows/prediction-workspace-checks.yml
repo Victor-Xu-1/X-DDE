@@ -11,14 +11,17 @@ on:
       - "frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/studio/PredictionResults.tsx"
+      - "frontend/src/studio/PredictionResults.test.tsx"
       - "frontend/src/studio/HomeWorkspace.test.tsx"
       - "frontend/src/studio/Header.tsx"
       - "frontend/src/operations/ConfidencePanel*"
       - "frontend/src/guided/MolecularInputs.tsx"
+      - "frontend/src/guided/MolecularInputs.test.tsx"
       - "frontend/src/TaskForm.tsx"
       - "frontend/src/App.tsx"
       - "server_tests/prediction_workspace_case.py"
       - "server_tests/test_prediction_workspace_browser.py"
+      - "server_tests/test_prediction_entry_browser.py"
       - "scripts/prediction-workspace-scope.py"
       - "tests/test_prediction_workspace_scope.py"
       - ".github/workflows/prediction-workspace-checks.yml"
@@ -67,6 +70,7 @@ jobs:
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
           src/presentation/PredictionSetup.test.tsx
+          src/guided/MolecularInputs.test.tsx
           src/integrations/prediction-presentation.test.ts src/operations/ConfidencePanel.test.tsx
           src/studio/PredictionResults.test.tsx src/integrations/ScientificResults.test.tsx
           src/TaskForm.test.tsx src/integrations/Mol1Form.test.tsx

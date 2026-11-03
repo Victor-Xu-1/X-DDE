@@ -48,8 +48,16 @@ def test_fresh_prediction_has_no_unavailable_results_strip_or_toy_inputs(tmp_pat
             page.get_by_role(
                 "button", name="Next" if language == "en" else "下一步", exact=True
             ).click()
-            protein = page.locator("#molecule-0")
-            ligand = page.locator("#molecule-1")
+            protein = page.get_by_role(
+                "textbox",
+                name="单字母氨基酸序列" if language == "zh" else "One-letter amino-acid sequence",
+                exact=True,
+            )
+            ligand = page.get_by_role(
+                "textbox",
+                name="SMILES 或 CCD_ 编号" if language == "zh" else "SMILES or CCD_ identifier",
+                exact=True,
+            )
             expect(protein).to_have_value("")
             expect(ligand).to_have_value("")
             expect(protein).to_have_attribute(

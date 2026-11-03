@@ -1,4 +1,5 @@
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
+import { useId } from "react";
 import { Hint } from "./Hint";
 import { entityInfo, ions } from "./entities";
 import { translator } from "../i18n";
@@ -24,6 +25,7 @@ export function MolecularInputs({
   allowedKinds?: Component["kind"][];
   showHeading?: boolean;
 }) {
+  const scope = useId();
   const t = translator(language),
     zh = language === "zh",
     i = zh ? 0 : 1;
@@ -66,7 +68,7 @@ export function MolecularInputs({
             <label key={kind}>
               <input
                 type="radio"
-                name="nucleic-type"
+                name={scope + "-nucleic-type"}
                 checked={items[0]?.kind === kind}
                 onChange={() => update(0, { kind })}
               />
@@ -123,14 +125,16 @@ export function MolecularInputs({
               </div>
               <div className="field sequence-field">
                 <span>
-                  <label htmlFor={"molecule-" + index}>{info.field[i]}</label>
+                  <label htmlFor={scope + "-molecule-" + index}>
+                    {info.field[i]}
+                  </label>
                   <Hint label={role + (zh ? "输入说明" : " input help")}>
                     {info.help[i]}
                   </Hint>
                 </span>
                 {item.kind === "ion" && expert ? (
                   <input
-                    id={"molecule-" + index}
+                    id={scope + "-molecule-" + index}
                     value={item.value}
                     maxLength={4}
                     required
@@ -142,7 +146,7 @@ export function MolecularInputs({
                   />
                 ) : item.kind === "ion" ? (
                   <select
-                    id={"molecule-" + index}
+                    id={scope + "-molecule-" + index}
                     value={item.value}
                     onChange={(e) => update(index, { value: e.target.value })}
                   >
@@ -154,7 +158,7 @@ export function MolecularInputs({
                   </select>
                 ) : (
                   <textarea
-                    id={"molecule-" + index}
+                    id={scope + "-molecule-" + index}
                     required={!item.ligand_file}
                     disabled={Boolean(item.ligand_file)}
                     maxLength={5000}

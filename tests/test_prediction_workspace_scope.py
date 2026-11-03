@@ -18,6 +18,14 @@ def test_only_bounded_prediction_presentation_is_delegated():
     ]
     assert scope.selected(changes)
     assert scope.selected(changes, "pull_request")
+    assert scope.selected(
+        changes
+        + [
+            "frontend/src/studio/PredictionResults.test.tsx",
+            "frontend/src/guided/MolecularInputs.test.tsx",
+            "server_tests/test_prediction_entry_browser.py",
+        ]
+    )
     assert not scope.selected(changes, "workflow_dispatch")
     assert not scope.selected([])
     assert not scope.selected(["frontend/src/integrations/ScientificResults.tsx"])
