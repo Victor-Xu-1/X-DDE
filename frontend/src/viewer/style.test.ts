@@ -96,7 +96,7 @@ it("keeps one selected ligand atom token distinct and makes clear-selection feed
 });
 it("modified ligand clicks retain ordinary native picking instead of rejecting through polymer sequence selection", async () => {
   const pdb =
-    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nHETATM    2  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nEND\n";
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nHETATM    2  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nHETATM    3  O1  LIG B   2       1.200   2.000   0.000  1.00 20.00           O  \nCONECT    2    3\nCONECT    3    2\nEND\n";
   const { model, scene, clicks, viewer, emit } = fixture(pdb, "pdb");
   const sequence = vi.spyOn(scene, "selectSequence");
   const ligand = model.selectedAtoms({ hetflag: true })[0];
