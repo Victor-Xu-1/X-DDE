@@ -8,6 +8,7 @@ PATTERNS = (
     "frontend/public/fonts/plus-jakarta/*",
     "frontend/src/presentation/Prediction*",
     "frontend/src/presentation/prediction-*.css",
+    "frontend/src/presentation/prediction-heading-focus*",
     "frontend/src/integrations/prediction-presentation*",
     "frontend/src/integrations/Mol1Form.tsx",
     "frontend/src/integrations/Mol1Confidence.tsx",

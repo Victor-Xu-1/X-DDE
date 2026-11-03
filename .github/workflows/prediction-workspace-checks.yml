@@ -5,6 +5,7 @@ on:
       - "frontend/public/fonts/plus-jakarta/*"
       - "frontend/src/presentation/Prediction*"
       - "frontend/src/presentation/prediction-*.css"
+      - "frontend/src/presentation/prediction-heading-focus*"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Confidence.tsx"
@@ -70,6 +71,7 @@ jobs:
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
           src/presentation/PredictionSetup.test.tsx
+          src/presentation/prediction-heading-focus.test.tsx
           src/guided/MolecularInputs.test.tsx
           src/integrations/prediction-presentation.test.ts src/operations/ConfidencePanel.test.tsx
           src/studio/PredictionResults.test.tsx src/integrations/ScientificResults.test.tsx

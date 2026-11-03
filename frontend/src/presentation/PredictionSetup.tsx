@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Component, Language } from "../types";
+import { usePredictionHeadingFocus } from "./prediction-heading-focus";
 import "./prediction-workspace.css";
 
 /** A view of the form's current values; never a second draft or task authority. */
@@ -22,6 +23,7 @@ export function PredictionSetup({
   children: ReactNode;
   enabled?: boolean;
 }) {
+  const root = usePredictionHeadingFocus(enabled);
   if (!enabled) return children;
   const zh = language === "zh";
   const names = {
@@ -32,7 +34,7 @@ export function PredictionSetup({
     ion: zh ? "离子" : "Ion",
   };
   return (
-    <div className="prediction-setup-layout">
+    <div className="prediction-setup-layout" ref={root}>
       <div className="prediction-form-body">{children}</div>
       <aside
         className="prediction-setup"

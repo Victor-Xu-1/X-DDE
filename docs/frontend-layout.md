@@ -21,6 +21,8 @@ Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and
 downloads from its selected immutable asset; no internal file path is displayed.
 The summary reads the live form values and never submits or prepares a task.
+Step entry retains the questionnaire's own keyboard focus and positions its heading
+below the measured floating toolbar, including the wrapped narrow-screen toolbar.
 
 Prediction results expose seed/sample navigation and the selected candidate's
 native score, pTM, ipTM and pLDDT where available. The exact selected artifact owns
