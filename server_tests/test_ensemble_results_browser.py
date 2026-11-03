@@ -15,6 +15,8 @@ from layout_browser_helpers import catalog
 from playwright.sync_api import expect, sync_playwright
 from test_navigation_shell_browser import open_navigation
 
+from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
+
 
 def brd4_archive(page, capability):
     """Read retained native evidence without inheriting it into the active study."""
@@ -30,7 +32,9 @@ def brd4_archive(page, capability):
     assert response.ok, response.text()
     archived = response.json()
     assert archived["case"]["id"] == "brd4-jq1"
-    assert archived["module"]["revision"] + 2 == current["module"]["revision"]
+    assert current["module"]["revision"] == bundle_catalogue("current").modules[capability].revision
+    assert archived["module"]["revision"] == bundle_catalogue("archive").modules[capability].revision
+    assert archived["module"]["revision"] < current["module"]["revision"]
     assert archived["computed_result_available"]
     pin = archived["pin"] or archived["record_pin"]
     assert pin and pin["capability_id"] == capability
