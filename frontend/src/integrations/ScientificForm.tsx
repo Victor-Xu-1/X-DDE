@@ -405,6 +405,8 @@ export function ScientificForm({
               value: row.value,
               count: 1,
               ligand_file: row.source?.asset_id,
+              ligand_record: row.source?.record,
+              chain_ids: [row.id],
             }))
           : []
       }

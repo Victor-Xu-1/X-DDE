@@ -8,6 +8,46 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
+    changes = [
+        "frontend/src/presentation/PredictionSetup.tsx",
+        "frontend/src/presentation/PredictionInputPreview.tsx",
+        "frontend/src/presentation/PredictionInputPreview.test.tsx",
+        "frontend/src/presentation/PredictionEntityPreview.tsx",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "server_tests/test_prediction_input_preview_browser.py",
+    ]
+    assert scope.selected(changes)
+    assert scope.input_preview_only(changes)
+    assert scope.input_preview_only(changes, "pull_request")
+    assert not scope.input_preview_only(changes, "workflow_dispatch")
+    assert not scope.input_preview_only(changes[1:])
+    for unrelated in [
+        "frontend/src/viewer/confidence-mapping.ts",
+        "frontend/src/presentation/PredictionSamples.tsx",
+        "src/opendde_workbench/integrations/native_mol1.py",
+        "frontend/src/App.tsx",
+        "frontend/src/another-preview.tsx",
+    ]:
+        assert not scope.input_preview_only(changes + [unrelated])
+
+
+def test_preview_regressions_are_detected_independently_of_batch_delegation():
+    for path in [
+        "frontend/src/presentation/PredictionSetup.tsx",
+        "frontend/src/presentation/PredictionInputPreview.test.tsx",
+        "frontend/src/presentation/prediction-input-preview.css",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "server_tests/test_prediction_input_preview_browser.py",
+    ]:
+        assert scope.preview_changed([path])
+        assert not scope.input_preview_only([path])
+        assert scope.preview_changed([path, "frontend/src/viewer/style.ts"])
+    assert scope.preview_changed([], "workflow_dispatch")
+    assert not scope.preview_changed([])
+    assert not scope.preview_changed(["frontend/src/viewer/confidence-mapping.ts"])
+
+
 def test_only_bounded_prediction_presentation_is_delegated():
     changes = [
         "frontend/src/presentation/PredictionSetup.tsx",
