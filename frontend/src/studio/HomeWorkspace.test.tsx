@@ -144,7 +144,11 @@ it("separates task entry from structure review while preserving the draft", asyn
   expect(sequence).toHaveValue("ACDE");
   rerender(<HomeWorkspace {...props} resultsVersion={1} />);
   expect(sequence).not.toBeVisible();
-  const resultHeading = await within(summary!).findByRole("heading", {
+  const refreshedSummary = container.querySelector<HTMLElement>(
+    ".prediction-result-heading",
+  );
+  expect(refreshedSummary).not.toBeNull();
+  const resultHeading = await within(refreshedSummary!).findByRole("heading", {
     name: /^已完成的任务$/,
     level: 2,
   });
