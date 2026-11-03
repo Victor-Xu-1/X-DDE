@@ -43,3 +43,33 @@
 一行包含入口/页面、状态与操作、预期/实际结果、候选 SHA、视口和数据身份、证据/Issue、负责人/审查结论。主题/语言/键盘/减少动态效果及性能仅按涉及的风险补充；不要对所有页面执行全部组合的笛卡尔积。
 
 先完成一次意图一次执行、状态恢复和确切材料交接的代表旅程，再逐步检查不同数据形态及剩余入口。可选公开材料包括 BRD4–JQ1、ABL 分子、曲妥珠单抗–HER2 和 UNCDEL006；须核对[案例身份](../design/research-examples.md)，无归档结果就明确缺项，不为补 UI 清单启动大型计算。
+
+## Molence comparison after v0.7.55
+
+The comparison covers the complete input, interaction, preview and result journeys,
+not only a prediction stylesheet. The live capability registry above remains the
+module authority. Check every registered submodule against these applicable states:
+
+| Surface | Required comparison | Current gap / evidence |
+| --- | --- | --- |
+| Shared shell | Navigation, dimensions, typography, spacing, light/dark, English/Chinese, responsive layout | Prediction-only baseline in #145; remaining module shells await comparison |
+| New task | Entities, sequence/chemical editors, imports, copies, backend choice, constraints, advanced controls | Public reference states inspected; per-module feature and validation parity pending |
+| Review and drafts | Input summary, visual preview, back-to-edit, saving/recovery, submission feedback | Per-module audit pending; no cloud job submission during reference inspection |
+| History and status | Search, status/date filters, sorting, pagination, selection, cancellation, errors/recovery | Module ownership retained; detailed reference comparison pending |
+| Native structure | Whole/focus/fullscreen, chain visibility, atoms/side chains, linked sequence, selections, missing data | Shared inspection delivered in #147 / v0.7.56; source, visual and native 390 px acceptance recorded in #146 |
+| Confidence | Explicit pLDDT mapping, chain borders, sequence/PAE linked ranges, units and missing states | Fractional atom-score scale repair tracked in #148; authoritative native atom/token identity and linked selection remain pending |
+| Results | Candidate selection, metrics, tables/plots/2D/3D, comparisons, context and scientific limitations | Prediction seed/sample baseline in #145; module-specific audit pending |
+| Download | Exact selected native files, image/SVG export, current display state and failure recovery | v0.7.55 native CIF/PNG/SVG evidence retained; changed inspection states require new acceptance |
+
+Single-structure inspection uses the existing renderer and task/asset authority.
+Ranges contain observed residues only, retain insertion codes and stop at chain
+boundaries. Sequence display selection cannot create scientific atom restraints.
+All-atom detail remains subject to the platform donor-only hydrogen display rule.
+Overlays retain their established model colors and separate selection contracts.
+No row above constitutes full-product parity acceptance without recorded evidence.
+
+
+Source-bound confidence increment: targeted acceptance must include the retained native STAT6 943-atom/116-token result in English desktop and Chinese narrow compiled UI; exact input/download hashes; real confidence/chain coloring, sequence selection, PAE clicks and two-axis ranges; stale candidate/source rejection; unsupported mapping fallback; hidden-chain behavior; source geometry and hydrogen policy preservation. This is not whole-module pixel parity or a new scientific inference. Mol-1 and unsupported historical formats need their own source mapping and remain separate acceptance items.
+
+
+Optional 3D instruction alignment: template guidance uses stable original question indices; a self-guided optional restraints page has no unrelated template note. Refinement plan/review and OpenMM/GROMACS final review retain their original guide indices. Permanent bilingual navigation cases check the actual note at each question and prohibit submission. The verified four-failure/two-unaffected-case baseline is retained from CI run41572911026; the one-off historical comparator is retired. A strict guidance-only predicate delegates this bounded form change to its exact questionnaire/help/scientific/simulation/Mol-1 consumers; unrelated files never receive that delegation. No global UI suite or scientific computation is authorized by this change.

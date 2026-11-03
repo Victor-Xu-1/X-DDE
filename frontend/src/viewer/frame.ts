@@ -8,6 +8,10 @@ import {
   type ViewerLoad,
 } from "./source-layout";
 import { MolecularScene } from "./scene";
+import { structureBytes } from "./structure-bytes";
+import { mapNativeConfidence } from "./confidence-mapping";
+import type { ConfidenceBinding } from "./confidence-types";
+import { displayCommands } from "./display-readiness";
 import { inputChargesDeclared } from "./charge-surface";
 import { validSource } from "./protocol";
 import { spatialMolecule } from "./initial-geometry";
@@ -68,6 +72,9 @@ let controller: AbortController | null = null,
   generation = 0;
 let loadedSourceIdentity: string | null = null;
 let loadedTrajectoryKey: string | undefined;
+let confidenceSource: { url: string; sha256: string; text: string } | null =
+  null;
+let confidenceRevision = 0;
 function reset() {
   const viewport = document.getElementById("molecule")!.getBoundingClientRect();
   viewer.zoomTo();
@@ -94,6 +101,8 @@ async function load(input: ViewerLoad) {
   const retainedOptions =
     input.trajectoryKey && retainedView ? { ...scene.options } : undefined;
   loadedSourceIdentity = null;
+  confidenceSource = null;
+  confidenceRevision++;
   controller?.abort();
   controller = new AbortController();
   const request = controller,
@@ -109,14 +118,7 @@ async function load(input: ViewerLoad) {
       const response = await fetch(validSource(raw, location.origin), {
         signal: request.signal,
       });
-      if (
-        !response.ok ||
-        Number(response.headers.get("Content-Length")) > 10000000
-      )
-        throw new Error("Structure could not be loaded");
-      const text = await response.text();
-      if (text.length > 10000000)
-        throw new Error("Structure is too large for the viewer");
+      const { text, sha256 } = await structureBytes(response);
       if (current !== generation) return;
       const source = validSource(raw, location.origin);
       const suffix =
@@ -126,6 +128,8 @@ async function load(input: ViewerLoad) {
       if (!["pdb", "cif", "sdf", "mol", "mol2"].includes(suffix))
         throw new Error("Unsupported molecular display format");
       const format = suffix;
+      if (urls.length === 1 && format === "cif" && !input.records?.[0])
+        confidenceSource = { url: raw, sha256, text };
       formats.push(format);
       molecular = urls.length === 1 && ["sdf", "mol", "mol2"].includes(format);
       const record = molecularRecordText(
@@ -222,8 +226,33 @@ async function load(input: ViewerLoad) {
     }
   }
 }
-async function command(type: string, value: unknown) {
+async function command(type: string, value: unknown, requestId?: string) {
+  const current = generation;
   try {
+    if (type === "confidence-selection") await scene.selectConfidence(value);
+    if (type === "confidence") {
+      const revision = ++confidenceRevision;
+      // Optional annotations must never turn a readable protein into a fatal blank view.
+      try {
+        await scene.annotateConfidence(null);
+        const mapped =
+          value && confidenceSource && !scene.isOverlay
+            ? await mapNativeConfidence(
+                value as ConfidenceBinding,
+                confidenceSource,
+                viewer.selectedAtoms({ model: 0 }),
+              )
+            : null;
+        if (current !== generation || revision !== confidenceRevision) return;
+        await scene.annotateConfidence(mapped);
+      } catch {
+        if (current !== generation || revision !== confidenceRevision) return;
+        await scene.annotateConfidence(null);
+        notify("confidence-unavailable");
+      }
+    }
+    if (type === "chain-display") await scene.displayChains(value);
+    if (type === "sequence-selection") await scene.selectSequence(value);
     if (type === "options" && value && typeof value === "object")
       await scene.configure(value);
     if (type === "selection-action" && typeof value === "string")
@@ -240,6 +269,9 @@ async function command(type: string, value: unknown) {
     }
   } catch {
     notify("error", "Could not update structure display.");
+  } finally {
+    if (current === generation && requestId)
+      notify("display-complete", requestId);
   }
 }
 window.addEventListener("message", (event) => {
@@ -249,9 +281,11 @@ window.addEventListener("message", (event) => {
     event.data?.channel !== "opendde-viewer"
   )
     return;
-  const { type, value } = event.data;
+  const { type, value, requestId } = event.data;
   if (type === "ready-request") notify("ready", { instanceId });
   if (type === "clear") {
+    confidenceSource = null;
+    confidenceRevision++;
     loadedSourceIdentity = null;
     controller?.abort();
     generation++;
@@ -266,19 +300,14 @@ window.addEventListener("message", (event) => {
       notify("error", "Invalid structure request.");
     }
   }
-  if (
-    [
-      "options",
-      "selection-action",
-      "residue",
-      "atom-region",
-      "site-region",
-      "focus-site",
-      "attachment-geometry",
-      "search-box",
-    ].includes(type)
-  )
-    void command(type, value);
+  if (displayCommands.includes(type))
+    void command(
+      type,
+      value,
+      typeof requestId === "string" && /^[0-9a-f-]{36}$/.test(requestId)
+        ? requestId
+        : undefined,
+    );
   if (
     type === "focus-model" &&
     typeof value === "number" &&

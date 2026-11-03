@@ -4,6 +4,7 @@ import json
 import math
 
 from .artifacts import contained
+from .confidence_binding import confidence_binding
 
 
 def confidence_view(root, artifact, metric, bins=200):
@@ -14,7 +15,8 @@ def confidence_view(root, artifact, metric, bins=200):
         raise ValueError(
             "Confidence data exceeds the64MiB interactive limit; download the native file."
         )
-    data = json.loads(full.read_text())
+    full_bytes = full.read_bytes()
+    data = json.loads(full_bytes)
     field = {"pae": "token_pair_pae", "pde": "token_pair_pde", "contacts": "contact_probs"}[metric]
     matrix = data.get(field)
     if not isinstance(matrix, list) or not matrix or len(matrix) > 10000:
@@ -33,13 +35,13 @@ def confidence_view(root, artifact, metric, bins=200):
     atoms = data.get("atom_plddt", [])
     if not isinstance(atoms, list) or len(atoms) > 100000:
         raise ValueError("Native atom confidence has an invalid shape.")
+    # The reviewed OpenDDE full-data writer stores fractions; its summary
+    # pLDDT explicitly multiplies their mean by 100. Never infer a scale from
+    # the observed range or treat CIF experimental B-factors as confidence.
+    if any(type(v) not in (int, float) or not math.isfinite(v) or not 0 <= v <= 1 for v in atoms):
+        raise ValueError("Native atom confidence must use the 0–1 pLDDT scale.")
     atom_stride = max(1, math.ceil(len(atoms) / 1000))
-    atom_values = []
-    for i in range(0, len(atoms), atom_stride):
-        value = atoms[i]
-        if not isinstance(value, (int, float)) or not math.isfinite(value):
-            raise ValueError("Native atom confidence contains non-finite values.")
-        atom_values.append({"index": i, "value": value})
+    atom_values = [{"index": i, "value": atoms[i]} for i in range(0, len(atoms), atom_stride)]
     return {
         "metric": metric,
         "field": field,
@@ -49,5 +51,8 @@ def confidence_view(root, artifact, metric, bins=200):
         "matrix": result,
         "atom_plddt": atom_values,
         "atom_stride": atom_stride,
+        "atom_plddt_unit": "0-1",
         "native_artifact": full.relative_to(root).as_posix(),
+        "structure_artifact": artifact,
+        "binding": confidence_binding(path, full_bytes, data, atoms, count),
     }

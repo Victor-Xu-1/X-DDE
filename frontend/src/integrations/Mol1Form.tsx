@@ -13,6 +13,7 @@ import { mol1Defaults, validMol1Settings } from "./mol1-settings";
 import { Mol1Settings } from "./Mol1Settings";
 import { Mol1CovalentBonds } from "./Mol1CovalentBonds";
 import { Mol1FeatureInputs, validMol1Features } from "./Mol1FeatureInputs";
+import { PredictionSetup } from "../presentation/PredictionSetup";
 
 export function Mol1Form({
   language,
@@ -128,7 +129,7 @@ export function Mol1Form({
       setPreparing(false);
     }
   }
-  return (
+  const questionnaire = (
     <Questionnaire
       language={language}
       ready={availability.ready}
@@ -316,5 +317,17 @@ export function Mol1Form({
         },
       ]}
     />
+  );
+  return (
+    <PredictionSetup
+      language={language}
+      components={components}
+      model="Mol-1"
+      seeds={[seed, ...settings.additional_seeds]}
+      samples={settings.samples}
+      valid={valid}
+    >
+      {questionnaire}
+    </PredictionSetup>
   );
 }

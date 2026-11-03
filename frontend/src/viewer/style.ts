@@ -4,7 +4,7 @@ import * as mol from "3dmol";
 import { hideNonExchangeableHydrogens } from "./donor-hydrogens";
 import { residueRef as ref, residueSelection as sel } from "./geometry";
 import { residueLabel, type SceneInfo, type ViewerOptions } from "./protocol";
-const palette = ["#9772d6", "#45bdb3", "#e7af68", "#6fa2da"];
+import { chainPalette as palette } from "./polymer-detail";
 const gray = {
   C: 0xa0a0a0,
   N: 0x6e6ae5,

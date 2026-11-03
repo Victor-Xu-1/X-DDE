@@ -1,0 +1,41 @@
+.confidence-color-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.confidence-color-control select {
+  width: auto;
+  min-width: 110px;
+}
+.confidence-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 12px 0;
+  color: var(--text-secondary, #64748b);
+  font-size: 11px;
+}
+.confidence-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.confidence-legend i {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+}
+.confidence-chain-borders {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: flex-end;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.confidence-chain-borders input {
+  width: auto;
+}

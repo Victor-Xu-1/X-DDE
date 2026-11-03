@@ -1,5 +1,55 @@
 # Task page layout
 
+## Structure-prediction workspace
+
+Structure and complex prediction follows the owner's selected Molence Lab visual
+reference: a 68 px floating toolbar, paper-white canvas, blue pill actions,
+24 px content rhythm, compact entity sections and an aligned live setup summary.
+This scoped composition supersedes the earlier fully flat treatment for prediction
+pages only. The original X-DDE raster brand and research-module navigation remain.
+Plus Jakarta Sans is bundled from a pinned Google Fonts revision with its OFL and
+checksum under `frontend/public/fonts/plus-jakarta`; no reference-site assets or
+private research data are redistributed.
+
+The existing questionnaire still exposes one step at a time. The setup sidebar is
+a projection of the current form values, not another draft, task or validation
+authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
+readiness checks. The public Mol-1 base model does not gain unsupported geometric
+constraint capabilities from a change in presentation.
+
+Each entity in the setup summary expands to its current sequence or structure
+identifier. An uploaded structure takes precedence over any retained text and
+downloads from its selected immutable asset; no internal file path is displayed.
+The summary reads the live form values and never submits or prepares a task.
+Step entry retains the questionnaire's own keyboard focus and positions its heading
+below the measured floating toolbar, including the wrapped narrow-screen toolbar.
+
+Prediction results expose seed/sample navigation and the selected candidate's
+native score, pTM, ipTM and pLDDT where available. The exact selected artifact owns
+the structure download. The large live structure is on the left and the confidence
+inspector on the right; the complete native candidate table stays accessible below.
+PAE is shown initially rather than hidden in a disclosure. The shared Plotly
+renderer provides zoom, pan, hover and figure export for PAE/PDE/contact maps;
+the old separate heatmap canvas is retired. Missing confidence remains explicit.
+Changing candidates cannot reuse a previous candidate's late confidence response.
+Native token and atom indices are not relabeled as residue numbers; no unverified
+PAE-to-residue mapping is invented. Boltz's 0–1 pLDDT and Mol-1/OpenDDE's 0–100
+values retain their reported scales and units.
+
+The prediction viewer's chain menu displays the actual native chain identifiers,
+including unnamed and multi-character IDs. Hide, show, only and restore update
+display styles and contact neighborhoods, not input coordinates or downloads.
+The renderer acknowledges visibility before checkboxes change. Candidate changes
+reset this display state; conformer overlays keep their existing controls. Figure
+previews invalidate when chain visibility changes. Other modules retain their
+existing chain-focus buttons.
+
+Prediction-specific CI covers the changed controls and their direct questionnaire,
+navigation and result consumers. A bounded path classifier delegates this batch
+from the historical whole-workbench layout sweeps to that exact gate; mixed or
+backend changes retain the broader gates. Controlled chart fixtures are clearly
+marked as presentation fixtures and never promoted to scientific templates.
+
 ## Commercial workflow references and graphical results
 
 Molecular-property results use linked candidate and selected-molecule columns.
@@ -506,3 +556,30 @@ The large molecular view stays on the left. The right-hand table initially expos
 ## Docking candidate worksheet
 
 The default docking worksheet prioritizes pose identity, original score units and available reference-pose deviations. Atom-mapping and unchanged reusable-status fields remain optional columns. Failed or evaluated spatial conditions stay visible by default, including failed soft conditions on otherwise valid candidates. Rejected poses remain non-selectable and retain their diagnostic view. Atom-region reselection guidance appears once for the selected pose. Core-metric reset, comparison, sorting and complete original CSV/SDF downloads preserve native record identity; these presentation choices do not qualify a pose scientifically or change its atoms, coordinates or scores.
+
+
+## Native confidence scales
+
+The OpenDDE full-data contract stores `atom_plddt` as fractions on 0–1; its
+native summary multiplies their mean by 100. The confidence API preserves those
+raw values and sampled atom indices and declares `atom_plddt_unit: "0-1"`.
+The atom chart converts verified fractional values to the labeled 0–100 axis,
+as the Mol-1 view already does. Zero is a valid score. Wrong-scale, boolean,
+non-finite or out-of-range values cannot be silently plotted or normalized by
+examining their range. An unrecognized unit leaves the valid matrix and original
+download available without inventing an atom-confidence plot.
+
+This is a display conversion, not a new prediction, residue/atom mapping or
+scientific accuracy claim. Experimental B-factors are not pLDDT. Native token
+indices remain distinct from residue numbers until a source-bound mapping is
+verified. Native files and downloads retain their original bytes. Upstream
+[confidence implementation](https://github.com/aurekaresearch/OpenDDE/blob/main/opendde/model/sample_confidence.py).
+
+
+### Source-bound prediction confidence inspection
+
+The full native OpenDDE CIF can expose confidence coloring and linked sequence/PAE inspection through the existing viewer and confidence route. This is a display annotation: no coordinate, B-factor, charge, topology or scientific constraint is changed. The current candidate, task, artifact URL, exact structure-byte SHA256 and exact full-confidence-byte SHA256 jointly identify the annotation. Streamed structure bytes retain the 10 MB viewer limit and are hashed before decoding.
+
+The reviewed native dumper writes the complete AtomArray to CIF without an output mask and serializes atom/token confidence in that same order ([writer](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/runner/dumper.py), [CIF serialization](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/opendde/data/utils.py)). The adapter additionally validates all array dimensions, tokens and units; the viewer resolves each original CIF row to a unique renderer atom by chain/residue/atom identity and original coordinates. Atom serials, numeric chain offsets and experimental B-factors are never confidence authorities. CIF pLDDT stored in B fields only corroborates the known native writer order within its rounding tolerance. Missing, duplicate, filtered, alternate-location, insertion-code or multi-model records whose identities cannot be proven retain chain colors and the valid native matrix/download.
+
+Residue confidence is the mean of its native atom pLDDT values. PAE keeps native token axes and labels the corresponding real residue; multiple ligand atom tokens can refer to one residue. Chain borders come from the observed mapping. Point selection and double-axis range selection use mapped atoms, clear scientific atom-pick callbacks, respect hidden chains and share the existing renderer completion/export gate. Matrix navigation does not change a user's chosen color scheme. Experimental structures and other adapters without this verified binding keep their existing styles; further native protocol adapters remain separately gated.

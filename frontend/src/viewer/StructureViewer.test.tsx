@@ -6,6 +6,7 @@ import { defaultOptions } from "./protocol";
 import { api } from "../api";
 import { TemplatePreviewContext } from "../examples/context";
 import { PoseSession } from "./PoseSession";
+import { confidenceIdentity, type ConfidenceBinding } from "./confidence-types";
 
 function announceReady(frame: HTMLIFrameElement) {
   act(() => {
@@ -22,6 +23,246 @@ function announceReady(frame: HTMLIFrameElement) {
     );
   });
 }
+it("acknowledges exact ligand token selections and hides prior sample confidence immediately even for identical structure URLs", () => {
+  const binding: ConfidenceBinding = {
+    job: "job",
+    candidate: "sample-0",
+    url: "/api/assets/native",
+    protocol: "opendde-cif-row-v1",
+    structure_sha256: "a".repeat(64),
+    confidence_sha256: "b".repeat(64),
+    atom_plddt: [0.87, 0.5],
+    atom_to_token_idx: [0, 1],
+    token_asym_id: [7, 9],
+  };
+  const selected = vi.fn(),
+    inspect = vi.fn();
+  const view = render(
+    <StructureViewer
+      sourceSnapshot
+      urls={[binding.url]}
+      language="en"
+      confidence={binding}
+      onConfidenceSelected={selected}
+      onConfidenceInspection={inspect}
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const emit = (type: string, detail: unknown) =>
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  announceReady(frame);
+  const residue = {
+    key: "A:ASN:10:",
+    chain: "A",
+    resn: "ASN",
+    resi: 10,
+    icode: "",
+  };
+  emit("loaded", {
+    atoms: 20,
+    chains: ["A", "B"],
+    hasPolymer: true,
+    ligands: [],
+    residues: [residue],
+    options: defaultOptions,
+  });
+  const key = confidenceIdentity(binding);
+  emit("confidence-inspection", {
+    key,
+    residueScores: { [residue.key]: 87 },
+    tokens: [
+      { index: 0, chain: "A", residue: residue.key, label: "A:ASN10" },
+      { index: 1, chain: "B", residue: "B:LIG:1:", label: "B:LIG1" },
+    ],
+  });
+  emit("confidence-selected", { key, tokens: [1] });
+  expect(selected).toHaveBeenCalledWith({ key, tokens: [1] });
+  expect(screen.getByText("1 atom tokens selected")).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Clear sequence selection" }),
+  ).toBeEnabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear sequence selection" }),
+  );
+  expect(post.mock.calls.at(-1)?.[0]).toMatchObject({
+    type: "selection-action",
+    value: "clear",
+    requestId: expect.any(String),
+  });
+  view.rerender(
+    <StructureViewer
+      sourceSnapshot
+      urls={[binding.url]}
+      language="en"
+      confidence={{
+        ...binding,
+        candidate: "sample-1",
+        confidence_sha256: "c".repeat(64),
+      }}
+      onConfidenceSelected={selected}
+      onConfidenceInspection={inspect}
+    />,
+  );
+  expect(screen.queryByRole("checkbox", { name: /pLDDT 87/ })).toBeNull();
+  emit("confidence-inspection", {
+    key,
+    residueScores: { [residue.key]: 87 },
+    tokens: [],
+  });
+  expect(screen.queryByRole("checkbox", { name: /pLDDT 87/ })).toBeNull();
+});
+
+it("shares native sequence and representation controls beyond predictions, waits for renderer acknowledgment and resets on source change", () => {
+  const view = render(
+    <StructureViewer urls={["/api/assets/native"]} language="en" />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  const emit = (type: string, detail: unknown) =>
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: location.origin,
+          source: frame.contentWindow,
+          data: { channel: "opendde-viewer", type, detail },
+        }),
+      ),
+    );
+  announceReady(frame);
+  const residue = {
+    key: "A:ASN:10:B",
+    chain: "A",
+    resn: "ASN",
+    resi: 10,
+    icode: "B",
+  };
+  emit("loaded", {
+    atoms: 50,
+    chains: ["A"],
+    hasPolymer: true,
+    ligands: [],
+    residues: [residue],
+    options: defaultOptions,
+  });
+  fireEvent.click(screen.getByRole("switch", { name: "All atoms" }));
+  expect(post).toHaveBeenLastCalledWith(
+    {
+      channel: "opendde-viewer",
+      type: "options",
+      value: { allAtoms: true },
+      requestId: expect.any(String),
+    },
+    location.origin,
+  );
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  const optionsId = post.mock.calls.at(-1)?.[0].requestId;
+  emit("rendering", false);
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("display-complete", optionsId);
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("checkbox", { name: "A:ASN10B" }));
+  expect(post).toHaveBeenLastCalledWith(
+    {
+      channel: "opendde-viewer",
+      type: "sequence-selection",
+      requestId: expect.any(String),
+      value: { key: residue.key, mode: "replace" },
+    },
+    location.origin,
+  );
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "false",
+  );
+  const sequenceId = post.mock.calls.at(-1)?.[0].requestId;
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("rendering", false);
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("display-complete", sequenceId);
+  emit("residue-selection", [residue.key]);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear sequence selection" }),
+  );
+  const clearId = post.mock.calls.at(-1)?.[0].requestId;
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  emit("rendering", false);
+  emit("display-complete", clearId);
+  emit("residue-selection", []);
+  expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
+  view.rerender(
+    <StructureViewer urls={["/api/assets/another"]} language="en" />,
+  );
+  expect(screen.queryByRole("checkbox", { name: "A:ASN10B" })).toBeNull();
+});
+
+it("retains chain focus when prediction conformers are overlaid instead of offering visibility edits", () => {
+  render(
+    <StructureViewer
+      comparison
+      urls={["/api/assets/pose-a", "/api/assets/pose-b"]}
+      language="en"
+    />,
+  );
+  const frame = screen.getByTitle(
+    "Interactive molecular structure",
+  ) as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  announceReady(frame);
+  act(() =>
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: location.origin,
+        source: frame.contentWindow,
+        data: {
+          channel: "opendde-viewer",
+          type: "loaded",
+          detail: {
+            atoms: 100,
+            chains: ["A", "AB"],
+            hasPolymer: true,
+            hasInteractionContext: false,
+            ligands: [],
+            residues: [],
+            options: defaultOptions,
+          },
+        },
+      }),
+    ),
+  );
+  expect(screen.queryByText(/Chains 2/)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /^Chain AB$/ }));
+  expect(post).toHaveBeenLastCalledWith(
+    { channel: "opendde-viewer", type: "chain", value: "AB" },
+    location.origin,
+  );
+});
 
 it("reads a fixed-case pose through the shared example scope without submitting initial preparation", () => {
   const submit = vi.spyOn(api, "post");
@@ -108,6 +349,15 @@ it("keeps atom selection on the exact source and never offers or starts pose cha
   expect(
     screen.queryByLabelText("Pose optimization and history"),
   ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Capture 3D view" }),
+  ).toBeDisabled();
+  const request = [...post.mock.calls]
+    .reverse()
+    .find(([data]) => data.type === "options")?.[0];
+  expect(request?.requestId).toEqual(expect.any(String));
+  message("rendering", false);
+  message("display-complete", request.requestId);
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   message("initial-pose-required");
   expect(submit).not.toHaveBeenCalled();
@@ -317,6 +567,7 @@ it("centers only a selected ligand in the current loaded source, without resetti
       channel: "opendde-viewer",
       type: "options",
       value: { ligand: "B:LIG301" },
+      requestId: expect.any(String),
     },
     location.origin,
   );
@@ -363,6 +614,7 @@ it("waits for the new pose before sending atom selections and clears prior displ
     <StructureViewer
       urls={["/api/jobs/a/download?name=one.sdf"]}
       language="zh"
+      highlightedAtoms={[17]}
     />,
   );
   const frame = screen.getByTitle("可交互分子结构") as HTMLIFrameElement;
@@ -400,6 +652,7 @@ it("waits for the new pose before sending atom selections and clears prior displ
     <StructureViewer
       urls={["/api/jobs/a/download?name=two.sdf"]}
       language="zh"
+      highlightedAtoms={[17]}
     />,
   );
   expect(post.mock.calls.some(([data]) => data.type === "load")).toBe(true);
@@ -521,6 +774,7 @@ it("focuses the actual pose and enables interactions without pretending comparis
       channel: "opendde-viewer",
       type: "options",
       value: { interactions: false },
+      requestId: expect.any(String),
     },
     location.origin,
   );

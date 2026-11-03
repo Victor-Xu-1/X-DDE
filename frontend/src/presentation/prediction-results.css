@@ -1,0 +1,192 @@
+.prediction-result {
+  min-width: 0;
+}
+.prediction-result-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 6px 0 20px;
+}
+.prediction-result-heading .result-task-name {
+  font-size: 27px;
+  font-weight: 600;
+  margin: 0;
+}
+.prediction-sample-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.prediction-seed-picker label,
+.prediction-sample-picker {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.prediction-seed-picker label > span,
+.prediction-sample-picker > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.prediction-seed-picker select {
+  width: 112px;
+  min-height: 34px;
+  border-radius: 8px;
+}
+.prediction-sample-picker nav {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.prediction-sample-options {
+  display: flex;
+  gap: 5px;
+  max-width: 260px;
+  overflow-x: auto;
+  padding: 3px;
+}
+.prediction-sample-picker button {
+  flex-shrink: 0;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 12px;
+}
+.prediction-sample-picker button[aria-pressed="true"] {
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.prediction-confidence-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  flex: 1 1 360px;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+.prediction-confidence-metrics > div {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #edf3f1;
+}
+.prediction-confidence-metrics > div:nth-child(2) {
+  background: #f2eee6;
+}
+.prediction-confidence-metrics > div:nth-child(3) {
+  background: #f1ede4;
+}
+.prediction-confidence-metrics > div:nth-child(4) {
+  background: #fcf0ef;
+}
+.prediction-confidence-metrics dt {
+  color: var(--muted);
+  font-size: 10px;
+}
+.prediction-confidence-metrics dt small {
+  display: inline-block;
+  padding-left: 5px;
+  font-size: 9px;
+}
+.prediction-confidence-metrics dd {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+.prediction-model-download {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: var(--ink);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.prediction-result .structure-workbench {
+  grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr);
+  align-items: stretch;
+  gap: 16px;
+}
+.prediction-result .structure-workbench-view,
+.prediction-result .structure-workbench-details {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 16px;
+}
+.prediction-result .viewer-panel {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.studio-app
+  .studio-content[data-prediction-layout="true"]
+  .prediction-result
+  .structure-workbench:not(:fullscreen)
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: clamp(360px, 46vh, 520px);
+  min-height: 360px;
+}
+.prediction-result .confidence-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.prediction-result .confidence-panel h3 {
+  font-size: 14px;
+  margin: 0 0 18px;
+}
+.prediction-result .confidence-panel .confidence-map {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: auto;
+}
+.prediction-result .confidence-panel .small {
+  font-size: 11px;
+}
+.prediction-result .confidence-panel .plddt-spark {
+  margin-top: 14px;
+}
+.prediction-result .mol1-confidence {
+  min-width: 0;
+}
+.prediction-result .mol1-confidence .interactive-plot {
+  min-width: 0;
+}
+.prediction-confidence-empty {
+  min-height: 260px;
+  padding: 14px;
+}
+.prediction-confidence-empty h3 {
+  font-size: 15px;
+  margin: 0 0 20px;
+}
+.prediction-confidence-empty p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.prediction-conformer-table {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin-top: 20px;
+  background: var(--surface);
+}
+.prediction-conformer-table .candidate-panel {
+  margin: 0;
+  padding: 0;
+}

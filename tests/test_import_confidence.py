@@ -51,11 +51,30 @@ def test_unknown_native_fields_are_not_silently_ignored():
 
 def test_confidence_sampling_preserves_native_indices_and_rejects_traversal(tmp_path):
     (tmp_path / "entry_sample_0.cif").write_text("structure")
-    data = {"token_pair_pae": [[i + j for j in range(5)] for i in range(5)], "atom_plddt": [90, 80]}
+    data = {
+        "token_pair_pae": [[i + j for j in range(5)] for i in range(5)],
+        "atom_plddt": [0.9, 0.8],
+    }
     (tmp_path / "entry_full_data_sample_0.json").write_text(json.dumps(data))
     result = confidence_view(tmp_path, "entry_sample_0.cif", "pae", bins=2)
     assert result["indices"] == [0, 3]
     assert result["matrix"] == [[0, 3], [3, 6]]
     assert result["token_count"] == 5
+    assert result["atom_plddt_unit"] == "0-1"
+    assert result["atom_plddt"] == [{"index": 0, "value": 0.9}, {"index": 1, "value": 0.8}]
+    assert json.loads((tmp_path / "entry_full_data_sample_0.json").read_text()) == data
     with pytest.raises(ValueError):
         confidence_view(tmp_path, "../outside.cif", "pae")
+
+
+@pytest.mark.parametrize("value", [True, -0.01, 1.01, 87, float("nan"), float("inf")])
+def test_atom_confidence_rejects_wrong_or_invalid_native_units_before_sampling(tmp_path, value):
+    (tmp_path / "entry_sample_0.cif").write_text("structure")
+    # Index 1 is not in the plotted sample: invalid hidden values are still rejected.
+    atoms = [0.87] * 2001
+    atoms[1] = value
+    (tmp_path / "entry_full_data_sample_0.json").write_text(
+        json.dumps({"token_pair_pae": [[0]], "atom_plddt": atoms})
+    )
+    with pytest.raises(ValueError, match="0–1 pLDDT"):
+        confidence_view(tmp_path, "entry_sample_0.cif", "pae")

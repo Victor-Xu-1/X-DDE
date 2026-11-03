@@ -87,3 +87,37 @@ it("keeps preview, candidate selection and exports together, while unavailable a
   expect(p.onCandidate).toHaveBeenCalledWith("sample-0");
   expect(screen.getByTitle("Interactive molecular structure")).toBeVisible();
 });
+
+it("keeps a hash-qualified sample's unknown seed distinct from the requested primary seed", () => {
+  const candidate = { ...analysis.candidates[0], id: "sample-0-abcdef123456" };
+  const p = props();
+  const view = render(
+    <PredictionResults
+      {...p}
+      analysis={{ ...analysis, candidates: [candidate] }}
+      candidate={candidate}
+    />,
+  );
+  expect(screen.getByRole("combobox", { name: "Select seed" })).toHaveValue(
+    "unknown",
+  );
+  expect(screen.getByRole("button", { name: /^Sample 0$/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  const identified = { ...candidate, id: "seed-202-sample-4" };
+  view.rerender(
+    <PredictionResults
+      {...p}
+      analysis={{ ...analysis, candidates: [identified] }}
+      candidate={identified}
+    />,
+  );
+  expect(screen.getByRole("combobox", { name: "Select seed" })).toHaveValue(
+    "202",
+  );
+  expect(screen.getByRole("button", { name: /^Sample 4$/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});

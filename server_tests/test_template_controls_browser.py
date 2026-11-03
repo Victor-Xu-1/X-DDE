@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from opendde_workbench.examples.stat6.catalogue import verified_input
 from server_tests.test_navigation_shell_browser import open_navigation, settings
 
@@ -105,8 +106,11 @@ def study_detail(page, capability):
     response = page.request.get(os.environ["WB_BROWSER_URL"] + "/api/examples/" + capability)
     assert response.ok, response.text()
     info = response.json()
-    assert info["case"]["id"] == "stat6-defined-molecules"
-    assert info["study"]["target"] == "STAT6"
+    catalogue = bundle_catalogue("current")
+    expected = catalogue.case_for(capability)
+    assert (info["case"]["id"], info["case"]["revision"]) == (expected.id, expected.revision)
+    assert info["module"]["revision"] == catalogue.modules[capability].revision
+    assert info["study"]["target"] == ("BRD4" if capability.startswith("del.") else "STAT6")
     assert info["pin"] is None and info["record_pin"] is None
     assert not info["computed_result_available"]
     return info
@@ -157,13 +161,31 @@ def test_current_study_controls_are_coherent_and_keyboard_return_is_exact(case_p
         expect(region.locator(".example-result-kind")).to_have_text(badge)
         result = region.locator(".module-example-result")
         expect(result).to_be_visible()
-        preview = result.locator(".study-input-preview")
-        expect(preview).to_be_visible()
-        expect(preview.locator("table")).to_contain_text("STAT6 · P42226")
-        expect(preview.locator(".study-geometry-note")).to_contain_text("MMFF94s")
+        if capability.startswith("del."):
+            preview = result.get_by_role(
+                "region",
+                name="DEL 实验材料" if index == 0 else "DEL experimental inputs",
+                exact=True,
+            )
+            expect(preview).to_be_visible()
+            assert info["study"]["id"] == "del6" and info["study"]["materials"]
+            for material in info["study"]["materials"]:
+                expect(
+                    preview.get_by_role(
+                        "link",
+                        name=("下载 " if index == 0 else "Download ") + material["name"],
+                        exact=True,
+                    )
+                ).to_have_attribute("href", material["url"])
+            expect(preview.locator("table")).to_contain_text("BRD4")
+        else:
+            preview = result.locator(".study-input-preview")
+            expect(preview).to_be_visible()
+            expect(preview.locator("table")).to_contain_text("STAT6 · P42226")
+            expect(preview.locator(".study-geometry-note")).to_contain_text("MMFF94s")
         if capability == "predict":
             expect(result.locator(".viewer-tools").first).to_be_visible(timeout=45000)
-        if capability in {"admet.predict", "del.analyze"}:
+        if capability == "admet.predict":
             preview.get_by_role("button", name="2D", exact=True).click()
             expect(preview.locator(".molecule-image")).to_have_attribute(
                 "data-drawing-state", "ready", timeout=45000
@@ -212,8 +234,20 @@ def test_archived_results_keep_original_identity_outside_the_active_study(case_p
         response = page.request.get(base + "/api/examples/" + capability + "?profile=archive")
         assert response.ok, response.text()
         archived = response.json()
-        assert archived["case"]["id"] != current["case"]["id"]
-        assert archived["module"]["revision"] + 2 == current["module"]["revision"]
+        expected_archive = bundle_catalogue("archive").case_for(capability)
+        assert (archived["case"]["id"], archived["case"]["revision"]) == (
+            expected_archive.id,
+            expected_archive.revision,
+        )
+        assert (archived["case"]["id"], archived["case"]["revision"]) != (
+            current["case"]["id"],
+            current["case"]["revision"],
+        )
+        assert (
+            archived["module"]["revision"]
+            == bundle_catalogue("archive").modules[capability].revision
+        )
+        assert archived["module"]["revision"] < current["module"]["revision"]
         if capability == "campaign":
             pin = archived["record_pin"]
             assert pin and not pin["computed_result_available"]
@@ -253,9 +287,10 @@ def test_archived_results_keep_original_identity_outside_the_active_study(case_p
                 expect(page.locator(".viewer-tools").first).to_be_visible(timeout=45000)
             else:
                 expect(detail.locator("table").first).to_be_visible(timeout=30000)
-                expect(detail.locator(".molecule-image").first).to_have_attribute(
-                    "data-drawing-state", "ready", timeout=45000
-                )
+                if capability == "admet.predict":
+                    expect(detail.locator(".molecule-image").first).to_have_attribute(
+                        "data-drawing-state", "ready", timeout=45000
+                    )
             capture(page, f"{language}-{width}-{capability}-archived-result")
             assert page.request.get(base + "/api/jobs/" + job_id).json() == job
             measurements.append({"capability": capability, "job_id": job_id})

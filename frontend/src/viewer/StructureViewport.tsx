@@ -10,6 +10,12 @@ import {
 } from "@ant-design/icons";
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
+import { ChainControls } from "./ChainControls";
+import { DisplayReadiness, displayCommands } from "./display-readiness";
+import {
+  StructureDisplayControls,
+  StructureSequence,
+} from "./StructureInspection";
 import { SurfaceLegend } from "./SurfaceLegend";
 import { InteractionControls } from "./InteractionControls";
 import { PoseScore, type NativePoseScore } from "./PoseScore";
@@ -42,6 +48,12 @@ import type { NativeInteraction } from "../integrations/types";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
+import { ConfidenceControls, ConfidenceLegend } from "./ConfidenceControls";
+import {
+  confidenceIdentity,
+  type ConfidenceBinding,
+  type ConfidenceInspection,
+} from "./confidence-types";
 import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
@@ -69,6 +81,11 @@ export interface StructureViewerProps {
   electrostaticMap?: PotentialMap;
   onAtomSelected?(selection: SelectionInfo | null): void;
   onSceneLoaded?(scene: SceneInfo): void;
+  confidence?: ConfidenceBinding | null;
+  confidenceSelection?: { key: string; tokens: number[]; nonce: number } | null;
+  onConfidenceInspection?(value: ConfidenceInspection | null): void;
+  onResiduesSelected?(keys: string[]): void;
+  onConfidenceSelected?(value: { key: string; tokens: number[] }): void;
 }
 export function StructureViewport({
   sourceSnapshot = false,
@@ -92,6 +109,11 @@ export function StructureViewport({
   electrostaticMap,
   onAtomSelected,
   onSceneLoaded,
+  confidence,
+  confidenceSelection,
+  onConfidenceInspection,
+  onResiduesSelected,
+  onConfidenceSelected,
   optimization,
 }: StructureViewerProps & { optimization: PoseController }) {
   const { urls, records, score: nativeScore } = optimization.pose;
@@ -141,6 +163,26 @@ export function StructureViewport({
     [error, setError] = useState("");
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
+  const [hiddenChains, setHiddenChains] = useState<string[]>([]);
+  const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
+  const [confidenceView, setConfidenceView] =
+    useState<ConfidenceInspection | null>(null);
+  const [confidenceUnavailable, setConfidenceUnavailable] = useState(false);
+  const confidenceCallback = useRef(onConfidenceInspection);
+  confidenceCallback.current = onConfidenceInspection;
+  const residueCallback = useRef(onResiduesSelected);
+  residueCallback.current = onResiduesSelected;
+  const [nativeTokens, setNativeTokens] = useState<number[]>([]);
+  const tokenCallback = useRef(onConfidenceSelected);
+  tokenCallback.current = onConfidenceSelected;
+  const confidenceKey = confidence ? confidenceIdentity(confidence) : "";
+  const currentConfidence =
+    confidenceView?.key === confidenceKey ? confidenceView : null;
+  const expectedConfidence = useRef(confidenceKey);
+  expectedConfidence.current = confidenceKey;
+  const [displayPending, setDisplayPending] = useState(false);
+  const [displayRevision, setDisplayRevision] = useState(0);
+  const displayWork = useRef(new DisplayReadiness());
   const [selection, setSelection] = useState<SelectionInfo | null>(null),
     [distance, setDistance] = useState<number | null>(null);
   const [contacts, setContacts] = useState<ContactSummary | null>(null);
@@ -151,8 +193,20 @@ export function StructureViewport({
     matched: number;
   } | null>(null);
   function send(type: string, value?: unknown) {
+    const requestId = displayCommands.includes(type)
+      ? crypto.randomUUID()
+      : undefined;
+    if (requestId) {
+      displayWork.current.begin(requestId);
+      setDisplayPending(true);
+    }
     frame.current?.contentWindow?.postMessage(
-      { channel: "opendde-viewer", type, value },
+      {
+        channel: "opendde-viewer",
+        type,
+        value,
+        ...(requestId ? { requestId } : {}),
+      },
       location.origin,
     );
   }
@@ -203,6 +257,50 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "residue-selection" &&
+        Array.isArray(detail) &&
+        detail.every((key) => typeof key === "string")
+      ) {
+        setSelectedResidues(detail);
+        residueCallback.current?.(detail);
+      }
+      if (type === "confidence-inspection") {
+        if (!detail || detail.key === expectedConfidence.current) {
+          setConfidenceView(detail);
+          setNativeTokens([]);
+          setConfidenceUnavailable(false);
+          confidenceCallback.current?.(detail);
+        }
+      }
+      if (type === "confidence-unavailable") setConfidenceUnavailable(true);
+      if (
+        type === "confidence-selected" &&
+        detail?.key === expectedConfidence.current
+      ) {
+        setNativeTokens(detail.tokens);
+        tokenCallback.current?.(detail);
+      }
+      if (
+        type === "confidence-color" &&
+        ["chain", "confidence"].includes(detail)
+      )
+        setOptions((o) => ({ ...o, color: detail }));
+      if (type === "rendering" && typeof detail === "boolean") {
+        displayWork.current.render(detail);
+        setDisplayPending(displayWork.current.pending);
+        if (!detail) setDisplayRevision((value) => value + 1);
+      }
+      if (type === "display-complete" && displayWork.current.complete(detail)) {
+        setDisplayPending(displayWork.current.pending);
+        setDisplayRevision((value) => value + 1);
+      }
+      if (
+        type === "chain-display" &&
+        Array.isArray(detail) &&
+        detail.every((chain) => typeof chain === "string")
+      )
+        setHiddenChains(detail);
+      if (
         type === "attachments" &&
         Number.isInteger(detail) &&
         detail >= 0 &&
@@ -221,6 +319,10 @@ export function StructureViewport({
       }
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
+        setHiddenChains([]);
+        displayWork.current.reset();
+        setDisplayPending(false);
+        setSelectedResidues([]);
         setStatus("loaded");
         setLoadedKey(requestedKey.current);
         setError("");
@@ -247,6 +349,14 @@ export function StructureViewport({
     lastRequest.current = ready ? request : null;
     focusedLigand.current = null;
     setSelection(null);
+    setSelectedResidues([]);
+    setConfidenceView(null);
+    setConfidenceUnavailable(false);
+    confidenceCallback.current?.(null);
+    residueCallback.current?.([]);
+    setHiddenChains([]);
+    displayWork.current.reset();
+    setDisplayPending(false);
     setDistance(null);
     setContacts(null);
     setAttachmentCount(0);
@@ -311,6 +421,7 @@ export function StructureViewport({
       send("residue", focusResidue.residue);
   }, [ready, status, loadedKey, sceneKey, focusResidue]);
   const regionKey = highlightedAtoms?.join(",") ?? "";
+  const hadAtomRegion = useRef(false);
   const siteKey = JSON.stringify(residueRegion ?? []);
   useEffect(() => {
     if (
@@ -322,8 +433,15 @@ export function StructureViewport({
       send("site-region", residueRegion);
   }, [ready, status, loadedKey, sceneKey, siteKey]);
   useEffect(() => {
-    if (ready && status === "loaded" && loadedKey === sceneKey)
+    if (
+      ready &&
+      status === "loaded" &&
+      loadedKey === sceneKey &&
+      (highlightedAtoms !== undefined || hadAtomRegion.current)
+    ) {
       send("atom-region", highlightedAtoms ?? []);
+      hadAtomRegion.current = highlightedAtoms !== undefined;
+    }
   }, [ready, status, loadedKey, sceneKey, regionKey]);
   function configure(value: Partial<ViewerOptions>) {
     if (value.mode) setSurface(null);
@@ -332,8 +450,35 @@ export function StructureViewport({
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
+  const hadSearchBox = useRef(false);
+  const hadConfidence = useRef(false);
+  const lastConfidenceRequest = useRef("");
   useEffect(() => {
-    if (loaded) send("search-box", searchBox);
+    const request = sceneKey + ":" + confidenceKey;
+    if (
+      loaded &&
+      (confidence || hadConfidence.current) &&
+      request !== lastConfidenceRequest.current
+    ) {
+      send("confidence", confidence ?? null);
+      hadConfidence.current = Boolean(confidence);
+      lastConfidenceRequest.current = request;
+    }
+  }, [loaded, sceneKey, confidenceKey]);
+  const selectionKey = JSON.stringify(confidenceSelection);
+  useEffect(() => {
+    if (
+      loaded &&
+      currentConfidence &&
+      confidenceSelection?.key === currentConfidence.key
+    )
+      send("confidence-selection", confidenceSelection);
+  }, [loaded, currentConfidence?.key, selectionKey]);
+  useEffect(() => {
+    if (loaded && (searchBox !== undefined || hadSearchBox.current)) {
+      send("search-box", searchBox);
+      hadSearchBox.current = searchBox !== undefined;
+    }
   }, [loaded, key, searchBoxKey]);
   return (
     <section className="studio-panel viewer-panel">
@@ -416,8 +561,11 @@ export function StructureViewport({
               focusModel,
               siteKey,
               attachmentKey,
+              hiddenChains,
+              selectedResidues,
+              displayRevision,
             ])}
-            sourceReady={loaded}
+            sourceReady={loaded && !displayPending}
             language={language}
             filename="X-DDE-structure"
             format="png"
@@ -427,12 +575,12 @@ export function StructureViewport({
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;
             }}
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             render={(settings) => snapshot.figure(send, settings)}
           />
           <button
             type="button"
-            disabled={!loaded || snapshot.busy}
+            disabled={!loaded || displayPending || snapshot.busy}
             aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
             title={zh ? "生成三维视图图片" : "Capture 3D view"}
             onClick={() => snapshot.begin(send, imageScale)}
@@ -474,6 +622,32 @@ export function StructureViewport({
                 {zh ? cn : en}
               </button>
             ))}
+          {!overlay && scene.chains.length > 0 && (
+            <ChainControls
+              language={language}
+              chains={scene.chains}
+              hidden={hiddenChains.filter((chain) =>
+                scene.chains.includes(chain),
+              )}
+              onDisplay={(value) => send("chain-display", value)}
+              onFocus={(chain) => send("chain", chain)}
+            />
+          )}
+          {!overlay && scene.hasPolymer && (
+            <StructureDisplayControls
+              language={language}
+              options={options}
+              onChange={configure}
+            />
+          )}
+          {!overlay && confidence && scene.hasPolymer && (
+            <ConfidenceControls
+              language={language}
+              ready={Boolean(currentConfidence)}
+              color={options.color}
+              onColor={(color) => configure({ color })}
+            />
+          )}
         </div>
       )}
       {comparison && (
@@ -481,6 +655,25 @@ export function StructureViewport({
           {zh
             ? "蓝 / 橙 / 紫表示不同构象。退出叠加后可编辑单个结构的显示。"
             : "Blue / orange / purple identify conformers. Leave overlay to edit an individual structure's display."}
+        </p>
+      )}
+      {loaded &&
+        currentConfidence &&
+        !scene.hasPolymer &&
+        nativeTokens.length > 0 && (
+          <button
+            type="button"
+            onClick={() => send("selection-action", "clear")}
+          >
+            {zh ? "清除置信度选择" : "Clear confidence selection"} (
+            {nativeTokens.length})
+          </button>
+        )}
+      {confidenceUnavailable && (
+        <p role="status" className="field-help">
+          {zh
+            ? "此构象的原子对应关系无法核验，继续按链显示。"
+            : "Atom identities could not be verified for this conformer. Chain colors remain available."}
         </p>
       )}
       <div className="molecular-stage">
@@ -641,19 +834,20 @@ export function StructureViewport({
                 {zh ? "定位所选配体" : "Focus selected ligand"}
               </button>
             )}
-            {scene.chains
-              .filter((chain) => chain.trim())
-              .slice(0, 8)
-              .map((chain) => (
-                <button
-                  type="button"
-                  key={chain}
-                  onClick={() => send("chain", chain)}
-                >
-                  {zh ? "链 " : "Chain "}
-                  {chain}
-                </button>
-              ))}
+            {(comparison || overlay) &&
+              scene.chains
+                .filter((chain) => chain.trim())
+                .slice(0, 8)
+                .map((chain) => (
+                  <button
+                    type="button"
+                    key={chain}
+                    onClick={() => send("chain", chain)}
+                  >
+                    {zh ? "链 " : "Chain "}
+                    {chain}
+                  </button>
+                ))}
             <span>
               {zh ? "拖动旋转 · 滚轮缩放" : "Drag to rotate · Scroll to zoom"}
             </span>
@@ -725,6 +919,23 @@ export function StructureViewport({
               send={send}
             />
           )}
+        </>
+      )}
+      {loaded && scene.residues.length > 0 && !overlay && !comparison && (
+        <>
+          {currentConfidence && options.color === "confidence" && (
+            <ConfidenceLegend language={language} />
+          )}
+          <StructureSequence
+            language={language}
+            residues={scene.residues}
+            selected={selectedResidues}
+            hiddenChains={hiddenChains}
+            confidence={currentConfidence?.residueScores}
+            nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
+            onSelect={(key, mode) => send("sequence-selection", { key, mode })}
+            onClear={() => send("selection-action", "clear")}
+          />
         </>
       )}
       {!sourceSnapshot &&

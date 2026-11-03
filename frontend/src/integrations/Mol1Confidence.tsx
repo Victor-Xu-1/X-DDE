@@ -85,7 +85,7 @@ export function Mol1Confidence({
     value?: ConfidencePreview;
     error?: boolean;
   }>({ key: "" });
-  const [mode, setMode] = useState("atom_plddt");
+  const [mode, setMode] = useState("token_pair_pae");
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!file || !sample?.full_data_artifact) return;
@@ -202,7 +202,8 @@ export function Mol1Confidence({
         y: value.token_indices,
         z: value.matrices[mode],
         colorscale: "Viridis",
-        ...(mode === "contact_probs" ? { zmin: 0, zmax: 1 } : {}),
+        zmin: 0,
+        zmax: mode === "contact_probs" ? 1 : 30,
         colorbar: {
           title: {
             text:
