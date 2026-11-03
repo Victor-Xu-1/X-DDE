@@ -325,6 +325,7 @@ export function ScientificForm({
                 title: zh
                   ? "设置三维约束（可选）"
                   : "Set 3D restraints (optional)",
+                guideStep: null,
                 valid: true,
                 content: (
                   <RestraintEditor
@@ -344,6 +345,7 @@ export function ScientificForm({
           : []),
         {
           title: zh ? "选择计算方案" : "Choose a calculation plan",
+          guideStep: 2,
           valid: optionsValid,
           content: (
             <ScientificChoices
@@ -360,6 +362,7 @@ export function ScientificForm({
         },
         {
           title: zh ? "确认并提交" : "Review and submit",
+          guideStep: 3,
           valid: inputValid && selectionValid && modeValid && optionsValid,
           content: (
             <>

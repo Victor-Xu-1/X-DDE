@@ -310,6 +310,7 @@ export function SimulationForm({
           ? [
               {
                 title: zh ? "三维约束（可选）" : "3D restraints (optional)",
+                guideStep: null,
                 valid: true,
                 content: (
                   <RestraintEditor
@@ -329,6 +330,7 @@ export function SimulationForm({
           : []),
         {
           title: zh ? "确认并提交" : "Review and submit",
+          guideStep: 3,
           valid: inputValid && selectionValid && settingsValid,
           content: (
             <SimulationReview
