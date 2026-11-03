@@ -35,10 +35,19 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         page.goto(base + "/#task=" + identifier)
         strip = page.get_by_role("region", name="构象与置信度" if zh else "Sample and confidence")
         expect(strip).to_be_visible(timeout=30000)
+        frame_title = "可交互分子结构" if zh else "Interactive molecular structure"
+        scene = page.frame_locator(f'iframe[title="{frame_title}"]')
+        expect(scene.locator("canvas")).to_be_visible(timeout=30000)
         plot = page.locator(".confidence-panel .research-plot").first
         expect(plot.get_by_role("application")).to_have_attribute(
             "aria-busy", "false", timeout=30000
         )
+        metric = page.get_by_role("combobox", name="置信度视图" if zh else "Confidence view")
+        for value in ("pde", "contacts", "pae"):
+            metric.select_option(value)
+            expect(plot.get_by_role("application")).to_have_attribute(
+                "aria-busy", "false", timeout=30000
+            )
         expect(
             page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True)
         ).to_have_attribute("aria-pressed", "true")

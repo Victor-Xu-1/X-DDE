@@ -116,6 +116,7 @@
 }
 .prediction-result .structure-workbench {
   grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr);
+  align-items: stretch;
   gap: 16px;
 }
 .prediction-result .structure-workbench-view,
@@ -130,11 +131,9 @@
   padding: 0;
   background: transparent;
 }
-.studio-app
-  .prediction-result.task-workspace.is-result
-  .viewer-panel
-  .molecular-stage {
-  height: clamp(500px, 62vh, 720px);
+.studio-app .prediction-result .viewer-panel:not(:fullscreen) .molecular-stage {
+  height: clamp(360px, 46vh, 520px);
+  min-height: 360px;
 }
 .prediction-result .confidence-panel {
   margin: 0;

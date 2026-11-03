@@ -121,21 +121,21 @@ it("separates task entry from structure review while preserving the draft", asyn
           })
         : request(path, init),
     );
-  const { rerender } = render(<HomeWorkspace {...props} />);
+  const { rerender, container } = render(<HomeWorkspace {...props} />);
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   const sequence = screen.getByLabelText("单字母氨基酸序列");
   fireEvent.change(sequence, { target: { value: "ACDE" } });
   fireEvent.click(screen.getByRole("button", { name: "结构与结果" }));
   expect(sequence).not.toBeVisible();
   expect(screen.getByTitle("可交互分子结构")).toBeVisible();
+  const summary = container.querySelector<HTMLElement>(
+    ".prediction-result-heading",
+  );
+  expect(summary).not.toBeNull();
   expect(
-    screen.getByRole("heading", { name: /^研究结果$/, level: 2 }),
+    within(summary!).getByRole("heading", { name: /^研究结果$/, level: 2 }),
   ).toBeVisible();
-  expect(
-    screen
-      .getByRole("heading", { name: /^研究结果$/, level: 2 })
-      .closest("header"),
-  ).toHaveTextContent("已完成");
+  expect(summary).toHaveTextContent("已完成");
   expect(
     screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
   ).toBeNull();
@@ -144,7 +144,7 @@ it("separates task entry from structure review while preserving the draft", asyn
   expect(sequence).toHaveValue("ACDE");
   rerender(<HomeWorkspace {...props} resultsVersion={1} />);
   expect(sequence).not.toBeVisible();
-  const resultHeading = await screen.findByRole("heading", {
+  const resultHeading = await within(summary!).findByRole("heading", {
     name: /^已完成的任务$/,
     level: 2,
   });
