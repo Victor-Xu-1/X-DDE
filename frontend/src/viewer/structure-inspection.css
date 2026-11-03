@@ -3,7 +3,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px 24px;
-  padding: 8px 0 12px;
+  padding: 0;
+  margin-inline-start: auto;
 }
 .structure-display-controls label {
   display: inline-flex;

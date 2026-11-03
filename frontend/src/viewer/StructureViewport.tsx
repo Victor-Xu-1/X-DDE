@@ -518,14 +518,14 @@ export function StructureViewport({
               onFocus={(chain) => send("chain", chain)}
             />
           )}
+          {!overlay && scene.hasPolymer && (
+            <StructureDisplayControls
+              language={language}
+              options={options}
+              onChange={configure}
+            />
+          )}
         </div>
-      )}
-      {loaded && scene.hasPolymer && !comparison && !overlay && (
-        <StructureDisplayControls
-          language={language}
-          options={options}
-          onChange={configure}
-        />
       )}
       {comparison && (
         <p className="viewer-comparison">
