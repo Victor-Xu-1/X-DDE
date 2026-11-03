@@ -17,6 +17,11 @@ authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
 readiness checks. The public Mol-1 base model does not gain unsupported geometric
 constraint capabilities from a change in presentation.
 
+Each entity in the setup summary expands to its current sequence or structure
+identifier. An uploaded structure takes precedence over any retained text and
+downloads from its selected immutable asset; no internal file path is displayed.
+The summary reads the live form values and never submits or prepares a task.
+
 Prediction results expose seed/sample navigation and the selected candidate's
 native score, pTM, ipTM and pLDDT where available. The exact selected artifact owns
 the structure download. The large live structure is on the left and the confidence

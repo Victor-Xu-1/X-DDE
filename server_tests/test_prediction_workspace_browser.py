@@ -96,6 +96,8 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         ).fill("CCD_ATP")
         summary = page.get_by_role("complementary", name="研究设置概览" if zh else "Study setup")
         expect(summary).to_contain_text("输入可继续检查与确认" if zh else "Inputs ready to review")
+        summary.get_by_label("蛋白质 材料 1" if zh else "Protein input 1", exact=True).click()
+        expect(summary.locator("pre").first).to_have_text(sequence)
         page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
         expect(page.locator(".questionnaire:visible > fieldset:not([hidden])")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")

@@ -67,25 +67,59 @@ export function PredictionSetup({
         >
           {components.map((item, index) => (
             <li key={index}>
-              <span className="prediction-entity-number" aria-hidden="true">
-                {index + 1}
-              </span>
-              <span>{names[item.kind]}</span>
-              <small>{item.count} ×</small>
-              <span
-                className={
-                  "prediction-input-state" +
-                  (item.value.trim() || item.ligand_file ? " is-provided" : "")
-                }
-              >
-                {item.value.trim() || item.ligand_file
-                  ? zh
-                    ? "已填写"
-                    : "Provided"
-                  : zh
-                    ? "待填写"
-                    : "Not provided"}
-              </span>
+              <details>
+                <summary
+                  aria-label={`${names[item.kind]} ${zh ? "材料" : "input"} ${index + 1}`}
+                >
+                  <span className="prediction-entity-number" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <span>{names[item.kind]}</span>
+                  <small>{item.count} ×</small>
+                  <span
+                    className="prediction-entity-chevron"
+                    aria-hidden="true"
+                  >
+                    ›
+                  </span>
+                  <span
+                    className={
+                      "prediction-input-state" +
+                      (item.value.trim() || item.ligand_file
+                        ? " is-provided"
+                        : "")
+                    }
+                  >
+                    {item.value.trim() || item.ligand_file
+                      ? zh
+                        ? "已填写"
+                        : "Provided"
+                      : zh
+                        ? "待填写"
+                        : "Not provided"}
+                  </span>
+                </summary>
+                <div className="prediction-entity-input">
+                  {item.ligand_file ? (
+                    <a
+                      href={`/api/assets/${encodeURIComponent(item.ligand_file)}`}
+                      download
+                    >
+                      {zh
+                        ? "下载已选结构文件"
+                        : "Download selected structure input"}
+                    </a>
+                  ) : item.value.trim() ? (
+                    <pre>{item.value}</pre>
+                  ) : (
+                    <p>
+                      {zh
+                        ? "请在任务步骤中填写这项材料。"
+                        : "Provide this input in the task form."}
+                    </p>
+                  )}
+                </div>
+              </details>
             </li>
           ))}
         </ul>
