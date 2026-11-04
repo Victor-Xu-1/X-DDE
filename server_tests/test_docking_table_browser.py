@@ -217,6 +217,55 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             )
         ).to_have_attribute("href", load["urls"][2])
         expect(table.locator('tr[aria-selected="true"]')).to_contain_text(pose_label + " 2")
+        quality = workspace.get_by_role(
+            "region",
+            name="所选姿势的独立质控"
+            if language == "zh"
+            else "Independent quality for selected pose",
+            exact=True,
+        )
+        report_ids = [str(entry.job_id) for entry in pin.supporting_evidence]
+        assert len(report_ids) == 2
+        for number, report_id in zip((3, 9), report_ids, strict=True):
+            table.get_by_role("button", name=f"{pose_label} {number}", exact=True).click()
+            expect(quality.get_by_role("heading")).to_contain_text(
+                f"{pose_label.lower() if language == 'en' else pose_label} {number}"
+            )
+            expect(quality).to_contain_text("15 通过" if language == "zh" else "15 passed")
+            expect(quality).to_contain_text("6 未评估" if language == "zh" else "6 not assessed")
+            expect(quality).to_contain_text("1 不适用" if language == "zh" else "1 not applicable")
+            report_link = quality.get_by_role(
+                "link",
+                name="查看报告 · PoseBusters 0.6.5"
+                if language == "zh"
+                else "View report · PoseBusters 0.6.5",
+            )
+            expect(report_link).to_have_attribute("href", "/#task=" + report_id)
+            expect(export).to_be_enabled(timeout=30000)
+            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            if number == 3:
+                quality.scroll_into_view_if_needed()
+                page.screenshot(path=evidence / "selected-pose-independent-quality.png")
+                with page.expect_popup() as opened:
+                    report_link.click()
+                report_page = opened.value
+                expect(
+                    report_page.get_by_role(
+                        "region",
+                        name="构象与姿势质控结果" if language == "zh" else "Pose quality results",
+                        exact=True,
+                    )
+                ).to_be_visible(timeout=30000)
+                report_page.close()
+                expect(table.locator('tr[aria-selected="true"]')).to_contain_text(f"{pose_label} 3")
+
+        table.get_by_role("button", name=f"{pose_label} 1", exact=True).click()
+        expect(quality.get_by_role("link")).to_have_count(0)
+        expect(quality).to_contain_text(
+            "没有关联的独立质控报告"
+            if language == "zh"
+            else "No independent quality report is linked"
+        )
         complete = page.locator(".docking-results > details").last
         complete.locator("summary").click()
         with page.expect_download() as full_download:
@@ -248,6 +297,7 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
                     "all_original_metrics_and_units_retained": True,
                     "selected_pose_download_matches_native_sha256": True,
                     "complete_pose_set_matches_native_sha256": True,
+                    "original_pose_quality_reports_match": True,
                     "source_pins_unchanged": True,
                     "new_scientific_tasks": 0,
                     "errors": errors,

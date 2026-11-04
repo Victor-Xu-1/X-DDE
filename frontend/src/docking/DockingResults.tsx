@@ -4,6 +4,7 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { poseScore } from "./poseScore";
 import { PoseTable } from "./PoseTable";
+import { DockingResultsEvidence } from "./DockingResultsEvidence";
 import { PoseComparison } from "./PoseComparison";
 import { ReferenceComparison } from "./ReferenceComparison";
 import { MolecularPreview } from "../presentation/MolecularPreview";
@@ -23,15 +24,17 @@ import { usePoseHandoff } from "../viewer/usePoseHandoff";
 import { PoseSession } from "../viewer/PoseSession";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import { QualityForm } from "../quality/QualityForm";
-export function DockingResults({
-  job,
-  result,
-  language,
-}: {
+interface DockingResultsProps {
   job: Job;
   result: DockingResult;
   language: Language;
-}) {
+}
+
+export function DockingResults(props: DockingResultsProps) {
+  return <DockingWorkspace key={props.job.id} {...props} />;
+}
+
+function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const zh = language === "zh";
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
   const [comparison, setComparison] = useState<{
@@ -282,6 +285,12 @@ export function DockingResults({
         }
       >
         <div>
+          <DockingResultsEvidence
+            jobId={job.id}
+            result={result}
+            pose={compared.length === 2 ? undefined : selected}
+            language={language}
+          />
           <ReferenceComparison result={result} language={language} />
           <PoseTable
             key={job.id}

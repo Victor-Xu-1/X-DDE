@@ -69,7 +69,7 @@ jobs:
         with:
           fetch-depth: 0
       - id: scope
-        name: Select exact structural-comparison checks
+        name: Select retained docking result checks
         env:
           BASE: ${{ github.event.pull_request.base.sha || (github.ref == 'refs/heads/main' && github.event.before) || '' }}
         shell: bash
@@ -81,7 +81,7 @@ jobs:
           found=false
           while IFS= read -r file; do
             case "$file" in
-              frontend/src/docking/PoseComparison.tsx|frontend/src/docking/PoseComparison.css) found=true ;;
+              frontend/src/docking/PoseComparison.tsx|frontend/src/docking/PoseComparison.css|frontend/src/docking/DockingResultsEvidence*) found=true ;;
               frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|frontend/src/docking/PoseTable.tsx|frontend/src/presentation/ResearchTable.tsx|frontend/src/presentation/ResearchTable.test.tsx|server_tests/test_docking_table_browser.py|.github/workflows/pose-handoff-checks.yml|.github/workflows/user-interface-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) only=false ;;
             esac
@@ -119,7 +119,7 @@ jobs:
             exit
           fi
           if [ "$OVERLAY_ONLY" = true ]; then
-            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx src/presentation/ResearchTable.test.tsx src/viewer/pose-plan.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts src/viewer/contacts.test.ts src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
+            npx vitest run src/docking/DockingResultsEvidence.test.tsx src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx src/presentation/ResearchTable.test.tsx src/viewer/pose-plan.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts src/viewer/contacts.test.ts src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
             exit
           fi
           npx vitest run src/viewer/PoseSession.test.tsx src/viewer/pose-source.test.ts \

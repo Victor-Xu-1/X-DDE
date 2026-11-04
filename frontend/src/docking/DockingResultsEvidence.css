@@ -1,0 +1,35 @@
+.docking-pose-evidence {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding-block: 2px 12px;
+  margin-block-end: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.docking-pose-evidence h3,
+.docking-pose-evidence p {
+  margin: 0;
+}
+
+.docking-pose-evidence h3 {
+  font-size: 15px;
+}
+
+.docking-pose-report,
+.docking-pose-checks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+
+.docking-pose-report,
+.docking-pose-evidence p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.docking-pose-checks {
+  font-variant-numeric: tabular-nums;
+}
