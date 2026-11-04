@@ -45,6 +45,11 @@ export function HarnessForm({
     run = useTaskSubmit(onCreated);
   const readiness = useTaskReadiness(tool);
   const validName = name.trim().length <= 80;
+  function editPayload(value: Record<string, unknown>) {
+    setPayload(value);
+    run.clearError();
+    setSetupError("");
+  }
   const needsExternal = [
     "target-msa",
     "protrek-sequence",
@@ -99,7 +104,7 @@ export function HarnessForm({
           field={field}
           tool={tool}
           payload={payload}
-          onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+          onChange={(v) => editPayload({ ...payload, [field.key]: v })}
           language={language}
         />
       ));
@@ -155,12 +160,12 @@ export function HarnessForm({
       </p>
       <JsonEditor
         value={payload}
-        onChange={setPayload}
+        onChange={editPayload}
         label={zh ? "完整原生科学参数" : "Full native scientific parameters"}
       />
     </>
   ) : tool === "fold" ? (
-    <FoldInputs value={payload} onChange={setPayload} language={language} />
+    <FoldInputs value={payload} onChange={editPayload} language={language} />
   ) : (
     <>{renderFields(true)}</>
   );
@@ -212,7 +217,7 @@ export function HarnessForm({
                 field={field}
                 tool={tool}
                 payload={payload}
-                onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+                onChange={(v) => editPayload({ ...payload, [field.key]: v })}
                 language={language}
               />
             ))}
@@ -233,7 +238,10 @@ export function HarnessForm({
           <input
             type="checkbox"
             checked={external}
-            onChange={(e) => setExternal(e.target.checked)}
+            onChange={(e) => {
+              setExternal(e.target.checked);
+              run.clearError();
+            }}
           />
           {zh
             ? "允许向配置的计算 / 搜索服务发送本次序列或结构。"

@@ -119,6 +119,7 @@ def test_native_msa_form_retains_exact_numbering_then_detaches_edited_sequence(l
                 opener.click()
             assert preview.value.ok
             dialog = page.get_by_role("dialog", name=label, exact=True)
+            expect(dialog.get_by_text("Protocol capture only", exact=False)).to_have_count(0)
             expect(
                 dialog.get_by_text(payload["candidates"][0]["candidate_id"], exact=True)
             ).to_be_visible()
