@@ -81,3 +81,41 @@
 .pocket-reference-comparison p {
   margin: 0;
 }
+
+.pocket-handoff-source {
+  border-block: 1px solid var(--line);
+  padding-block: 12px;
+  margin-block: 8px 16px;
+}
+
+.pocket-handoff-source header,
+.pocket-handoff-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.pocket-handoff-source h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.pocket-handoff-source header > span,
+.pocket-handoff-facts {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pocket-handoff-facts {
+  margin-block: 6px;
+  overflow-wrap: anywhere;
+}
+
+.pocket-handoff-source summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}

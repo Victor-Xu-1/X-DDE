@@ -5,12 +5,16 @@ import type { Site } from "./types";
 export function PocketSelection({
   site,
   proteinArtifact,
+  coordinatesMatch,
+  hasValidBox,
   language,
   onGenerate,
   onDock,
 }: {
   site: Site;
   proteinArtifact: string;
+  coordinatesMatch: boolean;
+  hasValidBox: boolean;
   language: Language;
   onGenerate(): void;
   onDock(): void;
@@ -18,10 +22,15 @@ export function PocketSelection({
   const zh = language === "zh";
   const pdb = proteinArtifact.endsWith(".pdb");
   const usable =
+    coordinatesMatch &&
     pdb &&
     !!site.residues.length &&
     site.residues.every(
-      (r) => r.chain.length === 1 && !r.insertion_code && !r.alternate_location,
+      (r) =>
+        r.model === 0 &&
+        r.chain.length === 1 &&
+        !r.insertion_code &&
+        !r.alternate_location,
     );
   return (
     <section
@@ -62,18 +71,26 @@ export function PocketSelection({
         <button
           className="secondary-button"
           type="button"
-          disabled={!pdb}
+          disabled={!pdb || !coordinatesMatch || !hasValidBox}
           onClick={onDock}
         >
           {zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
         </button>
       </div>
-      {!usable && (
-        <p className="field-help">
+      {!coordinatesMatch ? (
+        <p className="field-help" role="status">
           {zh
-            ? "分子生成需要 PDB、单字符链标识和无歧义残基编号。请先准备结构并保留残基对应关系。"
-            : "Molecule generation needs PDB, single-character chains and unambiguous residue numbering. Prepare the structure while preserving residue mappings."}
+            ? "口袋残基与此受体来源不一致。请回到原始口袋结果核对。"
+            : "The pocket residues do not match this receptor source. Check the original pocket result."}
         </p>
+      ) : (
+        !usable && (
+          <p className="field-help">
+            {zh
+              ? "分子生成需要 PDB、单字符链标识和无歧义残基编号。请先准备结构并保留残基对应关系。"
+              : "Molecule generation needs PDB, single-character chains and unambiguous residue numbering. Prepare the structure while preserving residue mappings."}
+          </p>
+        )
       )}
     </section>
   );

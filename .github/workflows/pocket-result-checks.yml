@@ -28,6 +28,7 @@ on:
       - 'frontend/src/viewer/frame.ts'
       - 'frontend/src/viewer/source-depth*'
       - 'server_tests/test_pocket_results_browser.py'
+      - 'server_tests/test_stat6_pocket_handoff_browser.py'
       - 'server_tests/test_result_selection_browser.py'
       # Routing-only edits are checked by the affected feature gate.
       # Native scene annotations have their own retained-source figure checks.
@@ -112,7 +113,7 @@ jobs:
           cd frontend
           npx vitest run src/studio/CandidatePanel.test.tsx src/receptors/ReceptorResults.test.tsx src/poses/PoseResults.test.tsx src/datasets/ResearchTable.test.tsx src/datasets/IndexedLibraryResults.test.tsx src/datasets/DatasetResults.test.tsx
           npx vitest run src/presentation/ResearchTable.test.tsx src/pockets/PocketResults.test.tsx src/docking/DockingResults.test.tsx src/admet/AdmetResults.test.tsx src/diffsbdd/DiffResults.test.tsx src/operations/PropertyResults.test.tsx src/chemistry/StateResults.test.tsx src/operations/SequenceScoreResults.test.tsx src/operations/CandidateSequenceResults.test.tsx src/poses/ClusterResults.test.tsx src/evidence/EvidenceResults.test.tsx src/simulations/SimulationResults.test.tsx src/sites/SiteWorkspace.test.tsx
-          npx vitest run src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts src/viewer/StructureViewer.test.tsx src/viewer/donor-hydrogens.test.ts
+          npx vitest run src/pockets/PocketResults.return.test.tsx src/pockets/ReferenceComparison.test.tsx src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts src/viewer/StructureViewer.test.tsx src/viewer/donor-hydrogens.test.ts
       - name: Restore reviewed native pockets without running prediction
         env:
           GH_TOKEN: ${{ github.token }}
@@ -124,6 +125,9 @@ jobs:
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
+          gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
+          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual selection, pocket geometry, exports and return navigation
         run: |
@@ -134,7 +138,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -x -q server_tests/test_pocket_results_browser.py server_tests/test_result_selection_browser.py
+          .venv/bin/python -m pytest -x -q server_tests/test_pocket_results_browser.py server_tests/test_result_selection_browser.py server_tests/test_stat6_pocket_handoff_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
