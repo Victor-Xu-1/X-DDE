@@ -85,6 +85,7 @@ def run(request):
             if key in confidence
         ]
         name = copy_artifact(file, f"structure-{index + 1:03d}.cif")
+        copy_artifact(report, f"{Path(name).stem}-confidence.json")
         candidates.append(
             {
                 "id": f"structure-{index + 1:03d}",

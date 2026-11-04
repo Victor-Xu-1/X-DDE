@@ -1,5 +1,6 @@
+import { useLayoutEffect, useRef } from "react";
 import type { Language } from "../types";
-import { artifactUrl } from "../api";
+import { PredictionSampleDownload } from "./PredictionSampleDownload";
 import "./prediction-workspace.css";
 
 export interface PredictionSample {
@@ -13,6 +14,25 @@ export interface PredictionSample {
     unit: string;
     method?: string;
   }[];
+}
+
+function bestRanked(rows: PredictionSample[]) {
+  let best: PredictionSample | undefined;
+  let score = -Infinity;
+  for (const row of rows) {
+    const ranking = row.metrics.find(
+      (metric) => metric.name === "Ranking score",
+    )?.value;
+    if (
+      typeof ranking === "number" &&
+      Number.isFinite(ranking) &&
+      ranking > score
+    ) {
+      best = row;
+      score = ranking;
+    }
+  }
+  return best;
 }
 
 /** Selection, metrics and download all refer to the same native candidate. */
@@ -31,10 +51,24 @@ export function PredictionSamples({
 }) {
   const zh = language === "zh";
   const active = rows.find((row) => row.id === selected);
+  const sampleOptions = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const list = sampleOptions.current;
+    const button = list?.querySelector<HTMLButtonElement>(
+      '[aria-pressed="true"]',
+    );
+    if (!list || !button) return;
+    const frame = list.getBoundingClientRect();
+    const item = button.getBoundingClientRect();
+    if (item.left < frame.left) list.scrollLeft += item.left - frame.left;
+    else if (item.right > frame.right)
+      list.scrollLeft += item.right - frame.right;
+  }, [job, selected]);
   if (!active) return null;
   const seeds = [...new Set(rows.map((row) => row.seed))];
   const group = rows.filter((row) => row.seed === active.seed);
   const current = group.findIndex((row) => row.id === active.id);
+  const best = active.seed === null ? undefined : bestRanked(group);
   const label = (row: PredictionSample) =>
     `${zh ? "构象" : "Sample"} ${row.sample ?? row.id}`;
   return (
@@ -49,9 +83,13 @@ export function PredictionSamples({
             value={active.seed ?? "unknown"}
             aria-label={zh ? "选择随机种子" : "Select seed"}
             onChange={(event) => {
-              const next = rows.find(
+              const candidates = rows.filter(
                 (row) => String(row.seed ?? "unknown") === event.target.value,
               );
+              const next =
+                event.target.value === "unknown"
+                  ? candidates[0]
+                  : (bestRanked(candidates) ?? candidates[0]);
               if (next) onSelect(next.id);
             }}
           >
@@ -64,7 +102,23 @@ export function PredictionSamples({
         </label>
       </div>
       <div className="prediction-sample-picker">
-        <span>{zh ? "预测构象" : "Sample"}</span>
+        <div className="prediction-sample-caption">
+          <span>{zh ? "预测构象" : "Sample"}</span>
+          {best && group.length > 1 && (
+            <button
+              className="prediction-best-sample"
+              type="button"
+              onClick={() => onSelect(best.id)}
+              title={
+                zh
+                  ? "按此种子的原生排序分数选择"
+                  : "Select by this seed's native ranking score"
+              }
+            >
+              {zh ? "最高排序分" : "Highest ranking"} · {best.sample ?? best.id}
+            </button>
+          )}
+        </div>
         <nav aria-label={zh ? "切换构象" : "Prediction samples"}>
           <button
             type="button"
@@ -74,7 +128,7 @@ export function PredictionSamples({
           >
             ‹
           </button>
-          <div className="prediction-sample-options">
+          <div className="prediction-sample-options" ref={sampleOptions}>
             {group.map((row) => (
               <button
                 type="button"
@@ -84,7 +138,7 @@ export function PredictionSamples({
                 title={row.id}
                 onClick={() => onSelect(row.id)}
               >
-                {row.sample ?? row.id}
+                {row.sample ?? /^structure-(\d+)$/.exec(row.id)?.[1] ?? row.id}
               </button>
             ))}
           </div>
@@ -124,13 +178,13 @@ export function PredictionSamples({
         ))}
       </dl>
       {active.artifact && (
-        <a
-          className="prediction-model-download"
-          href={artifactUrl(job, active.artifact)}
-          download
-        >
-          {zh ? "下载此构象" : "This model"} ↓
-        </a>
+        <PredictionSampleDownload
+          key={JSON.stringify([job, active.id, active.artifact])}
+          job={job}
+          candidate={active.id}
+          artifact={active.artifact}
+          language={language}
+        />
       )}
     </section>
   );

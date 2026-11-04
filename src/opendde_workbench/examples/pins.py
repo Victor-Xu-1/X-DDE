@@ -55,6 +55,24 @@ class ExamplePins:
             )
         return record
 
+    def for_job(self, capability_id, job_id):
+        """Read the most recent seal for this exact completed task, including old revisions."""
+        with self.store.connect() as db:
+            row = db.execute(
+                "SELECT p.body, j.request FROM example_pins AS p "
+                "JOIN jobs AS j ON j.id=p.job_id WHERE p.capability_id=? AND p.job_id=? "
+                "ORDER BY p.revision DESC LIMIT 1",
+                (capability_id, str(job_id)),
+            ).fetchone()
+        if row is None:
+            return None
+        record = ExamplePin.model_validate_json(row["body"])
+        if (record.capability_id, record.job_id) != (capability_id, job_id):
+            raise ValueError("The recorded seal belongs to another prediction.")
+        if hashlib.sha256(row["request"].encode()).hexdigest() != record.request_sha256:
+            raise ValueError("The retained prediction request differs from its seal.")
+        return record
+
     def request(self, capability_id, *, reviewed=False):
         """Replay sealed authored JSON without introducing later model defaults."""
         pin = self.get(capability_id, verify=True)

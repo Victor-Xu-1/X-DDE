@@ -1,6 +1,7 @@
 """Run inside the external compute image; never fabricates missing scientific metrics."""
 
 import hashlib
+import io
 import json
 import math
 from pathlib import Path
@@ -59,13 +60,15 @@ def analyze(root: Path) -> dict:
     for path in sorted((root / "output").rglob("*_sample_*.cif"))[:64]:
         if path.is_symlink() or not path.resolve().is_relative_to((root / "output").resolve()):
             raise ValueError("Structure output escapes the managed task directory.")
-        atoms = get_structure(CIFFile.read(path), model=1)
+        cif_bytes = path.read_bytes()
+        atoms = get_structure(CIFFile.read(io.StringIO(cif_bytes.decode("utf-8"))), model=1)
         if len(atoms) == 0 or not np.isfinite(atoms.coord).all():
             raise ValueError("Predicted structure has empty or non-finite coordinates.")
         summary_path = path.with_name(
             path.name.replace("_sample_", "_summary_confidence_sample_")
         ).with_suffix(".json")
-        summary = json.loads(summary_path.read_text()) if summary_path.is_file() else {}
+        summary_bytes = summary_path.read_bytes() if summary_path.is_file() else None
+        summary = json.loads(summary_bytes) if summary_bytes is not None else {}
         sample_id = path.stem.split("_sample_")[-1]
         seed = next(
             (
@@ -110,6 +113,10 @@ def analyze(root: Path) -> dict:
                 "id": candidate_id,
                 "seed": seed,
                 "artifact": path.relative_to(root / "output").as_posix(),
+                "artifact_sha256": hashlib.sha256(cif_bytes).hexdigest(),
+                "summary_sha256": (
+                    hashlib.sha256(summary_bytes).hexdigest() if summary_bytes is not None else None
+                ),
                 "atom_count": len(atoms),
                 "chains": sorted(set(atoms.chain_id.tolist())),
                 "ranking_score": finite(summary.get("ranking_score")),
