@@ -108,11 +108,17 @@ it("preserves unfinished text and rejects incompatible/corrupt editor shapes", (
 });
 
 it.each(["en", "zh"] as const)(
-  "saves unfinished values without submitting, and marks later edits as unsaved in %s",
+  "normalizes No-MSA null references when saving unfinished values and still detects later edits in %s",
   async (language) => {
     const user = userEvent.setup(),
       zh = language === "zh",
       value = state();
+    value.components[0] = {
+      ...value.components[0],
+      paired_msa: null,
+      unpaired_msa: null,
+      template_hits: null,
+    };
     vi.mocked(api.authorized).mockResolvedValue(draft());
     const props = {
       state: value,

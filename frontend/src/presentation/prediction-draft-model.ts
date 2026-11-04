@@ -32,7 +32,16 @@ export const parseSeedText = (text: string) =>
     ? text.split(",").map((token) => (token.trim() ? Number(token) : NaN))
     : [];
 export function draftFingerprint(value: unknown): string {
-  return JSON.stringify(value, (_, item) =>
+  const normalized =
+    record(value) && Array.isArray(value.components)
+      ? {
+          ...value,
+          components: value.components.map((component) =>
+            record(component) ? withoutNulls(component) : component,
+          ),
+        }
+      : value;
+  return JSON.stringify(normalized, (_, item) =>
     record(item)
       ? Object.fromEntries(
           Object.entries(item).sort(([left], [right]) =>
@@ -53,6 +62,8 @@ export function snapshotMol1Settings(settings: Mol1Settings) {
 }
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
+const withoutNulls = (value: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== null));
 const finite = (value: unknown): value is number =>
   typeof value === "number" &&
   Number.isFinite(value) &&
@@ -179,8 +190,8 @@ export function readMol1Draft(value: unknown): Mol1DraftState {
     // API models may express absent optional references as null. Keep the native editor shape.
     components: result.components.map(
       (component) =>
-        Object.fromEntries(
-          Object.entries(component).filter(([, item]) => item !== null),
+        withoutNulls(
+          component as unknown as Record<string, unknown>,
         ) as unknown as Component,
     ),
   };
