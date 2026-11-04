@@ -57,4 +57,7 @@
   .task-detail-header:has(.prediction-history-trigger) {
     flex-wrap: wrap;
   }
+  .task-detail-header:has(.prediction-history-trigger) .task-actions {
+    max-width: 100%;
+  }
 }

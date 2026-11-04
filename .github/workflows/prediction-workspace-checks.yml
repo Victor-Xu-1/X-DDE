@@ -310,7 +310,7 @@ jobs:
         run: |
           (cd frontend && npx vitest run src/studio/PredictionResults.test.tsx src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx)
           uv run --locked ruff check src/opendde_workbench/prediction_archive.py src/opendde_workbench/science_routes.py server_tests/test_prediction_job_archive_browser.py
-          uv run --locked python -m pytest -x -q server_tests/test_prediction_job_archive_browser.py
+          uv run --locked python -m pytest -x -q tests/test_prediction_sample_export.py server_tests/test_prediction_job_archive_browser.py
 
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,17 +1,17 @@
 """Real analysis, machine-readable candidates, and downloadable reports."""
 
+import asyncio
 import csv
 import hashlib
 import html
 import io
 import json
-from threading import BoundedSemaphore
+from threading import BoundedSemaphore, Event
 from typing import Literal
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
-from starlette.background import BackgroundTask
 
 from .analysis import AnalysisService
 from .backend_router import BackendRouter
@@ -23,6 +23,30 @@ from .prediction_archive import BLOCK, prediction_archive
 from .prediction_sample_export import OPERATIONS, UnsealedPredictionSource, sample_zip
 from .settings import Settings
 from .store import Store
+
+
+class PredictionArchiveResponse(StreamingResponse):
+    def __init__(self, archive, length, filename, release):
+        self.archive = archive
+        self.release = release
+        super().__init__(
+            iter(lambda: archive.read(BLOCK), b""),
+            media_type="application/zip",
+            headers={
+                "Cache-Control": "no-store",
+                "Content-Length": str(length),
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+
+    async def __call__(self, scope, receive, send):
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            try:
+                self.archive.close()
+            finally:
+                self.release()
 
 
 def register_science(app: FastAPI, store: Store, engine: Engine, settings: Settings):
@@ -117,7 +141,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         )
 
     @app.get("/api/jobs/{job_id}/prediction-results.zip")
-    def download_prediction_results(job_id: UUID):
+    async def download_prediction_results(job_id: UUID, request: Request):
         job = store.get(str(job_id))
         if not job:
             raise HTTPException(404, "Task not found.")
@@ -125,19 +149,41 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
             raise HTTPException(409, "Choose a completed structure prediction.")
         if not archive_slot.acquire(blocking=False):
             raise HTTPException(429, "Another prediction archive is being downloaded.")
-        try:
+        cancelled = Event()
+
+        def prepare():
             with store.connect() as db:
                 authored = db.execute("SELECT request FROM jobs WHERE id=?", (job.id,)).fetchone()
             if authored is None:
                 raise FileNotFoundError("The retained request is unavailable.")
             request_sha256 = hashlib.sha256(authored["request"].encode()).hexdigest()
             pin = prediction_pins.for_job(capabilities[job.request.operation], job_id)
-            archive, length = prediction_archive(
+            return prediction_archive(
                 settings.state_dir / "jobs" / job.id,
                 job,
                 request_sha256,
                 pin.artifact_sha256 if pin else {},
+                cancelled.is_set,
             )
+
+        worker = asyncio.create_task(asyncio.to_thread(prepare))
+
+        def discard(completed):
+            try:
+                archive, _ = completed.result()
+                archive.close()
+            except (Exception, asyncio.CancelledError):
+                # The request was discarded. The completed result is no longer usable.
+                pass
+            finally:
+                archive_slot.release()
+
+        try:
+            while not worker.done():
+                await asyncio.wait((worker,), timeout=0.1)
+                if await request.is_disconnected():
+                    raise HTTPException(499, "The download was closed.")
+            archive, length = worker.result()
         except FileNotFoundError as error:
             archive_slot.release()
             raise HTTPException(404, "A retained scientific file is unavailable.") from error
@@ -145,29 +191,12 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
             archive_slot.release()
             raise HTTPException(422, "The retained prediction could not be packaged.") from error
         except BaseException:
-            archive_slot.release()
+            cancelled.set()
+            worker.add_done_callback(discard)
             raise
 
-        def close():
-            if not archive.closed:
-                archive.close()
-                archive_slot.release()
-
-        def chunks():
-            try:
-                yield from iter(lambda: archive.read(BLOCK), b"")
-            finally:
-                close()
-
-        return StreamingResponse(
-            chunks(),
-            media_type="application/zip",
-            headers={
-                "Cache-Control": "no-store",
-                "Content-Length": str(length),
-                "Content-Disposition": f'attachment; filename="{job.id}-prediction-results.zip"',
-            },
-            background=BackgroundTask(close),
+        return PredictionArchiveResponse(
+            archive, length, f"{job.id}-prediction-results.zip", archive_slot.release
         )
 
     @app.get("/api/jobs/{job_id}/candidates.csv")
