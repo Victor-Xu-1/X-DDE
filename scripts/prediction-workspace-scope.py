@@ -156,16 +156,34 @@ FINAL_REVIEW_FILES = {
 }
 
 
+BOLTZ_REVIEW_FILES = FINAL_REVIEW_FILES | {
+    "frontend/src/integrations/BoltzJobReview.tsx",
+    "frontend/src/integrations/boltz-job-request.ts",
+    "frontend/src/integrations/ScientificForm.tsx",
+    "frontend/src/integrations/ScientificForm.test.tsx",
+    "frontend/src/integrations/ScientificReview.tsx",
+    "frontend/src/presentation/PredictionJobReview.tsx",
+    "frontend/src/presentation/PredictionJobSettings.tsx",
+    "frontend/src/presentation/prediction-job-review.css",
+    "server_tests/test_boltz_final_review_browser.py",
+}
+
+
 def final_review_only(changed, event="push"):
     changed = set(changed)
-    return (
-        event in {"push", "pull_request"}
-        and {
+    return event in {"push", "pull_request"} and (
+        {
             "frontend/src/integrations/Mol1Form.tsx",
             "frontend/src/integrations/Mol1JobReview.tsx",
             "server_tests/test_mol1_final_review_browser.py",
         }.issubset(changed)
         and changed.issubset(FINAL_REVIEW_FILES)
+        or {
+            "frontend/src/integrations/ScientificForm.tsx",
+            "frontend/src/integrations/BoltzJobReview.tsx",
+            "server_tests/test_boltz_final_review_browser.py",
+        }.issubset(changed)
+        and changed.issubset(BOLTZ_REVIEW_FILES)
     )
 
 
@@ -178,7 +196,23 @@ def final_review_changed(changed, event="push"):
             "frontend/src/integrations/Mol1JobReview.tsx",
             "frontend/src/guided/Questionnaire.tsx",
             "frontend/src/presentation/PredictionReviewDialog.tsx",
+            "frontend/src/presentation/PredictionJobReview.tsx",
+            "frontend/src/presentation/PredictionJobSettings.tsx",
+            "frontend/src/presentation/prediction-job-review.css",
             "server_tests/test_mol1_final_review_browser.py",
+        }
+        for path in changed
+    )
+
+
+def boltz_review_changed(changed, event="push"):
+    return event == "workflow_dispatch" or any(
+        path in BOLTZ_REVIEW_FILES - FINAL_REVIEW_FILES
+        or path
+        in {
+            "frontend/src/guided/Questionnaire.tsx",
+            "frontend/src/presentation/PredictionEntityPreview.tsx",
+            "frontend/src/presentation/PredictionReviewDialog.tsx",
         }
         for path in changed
     )
@@ -344,6 +378,9 @@ def main():
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "final_review_changed": final_review_changed(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "boltz_review_changed": boltz_review_changed(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
         }.items():
