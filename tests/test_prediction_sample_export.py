@@ -32,8 +32,8 @@ def manifest(root, operation, program, candidates, files, **extra):
     return SimpleNamespace(id="source", request=request), output
 
 
-def unpack(root, job, candidate):
-    with zipfile.ZipFile(io.BytesIO(sample_zip(root, job, candidate))) as archive:
+def unpack(root, job, candidate, sealed=None):
+    with zipfile.ZipFile(io.BytesIO(sample_zip(root, job, candidate, sealed))) as archive:
         receipt = json.loads(archive.read("sample.json"))
         files = {role: archive.read(value["member"]) for role, value in receipt["files"].items()}
         assert all(
@@ -48,6 +48,7 @@ def test_retained_opendde_uses_cached_candidate_and_own_summary(tmp_path):
     analysis.mkdir()
     output = tmp_path / "output"
     output.mkdir()
+    summary = b'{"ranking_score":0.8}'
     (analysis / "workbench-analysis.json").write_text(
         json.dumps(
             {
@@ -57,15 +58,21 @@ def test_retained_opendde_uses_cached_candidate_and_own_summary(tmp_path):
                         "id": "seed-101-sample-0",
                         "artifact": "job_sample_0.cif",
                         "ranking_score": 0.8,
+                        "artifact_sha256": hashlib.sha256(b"data_0").hexdigest(),
+                        "summary_sha256": hashlib.sha256(summary).hexdigest(),
                     },
-                    {"id": "seed-101-sample-1", "artifact": "job_sample_1.cif"},
+                    {
+                        "id": "seed-101-sample-1",
+                        "artifact": "job_sample_1.cif",
+                        "artifact_sha256": hashlib.sha256(b"data_1").hexdigest(),
+                    },
+                    {"id": "legacy", "artifact": "job_sample_1.cif"},
                 ],
             }
         )
     )
     (output / "job_sample_0.cif").write_bytes(b"data_0")
     (output / "job_sample_1.cif").write_bytes(b"data_1")
-    summary = b'{"ranking_score":0.8}'
     (output / "job_summary_confidence_sample_0.json").write_bytes(summary)
     job = SimpleNamespace(id="source", request=SimpleNamespace(operation="predict"))
     assert unpack(tmp_path, job, "seed-101-sample-0") == {
@@ -73,6 +80,11 @@ def test_retained_opendde_uses_cached_candidate_and_own_summary(tmp_path):
         "confidence_summary": summary,
     }
     assert unpack(tmp_path, job, "seed-101-sample-1") == {"structure": b"data_1"}
+    with pytest.raises(ValueError, match="no retained source checksum"):
+        sample_zip(tmp_path, job, "legacy")
+    (output / "job_sample_0.cif").write_bytes(b"data_1")
+    with pytest.raises(ValueError, match="changed after it was recorded"):
+        sample_zip(tmp_path, job, "seed-101-sample-0")
     with pytest.raises(FileNotFoundError):
         sample_zip(tmp_path, job, "wrong")
 
@@ -106,15 +118,43 @@ def test_boltz_resolves_summary_by_native_structure_bytes(tmp_path):
     (native / "prediction_model_5.cif").write_bytes(b"data_selected")
     summary = b'{"confidence_score":0.8}'
     (native / "confidence_prediction_model_5.json").write_bytes(summary)
-    assert unpack(tmp_path, job, "structure-002") == {
+    sealed = {
+        file.relative_to(output).as_posix(): hashlib.sha256(file.read_bytes()).hexdigest()
+        for file in native.iterdir()
+    }
+    assert unpack(tmp_path, job, "structure-002") == {"structure": b"data_selected"}
+    assert unpack(tmp_path, job, "structure-002", sealed) == {
         "structure": b"data_selected",
         "confidence_summary": summary,
     }
-    (native / "confidence_prediction_model_5.json").write_bytes(b'{"confidence_score":0.9}')
-    with pytest.raises(ValueError, match="does not match"):
-        sample_zip(tmp_path, job, "structure-002")
-    (native / "prediction_model_9.cif").write_bytes(b"data_selected")
-    assert unpack(tmp_path, job, "structure-002") == {"structure": b"data_selected"}
+    sidecar = native / "confidence_prediction_model_5.json"
+    sidecar.write_bytes(b'{"confidence_score":0.8,"changed":true}')
+    with pytest.raises(ValueError, match="changed after it was recorded"):
+        sample_zip(tmp_path, job, "structure-002", sealed)
+
+    # The remaining candidate has the same bytes and rank, but a different
+    # native report. A missing original source cannot make this a valid match.
+    duplicate = native / "prediction_model_9.cif"
+    duplicate.write_bytes(b"data_selected")
+    other_summary = native / "confidence_prediction_model_9.json"
+    other_summary.write_bytes(b'{"confidence_score":0.8,"chain_pair":0.7}')
+    for file in (duplicate, other_summary):
+        sealed[file.relative_to(output).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
+    (native / "prediction_model_5.cif").unlink()
+    assert unpack(tmp_path, job, "structure-002", sealed) == {"structure": b"data_selected"}
+
+
+def test_current_boltz_uses_the_declared_sidecar_without_raw_tree(tmp_path):
+    key = "structure-001"
+    summary = b'{"confidence_score":0.8}'
+    job, _ = manifest(
+        tmp_path,
+        "boltz_predict",
+        "boltz",
+        [{"id": key, "artifact": key + ".cif"}],
+        {key + ".cif": b"native", key + "-confidence.json": summary},
+    )
+    assert unpack(tmp_path, job, key) == {"structure": b"native", "confidence_summary": summary}
 
 
 def test_mol1_requires_declared_summary_identity(tmp_path):
@@ -139,5 +179,5 @@ def test_mol1_requires_declared_summary_identity(tmp_path):
     )
     assert unpack(tmp_path, job, key) == {"structure": b"data_mol1", "confidence_summary": summary}
     (output / summary_name).write_bytes(b'{"plddt":40}')
-    with pytest.raises(ValueError, match="summary changed"):
+    with pytest.raises(ValueError, match="changed after it was recorded"):
         sample_zip(tmp_path, job, key)

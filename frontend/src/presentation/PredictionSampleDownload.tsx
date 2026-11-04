@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import { downloadBlob } from "./visual-export";
@@ -18,7 +18,7 @@ export function PredictionSampleDownload({
   const pending = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  useEffect(() => () => pending.current?.abort(), []);
+  useLayoutEffect(() => () => pending.current?.abort(), []);
 
   async function download() {
     if (pending.current) return;

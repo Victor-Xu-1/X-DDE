@@ -276,3 +276,18 @@ def test_diffsbdd_spatial_review_delegates_to_real_geometry_and_source_gate():
     assert not scope.selected(changes - {"server_tests/test_diff_review_browser.py"})
     assert not scope.selected(changes | {"src/opendde_workbench/diffsbdd/runtime.py"})
     assert not scope.selected(changes, "workflow_dispatch")
+
+
+def test_prediction_export_gate_remains_enabled_with_adjacent_result_changes():
+    files = [
+        "frontend/src/presentation/PredictionSamples.tsx",
+        "src/opendde_workbench/prediction_sample_export.py",
+        "src/opendde_workbench/native_runtime/analysis.py",
+        "src/opendde_workbench/integrations/native_boltz.py",
+    ]
+    assert scope.sample_export_only(files)
+    assert scope.selected(files)
+    mixed = files + ["frontend/src/integrations/ScientificResults.tsx"]
+    assert scope.sample_export_changed(mixed)
+    assert not scope.sample_export_only(mixed)
+    assert not scope.sample_export_changed(["frontend/src/integrations/ScientificResults.tsx"])

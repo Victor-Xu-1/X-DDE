@@ -6,6 +6,8 @@ on:
       - "frontend/src/presentation/Prediction*"
       - "src/opendde_workbench/science_routes.py"
       - "src/opendde_workbench/prediction_sample_export.py"
+      - "src/opendde_workbench/integrations/native_boltz.py"
+      - "src/opendde_workbench/native_runtime/analysis.py"
       - "tests/test_prediction_sample_export.py"
       - "server_tests/test_prediction_sample_export_browser.py"
       - "frontend/src/presentation/prediction-*.css"
@@ -104,6 +106,7 @@ jobs:
     outputs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       sample_export_only: ${{ steps.select.outputs.sample_export_only }}
+      sample_export_changed: ${{ steps.select.outputs.sample_export_changed }}
       native_confidence: ${{ steps.select.outputs.native_confidence }}
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
       input_preview: ${{ steps.select.outputs.input_preview }}
@@ -216,7 +219,7 @@ jobs:
           uv run --locked python -m pytest -q tests/test_import_confidence.py tests/test_confidence_binding.py
           uv run --locked ruff check src/opendde_workbench/confidence.py src/opendde_workbench/confidence_binding.py tests/test_confidence_binding.py tests/test_import_confidence.py server_tests/native_confidence_case.py server_tests/test_native_confidence_browser.py
       - name: Obtain the existing sealed STAT6 output archive without running engines
-        if: needs.scope.outputs.confidence_changed == 'true' || needs.scope.outputs.sample_export_only == 'true'
+        if: needs.scope.outputs.confidence_changed == 'true' || needs.scope.outputs.sample_export_changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -261,12 +264,12 @@ jobs:
           uv run --locked ruff check server_tests/test_opendde_final_review_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_opendde_final_review_browser.py
       - name: Bilingual retained sample selection and exact structure and confidence ZIP
-        if: needs.scope.outputs.sample_export_only == 'true'
+        if: needs.scope.outputs.sample_export_changed == 'true'
         env:
           WB_HOME: ${{ runner.temp }}/x-dde-prediction-sample
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-prediction-sample/state
         run: |
-          uv run --locked ruff check src/opendde_workbench/prediction_sample_export.py src/opendde_workbench/science_routes.py tests/test_prediction_sample_export.py server_tests/test_prediction_sample_export_browser.py
+          uv run --locked ruff check src/opendde_workbench/prediction_sample_export.py src/opendde_workbench/science_routes.py src/opendde_workbench/native_runtime/analysis.py src/opendde_workbench/integrations/native_boltz.py tests/test_prediction_sample_export.py server_tests/test_prediction_sample_export_browser.py
           uv run --locked python -m pytest -x -q tests/test_prediction_sample_export.py server_tests/test_prediction_sample_export_browser.py
 
       - uses: actions/upload-artifact@v4

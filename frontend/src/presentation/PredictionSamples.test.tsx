@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -190,5 +191,39 @@ it("offers the selected original CIF when the package request fails", async () =
   expect(
     screen.getByRole("link", { name: "Download original CIF" }),
   ).toHaveAttribute("href", "/api/jobs/native/download?name=second.cif");
+  expect(save).not.toHaveBeenCalled();
+});
+
+it("cancels a download before an old response body can save after selecting another sample", async () => {
+  let release: (blob: Blob) => void = () => {
+    throw new Error("Body was not read");
+  };
+  const blob = vi.fn(
+    () =>
+      new Promise<Blob>((resolve) => {
+        release = resolve;
+      }),
+  );
+  const fetcher = vi.fn().mockResolvedValue({
+    ok: true,
+    headers: new Headers({ "Content-Type": "application/zip" }),
+    blob,
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const p = {
+    job: "retained",
+    rows,
+    selected: rows[0].id,
+    onSelect: vi.fn(),
+    language: "en" as const,
+  };
+  const view = render(<PredictionSamples {...p} />);
+  fireEvent.click(screen.getByRole("button", { name: /This model/ }));
+  await waitFor(() => expect(blob).toHaveBeenCalledOnce());
+  view.rerender(<PredictionSamples {...p} selected={rows[1].id} />);
+  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true);
+  await act(async () =>
+    release(new Blob(["ZIP"], { type: "application/zip" })),
+  );
   expect(save).not.toHaveBeenCalled();
 });

@@ -5,7 +5,6 @@ import io
 import json
 import re
 import zipfile
-from itertools import islice
 from pathlib import Path
 
 from .artifacts import contained
@@ -14,8 +13,6 @@ OPERATIONS = frozenset({"predict", "boltz_predict", "mol1_predict"})
 MAX_STRUCTURE = 25 * 1024**2
 MAX_SUMMARY = 2 * 1024**2
 MAX_RESULT = 4 * 1024**2
-OPENDDE_METRICS = ("ranking_score", "ptm", "iptm", "plddt")
-BOLTZ_METRICS = frozenset({"confidence_score", "ptm", "iptm", "complex_plddt"})
 BOLTZ_OUTPUT = Path("native/boltz_results_prediction/predictions/prediction")
 
 
@@ -34,7 +31,16 @@ def one(rows, candidate, key):
     return matches[0]
 
 
-def open_dde_files(root, candidate):
+def verified(output, name, digest, limit):
+    if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise ValueError("The selected file has no retained source checksum.")
+    raw = bounded(contained(output, name), limit)
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError("The selected source file changed after it was recorded.")
+    return name, raw
+
+
+def open_dde_files(root, candidate, sealed):
     # The retained display analysis is the same candidate authority as the UI.
     # Never call the container-backed AnalysisService on this download path.
     analysis = json.loads(bounded(contained(root, "analysis/workbench-analysis.json"), MAX_RESULT))
@@ -49,27 +55,16 @@ def open_dde_files(root, candidate):
     summary_name = path.with_name(
         f"{match[1]}_summary_confidence_sample_{match[2]}.json"
     ).as_posix()
-    structure = bounded(contained(root / "output", name), MAX_STRUCTURE)
-    summary = matching_summary(
-        root / "output", summary_name, {key: row.get(key) for key in OPENDDE_METRICS}
+    output = root / "output"
+    structure = verified(
+        output, name, sealed.get(name) or row.get("artifact_sha256"), MAX_STRUCTURE
     )
-    return (name, structure), summary
+    digest = sealed.get(summary_name) or row.get("summary_sha256")
+    summary = verified(output, summary_name, digest, MAX_SUMMARY) if digest else None
+    return structure, summary
 
 
-def matching_summary(output, name, expected):
-    try:
-        raw = bounded(contained(output, name), MAX_SUMMARY)
-    except FileNotFoundError:
-        return None
-    summary = json.loads(raw)
-    if not isinstance(summary, dict) or any(
-        summary.get(key) != value for key, value in expected.items() if value is not None
-    ):
-        raise ValueError("Native confidence does not match the selected sample.")
-    return name, raw
-
-
-def integrated_files(root, request, candidate):
+def integrated_files(root, request, candidate, sealed):
     from .integrations.result import NativeResult
 
     output = root / "output"
@@ -85,9 +80,7 @@ def integrated_files(root, request, candidate):
     if not row.artifact or not row.artifact.endswith(".cif"):
         raise ValueError("Choose an original prediction CIF.")
     name = row.artifact
-    structure = bounded(contained(output, name), MAX_STRUCTURE)
-    if hashlib.sha256(structure).hexdigest() != result.artifact_sha256[name]:
-        raise ValueError("The selected native structure changed.")
+    structure = verified(output, name, result.artifact_sha256.get(name), MAX_STRUCTURE)
     if request.operation == "mol1_predict":
         if result.mol1 is None:
             raise ValueError("Retained Mol-1 sample identity is unavailable.")
@@ -100,42 +93,45 @@ def integrated_files(root, request, candidate):
         ):
             raise ValueError("Mol-1 summary belongs to another native sample.")
         sidecar = sample.summary_artifact
-        raw = bounded(contained(output, sidecar), MAX_SUMMARY)
-        if hashlib.sha256(raw).hexdigest() != result.artifact_sha256[sidecar]:
-            raise ValueError("The selected native summary changed.")
-        summary = (sidecar, raw)
+        summary = verified(output, sidecar, result.artifact_sha256.get(sidecar), MAX_SUMMARY)
     else:
-        summary = boltz_summary(output, row, structure)
-    return (name, structure), summary
+        sidecar = f"{Path(name).stem}-confidence.json"
+        if sidecar in result.artifact_sha256:
+            summary = verified(output, sidecar, result.artifact_sha256[sidecar], MAX_SUMMARY)
+        else:
+            summary = historical_boltz_summary(output, result.artifact_sha256[name], sealed)
+    return structure, summary
 
 
-def boltz_summary(output, row, structure):
-    # Historical Boltz aliases retained direct CIFs and metrics but did not
-    # declare the native JSON path. Only a unique byte-identical source binds it.
-    # Native Boltz produces at most ten structures per task.
-    files = list(islice((output / BOLTZ_OUTPUT).glob("prediction_model_*.cif"), 11))
-    if len(files) > 10:
-        raise ValueError("Too many native Boltz structures to verify the selected sample.")
-    matches = []
-    for path in files:
-        if not re.fullmatch(r"prediction_model_\d+", path.stem):
-            continue
-        name = path.relative_to(output).as_posix()
-        if bounded(contained(output, name), MAX_STRUCTURE) == structure:
-            matches.append(path)
+def historical_boltz_summary(output, structure_digest, sealed):
+    # Resolve against the full sealed archive, including sources that may have
+    # since disappeared. The remaining files alone cannot establish identity.
+    matches = [
+        path
+        for name, digest in sealed.items()
+        if digest == structure_digest
+        and (path := Path(name)).parent == BOLTZ_OUTPUT
+        and re.fullmatch(r"prediction_model_\d+\.cif", path.name)
+    ]
     if len(matches) != 1:
         return None
     native = matches[0]
-    name = (BOLTZ_OUTPUT / f"confidence_{native.stem}.json").as_posix()
-    expected = {metric.name: metric.value for metric in row.metrics if metric.name in BOLTZ_METRICS}
-    return matching_summary(output, name, expected) if expected else None
+    summary = (BOLTZ_OUTPUT / f"confidence_{native.stem}.json").as_posix()
+    if summary not in sealed:
+        return None
+    try:
+        verified(output, native.as_posix(), structure_digest, MAX_STRUCTURE)
+        return verified(output, summary, sealed[summary], MAX_SUMMARY)
+    except FileNotFoundError:
+        return None
 
 
-def sample_zip(root, job, candidate):
+def sample_zip(root, job, candidate, sealed=None):
+    sealed = sealed or {}
     if job.request.operation == "predict":
-        structure, summary = open_dde_files(root, candidate)
+        structure, summary = open_dde_files(root, candidate, sealed)
     else:
-        structure, summary = integrated_files(root, job.request, candidate)
+        structure, summary = integrated_files(root, job.request, candidate, sealed)
     files = {"structure": structure}
     if summary:
         files["confidence_summary"] = summary
