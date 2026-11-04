@@ -155,26 +155,33 @@
   border-top: 1px solid var(--line);
 }
 .structure-sequence.is-compact .structure-sequence-residues button {
-  width: 31px;
-  min-width: 31px;
-  min-height: 36px;
+  min-width: 22px;
+  min-height: 30px;
   grid-template-rows: 14px 10px;
   align-content: start;
   gap: 1px;
-  padding: 3px 0;
+  padding: 2px 1px;
 }
 .structure-sequence.is-compact .structure-sequence-residues button span {
   font-size: 13px;
   line-height: 14px;
 }
 .structure-sequence.is-compact .structure-sequence-residues button small {
-  font-size: 9px;
+  font-size: 8px;
   line-height: 10px;
-  max-width: 100%;
-  overflow: hidden;
+}
+@media (min-width: 1001px) {
+  .structure-sequence.is-compact .structure-sequence-residues {
+    max-height: none;
+    overflow: visible;
+  }
 }
 @media (max-width: 600px) {
   .structure-sequence.is-compact {
     padding: 12px;
+  }
+  .structure-sequence.is-compact .structure-sequence-residues button {
+    min-width: 31px;
+    min-height: 36px;
   }
 }
