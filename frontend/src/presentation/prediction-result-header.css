@@ -21,7 +21,10 @@
   font-weight: 600;
   overflow-wrap: anywhere;
 }
-.prediction-result-heading .prediction-result-back {
+.studio-app .prediction-result-heading .prediction-result-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 4px;
   border-radius: 999px;
 }
@@ -37,7 +40,13 @@
   color: var(--muted);
   font-size: 13px;
 }
+.studio-app .prediction-result-meta > .status.succeeded {
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
 .prediction-result-method {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0;
 }
 .prediction-result-method strong {
@@ -48,7 +57,7 @@
   align-self: center;
   justify-content: flex-end;
 }
-.prediction-result-actions > .secondary-button {
+.studio-app .prediction-result-actions > .secondary-button {
   border-radius: 999px;
 }
 @media (max-width: 840px) {
