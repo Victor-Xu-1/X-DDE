@@ -1,6 +1,7 @@
 """Replay the sealed three-conformer STAT6 study and open actual ZIP downloads."""
 
 import hashlib
+import io
 import json
 import zipfile
 from pathlib import Path
@@ -90,6 +91,21 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         download("structure-001", 0)
         missing = page.request.get(base + f"/api/jobs/{job}/prediction-sample.zip?candidate=absent")
         assert missing.status == 404
+
+        open_dde = pins.get("predict", verify=True)
+        assert open_dde and str(open_dde.job_id) == "716024e7-0a4a-4b9f-8962-fae4257bba48"
+        response = page.request.get(
+            base + f"/api/jobs/{open_dde.job_id}/prediction-sample.zip?candidate=seed-101-sample-0"
+        )
+        assert response.ok
+        with zipfile.ZipFile(io.BytesIO(response.body())) as archive:
+            receipt = json.loads(archive.read("sample.json"))
+            assert set(receipt["files"]) == {"structure", "confidence_summary"}
+            for entry in receipt["files"].values():
+                digest = hashlib.sha256(archive.read(entry["member"])).hexdigest()
+                assert (
+                    digest == entry["sha256"] == open_dde.artifact_sha256[entry["source_artifact"]]
+                )
         assert not writes
         assert [row.model_dump(mode="json") for row in store.list_jobs(1000)] == before
         browser.close()

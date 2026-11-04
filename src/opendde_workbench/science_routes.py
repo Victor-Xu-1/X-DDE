@@ -34,7 +34,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         store, settings.state_dir, modules=bundle_catalogue("current").modules
     )
     capabilities = {
-        "predict": "structure",
+        "predict": "predict",
         "boltz_predict": "boltz.predict",
         "mol1_predict": "mol1.predict",
     }
