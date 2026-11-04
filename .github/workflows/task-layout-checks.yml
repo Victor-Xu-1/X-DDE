@@ -414,6 +414,9 @@ on:
       - "!frontend/src/operations/PropertyResults.tsx"
       - "!frontend/src/pockets/PocketResults.tsx"
       - "!frontend/src/pockets/pocket-results.css"
+      # Native pocket comparisons and handoffs use pocket-result-checks.yml.
+      - "!frontend/src/pockets/ReferenceComparison*"
+      - "!server_tests/test_stat6_pocket_handoff_browser.py"
       - "!frontend/src/poses/ClusterResults.tsx"
       - "!frontend/src/poses/PoseResults.tsx"
       - "!frontend/src/poses/cluster.css"

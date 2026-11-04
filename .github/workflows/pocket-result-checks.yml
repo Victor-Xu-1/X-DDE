@@ -45,6 +45,7 @@ jobs:
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       comparison_only: ${{ steps.scope.outputs.comparison_only }}
+      handoff_only: ${{ steps.scope.outputs.handoff_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,7 +55,7 @@ jobs:
           BASE: ${{ github.event.before }}
         shell: bash
         run: |
-          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+          if [[ "$GITHUB_REF_NAME" != "main" || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             BASE=$(git merge-base HEAD origin/main)
           fi
           only=true
@@ -68,6 +69,18 @@ jobs:
           done < <(git diff --name-only "$BASE" HEAD)
           [[ "$found" = true ]] || only=false
           echo "comparison_only=$only" >> "$GITHUB_OUTPUT"
+          handoff_only=true
+          handoff_changed=false
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/src/pockets/PocketResultsHandoff.tsx|server_tests/test_stat6_pocket_handoff_browser.py) handoff_changed=true ;;
+              frontend/src/pockets/PocketResults*.tsx|frontend/src/pockets/PocketSelection.tsx|frontend/src/pockets/ReferenceComparison*.tsx|frontend/src/pockets/pocket-results.css) ;;
+              .github/workflows/pocket-result-checks.yml|.github/workflows/task-layout-checks.yml|.github/workflows/user-interface-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) handoff_only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          [[ "$handoff_changed" = true ]] || handoff_only=false
+          echo "handoff_only=$handoff_only" >> "$GITHUB_OUTPUT"
       - id: refinement
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -106,11 +119,16 @@ jobs:
         with:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
-      - name: Build and verify only changed result controls and direct consumers
+      - name: Build and verify changed result controls and direct consumers
         run: |
           npm ci --prefix frontend
           npm run build --prefix frontend
           cd frontend
+          if [[ "${{ needs.scope.outputs.handoff_only }}" == "true" ]]; then
+            npx vitest run src/pockets/PocketResults.test.tsx src/pockets/PocketResults.return.test.tsx src/pockets/ReferenceComparison.test.tsx src/pockets/reference-comparison.test.ts src/docking/DockingForm.test.tsx
+            exit
+          fi
+
           npx vitest run src/studio/CandidatePanel.test.tsx src/receptors/ReceptorResults.test.tsx src/poses/PoseResults.test.tsx src/datasets/ResearchTable.test.tsx src/datasets/IndexedLibraryResults.test.tsx src/datasets/DatasetResults.test.tsx
           npx vitest run src/presentation/ResearchTable.test.tsx src/pockets/PocketResults.test.tsx src/docking/DockingResults.test.tsx src/admet/AdmetResults.test.tsx src/diffsbdd/DiffResults.test.tsx src/operations/PropertyResults.test.tsx src/chemistry/StateResults.test.tsx src/operations/SequenceScoreResults.test.tsx src/operations/CandidateSequenceResults.test.tsx src/poses/ClusterResults.test.tsx src/evidence/EvidenceResults.test.tsx src/simulations/SimulationResults.test.tsx src/sites/SiteWorkspace.test.tsx
           npx vitest run src/pockets/PocketResults.return.test.tsx src/pockets/ReferenceComparison.test.tsx src/viewer/residue-region.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/viewer/camera-resize.test.ts src/viewer/capture.test.ts src/viewer/StructureViewer.test.tsx src/viewer/donor-hydrogens.test.ts
@@ -123,8 +141,10 @@ jobs:
           echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
           uv sync --locked --group dev --group browser
-          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
-          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          if [[ "${{ needs.scope.outputs.handoff_only }}" != "true" ]]; then
+            gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+            .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          fi
           version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
           gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
           .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
@@ -138,7 +158,11 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -x -q server_tests/test_pocket_results_browser.py server_tests/test_result_selection_browser.py server_tests/test_stat6_pocket_handoff_browser.py
+          tests=(server_tests/test_stat6_pocket_handoff_browser.py)
+          if [[ "${{ needs.scope.outputs.handoff_only }}" != "true" ]]; then
+            tests+=(server_tests/test_pocket_results_browser.py server_tests/test_result_selection_browser.py)
+          fi
+          .venv/bin/python -m pytest -x -q "${tests[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
