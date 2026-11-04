@@ -3,6 +3,7 @@ import type { Language } from "../types";
 import type { PreviewComponent } from "./PredictionEntityPreview";
 import { usePredictionHeadingFocus } from "./prediction-heading-focus";
 import { PredictionInputPreview } from "./PredictionInputPreview";
+import { predictionSettingsSummary } from "./prediction-settings-summary";
 import "./prediction-workspace.css";
 
 /** A view of the form's current values; never a second draft or task authority. */
@@ -15,6 +16,7 @@ export function PredictionSetup({
   valid,
   children,
   enabled = true,
+  draftControls,
 }: {
   language: Language;
   components: PreviewComponent[];
@@ -24,6 +26,7 @@ export function PredictionSetup({
   valid: boolean;
   children: ReactNode;
   enabled?: boolean;
+  draftControls?: ReactNode;
 }) {
   const root = usePredictionHeadingFocus(enabled);
   const [preview, setPreview] = useState(false);
@@ -33,6 +36,7 @@ export function PredictionSetup({
   }, [enabled]);
   if (!enabled) return children;
   const zh = language === "zh";
+  const summary = predictionSettingsSummary(seeds, samples, zh);
   const names = {
     protein: zh ? "蛋白质" : "Protein",
     ligand: zh ? "配体" : "Ligand",
@@ -63,11 +67,11 @@ export function PredictionSetup({
           </div>
           <div>
             <dt>{zh ? "随机种子" : "Seeds"}</dt>
-            <dd>{seeds.join(", ")}</dd>
+            <dd>{summary.seeds}</dd>
           </div>
           <div>
             <dt>{zh ? "请求构象" : "Requested structures"}</dt>
-            <dd>{samples * seeds.length}</dd>
+            <dd>{summary.structures}</dd>
           </div>
         </dl>
         <ul
@@ -149,6 +153,7 @@ export function PredictionSetup({
         >
           {zh ? "预览输入" : "Preview inputs"}
         </button>
+        {draftControls}
       </aside>
       {preview && (
         <PredictionInputPreview

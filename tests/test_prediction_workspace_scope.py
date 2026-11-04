@@ -8,6 +8,37 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_unsubmitted_draft_delegation_is_bounded_to_storage_and_its_native_form():
+    changed = [
+        "frontend/src/presentation/PredictionDraftControls.tsx",
+        "src/opendde_workbench/drafts/storage.py",
+        "tests/test_prediction_drafts.py",
+        "server_tests/test_prediction_drafts_browser.py",
+    ]
+    assert scope.selected(changed)
+    assert scope.drafts_only(changed, "pull_request")
+    assert scope.drafts_changed(changed)
+    assert scope.drafts_only(changed + [".github/workflows/docking-runtime-checks.yml"])
+    assert not scope.drafts_only(changed, "workflow_dispatch")
+    assert not scope.drafts_only(changed[:-1])
+    for unrelated in [
+        "src/opendde_workbench/integrations/native_mol1.py",
+        "src/opendde_workbench/docking/native.py",
+        "src/opendde_workbench/docking/image.py",
+        "frontend/src/App.tsx",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "frontend/src/TaskForm.tsx",
+    ]:
+        assert not scope.drafts_only(changed + [unrelated])
+    for consumer in [
+        "src/opendde_workbench/assets.py",
+        "src/opendde_workbench/api.py",
+        "frontend/src/integrations/Mol1Settings.tsx",
+    ]:
+        assert scope.drafts_changed([consumer])
+        assert not scope.drafts_only([consumer])
+
+
 def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
     changes = [
         "frontend/src/presentation/PredictionSetup.tsx",

@@ -68,6 +68,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       del_only: ${{ steps.change.outputs.del_only }}
+      drafts_only: ${{ steps.prediction.outputs.drafts_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,6 +77,10 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
+      - id: prediction
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/prediction-workspace-scope.py
   docking-runtime:
     needs: scope
     if: needs.scope.outputs.del_only != 'true'
@@ -122,6 +127,7 @@ jobs:
           server_tests/test_scientific_handoff.py::test_atom_map_identifiers_do_not_create_false_stereochemical_changes
           server_tests/test_docking_serialization.py
       - name: Actual isolated GNINA install, native CPU and CNN scoring modes
+        if: needs.scope.outputs.drafts_only != 'true'
         env:
           WB_TEST_NATIVE_DOCKING: "1"
         run: |

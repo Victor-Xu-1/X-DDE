@@ -9,6 +9,7 @@ PATTERNS = (
     "frontend/src/presentation/Prediction*",
     "frontend/src/presentation/prediction-*.css",
     "frontend/src/presentation/prediction-heading-focus*",
+    "frontend/src/presentation/prediction-settings-summary.ts",
     "frontend/src/viewer/confidence-*",
     "frontend/src/viewer/ConfidenceControls*",
     "frontend/src/viewer/structure-bytes*",
@@ -93,6 +94,75 @@ INPUT_PREVIEW_FILES = {
 }
 
 
+DRAFT_FILES = {
+    "frontend/src/presentation/prediction-settings-summary.ts",
+    "frontend/src/presentation/PredictionSetup.test.tsx",
+    "frontend/src/presentation/PredictionInputPreview.tsx",
+    "frontend/src/presentation/PredictionInputPreview.test.tsx",
+    ".github/workflows/docking-runtime-checks.yml",
+    "frontend/src/presentation/PredictionSetup.tsx",
+    "frontend/src/presentation/PredictionDraftControls.tsx",
+    "frontend/src/presentation/PredictionDraftList.tsx",
+    "frontend/src/presentation/PredictionDraftControls.test.tsx",
+    "frontend/src/presentation/prediction-draft-model.ts",
+    "frontend/src/presentation/prediction-drafts.css",
+    "frontend/src/integrations/Mol1Form.tsx",
+    "frontend/src/integrations/Mol1Settings.tsx",
+    "src/opendde_workbench/api.py",
+    "src/opendde_workbench/assets.py",
+    "src/opendde_workbench/drafts/__init__.py",
+    "src/opendde_workbench/drafts/models.py",
+    "src/opendde_workbench/drafts/storage.py",
+    "src/opendde_workbench/drafts/routes.py",
+    "tests/test_prediction_drafts.py",
+    "server_tests/test_prediction_drafts_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def drafts_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and {
+            "frontend/src/presentation/PredictionDraftControls.tsx",
+            "src/opendde_workbench/drafts/storage.py",
+            "tests/test_prediction_drafts.py",
+            "server_tests/test_prediction_drafts_browser.py",
+        }.issubset(changed)
+        and changed.issubset(DRAFT_FILES)
+    )
+
+
+def drafts_changed(changed, event="push"):
+    return event == "workflow_dispatch" or any(
+        name.startswith(
+            ("src/opendde_workbench/drafts/", "frontend/src/presentation/PredictionDraft")
+        )
+        or name
+        in {
+            "frontend/src/presentation/prediction-draft-model.ts",
+            "frontend/src/presentation/prediction-drafts.css",
+            "frontend/src/integrations/Mol1Form.tsx",
+            "frontend/src/integrations/Mol1Settings.tsx",
+            "src/opendde_workbench/api.py",
+            "src/opendde_workbench/assets.py",
+            "tests/test_prediction_drafts.py",
+            "server_tests/test_prediction_drafts_browser.py",
+        }
+        for name in changed
+    )
+
+
 def input_preview_only(changed, event="push"):
     changed = set(changed)
     return (
@@ -117,6 +187,7 @@ def preview_changed(changed, event="push"):
         )
         or name
         in {
+            "frontend/src/presentation/prediction-settings-summary.ts",
             "frontend/src/presentation/prediction-input-preview.css",
             "frontend/src/presentation/prediction-inputs.css",
             "frontend/src/presentation/prediction-shell.css",
@@ -180,6 +251,8 @@ def confidence_changed(changed):
 
 
 def selected(changed, event="push"):
+    if drafts_only(changed, event):
+        return True
     if event in {"push", "pull_request"} and native_confidence_only(changed):
         return True
     return (
@@ -208,6 +281,11 @@ def main():
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
+        for key, value in {
+            "drafts_only": drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
+            "drafts_changed": drafts_changed(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
+        }.items():
+            stream.write(f"{key}={str(value).lower()}\n")
         stream.write(
             "preview_changed="
             + str(preview_changed(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()

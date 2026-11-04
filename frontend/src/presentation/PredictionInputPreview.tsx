@@ -5,6 +5,7 @@ import {
   type PreviewComponent,
 } from "./PredictionEntityPreview";
 import "./prediction-input-preview.css";
+import { predictionSettingsSummary } from "./prediction-settings-summary";
 
 /** Read-only projection of the current form, independent of admission and task execution. */
 export function PredictionInputPreview({
@@ -23,6 +24,7 @@ export function PredictionInputPreview({
   onClose(): void;
 }) {
   const zh = language === "zh";
+  const summary = predictionSettingsSummary(seeds, samples, zh);
   const title = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -75,11 +77,11 @@ export function PredictionInputPreview({
           </div>
           <div>
             <dt>{zh ? "随机种子" : "Seeds"}</dt>
-            <dd>{seeds.join(", ")}</dd>
+            <dd>{summary.seeds}</dd>
           </div>
           <div>
             <dt>{zh ? "请求构象" : "Requested structures"}</dt>
-            <dd>{seeds.length * samples}</dd>
+            <dd>{summary.structures}</dd>
           </div>
         </dl>
         <div className="prediction-preview-entities">

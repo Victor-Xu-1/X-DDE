@@ -8,6 +8,29 @@ import {
 import { afterAll, afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { PreviewComponent } from "./PredictionEntityPreview";
 import { PredictionSetup } from "./PredictionSetup";
+import { PredictionInputPreview } from "./PredictionInputPreview";
+
+it.each(["en", "zh"] as const)(
+  "keeps invalid raw seed semantics out of the %s input overview",
+  (language) => {
+    render(
+      <PredictionInputPreview
+        language={language}
+        components={[]}
+        model="Mol-1"
+        seeds={[-1, NaN]}
+        samples={5}
+        onClose={vi.fn()}
+      />,
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      language === "zh" ? "检查种子数值" : "Check seed values",
+    );
+    expect(dialog).not.toHaveTextContent("NaN");
+    expect(within(dialog).getByText("—")).toBeVisible();
+  },
+);
 
 vi.mock("./MoleculeImage", () => ({
   MoleculeImage: ({ source }: { source: unknown }) => (
