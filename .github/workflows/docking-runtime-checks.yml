@@ -147,9 +147,9 @@ jobs:
       - name: Docking review controls and compiled STAT6 geometry without inference
         if: needs.scope.outputs.docking_review_only == 'true'
         run: |
-          uv run --locked ruff check server_tests/test_docking_job_review_browser.py server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
+          uv run --locked ruff check server_tests/test_docking_job_review_browser.py server_tests/docking_browser.py server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
           uv run --locked pytest -q tests/test_prediction_workspace_scope.py
-          (cd frontend && npx vitest run src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/FlexibleReceptorForm.test.tsx src/docking/SearchPreview.test.tsx)
+          (cd frontend && npx vitest run src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/FlexibleReceptorForm.test.tsx src/docking/SearchPreview.test.tsx src/viewer/search-box.test.ts)
           uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -q server_tests/test_docking_job_review_browser.py
       - uses: actions/upload-artifact@v4

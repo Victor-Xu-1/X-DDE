@@ -33,7 +33,10 @@ export function DockingJobReview(
       )}
       renderSettings={({ task }) => (
         <aside className="job-review-settings docking-review-settings">
-          <DockingReview getTask={() => task} enabled language={language} />
+          <DockingReview task={task} language={language} />
+          {task.mode === "dock" && (
+            <StudyMolecule ligand={task.ligand} language={language} />
+          )}
         </aside>
       )}
     />
@@ -47,7 +50,6 @@ function DockingGeometry({
   task: DockingTask;
   language: Language;
 }) {
-  const [studyOpen, setStudyOpen] = useState(false);
   const zh = language === "zh";
   const search = task.search;
   const reference = search?.kind === "reference_ligand";
@@ -59,7 +61,6 @@ function DockingGeometry({
   const urls = [assetDownloadUrl(task.receptor.asset_id)];
   if (pose) urls.push(assetDownloadUrl(pose.asset_id, pose.record));
   const title = zh ? "受体坐标系" : "Receptor coordinate frame";
-  const studyMolecule = zh ? "研究分子的二维结构" : "Study molecule in 2D";
   return (
     <section className="docking-review-geometry" aria-label={title}>
       <h3>{title}</h3>
@@ -83,28 +84,38 @@ function DockingGeometry({
         focusModel={pose ? 1 : undefined}
         searchBox={search?.kind === "box" ? search.box : undefined}
       />
-      {task.mode === "dock" && (
-        <details
-          className="docking-review-molecule"
-          onToggle={(event) => setStudyOpen(event.currentTarget.open)}
-        >
-          <summary>{studyMolecule}</summary>
-          <p className="field-help">
-            {zh
-              ? "此分子将在搜索中生成候选姿势。"
-              : "Docking will search for candidate poses of this molecule."}
-          </p>
-          {studyOpen && (
-            <MoleculeImage
-              language={language}
-              source={{
-                url: assetDownloadUrl(task.ligand.asset_id, task.ligand.record),
-              }}
-              label={studyMolecule}
-            />
-          )}
-        </details>
-      )}
     </section>
+  );
+}
+
+function StudyMolecule({
+  ligand,
+  language,
+}: {
+  ligand: DockingTask["ligand"];
+  language: Language;
+}) {
+  const [open, setOpen] = useState(false);
+  const zh = language === "zh";
+  const label = zh ? "研究分子的二维结构" : "Study molecule in 2D";
+  return (
+    <details
+      className="docking-review-molecule"
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>{label}</summary>
+      <p className="field-help">
+        {zh
+          ? "此分子将在搜索中生成候选姿势。"
+          : "Docking will search for candidate poses of this molecule."}
+      </p>
+      {open && (
+        <MoleculeImage
+          language={language}
+          source={{ url: assetDownloadUrl(ligand.asset_id, ligand.record) }}
+          label={label}
+        />
+      )}
+    </details>
   );
 }

@@ -55,8 +55,13 @@ export async function prepareDockingJob(
 ) {
   const { task, constraints, outputChoice, outputSettings, language } = input;
   const readSignal = AbortSignal.any([signal, AbortSignal.timeout(30000)]);
+  const zh = language === "zh";
   if (task.receptor.record || task.receptor.conformer)
-    throw new Error("Docking requires receptor model 0.");
+    throw new Error(
+      zh
+        ? "对接需要使用受体文件的原始坐标。"
+        : "Docking requires the original receptor coordinates.",
+    );
   const reference =
     task.search?.kind === "reference_ligand" ? task.search.reference : null;
   const sameRecord =
@@ -65,15 +70,25 @@ export async function prepareDockingJob(
     reference.sha256 === task.ligand.sha256 &&
     reference.record === task.ligand.record &&
     reference.conformer === task.ligand.conformer;
-  await Promise.all([
-    readAssetFile(task.receptor, readSignal, {
-      kind: "structure",
-      suffixes: [".pdb"],
-      maxBytes: 25 * 1024 ** 2,
-    }),
-    verifyLigand(task.ligand, readSignal),
-    reference && !sameRecord ? verifyLigand(reference, readSignal) : undefined,
-  ]);
+  try {
+    await Promise.all([
+      readAssetFile(task.receptor, readSignal, {
+        kind: "structure",
+        suffixes: [".pdb"],
+        maxBytes: 25 * 1024 ** 2,
+      }),
+      verifyLigand(task.ligand, readSignal),
+      reference && !sameRecord
+        ? verifyLigand(reference, readSignal)
+        : undefined,
+    ]);
+  } catch {
+    throw new Error(
+      zh
+        ? "无法核对受体或所选分子记录。请重试，或返回更换文件。"
+        : "The receptor or selected molecule records could not be verified. Try again or choose other files.",
+    );
+  }
   readSignal.throwIfAborted();
   const reviewed = await withConstraints(
     task,

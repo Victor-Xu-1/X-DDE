@@ -6,17 +6,13 @@ import type { DockingTask } from "./types";
 
 /** Render the effective request, never a second set of review defaults. */
 export function DockingReview({
-  getTask,
-  enabled,
+  task: request,
   language,
 }: {
-  getTask(): DockingTask;
-  enabled: boolean;
+  task: DockingTask;
   language: Language;
 }) {
   const zh = language === "zh";
-  if (!enabled) return null;
-  const request = getTask();
   const options = request.options;
   const search = request.search;
   const operations = {
@@ -42,7 +38,6 @@ export function DockingReview({
         all: "Full search",
       };
   const rows: [string, ReactNode][] = [
-    [zh ? "任务" : "Task", request.name],
     [zh ? "计算内容" : "Operation", operations[request.mode]],
     [
       zh ? "受体" : "Receptor",

@@ -116,9 +116,23 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
             ).check()
         next_step.click()
         next_step.click()
+        expect(
+            page.get_by_role(
+                "table", name=label("Materials and calculation plan", "材料与计算方案")
+            )
+        ).to_have_count(0)
         opener = page.get_by_role("button", name=label("Preview job", "预览任务"), exact=True)
-        opener.click()
         dialog = page.get_by_role("dialog", name=label("Preview job", "预览任务"))
+        if expected:
+            original = "**/api/assets/" + str(receptor.id)
+            page.route(original, lambda route: route.fulfill(body="Changed receptor"))
+            opener.click()
+            expect(dialog.get_by_role("alert")).to_contain_text("could not be verified")
+            expect(dialog.get_by_role("button", name="Submit job", exact=True)).to_be_disabled()
+            page.unroute(original)
+            dialog.get_by_role("button", name="Check files again", exact=True).click()
+        else:
+            opener.click()
         geometry = dialog.get_by_role(
             "region", name=label("Receptor coordinate frame", "受体坐标系")
         )

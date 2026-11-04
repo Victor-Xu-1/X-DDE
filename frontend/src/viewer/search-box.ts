@@ -45,9 +45,9 @@ export function paintSearchBox(viewer: GLViewer, box?: SearchBoxGeometry) {
         viewer.addCylinder({
           start: corners[mask],
           end: corners[mask | (1 << axis)],
-          radius: 0.08,
-          color: "#5577dd",
-          opacity: 0.72,
+          radius: 0.14,
+          color: "#2254b3",
+          opacity: 0.94,
           fromCap: 1,
           toCap: 1,
         });

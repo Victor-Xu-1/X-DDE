@@ -14,7 +14,6 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { defaults } from "./generated";
 import { task, parseBox } from "./model";
 import { DockingOptions } from "./DockingOptions";
-import { DockingReview } from "./DockingReview";
 import { DockingJobReview } from "./DockingJobReview";
 import { FlexibleReceptorSettings } from "./FlexibleReceptorSettings";
 import { useReceptorRefinement } from "./useReceptorRefinement";
@@ -254,13 +253,6 @@ export function DockingForm({
       </label>
     </>
   );
-  const review = (
-    <DockingReview
-      getTask={buildTask}
-      enabled={Boolean(receptor && ligand) && regionValid && refinement.valid}
-      language={language}
-    />
-  );
   const unavailable = zh
     ? "请在安装与组件中配置 GNINA。当前选择已保留，可稍后启动。"
     : "Configure GNINA in Installation & components. Your choices are retained for a later start.";
@@ -311,7 +303,13 @@ export function DockingForm({
         },
         {
           title: zh ? "确认启动" : "Review & start",
-          content: review,
+          content: (
+            <p className="field-help">
+              {zh
+                ? "预览受体、分子和计算方案，核对后再提交。"
+                : "Preview the receptor, molecule and calculation plan before submitting."}
+            </p>
+          ),
           valid: Boolean(receptor && ligand) && regionValid && refinement.valid,
         },
       ]}

@@ -11,3 +11,19 @@
 .docking-review-settings .compact-table td {
   overflow-wrap: anywhere;
 }
+.prediction-job-preview
+  .docking-review-geometry
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: clamp(360px, 50vh, 580px);
+  min-height: 360px;
+}
+@media (max-width: 700px) {
+  .prediction-job-preview
+    .docking-review-geometry
+    .viewer-panel:not(:fullscreen)
+    .molecular-stage {
+    height: 340px;
+    min-height: 340px;
+  }
+}

@@ -49,19 +49,11 @@ function request(): DockingTask {
     },
   };
 }
-it("does not build an invalid draft while the questionnaire's hidden review is mounted", () => {
-  const getTask = vi.fn(() => {
-    throw new Error("inputs not chosen");
-  });
-  render(<DockingReview getTask={getTask} enabled={false} language="en" />);
-  expect(getTask).not.toHaveBeenCalled();
-  expect(screen.queryByRole("table")).toBeNull();
-});
 it.each(["en", "zh"] as const)(
   "reviews actual selected records and effective settings in %s",
   (language) => {
     const value = request();
-    render(<DockingReview getTask={() => value} enabled language={language} />);
+    render(<DockingReview task={value} language={language} />);
     const table = screen.getByRole("table", {
       name:
         language === "zh" ? "材料与计算方案" : "Materials and calculation plan",
@@ -93,7 +85,7 @@ it("reviews explicit box values and omits an unused reference ligand", () => {
     frame: receptor,
     box: { center: [11, 22, 33], size: [24, 26, 28], unit: "angstrom" },
   };
-  render(<DockingReview getTask={() => value} enabled language="en" />);
+  render(<DockingReview task={value} language="en" />);
   expect(screen.getByText("11 / 22 / 33 Å")).toBeVisible();
   expect(screen.getByText("24 × 26 × 28 Å")).toBeVisible();
   expect(screen.queryByText(/experimental-reference/)).toBeNull();
@@ -108,7 +100,7 @@ it.each(["score", "minimize"] as const)(
       pose_frame: receptor,
       pose_coordinate_basis: "user_confirmed" as const,
     };
-    render(<DockingReview getTask={() => value} enabled language="en" />);
+    render(<DockingReview task={value} language="en" />);
     expect(screen.getByText(/Confirmed to match/)).toBeVisible();
     expect(
       screen.queryByText("Exhaustiveness 8 · at most 17 poses"),
