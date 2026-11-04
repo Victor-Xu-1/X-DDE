@@ -289,8 +289,8 @@ export function PredictionDraftList({
       <footer>
         <small>
           {zh
-            ? "保存在本机 X-DDE 数据目录 · 不会启动计算"
-            : "Saved in your X-DDE data directory · No calculation started"}
+            ? "保存在这台设备 · 尚未提交"
+            : "Saved on this device · Not submitted"}
         </small>
         <div>
           {page > 0 && (
