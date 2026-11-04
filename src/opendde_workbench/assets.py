@@ -482,6 +482,13 @@ class AssetStore:
                     "SELECT 1 FROM jobs WHERE request LIKE ? LIMIT 1", ("%" + asset.id + "%",)
                 ).fetchone():
                     raise ValueError("This input is referenced by a task and cannot be removed.")
+                if db.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='prediction_drafts'"
+                ).fetchone() and db.execute(
+                    "SELECT 1 FROM prediction_drafts WHERE body LIKE ? LIMIT 1",
+                    ("%" + asset.id + "%",),
+                ).fetchone():
+                    raise ValueError("This input is retained by a saved prediction draft.")
                 has_objects = db.execute(
                     "SELECT 1 FROM sqlite_master WHERE type='table' AND name='scientific_objects'"
                 ).fetchone()

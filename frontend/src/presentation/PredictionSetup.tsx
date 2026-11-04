@@ -15,6 +15,7 @@ export function PredictionSetup({
   valid,
   children,
   enabled = true,
+  draftControls,
 }: {
   language: Language;
   components: PreviewComponent[];
@@ -24,6 +25,7 @@ export function PredictionSetup({
   valid: boolean;
   children: ReactNode;
   enabled?: boolean;
+  draftControls?: ReactNode;
 }) {
   const root = usePredictionHeadingFocus(enabled);
   const [preview, setPreview] = useState(false);
@@ -149,6 +151,7 @@ export function PredictionSetup({
         >
           {zh ? "预览输入" : "Preview inputs"}
         </button>
+        {draftControls}
       </aside>
       {preview && (
         <PredictionInputPreview

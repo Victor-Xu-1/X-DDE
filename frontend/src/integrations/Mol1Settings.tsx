@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Language } from "../types";
 import type { Mol1Settings as Settings } from "./mol1-settings";
 
@@ -6,13 +5,16 @@ export function Mol1Settings({
   value,
   onChange,
   language,
+  seedText,
+  onSeedText,
 }: {
   value: Settings;
   onChange(value: Settings): void;
   language: Language;
+  seedText: string;
+  onSeedText(value: string): void;
 }) {
   const zh = language === "zh";
-  const [seedText, setSeedText] = useState(value.additional_seeds.join(","));
   const update = (change: Partial<Settings>) =>
     onChange({ ...value, ...change });
   const numbers = [
@@ -55,14 +57,7 @@ export function Mol1Settings({
           <input
             value={seedText}
             onChange={(e) => {
-              setSeedText(e.target.value);
-              update({
-                additional_seeds: e.target.value.trim()
-                  ? e.target.value
-                      .split(",")
-                      .map((token) => (token.trim() ? Number(token) : NaN))
-                  : [],
-              });
+              onSeedText(e.target.value);
             }}
           />
         </label>

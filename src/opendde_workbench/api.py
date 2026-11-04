@@ -30,6 +30,7 @@ from .deployment.routes import register_deployments
 from .diffsbdd.runtime import validate as validate_diffsbdd
 from .disk_space import available_bytes
 from .docking.runtime import validate as validate_docking
+from .drafts.routes import register_drafts
 from .engine import Engine
 from .engine_registry import statuses as engine_statuses
 from .examples.library import ExampleLibrary
@@ -646,6 +647,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     register_operations(app, store, assets, settings, mutation)
     register_evidence(app, store, assets, mutation)
     register_research(app, store, assets, mutation)
+    register_drafts(app, store, mutation)
     from .research.pose_routes import register_pose_minimization
 
     register_pose_minimization(app, store, assets, settings, mutation, enqueue)

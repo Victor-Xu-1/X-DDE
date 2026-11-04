@@ -30,6 +30,13 @@ on:
       - "frontend/src/viewer/display-readiness*"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
+      - "frontend/src/integrations/Mol1Settings.tsx"
+      - "frontend/src/presentation/prediction-draft-model.ts"
+      - "src/opendde_workbench/drafts/**"
+      - "src/opendde_workbench/api.py"
+      - "src/opendde_workbench/assets.py"
+      - "tests/test_prediction_drafts.py"
+      - "server_tests/test_prediction_drafts_browser.py"
       - "frontend/src/integrations/Mol1Confidence.tsx"
       - "frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/integrations/ScientificResults.tsx"
@@ -76,6 +83,8 @@ jobs:
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
       input_preview: ${{ steps.select.outputs.input_preview }}
       preview_changed: ${{ steps.select.outputs.preview_changed }}
+      drafts_only: ${{ steps.select.outputs.drafts_only }}
+      drafts_changed: ${{ steps.select.outputs.drafts_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -99,7 +108,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Prediction presentation, selection identity and direct form/navigation consumers
-        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true'
+        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
@@ -132,6 +141,19 @@ jobs:
         if: needs.scope.outputs.native_confidence == 'true'
         working-directory: frontend
         run: npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
+      - name: Unfinished saved drafts and their native form and shared setup consumers
+        if: needs.scope.outputs.drafts_changed == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/PredictionDraftControls.test.tsx
+          src/integrations/Mol1Form.test.tsx src/presentation/PredictionSetup.test.tsx
+          src/presentation/PredictionInputPreview.test.tsx
+      - name: Real SQLite, revision conflicts, asset retention and same-origin draft API
+        if: needs.scope.outputs.drafts_changed == 'true'
+        run: |
+          uv sync --locked --group dev
+          uv run --locked pytest -q tests/test_prediction_drafts.py tests/test_api_security.py
+          uv run --locked ruff check src/opendde_workbench/drafts tests/test_prediction_drafts.py server_tests/test_prediction_drafts_browser.py
       - run: uv sync --locked --group dev --group browser
       - name: Scope contract and changed browser fixture checks
         run: |
@@ -155,13 +177,13 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
-        if: needs.scope.outputs.preview_changed == 'true'
+        if: needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true'
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-input-preview" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-input-preview/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-input-preview" WB_STATE_DIR="$RUNNER_TEMP/x-dde-input-preview/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
-        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true'
+        if: needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
         if: needs.scope.outputs.preview_changed == 'true'
@@ -169,6 +191,9 @@ jobs:
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
+      - name: Bilingual real saved-draft refresh, explicit resume and archive recovery without computation
+        if: needs.scope.outputs.drafts_changed == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_drafts_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -177,6 +202,7 @@ jobs:
             outputs/prediction-workspace/**
             outputs/native-confidence/**
             outputs/prediction-input-preview/**
+            outputs/prediction-drafts/**
       - uses: actions/upload-artifact@v4
         if: always()
         with:

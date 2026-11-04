@@ -14,6 +14,12 @@ import { Mol1Settings } from "./Mol1Settings";
 import { Mol1CovalentBonds } from "./Mol1CovalentBonds";
 import { Mol1FeatureInputs, validMol1Features } from "./Mol1FeatureInputs";
 import { PredictionSetup } from "../presentation/PredictionSetup";
+import { PredictionDraftControls } from "../presentation/PredictionDraftControls";
+import {
+  parseSeedText,
+  snapshotMol1Settings,
+  type PredictionDraft,
+} from "../presentation/prediction-draft-model";
 
 export function Mol1Form({
   language,
@@ -22,10 +28,38 @@ export function Mol1Form({
   language: Language;
   onCreated(job: Job): void;
 }) {
+  const [loaded, setLoaded] = useState<PredictionDraft | null>(null);
+  const [edition, setEdition] = useState(0);
+  return (
+    <Mol1Editor
+      key={edition}
+      language={language}
+      onCreated={onCreated}
+      initial={loaded}
+      onResume={(value) => {
+        setLoaded(value);
+        setEdition((current) => current + 1);
+      }}
+    />
+  );
+}
+
+function Mol1Editor({
+  language,
+  onCreated,
+  initial,
+  onResume,
+}: {
+  language: Language;
+  onCreated(job: Job): void;
+  initial: PredictionDraft | null;
+  onResume(value: PredictionDraft): void;
+}) {
   const zh = language === "zh";
   const preset = useExampleTask("mol1_predict");
   const [components, setComponents] = useState<Component[]>(
     () =>
+      initial?.state.components ??
       (preset?.payload.components as Component[]) ?? [
         { kind: "protein", value: "", count: 1, chain_ids: ["A"] },
         { kind: "ligand", value: "", count: 1, chain_ids: ["B"] },
@@ -34,18 +68,32 @@ export function Mol1Form({
   const [settings, setSettings] = useState(() => ({
     ...mol1Defaults(),
     ...preset?.payload,
+    ...initial?.state.settings,
+    additional_seeds: initial
+      ? parseSeedText(initial.state.seed_text)
+      : ((preset?.payload.additional_seeds as number[]) ?? []),
     kind: "mol1" as const,
   }));
   const [bonds, setBonds] = useState<CovalentBond[]>(
-    () => (preset?.payload.covalent_bonds as CovalentBond[]) ?? [],
+    () =>
+      initial?.state.bonds ??
+      (preset?.payload.covalent_bonds as CovalentBond[]) ??
+      [],
   );
-  const [advanced, setAdvanced] = useState(false);
-  const [name, setName] = useState(preset?.name ?? "");
+  const [advanced, setAdvanced] = useState(initial?.state.advanced ?? false);
+  const [name, setName] = useState(initial?.state.name ?? preset?.name ?? "");
+  const [seedText, setSeedText] = useState(
+    initial?.state.seed_text ?? settings.additional_seeds.join(","),
+  );
   const [device, setDevice] = useState<"cpu" | "cuda">(
-    preset?.options.device ?? "cuda",
+    initial?.state.device ?? preset?.options.device ?? "cuda",
   );
-  const [memory, setMemory] = useState(preset?.options.memory_mib ?? 32768);
-  const [seed, setSeed] = useState(preset?.options.seed ?? 101);
+  const [memory, setMemory] = useState(
+    initial?.state.memory ?? preset?.options.memory_mib ?? 32768,
+  );
+  const [seed, setSeed] = useState(
+    initial?.state.seed ?? preset?.options.seed ?? 101,
+  );
   const [inputError, setInputError] = useState("");
   const [preparing, setPreparing] = useState(false);
   const preparation = useRef<AbortController | null>(null);
@@ -237,6 +285,14 @@ export function Mol1Form({
                 value={settings}
                 onChange={setSettings}
                 language={language}
+                seedText={seedText}
+                onSeedText={(text) => {
+                  setSeedText(text);
+                  setSettings((value) => ({
+                    ...value,
+                    additional_seeds: parseSeedText(text),
+                  }));
+                }}
               />
               <label className="field">
                 {zh ? "计算设备" : "Compute device"}
@@ -281,14 +337,6 @@ export function Mol1Form({
             valid && settingsValid && validMol1Features(settings, components),
           content: (
             <>
-              <label className="field">
-                {zh ? "任务名称（可选）" : "Task name (optional)"}
-                <input
-                  value={name}
-                  maxLength={80}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </label>
               <dl className="questionnaire-review">
                 <dt>{zh ? "后端模型" : "Backend model"}</dt>
                 <dd>Mol-1 base</dd>
@@ -326,6 +374,26 @@ export function Mol1Form({
       seeds={[seed, ...settings.additional_seeds]}
       samples={settings.samples}
       valid={valid}
+      draftControls={
+        <PredictionDraftControls
+          language={language}
+          initial={initial}
+          busy={run.busy || preparing}
+          onName={setName}
+          onResume={onResume}
+          state={{
+            name,
+            components,
+            settings: snapshotMol1Settings(settings),
+            bonds,
+            advanced,
+            seed_text: seedText,
+            device,
+            memory,
+            seed,
+          }}
+        />
+      }
     >
       {questionnaire}
     </PredictionSetup>

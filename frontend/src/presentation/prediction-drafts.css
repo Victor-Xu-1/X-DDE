@@ -1,0 +1,172 @@
+.prediction-draft-controls {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.prediction-draft-controls .field {
+  margin: 0 0 12px;
+}
+.prediction-draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prediction-draft-controls > small {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+}
+.prediction-drafts-dialog {
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  background: var(--canvas);
+  box-shadow: 0 24px 100px #152b3540;
+}
+.prediction-drafts-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.prediction-drafts-dialog::backdrop {
+  background: #14283165;
+  backdrop-filter: blur(4px);
+}
+.prediction-drafts-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.prediction-drafts-dialog h2 {
+  margin: 6px 0 0;
+  font-size: 28px;
+}
+.prediction-drafts-dialog header small {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+.prediction-drafts-dialog header button {
+  font-size: 24px;
+  min-width: 40px;
+}
+.prediction-drafts-body {
+  min-height: 220px;
+  overflow: auto;
+  padding: 16px 28px 24px;
+}
+.prediction-drafts-body > p {
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+.prediction-drafts-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+.prediction-drafts-toolbar label {
+  width: min(360px, 100%);
+  margin: 0;
+}
+.prediction-drafts-toolbar input {
+  width: 100%;
+}
+.prediction-draft-rows {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+}
+.prediction-draft-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.prediction-draft-rows li > div:first-child {
+  min-width: 0;
+}
+.prediction-draft-rows strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.prediction-draft-rows small {
+  display: block;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.prediction-draft-row-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+.prediction-drafts-empty {
+  padding: 44px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+.prediction-drafts-empty > span {
+  font-size: 36px;
+}
+.prediction-drafts-empty h3 {
+  margin: 12px 0 6px;
+  color: var(--ink);
+}
+.prediction-draft-confirm {
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--surface-muted);
+  border-radius: 12px;
+}
+.prediction-draft-confirm h3 {
+  margin: 0;
+}
+.prediction-draft-confirm button + button {
+  margin-left: 8px;
+}
+.prediction-drafts-dialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.prediction-drafts-dialog footer > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 600px) {
+  .prediction-drafts-dialog {
+    border-radius: 14px;
+  }
+  .prediction-drafts-dialog > header,
+  .prediction-drafts-dialog > footer {
+    padding: 16px;
+  }
+  .prediction-drafts-body {
+    padding: 16px;
+  }
+  .prediction-draft-rows li {
+    align-items: start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .prediction-drafts-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .prediction-drafts-dialog > footer {
+    align-items: start;
+  }
+}
