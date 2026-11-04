@@ -113,8 +113,8 @@ it("requires coordinate confirmation, compares source residues and hands off the
   await user.click(
     screen.getByRole("button", { name: "Dock around reference" }),
   );
-  expect(onGenerate).toHaveBeenCalledWith(ligand);
-  expect(onDock).toHaveBeenCalledWith(ligand);
+  expect(onGenerate).toHaveBeenCalledWith(ligand, job.id);
+  expect(onDock).toHaveBeenCalledWith(ligand, job.id);
   rerender(
     <ReferenceComparison
       protein={protein}

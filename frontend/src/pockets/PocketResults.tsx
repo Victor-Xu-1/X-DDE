@@ -1,147 +1,75 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
 import type { Job, Language } from "../types";
-import type { PocketResult, Site } from "./types";
+import type { PocketResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { DiffForm } from "../diffsbdd/DiffForm";
-import { DockingForm } from "../docking/DockingForm";
 import { artifactUrl } from "../api";
-import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
 import { PocketSelection } from "./PocketSelection";
 import {
   ReferenceComparison,
   type ReferenceSession,
 } from "./ReferenceComparison";
-import type { MoleculeRef } from "../research/types";
-export function PocketResults({
-  job,
-  result,
-  language,
-  initialRank,
-}: {
+import {
+  initialPocketBox,
+  PocketResultsHandoff,
+  type PocketContinuation,
+  type PocketOrigin,
+} from "./PocketResultsHandoff";
+import { sameStructure } from "./reference-comparison";
+interface PocketResultsProps {
   job: Pick<Job, "id">;
   result: PocketResult;
   language: Language;
   initialRank?: number;
-}) {
-  const zh = language === "zh",
-    [selected, setSelected] = useState<Site | null>(
-      () =>
-        result.pockets.find((p) => p.rank === initialRank) ??
-        result.pockets[0] ??
-        null,
-    ),
-    [continueDesign, setContinue] = useState(false),
-    [continueDocking, setDocking] = useState(false),
-    [message, setMessage] = useState(""),
-    [overlay, setOverlay] = useState<string | null>(null),
-    [referenceHandoff, setReferenceHandoff] = useState<{
-      kind: "generate" | "dock";
-      ligand: MoleculeRef;
-    } | null>(null);
-  const [referenceSession, setReferenceSession] = useState<{
-    pocketJobId: string;
-    session: ReferenceSession;
-  } | null>(null);
-  const saveReferenceSession = useCallback(
-    (session: ReferenceSession) =>
-      setReferenceSession({ pocketJobId: job.id, session }),
-    [job.id],
-  );
-  function selectSite(site: Site) {
-    setSelected(site);
-    setContinue(false);
-    setDocking(false);
+}
+
+export function PocketResults(props: PocketResultsProps) {
+  return <PocketWorkspace key={props.job.id} {...props} />;
+}
+
+function PocketWorkspace({
+  job,
+  result,
+  language,
+  initialRank,
+}: PocketResultsProps) {
+  const zh = language === "zh";
+  const [rank, setRank] = useState(initialRank);
+  const selected =
+    result.pockets.find((pocket) => pocket.rank === rank) ?? result.pockets[0];
+  const [handoff, setHandoff] = useState<
+    (PocketContinuation & { source: PocketResult }) | null
+  >(null);
+  const [message, setMessage] = useState("");
+  const [overlay, setOverlay] = useState<string | null>(null);
+  const [referenceSession, setReferenceSession] =
+    useState<ReferenceSession | null>(null);
+  function continueWith(
+    action: PocketContinuation["action"],
+    origin: PocketOrigin,
+  ) {
+    setHandoff({ action, origin, source: result });
   }
-  if (referenceHandoff)
+  if (handoff)
     return (
-      <ResearchHandoff
+      <PocketResultsHandoff
+        jobId={job.id}
+        result={handoff.source}
+        continuation={handoff}
         language={language}
-        onBack={() => setReferenceHandoff(null)}
-      >
-        {referenceHandoff.kind === "generate" ? (
-          <DiffForm
-            mode="generate"
-            language={language}
-            initialProtein={result.protein}
-            initialPocket={{ kind: "ligand", ligand: referenceHandoff.ligand }}
-            onCreated={() =>
-              setMessage(zh ? "生成任务已创建。" : "Generation task created.")
-            }
-          />
-        ) : (
-          <DockingForm
-            language={language}
-            initialReceptor={result.protein}
-            initialReference={referenceHandoff.ligand}
-            onCreated={() =>
-              setMessage(
-                zh ? "结合模式任务已创建。" : "Binding pose task created.",
-              )
-            }
-          />
-        )}
-      </ResearchHandoff>
+        onBack={() => setHandoff(null)}
+        onCreated={() =>
+          setMessage(zh ? "后续任务已创建。" : "Follow-up task created.")
+        }
+      />
     );
-  if (selected && (continueDesign || continueDocking))
-    return (
-      <ResearchHandoff
-        language={language}
-        onBack={() => {
-          setContinue(false);
-          setDocking(false);
-        }}
-      >
-        {continueDesign ? (
-          <DiffForm
-            key={selected.rank}
-            mode="generate"
-            language={language}
-            initialProtein={result.protein}
-            initialPocket={{ kind: "residues", residues: selected.residues }}
-            onCreated={() =>
-              setMessage(
-                zh
-                  ? "生成任务已创建，可在任务记录中查看。"
-                  : "Generation task created; view it in Task history.",
-              )
-            }
-          />
-        ) : (
-          <>
-            <p className="field-help">
-              {zh
-                ? "以所选口袋为中心；20 Å 为可调整的初始搜索范围。"
-                : "The selected pocket defines the center; 20 Å is an editable initial search size."}
-            </p>
-            <DockingForm
-              key={selected.rank}
-              language={language}
-              initialReceptor={result.protein}
-              initialBox={{
-                center: [
-                  selected.center_x,
-                  selected.center_y,
-                  selected.center_z,
-                ],
-                size: [20, 20, 20],
-                unit: "angstrom",
-              }}
-              onCreated={() =>
-                setMessage(
-                  zh
-                    ? "结合模式任务已创建，可在任务记录中查看。"
-                    : "Binding pose task created; view it in Task history.",
-                )
-              }
-            />
-          </>
-        )}
-      </ResearchHandoff>
-    );
+  const coordinatesMatch =
+    selected?.residues.every((residue) =>
+      sameStructure(residue.structure, result.protein),
+    ) ?? false;
   return (
     <section className="operation-results">
       <header className="pocket-result-heading">
@@ -185,7 +113,7 @@ export function PocketResults({
             language={language}
             rowId={(site) => String(site.rank)}
             selected={selected ? String(selected.rank) : null}
-            onSelect={selectSite}
+            onSelect={(site) => setRank(site.rank)}
             compare={false}
             columns={[
               {
@@ -197,7 +125,7 @@ export function PocketResults({
                     type="button"
                     className="record-select"
                     aria-pressed={site.rank === selected?.rank}
-                    onClick={() => selectSite(site)}
+                    onClick={() => setRank(site.rank)}
                   >
                     {zh ? "口袋" : "Pocket"} {site.rank}
                   </button>
@@ -236,29 +164,31 @@ export function PocketResults({
               protein={result.protein}
               site={selected}
               language={language}
-              initialSession={
-                referenceSession?.pocketJobId === job.id
-                  ? referenceSession.session
-                  : null
-              }
-              onSession={saveReferenceSession}
+              initialSession={referenceSession}
+              onSession={setReferenceSession}
               onOverlay={setOverlay}
-              onGenerate={(ligand) =>
-                setReferenceHandoff({ kind: "generate", ligand })
+              onGenerate={(ligand, jobId) =>
+                continueWith("generate", { kind: "reference", ligand, jobId })
               }
-              onDock={(ligand) => setReferenceHandoff({ kind: "dock", ligand })}
+              onDock={(ligand, jobId) =>
+                continueWith("dock", { kind: "reference", ligand, jobId })
+              }
             />
           )}
           {selected && (
             <PocketSelection
               site={selected}
               proteinArtifact={result.protein_artifact}
+              protein={result.protein}
               language={language}
-              onGenerate={() => setContinue(true)}
-              onDock={() => {
-                setDocking(true);
-                setContinue(false);
-              }}
+              coordinatesMatch={coordinatesMatch}
+              hasValidBox={Boolean(initialPocketBox(selected))}
+              onGenerate={() =>
+                continueWith("generate", { kind: "predicted", site: selected })
+              }
+              onDock={() =>
+                continueWith("dock", { kind: "predicted", site: selected })
+              }
             />
           )}
         </div>

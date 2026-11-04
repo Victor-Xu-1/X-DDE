@@ -29,8 +29,8 @@ export function ReferenceComparison({
   site: Site;
   language: Language;
   onOverlay(value: string | null): void;
-  onGenerate(ligand: MoleculeRef): void;
-  onDock(ligand: MoleculeRef): void;
+  onGenerate(ligand: MoleculeRef, sourceJobId: string): void;
+  onDock(ligand: MoleculeRef, sourceJobId: string): void;
   initialSession?: ReferenceSession | null;
   onSession?(value: ReferenceSession): void;
 }) {
@@ -252,14 +252,14 @@ export function ReferenceComparison({
             <button
               type="button"
               className="secondary-button"
-              onClick={() => onGenerate(comparison.ligand)}
+              onClick={() => onGenerate(comparison.ligand, loaded.job.id)}
             >
               {zh ? "以参考区域生成分子" : "Generate around reference"}
             </button>
             <button
               type="button"
               className="secondary-button"
-              onClick={() => onDock(comparison.ligand)}
+              onClick={() => onDock(comparison.ligand, loaded.job.id)}
             >
               {zh ? "以参考区域探索结合模式" : "Dock around reference"}
             </button>

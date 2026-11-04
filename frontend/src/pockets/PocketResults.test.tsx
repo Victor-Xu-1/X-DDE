@@ -11,13 +11,17 @@ vi.mock("./ReferenceComparison", () => ({
     onDock,
     onOverlay,
   }: {
-    onGenerate: (value: MoleculeRef) => void;
-    onDock: (value: MoleculeRef) => void;
+    onGenerate: (value: MoleculeRef, jobId: string) => void;
+    onDock: (value: MoleculeRef, jobId: string) => void;
     onOverlay: (value: string | null) => void;
   }) => (
     <div>
-      <button onClick={() => onGenerate(reference)}>Reference generate</button>
-      <button onClick={() => onDock(reference)}>Reference dock</button>
+      <button onClick={() => onGenerate(reference, "reference-task")}>
+        Reference generate
+      </button>
+      <button onClick={() => onDock(reference, "reference-task")}>
+        Reference dock
+      </button>
       <button onClick={() => onOverlay("reference.sdf")}>Show reference</button>
     </div>
   ),
@@ -28,18 +32,20 @@ vi.mock("../viewer/StructureViewer", () => ({
     urls,
     focusModel,
     initialMode,
+    searchBox,
   }: {
     residueRegion?: Site["residues"];
     urls: string[];
     focusModel?: number;
     initialMode?: string;
+    searchBox?: unknown;
   }) => (
     <>
       <output aria-label="Viewer region">
         {JSON.stringify(residueRegion ?? [])}
       </output>
       <output aria-label="Viewer sources">
-        {JSON.stringify({ urls, focusModel, initialMode })}
+        {JSON.stringify({ urls, focusModel, initialMode, searchBox })}
       </output>
     </>
   ),
@@ -164,8 +170,33 @@ it("keeps keyboard selection, native viewer region and both research handoffs on
     JSON.parse(screen.getByLabelText("Docking input").textContent!),
   ).toEqual({
     initialReceptor: protein,
+    initialReference: null,
     initialBox: { center: [2, 4, 5], size: [20, 20, 20], unit: "angstrom" },
   });
+  const origin = screen.getByRole("region", {
+    name: "Starting research inputs",
+  });
+  expect(
+    within(origin).getByRole("heading", { name: "Predicted pocket 2" }),
+  ).toBeVisible();
+  expect(within(origin).getByText(/Center \(2, 4, 5\) Å/)).toBeVisible();
+  expect(
+    within(origin).getByRole("link", { name: "Original receptor" }),
+  ).toHaveAttribute(
+    "href",
+    expect.stringContaining("/api/jobs/retained-pockets/download"),
+  );
+  const preview = within(origin).getByRole("button", {
+    name: "Preview starting structure",
+  });
+  await user.click(preview);
+  expect(preview).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
+    '"searchBox":{"center":[2,4,5],"size":[20,20,20],"unit":"angstrom"}',
+  );
+  expect(screen.getByLabelText("Viewer region")).toHaveTextContent(
+    JSON.stringify(sites[1].residues),
+  );
   expect(JSON.stringify(result)).toBe(before);
 });
 
@@ -192,6 +223,46 @@ it.each(["insertion_code", "alternate_location", "chain"] as const)(
     expect(screen.getByLabelText("Viewer region")).toHaveTextContent(
       JSON.stringify([residue]),
     );
+  },
+);
+
+const nativeResidue = sites[0].residues[0];
+it.each([
+  [
+    "other asset",
+    [{ ...nativeResidue, structure: { ...protein, asset_id: "another-file" } }],
+  ],
+  [
+    "other version",
+    [
+      {
+        ...nativeResidue,
+        structure: { ...protein, version_id: "another-version" },
+      },
+    ],
+  ],
+  ["duplicate residue", [nativeResidue, nativeResidue]],
+  [
+    "oversized region",
+    Array.from({ length: 251 }, (_, number) => ({ ...nativeResidue, number })),
+  ],
+  ["punctuation chain", [{ ...nativeResidue, chain: "." }]],
+])(
+  "blocks generation for %s while keeping the same-frame docking box",
+  (_case, residues) => {
+    render(
+      <PocketResults
+        job={{ id: "native-contract" }}
+        result={{ ...result, pockets: [{ ...sites[0], residues }] }}
+        language="en"
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Generate molecules in this pocket" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Explore poses in this pocket" }),
+    ).toBeEnabled();
   },
 );
 
@@ -246,7 +317,11 @@ it("hands the selected reference ligand to generation and docking without changi
   await user.click(screen.getByRole("button", { name: "← Back to results" }));
   await user.click(screen.getByRole("button", { name: "Reference dock" }));
   expect(screen.getByLabelText("Docking input")).toHaveTextContent(
-    JSON.stringify({ initialReceptor: protein, initialReference: reference }),
+    JSON.stringify({
+      initialReceptor: protein,
+      initialBox: null,
+      initialReference: reference,
+    }),
   );
 });
 
@@ -272,4 +347,40 @@ it("treats the confirmed reference as a ligand in the same complex", async () =>
   expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
     "reference.sdf",
   );
+});
+
+it("clears a previous task's selection and blocks a mismatched receptor from either handoff", async () => {
+  const user = userEvent.setup();
+  const { rerender } = render(
+    <PocketResults
+      job={{ id: "first" }}
+      result={result}
+      language="en"
+      initialRank={2}
+    />,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Explore poses in this pocket" }),
+  );
+  expect(
+    screen.getByRole("heading", { name: "Predicted pocket 2" }),
+  ).toBeVisible();
+  const replacement = {
+    ...result,
+    protein: { ...protein, sha256: "b".repeat(64) },
+  };
+  rerender(
+    <PocketResults job={{ id: "second" }} result={replacement} language="en" />,
+  );
+  expect(screen.queryByLabelText("Docking input")).toBeNull();
+  expect(screen.getByRole("button", { name: "Pocket 1" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(
+    screen.getByRole("button", { name: "Explore poses in this pocket" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Generate molecules in this pocket" }),
+  ).toBeDisabled();
 });
