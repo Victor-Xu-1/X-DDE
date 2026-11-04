@@ -32,6 +32,7 @@ jobs:
           src/proximity/PartnerQuestion.test.tsx
           src/diffsbdd/ReferencePicker.test.tsx
           src/diffsbdd/ReferencePickerLifecycle.test.tsx
+          src/viewer/chain-visibility.test.ts src/viewer/source-layout.test.ts
       - name: Existing backend budget and chemical-input contract
         run: |
           uv sync --locked --group dev --group browser

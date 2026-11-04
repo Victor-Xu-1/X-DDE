@@ -88,6 +88,17 @@ jobs:
           done < <(git diff --name-only "$BASE" HEAD)
           [[ "$found" = true ]] || only=false
           echo "overlay_only=$only" >> "$GITHUB_OUTPUT"
+          chain_focus_only=true
+          chain_focus_found=false
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/src/viewer/chain-visibility.ts) chain_focus_found=true ;;
+              frontend/src/viewer/chain-visibility.test.ts|frontend/src/viewer/StructureViewport.tsx|frontend/src/viewer/frame.ts|frontend/src/viewer/source-layout.ts|frontend/src/viewer/source-layout.test.ts|frontend/src/proximity/FormReview.tsx|server_tests/test_ternary_job_review_browser.py|.github/workflows/proximity-form-checks.yml|.github/workflows/pose-handoff-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) chain_focus_only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          [[ "$chain_focus_found" = true ]] || chain_focus_only=false
+          echo "chain_focus_only=$chain_focus_only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -101,7 +112,12 @@ jobs:
         working-directory: frontend
         env:
           OVERLAY_ONLY: ${{ steps.scope.outputs.overlay_only }}
+          CHAIN_FOCUS_ONLY: ${{ steps.scope.outputs.chain_focus_only }}
         run: |
+          if [ "$CHAIN_FOCUS_ONLY" = true ]; then
+            npx vitest run src/viewer/StructureViewer.test.tsx src/viewer/chain-visibility.test.ts src/viewer/source-layout.test.ts src/viewer/pose-plan.test.ts src/viewer/capture.test.ts src/docking/DockingResults.test.tsx
+            exit
+          fi
           if [ "$OVERLAY_ONLY" = true ]; then
             npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx src/presentation/ResearchTable.test.tsx src/viewer/pose-plan.test.ts src/viewer/source-layout.test.ts src/viewer/focus-layout.test.ts src/viewer/contacts.test.ts src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
             exit
@@ -120,7 +136,7 @@ jobs:
           src/operations/PropertyForm.test.tsx \
           src/research/SelectedAssetPreview.test.tsx src/research/ResearchWorkspace.test.tsx
       - name: Isolated native Chemistry and existing managed Ketcher
-        if: steps.scope.outputs.overlay_only != 'true'
+        if: steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-pose-handoff" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
@@ -128,7 +144,7 @@ jobs:
       - name: Prepare the ephemeral CI browser for retained-source inspection
         run: uv run --locked playwright install chromium --with-deps
       - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
-        if: steps.scope.outputs.overlay_only != 'true'
+        if: steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m pytest -x -q server_tests/test_pose_handoff_browser.py

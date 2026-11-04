@@ -96,14 +96,18 @@ function TernaryStructures({ review, language }: ReviewProps) {
                     <section aria-label={referenceLabel}>
                       <p className="field-help">
                         {zh
-                          ? `所选链：${payload.partner_a_name} · ${payload.partner_a_chain}，${payload.partner_b_name} · ${payload.partner_b_chain}。显示原文件中的结构及内嵌分子，独立提交的配体见「完整分子」。`
-                          : `Selected chains: ${payload.partner_a_name} · ${payload.partner_a_chain}, ${payload.partner_b_name} · ${payload.partner_b_chain}. This view preserves the source structure and its embedded molecules. Review the separately submitted ligand under Complete molecule.`}
+                          ? `所选链：${payload.partner_a_name} · ${payload.partner_a_chain}，${payload.partner_b_name} · ${payload.partner_b_chain}。可在所选链和完整原结构之间切换。独立提交的配体见「完整分子」。`
+                          : `Selected chains: ${payload.partner_a_name} · ${payload.partner_a_chain}, ${payload.partner_b_name} · ${payload.partner_b_chain}. Switch between the selected chains and the full source structure. Review the separately submitted ligand under Complete molecule.`}
                       </p>
                       <StructureViewer
                         urls={[assetDownloadUrl(first.asset_id)]}
                         language={language}
                         sourceSnapshot
                         initialMode="cartoon"
+                        initialChains={[
+                          payload.partner_a_chain,
+                          payload.partner_b_chain,
+                        ]}
                       />
                     </section>
                   ),

@@ -1,9 +1,19 @@
 import type { AtomSpec } from "3dmol";
 
-export type ChainDisplay = {
-  action: "show" | "hide" | "only" | "all";
-  chain?: string;
-};
+export type ChainDisplay =
+  | { action: "show" | "hide" | "only"; chain: string }
+  | { action: "all" }
+  | { action: "subset"; chains: readonly string[] };
+
+export function isChainSubset(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.length <= 8 &&
+    value.every((chain) => typeof chain === "string" && chain.length <= 32) &&
+    new Set(value).size === value.length
+  );
+}
 
 /** Display indices only: never rewrite a chain ID, atom or coordinate. */
 export function chainDisplay(
@@ -14,8 +24,26 @@ export function chainDisplay(
 ): Set<number> {
   if (!input || typeof input !== "object")
     throw new Error("Invalid chain display");
-  const { action, chain } = input as ChainDisplay;
+  const display = input as ChainDisplay;
+  const { action } = display;
   if (action === "all") return new Set();
+  if (action === "subset") {
+    if (
+      !isChainSubset(display.chains) ||
+      display.chains.some((id) => !chains.includes(id))
+    )
+      throw new Error("Unknown chain display selection");
+    const visible = new Set(display.chains);
+    return new Set(
+      atoms
+        .filter(
+          (atom) =>
+            Number.isInteger(atom.index) && !visible.has(atom.chain ?? ""),
+        )
+        .map((atom) => atom.index!),
+    );
+  }
+  const { chain } = display;
   if (
     !["show", "hide", "only"].includes(action) ||
     typeof chain !== "string" ||
