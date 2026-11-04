@@ -19,6 +19,7 @@ import {
 } from "./boltz-inputs";
 import { nativeDefaults } from "./generated";
 import { ScientificInputs } from "./ScientificInputs";
+import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
 import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
@@ -105,29 +106,38 @@ export function ScientificForm({
   );
   const [scaffold, setScaffold] = useState<MoleculeRef | null>(null);
   const [msaVerified, setMsaVerified] = useState<Record<string, string>>({});
-  const [payload, setPayload] = useState<ScientificPayload>(() => ({
+  const [settings, setPayload] = useState<ScientificPayload>(() => ({
     ...structuredClone(nativeDefaults[program]),
     kind: program,
     ...(program === "chemprop"
       ? { mode: operation === "chemprop_train" ? "train" : "predict" }
       : {}),
-    ...(program === "boltz"
-      ? {
-          components: [
-            {
-              id: "A",
-              kind: "protein",
-              value: example?.sequences.protein ?? "",
-              msa_mode: "provided",
-            },
-            { id: "B", kind: "ligand", value: "", source: initialLigand },
-          ],
-        }
-      : {}),
     ...(program === "ligandmpnn" ? { redesigned_residues: [] } : {}),
     ...(program === "boltzgen" ? { target_chains: [] } : {}),
     ...(preset?.payload ?? {}),
   }));
+  const [boltzRows, setBoltzRows] = useState<BoltzInputRow[]>(() => {
+    if (program !== "boltz") return [];
+    const components = (preset?.payload?.components as
+      BoltzComponent[] | undefined) ?? [
+      {
+        id: "A",
+        kind: "protein",
+        value: example?.sequences.protein ?? "",
+        msa_mode: "provided",
+      },
+      { id: "B", kind: "ligand", value: "", source: initialLigand },
+    ];
+    return components.map((component, index) => ({
+      key: String(index),
+      revision: 0,
+      component,
+    }));
+  });
+  const payload =
+    program === "boltz"
+      ? { ...settings, components: boltzRows.map((row) => row.component) }
+      : settings;
   const [selectionValid, setSelectionValid] = useState(
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
@@ -277,52 +287,53 @@ export function ScientificForm({
         {
           title: zh ? "选择研究材料" : "Choose research inputs",
           valid: inputValid,
-          content: (
-            <ScientificInputs
-              onBoltzComponents={(apply) =>
-                setPayload((current) => ({
-                  ...current,
-                  components: apply(current.components as BoltzComponent[]),
-                }))
-              }
-              onBoltzMsaVerified={(chain, valid) =>
-                setMsaVerified((previous) =>
-                  previous[chain] === valid
-                    ? previous
-                    : { ...previous, [chain]: valid },
-                )
-              }
-              onLibraryVerified={setVerifiedLibrary}
-              program={program}
-              language={language}
-              payload={payload}
-              onChange={update}
-              structure={structure}
-              onStructure={(value) => {
-                setStructure(value);
-                setRestraints([]);
-                update(
-                  program === "ligandmpnn"
-                    ? { redesigned_residues: [] }
-                    : program === "boltzgen"
-                      ? { target_chains: [] }
-                      : program === "plip"
-                        ? { ligand_chain: "", ligand_number: null }
-                        : {},
-                );
-              }}
-              ligand={ligand}
-              onLigand={(value) => {
-                setLigand(value);
-                setRestraints([]);
-              }}
-              scaffold={scaffold}
-              onScaffold={(value) => {
-                setScaffold(value);
-                update({ scaffold_chain: null, scaffold_residues: [] });
-              }}
-            />
-          ),
+          content:
+            program === "boltz" ? (
+              <BoltzInputs
+                rows={boltzRows}
+                onRows={setBoltzRows}
+                language={language}
+                onMsaVerified={(chain, valid) =>
+                  setMsaVerified((previous) =>
+                    previous[chain] === valid
+                      ? previous
+                      : { ...previous, [chain]: valid },
+                  )
+                }
+              />
+            ) : (
+              <ScientificInputs
+                onLibraryVerified={setVerifiedLibrary}
+                program={program}
+                language={language}
+                payload={payload}
+                onChange={update}
+                structure={structure}
+                onStructure={(value) => {
+                  setStructure(value);
+                  setRestraints([]);
+                  update(
+                    program === "ligandmpnn"
+                      ? { redesigned_residues: [] }
+                      : program === "boltzgen"
+                        ? { target_chains: [] }
+                        : program === "plip"
+                          ? { ligand_chain: "", ligand_number: null }
+                          : {},
+                  );
+                }}
+                ligand={ligand}
+                onLigand={(value) => {
+                  setLigand(value);
+                  setRestraints([]);
+                }}
+                scaffold={scaffold}
+                onScaffold={(value) => {
+                  setScaffold(value);
+                  update({ scaffold_chain: null, scaffold_residues: [] });
+                }}
+              />
+            ),
         },
         {
           title: zh ? "选择研究目标" : "Choose the research objective",

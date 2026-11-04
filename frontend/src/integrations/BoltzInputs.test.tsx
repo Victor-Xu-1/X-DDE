@@ -3,13 +3,12 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
-import { BoltzInputs } from "./BoltzInputs";
+import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
 import {
   boltzMaterialInputs,
   boltzMsaKey,
   type BoltzComponent,
 } from "./boltz-inputs";
-import type { ScientificPayload } from "./types";
 
 afterEach(() => vi.restoreAllMocks());
 const asset = {
@@ -22,26 +21,26 @@ const asset = {
   created_at: "",
 };
 
-function InputFixture() {
-  const [payload, setPayload] = useState<ScientificPayload>({
-    kind: "boltz",
-    components: [
-      { id: "A", kind: "protein", value: "ACDE", msa_mode: "provided" },
-    ],
-  });
+function InputFixture({
+  initial = [{ id: "A", kind: "protein", value: "ACDE", msa_mode: "provided" }],
+}: {
+  initial?: BoltzComponent[];
+}) {
+  const [rows, setRows] = useState<BoltzInputRow[]>(
+    initial.map((component, index) => ({
+      component,
+      key: String(index),
+      revision: 0,
+    })),
+  );
   const [verified, setVerified] = useState<Record<string, string>>({});
-  const components = payload.components as BoltzComponent[];
+  const components = rows.map((row) => row.component);
   return (
     <>
       <BoltzInputs
         language="en"
-        components={components}
-        onComponents={(apply) =>
-          setPayload((current) => ({
-            ...current,
-            components: apply(current.components as BoltzComponent[]),
-          }))
-        }
+        rows={rows}
+        onRows={setRows}
         onMsaVerified={(chain, key) =>
           setVerified((current) =>
             current[chain] === key ? current : { ...current, [chain]: key },
@@ -52,6 +51,7 @@ function InputFixture() {
         disabled={
           !components.every(
             (c) =>
+              c.kind !== "protein" ||
               c.msa_mode === "single" ||
               Boolean(c.msa && verified[c.id] === boltzMsaKey(c)),
           )
@@ -61,6 +61,9 @@ function InputFixture() {
       </button>
       <output aria-label="Bound inputs">
         {JSON.stringify(boltzMaterialInputs(components))}
+      </output>
+      <output aria-label="Current components">
+        {JSON.stringify(components)}
       </output>
     </>
   );
@@ -111,6 +114,69 @@ it("defaults to a fresh alignment, blocks pending checks and clears a changed pr
   );
   expect(next).toBeDisabled();
 });
+
+it.each(["remove", "edit"] as const)(
+  "ignores an older ligand upload after the user chooses to %s its row",
+  async (action) => {
+    const ligand = {
+      ...asset,
+      kind: "ligand" as const,
+      name: "ligand.sdf",
+      suffix: ".sdf",
+    };
+    let finish!: (value: typeof ligand) => void;
+    vi.spyOn(api, "upload").mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+      String(url).endsWith(`/assets/${ligand.id}/metadata`)
+        ? Response.json(ligand)
+        : new Response(null, { status: 404 }),
+    );
+    const user = userEvent.setup();
+    render(
+      <InputFixture
+        initial={[
+          { id: "A", kind: "ligand", value: "" },
+          { id: "B", kind: "ligand", value: "" },
+        ]}
+      />,
+    );
+    await user.upload(
+      screen.getAllByLabelText("Upload Upload molecular structure")[0],
+      new File(["test"], ligand.name),
+    );
+    expect(finish).toBeTypeOf("function");
+    if (action === "remove") {
+      await user.click(
+        screen.getAllByRole("button", { name: "Remove component" })[0],
+      );
+    } else {
+      await user.type(
+        screen.getAllByRole("textbox", { name: "SMILES" })[0],
+        "CCO",
+      );
+    }
+    await act(async () => finish(ligand));
+    expect(screen.getByLabelText("Bound inputs")).toHaveTextContent("[]");
+    const components = JSON.parse(
+      screen.getByLabelText("Current components").textContent!,
+    );
+    expect(
+      components.map(({ id, value }: BoltzComponent) => [id, value]),
+    ).toEqual(
+      action === "remove"
+        ? [["B", ""]]
+        : [
+            ["A", "CCO"],
+            ["B", ""],
+          ],
+    );
+  },
+);
 
 it("deduplicates shared protein alignments without conflating ligand and MSA roles", () => {
   const msa = {
