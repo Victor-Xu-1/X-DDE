@@ -66,11 +66,15 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
       if (mounted.current) setBusy(false);
     }
   }
-  function clearError({ preserveUnconfirmed = false } = {}) {
+  function clearError({
+    unconfirmedAfterEdit,
+  }: { unconfirmedAfterEdit?: string } = {}) {
     // Editing a rejected input does not erase accepted-task navigation recovery.
     if (!pending.current && !request.current.accepted)
       setFailure((current) =>
-        preserveUnconfirmed && current?.unconfirmed ? current : null,
+        unconfirmedAfterEdit && current?.unconfirmed
+          ? { ...current, message: unconfirmedAfterEdit }
+          : null,
       );
   }
   return { busy, error: failure?.message ?? "", submit, clearError };

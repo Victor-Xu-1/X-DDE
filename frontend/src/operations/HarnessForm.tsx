@@ -45,9 +45,16 @@ export function HarnessForm({
     run = useTaskSubmit(onCreated);
   const readiness = useTaskReadiness(tool);
   const validName = name.trim().length <= 80;
+  function clearEditedError() {
+    run.clearError({
+      unconfirmedAfterEdit: zh
+        ? "上一次提交的结果仍未确认。请先在任务列表核对，再提交修改后的输入。若要重试同一次请求，请恢复原输入。"
+        : "The previous submission is still unconfirmed. Check the task list before submitting edited inputs. Restore the original inputs to retry the same request.",
+    });
+  }
   function editPayload(value: Record<string, unknown>) {
     setPayload(value);
-    run.clearError({ preserveUnconfirmed: true });
+    clearEditedError();
     setSetupError("");
   }
   const needsExternal = [
@@ -240,7 +247,7 @@ export function HarnessForm({
             checked={external}
             onChange={(e) => {
               setExternal(e.target.checked);
-              run.clearError({ preserveUnconfirmed: true });
+              clearEditedError();
             }}
           />
           {zh
@@ -255,7 +262,7 @@ export function HarnessForm({
           maxLength={80}
           onChange={(e) => {
             setName(e.target.value);
-            run.clearError({ preserveUnconfirmed: true });
+            clearEditedError();
           }}
           aria-invalid={!validName}
         />
