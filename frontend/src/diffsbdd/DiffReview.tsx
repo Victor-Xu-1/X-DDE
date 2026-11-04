@@ -21,6 +21,7 @@ export function DiffReview({
   removeWater,
   keepLigands,
   removeH,
+  compact = false,
 }: {
   mode: DiffMode;
   language: Language;
@@ -36,12 +37,20 @@ export function DiffReview({
   removeWater: boolean;
   keepLigands: boolean;
   removeH: boolean;
+  compact?: boolean;
 }) {
   const zh = language === "zh",
     designing = isDesign(mode);
-  const rows: [string, ReactNode][] = [[zh ? "任务" : "Task", taskLabel]];
+  const rows: [string, ReactNode][] = compact
+    ? []
+    : [[zh ? "任务" : "Task", taskLabel]];
   const material = (reference: MoleculeRef, kind: "structure" | "ligand") => (
-    <ReviewReference reference={reference} kind={kind} language={language} />
+    <ReviewReference
+      reference={reference}
+      kind={kind}
+      language={language}
+      recordDownload={compact}
+    />
   );
   if (
     protein &&
@@ -242,7 +251,8 @@ export function DiffReview({
         ].join(" · "),
       ],
     );
-  rows.push([zh ? "任务名称" : "Task name", name.trim() || taskLabel]);
+  if (!compact)
+    rows.push([zh ? "任务名称" : "Task name", name.trim() || taskLabel]);
   return (
     <dl className="questionnaire-review">
       {rows.map(([label, value]) => (

@@ -1,0 +1,17 @@
+.spatial-design-settings .questionnaire-review {
+  grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1.4fr);
+}
+
+.spatial-design-settings .questionnaire-review dd {
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.prediction-job-preview
+  .spatial-design-geometry
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: clamp(340px, calc(100dvh - 625px), 580px);
+  min-height: 340px;
+}

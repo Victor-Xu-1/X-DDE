@@ -9,6 +9,18 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { DiffForm } from "./DiffForm";
+vi.mock("../research/asset-file", () => ({
+  readAssetFile: async () => new Uint8Array(),
+}));
+vi.mock("../viewer/StructureViewer", () => ({ StructureViewer: () => null }));
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 const ref = {
   asset_id: "f",
   sha256: "a".repeat(64),
@@ -23,6 +35,19 @@ afterEach(() => {
 function boundary(ready = true) {
   vi.spyOn(globalThis, "fetch").mockImplementation(async (raw) => {
     const path = String(raw);
+    if (path.endsWith("/assets/f?record=3"))
+      return new Response("mock record", {
+        headers: { "X-Structure-Format": "sdf", "X-Structure-Record": "3" },
+      });
+    if (path.endsWith("/assets/f/metadata"))
+      return Response.json({
+        id: "f",
+        name: "series.sdf",
+        sha256: ref.sha256,
+        size: 100,
+        suffix: ".sdf",
+        kind: "ligand",
+      });
     return new Response(
       JSON.stringify(
         path.includes("capabilities")
@@ -201,11 +226,10 @@ it("blocks an oversized optimization budget before submission and uses the edite
     { target: { value: "4" } },
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByText("48", { selector: "dd" })).toBeVisible();
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
-  );
-  await user.click(screen.getByRole("button", { name: "Create task" }));
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  expect(await screen.findByText("48", { selector: "dd" })).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Submit job" }));
   expect(submit).toHaveBeenCalledWith(
     expect.objectContaining({
       payload: expect.objectContaining({
@@ -254,22 +278,28 @@ it("reviews and submits the changed model, site and native budget after revisiti
   };
   fireEvent.change(editor, { target: { value: JSON.stringify(options) } });
   await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
   expect(
-    screen.getByText("Cα · moad · Conditional", { selector: "dd" }),
+    await screen.findByText("Cα · moad · Conditional", { selector: "dd" }),
   ).toBeVisible();
   expect(screen.getByText("250 steps · seed 17")).toBeVisible();
   expect(screen.getByText("10", { selector: "dd" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Back to edit" }));
   await user.click(screen.getByRole("button", { name: "Back" }));
   await user.selectOptions(
     screen.getByRole("combobox", { name: "How many candidates?" }),
     "3",
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByText("3", { selector: "dd" })).toBeVisible();
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Create task" })).toBeEnabled(),
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  expect(await screen.findByText("3", { selector: "dd" })).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Request JSON" }));
+  const reviewed = JSON.parse(
+    screen.getByLabelText("X-DDE submission request").textContent!,
   );
-  await user.click(screen.getByRole("button", { name: "Create task" }));
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Submit job" }));
+  expect(submit).toHaveBeenCalledWith(reviewed, expect.any(String));
   expect(submit.mock.calls[0][0]).toMatchObject({
     operation: "diffsbdd",
     payload: {

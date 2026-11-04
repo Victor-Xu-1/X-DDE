@@ -12,7 +12,11 @@ export function useNativeIdentity(
 ) {
   const zh = language === "zh",
     [job, setJob] = useState<Job | null>(null),
-    [result, setResult] = useState<IdentityResult | null>(null);
+    [identity, setIdentity] = useState<{
+      jobId: string;
+      result: IdentityResult;
+    } | null>(null);
+  const result = job && identity?.jobId === job.id ? identity.result : null;
   const [refresh, setRefresh] = useState(0);
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -66,7 +70,7 @@ export function useNativeIdentity(
           throw new Error(
             "Atom identity does not match the selected input version.",
           );
-        if (!c.signal.aborted) setResult(r);
+        if (!c.signal.aborted) setIdentity({ jobId: job.id, result: r });
       })
       .catch((e) => {
         if (!c.signal.aborted) setError(String(e));

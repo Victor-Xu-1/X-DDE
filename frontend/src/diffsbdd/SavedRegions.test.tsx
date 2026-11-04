@@ -28,21 +28,27 @@ it("reuses the exact saved region without changing the full molecule", async () 
   );
   const onFixed = vi.fn(),
     onSaved = vi.fn(),
+    onReuseIdentity = vi.fn(),
     user = userEvent.setup();
   render(
     <SavedRegions
       subject={ref}
-      identityJob="job"
-      fixed={[0, 2]}
+      identityJob={null}
+      fixed={[]}
       onFixed={onFixed}
       onSaved={onSaved}
+      onReuseIdentity={onReuseIdentity}
       language="en"
     />,
   );
-  await screen.findByRole("option", { name: "Retained core · selectio" });
+  await screen.findByRole("option", { name: "Retained core · #1" });
   await user.selectOptions(screen.getByRole("combobox"), "selection");
   expect(onFixed).toHaveBeenCalledWith([0, 2]);
   expect(onSaved).toHaveBeenCalledWith("selection");
+  expect(onReuseIdentity).toHaveBeenCalledWith("job");
+  expect(
+    screen.queryByRole("button", { name: "Save fixed region" }),
+  ).toBeNull();
 });
 it("preserves a stable save intent and binds parser evidence", async () => {
   vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -68,4 +74,33 @@ it("preserves a stable save intent and binds parser evidence", async () => {
     identity_job: "job",
     regions: [{ role: "fixed_core", atom_indices: [0, 2] }],
   });
+});
+
+it("keeps a late save in history without binding it to subsequently edited atoms", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response("[]", { headers: { "Content-Type": "application/json" } }),
+  );
+  let finish!: (region: typeof saved) => void;
+  vi.spyOn(api, "post").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const onSaved = vi.fn();
+  const props = {
+    subject: ref,
+    identityJob: "job",
+    onFixed: vi.fn(),
+    onSaved,
+    language: "en" as const,
+  };
+  const user = userEvent.setup();
+  const view = render(<SavedRegions {...props} fixed={[0, 2]} />);
+  await user.click(screen.getByRole("button", { name: "Save fixed region" }));
+  view.rerender(<SavedRegions {...props} fixed={[0, 2, 3]} />);
+  finish(saved);
+  await screen.findByRole("option", { name: "Retained core · #1" });
+  expect(screen.getByRole("combobox")).toHaveValue("");
+  expect(onSaved).not.toHaveBeenCalled();
 });

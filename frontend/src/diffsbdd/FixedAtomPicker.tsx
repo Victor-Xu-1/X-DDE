@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import type { CorePreviewSource } from "./spatial-design-review";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
@@ -15,12 +17,14 @@ export function FixedAtomPicker({
   onChange,
   language,
   onSaved,
+  onCorePreview,
 }: {
   initial: MoleculeRef;
   fixed: number[];
   onChange(v: number[]): void;
   language: Language;
   onSaved(id: string | null): void;
+  onCorePreview?(source: CorePreviewSource | null): void;
 }) {
   const {
     ready: inspectionReady,
@@ -28,10 +32,23 @@ export function FixedAtomPicker({
     recheck,
   } = useTaskReadiness("diffsbdd.identity");
   const zh = language === "zh";
+  const [identityJob, setIdentityJob] = useState<string>();
   const { job, result, error, running, inspect, refresh } = useNativeIdentity(
     initial,
     language,
+    identityJob,
   );
+  useEffect(() => {
+    if (job?.status === "succeeded" && result)
+      onCorePreview?.({
+        reference: result.reference,
+        url: artifactUrl(job.id, result.molecule_artifact),
+        selectable: result.atoms
+          .filter((atom) => atom.selectable)
+          .map((atom) => atom.index),
+      });
+    else onCorePreview?.(null);
+  }, [job?.id, job?.status, result, onCorePreview]);
   return (
     <section>
       <p>
@@ -124,19 +141,20 @@ export function FixedAtomPicker({
             {zh ? "已固定" : "Fixed"}:{" "}
             {fixed.map((n) => n + 1).join(", ") || "—"}
           </p>
-          <SavedRegions
-            subject={initial}
-            identityJob={job.id}
-            fixed={fixed}
-            onFixed={onChange}
-            onSaved={onSaved}
-            language={language}
-          />
           <button type="button" onClick={() => onChange([])}>
             {zh ? "清空选择" : "Clear selection"}
           </button>
         </StructureWorkbench>
       )}
+      <SavedRegions
+        subject={initial}
+        identityJob={result && job?.status === "succeeded" ? job.id : null}
+        fixed={fixed}
+        onFixed={onChange}
+        onSaved={onSaved}
+        onReuseIdentity={setIdentityJob}
+        language={language}
+      />
       {(error || inspectionReadinessError) && (
         <p role="alert" className="error-box">
           {error || availabilityError(inspectionReadinessError, zh)}

@@ -248,6 +248,37 @@ def docking_review_only(changed, event="push"):
     )
 
 
+SPATIAL_DESIGN_REVIEW_REQUIRED = {
+    "frontend/src/diffsbdd/SpatialDesignJobReview.tsx",
+    "frontend/src/diffsbdd/spatial-design-review.ts",
+    "server_tests/test_diff_review_browser.py",
+}
+SPATIAL_DESIGN_REVIEW_FILES = SPATIAL_DESIGN_REVIEW_REQUIRED | {
+    ".github/workflows/prolif-contact-checks.yml",
+    "frontend/src/diffsbdd/DiffForm.tsx",
+    "frontend/src/diffsbdd/DiffForm.test.tsx",
+    "frontend/src/diffsbdd/DiffReview.tsx",
+    "frontend/src/diffsbdd/DiffTemplateReplay.test.tsx",
+    "frontend/src/diffsbdd/FixedAtomPicker.tsx",
+    "frontend/src/diffsbdd/SavedRegions.tsx",
+    "frontend/src/diffsbdd/SavedRegions.test.tsx",
+    "frontend/src/regions/useNativeIdentity.ts",
+    "frontend/src/regions/useNativeIdentity.test.tsx",
+    "frontend/src/diffsbdd/model.ts",
+    "frontend/src/diffsbdd/PocketPicker.tsx",
+    "frontend/src/diffsbdd/spatial-design-review.css",
+    "docs/frontend-layout.md",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
 def final_review_only(changed, event="push"):
     changed = set(changed)
     return event in {"push", "pull_request"} and (
@@ -290,6 +321,7 @@ def final_review_only(changed, event="push"):
         }.issubset(changed)
         and changed.issubset(FOLD_REVIEW_FILES)
         or docking_review_only(changed, event)
+        or SPATIAL_DESIGN_REVIEW_REQUIRED <= changed <= SPATIAL_DESIGN_REVIEW_FILES
     )
 
 

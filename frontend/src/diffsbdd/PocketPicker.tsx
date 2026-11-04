@@ -89,8 +89,16 @@ export function PocketPicker({
             <StructureViewer
               urls={[`/api/assets/${protein.asset_id}`]}
               language={language}
+              sourceSnapshot
+              residueRegion={
+                value?.kind === "residues"
+                  ? value.residues
+                  : value?.kind === "bound_ligand"
+                    ? [value.residue]
+                    : []
+              }
               onAtomSelected={(s) => {
-                if (!s || !s.identity) return;
+                if (!s || !s.identity || s.pick_mode === "distance") return;
                 const r = s.identity;
                 if (r.insertion_code || r.alternate_location) {
                   setError(
@@ -101,6 +109,10 @@ export function PocketPicker({
                   return;
                 }
                 try {
+                  if (kind === "residues" && r.is_ligand)
+                    throw new Error(
+                      zh ? "请选择受体残基。" : "Select a receptor residue.",
+                    );
                   if (kind === "bound_ligand" && !r.is_ligand)
                     throw new Error(
                       zh
