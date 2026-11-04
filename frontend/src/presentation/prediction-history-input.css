@@ -52,9 +52,9 @@
 .studio-app .prediction-archive-download > .primary-button,
 .studio-app .prediction-archive-download > .primary-button:hover:enabled,
 .studio-app .prediction-archive-download > .primary-button:focus-visible {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
+  background: #2f67b2;
+  border-color: #2f67b2;
+  color: #fff;
   border-radius: 999px;
 }
 .prediction-archive-download > .field-help {

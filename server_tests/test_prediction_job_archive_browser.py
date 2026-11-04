@@ -12,17 +12,23 @@ from server_tests.browser_platform import platform
 from server_tests.test_workspace_fullscreen_browser import restored_workspace as restored_workspace
 
 
-@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
-def test_prediction_zip_preserves_all_original_files(restored_workspace, language, width):
+@pytest.mark.parametrize(
+    ("language", "width", "theme"),
+    [("en", 1440, "light"), ("zh", 390, "light"), ("en", 1440, "dark")],
+)
+def test_prediction_zip_preserves_all_original_files(restored_workspace, language, width, theme):
     settings, store, pins = restored_workspace
     before = [row.model_dump(mode="json") for row in store.list_jobs(1000)]
-    evidence = Path("outputs/prediction-job-archive") / language
+    evidence = Path("outputs/prediction-job-archive") / (
+        language if theme == "light" else "en-dark"
+    )
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
         browser = pw.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 960}, accept_downloads=True)
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page.add_init_script(f"localStorage.setItem('x-dde-theme','{theme}')")
         writes = []
         page.on(
             "request",
@@ -43,15 +49,19 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             expect(action).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
+            expect(action).to_have_css("color", "rgb(255, 255, 255)")
             page.screenshot(path=evidence / f"{capability}.png")
             if capability == "boltz.predict":
                 endpoint = f"**/api/jobs/{job_id}/prediction-results.zip"
                 page.route(endpoint, lambda route: route.fulfill(status=503), times=1)
-                action.click()
+                action.press("Enter")
                 expect(
                     page.locator(".prediction-archive-download").get_by_role("alert")
                 ).to_be_visible()
+                action.focus()
+                expect(action).to_be_focused()
                 expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
+                expect(action).to_have_css("color", "rgb(255, 255, 255)")
                 page.screenshot(path=evidence / "retry.png")
             with page.expect_download(timeout=45000) as received:
                 action.click()
