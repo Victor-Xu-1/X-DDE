@@ -66,7 +66,7 @@ def test_ternary_review_uses_real_independent_binary_frames(language, width, tmp
         next_step = form.get_by_role("button", name=label("Next", "下一步"), exact=True)
 
         def choose(purpose, role):
-            picker = form.locator("fieldset:visible .diff-reference").filter(
+            picker = page.locator(".questionnaire > fieldset:visible .diff-reference").filter(
                 has=page.get_by_role("heading", name=purpose, exact=True)
             )
             file = files[role]
@@ -92,7 +92,7 @@ def test_ternary_review_uses_real_independent_binary_frames(language, width, tmp
             label("Protein of interest", "目标蛋白"),
         )
         for side, title in zip("ab", titles, strict=True):
-            current = form.locator(".questionnaire > fieldset:visible")
+            current = page.locator(".questionnaire > fieldset:visible")
             current.get_by_role("textbox", name=label("Partner name", "伙伴名称")).fill(
                 payload[f"partner_{side}_name"]
             )
