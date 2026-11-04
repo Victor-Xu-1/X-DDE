@@ -351,3 +351,10 @@ def test_prediction_result_header_routes_to_the_archive_and_history_browser():
     assert scope.job_archive_only(paths, "pull_request")
     assert scope.history_input_changed(paths)
     assert scope.selected(paths)
+    for name in (
+        "frontend/src/presentation/PredictionResultHeader.tsx",
+        "frontend/src/presentation/prediction-result-header.css",
+    ):
+        assert scope.job_archive_changed([name])
+        assert scope.job_archive_only([name], "pull_request")
+        assert scope.selected([name])

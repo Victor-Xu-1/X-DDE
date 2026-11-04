@@ -31,9 +31,14 @@ export function PredictionResultHeader({
   const zh = language === "zh";
   const t = translator(language);
   const date = new Date(job.created_at);
-  const method = methodChoices
-    .find((choice) => choice.id === "complex_structure")
-    ?.options.find((option) => option.id === predictionMethodId(job.request));
+  const request = job.request;
+  const model =
+    isPrediction(request) && request.parameters.model === "abag"
+      ? "OpenDDE ABAG"
+      : methodChoices
+          .find((choice) => choice.id === "complex_structure")
+          ?.options.find((option) => option.id === predictionMethodId(request))
+          ?.label;
   return (
     <header className="prediction-result-heading">
       <div className="prediction-result-summary">
@@ -62,10 +67,9 @@ export function PredictionResultHeader({
             </span>
           )}
         </div>
-        {method && (
+        {model && (
           <p className="prediction-result-method">
-            {zh ? "预测模型" : "Prediction model"}{" "}
-            <strong>{method.label}</strong>
+            {zh ? "预测模型" : "Prediction model"} <strong>{model}</strong>
           </p>
         )}
       </div>

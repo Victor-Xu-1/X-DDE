@@ -183,3 +183,23 @@ it("identifies the retained Mol-1 request and returns to prediction history", as
     .click(screen.getByRole("button", { name: "Predictions" }));
   expect(onPredictionHistory).toHaveBeenCalledOnce();
 });
+
+it("distinguishes a retained OpenDDE ABAG result from a standard prediction", () => {
+  render(
+    <TaskDetail
+      job={{
+        ...job,
+        request: {
+          name: "Antibody complex",
+          components: [{ kind: "protein", value: "ACDE", count: 1 }],
+          parameters: { ...defaults, model: "abag" },
+        },
+      }}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={vi.fn()}
+    />,
+  );
+  expect(screen.getByText("OpenDDE ABAG", { exact: true })).toBeVisible();
+});

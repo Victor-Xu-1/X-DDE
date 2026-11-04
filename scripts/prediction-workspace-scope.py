@@ -618,6 +618,8 @@ def history_input_only(changed, event="push"):
 JOB_ARCHIVE_SOURCES = (
     "src/opendde_workbench/prediction_archive.py",
     "frontend/src/presentation/PredictionArchiveDownload.tsx",
+    "frontend/src/presentation/PredictionResultHeader.tsx",
+    "frontend/src/presentation/prediction-result-header.css",
     "server_tests/test_prediction_job_archive_browser.py",
 )
 JOB_ARCHIVE_FILES = (
@@ -630,8 +632,7 @@ JOB_ARCHIVE_FILES = (
         "frontend/src/App.tsx",
         "frontend/src/TaskDetail.test.tsx",
         "frontend/src/studio/TaskWorkspace*.tsx",
-        "frontend/src/presentation/PredictionResultHeader.tsx",
-        "frontend/src/presentation/prediction-result*.css",
+        "frontend/src/presentation/prediction-results.css",
         "frontend/src/presentation/prediction-workspace.css",
     )
 )
