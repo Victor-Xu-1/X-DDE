@@ -50,6 +50,7 @@ const reviewedCandidate = expected[2].id;
 
 export type PredictionReferenceEvidence = {
   candidate: string;
+  structureSha256: string;
   omittedDomainClash: boolean;
   contacts: NativeInteraction[] | undefined;
   contactsPending: boolean;
@@ -146,23 +147,24 @@ export function usePredictionReferenceReview(
     return () => controller.abort();
   }, [eligible, job, result]);
 
+  const source = expected.find(
+    (row) => row.id === active?.id && row.artifact === active.artifact,
+  );
   if (
     !eligible ||
     verified?.job !== job ||
     verified.result !== result ||
-    !active ||
-    !expected.some(
-      (row) => row.id === active.id && row.artifact === active.artifact,
-    )
+    !source
   )
     return null;
   const contacts =
-    active.id === reviewedCandidate ? verified.contacts : undefined;
+    source.id === reviewedCandidate ? verified.contacts : undefined;
   return {
-    candidate: active.id,
-    omittedDomainClash: active.id !== reviewedCandidate,
+    candidate: source.id,
+    structureSha256: predictionReferenceSources.artifacts[source.artifact],
+    omittedDomainClash: source.id !== reviewedCandidate,
     contacts,
-    contactsPending: active.id === reviewedCandidate && verified.pending,
+    contactsPending: source.id === reviewedCandidate && verified.pending,
     contactJob: contacts ? contactJob : undefined,
     reviewedCandidate,
   };

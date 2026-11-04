@@ -96,6 +96,7 @@ def test_stat6_receptor_review_and_native_contact_frame(restored_workspace, lang
         expect(table.locator("tbody tr")).to_have_count(3)
         expect(table).to_contain_text("A:GLN74")
         expect(table).to_contain_text("3.77")
+        expect(table).to_contain_text("候选氢键" if zh else "Hydrogen-bond candidate")
         state = frame_state()
         assert parse_qs(urlparse(state["urls"][0]).query)["name"] == ["structure-003.cif"]
         native = page.request.get(base + f"/api/jobs/{supporting.job_id}/download?name=result.json")
@@ -109,13 +110,40 @@ def test_stat6_receptor_review_and_native_contact_frame(restored_workspace, lang
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         review.scroll_into_view_if_needed()
         page.screenshot(path=evidence / "reviewed-native-contacts.png")
+        reviewed_frame = viewer.locator("iframe").element_handle()
+        assert reviewed_frame
         bar.get_by_role(
             "button", name="构象 structure-001" if zh else "Sample structure-001", exact=True
         ).click()
+        assert not reviewed_frame.evaluate("(frame) => frame.isConnected")
         expect(report_link).to_have_count(0)
         state = frame_state()
         assert not state.get("nativeInteractions")
         assert parse_qs(urlparse(state["urls"][0]).query)["name"] == ["structure-001.cif"]
+        if not zh:
+
+            def replace_viewer_bytes(route):
+                if route.request.frame.parent_frame is None:
+                    route.continue_()
+                    return
+                response = route.fetch()
+                assert response.ok
+                route.fulfill(status=200, body=response.body() + b"\n")
+
+            page.route("**/download?name=structure-003.cif", replace_viewer_bytes)
+            bar.get_by_role("button", name="Sample structure-003", exact=True).click()
+            expect(viewer.get_by_role("alert")).to_contain_text(
+                "This structure differs from the reviewed file", timeout=45000
+            )
+            expect(review).to_have_count(0)
+            expect(export).to_be_disabled()
+            expect(
+                viewer.get_by_role("checkbox", name="Show native chemical contacts")
+            ).to_have_count(0)
+            page.unroute("**/download?name=structure-003.cif", replace_viewer_bytes)
+            viewer.get_by_role("button", name="Reload", exact=True).click()
+            expect(report_link).to_be_visible(timeout=45000)
+            assert frame_state()["nativeInteractions"] == native.json()["interactions"]
         assert not writes and not errors
         assert [entry.model_dump(mode="json") for entry in store.list_jobs(1000)] == before
         browser.close()

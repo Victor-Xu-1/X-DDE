@@ -281,9 +281,9 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-prediction-reference
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-prediction-reference/state
         run: |
-          (cd frontend && npx vitest run src/presentation/PredictionReferenceEvidence.test.tsx src/integrations/ScientificResults.test.tsx)
-          uv run --locked ruff check server_tests/test_prediction_reference_review_browser.py
-          uv run --locked python -m pytest -x -q server_tests/test_prediction_reference_review_browser.py
+          (cd frontend && npx vitest run src/presentation/PredictionReferenceEvidence.test.tsx src/integrations/ScientificResults.test.tsx src/viewer/source-layout.test.ts src/viewer/scientific-overlay.test.ts)
+          uv run --locked ruff check server_tests/test_prediction_reference_review_browser.py scripts/prediction-workspace-scope.py tests/test_prediction_workspace_scope.py
+          uv run --locked python -m pytest -x -q server_tests/test_prediction_reference_review_browser.py tests/test_prediction_workspace_scope.py
 
       - uses: actions/upload-artifact@v4
         if: always()

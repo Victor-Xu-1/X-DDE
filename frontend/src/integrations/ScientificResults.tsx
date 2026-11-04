@@ -1,5 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { artifactUrl } from "../api";
 import {
   ResearchTable,
@@ -59,6 +59,13 @@ export function ScientificResults({
   const setSelected = (id: string) => setChoice({ job: job.id, initial, id });
   const active = rows.find((row) => row.id === selected) ?? rows[0];
   const referenceReview = usePredictionReferenceReview(job.id, result, active);
+  const referenceScene = referenceReview
+    ? `${job.id}:${referenceReview.structureSha256}:${Boolean(referenceReview.contacts)}`
+    : undefined;
+  const [verifiedScene, setVerifiedScene] = useState<string>();
+  useLayoutEffect(() => setVerifiedScene(undefined), [referenceScene]);
+  const displayedReview =
+    referenceScene === verifiedScene ? referenceReview : null;
   const columns = useMemo<ResearchColumn<NativeCandidate>[]>(() => {
     const metrics = [
       ...new Map(
@@ -215,9 +222,16 @@ export function ScientificResults({
       />
     ) : (
       <StructureViewer
+        key={referenceScene}
         urls={[url]}
         language={language}
         sourceSnapshot={Boolean(referenceReview)}
+        expectedStructureSha256={referenceReview?.structureSha256}
+        onStructureVerification={
+          referenceScene
+            ? (valid) => setVerifiedScene(valid ? referenceScene : undefined)
+            : undefined
+        }
         nativeInteractions={referenceReview?.contacts}
       />
     )
@@ -239,7 +253,7 @@ export function ScientificResults({
           language={language}
         />
       )}
-      {referenceReview?.omittedDomainClash && (
+      {displayedReview?.omittedDomainClash && (
         <p className="prediction-reference-mobile-status" role="status">
           {zh
             ? "实验受体对照发现结构域冲突"
@@ -273,9 +287,9 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
-            {referenceReview && (
+            {displayedReview && (
               <PredictionReferenceReview
-                evidence={referenceReview}
+                evidence={displayedReview}
                 language={language}
                 onSelect={setSelected}
               />

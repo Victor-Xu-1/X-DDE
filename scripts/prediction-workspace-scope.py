@@ -542,6 +542,11 @@ REFERENCE_REVIEW_SOURCES = (
 )
 REFERENCE_REVIEW_FILES = REFERENCE_REVIEW_SOURCES + (
     "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/source-layout.ts",
+    "frontend/src/viewer/source-layout.test.ts",
+    "frontend/src/viewer/pose-errors.ts",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",

@@ -58,6 +58,8 @@ import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
+  expectedStructureSha256?: string;
+  onStructureVerification?(verified: boolean): void;
   trajectoryKey?: string;
   ligandContext?: boolean;
   initialMode?: ViewMode;
@@ -90,6 +92,8 @@ export interface StructureViewerProps {
 }
 export function StructureViewport({
   sourceSnapshot = false,
+  expectedStructureSha256,
+  onStructureVerification,
   trajectoryKey,
   ligandContext = true,
   initialMode,
@@ -132,6 +136,7 @@ export function StructureViewport({
       (records?.join(",") ?? "") +
       ":" +
       JSON.stringify({
+        expectedStructureSha256,
         nativeInteractions,
         electrostaticMap,
         channelGeometry,
@@ -162,6 +167,8 @@ export function StructureViewport({
   selectionCallback.current = onAtomSelected;
   const sceneCallback = useRef(onSceneLoaded);
   sceneCallback.current = onSceneLoaded;
+  const verificationCallback = useRef(onStructureVerification);
+  verificationCallback.current = onStructureVerification;
   const [status, setStatus] = useState("empty"),
     [error, setError] = useState("");
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
@@ -216,6 +223,7 @@ export function StructureViewport({
   function loadSpecification() {
     return {
       urls,
+      expectedStructureSha256,
       ...(trajectoryKey ? { trajectoryKey } : {}),
       ...(optimization.initialReady || sourceSnapshot
         ? { initialPosePrepared: true }
@@ -320,6 +328,7 @@ export function StructureViewport({
       if (type === "error") {
         setStatus("error");
         setError(String(detail));
+        verificationCallback.current?.(false);
       }
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
@@ -332,6 +341,7 @@ export function StructureViewport({
         setError("");
         setScene(detail);
         sceneCallback.current?.(detail);
+        verificationCallback.current?.(true);
         if (focusedModels.current?.length)
           send("focus-models", focusedModels.current);
         else if (focusedModel.current !== undefined)
@@ -351,6 +361,7 @@ export function StructureViewport({
     const request = JSON.stringify([sceneKey, specification]);
     if (lastRequest.current === request) return;
     lastRequest.current = ready ? request : null;
+    verificationCallback.current?.(false);
     focusedLigand.current = null;
     setSelection(null);
     setSelectedResidues([]);

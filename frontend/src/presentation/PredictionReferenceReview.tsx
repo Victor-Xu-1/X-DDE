@@ -87,13 +87,25 @@ export function PredictionReferenceReview({
                       {row.number}
                     </th>
                     <td>
-                      {interactionNames[row.kind]?.[zh ? 0 : 1] ?? row.kind}
+                      {row.kind === "hydrogen_bond"
+                        ? zh
+                          ? "候选氢键"
+                          : "Hydrogen-bond candidate"
+                        : (interactionNames[row.kind]?.[zh ? 0 : 1] ??
+                          row.kind)}
                     </td>
                     <td>{row.distance.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {evidence.contacts?.some((row) => row.kind === "hydrogen_bond") && (
+            <p>
+              {zh
+                ? "GLN74（STAT6 全长 Q590）的候选氢键较弱，且依赖接触几何。"
+                : "The GLN74 (full-length STAT6 Q590) hydrogen-bond candidate is weak and geometry-dependent."}
+            </p>
           )}
           {evidence.contactJob ? (
             <a

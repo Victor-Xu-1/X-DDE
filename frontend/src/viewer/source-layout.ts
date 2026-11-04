@@ -5,6 +5,7 @@ import { channelGeometry, type ChannelGeometry } from "./channel-input";
 import type { ViewMode } from "./protocol";
 import { searchBoxGeometry, type SearchBoxGeometry } from "./search-box";
 export interface ViewerLoad {
+  expectedStructureSha256?: string;
   trajectoryKey?: string;
   initialPosePrepared?: boolean;
   ligandContext?: boolean;
@@ -45,6 +46,14 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
+  const expectedStructureSha256 = v.expectedStructureSha256;
+  if (
+    expectedStructureSha256 !== undefined &&
+    (sourceCount !== 1 ||
+      typeof expectedStructureSha256 !== "string" ||
+      !/^[0-9a-f]{64}$/.test(expectedStructureSha256))
+  )
+    throw new Error("Invalid reviewed structure checksum");
   if (
     v.initialChains !== undefined &&
     (sourceCount !== 1 ||
@@ -101,6 +110,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid molecular records");
   return {
+    ...(expectedStructureSha256 === undefined
+      ? {}
+      : { expectedStructureSha256 }),
     ...(v.trajectoryKey === undefined
       ? {}
       : { trajectoryKey: v.trajectoryKey as string }),

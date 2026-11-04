@@ -299,9 +299,11 @@ def test_prediction_reference_review_keeps_the_retained_geometry_gate_in_mixed_c
         "frontend/src/integrations/ScientificResults.tsx",
         "frontend/src/presentation/PredictionReferenceEvidence.ts",
         "server_tests/test_prediction_reference_review_browser.py",
+        "frontend/src/viewer/frame.ts",
+        "frontend/src/viewer/source-layout.ts",
     ]
     assert scope.reference_review_only(paths)
     assert scope.selected(paths)
-    mixed = paths + ["frontend/src/viewer/frame.ts"]
+    mixed = paths + ["frontend/src/viewer/Scene.ts"]
     assert scope.reference_review_changed(mixed)
     assert not scope.reference_review_only(mixed)
