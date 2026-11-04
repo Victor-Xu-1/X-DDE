@@ -186,7 +186,11 @@ it("keeps keyboard selection, native viewer region and both research handoffs on
     "href",
     expect.stringContaining("/api/jobs/retained-pockets/download"),
   );
-  await user.click(within(origin).getByText("Preview starting structure"));
+  const preview = within(origin).getByRole("button", {
+    name: "Preview starting structure",
+  });
+  await user.click(preview);
+  expect(preview).toHaveAttribute("aria-expanded", "true");
   expect(screen.getByLabelText("Viewer sources")).toHaveTextContent(
     '"searchBox":{"center":[2,4,5],"size":[20,20,20],"unit":"angstrom"}',
   );

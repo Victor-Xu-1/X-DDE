@@ -113,9 +113,18 @@
   overflow-wrap: anywhere;
 }
 
-.pocket-handoff-source summary {
+.pocket-handoff-preview-toggle {
+  display: inline-block;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  font-weight: 600;
   width: fit-content;
   cursor: pointer;
   color: var(--accent);
   font-size: 13px;
+}
+
+.pocket-handoff-preview-toggle > span {
+  margin-inline-end: 5px;
 }

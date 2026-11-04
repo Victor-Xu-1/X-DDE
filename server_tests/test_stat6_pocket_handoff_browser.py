@@ -116,13 +116,28 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
 
         open_handoff(label("Explore poses in this pocket", "探索这个口袋的结合模式"))
         expect(origin).to_contain_text("20 × 20 × 20 Å")
-        origin.get_by_text(label("Preview starting structure", "预览起始结构"), exact=True).click()
+        toggle = origin.get_by_role(
+            "button", name=label("Preview starting structure", "预览起始结构")
+        )
+        toggle.click()
+        preview = page.get_by_role("region", name=label("Starting structure", "起始结构"))
         expect(
-            origin.get_by_role("button", name=label("Export figure ↓", "文献图导出 ↓"))
+            preview.get_by_role("button", name=label("Export figure ↓", "文献图导出 ↓"))
         ).to_be_enabled(timeout=30000)
-        expect(origin.frame_locator("iframe").locator("canvas").first).to_be_visible()
+        expect(preview.frame_locator("iframe").locator("canvas").first).to_be_visible()
+        preview_rect = preview.bounding_box()
+        form_rect = page.locator(".task-workspace.is-input .questionnaire:visible").bounding_box()
+        assert preview_rect and form_rect
+        if zh:
+            assert preview_rect["y"] + preview_rect["height"] <= form_rect["y"] + 1
+        else:
+            assert preview_rect["x"] + preview_rect["width"] <= form_rect["x"] + 1
+            assert abs(preview_rect["y"] - form_rect["y"]) <= 16
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        origin.evaluate("(node) => window.scrollBy(0, node.getBoundingClientRect().top - 82)")
         page.screenshot(path=EVIDENCE / f"stat6-{language}-docking-origin.png")
-        origin.get_by_text(label("Preview starting structure", "预览起始结构"), exact=True).click()
+        toggle.click()
+        expect(preview).to_have_count(0)
 
         picker = page.locator(".diff-reference:visible").filter(
             has=page.get_by_role(

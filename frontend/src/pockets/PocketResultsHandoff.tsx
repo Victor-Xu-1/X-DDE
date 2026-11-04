@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { artifactUrl } from "../api";
 import { DiffForm } from "../diffsbdd/DiffForm";
 import { DockingForm } from "../docking/DockingForm";
@@ -53,6 +53,7 @@ export function PocketResultsHandoff({
   const zh = language === "zh";
   const { action, origin } = continuation;
   const [expanded, setExpanded] = useState(false);
+  const previewId = useId();
   const predicted = origin.kind === "predicted" ? origin.site : null;
   const ligand = origin.kind === "reference" ? origin.ligand : null;
   const box =
@@ -103,67 +104,65 @@ export function PocketResultsHandoff({
             {zh ? "原始受体" : "Original receptor"}
           </a>
         </div>
-        <details onToggle={(event) => setExpanded(event.currentTarget.open)}>
-          <summary>
-            {zh ? "预览起始结构" : "Preview starting structure"}
-          </summary>
-          {expanded && (
-            <StructureWorkbench
-              preview={
-                <StructureViewer
-                  urls={
-                    ligand
-                      ? [
-                          receptor,
-                          assetDownloadUrl(ligand.asset_id, ligand.record),
-                        ]
-                      : [receptor]
-                  }
-                  language={language}
-                  sourceSnapshot
-                  focusModel={ligand ? 1 : undefined}
-                  residueRegion={predicted?.residues}
-                  searchBox={box ?? undefined}
-                />
-              }
-            >
-              <p className="field-help">
-                {box
-                  ? zh
-                    ? "初始搜索盒以预测中心为准，可在对接表单中修改。"
-                    : "The starting box is centered on the predicted site. Adjust it in the docking form."
-                  : zh
-                    ? "这是从结果带入的起始区域。请在提交前核对当前所选输入。"
-                    : "This is the region carried over from the result. Review the active inputs before submitting."}
-              </p>
-            </StructureWorkbench>
-          )}
-        </details>
+        <button
+          className="pocket-handoff-preview-toggle"
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={expanded ? previewId : undefined}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+          {zh ? "预览起始结构" : "Preview starting structure"}
+        </button>
       </section>
-      {action === "dock" ? (
-        <DockingForm
-          language={language}
-          initialReceptor={result.protein}
-          initialReference={ligand}
-          initialBox={box}
-          onCreated={onCreated}
-        />
-      ) : (
-        <DiffForm
-          mode="generate"
-          language={language}
-          initialProtein={result.protein}
-          initialPocket={
-            origin.kind === "reference"
-              ? { kind: "ligand", ligand: origin.ligand }
-              : {
-                  kind: "residues",
-                  residues: origin.site.residues,
+      <StructureWorkbench
+        preview={
+          expanded ? (
+            <section
+              id={previewId}
+              aria-label={zh ? "起始结构" : "Starting structure"}
+            >
+              <StructureViewer
+                urls={
+                  ligand
+                    ? [receptor, assetDownloadUrl(ligand.asset_id, ligand.record)]
+                    : [receptor]
                 }
-          }
-          onCreated={onCreated}
-        />
-      )}
+                language={language}
+                sourceSnapshot
+                focusModel={ligand ? 1 : undefined}
+                residueRegion={predicted?.residues}
+                searchBox={box ?? undefined}
+              />
+            </section>
+          ) : null
+        }
+      >
+        {action === "dock" ? (
+          <DockingForm
+            language={language}
+            initialReceptor={result.protein}
+            initialReference={ligand}
+            initialBox={box}
+            onCreated={onCreated}
+          />
+        ) : (
+          <DiffForm
+            mode="generate"
+            language={language}
+            initialProtein={result.protein}
+            initialPocket={
+              origin.kind === "reference"
+                ? { kind: "ligand", ligand: origin.ligand }
+                : {
+                    kind: "residues",
+                    residues: origin.site.residues,
+                  }
+            }
+            onCreated={onCreated}
+          />
+        )}
+      </StructureWorkbench>
     </ResearchHandoff>
   );
 }
