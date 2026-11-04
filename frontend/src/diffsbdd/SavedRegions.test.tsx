@@ -69,3 +69,32 @@ it("preserves a stable save intent and binds parser evidence", async () => {
     regions: [{ role: "fixed_core", atom_indices: [0, 2] }],
   });
 });
+
+it("keeps a late save in history without binding it to subsequently edited atoms", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response("[]", { headers: { "Content-Type": "application/json" } }),
+  );
+  let finish!: (region: typeof saved) => void;
+  vi.spyOn(api, "post").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const onSaved = vi.fn();
+  const props = {
+    subject: ref,
+    identityJob: "job",
+    onFixed: vi.fn(),
+    onSaved,
+    language: "en" as const,
+  };
+  const user = userEvent.setup();
+  const view = render(<SavedRegions {...props} fixed={[0, 2]} />);
+  await user.click(screen.getByRole("button", { name: "Save fixed region" }));
+  view.rerender(<SavedRegions {...props} fixed={[0, 2, 3]} />);
+  finish(saved);
+  await screen.findByRole("option", { name: "Retained core · selectio" });
+  expect(screen.getByRole("combobox")).toHaveValue("");
+  expect(onSaved).not.toHaveBeenCalled();
+});

@@ -439,7 +439,7 @@ export function DiffForm({
                   fixed,
                   savedRegions,
                   constraints,
-                  name,
+                  name: name.trim() || names[mode][zh ? 0 : 1],
                   language,
                 }}
                 corePreview={corePreview}

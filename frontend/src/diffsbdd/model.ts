@@ -1,6 +1,17 @@
 import { defaults, models, parameterGroups } from "./generated";
 import type { DesignMode, Pocket, ResidueRef } from "./types";
 import type { MoleculeRef } from "../research/types";
+import type { Region } from "../regions/model";
+
+export function fixedCoreIndices(regions: readonly Region[]) {
+  return [
+    ...new Set(
+      regions
+        .filter((r) => r.role === "fixed_core")
+        .flatMap((r) => r.atom_indices),
+    ),
+  ].sort((a, b) => a - b);
+}
 
 export const optionsFor = (
   mode: DesignMode,

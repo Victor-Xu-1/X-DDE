@@ -1,9 +1,9 @@
 import { historyChoiceLabel } from "../presentation/history-choice";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
-import { referenceKey } from "./model";
+import { fixedCoreIndices, referenceKey } from "./model";
 import type { SavedRegion } from "../regions/model";
 import { savedRegions } from "../regions/records";
 export function SavedRegions({
@@ -28,6 +28,14 @@ export function SavedRegions({
     [error, setError] = useState("");
   const intent = useRef({ body: "", key: crypto.randomUUID() }),
     [selected, setSelected] = useState("");
+  const revision = JSON.stringify([referenceKey(subject), identityJob, fixed]);
+  const current = useRef<string | null>(revision);
+  useLayoutEffect(() => {
+    current.current = revision;
+    return () => {
+      current.current = null;
+    };
+  }, [revision]);
   useEffect(() => {
     const c = new AbortController();
     async function load() {
@@ -46,15 +54,7 @@ export function SavedRegions({
   }, [referenceKey(subject)]);
   useEffect(() => {
     const value = values.find((v) => v.id === selected);
-    const expected = value
-      ? [
-          ...new Set(
-            value.body.regions
-              .filter((r) => r.role === "fixed_core")
-              .flatMap((r) => r.atom_indices),
-          ),
-        ].sort((a, b) => a - b)
-      : null;
+    const expected = value ? fixedCoreIndices(value.body.regions) : null;
     if (expected && JSON.stringify(expected) !== JSON.stringify(fixed))
       setSelected("");
   }, [JSON.stringify(fixed), selected]);
@@ -76,13 +76,24 @@ export function SavedRegions({
         body,
         intent.current.key,
       );
+      if (
+        !current.current ||
+        referenceKey(value.body.subject) !== referenceKey(subject)
+      )
+        return;
       setValues((old) => [value, ...old.filter((v) => v.id !== value.id)]);
-      setSelected(value.id);
-      onSaved(value.id);
+      if (
+        current.current === revision &&
+        JSON.stringify(fixedCoreIndices(value.body.regions)) ===
+          JSON.stringify(fixed)
+      ) {
+        setSelected(value.id);
+        onSaved(value.id);
+      }
     } catch (e) {
-      setError(String(e));
+      if (current.current === revision) setError(String(e));
     } finally {
-      setBusy(false);
+      if (current.current) setBusy(false);
     }
   }
   return (
@@ -116,15 +127,7 @@ export function SavedRegions({
             const value = values.find((v) => v.id === e.target.value);
             setSelected(value?.id ?? "");
             if (value) {
-              onFixed(
-                [
-                  ...new Set(
-                    value.body.regions
-                      .filter((r) => r.role === "fixed_core")
-                      .flatMap((r) => r.atom_indices),
-                  ),
-                ].sort((a, b) => a - b),
-              );
+              onFixed(fixedCoreIndices(value.body.regions));
               onSaved(value.id);
             } else onSaved(null);
           }}

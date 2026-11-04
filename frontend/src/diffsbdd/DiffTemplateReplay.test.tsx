@@ -65,15 +65,29 @@ it("shows the saved export molecule as already selected rather than offering an 
   ).toBeDisabled();
 });
 
-it.each(["generate", "inpaint"] as const)(
-  "submits the explicitly loaded %s recipe including exact references and saved conditions",
-  async (mode) => {
+it.each([
+  ["generate", true],
+  ["inpaint", true],
+  ["inpaint", false],
+] as const)(
+  "checks the loaded %s recipe when the saved region matches: %s",
+  async (mode, matchingRegion) => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async (raw) => {
       const path = String(raw);
       if (path.endsWith("/research/regions/saved-core"))
         return Response.json({
           id: "saved-core",
-          body: { subject: molecule, identity_job: "identity-task" },
+          body: {
+            subject: molecule,
+            identity_job: "identity-task",
+            regions: [
+              {
+                name: "core",
+                role: "fixed_core",
+                atom_indices: matchingRegion ? [0, 1] : [0],
+              },
+            ],
+          },
         });
       if (path.endsWith("/jobs/identity-task/result"))
         return Response.json({
@@ -183,6 +197,16 @@ it.each(["generate", "inpaint"] as const)(
       await user.click(screen.getByRole("button", { name: "Next" }));
     await user.click(screen.getByRole("button", { name: "Preview job" }));
     const create = await screen.findByRole("button", { name: "Submit job" });
+    if (!matchingRegion) {
+      expect(
+        await screen.findByText(
+          /The saved region differs from the selected fixed atoms/,
+        ),
+      ).toBeVisible();
+      expect(create).toBeDisabled();
+      expect(submit).not.toHaveBeenCalled();
+      return;
+    }
     await waitFor(() => expect(create).toBeEnabled());
     if (mode === "inpaint") {
       await user.click(screen.getByRole("tab", { name: "Starting pose" }));

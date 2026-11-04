@@ -65,7 +65,7 @@ export function SpatialDesignJobReview({
             removeWater={false}
             keepLigands={false}
             removeH={false}
-            preparedSources
+            compact
           />
         </aside>
       )}

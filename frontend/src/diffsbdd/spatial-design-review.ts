@@ -7,7 +7,7 @@ import { readAssetFile } from "../research/asset-file";
 import type { MoleculeRef } from "../research/types";
 import { resolveReference } from "./reference-metadata";
 import type { Language } from "../types";
-import { designPayload, referenceKey } from "./model";
+import { designPayload, fixedCoreIndices, referenceKey } from "./model";
 import type { DesignMode, DiffTask, Pocket } from "./types";
 
 export type SpatialDesignMode = DesignMode | "pocket";
@@ -19,21 +19,11 @@ export interface CorePreviewSource {
 }
 
 async function savedCorePreview(
-  id: string,
+  job: string,
   initial: MoleculeRef,
   signal: AbortSignal,
 ): Promise<CorePreviewSource | null> {
   try {
-    const region = await request<SavedRegion>(
-      "/research/regions/" + encodeURIComponent(id),
-      { signal },
-    );
-    if (
-      region.id !== id ||
-      referenceKey(region.body.subject) !== referenceKey(initial)
-    )
-      return null;
-    const job = region.body.identity_job;
     const identity: unknown = await api.result(job, signal);
     if (!validIdentity(identity, initial)) return null;
     return {
@@ -134,21 +124,36 @@ export async function prepareSpatialDesign(
   read.throwIfAborted();
   const task: DiffTask = {
     operation: "diffsbdd",
-    name: input.name.trim() || `DiffSBDD · ${mode}`,
+    name: input.name,
     payload,
   };
   const reviewed = await withConstraints(task, constraints, language);
   read.throwIfAborted();
   if (reviewed.operation !== "diffsbdd")
     throw new Error("Invalid DiffSBDD request.");
-  const savedCore =
-    mode === "inpaint" && savedRegions && initial
-      ? await savedCorePreview(
-          savedRegions,
-          initial,
-          AbortSignal.any([signal, AbortSignal.timeout(5000)]),
-        )
-      : null;
+  let savedCore: CorePreviewSource | null = null;
+  if (mode === "inpaint" && savedRegions && initial) {
+    const region = await request<SavedRegion>(
+      "/research/regions/" + encodeURIComponent(savedRegions),
+      { signal: read },
+    );
+    if (
+      region.id !== savedRegions ||
+      referenceKey(region.body.subject) !== referenceKey(initial) ||
+      JSON.stringify(fixedCoreIndices(region.body.regions)) !==
+        JSON.stringify(fixed)
+    )
+      throw new Error(
+        zh
+          ? "已保存选区与当前固定原子不一致，请返回重新选择。"
+          : "The saved region differs from the selected fixed atoms. Return to edit the selection.",
+      );
+    savedCore = await savedCorePreview(
+      region.body.identity_job,
+      initial,
+      AbortSignal.any([signal, AbortSignal.timeout(5000)]),
+    );
+  }
   signal.throwIfAborted();
   return {
     task: reviewed,
