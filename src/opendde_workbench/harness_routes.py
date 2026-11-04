@@ -7,6 +7,8 @@ from fastapi import Depends, Header, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from .fold_review import review_fold
+from .harness_contract import HarnessTask
 from .harness_service import HarnessService
 from .store import ConflictError
 
@@ -69,6 +71,17 @@ def register_harness(app, store, assets, settings, mutation):
                 if not ready
             ],
         }
+
+    @app.post("/api/harness/fold/preview", dependencies=[Depends(mutation)])
+    def preview_fold(value: HarnessTask):
+        if value.tool != "fold":
+            raise HTTPException(422, "Choose the binder folding task.")
+        try:
+            return review_fold(value, assets)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except (KeyError, FileNotFoundError, TypeError, AttributeError) as exc:
+            raise HTTPException(422, "The selected chains or files could not be verified.") from exc
 
     @app.get("/api/harness/schemas")
     async def schemas():

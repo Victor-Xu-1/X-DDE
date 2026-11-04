@@ -38,6 +38,7 @@ export function PredictionJobReview<
   input,
   prepare,
   renderSettings,
+  renderOverview,
   ready,
   unavailable,
   recheck,
@@ -50,6 +51,7 @@ export function PredictionJobReview<
   input: Input;
   prepare(input: Input, signal: AbortSignal): Promise<Prepared>;
   renderSettings(prepared: Prepared): ReactNode;
+  renderOverview?(prepared: Prepared): ReactNode;
 }) {
   const zh = language === "zh";
   const identity = JSON.stringify(input);
@@ -186,6 +188,8 @@ export function PredictionJobReview<
                   {JSON.stringify(prepared.task, null, 2)}
                 </pre>
               </div>
+            ) : renderOverview ? (
+              renderOverview(prepared)
             ) : (
               <div className="prediction-preview-entities">
                 {prepared.components.map((item, index) => (

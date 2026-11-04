@@ -4,6 +4,7 @@ import type { Component, Language } from "../types";
 import { MoleculeImage } from "./MoleculeImage";
 import { SequenceTrack } from "./SequenceTrack";
 import { assetDownloadUrl } from "../research/asset-download";
+import type { ReactNode } from "react";
 
 /** Optional display metadata supplied by a form; never part of a new task schema. */
 export type PreviewComponent = Component & { ligand_record?: number };
@@ -14,15 +15,21 @@ export function PredictionEntityPreview({
   index,
   language,
   initiallyExpanded = index === 0,
+  title,
+  summary,
+  children,
 }: {
   item: PreviewComponent;
   index: number;
   language: Language;
   initiallyExpanded?: boolean;
+  title?: string;
+  summary?: ReactNode;
+  children?: ReactNode;
 }) {
   const zh = language === "zh";
   const name = entityInfo[item.kind].name[zh ? 0 : 1];
-  const label = `${name} ${index + 1}`;
+  const label = title ?? `${name} ${index + 1}`;
   const sequence = normalizeProtein(item.value);
   const polymer = ["protein", "dna", "rna"].includes(item.kind);
   const alphabet =
@@ -53,7 +60,8 @@ export function PredictionEntityPreview({
         </span>
         <strong>{label}</strong>
         <span>
-          {item.count} {zh ? "份" : item.count === 1 ? "copy" : "copies"}
+          {summary ??
+            `${item.count} ${zh ? "份" : item.count === 1 ? "copy" : "copies"}`}
         </span>
         <span className="prediction-entity-chevron" aria-hidden="true">
           ›
@@ -134,6 +142,7 @@ export function PredictionEntityPreview({
             ))}
           </ul>
         )}
+        {children}
       </div>
     </details>
   );

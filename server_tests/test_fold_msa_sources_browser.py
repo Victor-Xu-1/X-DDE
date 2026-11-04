@@ -111,23 +111,50 @@ def test_native_msa_form_retains_exact_numbering_then_detaches_edited_sequence(l
             expect(
                 page.get_by_role("table", name="目标蛋白" if zh else "Target protein", exact=True)
             ).to_contain_text("218")
-            submit = page.get_by_role(
-                "button", name="提交计算任务" if zh else "Submit compute task", exact=True
+            label = "预览任务" if zh else "Preview job"
+            opener = page.get_by_role("button", name=label, exact=True)
+            with page.expect_response(
+                lambda r: r.url.endswith("/api/harness/fold/preview")
+            ) as preview:
+                opener.click()
+            assert preview.value.ok
+            dialog = page.get_by_role("dialog", name=label, exact=True)
+            expect(
+                dialog.get_by_text(payload["candidates"][0]["candidate_id"], exact=True)
+            ).to_be_visible()
+            target = dialog.get_by_role("region", name="靶标" if zh else "Target", exact=True)
+            target.locator("summary").first.click()
+            expect(target.get_by_role("link", name="protocol.a3m", exact=False)).to_have_count(1)
+            assert dialog.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
+            assert len(submissions) == int(edited)
+            submit = dialog.get_by_role(
+                "button", name="提交任务" if zh else "Submit job", exact=True
             )
             expect(submit).to_be_enabled(timeout=30000)
-            page.screenshot(
-                path=evidence / ("edited.png" if edited else "review.png"), full_page=True
+            page.screenshot(path=evidence / ("edited.png" if edited else "review.png"))
+            dialog.get_by_role(
+                "button", name="提交内容" if zh else "Request JSON", exact=True
+            ).click()
+            shown = json.loads(
+                dialog.get_by_label(
+                    "X-DDE 提交请求" if zh else "X-DDE submission request"
+                ).inner_text()
             )
             with page.expect_response(
                 lambda r: r.request.method == "POST" and r.url.endswith("/api/jobs")
             ):
                 submit.click()
             captured = submissions[-1]
+            assert captured == shown == preview.value.request.post_data_json
             assert captured["payload"] == payload
             assert (reference in captured["scientific_inputs"]) is not edited
             scientific.assets.validate_bindings(TASK_ADAPTER.validate_python(captured))
             annotation = replayed_antibody_cdr(scientific, captured)
             assert (annotation is None) is edited
+            expect(submit).to_be_enabled()
+            page.keyboard.press("Escape")
+            expect(opener).to_be_focused()
+            expect(dialog).to_have_count(0)
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         assert len(submissions) == 2 and not errors
         assert before == page.request.get(base + "/api/jobs").json()

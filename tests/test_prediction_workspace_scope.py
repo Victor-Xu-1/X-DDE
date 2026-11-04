@@ -134,6 +134,19 @@ def test_opendde_review_delegates_only_its_form_transport_and_browser_changes():
     assert not scope.selected(changes + ["src/opendde_workbench/assets.py"])
 
 
+def test_fold_review_delegates_its_backend_and_native_browser_consumer():
+    changes = [
+        "frontend/src/operations/FoldJobReview.tsx",
+        "frontend/src/presentation/PredictionJobReview.tsx",
+        "src/opendde_workbench/fold_review.py",
+        "src/opendde_workbench/harness_chains.py",
+        "server_tests/test_fold_msa_sources_browser.py",
+    ]
+    assert scope.final_review_only(changes, "pull_request")
+    assert scope.selected(changes)
+    assert not scope.selected(changes + ["src/opendde_workbench/assets.py"])
+
+
 def test_only_bounded_prediction_presentation_is_delegated():
     changes = [
         "frontend/src/presentation/PredictionSetup.tsx",

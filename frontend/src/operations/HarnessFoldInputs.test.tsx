@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
@@ -178,6 +179,14 @@ it("does not label a search-disabled query-only chain as an alignment-supported 
 });
 
 it("preserves MSA references and expert fields through every step and only submits after the reviewed external-service choice", async () => {
+  if (!HTMLDialogElement.prototype.showModal) {
+    HTMLDialogElement.prototype.showModal = function () {
+      this.setAttribute("open", "");
+    };
+    HTMLDialogElement.prototype.close = function () {
+      this.removeAttribute("open");
+    };
+  }
   vi.spyOn(client, "request").mockImplementation(
     async (path) =>
       (path.startsWith("/capabilities/")
@@ -189,6 +198,26 @@ it("preserves MSA references and expert fields through every step and only submi
   const submit = vi
     .spyOn(client.api, "submit")
     .mockResolvedValue({ id: "native-fold" } as Job);
+  const preview = vi.spyOn(client.api, "authorized").mockResolvedValue({
+    target: [
+      {
+        chain: "T",
+        sequence: "MKVLQEPTCVSDYMSISTCEWK",
+        files: [{ id: asset.id, name: asset.name, role: "unpaired" }],
+      },
+    ],
+    candidates: [
+      {
+        name: "deposited-Fv-control",
+        replaced_target_chains: [],
+        chains: [
+          { chain: "H", sequence: "EVQLVESGG", files: [] },
+          { chain: "L", sequence: "DIVMTQSP", files: [] },
+        ],
+      },
+    ],
+    source_files: [{ id: asset.id, name: asset.name }],
+  });
   const payload = nativeInput(),
     frozen = JSON.stringify(payload),
     user = userEvent.setup();
@@ -216,12 +245,24 @@ it("preserves MSA references and expert fields through every step and only submi
     screen.getByRole("table", { name: "Target protein" }),
   ).toHaveTextContent("22");
   expect(submit).not.toHaveBeenCalled();
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Submit compute task" }),
-    ).toBeEnabled(),
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const dialog = within(
+    await screen.findByRole("dialog", { name: "Preview job" }),
   );
-  await user.click(screen.getByRole("button", { name: "Submit compute task" }));
+  expect(
+    await dialog.findByRole("region", { name: "deposited-Fv-control" }),
+  ).toBeVisible();
+  const previewTask = JSON.parse(preview.mock.calls[0][1].body as string);
+  await user.click(dialog.getByRole("button", { name: "Request JSON" }));
+  expect(
+    JSON.parse(dialog.getByLabelText("X-DDE submission request").textContent!),
+  ).toEqual(previewTask);
+  expect(submit).not.toHaveBeenCalled();
+  await waitFor(() =>
+    expect(dialog.getByRole("button", { name: "Submit job" })).toBeEnabled(),
+  );
+  await user.click(dialog.getByRole("button", { name: "Submit job" }));
+  expect(submit.mock.calls[0][0]).toEqual(previewTask);
   expect(submit.mock.calls[0][0]).toMatchObject({
     operation: "harness",
     tool: "fold",

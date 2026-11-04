@@ -1,0 +1,15 @@
+.fold-review-groups {
+  display: grid;
+  gap: 14px;
+}
+.fold-review-group {
+  min-width: 0;
+  padding: 10px 12px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.fold-review-group h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}

@@ -9,6 +9,7 @@ import type { Job, Language } from "../types";
 import { harnessDefaults, harnessFields } from "./harness-fields";
 import { HarnessField } from "./HarnessField";
 import { FoldInputs } from "./FoldInputs";
+import { FoldJobReview } from "./FoldJobReview";
 import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -17,6 +18,7 @@ import { tools } from "./catalog";
 import { Questionnaire } from "../guided/Questionnaire";
 import { HarnessReview } from "./HarnessReview";
 import { useHarnessSources } from "./useHarnessSources";
+import type { HarnessTask } from "./types";
 import {
   harnessInputsComplete,
   harnessMaterialsComplete,
@@ -270,6 +272,19 @@ export function HarnessForm({
       language={language}
     />
   );
+  function currentTask(): HarnessTask {
+    return {
+      operation: "harness",
+      tool,
+      name:
+        name.trim() ||
+        tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
+        (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
+      payload: normalize(),
+      scientific_inputs: sources.references,
+      allow_external: external,
+    };
+  }
   async function submit() {
     setSetupError("");
     try {
@@ -277,36 +292,51 @@ export function HarnessForm({
         throw new Error(
           zh ? "请先核对研究文件。" : "Verify the research files first.",
         );
-      const normalized = normalize();
-      return await run.submit({
-        operation: "harness",
-        tool,
-        name:
-          name.trim() ||
-          tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
-          (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
-        payload: normalized,
-        scientific_inputs: sources.references,
-        allow_external: external,
-      });
+      return await run.submit(currentTask());
     } catch (error) {
       setSetupError(String(error));
     }
   }
+  const ready = sources.ready ? readiness.ready : false;
+  const unavailable = zh
+    ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"
+    : "Configure Harness and this task's compute services in Installation & components. Inputs are retained.";
   return (
     <Questionnaire
       language={language}
-      ready={sources.ready ? readiness.ready : false}
+      ready={ready}
       onCheckEnvironment={readiness.recheck}
       busy={run.busy}
       error={run.error || readiness.error || setupError}
-      unavailable={
-        zh
-          ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"
-          : "Configure Harness and this task's compute services in Installation & components. Inputs are retained."
+      unavailable={unavailable}
+      submitLabel={
+        tool === "fold"
+          ? zh
+            ? "预览任务"
+            : "Preview job"
+          : zh
+            ? "提交计算任务"
+            : "Submit compute task"
       }
-      submitLabel={zh ? "提交计算任务" : "Submit compute task"}
-      onSubmit={submit}
+      onSubmit={tool === "fold" ? undefined : submit}
+      renderReview={
+        tool === "fold"
+          ? ({ confirm, dismiss }) => (
+              <FoldJobReview
+                input={currentTask()}
+                language={language}
+                ready={ready}
+                unavailable={readiness.error || unavailable}
+                recheck={readiness.recheck}
+                busy={run.busy}
+                error={run.error}
+                confirm={confirm}
+                onClose={dismiss}
+                submit={run.submit}
+              />
+            )
+          : undefined
+      }
       steps={[
         {
           title: zh ? "填写材料" : "Provide inputs",
