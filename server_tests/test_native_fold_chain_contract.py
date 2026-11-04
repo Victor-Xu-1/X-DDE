@@ -7,11 +7,13 @@ import os
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.request import urlopen
 
 import pytest
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from opendde_workbench.fold_review import FoldEnvelope
 from opendde_workbench.harness_chains import fold_chains
 
 pytestmark = pytest.mark.skipif(
@@ -22,6 +24,11 @@ URL = (
     "opendde_harness/plugin/protein_design/servers/harness.py"
 )
 BLOB = "38b14cfab3eaaadd74f59f2133370de711892e49"
+CONTRACT_URL = (
+    "https://raw.githubusercontent.com/aurekaresearch/OpenDDE-Harness/v0.0.4/"
+    "opendde_harness/plugin/protein_design/core/contracts.py"
+)
+CONTRACT_BLOB = "9890c4b1fb24dd615be5691a3ebea830c8aca309"
 
 
 def test_fold_source_chain_merges_match_reviewed_native_contract():
@@ -92,3 +99,54 @@ def test_fold_source_chain_merges_match_reviewed_native_contract():
         ),
         encoding="utf-8",
     )
+
+
+def test_review_envelope_matches_the_pinned_browser_safe_fold_contract():
+    with urlopen(CONTRACT_URL, timeout=30) as response:
+        source = response.read(128 * 1024)
+    assert (
+        hashlib.sha1(b"blob " + str(len(source)).encode() + b"\0" + source).hexdigest()
+        == CONTRACT_BLOB
+    )
+    classes = [
+        node
+        for node in ast.parse(source).body
+        if isinstance(node, ast.ClassDef)
+        and node.name in {"ContractModel", "Placement", "FoldRequest"}
+    ]
+    assert len(classes) == 3
+    native = dict(
+        BaseModel=BaseModel,
+        ConfigDict=ConfigDict,
+        Field=Field,
+        model_validator=model_validator,
+        Mapping=Mapping,
+        Any=Any,
+        Literal=Literal,
+    )
+    exec(compile(ast.Module(body=classes, type_ignores=[]), "pinned_fold_request", "exec"), native)
+    payload = {"candidates": [{"candidate_id": "control", "chains": {"A": "ACDE"}}]}
+    for settings in (
+        {},
+        {"backend": "opendde"},
+        {"placement": {"fold": [0, 2]}},
+        {"placement": {"fold": None, "cp_degree": 3}},
+        {"backend": "boltz"},
+        {"unknown": True},
+        {"placement": {"fold": []}},
+        {"placement": {"fold": [0, 0]}},
+        {"placement": {"fold": [1], "cp_degree": 2}},
+        {"placement": {"esm": -1}},
+        {"options": None},
+        {"candidates": []},
+    ):
+        candidate = {**payload, **settings}
+        try:
+            expected = native["FoldRequest"].model_validate(candidate)
+        except ValidationError:
+            with pytest.raises(ValidationError):
+                FoldEnvelope.model_validate(candidate)
+        else:
+            assert FoldEnvelope.model_validate(candidate).model_dump() == expected.model_dump(
+                exclude={"task_id"}
+            )

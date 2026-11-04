@@ -184,6 +184,23 @@ OPENDDE_REVIEW_FILES = {
     "server_tests/test_opendde_final_review_browser.py",
 }
 
+FOLD_REVIEW_FILES = FINAL_REVIEW_FILES | {
+    ".github/workflows/harness-input-checks.yml",
+    "frontend/src/operations/FoldJobReview.tsx",
+    "frontend/src/operations/fold-job-review.css",
+    "frontend/src/operations/HarnessForm.tsx",
+    "frontend/src/operations/HarnessFoldInputs.test.tsx",
+    "frontend/src/operations/useTaskSubmit.ts",
+    "frontend/src/operations/useTaskSubmit.test.ts",
+    "frontend/src/presentation/PredictionJobReview.tsx",
+    "server_tests/test_fold_msa_sources_browser.py",
+    "server_tests/test_native_fold_chain_contract.py",
+    "src/opendde_workbench/fold_review.py",
+    "src/opendde_workbench/harness_chains.py",
+    "src/opendde_workbench/harness_routes.py",
+    "tests/test_fold_review.py",
+}
+
 
 def final_review_only(changed, event="push"):
     changed = set(changed)
@@ -220,6 +237,12 @@ def final_review_only(changed, event="push"):
                 "install.ps1",
             }
         )
+        or {
+            "frontend/src/operations/FoldJobReview.tsx",
+            "src/opendde_workbench/fold_review.py",
+            "server_tests/test_fold_msa_sources_browser.py",
+        }.issubset(changed)
+        and changed.issubset(FOLD_REVIEW_FILES)
     )
 
 

@@ -9,6 +9,7 @@ import type { Job, Language } from "../types";
 import { harnessDefaults, harnessFields } from "./harness-fields";
 import { HarnessField } from "./HarnessField";
 import { FoldInputs } from "./FoldInputs";
+import { FoldJobReview } from "./FoldJobReview";
 import { JsonEditor } from "./ScientificInputs";
 import { useTaskSubmit } from "./useTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -17,6 +18,7 @@ import { tools } from "./catalog";
 import { Questionnaire } from "../guided/Questionnaire";
 import { HarnessReview } from "./HarnessReview";
 import { useHarnessSources } from "./useHarnessSources";
+import type { HarnessTask } from "./types";
 import {
   harnessInputsComplete,
   harnessMaterialsComplete,
@@ -43,6 +45,18 @@ export function HarnessForm({
     run = useTaskSubmit(onCreated);
   const readiness = useTaskReadiness(tool);
   const validName = name.trim().length <= 80;
+  function clearEditedError() {
+    run.clearError({
+      unconfirmedAfterEdit: zh
+        ? "上一次提交的结果仍未确认。请先在任务列表核对，再提交修改后的输入。若要重试同一次请求，请恢复原输入。"
+        : "The previous submission is still unconfirmed. Check the task list before submitting edited inputs. Restore the original inputs to retry the same request.",
+    });
+  }
+  function editPayload(value: Record<string, unknown>) {
+    setPayload(value);
+    clearEditedError();
+    setSetupError("");
+  }
   const needsExternal = [
     "target-msa",
     "protrek-sequence",
@@ -97,7 +111,7 @@ export function HarnessForm({
           field={field}
           tool={tool}
           payload={payload}
-          onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+          onChange={(v) => editPayload({ ...payload, [field.key]: v })}
           language={language}
         />
       ));
@@ -153,12 +167,12 @@ export function HarnessForm({
       </p>
       <JsonEditor
         value={payload}
-        onChange={setPayload}
+        onChange={editPayload}
         label={zh ? "完整原生科学参数" : "Full native scientific parameters"}
       />
     </>
   ) : tool === "fold" ? (
-    <FoldInputs value={payload} onChange={setPayload} language={language} />
+    <FoldInputs value={payload} onChange={editPayload} language={language} />
   ) : (
     <>{renderFields(true)}</>
   );
@@ -210,7 +224,7 @@ export function HarnessForm({
                 field={field}
                 tool={tool}
                 payload={payload}
-                onChange={(v) => setPayload({ ...payload, [field.key]: v })}
+                onChange={(v) => editPayload({ ...payload, [field.key]: v })}
                 language={language}
               />
             ))}
@@ -231,7 +245,10 @@ export function HarnessForm({
           <input
             type="checkbox"
             checked={external}
-            onChange={(e) => setExternal(e.target.checked)}
+            onChange={(e) => {
+              setExternal(e.target.checked);
+              clearEditedError();
+            }}
           />
           {zh
             ? "允许向配置的计算 / 搜索服务发送本次序列或结构。"
@@ -245,7 +262,7 @@ export function HarnessForm({
           maxLength={80}
           onChange={(e) => {
             setName(e.target.value);
-            run.clearError();
+            clearEditedError();
           }}
           aria-invalid={!validName}
         />
@@ -270,6 +287,19 @@ export function HarnessForm({
       language={language}
     />
   );
+  function currentTask(): HarnessTask {
+    return {
+      operation: "harness",
+      tool,
+      name:
+        name.trim() ||
+        tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
+        (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
+      payload: normalize(),
+      scientific_inputs: sources.references,
+      allow_external: external,
+    };
+  }
   async function submit() {
     setSetupError("");
     try {
@@ -277,36 +307,51 @@ export function HarnessForm({
         throw new Error(
           zh ? "请先核对研究文件。" : "Verify the research files first.",
         );
-      const normalized = normalize();
-      return await run.submit({
-        operation: "harness",
-        tool,
-        name:
-          name.trim() ||
-          tools.find((t) => t.id === tool)?.label[zh ? 0 : 1] ||
-          (zh ? "蛋白与抗体任务" : "Protein & antibody task"),
-        payload: normalized,
-        scientific_inputs: sources.references,
-        allow_external: external,
-      });
+      return await run.submit(currentTask());
     } catch (error) {
       setSetupError(String(error));
     }
   }
+  const ready = sources.ready ? readiness.ready : false;
+  const unavailable = zh
+    ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"
+    : "Configure Harness and this task's compute services in Installation & components. Inputs are retained.";
   return (
     <Questionnaire
       language={language}
-      ready={sources.ready ? readiness.ready : false}
+      ready={ready}
       onCheckEnvironment={readiness.recheck}
       busy={run.busy}
       error={run.error || readiness.error || setupError}
-      unavailable={
-        zh
-          ? "请在安装与组件中完成蛋白与抗体工具的配置。当前输入已保留。"
-          : "Configure Harness and this task's compute services in Installation & components. Inputs are retained."
+      unavailable={unavailable}
+      submitLabel={
+        tool === "fold"
+          ? zh
+            ? "预览任务"
+            : "Preview job"
+          : zh
+            ? "提交计算任务"
+            : "Submit compute task"
       }
-      submitLabel={zh ? "提交计算任务" : "Submit compute task"}
-      onSubmit={submit}
+      onSubmit={tool === "fold" ? undefined : submit}
+      renderReview={
+        tool === "fold"
+          ? ({ confirm, dismiss }) => (
+              <FoldJobReview
+                input={currentTask()}
+                language={language}
+                ready={ready}
+                unavailable={readiness.error || unavailable}
+                recheck={readiness.recheck}
+                busy={run.busy}
+                error={run.error}
+                confirm={confirm}
+                onClose={dismiss}
+                submit={run.submit}
+              />
+            )
+          : undefined
+      }
       steps={[
         {
           title: zh ? "填写材料" : "Provide inputs",

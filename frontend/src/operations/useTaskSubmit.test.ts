@@ -62,6 +62,11 @@ it("retains the request key after a lost response and creates a new intent for c
     await view.result.current.submit(input());
   });
   expect(view.result.current.error).toContain("could not be confirmed");
+  const editWarning = "Check the task list before submitting edited inputs.";
+  act(() =>
+    view.result.current.clearError({ unconfirmedAfterEdit: editWarning }),
+  );
+  expect(view.result.current.error).toBe(editWarning);
   await act(async () => {
     await view.result.current.submit(input());
   });
