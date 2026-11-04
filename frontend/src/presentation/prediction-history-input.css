@@ -39,8 +39,19 @@
   width: auto;
   white-space: nowrap;
 }
-.prediction-result-heading > .prediction-history-trigger {
+.prediction-result-heading > .prediction-result-actions {
   margin-inline-start: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.prediction-archive-download {
+  position: relative;
+}
+.prediction-archive-download > .field-help {
+  max-width: 200px;
+  margin: 4px 0 0;
 }
 @media (max-width: 640px) {
   .task-detail-header:has(.prediction-history-trigger) {

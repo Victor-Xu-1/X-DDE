@@ -1,14 +1,17 @@
 """Real analysis, machine-readable candidates, and downloadable reports."""
 
 import csv
+import hashlib
 import html
 import io
 import json
+from threading import BoundedSemaphore
 from typing import Literal
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
+from starlette.background import BackgroundTask
 
 from .analysis import AnalysisService
 from .backend_router import BackendRouter
@@ -16,6 +19,7 @@ from .confidence import confidence_view
 from .engine import DockerEngine, Engine
 from .examples.pins import ExamplePins
 from .models import Status
+from .prediction_archive import BLOCK, prediction_archive
 from .prediction_sample_export import OPERATIONS, UnsealedPredictionSource, sample_zip
 from .settings import Settings
 from .store import Store
@@ -35,6 +39,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         "boltz_predict": "boltz.predict",
         "mol1_predict": "mol1.predict",
     }
+    archive_slot = BoundedSemaphore(1)
 
     async def result(job_id: UUID):
         job = store.get(str(job_id))
@@ -109,6 +114,60 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
             archive,
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="{job_id}-{candidate}.zip"'},
+        )
+
+    @app.get("/api/jobs/{job_id}/prediction-results.zip")
+    def download_prediction_results(job_id: UUID):
+        job = store.get(str(job_id))
+        if not job:
+            raise HTTPException(404, "Task not found.")
+        if job.status != Status.SUCCEEDED or job.request.operation not in OPERATIONS:
+            raise HTTPException(409, "Choose a completed structure prediction.")
+        if not archive_slot.acquire(blocking=False):
+            raise HTTPException(429, "Another prediction archive is being downloaded.")
+        try:
+            with store.connect() as db:
+                authored = db.execute("SELECT request FROM jobs WHERE id=?", (job.id,)).fetchone()
+            if authored is None:
+                raise FileNotFoundError("The retained request is unavailable.")
+            request_sha256 = hashlib.sha256(authored["request"].encode()).hexdigest()
+            pin = prediction_pins.for_job(capabilities[job.request.operation], job_id)
+            archive, length = prediction_archive(
+                settings.state_dir / "jobs" / job.id,
+                job,
+                request_sha256,
+                pin.artifact_sha256 if pin else {},
+            )
+        except FileNotFoundError as error:
+            archive_slot.release()
+            raise HTTPException(404, "A retained scientific file is unavailable.") from error
+        except (OSError, ValueError, TypeError, KeyError) as error:
+            archive_slot.release()
+            raise HTTPException(422, "The retained prediction could not be packaged.") from error
+        except BaseException:
+            archive_slot.release()
+            raise
+
+        def close():
+            if not archive.closed:
+                archive.close()
+                archive_slot.release()
+
+        def chunks():
+            try:
+                yield from iter(lambda: archive.read(BLOCK), b"")
+            finally:
+                close()
+
+        return StreamingResponse(
+            chunks(),
+            media_type="application/zip",
+            headers={
+                "Cache-Control": "no-store",
+                "Content-Length": str(length),
+                "Content-Disposition": f'attachment; filename="{job.id}-prediction-results.zip"',
+            },
+            background=BackgroundTask(close),
         )
 
     @app.get("/api/jobs/{job_id}/candidates.csv")

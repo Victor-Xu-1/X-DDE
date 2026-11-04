@@ -70,18 +70,30 @@ def open_dde_files(root, candidate, sealed):
     return structure, summary
 
 
-def integrated_files(root, request, candidate, sealed):
+def retained_native_result(root, request, request_sha256=None, result_sha256=None):
     from .integrations.result import NativeResult
 
     output = root / "output"
-    manifest = json.loads(bounded(contained(output, "result.json"), MAX_RESULT))
+    _, source = (
+        verified(output, "result.json", result_sha256, MAX_RESULT)
+        if result_sha256 is not None
+        else ("result.json", bounded(contained(output, "result.json"), MAX_RESULT))
+    )
+    manifest = json.loads(source)
     result = NativeResult.model_validate(manifest)
     if (
         result.operation != request.operation
         or result.program != request.payload.kind
-        or result.request_sha256 != hashlib.sha256(request.model_dump_json().encode()).hexdigest()
+        or result.request_sha256
+        != (request_sha256 or hashlib.sha256(request.model_dump_json().encode()).hexdigest())
     ):
         raise ValueError("Native prediction differs from the retained task.")
+    return result
+
+
+def integrated_files(root, request, candidate, sealed):
+    output = root / "output"
+    result = retained_native_result(root, request)
     row = one(result.candidates, candidate, lambda value: value.id)
     if not row.artifact or not row.artifact.endswith(".cif"):
         raise ValueError("Choose an original prediction CIF.")

@@ -10,6 +10,7 @@ import { useTaskLabel } from "../examples/useTaskLabel";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 import { PredictionSamples } from "../presentation/PredictionSamples";
 import { HistoricalPredictionInput } from "../presentation/HistoricalPredictionInput";
+import { PredictionArchiveDownload } from "../presentation/PredictionArchiveDownload";
 import { terminal } from "../types";
 import { useCallback, useState } from "react";
 import type {
@@ -98,12 +99,16 @@ export function PredictionResults(p: PredictionResultsProps) {
           <span className={"status " + p.job.status}>{t(p.job.status)}</span>
         )}
         {p.job && terminal(p.job.status) && (
-          <HistoricalPredictionInput
-            key={p.job.id}
-            jobId={p.job.id}
-            label={taskLabel}
-            language={p.language}
-          />
+          <div className="prediction-result-actions" key={p.job.id}>
+            <HistoricalPredictionInput
+              jobId={p.job.id}
+              label={taskLabel}
+              language={p.language}
+            />
+            {p.job.status === "succeeded" && (
+              <PredictionArchiveDownload job={p.job.id} language={p.language} />
+            )}
+          </div>
         )}
       </header>
       {p.job && p.candidate && (

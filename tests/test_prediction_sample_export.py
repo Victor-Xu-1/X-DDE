@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from opendde_workbench.models import Prediction, Status
+from opendde_workbench.prediction_archive import prediction_archive
 from opendde_workbench.prediction_sample_export import (
     BOLTZ_OUTPUT,
     UnsealedPredictionSource,
@@ -175,25 +176,39 @@ def test_mol1_requires_declared_summary_identity(tmp_path):
     name = key + ".cif"
     summary_name = key + "-confidence.json"
     summary = b'{"plddt":84}'
+    full_name = key + "-full-data.json"
+    full = b'{"token_pair_pae":[[0]]}'
     job, output = manifest(
         tmp_path,
         "mol1_predict",
         "mol1",
         [{"id": key, "artifact": name}],
-        {name: b"data_mol1", summary_name: summary},
+        {name: b"data_mol1", summary_name: summary, full_name: full},
         mol1={
             "model": "mol-1-base",
             "samples": [
-                {"candidate_id": key, "seed": 101, "rank": 0, "summary_artifact": summary_name}
+                {
+                    "candidate_id": key,
+                    "seed": 101,
+                    "rank": 0,
+                    "summary_artifact": summary_name,
+                    "full_data_artifact": full_name,
+                }
             ],
             "confidence_axes": "token_indices_not_residue_numbers",
             "scope": "model_confidence_not_experimental_binding",
         },
     )
     assert unpack(tmp_path, job, key) == {"structure": b"data_mol1", "confidence_summary": summary}
+    request_sha = hashlib.sha256(job.request.model_dump_json().encode()).hexdigest()
+    stream, _ = prediction_archive(tmp_path, job, request_sha, {})
+    with stream, zipfile.ZipFile(stream) as archive:
+        assert archive.read(f"outputs/{full_name}") == full
     (output / summary_name).write_bytes(b'{"plddt":40}')
     with pytest.raises(ValueError, match="changed after it was recorded"):
         sample_zip(tmp_path, job, key)
+    with pytest.raises(ValueError, match="recorded checksum"):
+        prediction_archive(tmp_path, job, request_sha, {})
 
 
 def test_download_route_distinguishes_missing_and_replaced_sources(tmp_path):
@@ -231,3 +246,45 @@ def test_download_route_distinguishes_missing_and_replaced_sources(tmp_path):
         result = client.get(endpoint)
         assert result.status_code == 422
         assert "legacy_unsealed_structure" not in result.text
+
+
+def test_job_archive_retains_native_alignment_and_full_confidence(tmp_path):
+    output = tmp_path / "jobs" / "source" / "output"
+    prediction = output / "source" / "seed_101" / "predictions"
+    prediction.mkdir(parents=True)
+    native = output / "native" / "msa" / "A"
+    native.mkdir(parents=True)
+    files = {
+        prediction / "source_sample_0.cif": b"coordinates",
+        prediction / "source_summary_confidence_sample_0.json": b'{"ptm":0.7}',
+        prediction / "source_full_data_sample_0.json": b'{"token_pair_pae":[[0]]}',
+        native / "pairing.a3m": b">protein\nACDE\n",
+    }
+    for path, data in files.items():
+        path.write_bytes(data)
+    (output / "runtime.json").write_text('{"implementation":"private"}')
+    (native / "unrelated.a3m").write_text(">unrelated\nACDE\n")
+    full = prediction / "source_full_data_sample_0.json"
+    sealed = {full.relative_to(output).as_posix(): hashlib.sha256(files[full]).hexdigest()}
+    job = SimpleNamespace(id="source", request=SimpleNamespace(operation="predict"))
+    stream, size = prediction_archive(output.parent, job, "a" * 64, sealed)
+    with stream, zipfile.ZipFile(stream) as archive:
+        receipt = json.loads(archive.read("prediction.json"))
+        assert receipt["source_job"] == "source"
+        assert receipt["request_sha256"] == "a" * 64
+        assert size > 0
+        names = {
+            "outputs/" + path.relative_to(output).as_posix(): data for path, data in files.items()
+        }
+        assert set(archive.namelist()) == {*names, "prediction.json"}
+        assert all(archive.read(name) == data for name, data in names.items())
+        confidence = next(
+            row for row in receipt["files"].values() if row["role"] == "confidence_full"
+        )
+        assert confidence["matched_recorded_checksum"] is True
+    full.write_text("replaced confidence")
+    with pytest.raises(ValueError, match="recorded checksum"):
+        prediction_archive(output.parent, job, "a" * 64, sealed)
+    full.unlink()
+    with pytest.raises(FileNotFoundError):
+        prediction_archive(output.parent, job, "a" * 64, sealed)

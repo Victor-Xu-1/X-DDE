@@ -13,6 +13,7 @@ import {
 import { OperationResults } from "./operations/OperationResults";
 import { researchError } from "./presentation/research-content";
 import { HistoricalPredictionInput } from "./presentation/HistoricalPredictionInput";
+import { PredictionArchiveDownload } from "./presentation/PredictionArchiveDownload";
 import { isPrediction } from "./operations/types";
 import { useTaskLabel } from "./examples/useTaskLabel";
 import {
@@ -128,6 +129,12 @@ export function TaskDetail({
       </section>
     );
   const shown = detail?.id === job.id ? detail : null;
+  const predictionInput =
+    showPredictionInput &&
+    terminal(job.status) &&
+    (isPrediction(job.request) ||
+      job.request.operation === "boltz_predict" ||
+      job.request.operation === "mol1_predict");
   const files =
     shown?.artifacts.filter((file) => isResearchFile(file.name)) ?? [];
   const elapsed = job.started_at
@@ -150,18 +157,21 @@ export function TaskDetail({
           <span className={`status ${job.status}`}>{t(job.status)}</span>
         </div>
         <div className="task-actions">
-          {showPredictionInput &&
-            terminal(job.status) &&
-            (isPrediction(job.request) ||
-              job.request.operation === "boltz_predict" ||
-              job.request.operation === "mol1_predict") && (
-              <HistoricalPredictionInput
-                key={job.id}
-                jobId={job.id}
-                label={taskLabel}
-                language={language}
-              />
-            )}
+          {predictionInput && (
+            <HistoricalPredictionInput
+              key={job.id}
+              jobId={job.id}
+              label={taskLabel}
+              language={language}
+            />
+          )}
+          {predictionInput && job.status === "succeeded" && (
+            <PredictionArchiveDownload
+              key={job.id}
+              job={job.id}
+              language={language}
+            />
+          )}
           {terminal(job.status) ? (
             <button
               className="secondary-button"
