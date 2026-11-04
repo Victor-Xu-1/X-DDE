@@ -170,10 +170,17 @@ it("uses native ranking within each seed and leaves the selected sample in contr
   );
 });
 
-it("offers the selected original CIF when the package request fails", async () => {
+it("offers the selected original CIF only for unsealed legacy results", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(new Response("error", { status: 422 })),
+    vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ detail: { code: "legacy_unsealed_structure" } }),
+          { status: 409 },
+        ),
+      ),
   );
   render(
     <PredictionSamples
@@ -225,5 +232,27 @@ it("cancels a download before an old response body can save after selecting anot
   await act(async () =>
     release(new Blob(["ZIP"], { type: "application/zip" })),
   );
+  expect(save).not.toHaveBeenCalled();
+});
+
+it("does not offer an unverified CIF after a source checksum failure", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(new Response("invalid", { status: 422 })),
+  );
+  render(
+    <PredictionSamples
+      job="native"
+      rows={rows}
+      selected={rows[1].id}
+      language="en"
+      onSelect={vi.fn()}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /This model/ }));
+  expect(await screen.findByRole("alert")).toBeVisible();
+  expect(
+    screen.queryByRole("link", { name: "Download original CIF" }),
+  ).toBeNull();
   expect(save).not.toHaveBeenCalled();
 });

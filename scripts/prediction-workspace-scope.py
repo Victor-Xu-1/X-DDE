@@ -506,6 +506,7 @@ SAMPLE_EXPORT_SOURCES = (
     "src/opendde_workbench/native_runtime/analysis.py",
 )
 SAMPLE_EXPORT_FILES = SAMPLE_EXPORT_SOURCES + (
+    "src/opendde_workbench/examples/pins.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",
@@ -551,10 +552,7 @@ def selected(changed, event="push"):
             )
             for name in changed
         )
-        and all(
-            any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS + SAMPLE_EXPORT_FILES)
-            for name in changed
-        )
+        and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
     )
 
 

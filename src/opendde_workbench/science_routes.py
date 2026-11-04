@@ -14,10 +14,9 @@ from .analysis import AnalysisService
 from .backend_router import BackendRouter
 from .confidence import confidence_view
 from .engine import DockerEngine, Engine
-from .examples.bundle_catalogue import bundle_catalogue
 from .examples.pins import ExamplePins
 from .models import Status
-from .prediction_sample_export import OPERATIONS, sample_zip
+from .prediction_sample_export import OPERATIONS, UnsealedPredictionSource, sample_zip
 from .settings import Settings
 from .store import Store
 
@@ -30,9 +29,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         else None
     )
 
-    prediction_pins = ExamplePins(
-        store, settings.state_dir, modules=bundle_catalogue("current").modules
-    )
+    prediction_pins = ExamplePins(store, settings.state_dir)
     capabilities = {
         "predict": "predict",
         "boltz_predict": "boltz.predict",
@@ -95,9 +92,13 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         if job.status != Status.SUCCEEDED or job.request.operation not in OPERATIONS:
             raise HTTPException(409, "Choose a completed structure prediction.")
         try:
-            pin = prediction_pins.get(capabilities[job.request.operation])
-            sealed = pin.artifact_sha256 if pin and pin.job_id == job_id else None
+            pin = prediction_pins.for_job(capabilities[job.request.operation], job_id)
+            sealed = pin.artifact_sha256 if pin else None
             archive = sample_zip(settings.state_dir / "jobs" / job.id, job, candidate, sealed)
+        except UnsealedPredictionSource as error:
+            raise HTTPException(
+                409, {"code": "legacy_unsealed_structure", "message": str(error)}
+            ) from error
         except FileNotFoundError as error:
             raise HTTPException(
                 404, "The selected sample or source file is unavailable."

@@ -12,7 +12,7 @@ from opendde_workbench.prediction_sample_export import BOLTZ_OUTPUT, sample_zip
 def manifest(root, operation, program, candidates, files, **extra):
     request = SimpleNamespace(
         operation=operation,
-        payload=SimpleNamespace(kind=program),
+        payload=SimpleNamespace(kind=program, samples=2),
         model_dump_json=lambda: '{"sealed":true}',
     )
     output = root / "output"
@@ -115,9 +115,9 @@ def test_boltz_resolves_summary_by_native_structure_bytes(tmp_path):
     native = output / BOLTZ_OUTPUT
     native.mkdir(parents=True)
     (native / "prediction_model_0.cif").write_bytes(b"data_different")
-    (native / "prediction_model_5.cif").write_bytes(b"data_selected")
+    (native / "prediction_model_1.cif").write_bytes(b"data_selected")
     summary = b'{"confidence_score":0.8}'
-    (native / "confidence_prediction_model_5.json").write_bytes(summary)
+    (native / "confidence_prediction_model_1.json").write_bytes(summary)
     sealed = {
         file.relative_to(output).as_posix(): hashlib.sha256(file.read_bytes()).hexdigest()
         for file in native.iterdir()
@@ -127,20 +127,23 @@ def test_boltz_resolves_summary_by_native_structure_bytes(tmp_path):
         "structure": b"data_selected",
         "confidence_summary": summary,
     }
-    sidecar = native / "confidence_prediction_model_5.json"
+    incomplete = {key: value for key, value in sealed.items() if not key.endswith("_0.cif")}
+    assert unpack(tmp_path, job, "structure-002", incomplete) == {"structure": b"data_selected"}
+
+    sidecar = native / "confidence_prediction_model_1.json"
     sidecar.write_bytes(b'{"confidence_score":0.8,"changed":true}')
     with pytest.raises(ValueError, match="changed after it was recorded"):
         sample_zip(tmp_path, job, "structure-002", sealed)
 
     # The remaining candidate has the same bytes and rank, but a different
     # native report. A missing original source cannot make this a valid match.
-    duplicate = native / "prediction_model_9.cif"
+    duplicate = native / "prediction_model_0.cif"
     duplicate.write_bytes(b"data_selected")
-    other_summary = native / "confidence_prediction_model_9.json"
+    other_summary = native / "confidence_prediction_model_0.json"
     other_summary.write_bytes(b'{"confidence_score":0.8,"chain_pair":0.7}')
     for file in (duplicate, other_summary):
         sealed[file.relative_to(output).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
-    (native / "prediction_model_5.cif").unlink()
+    (native / "prediction_model_1.cif").unlink()
     assert unpack(tmp_path, job, "structure-002", sealed) == {"structure": b"data_selected"}
 
 

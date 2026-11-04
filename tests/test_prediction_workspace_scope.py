@@ -290,4 +290,5 @@ def test_prediction_export_gate_remains_enabled_with_adjacent_result_changes():
     mixed = files + ["frontend/src/integrations/ScientificResults.tsx"]
     assert scope.sample_export_changed(mixed)
     assert not scope.sample_export_only(mixed)
+    assert not scope.selected(mixed)
     assert not scope.sample_export_changed(["frontend/src/integrations/ScientificResults.tsx"])

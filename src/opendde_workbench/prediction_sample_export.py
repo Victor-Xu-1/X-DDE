@@ -16,6 +16,10 @@ MAX_RESULT = 4 * 1024**2
 BOLTZ_OUTPUT = Path("native/boltz_results_prediction/predictions/prediction")
 
 
+class UnsealedPredictionSource(ValueError):
+    """Legacy analysis without a source-file checksum."""
+
+
 def bounded(path, limit):
     with path.open("rb") as source:
         data = source.read(limit + 1)
@@ -99,20 +103,25 @@ def integrated_files(root, request, candidate, sealed):
         if sidecar in result.artifact_sha256:
             summary = verified(output, sidecar, result.artifact_sha256[sidecar], MAX_SUMMARY)
         else:
-            summary = historical_boltz_summary(output, result.artifact_sha256[name], sealed)
+            summary = historical_boltz_summary(
+                output, result.artifact_sha256[name], sealed, request.payload.samples
+            )
     return structure, summary
 
 
-def historical_boltz_summary(output, structure_digest, sealed):
-    # Resolve against the full sealed archive, including sources that may have
-    # since disappeared. The remaining files alone cannot establish identity.
-    matches = [
-        path
+def historical_boltz_summary(output, structure_digest, sealed, sample_count):
+    # The complete original seed's sealed identities are required, including
+    # any files that may since have disappeared from the directory.
+    native_files = {
+        path: digest
         for name, digest in sealed.items()
-        if digest == structure_digest
-        and (path := Path(name)).parent == BOLTZ_OUTPUT
+        if (path := Path(name)).parent == BOLTZ_OUTPUT
         and re.fullmatch(r"prediction_model_\d+\.cif", path.name)
-    ]
+    }
+    expected = {BOLTZ_OUTPUT / f"prediction_model_{index}.cif" for index in range(sample_count)}
+    if set(native_files) != expected:
+        return None
+    matches = [path for path, digest in native_files.items() if digest == structure_digest]
     if len(matches) != 1:
         return None
     native = matches[0]

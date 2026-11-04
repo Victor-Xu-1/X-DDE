@@ -17,7 +17,7 @@ export function PredictionSampleDownload({
   const zh = language === "zh";
   const pending = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<"legacy" | "unavailable" | null>(null);
   useLayoutEffect(() => () => pending.current?.abort(), []);
 
   async function download() {
@@ -28,13 +28,21 @@ export function PredictionSampleDownload({
       attempt.signal,
       AbortSignal.timeout(30000),
     ]);
-    setFailed(false);
+    setFailure(null);
     setBusy(true);
     try {
       const response = await fetch(
         `/api/jobs/${encodeURIComponent(job)}/prediction-sample.zip?${new URLSearchParams({ candidate })}`,
         { signal },
       );
+      if (response.status === 409) {
+        const payload = await response.json();
+        signal.throwIfAborted();
+        if (payload?.detail?.code === "legacy_unsealed_structure") {
+          setFailure("legacy");
+          return;
+        }
+      }
       if (
         !response.ok ||
         response.headers.get("content-type") !== "application/zip"
@@ -44,7 +52,7 @@ export function PredictionSampleDownload({
       signal.throwIfAborted();
       downloadBlob(blob, `${job}-${candidate}.zip`);
     } catch {
-      if (!attempt.signal.aborted) setFailed(true);
+      if (!attempt.signal.aborted) setFailure("unavailable");
     } finally {
       pending.current = null;
       if (!attempt.signal.aborted) setBusy(false);
@@ -71,12 +79,14 @@ export function PredictionSampleDownload({
             ? "下载此构象 ↓"
             : "This model ↓"}
       </button>
-      {failed && (
+      {failure && (
         <div role="alert">
           {zh ? "构象包暂不可下载。" : "The sample package is unavailable."}{" "}
-          <a href={artifactUrl(job, artifact)} download>
-            {zh ? "下载原始 CIF" : "Download original CIF"}
-          </a>
+          {failure === "legacy" && (
+            <a href={artifactUrl(job, artifact)} download>
+              {zh ? "下载原始 CIF" : "Download original CIF"}
+            </a>
+          )}
         </div>
       )}
     </div>

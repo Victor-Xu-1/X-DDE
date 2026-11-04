@@ -100,6 +100,13 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         assert response.ok
         with zipfile.ZipFile(io.BytesIO(response.body())) as archive:
             receipt = json.loads(archive.read("sample.json"))
+            assert receipt["source_job"] == str(open_dde.job_id)
+            assert receipt["candidate"] == "seed-101-sample-0"
+            prefix = f"{open_dde.job_id}/seed_101/predictions/{open_dde.job_id}"
+            assert receipt["files"]["structure"]["source_artifact"] == prefix + "_sample_0.cif"
+            assert receipt["files"]["confidence_summary"]["source_artifact"] == (
+                prefix + "_summary_confidence_sample_0.json"
+            )
             assert set(receipt["files"]) == {"structure", "confidence_summary"}
             for entry in receipt["files"].values():
                 digest = hashlib.sha256(archive.read(entry["member"])).hexdigest()
