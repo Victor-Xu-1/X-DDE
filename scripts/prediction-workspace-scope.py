@@ -94,6 +94,7 @@ INPUT_PREVIEW_FILES = {
 
 
 DRAFT_FILES = {
+    ".github/workflows/docking-runtime-checks.yml",
     "frontend/src/presentation/PredictionSetup.tsx",
     "frontend/src/presentation/PredictionDraftControls.tsx",
     "frontend/src/presentation/PredictionDraftList.tsx",
