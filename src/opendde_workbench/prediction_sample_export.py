@@ -60,11 +60,13 @@ def open_dde_files(root, candidate, sealed):
         f"{match[1]}_summary_confidence_sample_{match[2]}.json"
     ).as_posix()
     output = root / "output"
-    structure = verified(
-        output, name, sealed.get(name) or row.get("artifact_sha256"), MAX_STRUCTURE
-    )
-    digest = sealed.get(summary_name) or row.get("summary_sha256")
-    summary = verified(output, summary_name, digest, MAX_SUMMARY) if digest else None
+    digest = sealed.get(name, row.get("artifact_sha256"))
+    if digest is None:
+        contained(output, name)
+        raise UnsealedPredictionSource("The legacy prediction has no retained source checksum.")
+    structure = verified(output, name, digest, MAX_STRUCTURE)
+    digest = sealed.get(summary_name, row.get("summary_sha256"))
+    summary = verified(output, summary_name, digest, MAX_SUMMARY) if digest is not None else None
     return structure, summary
 
 

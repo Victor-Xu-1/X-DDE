@@ -3,10 +3,20 @@ import io
 import json
 import zipfile
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from opendde_workbench.prediction_sample_export import BOLTZ_OUTPUT, sample_zip
+from opendde_workbench.models import Prediction, Status
+from opendde_workbench.prediction_sample_export import (
+    BOLTZ_OUTPUT,
+    UnsealedPredictionSource,
+    sample_zip,
+)
+from opendde_workbench.science_routes import register_science
+from opendde_workbench.store import Store
 
 
 def manifest(root, operation, program, candidates, files, **extra):
@@ -80,7 +90,7 @@ def test_retained_opendde_uses_cached_candidate_and_own_summary(tmp_path):
         "confidence_summary": summary,
     }
     assert unpack(tmp_path, job, "seed-101-sample-1") == {"structure": b"data_1"}
-    with pytest.raises(ValueError, match="no retained source checksum"):
+    with pytest.raises(UnsealedPredictionSource, match="no retained source checksum"):
         sample_zip(tmp_path, job, "legacy")
     (output / "job_sample_0.cif").write_bytes(b"data_1")
     with pytest.raises(ValueError, match="changed after it was recorded"):
@@ -184,3 +194,40 @@ def test_mol1_requires_declared_summary_identity(tmp_path):
     (output / summary_name).write_bytes(b'{"plddt":40}')
     with pytest.raises(ValueError, match="changed after it was recorded"):
         sample_zip(tmp_path, job, key)
+
+
+def test_download_route_distinguishes_missing_and_replaced_sources(tmp_path):
+    store = Store(tmp_path / "jobs.sqlite3")
+    job = store.create(
+        Prediction(
+            name="Retained prediction",
+            components=[{"kind": "protein", "value": "ACDEFGHIKLMNPQRSTVWY", "count": 1}],
+        ),
+        str(uuid4()),
+        5,
+        20,
+    )
+    assert store.claim(job.id)
+    store.finish(job.id, Status.SUCCEEDED)
+    root = tmp_path / "jobs" / job.id
+    (root / "output").mkdir(parents=True)
+    (root / "analysis").mkdir()
+    name = "job_sample_0.cif"
+    (root / "output" / name).write_bytes(b"retained")
+    cache = root / "analysis" / "workbench-analysis.json"
+    row = {"id": "seed-101-sample-0", "artifact": name}
+    cache.write_text(json.dumps({"schema_version": 4, "candidates": [row]}))
+
+    app = FastAPI()
+    register_science(app, store, object(), SimpleNamespace(state_dir=tmp_path))
+    with TestClient(app) as client:
+        endpoint = f"/api/jobs/{job.id}/prediction-sample.zip?candidate={row['id']}"
+        result = client.get(endpoint)
+        assert result.status_code == 409
+        assert result.json()["detail"]["code"] == "legacy_unsealed_structure"
+
+        row["artifact_sha256"] = hashlib.sha256(b"other coordinates").hexdigest()
+        cache.write_text(json.dumps({"schema_version": 4, "candidates": [row]}))
+        result = client.get(endpoint)
+        assert result.status_code == 422
+        assert "legacy_unsealed_structure" not in result.text
