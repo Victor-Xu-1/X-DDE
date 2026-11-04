@@ -1,6 +1,9 @@
 .prediction-result {
   min-width: 0;
 }
+.scientific-results.prediction-result {
+  grid-template-columns: minmax(0, 1fr);
+}
 .prediction-sample-bar {
   display: flex;
   align-items: center;
