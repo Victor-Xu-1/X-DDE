@@ -52,6 +52,10 @@ drawing. The requested chain and explicit atom selections remain visible.
 Source files are checked before confirmation, and the request shown in JSON is
 the same request handed to the task submitter. Review and original downloads
 remain available when the compute environment is unavailable.
+When both partners use the same verified structure file, the source complex
+also opens as one intact scene. Its embedded molecules belong to the source
+file; the separately submitted ligand is inspected in its own exact record.
+This applies to shared-complex and molecular-glue inputs.
 
 Native assembly results are read-only coordinate snapshots in both the complete
 complex and standalone ligand views. Inspecting or exporting a diagnostic ligand

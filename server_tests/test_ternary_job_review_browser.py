@@ -176,3 +176,176 @@ def test_ternary_review_uses_real_independent_binary_frames(language, width, tmp
         assert not store.list_jobs()
         assert not writes and not errors, (writes, errors)
         browser.close()
+
+
+def test_glue_review_preserves_one_deposited_reference_and_distinct_chain_roles(
+    tmp_path, monkeypatch
+):
+    from hashlib import sha256
+    from zipfile import ZipFile
+
+    from server_tests.molecular_glue_cases import CASES, SNAPSHOT_SHA256
+
+    state = tmp_path / "state"
+    monkeypatch.setenv("WB_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("WB_STATE_DIR", str(state))
+    store = Store(state / "jobs.sqlite3")
+    assets = AssetStore(store, state / "assets")
+    definition = CASES[0]
+    entry = definition["entry"]
+    archive = Path(os.environ["RUNNER_TEMP"]) / "x-dde-glue-inputs-v1.zip"
+    assert sha256(archive.read_bytes()).hexdigest() == SNAPSHOT_SHA256
+    with ZipFile(archive) as source:
+        pdb, sdf = (source.read(f"{entry}.{suffix}") for suffix in ("pdb", "sdf"))
+    assert sha256(pdb).hexdigest() == definition["pdb_sha256"]
+    assert sha256(sdf).hexdigest() == definition["sdf_sha256"]
+    protein = assets.save(f"{entry}.pdb", "structure", pdb)
+    ligand = assets.save(f"{entry}.sdf", "ligand", sdf)
+
+    evidence = Path("outputs/ternary-job-review") / "5fqd-glue"
+    evidence.mkdir(parents=True, exist_ok=True)
+    writes = []
+    with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
+
+        def block_jobs(route):
+            if route.request.method == "POST":
+                writes.append(route.request.url)
+                route.abort()
+            else:
+                route.continue_()
+
+        page.route("**/api/jobs", block_jobs)
+        page.goto(base + "/#view=new&tool=deepternary.model")
+        form = page.locator(".questionnaire")
+        next_step = form.get_by_role("button", name="Next", exact=True)
+
+        def select_file(purpose, file):
+            picker = page.locator(".questionnaire > fieldset:visible .diff-reference").filter(
+                has=page.get_by_role("heading", name=purpose, exact=True)
+            )
+            picker.get_by_role("radio", name="Historical files", exact=True).check()
+            choices = picker.get_by_role("combobox")
+            expect(choices).to_contain_text(file.name)
+            choices.select_option("file:" + str(file.id))
+
+        form.get_by_role("radio", name="Molecular glue", exact=True).check()
+        expect(form.get_by_role("radio", name="A complete reference complex")).to_have_count(0)
+        select_file("Complete molecule · 3D SDF / MOL", ligand)
+        next_step.click()
+        form.get_by_role("textbox", name="Partner name", exact=True).fill("CRBN")
+        select_file("Binding partner 1", protein)
+        chain_a, chain_b = definition["chains"]
+        form.get_by_role("combobox", name="Binding partner 1 · protein chain").select_option(
+            chain_a
+        )
+        next_step.click()
+        form.get_by_role("textbox", name="Partner name", exact=True).fill("CK1α")
+        form.get_by_role("button", name="Use the previous complex file", exact=True).click()
+        chain = form.get_by_role("combobox", name="Binding partner 2 · protein chain")
+        chain.select_option(chain_a)
+        expect(next_step).to_be_disabled()
+        chain.select_option(chain_b)
+        next_step.click()
+
+        form.get_by_role("button", name="Preview job", exact=True).click()
+        dialog = page.get_by_role("dialog", name="Preview job")
+        source_tab = dialog.get_by_role("tab", name="Reference complex", exact=True)
+        expect(source_tab).to_have_attribute("aria-selected", "true")
+        source_view = dialog.get_by_role("tabpanel", name="Reference complex")
+        expect(source_view).to_contain_text("Selected chains: CRBN · B, CK1α · C")
+        expect(source_view.get_by_role("button", name="Export figure ↓")).to_be_enabled(
+            timeout=30000
+        )
+        expect(source_view.frame_locator("iframe").locator("canvas").first).to_be_visible()
+        page.screenshot(path=evidence / "source-complex.png")
+
+        dialog.get_by_role("tab", name="Complete molecule", exact=True).click()
+        molecule = dialog.get_by_role("tabpanel", name="Complete molecule")
+        expect(molecule.get_by_role("button", name="Export figure ↓")).to_be_enabled(timeout=30000)
+        expect(molecule.get_by_role("group", name="Inspect selected atoms")).to_have_count(0)
+        dialog.get_by_role("button", name="Request JSON").click()
+        request = json.loads(dialog.get_by_label("X-DDE submission request").inner_text())
+        assert request["payload"]["mechanism"] == "molecular_glue"
+        assert request["payload"]["anchor_partner"] == "a"
+        assert all(
+            not request["payload"][field]
+            for field in ("arm_a_map", "arm_b_map", "binding_region_a", "binding_region_b")
+        )
+        refs = {item["role"]: item["source"] for item in request["inputs"]}
+        assert set(refs) == {"ligand", "partner_a", "partner_b"}
+        assert refs["partner_a"] == refs["partner_b"]
+        assert refs["partner_a"]["sha256"] == definition["pdb_sha256"]
+        assert refs["ligand"]["sha256"] == definition["sdf_sha256"]
+        assert [request["payload"][f"partner_{side}_chain"] for side in "ab"] == [chain_a, chain_b]
+        expect(dialog.get_by_role("button", name="Submit job")).to_be_disabled()
+        assert not writes and not store.list_jobs()
+        browser.close()
+
+
+def test_saved_shared_complex_replays_real_mz1_binding_regions(tmp_path, monkeypatch):
+    from opendde_workbench.examples.catalogue import FILES
+    from opendde_workbench.examples.preparation import prepare_example
+    from opendde_workbench.research.storage import ScientificStore
+
+    state = tmp_path / "state"
+    monkeypatch.setenv("WB_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("WB_STATE_DIR", str(state))
+    store = Store(state / "jobs.sqlite3")
+    cache = state / "public-example-cache"
+    cache.mkdir()
+    for key in ("ternary_vhl", "ternary_brd4", "ternary_mz1"):
+        spec = FILES[key]
+        (cache / spec.sha256).write_bytes(
+            (Path(os.environ["RUNNER_TEMP"]) / spec.name).read_bytes()
+        )
+    assets = AssetStore(store, state / "assets")
+    prepared = prepare_example("deepternary.model", ScientificStore(store, assets), cache)
+    expected = prepared.request
+    evidence = Path("outputs/ternary-job-review") / "5t35-shared"
+    evidence.mkdir(parents=True, exist_ok=True)
+
+    with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
+        # Replay the historical module response with its real stored refs. The
+        # current catalog uses STAT6 and must keep its own study template.
+        page.route(
+            "**/api/examples/deepternary.model/prepare",
+            lambda route: route.fulfill(json=prepared.model_dump(mode="json")),
+        )
+        page.goto(base + "/#view=new&tool=deepternary.model")
+        page.get_by_role("button", name="Use this template", exact=True).click()
+        form = page.locator(".questionnaire")
+        expect(form.get_by_role("radio", name="A complete reference complex")).to_be_checked()
+        for count in (None, 32, 27):
+            if count is not None:
+                expect(
+                    form.locator("fieldset:visible").get_by_text(f"{count} atoms")
+                ).to_be_visible()
+            form.get_by_role("button", name="Next", exact=True).click()
+
+        form.get_by_role("button", name="Preview job", exact=True).click()
+        dialog = page.get_by_role("dialog", name="Preview job")
+        expect(dialog.get_by_role("tab", name="Reference complex", exact=True)).to_have_count(0)
+        dialog.get_by_role("tab", name="Complete molecule", exact=True).click()
+        molecule = dialog.get_by_role("tabpanel", name="Complete molecule")
+        expect(molecule.get_by_role("button", name="Export figure ↓")).to_be_enabled(timeout=30000)
+        expect(molecule.get_by_role("button", name="A · 32 selected atoms")).to_have_attribute(
+            "aria-pressed", "true"
+        )
+        molecule.get_by_role("button", name="B · 27 selected atoms").click()
+        expect(molecule.get_by_role("button", name="B · 27 selected atoms")).to_have_attribute(
+            "aria-pressed", "true"
+        )
+        page.screenshot(path=evidence / "binding-region-b.png")
+        dialog.get_by_role("button", name="Request JSON").click()
+        request = json.loads(dialog.get_by_label("X-DDE submission request").inner_text())
+        assert request["payload"] == expected["payload"]
+        assert request["inputs"] == expected["inputs"]
+        assert request["options"] == expected["options"]
+        assert not store.list_jobs()
+        browser.close()

@@ -49,7 +49,11 @@ export function PartnerQuestion({
         }}
         onChain={a ? d.onChainA : d.onChainB}
         onValid={a ? d.setValidA : d.setValidB}
-        sameSource={!a && d.region ? d.first : null}
+        sameSource={
+          !a && !d.binary && protein?.asset_id !== d.first?.asset_id
+            ? d.first
+            : null
+        }
         onSameSource={() => d.onSecond(d.first)}
       />
       {d.binary && d.ligand && protein && arm && (

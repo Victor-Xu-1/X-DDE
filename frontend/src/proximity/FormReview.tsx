@@ -53,6 +53,11 @@ function TernaryStructures({ review, language }: ReviewProps) {
   const { first, second, armA, armB, ligand, payload } = review;
   const molecule = zh ? "完整分子" : "Complete molecule";
   const moleculeUrl = assetDownloadUrl(ligand.asset_id, ligand.record);
+  const reference =
+    !armA &&
+    first.sha256 === second.sha256 &&
+    payload.partner_a_chain !== payload.partner_b_chain;
+  const referenceLabel = zh ? "参考复合物" : "Reference complex";
   const partners = [
     {
       id: "a",
@@ -82,33 +87,58 @@ function TernaryStructures({ review, language }: ReviewProps) {
       <ResearchTabs
         label={zh ? "输入结构视图" : "Input structure views"}
         tabs={[
-          ...partners.map(({ id, protein, arm, name, chain }) => ({
-            id,
-            label: (zh ? "蛋白 " : "Protein ") + id.toUpperCase(),
-            content: (
-              <>
-                <p className="field-help">
-                  {name} · {zh ? "所选链 " : "Selected chain "}
-                  {chain}
-                  {arm &&
-                    (zh
-                      ? " · 叠加此端输入的片段姿势"
-                      : " · supplied fragment pose overlay")}
-                </p>
-                <StructureViewer
-                  urls={[
-                    assetDownloadUrl(protein.asset_id),
-                    ...(arm
-                      ? [assetDownloadUrl(arm.asset_id, arm.record)]
-                      : []),
-                  ]}
-                  language={language}
-                  sourceSnapshot
-                  focusModel={arm ? 1 : undefined}
-                />
-              </>
-            ),
-          })),
+          ...(reference
+            ? [
+                {
+                  id: "reference",
+                  label: referenceLabel,
+                  content: (
+                    <section aria-label={referenceLabel}>
+                      <p className="field-help">
+                        {zh
+                          ? `所选链：${payload.partner_a_name} · ${payload.partner_a_chain}，${payload.partner_b_name} · ${payload.partner_b_chain}。显示原文件中的结构及内嵌分子，独立提交的配体见「完整分子」。`
+                          : `Selected chains: ${payload.partner_a_name} · ${payload.partner_a_chain}, ${payload.partner_b_name} · ${payload.partner_b_chain}. This view preserves the source structure and its embedded molecules. Review the separately submitted ligand under Complete molecule.`}
+                      </p>
+                      <StructureViewer
+                        urls={[assetDownloadUrl(first.asset_id)]}
+                        language={language}
+                        sourceSnapshot
+                        initialMode="cartoon"
+                      />
+                    </section>
+                  ),
+                },
+              ]
+            : []),
+          ...(reference ? [] : partners).map(
+            ({ id, protein, arm, name, chain }) => ({
+              id,
+              label: (zh ? "蛋白 " : "Protein ") + id.toUpperCase(),
+              content: (
+                <>
+                  <p className="field-help">
+                    {name} · {zh ? "所选链 " : "Selected chain "}
+                    {chain}
+                    {arm &&
+                      (zh
+                        ? " · 叠加此端输入的片段姿势"
+                        : " · supplied fragment pose overlay")}
+                  </p>
+                  <StructureViewer
+                    urls={[
+                      assetDownloadUrl(protein.asset_id),
+                      ...(arm
+                        ? [assetDownloadUrl(arm.asset_id, arm.record)]
+                        : []),
+                    ]}
+                    language={language}
+                    sourceSnapshot
+                    focusModel={arm ? 1 : undefined}
+                  />
+                </>
+              ),
+            }),
+          ),
           {
             id: "molecule",
             label: molecule,
