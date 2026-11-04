@@ -542,13 +542,18 @@ export function App() {
                 selectedLoading={work.selectedJobLoading}
                 onRefresh={refresh}
                 onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
-                onJob={chooseJob}
+                onJob={(id) => {
+                  // Keep the resolved module when clearing a legacy task link.
+                  setView(view);
+                  chooseJob(id);
+                }}
                 projectId={projectId}
                 onProject={chooseProject}
                 onDraft={prepareDraft}
-                prediction={
+                renderPrediction={(onHistory) => (
                   <PredictionResults
                     {...common}
+                    onHistory={onHistory}
                     urls={urls}
                     compared={compared}
                     onCompare={(ids) => {
@@ -561,7 +566,7 @@ export function App() {
                       setFocusResidue({ residue, nonce: Date.now() });
                     }}
                   />
-                }
+                )}
               />
             )}
           </main>

@@ -627,6 +627,12 @@ JOB_ARCHIVE_FILES = (
         "src/opendde_workbench/prediction_sample_export.py",
         "src/opendde_workbench/science_routes.py",
         "tests/test_prediction_sample_export.py",
+        "frontend/src/App.tsx",
+        "frontend/src/TaskDetail.test.tsx",
+        "frontend/src/studio/TaskWorkspace*.tsx",
+        "frontend/src/presentation/PredictionResultHeader.tsx",
+        "frontend/src/presentation/prediction-result*.css",
+        "frontend/src/presentation/prediction-workspace.css",
     )
 )
 

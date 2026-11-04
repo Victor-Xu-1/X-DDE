@@ -150,3 +150,35 @@ it.each(["en", "zh"] as const)(
     ).toHaveLength(4);
   },
 );
+
+it("identifies the retained Mol-1 request and returns to prediction history", async () => {
+  const onPredictionHistory = vi.fn();
+  render(
+    <TaskDetail
+      job={{
+        ...job,
+        request: {
+          operation: "mol1_predict",
+          name: "STAT6",
+          components: [],
+          options: { seed: 42 },
+        } as Job["request"],
+        status: "failed",
+      }}
+      detail={null}
+      failed={false}
+      language="en"
+      onPredictionHistory={onPredictionHistory}
+      onChange={vi.fn()}
+    />,
+  );
+  expect(screen.getByText("Mol-1", { exact: true })).toBeVisible();
+  expect(screen.getByRole("button", { name: "View input" })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Download all data" }),
+  ).toBeNull();
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Predictions" }));
+  expect(onPredictionHistory).toHaveBeenCalledOnce();
+});

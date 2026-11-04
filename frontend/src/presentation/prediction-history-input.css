@@ -39,13 +39,6 @@
   width: auto;
   white-space: nowrap;
 }
-.prediction-result-heading > .prediction-result-actions {
-  margin-inline-start: auto;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
 .prediction-archive-download {
   display: contents;
 }
@@ -61,13 +54,4 @@
   flex: 0 0 100%;
   order: 1;
   margin: 0;
-}
-@media (max-width: 640px) {
-  .task-detail-header:has(.prediction-history-trigger) {
-    flex-wrap: wrap;
-  }
-  .task-detail-header:has(.prediction-history-trigger) .task-actions {
-    max-width: 100%;
-    gap: 8px;
-  }
 }

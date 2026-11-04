@@ -46,7 +46,7 @@ interface Props {
   onStart(tool?: ToolId): void;
   onProject(id: string | null): void;
   onDraft?(request: Prediction): void;
-  prediction: ReactNode;
+  renderPrediction(onHistory: () => void): ReactNode;
 }
 export function TaskWorkspace(p: Props) {
   const zh = p.language === "zh";
@@ -125,6 +125,7 @@ export function TaskWorkspace(p: Props) {
     setPage(0);
     setChoosing(false);
   }, [taskJob?.id, p.scopedModule]);
+  const taskListSummary = useRef<HTMLElement>(null);
   const lastProject = useRef(p.projectId);
   useEffect(() => {
     if (lastProject.current !== p.projectId) setPage(0);
@@ -160,6 +161,11 @@ export function TaskWorkspace(p: Props) {
     setPage(0);
     setChoosing(true);
     p.onJob("");
+  }
+  function returnToHistory() {
+    setChoosing(true);
+    p.onJob("");
+    taskListSummary.current?.focus();
   }
   function refresh() {
     history.refresh();
@@ -219,7 +225,7 @@ export function TaskWorkspace(p: Props) {
             open={choosing}
             onToggle={(event) => setChoosing(event.currentTarget.open)}
           >
-            <summary>
+            <summary ref={taskListSummary}>
               {zh ? "任务列表" : "Task list"}
               {history.data && <span> · {history.data.total}</span>}
             </summary>
@@ -298,7 +304,7 @@ export function TaskWorkspace(p: Props) {
             <div className="task-result-content">
               {currentJob.status === "succeeded" &&
               isPrediction(currentJob.request) ? (
-                p.prediction
+                p.renderPrediction(returnToHistory)
               ) : (
                 <TaskDetail
                   key={currentJob.id}
@@ -307,6 +313,7 @@ export function TaskWorkspace(p: Props) {
                   detail={currentDetail}
                   failed={p.detailError}
                   retryAvailable={p.retryAvailable}
+                  onPredictionHistory={returnToHistory}
                   onChange={p.onChanged}
                   onDraft={p.onDraft}
                 />

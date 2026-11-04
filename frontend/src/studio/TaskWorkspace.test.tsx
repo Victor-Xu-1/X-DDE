@@ -77,7 +77,7 @@ function props(
     projects: [],
     projectId: null,
     onProject: vi.fn(),
-    prediction: <div>Actual prediction result</div>,
+    renderPrediction: () => <div>Actual prediction result</div>,
     ...overrides,
   };
 }

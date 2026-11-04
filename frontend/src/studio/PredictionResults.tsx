@@ -9,9 +9,7 @@ import { translator } from "../i18n";
 import { useTaskLabel } from "../examples/useTaskLabel";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 import { PredictionSamples } from "../presentation/PredictionSamples";
-import { HistoricalPredictionInput } from "../presentation/HistoricalPredictionInput";
-import { PredictionArchiveDownload } from "../presentation/PredictionArchiveDownload";
-import { terminal } from "../types";
+import { PredictionResultHeader } from "../presentation/PredictionResultHeader";
 import { useCallback, useState } from "react";
 import type {
   ConfidenceBinding,
@@ -36,7 +34,7 @@ export type PredictionResultsProps = Pick<
   | "focusResidue"
   | "onResidue"
   | "onChanged"
->;
+> & { onHistory?(): void };
 export function PredictionResults(p: PredictionResultsProps) {
   const selectedKey = `${p.job?.id}:${p.candidate?.id}`;
   const [annotation, setAnnotation] = useState<{
@@ -93,24 +91,14 @@ export function PredictionResults(p: PredictionResultsProps) {
   });
   return (
     <div className="prediction-workspace prediction-result task-workspace is-result">
-      <header className="prediction-result-heading">
-        <h2 className="result-task-name">{taskLabel}</h2>
-        {p.job && (
-          <span className={"status " + p.job.status}>{t(p.job.status)}</span>
-        )}
-        {p.job && terminal(p.job.status) && (
-          <div className="prediction-result-actions" key={p.job.id}>
-            <HistoricalPredictionInput
-              jobId={p.job.id}
-              label={taskLabel}
-              language={p.language}
-            />
-            {p.job.status === "succeeded" && (
-              <PredictionArchiveDownload job={p.job.id} language={p.language} />
-            )}
-          </div>
-        )}
-      </header>
+      {p.job && (
+        <PredictionResultHeader
+          job={p.job}
+          title={taskLabel}
+          language={p.language}
+          onHistory={p.onHistory}
+        />
+      )}
       {p.job && p.candidate && (
         <PredictionSamples
           job={p.job.id}

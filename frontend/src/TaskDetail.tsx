@@ -12,9 +12,10 @@ import {
 } from "./types";
 import { OperationResults } from "./operations/OperationResults";
 import { researchError } from "./presentation/research-content";
-import { HistoricalPredictionInput } from "./presentation/HistoricalPredictionInput";
-import { PredictionArchiveDownload } from "./presentation/PredictionArchiveDownload";
-import { isPrediction } from "./operations/types";
+import {
+  PredictionResultHeader,
+  predictionMethodId,
+} from "./presentation/PredictionResultHeader";
 import { useTaskLabel } from "./examples/useTaskLabel";
 import {
   isResearchFile,
@@ -28,6 +29,7 @@ interface Props {
   language: Language;
   retryAvailable?: boolean;
   showPredictionInput?: boolean;
+  onPredictionHistory?(): void;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
 }
@@ -38,6 +40,7 @@ export function TaskDetail({
   language,
   retryAvailable = true,
   showPredictionInput = true,
+  onPredictionHistory,
   onChange,
   onDraft,
 }: Props) {
@@ -129,12 +132,10 @@ export function TaskDetail({
       </section>
     );
   const shown = detail?.id === job.id ? detail : null;
-  const predictionInput =
+  const predictionResult =
     showPredictionInput &&
     terminal(job.status) &&
-    (isPrediction(job.request) ||
-      job.request.operation === "boltz_predict" ||
-      job.request.operation === "mol1_predict");
+    predictionMethodId(job.request);
   const files =
     shown?.artifacts.filter((file) => isResearchFile(file.name)) ?? [];
   const elapsed = job.started_at
@@ -147,65 +148,58 @@ export function TaskDetail({
         ),
       )
     : 0;
+  const jobAction = terminal(job.status) ? (
+    <button
+      className="secondary-button"
+      onClick={() => void action("retry")}
+      disabled={busy || !retryAvailable}
+    >
+      {t("retry")}
+    </button>
+  ) : (
+    <button
+      className="danger-button"
+      onClick={() => void action("cancel")}
+      disabled={
+        busy ||
+        job.status === "cancelling" ||
+        (job.status === "running" &&
+          job.request.operation === "harness" &&
+          job.request.tool !== "fold")
+      }
+      title={
+        job.status === "running" &&
+        job.request.operation === "harness" &&
+        job.request.tool !== "fold"
+          ? language === "zh"
+            ? "原生同步接口派发后不支持取消，请等待结果。"
+            : "This native synchronous tool cannot be cancelled after dispatch."
+          : undefined
+      }
+    >
+      {t("cancel")}
+    </button>
+  );
   return (
     <section className="panel detail-panel" aria-label={t("selected")}>
-      <header className="task-detail-header">
-        <div className="panel-heading">
-          <div>
+      {predictionResult ? (
+        <PredictionResultHeader
+          job={job}
+          title={taskLabel}
+          language={language}
+          onHistory={onPredictionHistory}
+        >
+          {jobAction}
+        </PredictionResultHeader>
+      ) : (
+        <header className="task-detail-header">
+          <div className="panel-heading">
             <h2>{taskLabel}</h2>
+            <span className={`status ${job.status}`}>{t(job.status)}</span>
           </div>
-          <span className={`status ${job.status}`}>{t(job.status)}</span>
-        </div>
-        <div className="task-actions">
-          {predictionInput && (
-            <HistoricalPredictionInput
-              key={job.id}
-              jobId={job.id}
-              label={taskLabel}
-              language={language}
-            />
-          )}
-          {predictionInput && job.status === "succeeded" && (
-            <PredictionArchiveDownload
-              key={job.id}
-              job={job.id}
-              language={language}
-            />
-          )}
-          {terminal(job.status) ? (
-            <button
-              className="secondary-button"
-              onClick={() => void action("retry")}
-              disabled={busy || !retryAvailable}
-            >
-              {t("retry")}
-            </button>
-          ) : (
-            <button
-              className="danger-button"
-              onClick={() => void action("cancel")}
-              disabled={
-                busy ||
-                job.status === "cancelling" ||
-                (job.status === "running" &&
-                  job.request.operation === "harness" &&
-                  job.request.tool !== "fold")
-              }
-              title={
-                job.status === "running" &&
-                job.request.operation === "harness" &&
-                job.request.tool !== "fold"
-                  ? language === "zh"
-                    ? "原生同步接口派发后不支持取消，请等待结果。"
-                    : "This native synchronous tool cannot be cancelled after dispatch."
-                  : undefined
-              }
-            >
-              {t("cancel")}
-            </button>
-          )}
-        </div>
-      </header>
+          <div className="task-actions">{jobAction}</div>
+        </header>
+      )}
       {terminal(job.status) && !retryAvailable && (
         <p className="notice" role="status">
           {language === "zh"

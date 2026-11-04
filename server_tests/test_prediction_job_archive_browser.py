@@ -4,6 +4,7 @@ import hashlib
 import json
 import zipfile
 from pathlib import Path
+from urllib.parse import parse_qs
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -42,8 +43,23 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             pin = pins.get(capability, verify=True)
             assert pin
             job_id = str(pin.job_id)
-            page.goto(base + "/#task=" + job_id)
-            action = page.get_by_role(
+            job = store.get(job_id)
+            assert job is not None
+            scoped = capability == "boltz.predict"
+            task_hash = (
+                "#view=results&module=structures&status=succeeded&task=" if scoped else "#task="
+            )
+            page.goto(base + "/" + task_hash + job_id)
+            heading = page.locator(".prediction-result-heading")
+            expect(heading.get_by_role("heading")).to_contain_text("STAT6")
+            expect(heading.locator("time")).to_have_attribute("datetime", job.created_at)
+            expect(heading.locator(".prediction-result-method")).to_have_text(
+                ("预测模型" if zh else "Prediction model") + (" Boltz-2" if scoped else " OpenDDE")
+            )
+            expect(
+                heading.get_by_role("button", name="查看输入" if zh else "View input")
+            ).to_be_visible()
+            action = heading.get_by_role(
                 "button", name="下载全部数据" if zh else "Download all data", exact=True
             )
             expect(action).to_be_visible()
@@ -89,7 +105,17 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
                 else:
                     assert "confidence_full" in roles
                     assert "confidence_summary" in roles
-            assert not page.locator(".prediction-archive-download [role=alert]").count()
+            assert not heading.locator(".prediction-archive-download [role=alert]").count()
+            heading.get_by_role("button", name="预测记录" if zh else "Predictions").press("Enter")
+            picker = page.locator("details.task-picker")
+            expect(picker.locator("summary")).to_be_focused()
+            expect(picker).to_have_attribute("open", "")
+            expect(heading).to_have_count(0)
+            params = parse_qs(page.url.split("#", 1)[1])
+            assert params["view"] == ["results"]
+            assert params["module"] == ["structures"]
+            assert "task" not in params
+            assert params.get("status") == (["succeeded"] if scoped else None)
         assert not writes
         assert [row.model_dump(mode="json") for row in store.list_jobs(1000)] == before
         browser.close()
