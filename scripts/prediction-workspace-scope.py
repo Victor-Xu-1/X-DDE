@@ -262,6 +262,8 @@ SPATIAL_DESIGN_REVIEW_FILES = SPATIAL_DESIGN_REVIEW_REQUIRED | {
     "frontend/src/diffsbdd/FixedAtomPicker.tsx",
     "frontend/src/diffsbdd/SavedRegions.tsx",
     "frontend/src/diffsbdd/SavedRegions.test.tsx",
+    "frontend/src/regions/useNativeIdentity.ts",
+    "frontend/src/regions/useNativeIdentity.test.tsx",
     "frontend/src/diffsbdd/model.ts",
     "frontend/src/diffsbdd/PocketPicker.tsx",
     "frontend/src/diffsbdd/spatial-design-review.css",

@@ -40,7 +40,9 @@ export function SpatialDesignJobReview({
       renderOverview={(prepared) => (
         <SpatialInputs
           {...prepared}
-          corePreview={corePreview ?? prepared.savedCore}
+          corePreview={
+            props.input.savedRegions ? prepared.savedCore : corePreview
+          }
           language={language}
         />
       )}

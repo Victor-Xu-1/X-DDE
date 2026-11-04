@@ -24,7 +24,7 @@ export function FixedAtomPicker({
   onChange(v: number[]): void;
   language: Language;
   onSaved(id: string | null): void;
-  onCorePreview?(source: CorePreviewSource): void;
+  onCorePreview?(source: CorePreviewSource | null): void;
 }) {
   const {
     ready: inspectionReady,
@@ -47,6 +47,7 @@ export function FixedAtomPicker({
           .filter((atom) => atom.selectable)
           .map((atom) => atom.index),
       });
+    else onCorePreview?.(null);
   }, [job?.id, job?.status, result, onCorePreview]);
   return (
     <section>
