@@ -1,6 +1,8 @@
 """Inspect a deposited STAT6 receptor and exact ligand records without running docking."""
 
 import json
+import os
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -35,6 +37,13 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
     monkeypatch.setenv("WB_STATE_DIR", str(state))
     monkeypatch.setenv("WB_HOME", str(tmp_path / "home"))
     store = Store(state / "jobs.sqlite3")
+    components = Path(os.environ["WB_DOCKING_VISUAL_STATE"]).resolve()
+    assert components.is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
+    with (
+        sqlite3.connect(f"file:{components / 'deployments.sqlite3'}?mode=ro", uri=True) as source,
+        sqlite3.connect(state / "deployments.sqlite3") as destination,
+    ):
+        source.backup(destination)
     assets = AssetStore(store, state / "assets")
     receptor_source = INPUTS / "STAT6-9BIG-observed-receptor.pdb"
     receptor_bytes = receptor_source.read_bytes()
@@ -169,6 +178,14 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
             dialog.get_by_role("button", name=label("Submit job", "提交任务"), exact=True)
         ).to_be_disabled()
         page.screenshot(path=evidence / "overview.png")
+        if expected:
+            dialog.get_by_text("Study molecule in 2D", exact=True).click()
+            depiction = dialog.locator(".molecule-image")
+            depiction.scroll_into_view_if_needed()
+            expect(depiction).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+            drawing = depiction.locator("img")
+            assert drawing.evaluate("img => img.complete && img.naturalWidth > 0")
+            page.screenshot(path=evidence / "study-molecule.png")
         dialog.get_by_role("button", name=label("Request JSON", "提交内容")).click()
         payload = json.loads(
             dialog.get_by_label(label("X-DDE submission request", "X-DDE 提交请求")).inner_text()

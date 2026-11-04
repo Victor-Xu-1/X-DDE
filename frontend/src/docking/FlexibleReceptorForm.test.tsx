@@ -144,14 +144,12 @@ it.each(["en", "zh"] as const)(
     await user.selectOptions(choices, "ile152");
     await user.selectOptions(choices, "lys595");
     await user.click(next(language));
-    expect(
-      screen.getByText("A:152, B:595", { exact: true }),
-    ).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
         name: language === "zh" ? "预览任务" : "Preview job",
       }),
     );
+    expect(await screen.findByText("A:152, B:595")).toBeVisible();
     const submit = screen.getByRole("button", {
       name: language === "zh" ? "提交任务" : "Submit job",
     });

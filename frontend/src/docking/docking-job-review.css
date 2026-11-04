@@ -15,8 +15,8 @@
   .docking-review-geometry
   .viewer-panel:not(:fullscreen)
   .molecular-stage {
-  height: clamp(360px, 50vh, 580px);
-  min-height: 360px;
+  height: clamp(340px, calc(100dvh - 625px), 580px);
+  min-height: 340px;
 }
 @media (max-width: 700px) {
   .prediction-job-preview

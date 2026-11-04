@@ -151,6 +151,9 @@ jobs:
           uv run --locked pytest -q tests/test_prediction_workspace_scope.py tests/test_pose_quality.py::test_raw_record_splitter_preserves_invalid_empty_and_eof_source_positions
           (cd frontend && npx vitest run src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/FlexibleReceptorForm.test.tsx src/docking/SearchPreview.test.tsx src/viewer/search-box.test.ts)
           uv run --locked playwright install chromium --with-deps
+          export WB_DOCKING_VISUAL_STATE="$RUNNER_TEMP/x-dde-docking-review-tools/state"
+          WB_HOME="$RUNNER_TEMP/x-dde-docking-review-tools" WB_STATE_DIR="$WB_DOCKING_VISUAL_STATE" \
+            uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m pytest -q server_tests/test_docking_job_review_browser.py
       - uses: actions/upload-artifact@v4
         if: always() && needs.scope.outputs.docking_review_only == 'true'
