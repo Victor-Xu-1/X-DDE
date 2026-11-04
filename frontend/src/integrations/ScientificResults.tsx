@@ -25,6 +25,7 @@ import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 import { Mol1Confidence } from "./Mol1Confidence";
+import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { PredictionSamples } from "../presentation/PredictionSamples";
 import { usePredictionReferenceReview } from "../presentation/PredictionReferenceEvidence";
 import { PredictionReferenceReview } from "../presentation/PredictionReferenceReview";
@@ -238,6 +239,19 @@ export function ScientificResults({
   ) : (
     sequence
   );
+  const candidateTable = (
+    <ResearchTable
+      rows={rows}
+      columns={columns}
+      initialVisibleColumns={columns.slice(0, 4).map((column) => column.key)}
+      rowId={(row) => row.id}
+      language={language}
+      title={zh ? "研究候选" : "Research candidates"}
+      selected={active?.id}
+      onSelect={(row) => setSelected(row.id)}
+      exportName="scientific-candidates.csv"
+    />
+  );
   return (
     <div
       className={
@@ -287,6 +301,20 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
+            {result.operation === "boltz_predict" && active && (
+              <PredictionConfidenceCard
+                title={
+                  zh ? "预测对齐误差（PAE）" : "Predicted aligned error (PAE)"
+                }
+                unit={active.id}
+              >
+                <p>
+                  {zh
+                    ? "此构象没有可预览的 PAE 矩阵。构象下载包包含结构，以及可核验的置信度汇总（如有）。"
+                    : "No PAE matrix is available to preview for this conformer. The conformer download contains the structure and any verified confidence summary."}
+                </p>
+              </PredictionConfidenceCard>
+            )}
             {displayedReview && (
               <PredictionReferenceReview
                 evidence={displayedReview}
@@ -319,21 +347,7 @@ export function ScientificResults({
                 language={language}
               />
             )}
-            {!(result.mol1 && active) && (
-              <ResearchTable
-                rows={rows}
-                columns={columns}
-                initialVisibleColumns={columns
-                  .slice(0, 4)
-                  .map((column) => column.key)}
-                rowId={(row) => row.id}
-                language={language}
-                title={zh ? "研究候选" : "Research candidates"}
-                selected={active?.id}
-                onSelect={(row) => setSelected(row.id)}
-                exportName="scientific-candidates.csv"
-              />
-            )}
+            {!prediction && candidateTable}
             {result.mol1 && active && (
               <Mol1Confidence
                 job={job.id}
@@ -343,20 +357,10 @@ export function ScientificResults({
               />
             )}
           </StructureWorkbench>
-          {result.mol1 && active && (
-            <ResearchTable
-              rows={rows}
-              columns={columns}
-              initialVisibleColumns={columns
-                .slice(0, 4)
-                .map((column) => column.key)}
-              rowId={(row) => row.id}
-              language={language}
-              title={zh ? "研究候选" : "Research candidates"}
-              selected={active.id}
-              onSelect={(row) => setSelected(row.id)}
-              exportName="scientific-candidates.csv"
-            />
+          {prediction && (
+            <section className="prediction-conformer-table">
+              {candidateTable}
+            </section>
           )}
         </>
       )}

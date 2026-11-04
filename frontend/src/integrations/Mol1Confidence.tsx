@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
+import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { ChartTrace } from "../presentation/plots/types";
 import type { Language } from "../types";
@@ -139,25 +140,47 @@ export function Mol1Confidence({
       });
     return () => controller.abort();
   }, [key, attempt]);
-  if (!sample) return null;
-  if (!file)
+  const atom = mode === "atom_plddt";
+  const labels: Record<string, string> = {
+    atom_plddt: zh ? "逐原子 pLDDT" : "Atom pLDDT",
+    token_pair_pae: zh ? "预测对齐误差 PAE" : "Predicted aligned error (PAE)",
+    token_pair_pde: zh ? "预测距离误差 PDE" : "Predicted distance error (PDE)",
+    contact_probs: zh ? "预测接触概率" : "Predicted contact probability",
+  };
+  const unit = atom ? "0–100" : mode === "contact_probs" ? "0–1" : "Å";
+  function status(content: ReactNode) {
     return (
+      <PredictionConfidenceCard title={labels[mode]} unit={unit}>
+        {content}
+      </PredictionConfidenceCard>
+    );
+  }
+  if (!sample)
+    return status(
+      <p>
+        {zh
+          ? "当前构象没有对应的原生置信度记录。"
+          : "No native confidence record is available for this conformer."}
+      </p>,
+    );
+  if (!file)
+    return status(
       <p className="field-help">
         {zh
           ? "本次未请求逐原子与逐 token 的置信度。"
           : "Atom/token confidence was not requested for this run."}
-      </p>
+      </p>,
     );
   if (state.key !== key)
-    return (
+    return status(
       <p role="status">
         {zh
           ? "正在读取当前构象的置信度…"
           : "Loading confidence for the selected structure…"}
-      </p>
+      </p>,
     );
   if (state.error)
-    return (
+    return status(
       <div role="alert">
         <p>
           {zh
@@ -167,11 +190,11 @@ export function Mol1Confidence({
         <button type="button" onClick={() => setAttempt((v) => v + 1)}>
           {zh ? "重新读取" : "Retry"}
         </button>
-      </div>
+      </div>,
     );
   const value = state.value!;
   if (value.status === "download_only")
-    return (
+    return status(
       <p>
         {zh
           ? "完整置信度文件较大，请下载查看。"
@@ -179,15 +202,8 @@ export function Mol1Confidence({
         <a href={artifactUrl(job, sample.full_data_artifact!)} download>
           {zh ? "下载原始数据" : "Download original data"}
         </a>
-      </p>
+      </p>,
     );
-  const atom = mode === "atom_plddt";
-  const labels: Record<string, string> = {
-    atom_plddt: zh ? "逐原子 pLDDT" : "Atom pLDDT",
-    token_pair_pae: zh ? "预测对齐误差 PAE" : "Predicted aligned error (PAE)",
-    token_pair_pde: zh ? "预测距离误差 PDE" : "Predicted distance error (PDE)",
-    contact_probs: zh ? "预测接触概率" : "Predicted contact probability",
-  };
   const trace: ChartTrace = atom
     ? {
         type: "scatter",
@@ -212,17 +228,26 @@ export function Mol1Confidence({
         },
       };
   return (
-    <section className="mol1-confidence">
-      <label className="field">
-        {zh ? "置信度视图" : "Confidence view"}
-        <select value={mode} onChange={(event) => setMode(event.target.value)}>
-          {Object.entries(labels).map(([id, label]) => (
-            <option value={id} key={id}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <PredictionConfidenceCard
+      className="mol1-confidence"
+      title={labels[mode]}
+      unit={unit}
+      controls={
+        <label className="field">
+          {zh ? "置信度视图" : "Confidence view"}
+          <select
+            value={mode}
+            onChange={(event) => setMode(event.target.value)}
+          >
+            {Object.entries(labels).map(([id, label]) => (
+              <option value={id} key={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      }
+    >
       <InteractivePlot
         title={labels[mode]}
         data={[trace]}
@@ -257,6 +282,6 @@ export function Mol1Confidence({
       <a href={artifactUrl(job, sample.full_data_artifact!)} download>
         {zh ? "下载完整原始置信度" : "Download full native confidence"}
       </a>
-    </section>
+    </PredictionConfidenceCard>
   );
 }

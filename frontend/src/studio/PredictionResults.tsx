@@ -1,5 +1,6 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { componentsOf } from "../operations/types";
+import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { ConfidencePanel } from "../operations/ConfidencePanel";
 import { TaskDetail } from "../TaskDetail";
 import { CandidatePanel } from "./CandidatePanel";
@@ -138,42 +139,41 @@ export function PredictionResults(p: PredictionResultsProps) {
           </div>
         }
       >
-        <div className="candidate-column">
-          {confidenceAvailable && p.job && p.candidate ? (
-            <ConfidencePanel
-              jobId={p.job.id}
-              candidate={p.candidate.id}
-              language={p.language}
-              onBinding={receiveBinding}
-              inspection={p.compared.length > 1 ? null : mapped}
-              selectedResidues={
-                residueSelection?.key === selectedKey
-                  ? residueSelection.value
-                  : []
-              }
-              selectedTokens={
-                actualTokens?.key === mapped?.key ? actualTokens?.tokens : []
-              }
-              onTokens={(tokens) => {
-                if (mapped)
-                  setTokenSelection({
-                    key: mapped.key,
-                    tokens,
-                    nonce: Date.now(),
-                  });
-              }}
-            />
-          ) : (
-            <section className="prediction-confidence-empty">
-              <h3>{zh ? "预测对齐误差" : "Predicted aligned error"}</h3>
-              <p>
-                {zh
-                  ? "此构象尚无可显示的逐原子置信度。"
-                  : "No atom-level confidence is available for this conformer."}
-              </p>
-            </section>
-          )}
-        </div>
+        {confidenceAvailable && p.job && p.candidate ? (
+          <ConfidencePanel
+            jobId={p.job.id}
+            candidate={p.candidate.id}
+            language={p.language}
+            onBinding={receiveBinding}
+            inspection={p.compared.length > 1 ? null : mapped}
+            selectedResidues={
+              residueSelection?.key === selectedKey
+                ? residueSelection.value
+                : []
+            }
+            selectedTokens={
+              actualTokens?.key === mapped?.key ? actualTokens?.tokens : []
+            }
+            onTokens={(tokens) => {
+              if (mapped)
+                setTokenSelection({
+                  key: mapped.key,
+                  tokens,
+                  nonce: Date.now(),
+                });
+            }}
+          />
+        ) : (
+          <PredictionConfidenceCard
+            title={zh ? "预测对齐误差" : "Predicted aligned error"}
+          >
+            <p>
+              {zh
+                ? "此构象尚无可显示的逐原子置信度。"
+                : "No atom-level confidence is available for this conformer."}
+            </p>
+          </PredictionConfidenceCard>
+        )}
       </StructureWorkbench>
       <section className="prediction-conformer-table">
         <CandidatePanel

@@ -15,7 +15,9 @@ vi.mock("../api", () => ({
 }));
 vi.mock("../presentation/plots/InteractivePlot", () => ({
   InteractivePlot: ({ title, data }: { title: string; data: unknown }) => (
-    <output aria-label={title}>{JSON.stringify(data)}</output>
+    <output role="application" aria-label={title}>
+      {JSON.stringify(data)}
+    </output>
   ),
 }));
 
@@ -111,7 +113,9 @@ it.each([undefined, "0-100", "unknown"])(
       screen.getByText(/The atom-confidence scale could not be verified/),
     ).toBeVisible();
     expect(
-      screen.getByLabelText("Predicted aligned error (PAE)"),
+      screen.getByRole("application", {
+        name: "Predicted aligned error (PAE)",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute(
       "href",

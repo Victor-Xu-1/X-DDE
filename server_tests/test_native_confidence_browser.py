@@ -63,6 +63,14 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         first.click()
         expect(first).to_have_attribute("aria-checked", "true")
         matrix = panel.locator(".research-plot").first
+        view_bounds = page.locator(".structure-workbench-view").bounding_box()
+        panel_bounds = panel.bounding_box()
+        assert view_bounds and panel_bounds
+        if width >= 1000:
+            assert abs(view_bounds["y"] - panel_bounds["y"]) < 2
+            assert panel_bounds["x"] >= view_bounds["x"] + view_bounds["width"]
+        else:
+            assert panel_bounds["y"] >= view_bounds["y"] + view_bounds["height"]
         expect(matrix.locator(".shapelayer path")).to_have_count(2)
         coloring.select_option("chain")
         expect(first).to_have_attribute("aria-checked", "true")
