@@ -56,6 +56,8 @@ async def held():
             await asyncio.sleep(0.1)
     return StreamingResponse(body())
 
+# The app installs its frontend catch-all before this fixture-only route.
+app.router.routes.insert(0, app.router.routes.pop())
 api.create_app = lambda: app
 from opendde_workbench.__main__ import main
 main()
