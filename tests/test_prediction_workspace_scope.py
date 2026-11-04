@@ -292,3 +292,16 @@ def test_prediction_export_gate_remains_enabled_with_adjacent_result_changes():
     assert not scope.sample_export_only(mixed)
     assert not scope.selected(mixed)
     assert not scope.sample_export_changed(["frontend/src/integrations/ScientificResults.tsx"])
+
+
+def test_prediction_reference_review_keeps_the_retained_geometry_gate_in_mixed_changes():
+    paths = [
+        "frontend/src/integrations/ScientificResults.tsx",
+        "frontend/src/presentation/PredictionReferenceEvidence.ts",
+        "server_tests/test_prediction_reference_review_browser.py",
+    ]
+    assert scope.reference_review_only(paths)
+    assert scope.selected(paths)
+    mixed = paths + ["frontend/src/viewer/frame.ts"]
+    assert scope.reference_review_changed(mixed)
+    assert not scope.reference_review_only(mixed)

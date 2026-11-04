@@ -26,6 +26,8 @@ import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 import { Mol1Confidence } from "./Mol1Confidence";
 import { PredictionSamples } from "../presentation/PredictionSamples";
+import { usePredictionReferenceReview } from "../presentation/PredictionReferenceEvidence";
+import { PredictionReferenceReview } from "../presentation/PredictionReferenceReview";
 import { nativePredictionSamples } from "./prediction-presentation";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
@@ -56,6 +58,7 @@ export function ScientificResults({
     choice.job === job.id && choice.initial === initial ? choice.id : initial;
   const setSelected = (id: string) => setChoice({ job: job.id, initial, id });
   const active = rows.find((row) => row.id === selected) ?? rows[0];
+  const referenceReview = usePredictionReferenceReview(job.id, result, active);
   const columns = useMemo<ResearchColumn<NativeCandidate>[]>(() => {
     const metrics = [
       ...new Map(
@@ -211,7 +214,12 @@ export function ScientificResults({
         ]}
       />
     ) : (
-      <StructureViewer urls={[url]} language={language} />
+      <StructureViewer
+        urls={[url]}
+        language={language}
+        sourceSnapshot={Boolean(referenceReview)}
+        nativeInteractions={referenceReview?.contacts}
+      />
     )
   ) : (
     sequence
@@ -230,6 +238,13 @@ export function ScientificResults({
           onSelect={setSelected}
           language={language}
         />
+      )}
+      {referenceReview?.omittedDomainClash && (
+        <p className="prediction-reference-mobile-status" role="status">
+          {zh
+            ? "实验受体对照发现结构域冲突"
+            : "Experimental receptor comparison found a domain clash"}
+        </p>
       )}
       {result.operation === "chemprop_train" && (
         <PropertyModelResults result={result} language={language} />
@@ -258,6 +273,13 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
+            {referenceReview && (
+              <PredictionReferenceReview
+                evidence={referenceReview}
+                language={language}
+                onSelect={setSelected}
+              />
+            )}
             {result.program === "boltzgen" &&
               (result.binder_quality ? (
                 <BinderQuality

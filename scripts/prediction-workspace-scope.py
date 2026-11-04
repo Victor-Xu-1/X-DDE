@@ -535,9 +535,47 @@ def sample_export_only(changed, event="push"):
     )
 
 
+REFERENCE_REVIEW_SOURCES = (
+    "frontend/src/presentation/PredictionReference*.ts*",
+    "frontend/src/presentation/prediction-reference-review.css",
+    "server_tests/test_prediction_reference_review_browser.py",
+)
+REFERENCE_REVIEW_FILES = REFERENCE_REVIEW_SOURCES + (
+    "frontend/src/integrations/ScientificResults.tsx",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package*.json",
+    "install.sh",
+    "install.ps1",
+)
+
+
+def reference_review_changed(changed):
+    return any(
+        fnmatch.fnmatchcase(name, pattern)
+        for name in changed
+        for pattern in REFERENCE_REVIEW_SOURCES
+    )
+
+
+def reference_review_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and reference_review_changed(changed)
+        and all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in REFERENCE_REVIEW_FILES)
+            for name in changed
+        )
+    )
+
+
 def selected(changed, event="push"):
     if (
         sample_export_only(changed, event)
+        or reference_review_only(changed, event)
         or drafts_only(changed, event)
         or final_review_only(changed, event)
     ):
@@ -571,6 +609,10 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "reference_review_changed": reference_review_changed(changed),
+            "reference_review_only": reference_review_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "sample_export_changed": sample_export_changed(changed),
             "sample_export_only": sample_export_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
