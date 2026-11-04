@@ -160,9 +160,10 @@ it("identifies the retained Mol-1 request and returns to prediction history", as
         request: {
           operation: "mol1_predict",
           name: "STAT6",
-          components: [],
-          options: { seed: 42 },
-        } as Job["request"],
+          inputs: [],
+          payload: { kind: "mol1", components: [] },
+          options: { device: "cuda", cpu: 2, memory_mib: 8192, seed: 42 },
+        },
         status: "failed",
       }}
       detail={null}
