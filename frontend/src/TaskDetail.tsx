@@ -12,6 +12,8 @@ import {
 } from "./types";
 import { OperationResults } from "./operations/OperationResults";
 import { researchError } from "./presentation/research-content";
+import { HistoricalPredictionInput } from "./presentation/HistoricalPredictionInput";
+import { isPrediction } from "./operations/types";
 import { useTaskLabel } from "./examples/useTaskLabel";
 import {
   isResearchFile,
@@ -146,6 +148,17 @@ export function TaskDetail({
           <span className={`status ${job.status}`}>{t(job.status)}</span>
         </div>
         <div className="task-actions">
+          {terminal(job.status) &&
+            (isPrediction(job.request) ||
+              job.request.operation === "boltz_predict" ||
+              job.request.operation === "mol1_predict") && (
+              <HistoricalPredictionInput
+                key={job.id}
+                jobId={job.id}
+                label={taskLabel}
+                language={language}
+              />
+            )}
           {terminal(job.status) ? (
             <button
               className="secondary-button"

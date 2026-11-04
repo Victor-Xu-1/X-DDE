@@ -552,6 +552,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     @app.get("/api/jobs/{job_id}/input")
     def input_document(job_id: UUID):
         job = required(job_id)
+        headers = {"Cache-Control": "no-store"}
         path = settings.state_dir / "jobs" / job.id / "input.json"
         if path.is_file():
             try:
@@ -559,8 +560,12 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             except (ValueError, FileNotFoundError) as exc:
                 raise HTTPException(404, "Input artifact is unavailable.") from exc
             return FileResponse(
-                path, filename=f"{job.id}-input.json", media_type="application/json"
+                path,
+                filename=f"{job.id}-input.json",
+                media_type="application/json",
+                headers={**headers, "X-XDDE-Input-Source": "retained"},
             )
+        headers["Content-Disposition"] = f'attachment; filename="{job.id}-input.json"'
         if isinstance(job.request, Prediction):
             bindings = {
                 identifier: "/job/assets/" + identifier + asset.suffix
@@ -568,11 +573,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             }
             return JSONResponse(
                 job.request.inference_input(job.id, bindings),
-                headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
+                headers={**headers, "X-XDDE-Input-Source": "reconstructed"},
             )
         return JSONResponse(
             job.request.model_dump(mode="json"),
-            headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
+            headers={**headers, "X-XDDE-Input-Source": "recorded-request"},
         )
 
     close_uploads = register_assets(app, assets, mutation, settings.minimum_free_bytes)

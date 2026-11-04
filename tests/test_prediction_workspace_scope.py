@@ -307,3 +307,17 @@ def test_prediction_reference_review_keeps_the_retained_geometry_gate_in_mixed_c
     mixed = paths + ["frontend/src/viewer/Scene.ts"]
     assert scope.reference_review_changed(mixed)
     assert not scope.reference_review_only(mixed)
+
+
+def test_historical_input_selects_its_archive_and_direct_result_consumers():
+    paths = [
+        "frontend/src/TaskDetail.tsx",
+        "frontend/src/presentation/HistoricalPredictionInput.tsx",
+        "src/opendde_workbench/api.py",
+        "server_tests/test_prediction_history_input_browser.py",
+    ]
+    assert scope.history_input_only(paths)
+    assert scope.selected(paths)
+    mixed = paths + ["frontend/src/studio/Header.tsx"]
+    assert scope.history_input_changed(mixed)
+    assert not scope.history_input_only(mixed)

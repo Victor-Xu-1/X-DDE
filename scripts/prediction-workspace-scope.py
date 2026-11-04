@@ -577,10 +577,48 @@ def reference_review_only(changed, event="push"):
     )
 
 
+HISTORY_INPUT_SOURCES = (
+    "frontend/src/presentation/HistoricalPredictionInput.tsx",
+    "frontend/src/presentation/prediction-history-input.css",
+    "server_tests/test_prediction_history_input_browser.py",
+)
+HISTORY_INPUT_FILES = HISTORY_INPUT_SOURCES + (
+    "frontend/src/TaskDetail.tsx",
+    "frontend/src/presentation/PredictionReviewDialog.tsx",
+    "frontend/src/presentation/artifact-file.ts",
+    "src/opendde_workbench/api.py",
+    "tests/test_jobs.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package*.json",
+    "install.sh",
+    "install.ps1",
+)
+
+
+def history_input_changed(changed):
+    return any(name in HISTORY_INPUT_SOURCES for name in changed)
+
+
+def history_input_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and history_input_changed(changed)
+        and all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in HISTORY_INPUT_FILES)
+            for name in changed
+        )
+    )
+
+
 def selected(changed, event="push"):
     if (
         sample_export_only(changed, event)
         or reference_review_only(changed, event)
+        or history_input_only(changed, event)
         or drafts_only(changed, event)
         or final_review_only(changed, event)
     ):
@@ -614,6 +652,10 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "history_input_changed": history_input_changed(changed),
+            "history_input_only": history_input_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "reference_review_changed": reference_review_changed(changed),
             "reference_review_only": reference_review_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

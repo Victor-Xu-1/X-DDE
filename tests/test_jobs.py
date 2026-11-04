@@ -27,10 +27,16 @@ def test_real_process_result_download_and_durable_request(client_factory, settin
         assert result.content == b"controlled-process-output"
         assert "attachment" in result.headers["content-disposition"]
         assert "worker-started" in client.get(f"/api/jobs/{job_id}/logs").json()["text"]
-        assert (
-            client.get(f"/api/jobs/{job_id}/input").json()[0]["sequences"][0]["ligand"]["ligand"]
-            == "CCO"
-        )
+        snapshot = settings.state_dir / "jobs" / job_id / "input.json"
+        retained = client.get(f"/api/jobs/{job_id}/input")
+        assert retained.headers["X-XDDE-Input-Source"] == "retained"
+        assert retained.headers["Cache-Control"] == "no-store"
+        assert retained.content == snapshot.read_bytes()
+        assert retained.json()[0]["sequences"][0]["ligand"]["ligand"] == "CCO"
+        snapshot.unlink()
+        reconstructed = client.get(f"/api/jobs/{job_id}/input")
+        assert reconstructed.headers["X-XDDE-Input-Source"] == "reconstructed"
+        assert reconstructed.json() == retained.json()
     assert engine.started == [job_id]
     assert job_id in engine.stopped
     assert Store(settings.state_dir / "jobs.sqlite3").get(job_id).status == Status.SUCCEEDED

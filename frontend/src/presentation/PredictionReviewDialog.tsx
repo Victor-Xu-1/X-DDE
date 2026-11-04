@@ -11,6 +11,7 @@ export function PredictionReviewDialog({
   busy = false,
   job = false,
   wide = false,
+  historical = false,
 }: {
   language: Language;
   title: string;
@@ -20,6 +21,7 @@ export function PredictionReviewDialog({
   busy?: boolean;
   job?: boolean;
   wide?: boolean;
+  historical?: boolean;
 }) {
   const zh = language === "zh";
   const id = useId();
@@ -40,7 +42,7 @@ export function PredictionReviewDialog({
   }
   return (
     <dialog
-      className={`prediction-input-preview${job ? " prediction-job-preview" : ""}${wide ? " prediction-review-wide" : ""}`}
+      className={`prediction-input-preview${job ? " prediction-job-preview" : ""}${wide ? " prediction-review-wide" : ""}${historical ? " prediction-history-input" : ""}`}
       ref={dialog}
       aria-labelledby={id}
       onCancel={(event) => {
@@ -54,9 +56,11 @@ export function PredictionReviewDialog({
           <h2 id={id} ref={heading} tabIndex={-1}>
             {title}
           </h2>
-          <span className="prediction-preview-status">
-            {zh ? "尚未提交" : "Not submitted"}
-          </span>
+          {!historical && (
+            <span className="prediction-preview-status">
+              {zh ? "尚未提交" : "Not submitted"}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -70,15 +74,22 @@ export function PredictionReviewDialog({
       </header>
       <div className="prediction-input-preview-body">{children}</div>
       <footer>
+        {historical && actions}
         <button
           type="button"
           className={actions ? "secondary-button" : "primary-button"}
           disabled={busy}
           onClick={dismiss}
         >
-          {zh ? "返回编辑" : "Back to edit"}
+          {historical
+            ? zh
+              ? "关闭"
+              : "Close"
+            : zh
+              ? "返回编辑"
+              : "Back to edit"}
         </button>
-        {actions}
+        {!historical && actions}
       </footer>
     </dialog>
   );

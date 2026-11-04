@@ -1,0 +1,46 @@
+.prediction-history-input {
+  width: min(840px, calc(100vw - 32px));
+}
+.prediction-history-input h2 {
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.prediction-history-input > header {
+  border-bottom: 0;
+  padding-bottom: 12px;
+}
+.prediction-history-input .prediction-input-preview-body {
+  padding-top: 0;
+  padding-bottom: 16px;
+}
+.prediction-history-source {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.prediction-history-input .prediction-input-preview-body pre {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  font: 12px/1.65 var(--mono);
+  max-height: min(432px, 53dvh);
+  overflow: auto;
+  white-space: pre;
+}
+.prediction-history-input > footer {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 14px;
+}
+.prediction-history-input > footer button {
+  border-radius: 999px;
+  width: auto;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .task-detail-header:has(.prediction-history-trigger) {
+    flex-wrap: wrap;
+  }
+}
