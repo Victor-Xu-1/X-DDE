@@ -23,8 +23,10 @@ def test_unfinished_mol1_draft_round_trip(language, width):
     )
     warhead = "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3"
     zh = language == "zh"
+
     def label(en, cn):
         return cn if zh else en
+
     errors, writes = [], []
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch()
@@ -52,9 +54,9 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         name.fill("STAT6 draft " + language)
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()
-        page.get_by_label(
-            label("Sequence evolutionary information", "序列进化信息"), exact=True
-        ).select_option("none")
+        page.get_by_label(label("Sequence evolutionary information", "序列进化信息")).select_option(
+            "none"
+        )
         next_step.click()
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
         seeds = page.get_by_label(
@@ -100,9 +102,7 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         expect(name).to_have_value("STAT6 draft " + language)
         next_step.click()
         expect(
-            page.get_by_label(
-                label("Sequence evolutionary information", "序列进化信息"), exact=True
-            )
+            page.get_by_label(label("Sequence evolutionary information", "序列进化信息"))
         ).to_have_value("none")
         next_step.click()
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
