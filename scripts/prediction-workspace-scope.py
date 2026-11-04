@@ -157,6 +157,9 @@ FINAL_REVIEW_FILES = {
 
 
 BOLTZ_REVIEW_FILES = FINAL_REVIEW_FILES | {
+    "frontend/src/integrations/BoltzInputs.tsx",
+    "frontend/src/integrations/BoltzInputs.test.tsx",
+    "frontend/src/integrations/ScientificInputs.tsx",
     "frontend/src/integrations/BoltzJobReview.tsx",
     "frontend/src/integrations/boltz-job-request.ts",
     "frontend/src/integrations/ScientificForm.tsx",

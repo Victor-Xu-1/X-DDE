@@ -35,9 +35,12 @@ function InputFixture() {
     <>
       <BoltzInputs
         language="en"
-        payload={payload}
-        onChange={(patch) =>
-          setPayload((current) => ({ ...current, ...patch }))
+        components={components}
+        onComponents={(apply) =>
+          setPayload((current) => ({
+            ...current,
+            components: apply(current.components as BoltzComponent[]),
+          }))
         }
         onMsaVerified={(chain, key) =>
           setVerified((current) =>

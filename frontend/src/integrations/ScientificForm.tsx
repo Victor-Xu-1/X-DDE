@@ -279,6 +279,12 @@ export function ScientificForm({
           valid: inputValid,
           content: (
             <ScientificInputs
+              onBoltzComponents={(apply) =>
+                setPayload((current) => ({
+                  ...current,
+                  components: apply(current.components as BoltzComponent[]),
+                }))
+              }
               onBoltzMsaVerified={(chain, valid) =>
                 setMsaVerified((previous) =>
                   previous[chain] === valid

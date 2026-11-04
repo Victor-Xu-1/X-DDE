@@ -5,6 +5,7 @@ import type { MoleculeRef } from "../research/types";
 import type { ScientificPayload, ScientificProgram } from "./types";
 import { LibraryInput } from "./LibraryInput";
 import { BoltzInputs } from "./BoltzInputs";
+import type { BoltzComponent } from "./boltz-inputs";
 import { ReinventInputs } from "./ReinventInputs";
 
 export function ScientificInputs({
@@ -20,6 +21,7 @@ export function ScientificInputs({
   scaffold,
   onScaffold,
   onBoltzMsaVerified,
+  onBoltzComponents,
 }: {
   program: ScientificProgram;
   language: Language;
@@ -33,13 +35,16 @@ export function ScientificInputs({
   scaffold: MoleculeRef | null;
   onScaffold(value: MoleculeRef | null): void;
   onBoltzMsaVerified?(chain: string, key: string): void;
+  onBoltzComponents(
+    update: (previous: BoltzComponent[]) => BoltzComponent[],
+  ): void;
 }) {
   const zh = language === "zh";
   if (program === "boltz")
     return (
       <BoltzInputs
-        payload={payload}
-        onChange={onChange}
+        components={payload.components as BoltzComponent[]}
+        onComponents={onBoltzComponents}
         language={language}
         onMsaVerified={onBoltzMsaVerified}
       />

@@ -1,23 +1,40 @@
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import type { Language } from "../types";
-import type { ScientificPayload } from "./types";
+import { assetDownloadUrl } from "../research/asset-download";
 import type { BoltzComponent } from "./boltz-inputs";
 import { BoltzMsaInput } from "./BoltzMsaInput";
 
 export function BoltzInputs({
-  payload,
-  onChange,
+  components,
+  onComponents,
   language,
   onMsaVerified,
 }: {
-  payload: ScientificPayload;
-  onChange(value: Partial<ScientificPayload>): void;
+  components: BoltzComponent[];
+  onComponents(update: (previous: BoltzComponent[]) => BoltzComponent[]): void;
   language: Language;
   onMsaVerified?(chain: string, key: string): void;
 }) {
   const zh = language === "zh";
-  const components = payload.components as BoltzComponent[];
+  function change(
+    index: number,
+    patch: Partial<BoltzComponent>,
+    owner?: BoltzComponent,
+  ) {
+    onComponents((previous) =>
+      previous.map((row, position) =>
+        position === index &&
+        (!owner ||
+          (row.id === owner.id &&
+            row.kind === owner.kind &&
+            row.value === owner.value &&
+            row.msa_mode === owner.msa_mode))
+          ? { ...row, ...patch }
+          : row,
+      ),
+    );
+  }
   return (
     <div className="scientific-input-grid">
       {components.map((component, index) => (
@@ -28,20 +45,12 @@ export function BoltzInputs({
               <select
                 value={component.kind}
                 onChange={(e) =>
-                  onChange({
-                    components: components.map((c, i) =>
-                      i === index
-                        ? {
-                            ...c,
-                            kind: e.target.value,
-                            value: "",
-                            source: null,
-                            msa: null,
-                            msa_mode:
-                              e.target.value === "protein" ? "provided" : null,
-                          }
-                        : c,
-                    ),
+                  change(index, {
+                    kind: e.target.value,
+                    value: "",
+                    source: null,
+                    msa: null,
+                    msa_mode: e.target.value === "protein" ? "provided" : null,
                   })
                 }
               >
@@ -58,13 +67,7 @@ export function BoltzInputs({
               <input
                 maxLength={8}
                 value={component.id}
-                onChange={(e) =>
-                  onChange({
-                    components: components.map((c, i) =>
-                      i === index ? { ...c, id: e.target.value } : c,
-                    ),
-                  })
-                }
+                onChange={(e) => change(index, { id: e.target.value })}
               />
             </label>
           </div>
@@ -74,11 +77,7 @@ export function BoltzInputs({
                 kind="ligand"
                 value={component.source ?? null}
                 onChange={(value) =>
-                  onChange({
-                    components: components.map((c, i) =>
-                      i === index ? { ...c, source: value, value: "" } : c,
-                    ),
-                  })
+                  change(index, { source: value, value: "" }, component)
                 }
                 language={language}
                 label={zh ? "上传小分子结构" : "Upload molecular structure"}
@@ -91,17 +90,10 @@ export function BoltzInputs({
               rows={component.kind === "ligand" ? 2 : 5}
               value={component.value}
               onChange={(e) =>
-                onChange({
-                  components: components.map((c, i) =>
-                    i === index
-                      ? {
-                          ...c,
-                          source: null,
-                          value: e.target.value.replace(/\s/g, ""),
-                          msa: null,
-                        }
-                      : c,
-                  ),
+                change(index, {
+                  source: null,
+                  value: e.target.value.replace(/\s/g, ""),
+                  msa: null,
                 })
               }
             />
@@ -114,19 +106,9 @@ export function BoltzInputs({
               mode={component.msa_mode ?? "provided"}
               language={language}
               onModeChange={(msa_mode) =>
-                onChange({
-                  components: components.map((c, i) =>
-                    i === index ? { ...c, msa_mode, msa: null } : c,
-                  ),
-                })
+                change(index, { msa_mode, msa: null })
               }
-              onChange={(msa) =>
-                onChange({
-                  components: components.map((c, i) =>
-                    i === index ? { ...c, msa } : c,
-                  ),
-                })
-              }
+              onChange={(msa) => change(index, { msa }, component)}
               onVerified={(key) => onMsaVerified?.(component.id, key)}
             />
           )}
@@ -136,8 +118,10 @@ export function BoltzInputs({
                 source={
                   component.source
                     ? {
-                        url: `/api/assets/${component.source.asset_id}`,
-                        record: component.source.record,
+                        url: assetDownloadUrl(
+                          component.source.asset_id,
+                          component.source.record,
+                        ),
                       }
                     : { smiles: component.value }
                 }
@@ -150,9 +134,9 @@ export function BoltzInputs({
               type="button"
               className="text-button"
               onClick={() =>
-                onChange({
-                  components: components.filter((_, i) => i !== index),
-                })
+                onComponents((previous) =>
+                  previous.filter((_, i) => i !== index),
+                )
               }
             >
               {zh ? "移除此组分" : "Remove component"}
@@ -165,17 +149,15 @@ export function BoltzInputs({
           type="button"
           className="secondary-button"
           onClick={() =>
-            onChange({
-              components: [
-                ...components,
-                {
-                  id: String.fromCharCode(65 + components.length),
-                  kind: "protein",
-                  value: "",
-                  msa_mode: "provided",
-                },
-              ],
-            })
+            onComponents((previous) => [
+              ...previous,
+              {
+                id: String.fromCharCode(65 + previous.length),
+                kind: "protein",
+                value: "",
+                msa_mode: "provided",
+              },
+            ])
           }
         >
           {zh ? "添加一个组分" : "Add component"}
