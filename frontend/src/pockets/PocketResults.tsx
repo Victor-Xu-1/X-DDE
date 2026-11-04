@@ -179,6 +179,7 @@ function PocketWorkspace({
             <PocketSelection
               site={selected}
               proteinArtifact={result.protein_artifact}
+              protein={result.protein}
               language={language}
               coordinatesMatch={coordinatesMatch}
               hasValidBox={Boolean(initialPocketBox(selected))}

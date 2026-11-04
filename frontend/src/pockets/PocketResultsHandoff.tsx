@@ -125,7 +125,10 @@ export function PocketResultsHandoff({
               <StructureViewer
                 urls={
                   ligand
-                    ? [receptor, assetDownloadUrl(ligand.asset_id, ligand.record)]
+                    ? [
+                        receptor,
+                        assetDownloadUrl(ligand.asset_id, ligand.record),
+                      ]
                     : [receptor]
                 }
                 language={language}

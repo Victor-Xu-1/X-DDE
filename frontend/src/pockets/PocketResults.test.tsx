@@ -226,6 +226,46 @@ it.each(["insertion_code", "alternate_location", "chain"] as const)(
   },
 );
 
+const nativeResidue = sites[0].residues[0];
+it.each([
+  [
+    "other asset",
+    [{ ...nativeResidue, structure: { ...protein, asset_id: "another-file" } }],
+  ],
+  [
+    "other version",
+    [
+      {
+        ...nativeResidue,
+        structure: { ...protein, version_id: "another-version" },
+      },
+    ],
+  ],
+  ["duplicate residue", [nativeResidue, nativeResidue]],
+  [
+    "oversized region",
+    Array.from({ length: 251 }, (_, number) => ({ ...nativeResidue, number })),
+  ],
+  ["punctuation chain", [{ ...nativeResidue, chain: "." }]],
+])(
+  "blocks generation for %s while keeping the same-frame docking box",
+  (_case, residues) => {
+    render(
+      <PocketResults
+        job={{ id: "native-contract" }}
+        result={{ ...result, pockets: [{ ...sites[0], residues }] }}
+        language="en"
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Generate molecules in this pocket" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Explore poses in this pocket" }),
+    ).toBeEnabled();
+  },
+);
+
 it("preserves format restrictions and the empty result without inventing a selectable site", () => {
   const { rerender } = render(
     <PocketResults

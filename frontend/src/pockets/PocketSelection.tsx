@@ -1,3 +1,5 @@
+import { referenceKey } from "../diffsbdd/model";
+import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
 import type { Site } from "./types";
 
@@ -5,6 +7,7 @@ import type { Site } from "./types";
 export function PocketSelection({
   site,
   proteinArtifact,
+  protein,
   coordinatesMatch,
   hasValidBox,
   language,
@@ -13,6 +16,7 @@ export function PocketSelection({
 }: {
   site: Site;
   proteinArtifact: string;
+  protein: MoleculeRef;
   coordinatesMatch: boolean;
   hasValidBox: boolean;
   language: Language;
@@ -21,14 +25,23 @@ export function PocketSelection({
 }) {
   const zh = language === "zh";
   const pdb = proteinArtifact.endsWith(".pdb");
-  const usable =
+  const residues = site.residues;
+  const source = referenceKey(protein);
+  const exactSource =
     coordinatesMatch &&
+    residues.every((residue) => referenceKey(residue.structure) === source);
+  const usable =
     pdb &&
-    !!site.residues.length &&
-    site.residues.every(
+    exactSource &&
+    residues.length >= 1 &&
+    residues.length <= 250 &&
+    new Set(residues.map((r) => `${r.chain}:${r.number}`)).size ===
+      residues.length &&
+    residues.every(
       (r) =>
         r.model === 0 &&
-        r.chain.length === 1 &&
+        /^[A-Za-z0-9]$/.test(r.chain) &&
+        Number.isSafeInteger(r.number) &&
         !r.insertion_code &&
         !r.alternate_location,
     );
@@ -83,12 +96,18 @@ export function PocketSelection({
             ? "口袋残基与此受体来源不一致。请回到原始口袋结果核对。"
             : "The pocket residues do not match this receptor source. Check the original pocket result."}
         </p>
+      ) : !exactSource ? (
+        <p className="field-help" role="status">
+          {zh
+            ? "分子生成需要残基与受体来自同一文件版本。"
+            : "Molecule generation requires residues from the exact receptor file version."}
+        </p>
       ) : (
         !usable && (
           <p className="field-help">
             {zh
-              ? "分子生成需要 PDB、单字符链标识和无歧义残基编号。请先准备结构并保留残基对应关系。"
-              : "Molecule generation needs PDB, single-character chains and unambiguous residue numbering. Prepare the structure while preserving residue mappings."}
+              ? "分子生成需要 PDB 中 1–250 个互不重复、编号明确的残基，链标识须为单个字母或数字。"
+              : "Molecule generation needs 1–250 unique, unambiguous PDB residues with single-letter or single-digit chain IDs."}
           </p>
         )
       )}
