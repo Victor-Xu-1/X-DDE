@@ -12,10 +12,12 @@ export function PredictionEntityPreview({
   item,
   index,
   language,
+  initiallyExpanded = index === 0,
 }: {
   item: PreviewComponent;
   index: number;
   language: Language;
+  initiallyExpanded?: boolean;
 }) {
   const zh = language === "zh";
   const name = entityInfo[item.kind].name[zh ? 0 : 1];
@@ -44,7 +46,7 @@ export function PredictionEntityPreview({
     [item.template_hits, zh ? "模板文件" : "Template file"],
   ].filter(([id]) => Boolean(id));
   return (
-    <details className="prediction-preview-entity" open={index === 0}>
+    <details className="prediction-preview-entity" open={initiallyExpanded}>
       <summary>
         <span className="prediction-entity-number" aria-hidden="true">
           {index + 1}

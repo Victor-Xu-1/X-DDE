@@ -1,6 +1,12 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { Mol1Form } from "./Mol1Form";
 
@@ -15,6 +21,27 @@ vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
+});
+
+beforeEach(() => {
+  const proto = HTMLDialogElement.prototype;
+  if (!proto.showModal) {
+    Object.defineProperties(proto, {
+      showModal: {
+        configurable: true,
+        value() {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value() {
+          this.removeAttribute("open");
+        },
+      },
+    });
+  }
 });
 
 it.each(["en", "zh"] as const)(
@@ -40,12 +67,15 @@ it.each(["en", "zh"] as const)(
     expect(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     ).toBeDisabled();
-    await user.selectOptions(
-      screen.getByLabelText(
-        zh ? "序列进化信息" : "Sequence evolutionary information",
-      ),
-      "none",
-    );
+    if (zh) {
+      await user.selectOptions(screen.getByLabelText("序列进化信息"), "none");
+    } else {
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: "Allow this task to send sequences to the native MSA service and retrieve template structures",
+        }),
+      );
+    }
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
@@ -59,11 +89,34 @@ it.each(["en", "zh"] as const)(
     );
     await user.click(
       screen.getByRole("button", {
-        name: zh ? "提交 Mol-1 预测" : "Submit Mol-1 prediction",
+        name: zh ? "预览任务" : "Preview job",
+      }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: zh ? "预览任务" : "Preview job",
+    });
+    const review = within(dialog);
+    expect(api.submit).not.toHaveBeenCalled();
+    expect(
+      await review.findByText(zh ? "未允许" : "Allowed", { exact: true }),
+    ).toBeVisible();
+    await user.click(
+      await review.findByRole("button", {
+        name: zh ? "提交内容" : "Request JSON",
+      }),
+    );
+    const shown = JSON.parse(
+      review.getByLabelText(zh ? "X-DDE 提交请求" : "X-DDE submission request")
+        .textContent!,
+    );
+    await user.click(
+      review.getByRole("button", {
+        name: zh ? "提交任务" : "Submit job",
       }),
     );
     await waitFor(() => expect(api.submit).toHaveBeenCalledOnce());
     const body = vi.mocked(api.submit).mock.calls[0][0];
+    expect(body).toEqual(shown);
     expect(body).toMatchObject({
       operation: "mol1_predict",
       payload: {
@@ -71,8 +124,8 @@ it.each(["en", "zh"] as const)(
         samples: 5,
         cycles: 20,
         steps: 200,
-        feature_mode: "none",
-        allow_network: false,
+        feature_mode: zh ? "none" : "search",
+        allow_network: !zh,
         components: [
           { kind: "protein", value: "PREACHINGS" },
           { kind: "ligand", value: "CCD_ATP" },

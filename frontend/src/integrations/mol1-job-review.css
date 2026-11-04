@@ -1,0 +1,119 @@
+.prediction-job-preview {
+  width: min(1040px, calc(100vw - 32px));
+}
+.mol1-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(240px, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+.mol1-review-primary {
+  min-width: 0;
+}
+.mol1-review-identity,
+.mol1-review-settings {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.mol1-review-identity {
+  display: grid;
+  gap: 4px;
+}
+.mol1-review-identity span,
+.mol1-review-settings p,
+.mol1-review-payload p {
+  color: var(--muted);
+  font-size: 13px;
+}
+.mol1-review-tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  margin: 8px 0 14px;
+}
+.prediction-job-preview .mol1-review-tabs button {
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  border-radius: 0;
+  box-shadow: none;
+}
+.prediction-job-preview .mol1-review-tabs button[aria-pressed="true"] {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+.mol1-review-settings h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.mol1-review-settings dl {
+  margin: 8px 0 14px;
+}
+.mol1-review-settings dl div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+  font-size: 13px;
+}
+.mol1-review-settings dt {
+  color: var(--muted);
+}
+.mol1-review-settings dd {
+  margin: 0;
+  text-align: right;
+}
+.mol1-review-settings ul {
+  list-style: none;
+  padding: 0;
+  font-size: 13px;
+}
+.mol1-review-settings li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+}
+.mol1-review-settings li span {
+  color: var(--muted);
+}
+.prediction-job-preview .mol1-review-payload pre {
+  margin: 0;
+  padding: 16px;
+  max-height: 360px;
+  overflow: auto;
+  background: #172333;
+  color: #eef4fa;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px/1.6 var(--mono);
+}
+.prediction-job-preview .notice {
+  margin: 16px 0 0;
+}
+.mol1-review-availability .secondary-button {
+  margin-top: 8px;
+}
+@media (max-width: 700px) {
+  .mol1-review-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .prediction-job-preview > footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .prediction-job-preview > footer button {
+    min-width: 0;
+    white-space: nowrap;
+  }
+}

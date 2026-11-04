@@ -129,6 +129,61 @@ DRAFT_FILES = {
 }
 
 
+FINAL_REVIEW_FILES = {
+    ".github/workflows/mol1-restraint-checks.yml",
+    "frontend/src/integrations/Mol1Form.tsx",
+    "frontend/src/integrations/Mol1Form.test.tsx",
+    "frontend/src/integrations/Mol1JobReview.tsx",
+    "frontend/src/integrations/mol1-job-request.ts",
+    "frontend/src/integrations/mol1-job-request.test.ts",
+    "frontend/src/integrations/mol1-job-review.css",
+    "frontend/src/guided/Questionnaire.tsx",
+    "frontend/src/presentation/PredictionInputPreview.tsx",
+    "frontend/src/presentation/PredictionEntityPreview.tsx",
+    "frontend/src/presentation/PredictionReviewDialog.tsx",
+    "server_tests/test_mol1_final_review_browser.py",
+    "server_tests/test_mol1_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def final_review_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and {
+            "frontend/src/integrations/Mol1Form.tsx",
+            "frontend/src/integrations/Mol1JobReview.tsx",
+            "server_tests/test_mol1_final_review_browser.py",
+        }.issubset(changed)
+        and changed.issubset(FINAL_REVIEW_FILES)
+    )
+
+
+def final_review_changed(changed, event="push"):
+    return event == "workflow_dispatch" or any(
+        path.startswith("frontend/src/integrations/mol1-job-")
+        or path
+        in {
+            "frontend/src/integrations/Mol1Form.tsx",
+            "frontend/src/integrations/Mol1JobReview.tsx",
+            "frontend/src/guided/Questionnaire.tsx",
+            "frontend/src/presentation/PredictionReviewDialog.tsx",
+            "server_tests/test_mol1_final_review_browser.py",
+        }
+        for path in changed
+    )
+
+
 def drafts_only(changed, event="push"):
     changed = set(changed)
     return (
@@ -183,6 +238,7 @@ def preview_changed(changed, event="push"):
                 "frontend/src/presentation/PredictionSetup",
                 "frontend/src/presentation/PredictionInputPreview",
                 "frontend/src/presentation/PredictionEntityPreview",
+                "frontend/src/presentation/PredictionReviewDialog",
             )
         )
         or name
@@ -251,7 +307,7 @@ def confidence_changed(changed):
 
 
 def selected(changed, event="push"):
-    if drafts_only(changed, event):
+    if drafts_only(changed, event) or final_review_only(changed, event):
         return True
     if event in {"push", "pull_request"} and native_confidence_only(changed):
         return True
@@ -284,6 +340,12 @@ def main():
         for key, value in {
             "drafts_only": drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "drafts_changed": drafts_changed(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
+            "final_review_only": final_review_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "final_review_changed": final_review_changed(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
         }.items():
             stream.write(f"{key}={str(value).lower()}\n")
         stream.write(
