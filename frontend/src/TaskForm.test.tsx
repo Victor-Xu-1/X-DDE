@@ -40,6 +40,15 @@ vi.mock("./api", async (original) => {
   };
 });
 afterEach(cleanup);
+// jsdom lacks the native dialog lifecycle used by the real-browser test.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 async function openReview(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Preview job" }));
   return within(await screen.findByRole("dialog", { name: "Preview job" }));

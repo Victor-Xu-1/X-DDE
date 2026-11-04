@@ -4,6 +4,15 @@ import { expect, it, vi } from "vitest";
 import { TaskForm } from "../TaskForm";
 import { componentsFor } from "./presets";
 import { defaults, prediction, validate } from "../form-model";
+// jsdom lacks the native dialog lifecycle used by the real-browser test.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 it("prepares distinct protein chains and automatically dispatches antibody tasks to ABAG", async () => {
   const user = userEvent.setup(),
     submit = vi.fn().mockResolvedValue({ id: "actual-prediction" });

@@ -127,6 +127,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
               abagAvailable={Boolean(p.health?.engine.models?.abag)}
               initialRequest={p.draft}
               projectId={p.projectId}
+              onCheckEnvironment={p.onRefresh}
               onPreviewChange={setShowingExample}
               onSubmit={async (value, key) => {
                 const created = await p.onSubmit(value, key);

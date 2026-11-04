@@ -30,6 +30,7 @@ interface Props {
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
   projectId?: string | null;
+  onCheckEnvironment?(): void;
   onPreviewChange?(value: boolean): void;
   onSubmit(value: Prediction, key: string): Promise<Job>;
 }
@@ -38,6 +39,7 @@ export function TaskForm({
   ready,
   initialRequest,
   projectId = null,
+  onCheckEnvironment,
   onSubmit,
   abagAvailable = false,
   onPreviewChange,
@@ -219,7 +221,7 @@ export function TaskForm({
       />
       <p className="small model-summary">
         {zh ? "本次模型：" : "Model: "}
-        {parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
+        {model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
         {zh ? "服务端计算" : "Server computation"}
       </p>
       <label className="field task-name">
@@ -254,8 +256,7 @@ export function TaskForm({
       </dd>
       <dt>{zh ? "模型与构象数" : "Model and samples"}</dt>
       <dd>
-        {parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
-        {parameters.samples}
+        {model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} · {parameters.samples}
       </dd>
       <dt>{zh ? "任务名称" : "Task name"}</dt>
       <dd>{name.trim() || (zh ? "自动命名" : "Automatic")}</dd>
@@ -302,7 +303,7 @@ export function TaskForm({
           <PredictionSetup
             language={language}
             components={components}
-            model={parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"}
+            model={model === "abag" ? "OpenDDE ABAG" : "OpenDDE"}
             seeds={[parameters.seed, ...(parameters.additional_seeds ?? [])]}
             samples={parameters.samples}
             valid={inputValid}
@@ -314,6 +315,7 @@ export function TaskForm({
               busy={busy}
               error={error}
               unavailable={unavailable}
+              onCheckEnvironment={onCheckEnvironment}
               submitLabel={zh ? "预览任务" : "Preview job"}
               renderReview={({ confirm, dismiss }) => (
                 <OpenDdeJobReview
@@ -321,6 +323,7 @@ export function TaskForm({
                   language={language}
                   ready={ready && modelReady}
                   unavailable={unavailable}
+                  recheck={onCheckEnvironment}
                   busy={busy}
                   error={error}
                   confirm={confirm}
