@@ -5,6 +5,8 @@ on:
     paths: &lifecycle_paths
       - "src/opendde_workbench/service_control.py"
       - "tests/test_service_control.py"
+      - "tests/test_service_shutdown.py"
+      - "src/opendde_workbench/__main__.py"
       - ".github/workflows/service-control-checks.yml"
   pull_request:
     paths: *lifecycle_paths
@@ -25,5 +27,5 @@ jobs:
       - run: uv sync --locked --group dev
       - name: Loopback transport and existing shutdown protections
         run: |
-          uv run --locked ruff check src/opendde_workbench/service_control.py tests/test_service_control.py
-          uv run --locked pytest -q tests/test_service_control.py
+          uv run --locked ruff check src/opendde_workbench/__main__.py src/opendde_workbench/service_control.py tests/test_service_control.py tests/test_service_shutdown.py
+          uv run --locked pytest -q tests/test_service_control.py tests/test_service_shutdown.py
