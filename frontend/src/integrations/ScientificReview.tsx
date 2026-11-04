@@ -8,7 +8,6 @@ import { ReinventReview } from "./ReinventReview";
 import { PlipReview } from "./PlipReview";
 import { ScientificReviewBoltzGen } from "./ScientificReviewBoltzGen";
 import { BoundPropertyModelEvidence } from "./PropertyModelEvidence";
-import type { BoltzComponent } from "./boltz-inputs";
 
 export function ScientificReview({
   program,
@@ -60,7 +59,7 @@ export function ScientificReview({
         <tbody>
           <tr>
             <th>{zh ? "计算程序" : "Scientific program"}</th>
-            <td>{program === "boltz" ? "Boltz-2" : program}</td>
+            <td>{program}</td>
           </tr>
           <tr>
             <th>{zh ? "材料" : "Inputs"}</th>
@@ -76,30 +75,6 @@ export function ScientificReview({
             <th>{zh ? "计算设备" : "Device"}</th>
             <td>{options.device === "cuda" ? "GPU" : "CPU"}</td>
           </tr>
-          {program === "boltz" &&
-            (payload.components as BoltzComponent[])
-              .filter((component) => component.kind === "protein")
-              .map((component) => (
-                <tr key={component.id}>
-                  <th>{(zh ? "链 " : "Chain ") + component.id + " MSA"}</th>
-                  <td>
-                    {component.msa ? (
-                      <a
-                        href={`/api/assets/${component.msa.asset_id}`}
-                        download
-                      >
-                        {zh
-                          ? "本次核验的比对文件"
-                          : "Verified alignment for this task"}
-                      </a>
-                    ) : zh ? (
-                      "单序列探索性基线"
-                    ) : (
-                      "Single-sequence exploratory baseline"
-                    )}
-                  </td>
-                </tr>
-              ))}
         </tbody>
       </table>
     </>

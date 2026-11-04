@@ -3,6 +3,7 @@ import { normalizeProtein } from "../form-model";
 import type { Component, Language } from "../types";
 import { MoleculeImage } from "./MoleculeImage";
 import { SequenceTrack } from "./SequenceTrack";
+import { assetDownloadUrl } from "../research/asset-download";
 
 /** Optional display metadata supplied by a form; never part of a new task schema. */
 export type PreviewComponent = Component & { ligand_record?: number };
@@ -33,8 +34,7 @@ export function PredictionEntityPreview({
   const ccd = /^CCD_[A-Za-z0-9]{1,8}$/.test(item.value.trim());
   const source = item.ligand_file
     ? {
-        url: `/api/assets/${encodeURIComponent(item.ligand_file)}`,
-        record: item.ligand_record,
+        url: assetDownloadUrl(item.ligand_file, item.ligand_record),
       }
     : item.kind === "ligand" && item.value.trim() && !ccd
       ? { smiles: item.value }
@@ -93,7 +93,7 @@ export function PredictionEntityPreview({
             )}
             <MoleculeImage source={source} language={language} label={label} />
             <a
-              href={`/api/assets/${encodeURIComponent(item.ligand_file)}`}
+              href={assetDownloadUrl(item.ligand_file, item.ligand_record)}
               download
             >
               {zh ? "下载已选结构文件" : "Download selected structure input"}

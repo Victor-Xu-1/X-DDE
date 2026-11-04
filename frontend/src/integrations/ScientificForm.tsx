@@ -4,7 +4,7 @@ import { Questionnaire } from "../guided/Questionnaire";
 import { PredictionSetup } from "../presentation/PredictionSetup";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import type { Component, Job, Language } from "../types";
+import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "../research/input-catalog";
 import { RestraintEditor } from "../simulations/RestraintEditor";
@@ -19,10 +19,13 @@ import {
 } from "./boltz-inputs";
 import { nativeDefaults } from "./generated";
 import { ScientificInputs } from "./ScientificInputs";
+import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
 import { ScientificChoices } from "./ScientificChoices";
 import { ScientificSelection } from "./ScientificSelection";
 import { ScaffoldSelection } from "./ScaffoldSelection";
 import { ScientificReview } from "./ScientificReview";
+import { BoltzJobReview } from "./BoltzJobReview";
+import { boltzPreviewComponents } from "./boltz-job-request";
 import { usesStartingMolecule, usesMolecularInput } from "./reinvent-modes";
 import {
   validBoltzComponents,
@@ -103,29 +106,38 @@ export function ScientificForm({
   );
   const [scaffold, setScaffold] = useState<MoleculeRef | null>(null);
   const [msaVerified, setMsaVerified] = useState<Record<string, string>>({});
-  const [payload, setPayload] = useState<ScientificPayload>(() => ({
+  const [settings, setPayload] = useState<ScientificPayload>(() => ({
     ...structuredClone(nativeDefaults[program]),
     kind: program,
     ...(program === "chemprop"
       ? { mode: operation === "chemprop_train" ? "train" : "predict" }
       : {}),
-    ...(program === "boltz"
-      ? {
-          components: [
-            {
-              id: "A",
-              kind: "protein",
-              value: example?.sequences.protein ?? "",
-              msa_mode: "provided",
-            },
-            { id: "B", kind: "ligand", value: "", source: initialLigand },
-          ],
-        }
-      : {}),
     ...(program === "ligandmpnn" ? { redesigned_residues: [] } : {}),
     ...(program === "boltzgen" ? { target_chains: [] } : {}),
     ...(preset?.payload ?? {}),
   }));
+  const [boltzRows, setBoltzRows] = useState<BoltzInputRow[]>(() => {
+    if (program !== "boltz") return [];
+    const components = (preset?.payload?.components as
+      BoltzComponent[] | undefined) ?? [
+      {
+        id: "A",
+        kind: "protein",
+        value: example?.sequences.protein ?? "",
+        msa_mode: "provided",
+      },
+      { id: "B", kind: "ligand", value: "", source: initialLigand },
+    ];
+    return components.map((component, index) => ({
+      key: String(index),
+      revision: 0,
+      component,
+    }));
+  });
+  const payload =
+    program === "boltz"
+      ? { ...settings, components: boltzRows.map((row) => row.component) }
+      : settings;
   const [selectionValid, setSelectionValid] = useState(
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
@@ -220,6 +232,19 @@ export function ScientificForm({
     Number.isInteger(options.seed) &&
     options.seed >= 0 &&
     options.seed <= 2147483647;
+  const unavailable = zh
+    ? "计算环境尚未就绪，可先填写材料，再到组件页完成部署。"
+    : "Prepare the scientific environment in Components before submission.";
+  function currentTask(): ScientificTask {
+    return {
+      operation,
+      name: name.trim() || (zh ? "研究计算" : "Research calculation"),
+      inputs,
+      scientific_inputs: inputs.map((item) => item.source),
+      payload: program === "openmm" ? { ...payload, restraints } : payload,
+      options,
+    };
+  }
   const questionnaire = (
     <Questionnaire
       language={language}
@@ -227,66 +252,88 @@ export function ScientificForm({
       error={readiness.error || run.error}
       ready={readiness.ready}
       onCheckEnvironment={readiness.recheck}
-      unavailable={
-        zh
-          ? "计算环境尚未就绪，可先填写材料，再到组件页完成部署。"
-          : "Prepare the scientific environment in Components before submission."
+      unavailable={unavailable}
+      submitLabel={
+        program === "boltz"
+          ? zh
+            ? "预览任务"
+            : "Preview job"
+          : zh
+            ? "提交计算"
+            : "Submit calculation"
       }
-      submitLabel={zh ? "提交计算" : "Submit calculation"}
-      onSubmit={() =>
-        run.submit({
-          operation,
-          name: name.trim() || (zh ? "研究计算" : "Research calculation"),
-          inputs,
-          scientific_inputs: inputs.map((item) => item.source),
-          payload: program === "openmm" ? { ...payload, restraints } : payload,
-          options,
-        })
+      onSubmit={
+        program === "boltz" ? undefined : () => run.submit(currentTask())
+      }
+      renderReview={
+        program === "boltz"
+          ? ({ confirm, dismiss }) => (
+              <BoltzJobReview
+                language={language}
+                input={currentTask()}
+                ready={readiness.ready}
+                unavailable={readiness.error || unavailable}
+                busy={run.busy}
+                error={run.error}
+                recheck={readiness.recheck}
+                confirm={confirm}
+                onClose={dismiss}
+                submit={run.submit}
+              />
+            )
+          : undefined
       }
       steps={[
         {
           title: zh ? "选择研究材料" : "Choose research inputs",
           valid: inputValid,
-          content: (
-            <ScientificInputs
-              onBoltzMsaVerified={(chain, valid) =>
-                setMsaVerified((previous) =>
-                  previous[chain] === valid
-                    ? previous
-                    : { ...previous, [chain]: valid },
-                )
-              }
-              onLibraryVerified={setVerifiedLibrary}
-              program={program}
-              language={language}
-              payload={payload}
-              onChange={update}
-              structure={structure}
-              onStructure={(value) => {
-                setStructure(value);
-                setRestraints([]);
-                update(
-                  program === "ligandmpnn"
-                    ? { redesigned_residues: [] }
-                    : program === "boltzgen"
-                      ? { target_chains: [] }
-                      : program === "plip"
-                        ? { ligand_chain: "", ligand_number: null }
-                        : {},
-                );
-              }}
-              ligand={ligand}
-              onLigand={(value) => {
-                setLigand(value);
-                setRestraints([]);
-              }}
-              scaffold={scaffold}
-              onScaffold={(value) => {
-                setScaffold(value);
-                update({ scaffold_chain: null, scaffold_residues: [] });
-              }}
-            />
-          ),
+          content:
+            program === "boltz" ? (
+              <BoltzInputs
+                rows={boltzRows}
+                onRows={setBoltzRows}
+                language={language}
+                onMsaVerified={(chain, valid) =>
+                  setMsaVerified((previous) =>
+                    previous[chain] === valid
+                      ? previous
+                      : { ...previous, [chain]: valid },
+                  )
+                }
+              />
+            ) : (
+              <ScientificInputs
+                onLibraryVerified={setVerifiedLibrary}
+                program={program}
+                language={language}
+                payload={payload}
+                onChange={update}
+                structure={structure}
+                onStructure={(value) => {
+                  setStructure(value);
+                  setRestraints([]);
+                  update(
+                    program === "ligandmpnn"
+                      ? { redesigned_residues: [] }
+                      : program === "boltzgen"
+                        ? { target_chains: [] }
+                        : program === "plip"
+                          ? { ligand_chain: "", ligand_number: null }
+                          : {},
+                  );
+                }}
+                ligand={ligand}
+                onLigand={(value) => {
+                  setLigand(value);
+                  setRestraints([]);
+                }}
+                scaffold={scaffold}
+                onScaffold={(value) => {
+                  setScaffold(value);
+                  update({ scaffold_chain: null, scaffold_residues: [] });
+                }}
+              />
+            ),
         },
         {
           title: zh ? "选择研究目标" : "Choose the research objective",
@@ -376,13 +423,21 @@ export function ScientificForm({
                   placeholder={zh ? "为这次研究起个名字" : "Name this study"}
                 />
               </label>
-              <ScientificReview
-                program={program}
-                language={language}
-                payload={payload}
-                inputs={inputs}
-                options={options}
-              />
+              {program === "boltz" ? (
+                <p className="field-help">
+                  {zh
+                    ? "打开预览，核对链、材料和预测设置。"
+                    : "Open the preview to verify chains, sources, and prediction settings."}
+                </p>
+              ) : (
+                <ScientificReview
+                  program={program}
+                  language={language}
+                  payload={payload}
+                  inputs={inputs}
+                  options={options}
+                />
+              )}
               {program === "openmm" && (
                 <p>
                   {zh ? "三维约束" : "3D restraints"}: {restraints.length}
@@ -400,14 +455,7 @@ export function ScientificForm({
       language={language}
       components={
         program === "boltz"
-          ? (payload.components as BoltzComponent[]).map((row) => ({
-              kind: row.kind as Component["kind"],
-              value: row.value,
-              count: 1,
-              ligand_file: row.source?.asset_id,
-              ligand_record: row.source?.record,
-              chain_ids: [row.id],
-            }))
+          ? boltzPreviewComponents(payload.components as BoltzComponent[])
           : []
       }
       model="Boltz-2"

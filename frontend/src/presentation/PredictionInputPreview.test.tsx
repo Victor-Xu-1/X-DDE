@@ -265,8 +265,13 @@ it("uses the shared single-FASTA normalization and retains a nonzero selected mo
   );
   expect(within(dialog).getByTestId("native-drawing")).toHaveAttribute(
     "data-source",
-    '{"url":"/api/assets/library-file","record":7}',
+    '{"url":"/api/assets/library-file?record=7"}',
   );
+  expect(
+    within(dialog).getByRole("link", {
+      name: "Download selected structure input",
+    }),
+  ).toHaveAttribute("href", "/api/assets/library-file?record=7");
   expect(dialog).toHaveTextContent("Molecular record in file: 8");
   expect(dialog).not.toHaveTextContent("stale");
 });

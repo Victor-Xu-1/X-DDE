@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
@@ -10,7 +10,24 @@ vi.mock("../guided/useTaskReadiness", () => ({
 }));
 vi.mock("../presentation/MoleculeImage", () => ({ MoleculeImage: () => null }));
 afterEach(() => vi.restoreAllMocks());
-it("submits a template ligand once from its component and ignores unsupported structure handoff state", async () => {
+it("submits the exact previewed ligand record and version once, ignoring unsupported structure handoff state", async () => {
+  const proto = HTMLDialogElement.prototype;
+  if (!proto.showModal) {
+    Object.defineProperties(proto, {
+      showModal: {
+        configurable: true,
+        value() {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value() {
+          this.removeAttribute("open");
+        },
+      },
+    });
+  }
   const asset = {
     id: "11111111-1111-4111-8111-111111111111",
     sha256: "a".repeat(64),
@@ -23,8 +40,9 @@ it("submits a template ligand once from its component and ignores unsupported st
   const source = {
     asset_id: asset.id,
     sha256: asset.sha256,
-    record: 0,
+    record: 2,
     conformer: 0,
+    version_id: "22222222-2222-4222-8222-222222222222",
   };
   vi.spyOn(examples, "useExampleTask").mockReturnValue({
     operation: "boltz_predict",
@@ -50,6 +68,9 @@ it("submits a template ligand once from its component and ignores unsupported st
           ? asset
           : { availability: { configuration_present: true } }) as never,
   );
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(null, { headers: { "X-Structure-Record": "2" } }),
+  );
   const submit = vi
     .spyOn(client.api, "submit")
     .mockResolvedValue({ id: "created-from-reviewed-inputs" } as never);
@@ -67,13 +88,25 @@ it("submits a template ligand once from its component and ignores unsupported st
   );
   for (let step = 0; step < 3; step++)
     await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByText("1 confirmed files")).toBeVisible();
-  await user.click(screen.getByRole("button", { name: "Submit calculation" }));
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const dialog = within(screen.getByRole("dialog", { name: "Preview job" }));
+  expect(submit).not.toHaveBeenCalled();
+  expect(await dialog.findByText("Original file record 3")).toBeVisible();
+  expect(dialog.getByRole("link", { name: asset.name })).toHaveAttribute(
+    "href",
+    `/api/assets/${asset.id}?record=2`,
+  );
+  await user.click(dialog.getByRole("button", { name: "Request JSON" }));
+  const shown = JSON.parse(
+    dialog.getByLabelText("X-DDE submission request").textContent!,
+  );
+  await user.click(dialog.getByRole("button", { name: "Submit job" }));
   await waitFor(() => expect(submit).toHaveBeenCalledTimes(1));
   expect(submit.mock.calls[0][0]).toMatchObject({
     inputs: [{ role: "ligand", source }],
     scientific_inputs: [source],
   });
+  expect(submit.mock.calls[0][0]).toEqual(shown);
 });
 it("keeps a consciously chosen single-sequence baseline when navigating back to inputs", async () => {
   vi.spyOn(client, "request").mockResolvedValue({

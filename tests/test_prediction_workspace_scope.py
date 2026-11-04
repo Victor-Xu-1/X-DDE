@@ -29,6 +29,23 @@ def test_final_review_delegation_requires_browser_and_native_form_changes():
     )
 
 
+def test_boltz_final_review_delegates_only_ui_and_enables_its_shared_consumers():
+    files = [
+        "frontend/src/integrations/ScientificForm.tsx",
+        "frontend/src/integrations/BoltzJobReview.tsx",
+        "server_tests/test_boltz_final_review_browser.py",
+        "frontend/src/presentation/PredictionJobReview.tsx",
+    ]
+    assert scope.final_review_only(files)
+    assert scope.boltz_review_changed(files)
+    assert scope.final_review_changed(files)
+    assert not scope.final_review_only(files[1:])
+    assert not scope.final_review_only(
+        files + ["src/opendde_workbench/integrations/native_boltz.py"]
+    )
+    assert not scope.final_review_only(files + ["frontend/src/viewer/StructureInspection.tsx"])
+
+
 def test_unsubmitted_draft_delegation_is_bounded_to_storage_and_its_native_form():
     changed = [
         "frontend/src/presentation/PredictionDraftControls.tsx",
