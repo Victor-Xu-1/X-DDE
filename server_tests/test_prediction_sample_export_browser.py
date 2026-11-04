@@ -82,6 +82,11 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
             bar.get_by_role("button", name="构象 structure-001" if zh else "Sample structure-001")
         ).to_have_attribute("aria-pressed", "true")
         expect(bar).to_contain_text("0.87")
+        selected = bar.locator('.prediction-sample-options [aria-pressed="true"]').bounding_box()
+        sample_list = bar.locator(".prediction-sample-options").bounding_box()
+        assert selected and sample_list
+        assert selected["x"] >= sample_list["x"] - 1
+        assert selected["x"] + selected["width"] <= sample_list["x"] + sample_list["width"] + 1
         download("structure-001", 0)
         missing = page.request.get(base + f"/api/jobs/{job}/prediction-sample.zip?candidate=absent")
         assert missing.status == 404

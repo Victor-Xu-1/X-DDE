@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import type { Language } from "../types";
 import { PredictionSampleDownload } from "./PredictionSampleDownload";
 import "./prediction-workspace.css";
@@ -50,6 +51,19 @@ export function PredictionSamples({
 }) {
   const zh = language === "zh";
   const active = rows.find((row) => row.id === selected);
+  const sampleOptions = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const list = sampleOptions.current;
+    const button = list?.querySelector<HTMLButtonElement>(
+      '[aria-pressed="true"]',
+    );
+    if (!list || !button) return;
+    const frame = list.getBoundingClientRect();
+    const item = button.getBoundingClientRect();
+    if (item.left < frame.left) list.scrollLeft += item.left - frame.left;
+    else if (item.right > frame.right)
+      list.scrollLeft += item.right - frame.right;
+  }, [job, selected]);
   if (!active) return null;
   const seeds = [...new Set(rows.map((row) => row.seed))];
   const group = rows.filter((row) => row.seed === active.seed);
@@ -114,7 +128,7 @@ export function PredictionSamples({
           >
             ‹
           </button>
-          <div className="prediction-sample-options">
+          <div className="prediction-sample-options" ref={sampleOptions}>
             {group.map((row) => (
               <button
                 type="button"
@@ -124,7 +138,7 @@ export function PredictionSamples({
                 title={row.id}
                 onClick={() => onSelect(row.id)}
               >
-                {row.sample ?? row.id}
+                {row.sample ?? /^structure-(\d+)$/.exec(row.id)?.[1] ?? row.id}
               </button>
             ))}
           </div>
