@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
+import { validBoltzComponents } from "./validation";
 import {
   boltzMaterialInputs,
   boltzMsaKey,
@@ -49,6 +50,7 @@ function InputFixture({
       />
       <button
         disabled={
+          !validBoltzComponents(components, false) ||
           !components.every(
             (c) =>
               c.kind !== "protein" ||
@@ -177,6 +179,52 @@ it.each(["remove", "edit"] as const)(
     );
   },
 );
+
+it("invalidates old SMILES immediately and accepts only one concurrently selected ligand file", async () => {
+  const ligand = {
+    ...asset,
+    kind: "ligand" as const,
+    name: "ligand.sdf",
+    suffix: ".sdf",
+  };
+  const pending: Array<(value: typeof ligand) => void> = [];
+  vi.spyOn(api, "upload").mockImplementation(
+    () => new Promise((resolve) => pending.push(resolve)),
+  );
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+    String(url).endsWith(`/assets/${ligand.id}/metadata`)
+      ? Response.json(ligand)
+      : new Response(null, { status: 404 }),
+  );
+  const user = userEvent.setup();
+  render(
+    <InputFixture
+      initial={[
+        { id: "A", kind: "protein", value: "ACDE", msa_mode: "single" },
+        { id: "B", kind: "ligand", value: "CCO" },
+        { id: "C", kind: "ligand", value: "CCN" },
+      ]}
+    />,
+  );
+  const next = screen.getByRole("button", { name: "Continue" });
+  expect(next).toBeEnabled();
+  const uploads = screen.getAllByLabelText("Upload Upload molecular structure");
+  await user.upload(uploads[0], new File(["first"], ligand.name));
+  expect(next).toBeDisabled();
+  await user.upload(uploads[1], new File(["second"], ligand.name));
+  expect(pending).toHaveLength(2);
+  await act(async () => pending.forEach((resolve) => resolve(ligand)));
+  const components = JSON.parse(
+    screen.getByLabelText("Current components").textContent!,
+  ) as BoltzComponent[];
+  expect(components.filter((row) => row.source)).toHaveLength(1);
+  expect(
+    screen.getAllByLabelText("Upload Upload molecular structure"),
+  ).toHaveLength(1);
+  expect(next).toBeDisabled();
+  await user.type(screen.getAllByRole("textbox", { name: "SMILES" })[1], "CCN");
+  expect(next).toBeEnabled();
+});
 
 it("deduplicates shared protein alignments without conflating ligand and MSA roles", () => {
   const msa = {

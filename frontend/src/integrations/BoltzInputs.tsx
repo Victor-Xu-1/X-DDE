@@ -31,7 +31,12 @@ export function BoltzInputs({
   ) {
     onRows((previous) =>
       previous.map((row) =>
-        row.key === owner.key && row.revision === owner.revision
+        row.key === owner.key &&
+        row.revision === owner.revision &&
+        (!patch.source ||
+          !previous.some(
+            (other) => other.key !== row.key && other.component.source,
+          ))
           ? {
               ...row,
               revision: row.revision + Number(resetPicker),
@@ -95,10 +100,7 @@ export function BoltzInputs({
                   kind="ligand"
                   value={component.source ?? null}
                   onChange={(value) =>
-                    change(
-                      row,
-                      value ? { source: value, value: "" } : { source: null },
-                    )
+                    change(row, { source: value, value: "" })
                   }
                   language={language}
                   label={zh ? "上传小分子结构" : "Upload molecular structure"}
