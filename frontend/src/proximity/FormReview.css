@@ -1,0 +1,23 @@
+.ternary-review-geometry .research-tab-list {
+  flex-wrap: wrap;
+}
+
+.ternary-review-regions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 8px;
+}
+
+.ternary-review-regions [aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.prediction-job-preview
+  .ternary-review-geometry
+  .viewer-panel:not(:fullscreen)
+  .molecular-stage {
+  height: clamp(340px, calc(100dvh - 625px), 580px);
+  min-height: 340px;
+}

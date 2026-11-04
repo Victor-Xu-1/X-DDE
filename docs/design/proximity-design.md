@@ -46,6 +46,13 @@ different methods by averaging them.
 
 ## Shared data and execution contracts
 
+Final job review shows each partner and its supplied binary pose in its own
+coordinate frame, plus the complete molecule as a separate 3D source and 2D
+drawing. The requested chain and explicit atom selections remain visible.
+Source files are checked before confirmation, and the request shown in JSON is
+the same request handed to the task submitter. Review and original downloads
+remain available when the compute environment is unavailable.
+
 Native assembly results are read-only coordinate snapshots in both the complete
 complex and standalone ligand views. Inspecting or exporting a diagnostic ligand
 uses its declared, validated native SDF without initial pose preparation, energy
