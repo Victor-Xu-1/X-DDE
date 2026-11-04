@@ -345,7 +345,11 @@ def test_saved_shared_complex_replays_real_mz1_binding_regions(tmp_path, monkeyp
         dialog.get_by_role("button", name="Request JSON").click()
         request = json.loads(dialog.get_by_label("X-DDE submission request").inner_text())
         assert request["payload"] == expected["payload"]
-        assert request["inputs"] == expected["inputs"]
+        # The wizard serializes ligand first; identity is keyed by its scientific role.
+        assert sorted(request["inputs"], key=lambda item: item["role"]) == sorted(
+            expected["inputs"], key=lambda item: item["role"]
+        )
+        assert request["scientific_inputs"] == [item["source"] for item in request["inputs"]]
         assert request["options"] == expected["options"]
         assert not store.list_jobs()
         browser.close()
