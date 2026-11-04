@@ -41,7 +41,7 @@ it("reuses the exact saved region without changing the full molecule", async () 
       language="en"
     />,
   );
-  await screen.findByRole("option", { name: "Retained core · selectio" });
+  await screen.findByRole("option", { name: "Retained core · #1" });
   await user.selectOptions(screen.getByRole("combobox"), "selection");
   expect(onFixed).toHaveBeenCalledWith([0, 2]);
   expect(onSaved).toHaveBeenCalledWith("selection");
@@ -100,7 +100,7 @@ it("keeps a late save in history without binding it to subsequently edited atoms
   await user.click(screen.getByRole("button", { name: "Save fixed region" }));
   view.rerender(<SavedRegions {...props} fixed={[0, 2, 3]} />);
   finish(saved);
-  await screen.findByRole("option", { name: "Retained core · selectio" });
+  await screen.findByRole("option", { name: "Retained core · #1" });
   expect(screen.getByRole("combobox")).toHaveValue("");
   expect(onSaved).not.toHaveBeenCalled();
 });
