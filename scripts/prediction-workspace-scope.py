@@ -139,6 +139,7 @@ FINAL_REVIEW_FILES = {
     "frontend/src/integrations/mol1-job-review.css",
     "frontend/src/guided/Questionnaire.tsx",
     "frontend/src/presentation/PredictionInputPreview.tsx",
+    "frontend/src/presentation/PredictionEntityPreview.tsx",
     "frontend/src/presentation/PredictionReviewDialog.tsx",
     "server_tests/test_mol1_final_review_browser.py",
     "server_tests/test_mol1_browser.py",

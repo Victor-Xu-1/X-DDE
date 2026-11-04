@@ -181,6 +181,7 @@ export function Mol1JobReview({
                     item={item}
                     index={index}
                     language={language}
+                    initiallyExpanded={false}
                   />
                 ))}
               </div>

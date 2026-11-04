@@ -67,6 +67,13 @@ def test_final_prediction_review_without_engine(language, width):
             dialog.get_by_role("button", name=label("Submit job", "提交任务"), exact=True)
         ).to_be_disabled()
         assert dialog.evaluate("element => element.scrollWidth <= element.clientWidth + 1")
+        if width == 390:
+            identity = dialog.get_by_text("STAT6 · Submission review", exact=True).bounding_box()
+            settings = dialog.get_by_role("complementary", name="预测设置").bounding_box()
+            back = dialog.get_by_role("button", name="返回编辑", exact=True).bounding_box()
+            submit = dialog.get_by_role("button", name="提交任务", exact=True).bounding_box()
+            assert identity and settings and identity["y"] < settings["y"]
+            assert back and submit and abs(back["width"] - submit["width"]) < 2
         page.screenshot(path=str(evidence / "overview.png"))
         dialog.get_by_role("button", name=label("Request JSON", "提交内容"), exact=True).click()
         exact = dialog.get_by_label(label("X-DDE submission request", "X-DDE 提交请求"))
