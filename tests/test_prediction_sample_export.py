@@ -301,7 +301,7 @@ def test_job_archive_retains_native_alignment_and_full_confidence(tmp_path):
         prediction_archive(output.parent, job, "a" * 64, sealed)
 
 
-def test_unsealed_boltz_uses_verified_normalized_files_and_retains_affinity(tmp_path):
+def test_unsealed_boltz_uses_verified_normalized_files_and_retains_affinity(tmp_path, monkeypatch):
     candidates = [{"id": f"structure-00{i}", "artifact": f"structure-00{i}.cif"} for i in (1, 2)]
     job, output = manifest(
         tmp_path,
@@ -320,7 +320,7 @@ def test_unsealed_boltz_uses_verified_normalized_files_and_retains_affinity(tmp_
                 "value": 0.4,
                 "unit": "log10(IC50 / µM)",
                 "method": "Boltz-2",
-                "meaning": "affinity prediction",
+                "meaning": "score",
             }
         ],
     )
@@ -338,6 +338,26 @@ def test_unsealed_boltz_uses_verified_normalized_files_and_retains_affinity(tmp_
             == "affinity_pred_value"
         )
         assert json.loads(archive.read("prediction.json"))["limitations"]
+
+    source_name = (BOLTZ_OUTPUT / "prediction_model_0.cif").as_posix()
+    sealed = {source_name: hashlib.sha256(b"two").hexdigest()}
+    stream, _ = prediction_archive(tmp_path, job, request_sha, sealed)
+    with stream, zipfile.ZipFile(stream) as archive:
+        assert f"outputs/{source_name}" in archive.namelist()
+        assert not any("confidence_prediction_model_0.json" in name for name in archive.namelist())
+
+    import opendde_workbench.prediction_archive as archives
+
+    original = archives.prediction_files
+
+    def replace_after_validation(*args):
+        files = original(*args)
+        (output / "result.json").write_text('{"replacement":true}')
+        return files
+
+    monkeypatch.setattr(archives, "prediction_files", replace_after_validation)
+    with pytest.raises(ValueError, match="native report changed"):
+        prediction_archive(tmp_path, job, request_sha, sealed)
 
 
 def test_job_archive_releases_slot_after_disconnect_during_preparation(tmp_path, monkeypatch):

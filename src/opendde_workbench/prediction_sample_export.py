@@ -88,12 +88,12 @@ def retained_native_result(root, request, request_sha256=None, result_sha256=Non
         != (request_sha256 or hashlib.sha256(request.model_dump_json().encode()).hexdigest())
     ):
         raise ValueError("Native prediction differs from the retained task.")
-    return result
+    return result, source
 
 
 def integrated_files(root, request, candidate, sealed):
     output = root / "output"
-    result = retained_native_result(root, request)
+    result, _ = retained_native_result(root, request)
     row = one(result.candidates, candidate, lambda value: value.id)
     if not row.artifact or not row.artifact.endswith(".cif"):
         raise ValueError("Choose an original prediction CIF.")

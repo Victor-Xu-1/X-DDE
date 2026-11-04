@@ -35,6 +35,7 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
     paths = {}
     models = set()
     limitations = []
+    validated_report_sha256 = None
 
     def add(name, role, recorded=None):
         checkpoint()
@@ -101,9 +102,10 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
                 "The archive does not establish a complete set of requested OpenDDE samples."
             )
     else:
-        result = retained_native_result(
+        result, report = retained_native_result(
             root, job.request, request_sha256, sealed.get("result.json")
         )
+        validated_report_sha256 = hashlib.sha256(report).hexdigest()
         digests = set()
         for row in result.candidates:
             name = row.artifact
@@ -131,7 +133,7 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
         if job.request.operation == "boltz_predict":
             if add_boltz_native_files(output, digests, sealed, optional, checkpoint):
                 limitations.append(
-                    "Native Boltz files without a recorded index-to-structure checksum are omitted."
+                    "Raw Boltz files without recorded model and confidence checksums are omitted."
                 )
         # The native report also carries task-level affinity output, separate
         # from the per-conformer metrics table.
@@ -149,7 +151,7 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
                 add(name, "msa")
     if not any(role == "structure" for role, _ in paths.values()):
         raise FileNotFoundError("No retained original prediction structures.")
-    return paths, limitations
+    return paths, limitations, validated_report_sha256
 
 
 def retained_msa(path):
@@ -176,9 +178,16 @@ def add_boltz_native_files(output, digests, sealed, optional, checkpoint):
         if sealed[name] != source or source not in digests:
             raise ValueError("The native structure differs from the archived result.")
         optional(BOLTZ_OUTPUT / path.name, "structure", source)
-        optional(BOLTZ_OUTPUT / f"confidence_{path.stem}.json", "confidence_summary")
-        for field in ("pae", "pde", "plddt"):
-            optional(BOLTZ_OUTPUT / f"{field}_{path.stem}.npz", "confidence_full")
+        sidecars = [
+            (f"confidence_{path.stem}.json", "confidence_summary"),
+            *((f"{field}_{path.stem}.npz", "confidence_full") for field in ("pae", "pde", "plddt")),
+        ]
+        for filename, role in sidecars:
+            sidecar = BOLTZ_OUTPUT / filename
+            if sidecar.as_posix() in sealed:
+                optional(sidecar, role)
+            elif (output / sidecar).is_file():
+                omitted = True
     return omitted
 
 
@@ -187,7 +196,9 @@ def prediction_archive(root, job, request_sha256, sealed, cancelled=None):
         if cancelled is not None and cancelled():
             raise ArchiveCancelled
 
-    files, limitations = prediction_files(root, job, request_sha256, sealed, checkpoint)
+    files, limitations, validated_report_sha256 = prediction_files(
+        root, job, request_sha256, sealed, checkpoint
+    )
     receipt = {
         "schema_version": 1,
         "source_job": job.id,
@@ -225,6 +236,8 @@ def prediction_archive(root, job, request_sha256, sealed, cancelled=None):
                             "A prediction file changed while the archive was prepared."
                         )
                 actual = digest.hexdigest()
+                if name == "result.json" and actual != validated_report_sha256:
+                    raise ValueError("The native report changed after it was validated.")
                 if expected is not None and actual != expected:
                     raise ValueError("A prediction file differs from its recorded checksum.")
                 receipt["files"][f"outputs/{name}"] = {
