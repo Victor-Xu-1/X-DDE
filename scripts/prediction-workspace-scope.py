@@ -130,6 +130,7 @@ DRAFT_FILES = {
 
 
 FINAL_REVIEW_FILES = {
+    ".github/workflows/mol1-restraint-checks.yml",
     "frontend/src/integrations/Mol1Form.tsx",
     "frontend/src/integrations/Mol1Form.test.tsx",
     "frontend/src/integrations/Mol1JobReview.tsx",
@@ -236,6 +237,7 @@ def preview_changed(changed, event="push"):
                 "frontend/src/presentation/PredictionSetup",
                 "frontend/src/presentation/PredictionInputPreview",
                 "frontend/src/presentation/PredictionEntityPreview",
+                "frontend/src/presentation/PredictionReviewDialog",
             )
         )
         or name

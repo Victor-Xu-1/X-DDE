@@ -222,9 +222,7 @@ function Mol1ReviewSettings({
   const msa = {
     none: zh ? "不使用 MSA" : "No MSA",
     uploaded: zh ? "使用上传的 MSA" : "Uploaded MSA",
-    search: zh
-      ? "远程搜索（允许传输序列）"
-      : "Remote search (sequence transfer allowed)",
+    search: zh ? "远程搜索" : "Remote search",
   }[settings.feature_mode];
   const rows = [
     [zh ? "预测模型" : "Prediction model", "Mol-1 base"],
@@ -237,6 +235,16 @@ function Mol1ReviewSettings({
       settings.samples * (settings.additional_seeds.length + 1),
     ],
     ["MSA", msa],
+    [
+      zh ? "联网权限" : "Network access",
+      settings.allow_network
+        ? zh
+          ? "已允许"
+          : "Allowed"
+        : zh
+          ? "未允许"
+          : "Not allowed",
+    ],
     [
       zh ? "模板搜索或输入" : "Templates",
       settings.use_template ? (zh ? "启用" : "Enabled") : zh ? "关闭" : "Off",

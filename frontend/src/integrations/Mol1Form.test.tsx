@@ -67,12 +67,15 @@ it.each(["en", "zh"] as const)(
     expect(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     ).toBeDisabled();
-    await user.selectOptions(
-      screen.getByLabelText(
-        zh ? "序列进化信息" : "Sequence evolutionary information",
-      ),
-      "none",
-    );
+    if (zh) {
+      await user.selectOptions(screen.getByLabelText("序列进化信息"), "none");
+    } else {
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: "Allow this task to send sequences to the native MSA service and retrieve template structures",
+        }),
+      );
+    }
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
@@ -94,6 +97,9 @@ it.each(["en", "zh"] as const)(
     });
     const review = within(dialog);
     expect(api.submit).not.toHaveBeenCalled();
+    expect(
+      await review.findByText(zh ? "未允许" : "Allowed", { exact: true }),
+    ).toBeVisible();
     await user.click(
       await review.findByRole("button", {
         name: zh ? "提交内容" : "Request JSON",
@@ -118,8 +124,8 @@ it.each(["en", "zh"] as const)(
         samples: 5,
         cycles: 20,
         steps: 200,
-        feature_mode: "none",
-        allow_network: false,
+        feature_mode: zh ? "none" : "search",
+        allow_network: !zh,
         components: [
           { kind: "protein", value: "PREACHINGS" },
           { kind: "ligand", value: "CCD_ATP" },

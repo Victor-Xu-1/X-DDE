@@ -191,7 +191,7 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
-        if: needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true'
+        if: needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true'
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-input-preview" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-input-preview/state" >> "$GITHUB_ENV"

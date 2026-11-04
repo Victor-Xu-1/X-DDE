@@ -18,10 +18,15 @@ def test_final_review_delegation_requires_browser_and_native_form_changes():
     assert scope.selected(changed, "pull_request")
     assert scope.final_review_only(changed)
     assert scope.final_review_changed(changed)
+    assert scope.final_review_changed(["frontend/src/integrations/Mol1JobReview.tsx"])
+    assert scope.preview_changed(["frontend/src/presentation/PredictionReviewDialog.tsx"])
     assert not scope.final_review_only(changed, "workflow_dispatch")
     assert not scope.final_review_only(changed[1:])
     assert not scope.final_review_only(changed + ["frontend/src/operations/useTaskSubmit.ts"])
     assert not scope.final_review_only(changed + ["frontend/src/viewer/StructureInspection.tsx"])
+    assert not scope.final_review_only(
+        changed + ["src/opendde_workbench/simulations/restraints.py"]
+    )
 
 
 def test_unsubmitted_draft_delegation_is_bounded_to_storage_and_its_native_form():
