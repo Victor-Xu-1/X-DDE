@@ -471,6 +471,10 @@ CONFIDENCE_PATTERNS = (
 CONFIDENCE_LAYOUT_SOURCES = (
     "frontend/src/presentation/PredictionConfidenceCard.tsx",
     "frontend/src/presentation/prediction-confidence-card.css",
+    "frontend/src/presentation/StructureWorkbench.tsx",
+    "frontend/src/presentation/structure-workbench.css",
+    "frontend/src/viewer/StructureInspection.tsx",
+    "frontend/src/viewer/structure-inspection.css",
 )
 CONFIDENCE_LAYOUT_FILES = (
     CONFIDENCE_PATTERNS
@@ -481,6 +485,10 @@ CONFIDENCE_LAYOUT_FILES = (
         "frontend/src/integrations/Mol1Confidence.tsx",
         "frontend/src/integrations/ScientificResults.tsx",
         "server_tests/test_prediction_sample_export_browser.py",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/StructureViewer.test.tsx",
+        ".github/workflows/task-layout-checks.yml",
     )
 )
 
@@ -700,6 +708,27 @@ def selected(changed, event="push"):
     )
 
 
+def shared_workbench_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and native_confidence_only(changed)
+        and bool(
+            {
+                "frontend/src/presentation/StructureWorkbench.tsx",
+                "frontend/src/presentation/structure-workbench.css",
+            }.intersection(changed)
+        )
+    )
+
+
+def prediction_only(changed, event="push"):
+    shared_workbench = {
+        "frontend/src/presentation/StructureWorkbench.tsx",
+        "frontend/src/presentation/structure-workbench.css",
+    }
+    return not shared_workbench.intersection(changed) and selected(changed, event)
+
+
 def main():
     base = os.environ.get("BASE", "")
     if os.environ.get("GITHUB_REF_NAME", "main") != "main":
@@ -715,6 +744,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "shared_workbench_only": shared_workbench_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "job_archive_changed": job_archive_changed(changed),
             "job_archive_only": job_archive_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
@@ -764,7 +796,7 @@ def main():
         stream.write("native_confidence=" + str(native_confidence_only(changed)).lower() + "\n")
         stream.write(
             "prediction_only="
-            + str(selected(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
+            + str(prediction_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
             + "\n"
         )
 

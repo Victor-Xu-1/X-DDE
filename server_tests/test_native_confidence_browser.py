@@ -54,6 +54,20 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         )
         first = sequence.get_by_role("checkbox", name=re.compile(r"^A:TRP1 · pLDDT "))
         expect(first).to_be_visible()
+        host = page.locator(".structure-workbench > .structure-workbench-sequence")
+        expect(host.locator(".structure-sequence")).to_have_count(1)
+        expect(page.locator(".viewer-panel .structure-sequence")).to_have_count(0)
+        workspace = page.locator(".structure-workbench")
+        sequence_bounds = sequence.bounding_box()
+        workspace_bounds = workspace.bounding_box()
+        preview_bounds = workspace.locator(".structure-workbench-view").bounding_box()
+        details_bounds = workspace.locator(".structure-workbench-details").bounding_box()
+        assert sequence_bounds and workspace_bounds and preview_bounds and details_bounds
+        assert abs(sequence_bounds["width"] - workspace_bounds["width"]) < 2
+        assert sequence_bounds["y"] >= max(
+            preview_bounds["y"] + preview_bounds["height"],
+            details_bounds["y"] + details_bounds["height"],
+        )
         expected_first = statistics.mean(
             value * 100
             for i, value in enumerate(raw["atom_plddt"])
@@ -76,6 +90,18 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         expect(first).to_have_attribute("aria-checked", "true")
         coloring.select_option("confidence")
         sequence.screenshot(path=str(evidence / "linked-sequence.png"))
+        viewer = page.locator(".viewer-panel")
+        iframe = viewer.locator("iframe").element_handle()
+        viewer.get_by_role(
+            "button", name="全屏研究工作区" if zh else "Fullscreen research workspace"
+        ).click()
+        expect(page.locator(".structure-workbench:fullscreen .structure-sequence")).to_be_visible()
+        expect(first).to_have_attribute("aria-checked", "true")
+        sequence.screenshot(path=evidence / "fullscreen-sequence.png")
+        page.keyboard.press("Escape")
+        expect(page.locator(".structure-workbench:fullscreen")).to_have_count(0)
+        assert viewer.locator("iframe").evaluate("(node, original) => node === original", iframe)
+        expect(first).to_have_attribute("aria-checked", "true")
         page.locator(".viewer-panel").screenshot(path=str(evidence / "confidence-structure.png"))
         page.get_by_role("button", name="清除选择" if zh else "Clear sequence selection").click()
         expect(first).to_have_attribute("aria-checked", "false")

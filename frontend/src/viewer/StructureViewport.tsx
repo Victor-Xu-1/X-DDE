@@ -1,5 +1,6 @@
 import { version as productVersion } from "../../package.json";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   CameraOutlined,
   DownloadOutlined,
@@ -88,6 +89,8 @@ export interface StructureViewerProps {
   confidenceSelection?: { key: string; tokens: number[]; nonce: number } | null;
   onConfidenceInspection?(value: ConfidenceInspection | null): void;
   onResiduesSelected?(keys: string[]): void;
+  /** Optional destination in the same fullscreen workspace. Null awaits its mount. */
+  sequenceHost?: HTMLElement | null;
   onConfidenceSelected?(value: { key: string; tokens: number[] }): void;
 }
 export function StructureViewport({
@@ -119,6 +122,7 @@ export function StructureViewport({
   confidenceSelection,
   onConfidenceInspection,
   onResiduesSelected,
+  sequenceHost,
   onConfidenceSelected,
   optimization,
 }: StructureViewerProps & { optimization: PoseController }) {
@@ -506,6 +510,19 @@ export function StructureViewport({
       hadSearchBox.current = searchBox !== undefined;
     }
   }, [loaded, key, searchBoxKey]);
+  const sequence = (
+    <StructureSequence
+      language={language}
+      compact={sequenceHost !== undefined}
+      residues={scene.residues}
+      selected={selectedResidues}
+      hiddenChains={hiddenChains}
+      confidence={currentConfidence?.residueScores}
+      nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
+      onSelect={(key, mode) => send("sequence-selection", { key, mode })}
+      onClear={() => send("selection-action", "clear")}
+    />
+  );
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
@@ -987,16 +1004,11 @@ export function StructureViewport({
           {currentConfidence && options.color === "confidence" && (
             <ConfidenceLegend language={language} />
           )}
-          <StructureSequence
-            language={language}
-            residues={scene.residues}
-            selected={selectedResidues}
-            hiddenChains={hiddenChains}
-            confidence={currentConfidence?.residueScores}
-            nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
-            onSelect={(key, mode) => send("sequence-selection", { key, mode })}
-            onClear={() => send("selection-action", "clear")}
-          />
+          {sequenceHost
+            ? createPortal(sequence, sequenceHost)
+            : sequenceHost === undefined
+              ? sequence
+              : null}
         </>
       )}
       {!sourceSnapshot &&

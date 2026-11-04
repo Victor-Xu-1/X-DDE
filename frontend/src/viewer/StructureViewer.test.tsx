@@ -88,7 +88,7 @@ it("acknowledges exact ligand token selections and hides prior sample confidence
   });
   emit("confidence-selected", { key, tokens: [1] });
   expect(selected).toHaveBeenCalledWith({ key, tokens: [1] });
-  expect(screen.getByText("1 atom tokens selected")).toBeVisible();
+  expect(screen.getByText("1 atom token selected")).toBeVisible();
   expect(
     screen.getByRole("button", { name: "Clear sequence selection" }),
   ).toBeEnabled();

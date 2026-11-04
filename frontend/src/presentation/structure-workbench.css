@@ -57,3 +57,23 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.structure-workbench-sequence {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.structure-workbench-sequence:empty {
+  display: none;
+}
+.structure-workbench:fullscreen:has(
+    > .structure-workbench-sequence:not(:empty)
+  ) {
+  grid-auto-rows: max-content;
+  align-content: start;
+  overflow: auto;
+}
+.structure-workbench:fullscreen:has(> .structure-workbench-sequence:not(:empty))
+  > :is(.structure-workbench-view, .structure-workbench-details) {
+  height: auto;
+  overflow: visible;
+}
