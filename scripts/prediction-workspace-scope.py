@@ -584,6 +584,7 @@ HISTORY_INPUT_SOURCES = (
 )
 HISTORY_INPUT_FILES = HISTORY_INPUT_SOURCES + (
     "frontend/src/TaskDetail.tsx",
+    "frontend/src/studio/PredictionResults.tsx",
     "frontend/src/presentation/PredictionReviewDialog.tsx",
     "frontend/src/presentation/artifact-file.ts",
     "src/opendde_workbench/api.py",

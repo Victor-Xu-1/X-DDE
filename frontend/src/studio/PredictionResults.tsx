@@ -9,6 +9,8 @@ import { translator } from "../i18n";
 import { useTaskLabel } from "../examples/useTaskLabel";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 import { PredictionSamples } from "../presentation/PredictionSamples";
+import { HistoricalPredictionInput } from "../presentation/HistoricalPredictionInput";
+import { terminal } from "../types";
 import { useCallback, useState } from "react";
 import type {
   ConfidenceBinding,
@@ -94,6 +96,14 @@ export function PredictionResults(p: PredictionResultsProps) {
         <h2 className="result-task-name">{taskLabel}</h2>
         {p.job && (
           <span className={"status " + p.job.status}>{t(p.job.status)}</span>
+        )}
+        {p.job && terminal(p.job.status) && (
+          <HistoricalPredictionInput
+            key={p.job.id}
+            jobId={p.job.id}
+            label={taskLabel}
+            language={p.language}
+          />
         )}
       </header>
       {p.job && p.candidate && (
@@ -213,6 +223,7 @@ export function PredictionResults(p: PredictionResultsProps) {
             detail={p.detail}
             failed={p.detailError}
             retryAvailable={p.retryAvailable}
+            showPredictionInput={false}
             onChange={p.onChanged}
           />
         </details>

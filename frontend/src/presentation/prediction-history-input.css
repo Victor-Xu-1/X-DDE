@@ -39,6 +39,9 @@
   width: auto;
   white-space: nowrap;
 }
+.prediction-result-heading > .prediction-history-trigger {
+  margin-inline-start: auto;
+}
 @media (max-width: 640px) {
   .task-detail-header:has(.prediction-history-trigger) {
     flex-wrap: wrap;

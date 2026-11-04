@@ -76,7 +76,9 @@ def test_historical_prediction_input_replays_and_downloads_the_exact_document(
         assert archived.ok
         assert archived.headers["x-xdde-input-source"] == "retained"
         page.goto(base + "/#task=" + archived_id)
-        trigger.click()
+        page.locator(".prediction-result-heading").get_by_role(
+            "button", name="查看输入" if zh else "View input", exact=True
+        ).click()
         expect(dialog).to_contain_text("已保存的输入文件" if zh else "Stored input document")
         assert json.loads(dialog.locator("pre").inner_text()) == archived.json()
         assert archived.json() != recorded.json()

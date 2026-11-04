@@ -26,6 +26,7 @@ interface Props {
   failed: boolean;
   language: Language;
   retryAvailable?: boolean;
+  showPredictionInput?: boolean;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
 }
@@ -35,6 +36,7 @@ export function TaskDetail({
   failed,
   language,
   retryAvailable = true,
+  showPredictionInput = true,
   onChange,
   onDraft,
 }: Props) {
@@ -148,7 +150,8 @@ export function TaskDetail({
           <span className={`status ${job.status}`}>{t(job.status)}</span>
         </div>
         <div className="task-actions">
-          {terminal(job.status) &&
+          {showPredictionInput &&
+            terminal(job.status) &&
             (isPrediction(job.request) ||
               job.request.operation === "boltz_predict" ||
               job.request.operation === "mol1_predict") && (
