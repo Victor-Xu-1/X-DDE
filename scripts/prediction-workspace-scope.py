@@ -9,6 +9,7 @@ PATTERNS = (
     "frontend/src/presentation/Prediction*",
     "frontend/src/presentation/prediction-*.css",
     "frontend/src/presentation/prediction-heading-focus*",
+    "frontend/src/presentation/prediction-settings-summary.ts",
     "frontend/src/viewer/confidence-*",
     "frontend/src/viewer/ConfidenceControls*",
     "frontend/src/viewer/structure-bytes*",
@@ -94,6 +95,10 @@ INPUT_PREVIEW_FILES = {
 
 
 DRAFT_FILES = {
+    "frontend/src/presentation/prediction-settings-summary.ts",
+    "frontend/src/presentation/PredictionSetup.test.tsx",
+    "frontend/src/presentation/PredictionInputPreview.tsx",
+    "frontend/src/presentation/PredictionInputPreview.test.tsx",
     ".github/workflows/docking-runtime-checks.yml",
     "frontend/src/presentation/PredictionSetup.tsx",
     "frontend/src/presentation/PredictionDraftControls.tsx",
@@ -182,6 +187,7 @@ def preview_changed(changed, event="push"):
         )
         or name
         in {
+            "frontend/src/presentation/prediction-settings-summary.ts",
             "frontend/src/presentation/prediction-input-preview.css",
             "frontend/src/presentation/prediction-inputs.css",
             "frontend/src/presentation/prediction-shell.css",

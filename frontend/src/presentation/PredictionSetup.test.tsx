@@ -2,6 +2,31 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { PredictionSetup } from "./PredictionSetup";
 
+it.each(["en", "zh"] as const)(
+  "guides unfinished seed values without rendering internal numbers in %s",
+  (language) => {
+    const view = render(
+      <PredictionSetup
+        language={language}
+        components={[]}
+        model="Mol-1"
+        seeds={[-1, NaN, Infinity]}
+        samples={5}
+        valid={false}
+      >
+        <input />
+      </PredictionSetup>,
+    );
+    const aside = within(view.container).getByRole("complementary");
+    expect(aside).toHaveTextContent(
+      language === "zh" ? "检查种子数值" : "Check seed values",
+    );
+    expect(aside).not.toHaveTextContent(/NaN|Infinity/);
+    expect(within(aside).getByText("—")).toBeVisible();
+    view.unmount();
+  },
+);
+
 it("reflects edited components, uploaded ligands and all requested seeds without claiming a computation", () => {
   const p = {
     language: "en" as const,

@@ -32,6 +32,7 @@ on:
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Settings.tsx"
       - "frontend/src/presentation/prediction-draft-model.ts"
+      - "frontend/src/presentation/prediction-settings-summary.ts"
       - "src/opendde_workbench/drafts/**"
       - "src/opendde_workbench/api.py"
       - "src/opendde_workbench/assets.py"
