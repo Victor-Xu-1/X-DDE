@@ -18,7 +18,7 @@ interface SourceFile {
 interface FoldChain {
   chain: string;
   sequence: string;
-  files: (SourceFile & { role: "paired" | "unpaired" | "template" })[];
+  files: (SourceFile & { role: "paired" | "unpaired" })[];
 }
 interface FoldReviewData {
   target: FoldChain[];
@@ -64,6 +64,11 @@ export function FoldJobReview(
     <PredictionJobReview
       {...props}
       prepare={prepareFold}
+      preparationError={
+        props.language === "zh"
+          ? "无法核对折叠输入。请检查所选文件、OpenDDE 参数及无 FASTA 标题的大写序列。"
+          : "The fold inputs could not be verified. Check the selected files, OpenDDE settings and plain uppercase sequences."
+      }
       renderOverview={({ data, task }) => (
         <FoldOverview
           data={data}
@@ -91,7 +96,6 @@ function FoldOverview({
   const labels = {
     unpaired: zh ? "单链 MSA" : "Unpaired MSA",
     paired: zh ? "配对 MSA" : "Paired MSA",
-    template: zh ? "模板" : "Template",
   };
   const groups = [
     {
@@ -132,7 +136,7 @@ function FoldOverview({
                       <a download href={assetDownloadUrl(id)}>
                         {labels[role]} · {name}
                       </a>
-                      {role !== "template" && options.use_msa === false && (
+                      {options.use_msa === false && (
                         <span>
                           {" "}
                           · {zh ? "本次禁用" : "Disabled for this run"}

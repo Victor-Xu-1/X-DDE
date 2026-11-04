@@ -39,6 +39,7 @@ export function PredictionJobReview<
   prepare,
   renderSettings,
   renderOverview,
+  preparationError,
   ready,
   unavailable,
   recheck,
@@ -52,6 +53,7 @@ export function PredictionJobReview<
   prepare(input: Input, signal: AbortSignal): Promise<Prepared>;
   renderSettings(prepared: Prepared): ReactNode;
   renderOverview?(prepared: Prepared): ReactNode;
+  preparationError?: string;
 }) {
   const zh = language === "zh";
   const identity = JSON.stringify(input);
@@ -117,9 +119,10 @@ export function PredictionJobReview<
       {current && "error" in current && (
         <div role="alert" className="error-box">
           <p>
-            {zh
-              ? "无法核对所选文件。请重试，或返回编辑更换材料。"
-              : "The selected files could not be verified. Try again or return to edit them."}
+            {preparationError ??
+              (zh
+                ? "无法核对所选文件。请重试，或返回编辑更换材料。"
+                : "The selected files could not be verified. Try again or return to edit them.")}
           </p>
           <button
             type="button"

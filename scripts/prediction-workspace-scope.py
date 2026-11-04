@@ -192,6 +192,7 @@ FOLD_REVIEW_FILES = FINAL_REVIEW_FILES | {
     "frontend/src/operations/HarnessFoldInputs.test.tsx",
     "frontend/src/presentation/PredictionJobReview.tsx",
     "server_tests/test_fold_msa_sources_browser.py",
+    "server_tests/test_native_fold_chain_contract.py",
     "src/opendde_workbench/fold_review.py",
     "src/opendde_workbench/harness_chains.py",
     "src/opendde_workbench/harness_routes.py",
