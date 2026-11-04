@@ -28,14 +28,16 @@ it("reuses the exact saved region without changing the full molecule", async () 
   );
   const onFixed = vi.fn(),
     onSaved = vi.fn(),
+    onReuseIdentity = vi.fn(),
     user = userEvent.setup();
   render(
     <SavedRegions
       subject={ref}
-      identityJob="job"
-      fixed={[0, 2]}
+      identityJob={null}
+      fixed={[]}
       onFixed={onFixed}
       onSaved={onSaved}
+      onReuseIdentity={onReuseIdentity}
       language="en"
     />,
   );
@@ -43,6 +45,10 @@ it("reuses the exact saved region without changing the full molecule", async () 
   await user.selectOptions(screen.getByRole("combobox"), "selection");
   expect(onFixed).toHaveBeenCalledWith([0, 2]);
   expect(onSaved).toHaveBeenCalledWith("selection");
+  expect(onReuseIdentity).toHaveBeenCalledWith("job");
+  expect(
+    screen.queryByRole("button", { name: "Save fixed region" }),
+  ).toBeNull();
 });
 it("preserves a stable save intent and binds parser evidence", async () => {
   vi.spyOn(globalThis, "fetch").mockResolvedValue(

@@ -2,7 +2,7 @@
 
 ## Pocket-conditioned design
 
-Pocket-conditioned generation, local redesign, diversification, optimization and pocket inspection use the same final review dialog. The left view shows the selected receptor and its pocket definition in source coordinates. The right view lists the effective model, budget and downloadable source records. A starting molecule is inspected separately, with fixed atoms highlighted when the matching native atom map is available. The request view and the confirmation action use the same prepared body.
+Pocket-conditioned generation, local redesign, diversification, optimization and pocket inspection use the same final review dialog. The left view shows the selected receptor and its pocket definition in source coordinates. The right view lists the effective model, budget and downloadable source records. A starting molecule is inspected separately. A saved fixed region can load its existing atom identity and highlight the core without queuing another identity task. The request view and the confirmation action use the same prepared body.
 
 ## Structure-prediction workspace
 

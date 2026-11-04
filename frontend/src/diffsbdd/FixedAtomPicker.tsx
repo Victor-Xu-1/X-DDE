@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { CorePreviewSource } from "./spatial-design-review";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -32,9 +32,11 @@ export function FixedAtomPicker({
     recheck,
   } = useTaskReadiness("diffsbdd.identity");
   const zh = language === "zh";
+  const [identityJob, setIdentityJob] = useState<string>();
   const { job, result, error, running, inspect, refresh } = useNativeIdentity(
     initial,
     language,
+    identityJob,
   );
   useEffect(() => {
     if (job?.status === "succeeded" && result)
@@ -138,19 +140,20 @@ export function FixedAtomPicker({
             {zh ? "已固定" : "Fixed"}:{" "}
             {fixed.map((n) => n + 1).join(", ") || "—"}
           </p>
-          <SavedRegions
-            subject={initial}
-            identityJob={job.id}
-            fixed={fixed}
-            onFixed={onChange}
-            onSaved={onSaved}
-            language={language}
-          />
           <button type="button" onClick={() => onChange([])}>
             {zh ? "清空选择" : "Clear selection"}
           </button>
         </StructureWorkbench>
       )}
+      <SavedRegions
+        subject={initial}
+        identityJob={result && job?.status === "succeeded" ? job.id : null}
+        fixed={fixed}
+        onFixed={onChange}
+        onSaved={onSaved}
+        onReuseIdentity={setIdentityJob}
+        language={language}
+      />
       {(error || inspectionReadinessError) && (
         <p role="alert" className="error-box">
           {error || availabilityError(inspectionReadinessError, zh)}

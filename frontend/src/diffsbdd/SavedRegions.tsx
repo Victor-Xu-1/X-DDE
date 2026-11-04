@@ -12,13 +12,15 @@ export function SavedRegions({
   fixed,
   onFixed,
   onSaved,
+  onReuseIdentity,
   language,
 }: {
   subject: MoleculeRef;
-  identityJob: string;
+  identityJob: string | null;
   fixed: number[];
   onFixed(v: number[]): void;
   onSaved(id: string | null): void;
+  onReuseIdentity?(id: string): void;
   language: Language;
 }) {
   const zh = language === "zh",
@@ -59,6 +61,7 @@ export function SavedRegions({
       setSelected("");
   }, [JSON.stringify(fixed), selected]);
   async function save() {
+    if (!identityJob) return;
     setBusy(true);
     setError("");
     try {
@@ -96,6 +99,10 @@ export function SavedRegions({
       if (current.current) setBusy(false);
     }
   }
+  const cores = values.filter((v) =>
+    v.body.regions.some((r) => r.role === "fixed_core"),
+  );
+  if (!identityJob && !cores.length && !error) return null;
   return (
     <section>
       <p className="field-help">
@@ -103,21 +110,25 @@ export function SavedRegions({
           ? "保存选区后可在同一分子版本上复用。选区是完整分子的逻辑区域，不会切断分子或修改原始文件。编辑生成新版本后需要重新确认原子身份。"
           : "Saved regions can be reused on this exact molecule version. Regions are logical parts of the full molecule; they do not cut bonds or modify the file. Edits require new atom identity confirmation."}
       </p>
-      <label className="field">
-        {zh ? "选区名称" : "Selection name"}
-        <input
-          value={name}
-          maxLength={120}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </label>
-      <button
-        type="button"
-        disabled={busy || !fixed.length}
-        onClick={() => void save()}
-      >
-        {zh ? "保存固定区域" : "Save fixed region"}
-      </button>
+      {identityJob && (
+        <>
+          <label className="field">
+            {zh ? "选区名称" : "Selection name"}
+            <input
+              value={name}
+              maxLength={120}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            disabled={busy || !fixed.length}
+            onClick={() => void save()}
+          >
+            {zh ? "保存固定区域" : "Save fixed region"}
+          </button>
+        </>
+      )}
       <label className="field">
         {zh ? "复用这个版本的固定区域" : "Reuse fixed regions for this version"}
         <select
@@ -129,17 +140,16 @@ export function SavedRegions({
             if (value) {
               onFixed(fixedCoreIndices(value.body.regions));
               onSaved(value.id);
+              onReuseIdentity?.(value.body.identity_job);
             } else onSaved(null);
           }}
         >
           <option value="">—</option>
-          {values
-            .filter((v) => v.body.regions.some((r) => r.role === "fixed_core"))
-            .map((v, index) => (
-              <option key={v.id} value={v.id}>
-                {historyChoiceLabel(v.body.name, index, zh)}
-              </option>
-            ))}
+          {cores.map((v, index) => (
+            <option key={v.id} value={v.id}>
+              {historyChoiceLabel(v.body.name, index, zh)}
+            </option>
+          ))}
         </select>
       </label>
       {error && (
