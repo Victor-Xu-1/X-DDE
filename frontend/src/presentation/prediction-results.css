@@ -1,18 +1,6 @@
 .prediction-result {
   min-width: 0;
 }
-.prediction-result-heading {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 6px 0 20px;
-}
-.prediction-result-heading .result-task-name {
-  font-size: 27px;
-  font-weight: 600;
-  margin: 0;
-}
 .prediction-sample-bar {
   display: flex;
   align-items: center;

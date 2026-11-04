@@ -150,3 +150,56 @@ it.each(["en", "zh"] as const)(
     ).toHaveLength(4);
   },
 );
+
+it("identifies the retained Mol-1 request and returns to prediction history", async () => {
+  const onPredictionHistory = vi.fn();
+  render(
+    <TaskDetail
+      job={{
+        ...job,
+        request: {
+          operation: "mol1_predict",
+          name: "STAT6",
+          inputs: [],
+          payload: { kind: "mol1", components: [] },
+          options: { device: "cuda", cpu: 2, memory_mib: 8192, seed: 42 },
+        },
+        status: "failed",
+      }}
+      detail={null}
+      failed={false}
+      language="en"
+      onPredictionHistory={onPredictionHistory}
+      onChange={vi.fn()}
+    />,
+  );
+  expect(screen.getByText("Mol-1", { exact: true })).toBeVisible();
+  expect(screen.getByRole("button", { name: "View input" })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Download all data" }),
+  ).toBeNull();
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Predictions" }));
+  expect(onPredictionHistory).toHaveBeenCalledOnce();
+});
+
+it("distinguishes a retained OpenDDE ABAG result from a standard prediction", () => {
+  render(
+    <TaskDetail
+      job={{
+        ...job,
+        request: {
+          name: "Antibody complex",
+          components: [{ kind: "protein", value: "ACDE", count: 1 }],
+          parameters: { ...defaults, model: "abag" },
+        },
+      }}
+      detail={null}
+      failed={false}
+      language="en"
+      onChange={vi.fn()}
+    />,
+  );
+  expect(screen.getByText("OpenDDE ABAG", { exact: true })).toBeVisible();
+});

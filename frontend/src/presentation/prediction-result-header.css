@@ -1,0 +1,71 @@
+.prediction-result-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px 24px;
+  margin: 0 0 18px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.prediction-result-summary {
+  display: grid;
+  justify-items: start;
+  min-width: 0;
+  gap: 8px;
+}
+.prediction-result-heading .result-task-name {
+  margin: 0;
+  font-size: clamp(21px, 2.4vw, 27px);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.studio-app .prediction-result-heading .prediction-result-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+}
+.prediction-result-meta,
+.prediction-result-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prediction-result-meta,
+.prediction-result-method {
+  color: var(--muted);
+  font-size: 13px;
+}
+.studio-app .prediction-result-meta > .status.succeeded {
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
+.prediction-result-method {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.prediction-result-method strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.prediction-result-actions {
+  align-self: center;
+  justify-content: flex-end;
+}
+.studio-app .prediction-result-actions > .secondary-button {
+  border-radius: 999px;
+}
+@media (max-width: 840px) {
+  .prediction-result-heading {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+  .prediction-result-actions {
+    justify-content: flex-start;
+  }
+}

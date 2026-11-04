@@ -82,10 +82,6 @@
   .prediction-confidence-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .prediction-result-heading .result-task-name {
-    font-size: 21px;
-    overflow-wrap: anywhere;
-  }
   .prediction-sample-options {
     max-width: 180px;
   }
