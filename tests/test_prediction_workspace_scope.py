@@ -358,3 +358,23 @@ def test_prediction_result_header_routes_to_the_archive_and_history_browser():
         assert scope.job_archive_changed([name])
         assert scope.job_archive_only([name], "pull_request")
         assert scope.selected([name])
+
+
+def test_shared_confidence_card_selects_its_exact_native_render_gates():
+    paths = [
+        "frontend/src/presentation/PredictionConfidenceCard.tsx",
+        "frontend/src/presentation/prediction-confidence-card.css",
+        "frontend/src/presentation/prediction-results.css",
+        "frontend/src/studio/PredictionResults.tsx",
+        "frontend/src/integrations/Mol1Confidence.tsx",
+        "frontend/src/integrations/ScientificResults.tsx",
+        "frontend/src/operations/ConfidencePanel.tsx",
+        "server_tests/test_native_confidence_browser.py",
+        "server_tests/test_prediction_sample_export_browser.py",
+        "pyproject.toml",
+    ]
+    assert scope.selected(paths, "pull_request")
+    assert scope.native_confidence_only(paths)
+    assert scope.confidence_changed(paths)
+    assert scope.sample_export_changed(paths)
+    assert not scope.native_confidence_only(paths + ["frontend/src/TaskForm.tsx"])

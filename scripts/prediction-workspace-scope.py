@@ -468,7 +468,29 @@ CONFIDENCE_PATTERNS = (
 )
 
 
+CONFIDENCE_LAYOUT_SOURCES = (
+    "frontend/src/presentation/PredictionConfidenceCard.tsx",
+    "frontend/src/presentation/prediction-confidence-card.css",
+)
+CONFIDENCE_LAYOUT_FILES = (
+    CONFIDENCE_PATTERNS
+    + CONFIDENCE_LAYOUT_SOURCES
+    + (
+        "frontend/src/presentation/prediction-results.css",
+        "frontend/src/studio/PredictionResults.tsx",
+        "frontend/src/integrations/Mol1Confidence.tsx",
+        "frontend/src/integrations/ScientificResults.tsx",
+        "server_tests/test_prediction_sample_export_browser.py",
+    )
+)
+
+
 def native_confidence_only(changed):
+    if any(name in CONFIDENCE_LAYOUT_SOURCES for name in changed):
+        return all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in CONFIDENCE_LAYOUT_FILES)
+            for name in changed
+        )
     return (
         "src/opendde_workbench/confidence.py" in changed
         and "frontend/src/operations/ConfidencePanel.tsx" in changed
@@ -482,6 +504,7 @@ def native_confidence_only(changed):
 def confidence_changed(changed):
     return any(
         name.startswith("frontend/src/operations/ConfidencePanel")
+        or name in CONFIDENCE_LAYOUT_SOURCES
         or name
         in {
             "src/opendde_workbench/confidence.py",

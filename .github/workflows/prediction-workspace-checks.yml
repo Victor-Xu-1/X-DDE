@@ -195,7 +195,9 @@ jobs:
       - name: Native confidence interpretation and direct prediction result consumer
         if: needs.scope.outputs.native_confidence == 'true'
         working-directory: frontend
-        run: npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
+        run: >-
+          npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
+          src/integrations/ScientificResults.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
         if: needs.scope.outputs.boltz_review_changed == 'true'
         working-directory: frontend

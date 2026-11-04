@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { artifactUrl, request } from "../api";
+import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { Language } from "../types";
 import type {
@@ -102,20 +103,38 @@ export function ConfidencePanel({
     contacts: zh ? "预测接触概率" : "Predicted contact probability",
   };
   return (
-    <section className="studio-panel confidence-panel">
-      <label className="field">
-        {zh ? "置信度视图" : "Confidence view"}
-        <select
-          value={metric}
-          onChange={(event) => setMetric(event.target.value)}
-        >
-          {Object.entries(labels).map(([id, label]) => (
-            <option value={id} key={id}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <PredictionConfidenceCard
+      className="confidence-panel"
+      title={labels[metric]}
+      unit={metric === "contacts" ? "0–1" : "Å"}
+      controls={
+        <>
+          <label className="field">
+            {zh ? "置信度视图" : "Confidence view"}
+            <select
+              value={metric}
+              onChange={(event) => setMetric(event.target.value)}
+            >
+              {Object.entries(labels).map(([id, label]) => (
+                <option value={id} key={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {inspection && (
+            <label className="confidence-chain-borders">
+              <input
+                type="checkbox"
+                checked={borders}
+                onChange={(e) => setBorders(e.target.checked)}
+              />
+              {zh ? "链边界" : "Chain borders"}
+            </label>
+          )}
+        </>
+      }
+    >
       {error ? (
         <div role="status" className="notice">
           <p>{error}</p>
@@ -134,16 +153,6 @@ export function ConfidencePanel({
         </p>
       ) : (
         <>
-          {inspection && (
-            <label className="confidence-chain-borders">
-              <input
-                type="checkbox"
-                checked={borders}
-                onChange={(e) => setBorders(e.target.checked)}
-              />
-              {zh ? "链边界" : "Chain borders"}
-            </label>
-          )}
           <InteractivePlot
             title={labels[metric]}
             language={language}
@@ -261,6 +270,6 @@ export function ConfidencePanel({
           </a>
         </>
       )}
-    </section>
+    </PredictionConfidenceCard>
   );
 }

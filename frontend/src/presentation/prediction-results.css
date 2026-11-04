@@ -152,45 +152,6 @@
   height: clamp(360px, 46vh, 520px);
   min-height: 360px;
 }
-.prediction-result .confidence-panel {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.prediction-result .confidence-panel h3 {
-  font-size: 14px;
-  margin: 0 0 18px;
-}
-.prediction-result .confidence-panel .confidence-map {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  image-rendering: auto;
-}
-.prediction-result .confidence-panel .small {
-  font-size: 11px;
-}
-.prediction-result .confidence-panel .plddt-spark {
-  margin-top: 14px;
-}
-.prediction-result .mol1-confidence {
-  min-width: 0;
-}
-.prediction-result .mol1-confidence .interactive-plot {
-  min-width: 0;
-}
-.prediction-confidence-empty {
-  min-height: 260px;
-  padding: 14px;
-}
-.prediction-confidence-empty h3 {
-  font-size: 15px;
-  margin: 0 0 20px;
-}
-.prediction-confidence-empty p {
-  color: var(--muted);
-  font-size: 12px;
-}
 .prediction-conformer-table {
   padding: 20px;
   border: 1px solid var(--line);

@@ -1,0 +1,87 @@
+.prediction-result
+  .structure-workbench-details:has(> .prediction-confidence-card) {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.prediction-confidence-card.confidence-panel {
+  padding: 0;
+  margin: 0;
+}
+.prediction-confidence-card ~ .prediction-reference-review {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 14px 16px;
+}
+.prediction-confidence-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.prediction-confidence-heading,
+.prediction-confidence-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.prediction-confidence-heading h3 {
+  font-size: 15px;
+  margin: 0;
+}
+.prediction-confidence-heading > span,
+.prediction-confidence-toolbar label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.prediction-confidence-toolbar .field,
+.prediction-confidence-toolbar .confidence-chain-borders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.prediction-confidence-toolbar select {
+  min-width: 0;
+  max-width: 100%;
+}
+.prediction-confidence-body {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.prediction-confidence-body > :is(p, div[role="status"]) {
+  margin: 0;
+}
+.prediction-confidence-body > p,
+.prediction-confidence-body > a,
+.prediction-confidence-body > details {
+  font-size: 12px;
+}
+.prediction-confidence-body > p {
+  color: var(--muted);
+}
+.prediction-confidence-body > a {
+  justify-self: start;
+}
+.prediction-confidence-body > .research-plot:first-child > header {
+  justify-content: flex-end;
+}
+.prediction-confidence-body > .research-plot:first-child > header > h3 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.prediction-confidence-body > .research-plot:first-child {
+  min-width: 0;
+}
