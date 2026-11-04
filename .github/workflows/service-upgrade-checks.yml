@@ -6,6 +6,7 @@ on:
       - 'src/opendde_workbench/native_pause.py'
       - 'src/opendde_workbench/service_port.py'
       - 'src/opendde_workbench/service_control.py'
+      - 'src/opendde_workbench/__main__.py'
       - 'src/opendde_workbench/cli.py'
       - 'src/opendde_workbench/worker.py'
       - 'tests/test_native_pause.py'

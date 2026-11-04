@@ -23,6 +23,9 @@ def main():
         host="127.0.0.1",
         port=args.port,
         workers=1,
+        # Drain retained browser reads before the owned stop command times out.
+        # Application lifespan cleanup still finishes before the process exits.
+        timeout_graceful_shutdown=5,
     )
 
 
