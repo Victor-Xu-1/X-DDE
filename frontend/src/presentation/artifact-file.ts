@@ -1,13 +1,22 @@
+type ArtifactLimits = { maxBytes: number; size?: number; sha256?: string };
+
 /** One bounded, cancellable byte reader for immutable local research files. */
 export async function readArtifactFile(
   url: string,
   signal: AbortSignal,
-  limits: { maxBytes: number; size?: number; sha256?: string },
+  limits: ArtifactLimits,
 ) {
   if (!/^\/api\/(assets|jobs)\//.test(url))
     throw new Error("Choose a local research output.");
   signal.throwIfAborted();
-  const response = await fetch(url, { signal });
+  return readArtifactResponse(await fetch(url, { signal }), signal, limits);
+}
+
+export async function readArtifactResponse(
+  response: Response,
+  signal: AbortSignal,
+  limits: ArtifactLimits,
+) {
   if (
     !response.ok ||
     Number(response.headers.get("content-length")) > limits.maxBytes

@@ -12,7 +12,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -552,6 +552,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     @app.get("/api/jobs/{job_id}/input")
     def input_document(job_id: UUID):
         job = required(job_id)
+        headers = {"Cache-Control": "no-store"}
         path = settings.state_dir / "jobs" / job.id / "input.json"
         if path.is_file():
             try:
@@ -559,8 +560,13 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             except (ValueError, FileNotFoundError) as exc:
                 raise HTTPException(404, "Input artifact is unavailable.") from exc
             return FileResponse(
-                path, filename=f"{job.id}-input.json", media_type="application/json"
+                path,
+                filename=f"{job.id}-input.json",
+                media_type="application/json",
+                # Historical archives can also have a restored input.json on disk.
+                headers={**headers, "X-XDDE-Input-Source": "stored-document"},
             )
+        headers["Content-Disposition"] = f'attachment; filename="{job.id}-input.json"'
         if isinstance(job.request, Prediction):
             bindings = {
                 identifier: "/job/assets/" + identifier + asset.suffix
@@ -568,11 +574,17 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             }
             return JSONResponse(
                 job.request.inference_input(job.id, bindings),
-                headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
+                headers={**headers, "X-XDDE-Input-Source": "reconstructed"},
             )
-        return JSONResponse(
-            job.request.model_dump(mode="json"),
-            headers={"Content-Disposition": f'attachment; filename="{job.id}-input.json"'},
+        # Preserve the original stored JSON, including fields absent in older requests.
+        with store.connect() as db:
+            authored = db.execute("SELECT request FROM jobs WHERE id=?", (job.id,)).fetchone()
+        if authored is None:
+            raise HTTPException(404, "Task input is unavailable.")
+        return Response(
+            authored["request"],
+            media_type="application/json",
+            headers={**headers, "X-XDDE-Input-Source": "recorded-request"},
         )
 
     close_uploads = register_assets(app, assets, mutation, settings.minimum_free_bytes)

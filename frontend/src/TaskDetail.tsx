@@ -12,6 +12,8 @@ import {
 } from "./types";
 import { OperationResults } from "./operations/OperationResults";
 import { researchError } from "./presentation/research-content";
+import { HistoricalPredictionInput } from "./presentation/HistoricalPredictionInput";
+import { isPrediction } from "./operations/types";
 import { useTaskLabel } from "./examples/useTaskLabel";
 import {
   isResearchFile,
@@ -24,6 +26,7 @@ interface Props {
   failed: boolean;
   language: Language;
   retryAvailable?: boolean;
+  showPredictionInput?: boolean;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
 }
@@ -33,6 +36,7 @@ export function TaskDetail({
   failed,
   language,
   retryAvailable = true,
+  showPredictionInput = true,
   onChange,
   onDraft,
 }: Props) {
@@ -146,6 +150,18 @@ export function TaskDetail({
           <span className={`status ${job.status}`}>{t(job.status)}</span>
         </div>
         <div className="task-actions">
+          {showPredictionInput &&
+            terminal(job.status) &&
+            (isPrediction(job.request) ||
+              job.request.operation === "boltz_predict" ||
+              job.request.operation === "mol1_predict") && (
+              <HistoricalPredictionInput
+                key={job.id}
+                jobId={job.id}
+                label={taskLabel}
+                language={language}
+              />
+            )}
           {terminal(job.status) ? (
             <button
               className="secondary-button"
