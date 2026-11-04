@@ -53,6 +53,7 @@ export function ScientificResults({
     rows = result.candidates;
   const prediction =
     result.operation === "mol1_predict" || result.operation === "boltz_predict";
+  const [sequenceHost, setSequenceHost] = useState<HTMLDivElement | null>(null);
   const initial = initialCandidateId ?? rows[0]?.id ?? "";
   const [choice, setChoice] = useState({ job: job.id, initial, id: initial });
   const selected =
@@ -212,7 +213,13 @@ export function ScientificResults({
           {
             id: "structure",
             label: zh ? "三维结构" : "3D structure",
-            content: <StructureViewer urls={[url]} language={language} />,
+            content: (
+              <StructureViewer
+                urls={[url]}
+                language={language}
+                sequenceHost={prediction ? sequenceHost : undefined}
+              />
+            ),
           },
           {
             id: "sequence",
@@ -224,6 +231,7 @@ export function ScientificResults({
     ) : (
       <StructureViewer
         key={referenceScene}
+        sequenceHost={prediction ? sequenceHost : undefined}
         urls={[url]}
         language={language}
         sourceSnapshot={Boolean(referenceReview)}
@@ -300,7 +308,10 @@ export function ScientificResults({
               zh={zh}
             />
           )}
-          <StructureWorkbench preview={view}>
+          <StructureWorkbench
+            preview={view}
+            sequenceHostRef={prediction ? setSequenceHost : undefined}
+          >
             {result.operation === "boltz_predict" && active && (
               <PredictionConfidenceCard
                 title={

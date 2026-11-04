@@ -28,6 +28,8 @@ on:
       - "frontend/src/viewer/chain-controls.css"
       - "frontend/src/viewer/chain-visibility*"
       - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/presentation/StructureWorkbench.tsx"
+      - "frontend/src/presentation/structure-workbench.css"
       - "frontend/src/viewer/StructureViewer.test.tsx"
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/frame.ts"
@@ -197,7 +199,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
-          src/integrations/ScientificResults.test.tsx
+          src/integrations/ScientificResults.test.tsx src/viewer/StructureInspection.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
         if: needs.scope.outputs.boltz_review_changed == 'true'
         working-directory: frontend

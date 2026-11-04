@@ -140,3 +140,41 @@
     gap: 12px;
   }
 }
+
+.structure-sequence.is-compact {
+  padding: 16px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.structure-sequence.is-compact > header {
+  min-height: 28px;
+}
+.structure-sequence.is-compact .structure-sequence-chain {
+  border-top: 1px solid var(--line);
+}
+.structure-sequence.is-compact .structure-sequence-residues button {
+  width: 31px;
+  min-width: 31px;
+  min-height: 36px;
+  grid-template-rows: 14px 10px;
+  align-content: start;
+  gap: 1px;
+  padding: 3px 0;
+}
+.structure-sequence.is-compact .structure-sequence-residues button span {
+  font-size: 13px;
+  line-height: 14px;
+}
+.structure-sequence.is-compact .structure-sequence-residues button small {
+  font-size: 9px;
+  line-height: 10px;
+  max-width: 100%;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .structure-sequence.is-compact {
+    padding: 12px;
+  }
+}

@@ -382,3 +382,22 @@ def test_shared_confidence_card_selects_its_exact_native_render_gates():
         assert scope.native_confidence_only([name])
         assert scope.confidence_changed([name])
         assert scope.sample_export_changed([name])
+
+
+def test_prediction_sequence_layout_selects_both_retained_result_paths():
+    paths = [
+        "frontend/src/presentation/StructureWorkbench.tsx",
+        "frontend/src/presentation/structure-workbench.css",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/viewer/StructureInspection.tsx",
+        "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/structure-inspection.css",
+        "frontend/src/studio/PredictionResults.tsx",
+        "frontend/src/integrations/ScientificResults.tsx",
+        "server_tests/test_native_confidence_browser.py",
+        "server_tests/test_prediction_sample_export_browser.py",
+    ]
+    assert scope.native_confidence_only(paths)
+    assert scope.selected(paths, "pull_request")
+    assert scope.confidence_changed(paths)
+    assert scope.sample_export_changed(paths)

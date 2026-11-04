@@ -70,6 +70,11 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         ).to_be_enabled(timeout=30000)
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.screenshot(path=evidence / "selected-sample.png")
+        sequence = page.locator(".structure-workbench-sequence .structure-sequence")
+        residue = sequence.get_by_role("checkbox").first
+        expect(residue).to_be_visible()
+        residue.click()
+        expect(residue).to_have_attribute("aria-checked", "true")
 
         def download(candidate, index):
             with page.expect_download() as received:
@@ -102,6 +107,8 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         ).to_have_attribute("aria-pressed", "true")
         expect(bar).to_contain_text("0.87")
         expect(panel).to_contain_text("structure-001")
+        expect(residue).to_be_visible()
+        expect(sequence.get_by_role("checkbox", checked=True)).to_have_count(0)
         selected = bar.locator('.prediction-sample-options [aria-pressed="true"]').bounding_box()
         sample_list = bar.locator(".prediction-sample-options").bounding_box()
         assert selected and sample_list

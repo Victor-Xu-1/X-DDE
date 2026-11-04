@@ -37,6 +37,7 @@ export type PredictionResultsProps = Pick<
   | "onChanged"
 > & { onHistory?(): void };
 export function PredictionResults(p: PredictionResultsProps) {
+  const [sequenceHost, setSequenceHost] = useState<HTMLDivElement | null>(null);
   const selectedKey = `${p.job?.id}:${p.candidate?.id}`;
   const [annotation, setAnnotation] = useState<{
     key: string;
@@ -113,10 +114,12 @@ export function PredictionResults(p: PredictionResultsProps) {
         />
       )}
       <StructureWorkbench
+        sequenceHostRef={setSequenceHost}
         preview={
           <div className="viewer-column">
             <StructureViewer
               urls={p.urls}
+              sequenceHost={sequenceHost}
               language={p.language}
               focusResidue={p.focusResidue}
               comparison={p.compared.length > 1}

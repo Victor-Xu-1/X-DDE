@@ -62,6 +62,7 @@ export function StructureSequence({
   onClear,
   confidence,
   nativeSelectionCount = 0,
+  compact = false,
 }: {
   language: Language;
   residues: Residue[];
@@ -71,13 +72,16 @@ export function StructureSequence({
   onClear(): void;
   confidence?: Record<string, number>;
   nativeSelectionCount?: number;
+  compact?: boolean;
 }) {
   const zh = language === "zh";
   const chains = [...new Set(residues.map((row) => row.chain))];
   const selectedKeys = new Set(selected);
   return (
     <section
-      className="structure-sequence"
+      className={
+        compact ? "structure-sequence is-compact" : "structure-sequence"
+      }
       aria-label={zh ? "结构中的残基" : "Residues in structure"}
     >
       <header>
@@ -126,7 +130,7 @@ export function StructureSequence({
           >
             {residues
               .filter((row) => row.chain === chain)
-              .map((row) => (
+              .map((row, index, chainRows) => (
                 <button
                   key={row.key}
                   type="button"
@@ -167,10 +171,16 @@ export function StructureSequence({
                   }
                 >
                   <span>{residueLetter(row.resn)}</span>
-                  <small>
-                    {row.resi}
-                    {row.icode}
-                  </small>
+                  {(!compact ||
+                    index === 0 ||
+                    index === chainRows.length - 1 ||
+                    (index + 1) % 10 === 0 ||
+                    row.icode) && (
+                    <small>
+                      {row.resi}
+                      {row.icode}
+                    </small>
+                  )}
                 </button>
               ))}
           </div>

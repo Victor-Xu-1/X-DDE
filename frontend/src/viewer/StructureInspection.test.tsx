@@ -73,3 +73,33 @@ it("displays standard DNA nucleotide letters while retaining deposited residue l
     ).toHaveTextContent(name.slice(1)),
   );
 });
+
+it("compacts the position markers while retaining exact accessible residue identities", () => {
+  const residues = Array.from({ length: 12 }, (_, index) => ({
+    key: "A:" + index,
+    chain: "A",
+    resn: "GLY",
+    resi: index + 101,
+    icode: index === 4 ? "B" : "",
+  }));
+  render(
+    <StructureSequence
+      language="en"
+      residues={residues}
+      selected={[]}
+      hiddenChains={[]}
+      onSelect={vi.fn()}
+      onClear={vi.fn()}
+      compact
+    />,
+  );
+  expect(screen.getByRole("checkbox", { name: "A:GLY102" })).toHaveTextContent(
+    /^G$/,
+  );
+  expect(screen.getByRole("checkbox", { name: "A:GLY105B" })).toHaveTextContent(
+    "105B",
+  );
+  expect(screen.getByRole("checkbox", { name: "A:GLY110" })).toHaveTextContent(
+    "110",
+  );
+});

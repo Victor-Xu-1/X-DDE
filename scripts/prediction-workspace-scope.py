@@ -471,6 +471,10 @@ CONFIDENCE_PATTERNS = (
 CONFIDENCE_LAYOUT_SOURCES = (
     "frontend/src/presentation/PredictionConfidenceCard.tsx",
     "frontend/src/presentation/prediction-confidence-card.css",
+    "frontend/src/presentation/StructureWorkbench.tsx",
+    "frontend/src/presentation/structure-workbench.css",
+    "frontend/src/viewer/StructureInspection.tsx",
+    "frontend/src/viewer/structure-inspection.css",
 )
 CONFIDENCE_LAYOUT_FILES = (
     CONFIDENCE_PATTERNS
@@ -481,6 +485,8 @@ CONFIDENCE_LAYOUT_FILES = (
         "frontend/src/integrations/Mol1Confidence.tsx",
         "frontend/src/integrations/ScientificResults.tsx",
         "server_tests/test_prediction_sample_export_browser.py",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/viewer/StructureInspection.test.tsx",
     )
 )
 
