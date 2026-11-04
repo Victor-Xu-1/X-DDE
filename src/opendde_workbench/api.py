@@ -12,7 +12,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -563,7 +563,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 path,
                 filename=f"{job.id}-input.json",
                 media_type="application/json",
-                headers={**headers, "X-XDDE-Input-Source": "retained"},
+                # Historical archives can also have a restored input.json on disk.
+                headers={**headers, "X-XDDE-Input-Source": "stored-document"},
             )
         headers["Content-Disposition"] = f'attachment; filename="{job.id}-input.json"'
         if isinstance(job.request, Prediction):
@@ -575,8 +576,14 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 job.request.inference_input(job.id, bindings),
                 headers={**headers, "X-XDDE-Input-Source": "reconstructed"},
             )
-        return JSONResponse(
-            job.request.model_dump(mode="json"),
+        # Preserve the original stored JSON, including fields absent in older requests.
+        with store.connect() as db:
+            authored = db.execute("SELECT request FROM jobs WHERE id=?", (job.id,)).fetchone()
+        if authored is None:
+            raise HTTPException(404, "Task input is unavailable.")
+        return Response(
+            authored["request"],
+            media_type="application/json",
             headers={**headers, "X-XDDE-Input-Source": "recorded-request"},
         )
 

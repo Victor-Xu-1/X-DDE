@@ -6,7 +6,7 @@ import { downloadBlob } from "./visual-export";
 import "./prediction-history-input.css";
 
 const sources = {
-  retained: ["已保存的输入文件", "Stored input document"],
+  "stored-document": ["已保存的输入文件", "Stored input document"],
   reconstructed: [
     "根据任务记录重建的输入",
     "Input reconstructed from the task record",
@@ -26,7 +26,7 @@ async function readInput(jobId: string, signal: AbortSignal) {
   });
   const source = response.headers.get("X-XDDE-Input-Source");
   if (
-    source !== "retained" &&
+    source !== "stored-document" &&
     source !== "reconstructed" &&
     source !== "recorded-request"
   )

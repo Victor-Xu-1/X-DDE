@@ -29,7 +29,7 @@ def test_real_process_result_download_and_durable_request(client_factory, settin
         assert "worker-started" in client.get(f"/api/jobs/{job_id}/logs").json()["text"]
         snapshot = settings.state_dir / "jobs" / job_id / "input.json"
         retained = client.get(f"/api/jobs/{job_id}/input")
-        assert retained.headers["X-XDDE-Input-Source"] == "retained"
+        assert retained.headers["X-XDDE-Input-Source"] == "stored-document"
         assert retained.headers["Cache-Control"] == "no-store"
         assert retained.content == snapshot.read_bytes()
         assert retained.json()[0]["sequences"][0]["ligand"]["ligand"] == "CCO"

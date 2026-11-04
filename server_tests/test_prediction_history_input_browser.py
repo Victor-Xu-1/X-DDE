@@ -1,5 +1,6 @@
 """Inspect historical prediction inputs from real restored records without submitting a job."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -42,7 +43,10 @@ def test_historical_prediction_input_replays_and_downloads_the_exact_document(
         input_url = f"/api/jobs/{job_id}/input"
         recorded = page.request.get(base + input_url)
         assert recorded.ok and recorded.headers["x-xdde-input-source"] == "recorded-request"
-        assert recorded.json() == store.get(job_id).request.model_dump(mode="json")
+        with store.connect() as db:
+            authored = db.execute("SELECT request FROM jobs WHERE id=?", (job_id,)).fetchone()
+        assert recorded.body() == authored["request"].encode()
+        assert hashlib.sha256(recorded.body()).hexdigest() == native.request_sha256
         page.goto(base + "/#task=" + job_id)
         trigger = page.get_by_role("button", name="查看输入" if zh else "View input", exact=True)
         page.route("**" + input_url, lambda route: route.fulfill(status=503), times=1)
@@ -74,7 +78,7 @@ def test_historical_prediction_input_replays_and_downloads_the_exact_document(
         archived_id = str(opendde.job_id)
         archived = page.request.get(f"{base}/api/jobs/{archived_id}/input")
         assert archived.ok
-        assert archived.headers["x-xdde-input-source"] == "retained"
+        assert archived.headers["x-xdde-input-source"] == "stored-document"
         page.goto(base + "/#task=" + archived_id)
         page.locator(".prediction-result-heading").get_by_role(
             "button", name="查看输入" if zh else "View input", exact=True
