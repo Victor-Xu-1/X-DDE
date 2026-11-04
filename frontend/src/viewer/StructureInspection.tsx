@@ -99,10 +99,14 @@ export function StructureSequence({
           {selected.length || !nativeSelectionCount
             ? zh
               ? "个残基已选"
-              : "residues selected"
+              : selected.length === 1
+                ? "residue selected"
+                : "residues selected"
             : zh
               ? "个原子 token 已选"
-              : "atom tokens selected"}
+              : nativeSelectionCount === 1
+                ? "atom token selected"
+                : "atom tokens selected"}
         </span>
         <button
           type="button"

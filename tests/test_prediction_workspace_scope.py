@@ -399,5 +399,9 @@ def test_prediction_sequence_layout_selects_both_retained_result_paths():
     ]
     assert scope.native_confidence_only(paths)
     assert scope.selected(paths, "pull_request")
+    assert not scope.prediction_only(paths, "pull_request")
     assert scope.confidence_changed(paths)
     assert scope.sample_export_changed(paths)
+    for path in paths[:2]:
+        assert scope.native_confidence_only([path])
+        assert not scope.prediction_only([path])

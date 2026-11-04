@@ -706,6 +706,14 @@ def selected(changed, event="push"):
     )
 
 
+def prediction_only(changed, event="push"):
+    shared_workbench = {
+        "frontend/src/presentation/StructureWorkbench.tsx",
+        "frontend/src/presentation/structure-workbench.css",
+    }
+    return not shared_workbench.intersection(changed) and selected(changed, event)
+
+
 def main():
     base = os.environ.get("BASE", "")
     if os.environ.get("GITHUB_REF_NAME", "main") != "main":
@@ -770,7 +778,7 @@ def main():
         stream.write("native_confidence=" + str(native_confidence_only(changed)).lower() + "\n")
         stream.write(
             "prediction_only="
-            + str(selected(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
+            + str(prediction_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
             + "\n"
         )
 
