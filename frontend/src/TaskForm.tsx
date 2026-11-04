@@ -23,11 +23,13 @@ import { CovalentEditor } from "./operations/CovalentEditor";
 import type { CovalentBond } from "./operations/types";
 import type { MoleculeRef } from "./research/types";
 import { PredictionSetup } from "./presentation/PredictionSetup";
+import { OpenDdeJobReview } from "./operations/OpenDdeJobReview";
 interface Props {
   language: Language;
   ready: boolean;
   abagAvailable?: boolean;
   initialRequest?: Prediction | null;
+  projectId?: string | null;
   onPreviewChange?(value: boolean): void;
   onSubmit(value: Prediction, key: string): Promise<Job>;
 }
@@ -35,6 +37,7 @@ export function TaskForm({
   language,
   ready,
   initialRequest,
+  projectId = null,
   onSubmit,
   abagAvailable = false,
   onPreviewChange,
@@ -60,6 +63,7 @@ export function TaskForm({
   const drafts = useRef<Partial<Record<TaskKind, Component[]>>>({});
   const request = useRef({ body: "", key: crypto.randomUUID() });
   const automaticName = useRef("");
+  const [openedAt] = useState(() => new Date());
   const [bonds, setBonds] = useState<CovalentBond[]>([]);
   useEffect(() => {
     if (!initialRequest) return;
@@ -90,44 +94,22 @@ export function TaskForm({
     setError("");
     automaticName.current = "";
   }
-  async function submit() {
-    if (!automaticName.current)
-      automaticName.current =
-        taskKinds.find((x) => x.id === kind)!.label[zh ? 0 : 1] +
+  const model = components.some((x) => x.kind === "protein")
+    ? (parameters.model ?? "standard")
+    : "standard";
+  function currentPrediction(): Prediction {
+    const taskName =
+      name.trim() ||
+      automaticName.current ||
+      taskKinds.find((x) => x.id === kind)!.label[zh ? 0 : 1] +
         " · " +
-        new Date().toLocaleString(zh ? "zh-CN" : "en-US");
-    const taskName = name.trim() || automaticName.current;
-    const problem = validate(taskName, components);
-    if (problem) {
-      setError(t(problem));
-      return;
-    }
-    if (!expert && !completeWorkflow(kind, components)) {
-      setError(
-        zh
-          ? "当前组分不完整，请补齐所选任务需要的输入，或切换到专家模式自由组合。"
-          : "Complete the inputs required for this task, or use Expert mode for a custom assembly.",
-      );
-      return;
-    }
+        openedAt.toLocaleString(zh ? "zh-CN" : "en-US");
     const value = prediction(taskName, components, {
       ...parameters,
-      model: components.some((x) => x.kind === "protein")
-        ? (parameters.model ?? "standard")
-        : "standard",
+      model,
     });
-    if (
-      value.parameters.model === "abag" &&
-      !value.parameters.checkpoint_id &&
-      !abagAvailable
-    ) {
-      setError(
-        zh
-          ? "ABAG 模型未就绪，请到运行状态检查权重。"
-          : "ABAG is unavailable. Check the checkpoint in Runtime status.",
-      );
-      return;
-    }
+    value.operation = "predict";
+    value.project_id = projectId;
     value.covalent_bonds = bonds;
     value.scientific_inputs = inputReferences.filter((reference) =>
       components.some(
@@ -136,6 +118,10 @@ export function TaskForm({
           component.source_sequence === reference.asset_id,
       ),
     );
+    return value;
+  }
+  async function submit(value: Prediction) {
+    if (!name.trim()) automaticName.current = value.name;
     const body = JSON.stringify(value);
     if (request.current.body !== body)
       request.current = { body, key: crypto.randomUUID() };
@@ -254,9 +240,10 @@ export function TaskForm({
     !validate("Structure prediction", components) &&
     (expert || completeWorkflow(kind, components));
   const modelReady =
-    parameters.model !== "abag" ||
-    Boolean(parameters.checkpoint_id) ||
-    abagAvailable;
+    model !== "abag" || Boolean(parameters.checkpoint_id) || abagAvailable;
+  const unavailable = zh
+    ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
+    : "Configure this task's prediction environment and model in Installation & components. Inputs are retained.";
   const review = (
     <dl className="questionnaire-review">
       <dt>{zh ? "研究任务" : "Research task"}</dt>
@@ -312,49 +299,61 @@ export function TaskForm({
       />
       <div hidden={previewing}>
         <ExampleContext.Provider value={example}>
-          <PredictionSetup language={language} components={components}
+          <PredictionSetup
+            language={language}
+            components={components}
             model={parameters.model === "abag" ? "OpenDDE ABAG" : "OpenDDE"}
             seeds={[parameters.seed, ...(parameters.additional_seeds ?? [])]}
-            samples={parameters.samples} valid={inputValid}>
-          <Questionnaire
-            key={templateRevision}
-            language={language}
-            ready={ready && modelReady}
-            busy={busy}
-            error={error}
-            unavailable={
-              zh
-                ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
-                : "Configure this task's prediction environment and model in Installation & components. Inputs are retained."
-            }
-            submitLabel={zh ? "开始预测" : "Run prediction"}
-            onSubmit={submit}
-            steps={[
-              {
-                title: zh
-                  ? "你想预测什么？"
-                  : "What would you like to predict?",
-                actions: goalTools,
-                content: goal,
-                valid: true,
-              },
-              {
-                title: zh ? "填写材料" : "Provide inputs",
-                content: inputs,
-                valid: inputValid,
-              },
-              {
-                title: zh ? "选择方案" : "Choose settings",
-                content: settings,
-                valid: true,
-              },
-              {
-                title: zh ? "确认启动" : "Review & start",
-                content: review,
-                valid: inputValid,
-              },
-            ]}
-          />
+            samples={parameters.samples}
+            valid={inputValid}
+          >
+            <Questionnaire
+              key={templateRevision}
+              language={language}
+              ready={ready && modelReady}
+              busy={busy}
+              error={error}
+              unavailable={unavailable}
+              submitLabel={zh ? "预览任务" : "Preview job"}
+              renderReview={({ confirm, dismiss }) => (
+                <OpenDdeJobReview
+                  input={currentPrediction()}
+                  language={language}
+                  ready={ready && modelReady}
+                  unavailable={unavailable}
+                  busy={busy}
+                  error={error}
+                  confirm={confirm}
+                  onClose={dismiss}
+                  submit={submit}
+                />
+              )}
+              steps={[
+                {
+                  title: zh
+                    ? "你想预测什么？"
+                    : "What would you like to predict?",
+                  actions: goalTools,
+                  content: goal,
+                  valid: true,
+                },
+                {
+                  title: zh ? "填写材料" : "Provide inputs",
+                  content: inputs,
+                  valid: inputValid,
+                },
+                {
+                  title: zh ? "选择方案" : "Choose settings",
+                  content: settings,
+                  valid: true,
+                },
+                {
+                  title: zh ? "确认启动" : "Review & start",
+                  content: review,
+                  valid: inputValid,
+                },
+              ]}
+            />
           </PredictionSetup>
         </ExampleContext.Provider>
       </div>

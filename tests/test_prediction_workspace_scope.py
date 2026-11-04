@@ -117,6 +117,23 @@ def test_preview_regressions_are_detected_independently_of_batch_delegation():
     assert not scope.preview_changed(["frontend/src/viewer/confidence-mapping.ts"])
 
 
+def test_opendde_review_delegates_only_its_form_transport_and_browser_changes():
+    changes = [
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/operations/OpenDdeJobReview.tsx",
+        "server_tests/test_opendde_final_review_browser.py",
+        "frontend/src/App.tsx",
+        "frontend/src/studio/HomeWorkspace.tsx",
+        "frontend/src/presentation/PredictionJobReview.tsx",
+    ]
+    assert scope.final_review_only(changes, "pull_request")
+    assert scope.selected(changes)
+    assert scope.opendde_review_changed(changes)
+    assert scope.final_review_changed(changes)
+    assert scope.boltz_review_changed(changes)
+    assert not scope.selected(changes + ["src/opendde_workbench/assets.py"])
+
+
 def test_only_bounded_prediction_presentation_is_delegated():
     changes = [
         "frontend/src/presentation/PredictionSetup.tsx",

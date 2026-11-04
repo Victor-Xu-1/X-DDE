@@ -8,27 +8,31 @@ import {
 import { PredictionReviewDialog } from "./PredictionReviewDialog";
 import { researchError } from "./research-content";
 import type { ScientificTask } from "../integrations/types";
+import type { TaskRequest } from "../operations/types";
 import "./prediction-job-review.css";
 
-interface PredictionJobSnapshot {
-  task: ScientificTask;
+interface PredictionJobSnapshot<Task extends TaskRequest> {
+  task: Task;
   components: PreviewComponent[];
 }
 
-export interface PredictionJobReviewActions {
+export interface PredictionJobReviewActions<
+  Task extends TaskRequest = ScientificTask,
+> {
   language: Language;
   ready: boolean | undefined;
   unavailable: string;
-  recheck(): void;
+  recheck?(): void;
   busy: boolean;
   error: string;
   confirm(send: () => Promise<Job | undefined>): Promise<void>;
   onClose(): void;
-  submit(task: ScientificTask): Promise<Job | undefined>;
+  submit(task: Task): Promise<Job | undefined>;
 }
 export function PredictionJobReview<
   Input,
-  Prepared extends PredictionJobSnapshot,
+  Task extends TaskRequest,
+  Prepared extends PredictionJobSnapshot<Task>,
 >({
   language,
   input,
@@ -42,7 +46,7 @@ export function PredictionJobReview<
   confirm,
   onClose,
   submit,
-}: PredictionJobReviewActions & {
+}: PredictionJobReviewActions<Task> & {
   input: Input;
   prepare(input: Input, signal: AbortSignal): Promise<Prepared>;
   renderSettings(prepared: Prepared): ReactNode;
