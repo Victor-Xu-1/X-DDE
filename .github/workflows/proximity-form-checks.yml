@@ -4,6 +4,7 @@ on:
   push:
     paths: &form_paths
       - 'frontend/src/proximity/Form*'
+      - 'server_tests/test_ternary_job_review_browser.py'
       - 'frontend/src/proximity/PartnerQuestion*'
       - 'frontend/src/proximity/Plan.tsx'
       - 'frontend/src/proximity/ExecutionSettings.tsx'
@@ -16,7 +17,7 @@ permissions:
 jobs:
   form:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,8 +34,21 @@ jobs:
           src/diffsbdd/ReferencePickerLifecycle.test.tsx
       - name: Existing backend budget and chemical-input contract
         run: |
-          uv sync --locked --group dev
+          uv sync --locked --group dev --group browser
           uv run --locked pytest -q tests/test_proximity_contract.py
+      - name: English desktop and Chinese mobile STAT6 source review without inference
+        run: |
+          uv run --locked ruff check server_tests/test_ternary_job_review_browser.py
+          uv run --locked playwright install chromium --with-deps
+          export WB_TERNARY_VISUAL_STATE="$RUNNER_TEMP/x-dde-ternary-review-tools/state"
+          WB_HOME="$RUNNER_TEMP/x-dde-ternary-review-tools" WB_STATE_DIR="$WB_TERNARY_VISUAL_STATE" \
+            uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked pytest -q server_tests/test_ternary_job_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ternary-job-review-visuals
+          path: outputs/ternary-job-review
       - name: Preserve this exact built frontend for isolated browser acceptance
         uses: actions/upload-artifact@v4
         with:

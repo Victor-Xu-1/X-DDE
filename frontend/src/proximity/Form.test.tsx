@@ -4,15 +4,18 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ProximityForm } from "./Form";
 import { defaults } from "./generated";
 import type { ScientificTask } from "../integrations/types";
 
 const mocks = vi.hoisted(() => ({
   submit: vi.fn(),
+  ready: true,
+  verifyProtein: vi.fn(),
   example: null as { name?: string; options: ScientificTask["options"] } | null,
 }));
 vi.mock("../examples/context", async () => ({
@@ -25,7 +28,16 @@ vi.mock("../operations/useTaskSubmit", () => ({
   useTaskSubmit: () => ({ busy: false, error: "", submit: mocks.submit }),
 }));
 vi.mock("../guided/useTaskReadiness", () => ({
-  useTaskReadiness: () => ({ ready: true, error: "", recheck: vi.fn() }),
+  useTaskReadiness: () => ({ ready: mocks.ready, error: "", recheck: vi.fn() }),
+}));
+vi.mock("../diffsbdd/reference-metadata", () => ({
+  resolveReference: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("../research/asset-file", () => ({
+  readAssetFile: mocks.verifyProtein,
+}));
+vi.mock("../viewer/StructureViewer", () => ({
+  StructureViewer: () => <div>Structure viewer</div>,
 }));
 vi.mock("./InitialMaterials", () => ({
   InitialMaterials: () => <p>Confirmed complete molecule</p>,
@@ -84,9 +96,35 @@ vi.mock("./useProximityDraft", async () => {
     },
   };
 });
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async (url: string) =>
+        new Response(null, {
+          headers: {
+            "X-Structure-Format": "sdf",
+            "X-Structure-Record":
+              new URL(url, "http://localhost").searchParams.get("record") ?? "",
+          },
+        }),
+    ),
+  );
+});
 afterEach(() => {
   cleanup();
   mocks.example = null;
+  mocks.ready = true;
+  mocks.verifyProtein.mockReset();
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 async function review(language: "en" | "zh" = "en") {
@@ -100,13 +138,53 @@ async function review(language: "en" | "zh" = "en") {
     );
   return user;
 }
-it("submits the visible4GiB default through the real questionnaire and retains all five inputs", async () => {
+async function submitReviewed(user: ReturnType<typeof userEvent.setup>) {
+  const dialog = within(screen.getByRole("dialog"));
+  expect(mocks.submit).not.toHaveBeenCalled();
+  await user.click(
+    dialog.getByRole("button", { name: /Request JSON|提交内容/ }),
+  );
+  const reviewed = JSON.parse(
+    dialog.getByLabelText(/X-DDE submission request|X-DDE 提交请求/)
+      .textContent!,
+  );
+  await user.click(dialog.getByRole("button", { name: /Submit job|提交任务/ }));
+  await waitFor(() =>
+    expect(mocks.submit).toHaveBeenCalledExactlyOnceWith(reviewed),
+  );
+}
+
+it("allows review while the engine is unavailable and retains settings when returning to edit", async () => {
+  mocks.ready = false;
+  const user = await review();
+  const name = screen.getByRole("textbox", { name: "Task name (optional)" });
+  await user.type(name, "STAT6 review");
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const dialog = within(screen.getByRole("dialog"));
+  expect(await dialog.findByText("STAT6 review")).toBeVisible();
+  expect(dialog.getByRole("button", { name: "Submit job" })).toBeDisabled();
+  await user.click(dialog.getByRole("button", { name: "Back to edit" }));
+  expect(name).toHaveValue("STAT6 review");
+  expect(mocks.submit).not.toHaveBeenCalled();
+});
+
+it("blocks confirmation when a selected file cannot be verified and retries in place", async () => {
+  mocks.verifyProtein.mockRejectedValueOnce(new Error("changed file"));
+  const user = await review();
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const dialog = within(screen.getByRole("dialog"));
+  expect(await dialog.findByRole("alert")).toHaveTextContent(
+    "could not be verified",
+  );
+  expect(dialog.getByRole("button", { name: "Submit job" })).toBeDisabled();
+  await user.click(dialog.getByRole("button", { name: "Check files again" }));
+  await submitReviewed(user);
+});
+it("submits the visible 4 GiB default through the real questionnaire and retains all five inputs", async () => {
   const user = await review();
   expect(screen.getByText("2 CPU · 4 GiB")).toBeVisible();
-  await user.click(
-    screen.getByRole("button", { name: "Start ternary modeling" }),
-  );
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  await submitReviewed(user);
   const request = mocks.submit.mock.calls[0][0] as ScientificTask;
   expect(request.name).toBe("Induced proximity · ternary assemblies");
   expect(request.options).toEqual({
@@ -144,10 +222,8 @@ it("submits selected CPU/memory/seed values and keeps them when returning to the
   await user.click(screen.getByRole("button", { name: "Back" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(screen.getByText("1 CPU · 8 GiB")).toBeVisible();
-  await user.click(
-    screen.getByRole("button", { name: "Start ternary modeling" }),
-  );
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  await submitReviewed(user);
   expect(mocks.submit.mock.calls[0][0].options).toEqual({
     device: "cpu",
     cpu: 1,
@@ -162,12 +238,12 @@ it("blocks an invalid seed in the Chinese form and recovers without losing the s
     target: { value: "-1" },
   });
   expect(screen.getByRole("alert")).toBeVisible();
-  expect(screen.getByRole("button", { name: "开始三元建模" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "预览任务" })).toBeDisabled();
   expect(mocks.submit).not.toHaveBeenCalled();
   fireEvent.change(screen.getByRole("spinbutton", { name: "随机种子" }), {
     target: { value: "31" },
   });
-  expect(screen.getByRole("button", { name: "开始三元建模" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "预览任务" })).toBeEnabled();
   expect(screen.getByText("2 CPU · 4 GiB")).toBeVisible();
 });
 it("preserves archived example resources rather than silently changing their reproduction", async () => {
@@ -176,10 +252,8 @@ it("preserves archived example resources rather than silently changing their rep
   };
   const user = await review();
   expect(screen.getByText("3 CPU · 6 GiB")).toBeVisible();
-  await user.click(
-    screen.getByRole("button", { name: "Start ternary modeling" }),
-  );
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  await submitReviewed(user);
   expect(mocks.submit.mock.calls[0][0].options).toEqual(mocks.example.options);
 });
 
@@ -190,10 +264,8 @@ it("submits the selected target anchor without changing protein roles or binary 
     screen.getByRole("combobox", { name: "Fixed protein" }),
     "b",
   );
-  await user.click(
-    screen.getByRole("button", { name: "Start ternary modeling" }),
-  );
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  await submitReviewed(user);
   const request = mocks.submit.mock.calls[0][0] as ScientificTask;
   expect(request.payload.anchor_partner).toBe("b");
   expect(request.payload.partner_a_name).toBe("Recruiter");
@@ -223,8 +295,8 @@ it("keeps a chosen study name across review navigation and language switching", 
   expect(screen.getByRole("textbox", { name: "任务名称（可选）" })).toHaveValue(
     "STAT6 / CRBN · R branch",
   );
-  await user.click(screen.getByRole("button", { name: "开始三元建模" }));
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "预览任务" }));
+  await submitReviewed(user);
   expect(mocks.submit.mock.calls[0][0].name).toBe("STAT6 / CRBN · R branch");
 });
 
@@ -238,8 +310,8 @@ it("prefills an example name and lets the researcher name their own variation", 
   expect(field).toHaveValue("Reference ternary study");
   await user.clear(field);
   await user.type(field, "  STAT6 三元复合物 S 构型  ");
-  await user.click(screen.getByRole("button", { name: "开始三元建模" }));
-  await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+  await user.click(screen.getByRole("button", { name: "预览任务" }));
+  await submitReviewed(user);
   expect(mocks.submit.mock.calls[0][0].name).toBe("STAT6 三元复合物 S 构型");
   expect(mocks.example.name).toBe("Reference ternary study");
 });
@@ -251,15 +323,11 @@ it.each(["x".repeat(81), "Study\u007f"])(
     const field = screen.getByRole("textbox", { name: "Task name (optional)" });
     fireEvent.change(field, { target: { value: name } });
     expect(screen.getByRole("alert")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Start ternary modeling" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Preview job" })).toBeDisabled();
     expect(mocks.submit).not.toHaveBeenCalled();
     fireEvent.change(field, { target: { value: " " } });
-    await user.click(
-      screen.getByRole("button", { name: "Start ternary modeling" }),
-    );
-    await waitFor(() => expect(mocks.submit).toHaveBeenCalledOnce());
+    await user.click(screen.getByRole("button", { name: "Preview job" }));
+    await submitReviewed(user);
     expect(mocks.submit.mock.calls[0][0].name).toBe(
       "Induced proximity · ternary assemblies",
     );

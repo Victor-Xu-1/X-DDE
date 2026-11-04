@@ -14,7 +14,7 @@ import { InitialMaterials } from "./InitialMaterials";
 import { ProximityPlan } from "./Plan";
 import { partnerRoles } from "./types";
 import type { Job, Language } from "../types";
-import type { ScientificTask } from "../integrations/types";
+import { TernaryJobReview } from "./FormReview";
 import "./proximity.css";
 
 export function ProximityForm({
@@ -39,7 +39,6 @@ export function ProximityForm({
     second,
     armA,
     armB,
-    binary,
     firstReady,
     secondReady,
     planReady,
@@ -50,6 +49,9 @@ export function ProximityForm({
   const roles = partnerRoles(payload.mechanism, zh);
   const run = useTaskSubmit(onCreated),
     readiness = useTaskReadiness("deepternary.model");
+  const unavailable = zh
+    ? "请在安装与组件中配置三元建模环境。"
+    : "Configure the ternary-modeling environment in Components.";
   return (
     <Questionnaire
       language={language}
@@ -57,37 +59,32 @@ export function ProximityForm({
       ready={readiness.ready}
       onCheckEnvironment={readiness.recheck}
       error={run.error || readiness.error}
-      unavailable={
-        zh
-          ? "请在安装与组件中配置三元建模环境。"
-          : "Configure the ternary-modeling environment in Components."
-      }
-      submitLabel={zh ? "开始三元建模" : "Start ternary modeling"}
-      onSubmit={() => {
-        const inputs: ScientificTask["inputs"] = [
-          { role: "ligand", source: ligand! },
-          { role: "partner_a", source: first! },
-          { role: "partner_b", source: second! },
-          ...(binary
-            ? [
-                { role: "arm_a" as const, source: armA! },
-                { role: "arm_b" as const, source: armB! },
-              ]
-            : []),
-        ];
-        return run.submit({
-          operation: "ternary_model",
-          name:
-            name.trim() ||
-            (zh
-              ? "诱导邻近 · 三元装配探索"
-              : "Induced proximity · ternary assemblies"),
-          inputs,
-          scientific_inputs: inputs.map((i) => i.source),
-          payload,
-          options: execution,
-        });
-      }}
+      unavailable={unavailable}
+      submitLabel={zh ? "预览任务" : "Preview job"}
+      renderReview={({ confirm, dismiss }) => (
+        <TernaryJobReview
+          input={{
+            language,
+            name,
+            ligand,
+            first,
+            second,
+            armA,
+            armB,
+            payload,
+            execution,
+          }}
+          language={language}
+          ready={readiness.ready}
+          unavailable={unavailable}
+          recheck={readiness.recheck}
+          busy={run.busy}
+          error={run.error || readiness.error}
+          confirm={confirm}
+          onClose={dismiss}
+          submit={run.submit}
+        />
+      )}
       steps={[
         {
           title: zh ? "选择分子与目标" : "Choose molecule and mechanism",
