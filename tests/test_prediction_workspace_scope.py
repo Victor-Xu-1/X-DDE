@@ -391,6 +391,7 @@ def test_prediction_sequence_layout_selects_both_retained_result_paths():
         "frontend/src/viewer/StructureViewport.tsx",
         "frontend/src/viewer/StructureInspection.tsx",
         "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/StructureViewer.test.tsx",
         "frontend/src/viewer/structure-inspection.css",
         "frontend/src/studio/PredictionResults.tsx",
         "frontend/src/integrations/ScientificResults.tsx",

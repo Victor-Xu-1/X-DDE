@@ -487,6 +487,7 @@ CONFIDENCE_LAYOUT_FILES = (
         "server_tests/test_prediction_sample_export_browser.py",
         "frontend/src/viewer/StructureViewport.tsx",
         "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/StructureViewer.test.tsx",
     )
 )
 
