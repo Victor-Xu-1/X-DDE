@@ -32,7 +32,10 @@ def submit_score(page, base, pair, root, submissions, before):
     ):
         page.get_by_role("spinbutton", name=label, exact=True).fill(value)
     page.get_by_role("button", name="Next", exact=True).click()
-    page.get_by_role("button", name="Score existing pose", exact=True).click()
+    page.get_by_role("button", name="Preview job", exact=True).click()
+    page.get_by_role("dialog", name="Preview job", exact=True).get_by_role(
+        "button", name="Submit job", exact=True
+    ).click()
     expect(page.get_by_role("region", name="Submitted task", exact=True)).to_be_visible(
         timeout=10000
     )

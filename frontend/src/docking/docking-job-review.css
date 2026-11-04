@@ -1,0 +1,13 @@
+.docking-review-geometry {
+  min-width: 0;
+}
+.docking-review-geometry h3 {
+  margin: 0;
+}
+.docking-review-molecule {
+  margin-top: 16px;
+}
+.docking-review-settings .compact-table th,
+.docking-review-settings .compact-table td {
+  overflow-wrap: anywhere;
+}

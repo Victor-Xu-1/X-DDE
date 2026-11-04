@@ -69,8 +69,10 @@ def inspect_questionnaire(page, base, source, pair, zh, root, before, confirm):
     page.screenshot(path=root / (language + "-sidechain-selector.png"), full_page=True)
     next_button.click()
     expect(page.get_by_text("A:111", exact=True)).to_be_visible()
-    submit = page.get_by_role(
-        "button", name="局部最小化" if zh else "Local minimization", exact=True
+    label = "预览任务" if zh else "Preview job"
+    page.get_by_role("button", name=label, exact=True).click()
+    submit = page.get_by_role("dialog", name=label, exact=True).get_by_role(
+        "button", name="提交任务" if zh else "Submit job", exact=True
     )
     expect(submit).to_be_visible()
 

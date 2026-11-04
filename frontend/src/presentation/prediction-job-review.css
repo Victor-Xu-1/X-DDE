@@ -1,6 +1,9 @@
 .prediction-job-preview {
   width: min(1040px, calc(100vw - 32px));
 }
+.prediction-job-preview.prediction-review-wide {
+  width: min(1440px, calc(100vw - 32px));
+}
 .job-review-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.8fr) minmax(240px, 1fr);

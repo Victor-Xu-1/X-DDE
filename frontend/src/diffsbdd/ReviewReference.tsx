@@ -3,6 +3,7 @@ import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { referenceKey } from "./model";
 import { resolveReference } from "./reference-metadata";
+import { assetDownloadUrl } from "../research/asset-download";
 
 /** A filename is descriptive; the selected immutable reference remains authoritative. */
 export function ReviewReference({
@@ -10,11 +11,13 @@ export function ReviewReference({
   kind,
   language,
   allowedFormats,
+  recordDownload = false,
 }: {
   reference: MoleculeRef;
   kind: "structure" | "ligand";
   language: Language;
   allowedFormats?: readonly string[];
+  recordDownload?: boolean;
 }) {
   const zh = language === "zh";
   const identity = referenceKey(reference);
@@ -48,7 +51,10 @@ export function ReviewReference({
   return (
     <span>
       <a
-        href={`/api/assets/${encodeURIComponent(reference.asset_id)}`}
+        href={assetDownloadUrl(
+          reference.asset_id,
+          kind === "ligand" && recordDownload ? reference.record : undefined,
+        )}
         download
       >
         {current?.name ||

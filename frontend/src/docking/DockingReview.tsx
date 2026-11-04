@@ -57,6 +57,7 @@ export function DockingReview({
       <ReviewReference
         reference={request.ligand}
         kind="ligand"
+        recordDownload
         language={language}
       />,
     ],
@@ -68,6 +69,7 @@ export function DockingReview({
         <ReviewReference
           reference={search.reference}
           kind="ligand"
+          recordDownload
           language={language}
         />,
       ],

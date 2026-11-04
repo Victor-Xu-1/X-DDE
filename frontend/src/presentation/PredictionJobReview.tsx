@@ -40,6 +40,8 @@ export function PredictionJobReview<
   renderSettings,
   renderOverview,
   preparationError,
+  summary,
+  wide,
   ready,
   unavailable,
   recheck,
@@ -53,7 +55,9 @@ export function PredictionJobReview<
   prepare(input: Input, signal: AbortSignal): Promise<Prepared>;
   renderSettings(prepared: Prepared): ReactNode;
   renderOverview?(prepared: Prepared): ReactNode;
-  preparationError?: string;
+  preparationError?: string | ((reason: string) => string);
+  summary?(prepared: Prepared): ReactNode;
+  wide?: boolean;
 }) {
   const zh = language === "zh";
   const identity = JSON.stringify(input);
@@ -89,6 +93,7 @@ export function PredictionJobReview<
       language={language}
       title={zh ? "预览任务" : "Preview job"}
       job
+      wide={wide}
       busy={busy}
       onClose={onClose}
       actions={
@@ -119,7 +124,9 @@ export function PredictionJobReview<
       {current && "error" in current && (
         <div role="alert" className="error-box">
           <p>
-            {preparationError ??
+            {(typeof preparationError === "function"
+              ? preparationError(current.error)
+              : preparationError) ??
               (zh
                 ? "无法核对所选文件。请重试，或返回编辑更换材料。"
                 : "The selected files could not be verified. Try again or return to edit them.")}
@@ -146,14 +153,18 @@ export function PredictionJobReview<
           <div className="job-review-primary">
             <div className="job-review-identity">
               <strong>{prepared.task.name}</strong>
-              <span>
-                {prepared.components.length} {zh ? "个组分" : "entities"} ·{" "}
-                {prepared.components.reduce(
-                  (n, component) => n + component.count,
-                  0,
-                )}{" "}
-                {zh ? "条链/分子" : "chains/molecules"}
-              </span>
+              {summary ? (
+                <span>{summary(prepared)}</span>
+              ) : (
+                <span>
+                  {prepared.components.length} {zh ? "个组分" : "entities"} ·{" "}
+                  {prepared.components.reduce(
+                    (n, component) => n + component.count,
+                    0,
+                  )}{" "}
+                  {zh ? "条链/分子" : "chains/molecules"}
+                </span>
+              )}
             </div>
             <div
               className="job-review-tabs"

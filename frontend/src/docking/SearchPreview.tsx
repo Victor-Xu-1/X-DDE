@@ -2,14 +2,17 @@ import { useState } from "react";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { StructureViewer } from "../viewer/StructureViewer";
+import type { SearchBox } from "./types";
 export function SearchPreview({
   receptor,
   language,
   onCenter,
+  box,
 }: {
   receptor: MoleculeRef;
   language: Language;
   onCenter(v: string[]): void;
+  box?: SearchBox;
 }) {
   const zh = language === "zh";
   const [point, setPoint] = useState<[number, number, number] | null>(null),
@@ -25,6 +28,7 @@ export function SearchPreview({
         urls={[`/api/assets/${receptor.asset_id}`]}
         language={language}
         sourceSnapshot
+        searchBox={box}
         selectionMode="atom"
         onAtomSelected={(selection) => {
           const coordinates = selection?.position;

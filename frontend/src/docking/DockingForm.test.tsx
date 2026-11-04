@@ -1,10 +1,24 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { DockingForm } from "./DockingForm";
 import { defaults } from "./generated";
+import type { DockingJobInput } from "./docking-job-request";
 const mocks = vi.hoisted(() => ({ request: vi.fn(), submit: vi.fn() }));
 vi.mock("../api", () => ({ request: mocks.request }));
+vi.mock("./docking-job-request", () => ({
+  prepareDockingJob: async ({ task }: DockingJobInput) => ({
+    task,
+    components: [],
+  }),
+}));
+vi.mock("../viewer/StructureViewer", () => ({ StructureViewer: () => null }));
 vi.mock("../operations/useTaskSubmit", () => ({
   useTaskSubmit: () => ({ submit: mocks.submit, busy: false, error: "" }),
 }));
@@ -22,6 +36,19 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
+async function preview(user: ReturnType<typeof userEvent.setup>, zh = false) {
+  const label = zh ? "预览任务" : "Preview job";
+  await user.click(screen.getByRole("button", { name: label }));
+  return within(await screen.findByRole("dialog", { name: label }));
+}
 it("resets hidden expert GPU settings when selecting the CPU preset", async () => {
   mocks.request.mockImplementation(async (path: string) =>
     path.startsWith("/research/constraints")
@@ -51,10 +78,14 @@ it("resets hidden expert GPU settings when selecting the CPU preset", async () =
     "cpu",
   );
   await user.click(screen.getByRole("button", { name: "下一步" }));
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "探索结合模式" })).toBeEnabled(),
+  const review = await preview(user, true);
+  await user.click(await review.findByRole("button", { name: "提交内容" }));
+  const shown = JSON.parse(
+    review.getByLabelText("X-DDE 提交请求").textContent!,
   );
-  await user.click(screen.getByRole("button", { name: "探索结合模式" }));
+  expect(mocks.submit).not.toHaveBeenCalled();
+  await user.click(review.getByRole("button", { name: "提交任务" }));
+  expect(mocks.submit).toHaveBeenCalledWith(shown);
   expect(mocks.submit).toHaveBeenCalledWith(
     expect.objectContaining({
       options: defaults,
@@ -81,9 +112,8 @@ it("keeps unavailable computation disabled and reports configuration failure", a
   await user.click(screen.getByRole("checkbox", { name: /I confirm/ }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(
-    screen.getByRole("button", { name: "Score existing pose" }),
-  ).toBeDisabled();
+  const review = await preview(user);
+  expect(review.getByRole("button", { name: "Submit job" })).toBeDisabled();
   expect(mocks.submit).not.toHaveBeenCalled();
   mocks.request.mockImplementation(async (path: string) =>
     path.startsWith("/research/constraints")
@@ -91,12 +121,10 @@ it("keeps unavailable computation disabled and reports configuration failure", a
       : { availability: { configuration_present: true } },
   );
   await user.click(
-    screen.getByRole("button", { name: "Check environment again" }),
+    review.getByRole("button", { name: "Check environment again" }),
   );
   await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Score existing pose" }),
-    ).toBeEnabled(),
+    expect(review.getByRole("button", { name: "Submit job" })).toBeEnabled(),
   );
   expect(screen.queryByRole("alert")).toBeNull();
   expect(mocks.submit).not.toHaveBeenCalled();
@@ -130,12 +158,8 @@ it("does not offer CNN search/refinement for scoring an existing pose", async ()
     screen.queryByRole("option", { name: "Refinement (GPU required)" }),
   ).toBeNull();
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Score existing pose" }),
-    ).toBeEnabled(),
-  );
-  await user.click(screen.getByRole("button", { name: "Score existing pose" }));
+  const review = await preview(user);
+  await user.click(review.getByRole("button", { name: "Submit job" }));
   expect(mocks.submit).toHaveBeenCalledWith(
     expect.objectContaining({
       mode: "score",
@@ -176,14 +200,8 @@ it("retains a handed-off reference ligand and requires coordinate confirmation",
   await user.click(confirmed);
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Explore binding poses" }),
-    ).toBeEnabled(),
-  );
-  await user.click(
-    screen.getByRole("button", { name: "Explore binding poses" }),
-  );
+  const review = await preview(user);
+  await user.click(review.getByRole("button", { name: "Submit job" }));
   expect(mocks.submit).toHaveBeenCalledWith(
     expect.objectContaining({
       search: expect.objectContaining({ kind: "reference_ligand", reference }),

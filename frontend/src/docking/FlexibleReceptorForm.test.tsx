@@ -5,6 +5,7 @@ import { DockingForm } from "./DockingForm";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { SceneInfo } from "../viewer/protocol";
+import type { DockingJobInput } from "./docking-job-request";
 const mocks = vi.hoisted(() => ({ request: vi.fn(), submit: vi.fn() }));
 vi.mock("../api", async () => ({
   ...(await vi.importActual<typeof import("../api")>("../api")),
@@ -12,6 +13,12 @@ vi.mock("../api", async () => ({
 }));
 vi.mock("../operations/useTaskSubmit", () => ({
   useTaskSubmit: () => ({ submit: mocks.submit, busy: false, error: "" }),
+}));
+vi.mock("./docking-job-request", () => ({
+  prepareDockingJob: async ({ task }: DockingJobInput) => ({
+    task,
+    components: [],
+  }),
 }));
 vi.mock("../diffsbdd/ReferencePicker", () => ({
   ReferencePicker: ({
@@ -68,6 +75,14 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 const receptor: MoleculeRef = {
   asset_id: "r",
   sha256: "a".repeat(64),
@@ -132,8 +147,13 @@ it.each(["en", "zh"] as const)(
     expect(
       screen.getByText("A:152, B:595", { exact: true }),
     ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "预览任务" : "Preview job",
+      }),
+    );
     const submit = screen.getByRole("button", {
-      name: language === "zh" ? "局部最小化" : "Local minimization",
+      name: language === "zh" ? "提交任务" : "Submit job",
     });
     await waitFor(() => expect(submit).toBeEnabled());
     await user.click(submit);
@@ -158,9 +178,8 @@ it("retains the exact legacy rigid-receptor request by default", async () => {
   const user = setup("en");
   await plan(user, "en");
   await user.click(next("en"));
-  const submit = screen.getByRole("button", {
-    name: "Local minimization",
-  });
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const submit = screen.getByRole("button", { name: "Submit job" });
   await waitFor(() => expect(submit).toBeEnabled());
   await user.click(submit);
   expect(mocks.submit).toHaveBeenCalledOnce();

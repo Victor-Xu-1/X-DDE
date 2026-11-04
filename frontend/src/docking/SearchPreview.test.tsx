@@ -6,10 +6,13 @@ vi.mock("../diffsbdd/ReferencePicker", () => ({ ReferencePicker: () => null }));
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: ({
     onAtomSelected,
+    searchBox,
   }: {
     onAtomSelected(v: unknown): void;
+    searchBox?: unknown;
   }) => (
     <button
+      data-search-box={JSON.stringify(searchBox)}
       type="button"
       onClick={() =>
         onAtomSelected({
@@ -58,6 +61,16 @@ it("accepts an explicit preview center and clears stale picks when the receptor 
     screen.getByRole("button", { name: "Use selected atom as search center" }),
   );
   expect(onCenter).toHaveBeenCalledWith(["1", "2", "3"]);
+  const stage = screen.getByRole("button", { name: "Pick actual source atom" });
+  expect(stage).not.toHaveAttribute("data-search-box");
+  view.rerender(<SearchRegion {...props} center={["1", "2", "3"]} />);
+  expect(JSON.parse(stage.getAttribute("data-search-box")!)).toEqual({
+    center: [1, 2, 3],
+    size: [20, 20, 20],
+    unit: "angstrom",
+  });
+  view.rerender(<SearchRegion {...props} center={["1", "", "3"]} />);
+  expect(stage).not.toHaveAttribute("data-search-box");
   view.rerender(
     <SearchRegion
       {...props}
