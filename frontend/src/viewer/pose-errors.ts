@@ -1,6 +1,10 @@
 import { researchError } from "../presentation/research-content";
 export function poseError(value: unknown, zh: boolean) {
   const message = String(value);
+  if (/Reviewed structure checksum mismatch/i.test(message))
+    return zh
+      ? "此结构与已复核的文件不一致，无法显示已复核的构象。"
+      : "This structure differs from the reviewed file. The reviewed conformer cannot be displayed.";
   if (/only 2D coordinates/i.test(message))
     return zh
       ? "此配体只有二维结构。请先生成三维构象并进行对接，再查看它在受体中的位置。"

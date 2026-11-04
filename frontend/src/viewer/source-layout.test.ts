@@ -1,5 +1,19 @@
 import { expect, it } from "vitest";
 import { complexLigandModel, viewerLoad } from "./source-layout";
+it("accepts a reviewed checksum only for a single exact structure", () => {
+  const input = {
+    urls: ["/api/assets/reviewed"],
+    comparison: false,
+    expectedStructureSha256: "a".repeat(64),
+  };
+  expect(viewerLoad(input)).toEqual(input);
+  expect(() => viewerLoad({ ...input, urls: ["a", "b"] })).toThrow(
+    "Invalid reviewed structure checksum",
+  );
+  expect(() =>
+    viewerLoad({ ...input, expectedStructureSha256: "bad" }),
+  ).toThrow("Invalid reviewed structure checksum");
+});
 it("retains a bounded trajectory group while source snapshots remain exact", () => {
   const input = {
     urls: ["/api/jobs/native/download?name=repeat-1-frame-1.pdb"],

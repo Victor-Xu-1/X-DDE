@@ -137,6 +137,11 @@ async function load(input: ViewerLoad) {
       });
       const { text, sha256 } = await structureBytes(response);
       if (current !== generation) return;
+      if (
+        input.expectedStructureSha256 &&
+        sha256 !== input.expectedStructureSha256
+      )
+        throw new Error("Reviewed structure checksum mismatch.");
       const source = validSource(raw, location.origin);
       const suffix =
         response.headers.get("X-Structure-Format") ||

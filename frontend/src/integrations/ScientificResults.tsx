@@ -1,5 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { artifactUrl } from "../api";
 import {
   ResearchTable,
@@ -26,6 +26,8 @@ import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 import { Mol1Confidence } from "./Mol1Confidence";
 import { PredictionSamples } from "../presentation/PredictionSamples";
+import { usePredictionReferenceReview } from "../presentation/PredictionReferenceEvidence";
+import { PredictionReferenceReview } from "../presentation/PredictionReferenceReview";
 import { nativePredictionSamples } from "./prediction-presentation";
 
 const ENERGY_NAMES: Record<string, readonly [string, string]> = {
@@ -56,6 +58,14 @@ export function ScientificResults({
     choice.job === job.id && choice.initial === initial ? choice.id : initial;
   const setSelected = (id: string) => setChoice({ job: job.id, initial, id });
   const active = rows.find((row) => row.id === selected) ?? rows[0];
+  const referenceReview = usePredictionReferenceReview(job.id, result, active);
+  const referenceScene = referenceReview
+    ? `${job.id}:${referenceReview.structureSha256}:${Boolean(referenceReview.contacts)}`
+    : undefined;
+  const [verifiedScene, setVerifiedScene] = useState<string>();
+  useLayoutEffect(() => setVerifiedScene(undefined), [referenceScene]);
+  const displayedReview =
+    referenceScene === verifiedScene ? referenceReview : null;
   const columns = useMemo<ResearchColumn<NativeCandidate>[]>(() => {
     const metrics = [
       ...new Map(
@@ -211,7 +221,19 @@ export function ScientificResults({
         ]}
       />
     ) : (
-      <StructureViewer urls={[url]} language={language} />
+      <StructureViewer
+        key={referenceScene}
+        urls={[url]}
+        language={language}
+        sourceSnapshot={Boolean(referenceReview)}
+        expectedStructureSha256={referenceReview?.structureSha256}
+        onStructureVerification={
+          referenceScene
+            ? (valid) => setVerifiedScene(valid ? referenceScene : undefined)
+            : undefined
+        }
+        nativeInteractions={referenceReview?.contacts}
+      />
     )
   ) : (
     sequence
@@ -230,6 +252,13 @@ export function ScientificResults({
           onSelect={setSelected}
           language={language}
         />
+      )}
+      {displayedReview?.omittedDomainClash && (
+        <p className="prediction-reference-mobile-status" role="status">
+          {zh
+            ? "实验受体对照发现结构域冲突"
+            : "Experimental receptor comparison found a domain clash"}
+        </p>
       )}
       {result.operation === "chemprop_train" && (
         <PropertyModelResults result={result} language={language} />
@@ -258,6 +287,13 @@ export function ScientificResults({
             />
           )}
           <StructureWorkbench preview={view}>
+            {displayedReview && (
+              <PredictionReferenceReview
+                evidence={displayedReview}
+                language={language}
+                onSelect={setSelected}
+              />
+            )}
             {result.program === "boltzgen" &&
               (result.binder_quality ? (
                 <BinderQuality
