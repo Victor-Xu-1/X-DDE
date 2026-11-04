@@ -6,7 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api, ApiError, request } from "../api";
 import { mol1Defaults } from "../integrations/mol1-settings";
 import { PredictionDraftControls } from "./PredictionDraftControls";
@@ -27,6 +27,29 @@ vi.mock("../api", async () => {
     request: vi.fn(),
     api: { ...real.api, authorized: vi.fn(), post: vi.fn() },
   };
+});
+const originalModal = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  "showModal",
+);
+beforeEach(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+    },
+  });
+});
+afterAll(() => {
+  if (originalModal)
+    Object.defineProperty(
+      HTMLDialogElement.prototype,
+      "showModal",
+      originalModal,
+    );
+  else
+    delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>)
+      .showModal;
 });
 const state = (): Mol1DraftState => ({
   name: "STAT6 incomplete",
