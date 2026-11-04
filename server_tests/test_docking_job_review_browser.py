@@ -2,7 +2,6 @@
 
 import json
 import os
-import sqlite3
 from pathlib import Path
 
 import pytest
@@ -37,13 +36,12 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
     monkeypatch.setenv("WB_STATE_DIR", str(state))
     monkeypatch.setenv("WB_HOME", str(tmp_path / "home"))
     store = Store(state / "jobs.sqlite3")
+    runner = Path(os.environ["RUNNER_TEMP"]).resolve()
     components = Path(os.environ["WB_DOCKING_VISUAL_STATE"]).resolve()
-    assert components.is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
-    with (
-        sqlite3.connect(f"file:{components / 'deployments.sqlite3'}?mode=ro", uri=True) as source,
-        sqlite3.connect(state / "deployments.sqlite3") as destination,
-    ):
-        source.backup(destination)
+    assert components.is_relative_to(runner)
+    config = (components / "deployment.json").read_bytes()
+    assert Path(json.loads(config)["root"]).resolve().is_relative_to(runner)
+    (state / "deployment.json").write_bytes(config)
     assets = AssetStore(store, state / "assets")
     receptor_source = INPUTS / "STAT6-9BIG-observed-receptor.pdb"
     receptor_bytes = receptor_source.read_bytes()
@@ -69,6 +67,8 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
         page = browser.new_page(viewport={"width": width, "height": 1000})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.on("pageerror", lambda error: errors.append(str(error)))
+        console = []
+        page.on("console", lambda msg: console.append(msg.text) if msg.type == "warning" else None)
         page.on(
             "request",
             lambda request: (
@@ -179,10 +179,13 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
         ).to_be_disabled()
         page.screenshot(path=evidence / "overview.png")
         if expected:
-            dialog.get_by_text("Study molecule in 2D", exact=True).click()
+            dialog.locator(".docking-review-molecule > summary").click()
             depiction = dialog.locator(".molecule-image")
             depiction.scroll_into_view_if_needed()
-            expect(depiction).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+            try:
+                expect(depiction).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+            finally:
+                (evidence / "browser-warnings.json").write_text(json.dumps(console))
             drawing = depiction.locator("img")
             assert drawing.evaluate("img => img.complete && img.naturalWidth > 0")
             page.screenshot(path=evidence / "study-molecule.png")
