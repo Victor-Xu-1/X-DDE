@@ -47,8 +47,12 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
             page.get_by_role("textbox", name="Task name (optional)").fill(
                 "Mol-1 native integration"
             )
+            page.get_by_role("button", name="Preview job", exact=True).click()
+            review = page.get_by_role("dialog", name="Preview job", exact=True)
+            review.get_by_role("button", name="Request JSON", exact=True).click()
+            reviewed = json.loads(review.get_by_label("X-DDE submission request").inner_text())
             page.screenshot(path=str(root / "mol1-review-en.png"), full_page=True)
-            submit = page.get_by_role("button", name="Submit Mol-1 prediction", exact=True)
+            submit = review.get_by_role("button", name="Submit job", exact=True)
             expect(submit).to_be_enabled(timeout=120000)
             with page.expect_response(
                 lambda response: (
@@ -59,6 +63,7 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
             created = response.value
             assert created.status in {200, 201}, created.text()
             submitted = created.request.post_data_json
+            assert submitted == reviewed
             assert submitted["operation"] == "mol1_predict"
             assert submitted["payload"]["dtype"] == "fp32"
             assert submitted["payload"]["samples"] == 1

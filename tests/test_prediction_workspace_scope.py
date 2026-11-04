@@ -8,6 +8,22 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_final_review_delegation_requires_browser_and_native_form_changes():
+    changed = [
+        "frontend/src/integrations/Mol1Form.tsx",
+        "frontend/src/integrations/Mol1JobReview.tsx",
+        "server_tests/test_mol1_final_review_browser.py",
+        "frontend/src/guided/Questionnaire.tsx",
+    ]
+    assert scope.selected(changed, "pull_request")
+    assert scope.final_review_only(changed)
+    assert scope.final_review_changed(changed)
+    assert not scope.final_review_only(changed, "workflow_dispatch")
+    assert not scope.final_review_only(changed[1:])
+    assert not scope.final_review_only(changed + ["frontend/src/operations/useTaskSubmit.ts"])
+    assert not scope.final_review_only(changed + ["frontend/src/viewer/StructureInspection.tsx"])
+
+
 def test_unsubmitted_draft_delegation_is_bounded_to_storage_and_its_native_form():
     changed = [
         "frontend/src/presentation/PredictionDraftControls.tsx",

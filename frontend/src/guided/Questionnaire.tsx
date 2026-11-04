@@ -34,6 +34,7 @@ export function GuidedSteps<T extends { id: string }>({
   onCheckEnvironment,
   submitLabel,
   onSubmit,
+  renderReview,
   renderResult,
   resultTitle,
   initialResult = null,
@@ -46,7 +47,11 @@ export function GuidedSteps<T extends { id: string }>({
   unavailable?: ReactNode;
   onCheckEnvironment?(): void;
   submitLabel: string;
-  onSubmit(): Promise<T | undefined>;
+  onSubmit?(): Promise<T | undefined>;
+  renderReview?(actions: {
+    confirm(send: () => Promise<T | undefined>): Promise<void>;
+    dismiss(): void;
+  }): ReactNode;
   renderResult(result: T): ReactNode;
   resultTitle?: string;
   initialResult?: T | null;
@@ -59,10 +64,12 @@ export function GuidedSteps<T extends { id: string }>({
   const [current, setCurrent] = useState(initialResult ? resultIndex : 0),
     [visited, setVisited] = useState(initialResult ? lastQuestion : 0),
     [job, setJob] = useState<T | null>(initialResult),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [reviewing, setReviewing] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null),
     mounted = useRef(true),
     pending = useRef(false),
+    submitTrigger = useRef<HTMLButtonElement>(null),
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
   const activePanel = useRef<HTMLFieldSetElement | null>(null);
   const stepTrack = useRef<HTMLElement>(null);
@@ -95,15 +102,24 @@ export function GuidedSteps<T extends { id: string }>({
     setCurrent(target);
     setVisited((v) => Math.max(v, target));
   }
-  async function submit() {
+  async function submit(reviewedSend?: () => Promise<T | undefined>) {
     if (preview) return;
     if (current !== lastQuestion) {
-      move(current + 1);
+      if (!reviewedSend) move(current + 1);
       return;
     }
-    if (!complete || !ready || busy || pending.current) return;
+    const openingReview = Boolean(renderReview && !reviewedSend);
+    if (
+      !complete ||
+      (!openingReview && !ready) ||
+      (reviewedSend && !reviewing) ||
+      busy ||
+      pending.current
+    )
+      return;
     const invalid = firstInvalidQuestion(steps, panels.current, lastQuestion);
     if (invalid >= 0) {
+      setReviewing(false);
       setCurrent(invalid);
       setNotice(
         zh
@@ -112,10 +128,17 @@ export function GuidedSteps<T extends { id: string }>({
       );
       return;
     }
+    if (openingReview) {
+      setReviewing(true);
+      return;
+    }
+    const send = reviewedSend ?? onSubmit;
+    if (!send) return;
     pending.current = true;
     try {
-      const created = await onSubmit();
+      const created = await send();
       if (created && mounted.current) {
+        setReviewing(false);
         setJob(created);
         setCurrent(resultIndex);
       }
@@ -253,15 +276,27 @@ export function GuidedSteps<T extends { id: string }>({
           ) : (
             <button
               key="submit-task"
+              ref={submitTrigger}
               type="submit"
               className="primary-button"
-              disabled={preview || busy || !complete || !ready}
+              disabled={
+                preview || busy || !complete || (!renderReview && !ready)
+              }
             >
               {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
             </button>
           )}
         </div>
       )}
+      {reviewing &&
+        !preview &&
+        renderReview?.({
+          confirm: submit,
+          dismiss: () => {
+            setReviewing(false);
+            submitTrigger.current?.focus();
+          },
+        })}
     </form>
   );
 }

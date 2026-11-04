@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
-import { request } from "../api";
+import { useState } from "react";
+import { Mol1JobReview } from "./Mol1JobReview";
 import { useExampleTask } from "../examples/context";
 import { validate } from "../form-model";
 import { MolecularInputs } from "../guided/MolecularInputs";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
-import type { Asset, CovalentBond } from "../operations/types";
+import type { CovalentBond } from "../operations/types";
 import type { Component, Job, Language } from "../types";
-import type { ScientificTask } from "./types";
+
 import { mol1Defaults, validMol1Settings } from "./mol1-settings";
 import { Mol1Settings } from "./Mol1Settings";
 import { Mol1CovalentBonds } from "./Mol1CovalentBonds";
@@ -94,10 +94,6 @@ function Mol1Editor({
   const [seed, setSeed] = useState(
     initial?.state.seed ?? preset?.options.seed ?? 101,
   );
-  const [inputError, setInputError] = useState("");
-  const [preparing, setPreparing] = useState(false);
-  const preparation = useRef<AbortController | null>(null);
-  useEffect(() => () => preparation.current?.abort(), []);
   const availability = useTaskReadiness("mol1.predict");
   const run = useTaskSubmit(onCreated);
   const valid =
@@ -112,85 +108,34 @@ function Mol1Editor({
     Number.isSafeInteger(memory) &&
     memory >= 1024 &&
     memory <= 65536;
-  async function submit() {
-    if (preparation.current || run.busy) return;
-    const controller = new AbortController();
-    preparation.current = controller;
-    setPreparing(true);
-    setInputError("");
-    try {
-      const required = new Map<
-        string,
-        ScientificTask["inputs"][number]["role"]
-      >();
-      for (const component of components)
-        for (const [field, role] of [
-          ["ligand_file", "ligand"],
-          ["source_sequence", "sequence"],
-          ["paired_msa", "msa"],
-          ["unpaired_msa", "msa"],
-          ["template_hits", "template"],
-        ] as const) {
-          const id = component[field];
-          if (id) required.set(id, role);
-        }
-      const inputs = await Promise.all(
-        [...required].map(async ([id, role]) => {
-          const asset = await request<Asset>(
-            `/assets/${encodeURIComponent(id)}/metadata`,
-            {
-              signal: AbortSignal.any([
-                controller.signal,
-                AbortSignal.timeout(30000),
-              ]),
-            },
-          );
-          if (asset.id !== id)
-            throw new Error(
-              zh ? "材料版本读取失败" : "Could not verify the selected input",
-            );
-          return {
-            role,
-            source: {
-              asset_id: id,
-              sha256: asset.sha256,
-              record: 0,
-              conformer: 0,
-              version_id: null,
-            },
-          };
-        }),
-      );
-      if (controller.signal.aborted) return;
-      return await run.submit({
-        operation: "mol1_predict",
-        name: name.trim() || "Mol-1 complex prediction",
-        inputs,
-        scientific_inputs: inputs.map((input) => input.source),
-        payload: { ...settings, components, covalent_bonds: bonds },
-        options: { device, cpu: 2, memory_mib: memory, seed },
-      });
-    } catch (error) {
-      if (!controller.signal.aborted) setInputError(String(error));
-    } finally {
-      if (preparation.current === controller) preparation.current = null;
-      setPreparing(false);
-    }
-  }
+  const unavailable =
+    availability.error ||
+    (zh
+      ? "请先在安装与组件中配置 Mol-1 及其模型。"
+      : "Prepare Mol-1 and its model in Installation & components.");
   const questionnaire = (
     <Questionnaire
       language={language}
       ready={availability.ready}
-      busy={run.busy || preparing}
-      error={inputError || run.error}
-      unavailable={
-        availability.error ||
-        (zh
-          ? "请先在安装与组件中配置 Mol-1 及其模型。"
-          : "Prepare Mol-1 and its model in Installation & components.")
-      }
-      submitLabel={zh ? "提交 Mol-1 预测" : "Submit Mol-1 prediction"}
-      onSubmit={submit}
+      busy={run.busy}
+      error={run.error}
+      unavailable={unavailable}
+      onCheckEnvironment={availability.recheck}
+      submitLabel={zh ? "预览任务" : "Preview job"}
+      renderReview={({ confirm, dismiss }) => (
+        <Mol1JobReview
+          language={language}
+          input={{ name, components, settings, bonds, device, memory, seed }}
+          ready={availability.ready}
+          unavailable={unavailable}
+          recheck={availability.recheck}
+          busy={run.busy}
+          error={run.error}
+          confirm={confirm}
+          onClose={dismiss}
+          submit={run.submit}
+        />
+      )}
       steps={[
         {
           title: zh ? "填写研究对象" : "Provide the study components",
@@ -378,7 +323,7 @@ function Mol1Editor({
         <PredictionDraftControls
           language={language}
           initial={initial}
-          busy={run.busy || preparing}
+          busy={run.busy}
           onName={setName}
           onResume={onResume}
           state={{
