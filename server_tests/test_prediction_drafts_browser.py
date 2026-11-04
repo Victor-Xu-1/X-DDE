@@ -128,6 +128,9 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         dialog.get_by_role("button", name=label("Saved drafts", "查看草稿"), exact=True).click()
         expect(dialog.get_by_text("STAT6 revised " + language, exact=True)).to_be_visible()
         dialog.get_by_role("button", name=label("Archive", "归档"), exact=True).click()
+        expect(
+            dialog.get_by_role("heading", name=label("No drafts yet", "还没有草稿"), exact=True)
+        ).to_be_visible()
         page.keyboard.press("Escape")
         expect(dialog).to_have_count(0)
         expect(opener).to_be_focused()
