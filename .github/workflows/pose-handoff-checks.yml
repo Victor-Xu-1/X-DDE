@@ -93,7 +93,7 @@ jobs:
           while IFS= read -r file; do
             case "$file" in
               frontend/src/viewer/chain-visibility.ts) chain_focus_found=true ;;
-              frontend/src/viewer/chain-visibility.test.ts|frontend/src/viewer/StructureViewport.tsx|frontend/src/viewer/frame.ts|frontend/src/viewer/source-layout.ts|frontend/src/viewer/source-layout.test.ts|frontend/src/proximity/FormReview.tsx|server_tests/test_ternary_job_review_browser.py|.github/workflows/proximity-form-checks.yml|.github/workflows/pose-handoff-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              frontend/src/viewer/chain-visibility.test.ts|frontend/src/viewer/StructureViewport.tsx|frontend/src/viewer/frame.ts|frontend/src/viewer/source-layout.ts|frontend/src/viewer/source-layout.test.ts|frontend/src/proximity/FormReview.tsx|server_tests/test_ternary_job_review_browser.py|.github/workflows/proximity-form-checks.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/task-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) chain_focus_only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)

@@ -69,6 +69,9 @@ on:
       - "frontend/src/viewer/**"
       # Camera and paired-result changes are verified by viewer-checks.yml.
       - "!frontend/src/viewer/frame.ts"
+      # Chain visibility uses exact viewer and ternary reference regressions.
+      - "!frontend/src/viewer/chain-visibility.ts"
+      - "!frontend/src/viewer/chain-visibility.test.ts"
       - "!frontend/src/viewer/scene.ts"
       # Pocket prototype removal belongs to the focused selection gate.
       - "!frontend/src/viewer/source-depth*"
