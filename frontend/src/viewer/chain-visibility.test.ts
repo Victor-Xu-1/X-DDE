@@ -41,3 +41,26 @@ it.each([
   expect(() => chainDisplay(input, chains, atoms, hidden)).toThrow();
   expect([...hidden]).toEqual([2]);
 });
+
+it("isolates an exact set of source chains and restores all original atoms", () => {
+  const original = structuredClone(atoms);
+  const subset = chainDisplay(
+    { action: "subset", chains: ["A", "AB"] },
+    chains,
+    atoms,
+    new Set([1]),
+  );
+  expect([...subset]).toEqual([3]);
+  expect(hiddenChainIds(atoms, subset)).toEqual([""]);
+  expect(chainDisplay({ action: "all" }, chains, atoms, subset).size).toBe(0);
+  expect(atoms).toEqual(original);
+  for (const invalid of [[], ["A", "A"], ["A", "B"], ["A", 2]])
+    expect(() =>
+      chainDisplay(
+        { action: "subset", chains: invalid },
+        chains,
+        atoms,
+        subset,
+      ),
+    ).toThrow("Unknown chain display selection");
+});

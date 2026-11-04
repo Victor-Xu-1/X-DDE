@@ -61,6 +61,7 @@ export interface StructureViewerProps {
   trajectoryKey?: string;
   ligandContext?: boolean;
   initialMode?: ViewMode;
+  initialChains?: readonly string[];
   channelGeometry?: ChannelGeometry;
   searchBox?: SearchBoxGeometry;
   attachmentGeometry?: AttachmentGeometry;
@@ -92,6 +93,7 @@ export function StructureViewport({
   trajectoryKey,
   ligandContext = true,
   initialMode,
+  initialChains,
   urls: originalUrls,
   language,
   focusResidue,
@@ -134,6 +136,7 @@ export function StructureViewport({
         electrostaticMap,
         channelGeometry,
         initialMode,
+        initialChains,
         ligandContext,
       });
   const connection = useViewerConnection(frame, urls.length > 0);
@@ -223,6 +226,7 @@ export function StructureViewport({
       ...(focusModels ? { focusModels } : {}),
       records,
       ...(initialMode ? { initialMode } : {}),
+      ...(initialChains ? { initialChains } : {}),
       nativeInteractions,
       ...(channelGeometry ? { channelGeometry } : {}),
       ...(searchBox ? { searchBox } : {}),
@@ -319,7 +323,7 @@ export function StructureViewport({
       }
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
-        setHiddenChains([]);
+        setHiddenChains(detail.hiddenChains ?? []);
         displayWork.current.reset();
         setDisplayPending(false);
         setSelectedResidues([]);
@@ -449,6 +453,17 @@ export function StructureViewport({
     send("options", value);
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
+  const chainScope =
+    loaded &&
+    !comparison &&
+    !overlay &&
+    initialChains &&
+    initialChains.length < scene.chains.length &&
+    initialChains.every((chain) =>
+      scene.residues.some((residue) => residue.chain === chain),
+    )
+      ? initialChains
+      : null;
   const searchBoxKey = JSON.stringify(searchBox ?? null);
   const hadSearchBox = useRef(false);
   const hadConfidence = useRef(false);
@@ -590,6 +605,35 @@ export function StructureViewport({
           <WorkspaceFullscreenControl language={language} compact />
         </div>
       </div>
+      {chainScope && (
+        <div
+          className="segmented viewer-modes"
+          role="group"
+          aria-label={zh ? "复合物显示范围" : "Complex view scope"}
+        >
+          <button
+            type="button"
+            aria-pressed={
+              scene.chains
+                .filter((chain) => !hiddenChains.includes(chain))
+                .every((chain) => chainScope.includes(chain)) &&
+              scene.chains.length - hiddenChains.length === chainScope.length
+            }
+            onClick={() =>
+              send("chain-display", { action: "subset", chains: chainScope })
+            }
+          >
+            {zh ? "所选蛋白链" : "Selected chains"}
+          </button>
+          <button
+            type="button"
+            aria-pressed={hiddenChains.length === 0}
+            onClick={() => send("chain-display", { action: "all" })}
+          >
+            {zh ? "完整参考结构" : "Full reference"}
+          </button>
+        </div>
+      )}
       {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (
         <div className="segmented viewer-modes">
           {(
@@ -807,7 +851,13 @@ export function StructureViewport({
           )}
           <div className="viewer-footer">
             <button type="button" onClick={() => send("reset")}>
-              {zh ? "回到全局" : "Full structure"}
+              {chainScope
+                ? zh
+                  ? "适应当前视图"
+                  : "Fit current view"
+                : zh
+                  ? "回到全局"
+                  : "Full structure"}
             </button>
             {siteStatus && siteStatus.matched > 0 && (
               <button

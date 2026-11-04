@@ -85,3 +85,22 @@ it("keeps explicit whole-assembly presentation separate from the existing automa
       "Invalid initial structure view",
     );
 });
+
+it("accepts an exact starting subset for one source without changing its reference", () => {
+  const chains = ["A", "AB"];
+  const input = {
+    urls: ["/api/assets/assembly"],
+    comparison: false,
+    initialChains: chains,
+  };
+  expect(viewerLoad(input)).toEqual(input);
+  expect(viewerLoad(input).initialChains).not.toBe(chains);
+  for (const value of [
+    { ...input, comparison: true },
+    { ...input, urls: ["a", "b"] },
+    { ...input, initialChains: [] },
+    { ...input, initialChains: ["A", "A"] },
+    { ...input, initialChains: ["A", 1] },
+  ])
+    expect(() => viewerLoad(value)).toThrow("Invalid initial chain selection");
+});

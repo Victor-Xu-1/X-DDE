@@ -1,3 +1,4 @@
+import { isChainSubset } from "./chain-visibility";
 import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-input";
@@ -8,6 +9,7 @@ export interface ViewerLoad {
   initialPosePrepared?: boolean;
   ligandContext?: boolean;
   initialMode?: ViewMode;
+  initialChains?: readonly string[];
   channelGeometry?: ChannelGeometry;
   searchBox?: SearchBoxGeometry;
   urls: string[];
@@ -43,6 +45,13 @@ export function viewerLoad(value: unknown): ViewerLoad {
   )
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
+  if (
+    v.initialChains !== undefined &&
+    (sourceCount !== 1 ||
+      v.comparison !== false ||
+      !isChainSubset(v.initialChains))
+  )
+    throw new Error("Invalid initial chain selection");
   if (
     v.trajectoryKey !== undefined &&
     (typeof v.trajectoryKey !== "string" ||
@@ -104,6 +113,9 @@ export function viewerLoad(value: unknown): ViewerLoad {
     ...(v.initialMode === undefined
       ? {}
       : { initialMode: v.initialMode as ViewMode }),
+    ...(v.initialChains === undefined
+      ? {}
+      : { initialChains: [...v.initialChains] }),
     nativeInteractions: nativeInteractions(v.nativeInteractions),
     ...(v.channelGeometry === undefined
       ? {}

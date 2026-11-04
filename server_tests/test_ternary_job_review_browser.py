@@ -260,7 +260,47 @@ def test_glue_review_preserves_one_deposited_reference_and_distinct_chain_roles(
             timeout=30000
         )
         expect(source_view.frame_locator("iframe").locator("canvas").first).to_be_visible()
+        scope = source_view.get_by_role("group", name="Complex view scope")
+        selected = scope.get_by_role("button", name="Selected chains")
+        all_chains = scope.get_by_role("button", name="Full reference")
+        expect(selected).to_have_attribute("aria-pressed", "true")
+        chain_menu = source_view.locator(".viewer-chain-menu")
+        expect(chain_menu.locator("summary")).to_have_text("Chains 2 / 6")
         page.screenshot(path=evidence / "source-complex.png")
+
+        def capture(name):
+            source_view.get_by_role("button", name="Capture 3D view", exact=True).click()
+            link = source_view.get_by_role("link", name="Download view PNG", exact=True)
+            with page.expect_download() as image:
+                link.click()
+            output = evidence / f"{name}-render.png"
+            image.value.save_as(output)
+            source_view.get_by_role("button", name="Close image", exact=True).click()
+            raw = output.read_bytes()
+            assert raw.startswith(b"\x89PNG\r\n\x1a\n") and len(raw) > 10000
+            return raw
+
+        selected_png = capture("selected-chains")
+        all_chains.click()
+        expect(all_chains).to_have_attribute("aria-pressed", "true")
+        expect(chain_menu.locator("summary")).to_have_text("Chains 6 / 6")
+        expect(source_view.get_by_role("button", name="Export figure ↓")).to_be_enabled()
+        page.screenshot(path=evidence / "full-reference.png")
+        full_png = capture("full-reference")
+        assert selected_png != full_png
+        selected.click()
+        expect(selected).to_have_attribute("aria-pressed", "true")
+        expect(chain_menu.locator("summary")).to_have_text("Chains 2 / 6")
+        chain_menu.locator("summary").click()
+        for chain_name in "ABCDEF":
+            checkbox = chain_menu.get_by_role("checkbox", name=f"Show chain {chain_name}")
+            if chain_name in definition["chains"]:
+                expect(checkbox).to_be_checked()
+            else:
+                expect(checkbox).not_to_be_checked()
+        chain_menu.locator("summary").click()
+        original = dialog.get_by_role("link", name=f"{entry}.pdb").first
+        assert page.request.get(base + original.get_attribute("href")).body() == pdb
 
         dialog.get_by_role("tab", name="Complete molecule", exact=True).click()
         molecule = dialog.get_by_role("tabpanel", name="Complete molecule")

@@ -65,8 +65,15 @@ function notify(type: string, detail: unknown = {}) {
     location.origin,
   );
 }
-const scene = new MolecularScene(viewer, notify, () =>
-  document.getElementById("molecule")!.getBoundingClientRect(),
+let focusedChainView = false;
+let hiddenChainIds: string[] = [];
+const scene = new MolecularScene(
+  viewer,
+  (type, detail) => {
+    if (type === "chain-display") hiddenChainIds = detail as string[];
+    notify(type, detail);
+  },
+  () => document.getElementById("molecule")!.getBoundingClientRect(),
 );
 let controller: AbortController | null = null,
   generation = 0;
@@ -77,8 +84,16 @@ let confidenceSource: { url: string; sha256: string; text: string } | null =
 let confidenceRevision = 0;
 function reset() {
   const viewport = document.getElementById("molecule")!.getBoundingClientRect();
-  viewer.zoomTo();
-  viewer.zoom(0.85 * viewportFitFactor(viewport));
+  const visible = focusedChainView
+    ? scene.info.chains.filter((chain) => !hiddenChainIds.includes(chain))
+    : [];
+  viewer.zoomTo(
+    visible.length
+      ? { model: 0, predicate: (atom) => visible.includes(atom.chain ?? "") }
+      : {},
+  );
+  const fit = visible.length && hiddenChainIds.length ? 1.05 : 0.85;
+  viewer.zoom(fit * viewportFitFactor(viewport));
   if (viewport.width > 0 && viewport.height > 0)
     previousViewport = { width: viewport.width, height: viewport.height };
   viewer.render();
@@ -107,6 +122,8 @@ async function load(input: ViewerLoad) {
   controller = new AbortController();
   const request = controller,
     current = ++generation;
+  focusedChainView = false;
+  hiddenChainIds = [];
   scene.resetState();
   notify("loading");
   viewer.clear();
@@ -204,7 +221,17 @@ async function load(input: ViewerLoad) {
       };
       scene.options.mode = "surface";
     }
-    await scene.paint();
+    const selectedChains = input.initialChains;
+    if (
+      selectedChains?.every((chain) =>
+        scene.info.residues.some((residue) => residue.chain === chain),
+      )
+    ) {
+      focusedChainView = true;
+      await scene.displayChains({ action: "subset", chains: selectedChains });
+    } else {
+      await scene.paint();
+    }
     if (current !== generation) return;
     reset();
     if (retainedView) viewer.setView(retainedView);
@@ -217,7 +244,11 @@ async function load(input: ViewerLoad) {
       !scene.channelGeometry
     )
       scene.focusLigand();
-    notify("loaded", { ...scene.info, options: scene.options });
+    notify("loaded", {
+      ...scene.info,
+      options: scene.options,
+      hiddenChains: hiddenChainIds,
+    });
   } catch (error) {
     if (!request.signal.aborted && current === generation) {
       viewer.clear();
@@ -251,7 +282,16 @@ async function command(type: string, value: unknown, requestId?: string) {
         notify("confidence-unavailable");
       }
     }
-    if (type === "chain-display") await scene.displayChains(value);
+    if (type === "chain-display") {
+      await scene.displayChains(value);
+      const action = (value as { action?: string }).action;
+      if (
+        current === generation &&
+        focusedChainView &&
+        (action === "all" || action === "subset")
+      )
+        reset();
+    }
     if (type === "sequence-selection") await scene.selectSequence(value);
     if (type === "options" && value && typeof value === "object")
       await scene.configure(value);
@@ -289,6 +329,8 @@ window.addEventListener("message", (event) => {
     loadedSourceIdentity = null;
     controller?.abort();
     generation++;
+    focusedChainView = false;
+    hiddenChainIds = [];
     scene.resetState();
     viewer.clear();
     viewer.render();
