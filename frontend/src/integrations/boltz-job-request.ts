@@ -1,6 +1,6 @@
 import { request } from "../api";
 import type { Asset } from "../operations/types";
-import type { MoleculeRef } from "../research/types";
+import { assetDownloadUrl } from "../research/asset-download";
 import type { PreviewComponent } from "../presentation/PredictionEntityPreview";
 import type { BoltzComponent } from "./boltz-inputs";
 import type { ScientificTask } from "./types";
@@ -16,10 +16,6 @@ export function boltzPreviewComponents(
     ligand_record: row.source?.record,
     chain_ids: [row.id],
   }));
-}
-
-export function boltzLigandRecordUrl(source: MoleculeRef) {
-  return `/api/assets/${encodeURIComponent(source.asset_id)}?record=${source.record}`;
 }
 
 /** Validate the identities selected by the editor, without replacing their version or record. */
@@ -69,9 +65,12 @@ export async function prepareBoltzJob(
         source.record > 499
       )
         throw new Error("Choose a supported molecular record.");
-      const record = await fetch(boltzLigandRecordUrl(source), {
-        signal: AbortSignal.any([signal, AbortSignal.timeout(30000)]),
-      });
+      const record = await fetch(
+        assetDownloadUrl(source.asset_id, source.record),
+        {
+          signal: AbortSignal.any([signal, AbortSignal.timeout(30000)]),
+        },
+      );
       const matches =
         record.ok &&
         record.headers.get("X-Structure-Record") === String(source.record);

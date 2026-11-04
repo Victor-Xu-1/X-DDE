@@ -34,6 +34,7 @@ on:
       - "frontend/src/integrations/Mol1JobReview.tsx"
       - "frontend/src/integrations/BoltzJobReview.tsx"
       - "frontend/src/integrations/boltz-job-request.ts"
+      - "frontend/src/research/asset-download.ts"
       - "frontend/src/integrations/ScientificReview.tsx"
       - "server_tests/test_boltz_final_review_browser.py"
       - "frontend/src/integrations/mol1-job-*"

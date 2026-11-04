@@ -1,15 +1,12 @@
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
+import { assetDownloadUrl } from "../research/asset-download";
 import {
   PredictionJobReview,
   type PredictionJobReviewActions,
 } from "../presentation/PredictionJobReview";
 import { PredictionJobSettings } from "../presentation/PredictionJobSettings";
-import {
-  boltzLigandRecordUrl,
-  prepareBoltzJob,
-  type PreparedBoltzJob,
-} from "./boltz-job-request";
+import { prepareBoltzJob, type PreparedBoltzJob } from "./boltz-job-request";
 import type { ScientificTask } from "./types";
 
 export function BoltzJobReview(
@@ -67,11 +64,10 @@ function BoltzReviewSettings({
     return (
       <a
         download
-        href={
-          record
-            ? boltzLigandRecordUrl(source)
-            : `/api/assets/${encodeURIComponent(source.asset_id)}`
-        }
+        href={assetDownloadUrl(
+          source.asset_id,
+          record ? source.record : undefined,
+        )}
       >
         {files.get(source.asset_id)?.name}
       </a>

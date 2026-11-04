@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -100,6 +101,16 @@ def test_boltz_final_review_preserves_exact_chain_msa_and_record(language, width
         expect(submit).to_be_disabled()
         assert dialog.evaluate("element => element.scrollWidth <= element.clientWidth + 1")
         page.screenshot(path=str(evidence / "overview.png"))
+        dialog.locator(".prediction-preview-entity > summary").nth(1).click()
+        exact_link = dialog.get_by_role(
+            "link", name=label("Download selected structure input", "下载已选结构文件"), exact=True
+        )
+        assert exact_link.get_attribute("href") == link.get_attribute("href")
+        drawing = dialog.get_by_role("img", name=re.compile("二维分子结构|2D molecular structure"))
+        dialog.locator(".molecule-image").scroll_into_view_if_needed()
+        expect(drawing).to_be_visible(timeout=60000)
+        assert drawing.evaluate("image => image.complete && image.naturalWidth > 0")
+        page.screenshot(path=str(evidence / "selected-record.png"))
         dialog.get_by_role("button", name=label("Request JSON", "提交内容"), exact=True).click()
         payload = json.loads(
             dialog.get_by_label(label("X-DDE submission request", "X-DDE 提交请求")).inner_text()

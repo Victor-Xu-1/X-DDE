@@ -164,6 +164,8 @@ BOLTZ_REVIEW_FILES = FINAL_REVIEW_FILES | {
     "frontend/src/integrations/ScientificReview.tsx",
     "frontend/src/presentation/PredictionJobReview.tsx",
     "frontend/src/presentation/PredictionJobSettings.tsx",
+    "frontend/src/presentation/PredictionInputPreview.test.tsx",
+    "frontend/src/research/asset-download.ts",
     "frontend/src/presentation/prediction-job-review.css",
     "server_tests/test_boltz_final_review_browser.py",
 }
@@ -278,6 +280,7 @@ def preview_changed(changed, event="push"):
         or name
         in {
             "frontend/src/presentation/prediction-settings-summary.ts",
+            "frontend/src/research/asset-download.ts",
             "frontend/src/presentation/prediction-input-preview.css",
             "frontend/src/presentation/prediction-inputs.css",
             "frontend/src/presentation/prediction-shell.css",
