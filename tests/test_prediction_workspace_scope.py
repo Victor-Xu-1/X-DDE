@@ -246,3 +246,20 @@ def test_linked_confidence_always_keeps_native_contract_and_render_consumer_chec
     assert scope.confidence_changed(changes)
     assert not scope.native_confidence_only(changes)
     assert not scope.selected(changes + ["src/opendde_workbench/backend.py"])
+
+
+def test_docking_preview_delegates_only_frontend_review_without_native_runs():
+    changes = scope.DOCKING_REVIEW_ENTRYPOINTS | {
+        "frontend/src/presentation/PredictionJobReview.tsx",
+        "frontend/src/docking/SearchRegion.tsx",
+        ".github/workflows/docking-runtime-checks.yml",
+        "pyproject.toml",
+    }
+    assert scope.docking_review_only(changes)
+    assert scope.final_review_only(changes, "pull_request")
+    assert scope.selected(changes)
+    assert not scope.docking_review_only(changes, "workflow_dispatch")
+    assert not scope.docking_review_only(
+        changes - {"server_tests/test_docking_job_review_browser.py"}
+    )
+    assert not scope.docking_review_only(changes | {"src/opendde_workbench/docking/native.py"})

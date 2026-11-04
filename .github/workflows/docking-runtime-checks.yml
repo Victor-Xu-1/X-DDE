@@ -38,6 +38,13 @@ on:
       - "frontend/src/docking/DockingReview*"
       - "frontend/src/docking/ReferenceComparison*"
       # Pose-table defaults have sealed native view/download coverage in pose-handoff-checks.yml.
+      - "frontend/src/docking/DockingJobReview.tsx"
+      - "frontend/src/docking/docking-job-request.ts"
+      - "server_tests/test_docking_job_review_browser.py"
+      - "frontend/src/docking/SearchPreview.test.tsx"
+      - "frontend/src/docking/SearchPreview.tsx"
+      - "frontend/src/docking/SearchRegion.tsx"
+      - "frontend/src/docking/docking-job-review.css"
       - "frontend/src/docking/DockingForm*"
       - "frontend/src/docking/types.ts"
       - "frontend/src/docking/results.css"
@@ -68,6 +75,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       del_only: ${{ steps.change.outputs.del_only }}
+      docking_review_only: ${{ steps.prediction.outputs.docking_review_only }}
       drafts_only: ${{ steps.prediction.outputs.drafts_only }}
     steps:
       - uses: actions/checkout@v4
@@ -100,6 +108,7 @@ jobs:
           npm run build --prefix frontend
           uv sync --locked --group dev --group browser
       - name: Exact binding, source snapshot and runtime contracts
+        if: needs.scope.outputs.docking_review_only != 'true'
         run: |
           python3 -m unittest discover -s tests/ci -p test_docking_refinement_scope.py
           uv run --locked ruff check server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
@@ -115,6 +124,7 @@ jobs:
           npx vitest run src/docking/FlexibleReceptorForm.test.tsx
           npx vitest run src/docking/DockingResults.test.tsx src/docking/usePoseAssets.test.tsx src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/ReferenceComparison.test.tsx
       - name: Direct source handoff with the real pinned chemical parser
+        if: needs.scope.outputs.docking_review_only != 'true'
         env:
           PYTHONPATH: src
         run: >-
@@ -127,13 +137,29 @@ jobs:
           server_tests/test_scientific_handoff.py::test_atom_map_identifiers_do_not_create_false_stereochemical_changes
           server_tests/test_docking_serialization.py
       - name: Actual isolated GNINA install, native CPU and CNN scoring modes
-        if: needs.scope.outputs.drafts_only != 'true'
+        if: needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.docking_review_only != 'true'
         env:
           WB_TEST_NATIVE_DOCKING: "1"
         run: |
           sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
           uv run --locked pytest -x -q server_tests/test_native_docking.py
+      - name: Docking review controls and compiled STAT6 geometry without inference
+        if: needs.scope.outputs.docking_review_only == 'true'
+        run: |
+          uv run --locked ruff check src/opendde_workbench/asset_records.py src/opendde_workbench/chemistry/sdf_io.py tests/test_asset_record_download.py server_tests/test_docking_job_review_browser.py server_tests/docking_browser.py server_tests/flexible_receptor_browser.py server_tests/flexible_receptor_questionnaire.py
+          uv run --locked pytest -q tests/test_prediction_workspace_scope.py tests/test_pose_quality.py::test_raw_record_splitter_preserves_invalid_empty_and_eof_source_positions
+          (cd frontend && npx vitest run src/docking/DockingForm.test.tsx src/docking/DockingReview.test.tsx src/docking/FlexibleReceptorForm.test.tsx src/docking/SearchPreview.test.tsx src/viewer/search-box.test.ts)
+          uv run --locked playwright install chromium --with-deps
+          export WB_DOCKING_VISUAL_STATE="$RUNNER_TEMP/x-dde-docking-review-tools/state"
+          WB_HOME="$RUNNER_TEMP/x-dde-docking-review-tools" WB_STATE_DIR="$WB_DOCKING_VISUAL_STATE" \
+            uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked python -m pytest -q server_tests/test_docking_job_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.scope.outputs.docking_review_only == 'true'
+        with:
+          name: docking-job-review-visuals
+          path: outputs/docking-job-review
       - name: Preserve the exact frontend for candidate-only browser acceptance
         uses: actions/upload-artifact@v4
         with:

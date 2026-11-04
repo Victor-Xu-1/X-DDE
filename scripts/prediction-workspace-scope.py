@@ -202,6 +202,52 @@ FOLD_REVIEW_FILES = FINAL_REVIEW_FILES | {
 }
 
 
+DOCKING_REVIEW_ENTRYPOINTS = {
+    "frontend/src/docking/DockingJobReview.tsx",
+    "frontend/src/docking/docking-job-request.ts",
+    "server_tests/test_docking_job_review_browser.py",
+}
+DOCKING_REVIEW_FILES = DOCKING_REVIEW_ENTRYPOINTS | {
+    ".github/workflows/docking-runtime-checks.yml",
+    "frontend/src/diffsbdd/ReviewReference.tsx",
+    "frontend/src/docking/DockingForm.test.tsx",
+    "frontend/src/docking/DockingForm.tsx",
+    "frontend/src/docking/DockingReview.tsx",
+    "frontend/src/docking/DockingReview.test.tsx",
+    "server_tests/docking_browser.py",
+    "frontend/src/docking/FlexibleReceptorForm.test.tsx",
+    "frontend/src/docking/SearchPreview.test.tsx",
+    "frontend/src/docking/SearchPreview.tsx",
+    "frontend/src/docking/SearchRegion.tsx",
+    "frontend/src/docking/docking-job-review.css",
+    "frontend/src/viewer/search-box.ts",
+    "src/opendde_workbench/asset_records.py",
+    "src/opendde_workbench/chemistry/sdf_io.py",
+    "tests/test_asset_record_download.py",
+    "frontend/src/presentation/PredictionJobReview.tsx",
+    "frontend/src/presentation/PredictionReviewDialog.tsx",
+    "frontend/src/presentation/prediction-job-review.css",
+    "server_tests/flexible_receptor_browser.py",
+    "server_tests/flexible_receptor_questionnaire.py",
+    "server_tests/test_frontend_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def docking_review_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and DOCKING_REVIEW_ENTRYPOINTS <= set(changed) <= DOCKING_REVIEW_FILES
+    )
+
+
 def final_review_only(changed, event="push"):
     changed = set(changed)
     return event in {"push", "pull_request"} and (
@@ -243,6 +289,7 @@ def final_review_only(changed, event="push"):
             "server_tests/test_fold_msa_sources_browser.py",
         }.issubset(changed)
         and changed.issubset(FOLD_REVIEW_FILES)
+        or docking_review_only(changed, event)
     )
 
 
@@ -448,6 +495,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "docking_review_only": docking_review_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "drafts_only": drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "drafts_changed": drafts_changed(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "final_review_only": final_review_only(

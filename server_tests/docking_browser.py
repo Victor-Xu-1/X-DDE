@@ -176,7 +176,9 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                 page.get_by_role("combobox", name="Run preset", exact=True).select_option("expert")
                 page.get_by_role("spinbutton", name="CPU threads", exact=True).fill("1")
                 page.get_by_role("button", name="Next", exact=True).click()
-                review = page.get_by_role(
+                page.get_by_role("button", name="Preview job", exact=True).click()
+                preview = page.get_by_role("dialog", name="Preview job", exact=True)
+                review = preview.get_by_role(
                     "table", name="Materials and calculation plan", exact=True
                 )
                 expect(review).to_contain_text(pose["artifact"])
@@ -187,6 +189,7 @@ def inspect_results(settings, image, job_id, pose, reference, evidence, rejected
                 assert {
                     j["id"] for j in page.request.get(base + "/api/jobs").json()
                 } == expected_job_ids
+                preview.get_by_role("button", name="Back to edit", exact=True).click()
                 page.get_by_role("button", name="← Back to results", exact=True).click()
                 if rejected_id:
                     page.set_viewport_size({"width": 1440, "height": 1000})

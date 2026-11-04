@@ -90,3 +90,18 @@ def test_wrong_format_missing_asset_and_empty_records_are_explicit(downloads):
     )
     assert client.get("/api/assets/" + asset.id, params={"record": 0}).status_code == 422
     assert client.get("/api/assets/" + asset.id, params={"record": 1}).status_code == 200
+
+
+def test_first_500_records_can_be_selected_from_a_larger_series(downloads):
+    client, assets = downloads
+    ligand = (INPUTS / "STAT6-user-warhead.sdf").read_bytes()
+    protac = (INPUTS / "STAT6-user-PROTAC.sdf").read_bytes()
+    large = ligand * 499 + protac + ligand
+    asset = assets.save("large STAT6 series.sdf", "ligand", large)
+    route = "/api/assets/" + asset.id
+
+    result = client.get(route, params={"record": 499})
+    assert result.status_code == 200 and result.headers["X-Structure-Record"] == "499"
+    assert result.content == protac
+    assert client.get(route, params={"record": 500}).status_code == 422
+    assert client.get(route).content == large

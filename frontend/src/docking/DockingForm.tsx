@@ -3,7 +3,6 @@ import { useExampleReference, useExampleTask } from "../examples/context";
 import { outputBoundsDefaults } from "../constraints/generated";
 import type { OutputSettings } from "../constraints/types";
 import { ConstraintPanel } from "../constraints/ConstraintPanel";
-import { withConstraints } from "../constraints/model";
 import type { ConstraintReference } from "../constraints/types";
 import { referenceKey } from "../diffsbdd/model";
 import { useEffect, useState } from "react";
@@ -15,7 +14,7 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { defaults } from "./generated";
 import { task, parseBox } from "./model";
 import { DockingOptions } from "./DockingOptions";
-import { DockingReview } from "./DockingReview";
+import { DockingJobReview } from "./DockingJobReview";
 import { FlexibleReceptorSettings } from "./FlexibleReceptorSettings";
 import { useReceptorRefinement } from "./useReceptorRefinement";
 import type { DockingMode, SearchBox } from "./types";
@@ -65,7 +64,6 @@ export function DockingForm({
   const [confirmed, setConfirmed] = useState(false),
     [expert, setExpert] = useState(false),
     [name, setName] = useState("");
-  const [error, setError] = useState("");
   const refinement = useReceptorRefinement(mode, receptor);
   const {
     ready,
@@ -114,22 +112,6 @@ export function DockingForm({
     }
   } catch {
     regionValid = false;
-  }
-  async function submit() {
-    setError("");
-    try {
-      return await run.submit(
-        await withConstraints(
-          buildTask(),
-          constraints,
-          language,
-          outputChoice,
-          outputSettings,
-        ),
-      );
-    } catch (failure) {
-      setError(String(failure));
-    }
   }
   const inputs = (
     <DockingInputs
@@ -271,27 +253,38 @@ export function DockingForm({
       </label>
     </>
   );
-  const review = (
-    <DockingReview
-      getTask={buildTask}
-      enabled={Boolean(receptor && ligand) && regionValid && refinement.valid}
-      language={language}
-    />
-  );
+  const unavailable = zh
+    ? "请在安装与组件中配置 GNINA。当前选择已保留，可稍后启动。"
+    : "Configure GNINA in Installation & components. Your choices are retained for a later start.";
   return (
     <Questionnaire
       language={language}
       busy={run.busy}
-      error={error || run.error || readinessError}
+      error={run.error || readinessError}
       ready={ready}
       onCheckEnvironment={recheck}
-      unavailable={
-        zh
-          ? "请在安装与组件中配置 GNINA。当前选择已保留，可稍后启动。"
-          : "Configure GNINA in Installation & components. Your choices are retained for a later start."
-      }
-      submitLabel={labels[mode][zh ? 0 : 1]}
-      onSubmit={submit}
+      unavailable={unavailable}
+      submitLabel={zh ? "预览任务" : "Preview job"}
+      renderReview={({ confirm, dismiss }) => (
+        <DockingJobReview
+          input={{
+            task: buildTask(),
+            constraints,
+            outputChoice,
+            outputSettings,
+            language,
+          }}
+          language={language}
+          ready={ready}
+          unavailable={readinessError || unavailable}
+          recheck={recheck}
+          busy={run.busy}
+          error={run.error}
+          confirm={confirm}
+          onClose={dismiss}
+          submit={run.submit}
+        />
+      )}
       steps={[
         {
           title: zh ? "选择材料" : "Choose inputs",
@@ -310,7 +303,13 @@ export function DockingForm({
         },
         {
           title: zh ? "确认启动" : "Review & start",
-          content: review,
+          content: (
+            <p className="field-help">
+              {zh
+                ? "预览受体、分子和计算方案，核对后再提交。"
+                : "Preview the receptor, molecule and calculation plan before submitting."}
+            </p>
+          ),
           valid: Boolean(receptor && ligand) && regionValid && refinement.valid,
         },
       ]}

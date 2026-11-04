@@ -5,6 +5,8 @@ import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { SearchPreview } from "./SearchPreview";
 import { Hint } from "../guided/Hint";
+import { parseBox } from "./model";
+import type { SearchBox } from "./types";
 export function SearchRegion({
   language,
   receptor,
@@ -29,6 +31,14 @@ export function SearchRegion({
   onSize(v: string[]): void;
 }) {
   const zh = language === "zh";
+  let box: SearchBox | undefined;
+  if (kind === "box") {
+    try {
+      box = parseBox(center, size, language);
+    } catch {
+      // During editing, clear any box whose fields are no longer complete.
+    }
+  }
   return (
     <section>
       <StructureWorkbench
@@ -44,6 +54,7 @@ export function SearchRegion({
               receptor={receptor}
               language={language}
               onCenter={onCenter}
+              box={box}
             />
           ) : null
         }

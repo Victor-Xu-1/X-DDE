@@ -80,7 +80,7 @@ def test_themes_navigation_and_persisted_asset_handoff(tmp_path):
             expect(page.get_by_text("从第一份研究资产开始", exact=True)).to_be_visible()
             page.locator('.research-workspace input[type="file"]').set_input_files(molecule)
             expect(page.get_by_role("heading", name="ethanol.sdf", exact=True)).to_be_visible()
-            page.get_by_text("名称、备注与人工评价",exact=True).click()
+            page.get_by_text("名称、备注与人工评价", exact=True).click()
             page.get_by_role("textbox", name="研究备注", exact=True).fill(
                 "Browser regression: retained original"
             )
@@ -746,7 +746,10 @@ def test_binding_pose_entry_presets_and_configuration_limits():
             page.get_by_role("button", name="下一步", exact=True).click()
             # A visited-step shortcut must recheck retained native range validity.
             page.get_by_role("button", name="下一步", exact=True).click()
-            expect(page.get_by_role("button", name="探索结合模式", exact=True)).to_be_disabled()
+            page.get_by_role("button", name="预览任务", exact=True).click()
+            review = page.get_by_role("dialog", name="预览任务", exact=True)
+            expect(review.get_by_role("button", name="提交任务", exact=True)).to_be_disabled()
+            review.get_by_role("button", name="返回编辑", exact=True).click()
             page.get_by_role("button", name="上一步", exact=True).click()
             page.get_by_role("combobox", name="运行方案", exact=True).select_option("expert")
             page.get_by_role("spinbutton", name="CPU 线程", exact=True).fill("0")

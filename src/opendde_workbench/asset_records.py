@@ -1,12 +1,13 @@
 """Download an exact existing molecular record without creating a new scientific asset."""
 
 import hashlib
+from itertools import islice
 from pathlib import Path
 from urllib.parse import quote
 
 from fastapi.responses import Response
 
-from .chemistry.sdf_io import split_records
+from .chemistry.sdf_io import iter_records
 
 
 def molecular_record_response(assets, asset, record):
@@ -19,13 +20,13 @@ def molecular_record_response(assets, asset, record):
     if len(raw) != asset.size or hashlib.sha256(raw).hexdigest() != asset.sha256:
         raise ValueError("The original molecular file changed; download was rejected.")
     if asset.suffix == ".sdf":
-        blocks = split_records(raw)
-        if record >= len(blocks) or not blocks[record].strip():
+        records = iter_records(raw)
+        selected = next(islice(records, record, record + 1), None)
+        if not selected or not selected.strip():
             raise ValueError("The selected original molecular record is missing or empty.")
-        selected = blocks[record]
         if not selected.endswith((b"\n", b"\r")):
             selected += b"\n"
-        content = raw if len(blocks) == 1 else selected + b"$$$$\n"
+        content = raw if record == 0 and next(records, None) is None else selected + b"$$$$\n"
         filename = f"{Path(asset.name).stem}-record-{record + 1}.sdf"
     else:
         if record != 0:

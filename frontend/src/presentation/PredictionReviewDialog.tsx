@@ -10,6 +10,7 @@ export function PredictionReviewDialog({
   onClose,
   busy = false,
   job = false,
+  wide = false,
 }: {
   language: Language;
   title: string;
@@ -18,6 +19,7 @@ export function PredictionReviewDialog({
   onClose(): void;
   busy?: boolean;
   job?: boolean;
+  wide?: boolean;
 }) {
   const zh = language === "zh";
   const id = useId();
@@ -38,7 +40,7 @@ export function PredictionReviewDialog({
   }
   return (
     <dialog
-      className={`prediction-input-preview${job ? " prediction-job-preview" : ""}`}
+      className={`prediction-input-preview${job ? " prediction-job-preview" : ""}${wide ? " prediction-review-wide" : ""}`}
       ref={dialog}
       aria-labelledby={id}
       onCancel={(event) => {
