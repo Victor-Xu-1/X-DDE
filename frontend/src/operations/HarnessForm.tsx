@@ -47,7 +47,7 @@ export function HarnessForm({
   const validName = name.trim().length <= 80;
   function editPayload(value: Record<string, unknown>) {
     setPayload(value);
-    run.clearError();
+    run.clearError({ preserveUnconfirmed: true });
     setSetupError("");
   }
   const needsExternal = [
@@ -240,7 +240,7 @@ export function HarnessForm({
             checked={external}
             onChange={(e) => {
               setExternal(e.target.checked);
-              run.clearError();
+              run.clearError({ preserveUnconfirmed: true });
             }}
           />
           {zh
@@ -255,7 +255,7 @@ export function HarnessForm({
           maxLength={80}
           onChange={(e) => {
             setName(e.target.value);
-            run.clearError();
+            run.clearError({ preserveUnconfirmed: true });
           }}
           aria-invalid={!validName}
         />

@@ -190,6 +190,8 @@ FOLD_REVIEW_FILES = FINAL_REVIEW_FILES | {
     "frontend/src/operations/fold-job-review.css",
     "frontend/src/operations/HarnessForm.tsx",
     "frontend/src/operations/HarnessFoldInputs.test.tsx",
+    "frontend/src/operations/useTaskSubmit.ts",
+    "frontend/src/operations/useTaskSubmit.test.ts",
     "frontend/src/presentation/PredictionJobReview.tsx",
     "server_tests/test_fold_msa_sources_browser.py",
     "server_tests/test_native_fold_chain_contract.py",

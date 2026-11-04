@@ -62,6 +62,8 @@ it("retains the request key after a lost response and creates a new intent for c
     await view.result.current.submit(input());
   });
   expect(view.result.current.error).toContain("could not be confirmed");
+  act(() => view.result.current.clearError({ preserveUnconfirmed: true }));
+  expect(view.result.current.error).toContain("could not be confirmed");
   await act(async () => {
     await view.result.current.submit(input());
   });

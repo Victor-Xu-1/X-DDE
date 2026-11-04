@@ -5,7 +5,10 @@ import type { TaskRequest } from "./types";
 
 export function useTaskSubmit(onCreated: (job: Job) => void) {
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [failure, setFailure] = useState<{
+      message: string;
+      unconfirmed?: boolean;
+    } | null>(null);
   const request = useRef<{ body: string; key: string; accepted?: Job }>({
     body: "",
     key: crypto.randomUUID(),
@@ -27,7 +30,7 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
     const snapshot = JSON.parse(body) as TaskRequest;
     pending.current = true;
     setBusy(true);
-    setError("");
+    setFailure(null);
     try {
       const job = intent.accepted ?? (await api.submit(snapshot, intent.key));
       intent.accepted = job;
@@ -37,30 +40,38 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
         request.current = { body: "", key: crypto.randomUUID() };
       } catch (error) {
         console.warn("Accepted task view could not be opened.", error);
-        setError(
-          "Task created, but its page could not be opened. Use the task link below.",
-        );
+        setFailure({
+          message:
+            "Task created, but its page could not be opened. Use the task link below.",
+        });
       }
       return job;
     } catch (e) {
-      if (mounted.current)
-        setError(
+      if (mounted.current) {
+        const unconfirmed =
           e instanceof TypeError ||
-            (e instanceof DOMException &&
-              ["TimeoutError", "AbortError"].includes(e.name))
+          (e instanceof DOMException &&
+            ["TimeoutError", "AbortError"].includes(e.name));
+        setFailure({
+          unconfirmed,
+          message: unconfirmed
             ? "Task submission could not be confirmed. Submit again to continue the same request."
             : e instanceof Error
               ? e.message
               : String(e),
-        );
+        });
+      }
     } finally {
       pending.current = false;
       if (mounted.current) setBusy(false);
     }
   }
-  function clearError() {
+  function clearError({ preserveUnconfirmed = false } = {}) {
     // Editing a rejected input does not erase accepted-task navigation recovery.
-    if (!pending.current && !request.current.accepted) setError("");
+    if (!pending.current && !request.current.accepted)
+      setFailure((current) =>
+        preserveUnconfirmed && current?.unconfirmed ? current : null,
+      );
   }
-  return { busy, error, submit, clearError };
+  return { busy, error: failure?.message ?? "", submit, clearError };
 }
