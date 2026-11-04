@@ -42,6 +42,8 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             )
             expect(action).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
+            page.screenshot(path=evidence / f"{capability}.png")
             if capability == "boltz.predict":
                 endpoint = f"**/api/jobs/{job_id}/prediction-results.zip"
                 page.route(endpoint, lambda route: route.fulfill(status=503), times=1)
@@ -49,7 +51,8 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
                 expect(
                     page.locator(".prediction-archive-download").get_by_role("alert")
                 ).to_be_visible()
-            page.screenshot(path=evidence / f"{capability}.png")
+                expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
+                page.screenshot(path=evidence / "retry.png")
             with page.expect_download(timeout=45000) as received:
                 action.click()
             assert received.value.suggested_filename == f"{job_id}-prediction-results.zip"

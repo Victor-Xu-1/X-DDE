@@ -47,11 +47,20 @@
   align-items: flex-start;
 }
 .prediction-archive-download {
-  position: relative;
+  display: contents;
+}
+.studio-app .prediction-archive-download > .primary-button,
+.studio-app .prediction-archive-download > .primary-button:hover:enabled,
+.studio-app .prediction-archive-download > .primary-button:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 999px;
 }
 .prediction-archive-download > .field-help {
-  max-width: 200px;
-  margin: 4px 0 0;
+  flex: 0 0 100%;
+  order: 1;
+  margin: 0;
 }
 @media (max-width: 640px) {
   .task-detail-header:has(.prediction-history-trigger) {
@@ -59,5 +68,6 @@
   }
   .task-detail-header:has(.prediction-history-trigger) .task-actions {
     max-width: 100%;
+    gap: 8px;
   }
 }
