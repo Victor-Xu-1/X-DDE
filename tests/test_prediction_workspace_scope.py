@@ -321,3 +321,16 @@ def test_historical_input_selects_its_archive_and_direct_result_consumers():
     mixed = paths + ["frontend/src/studio/Header.tsx"]
     assert scope.history_input_changed(mixed)
     assert not scope.history_input_only(mixed)
+
+
+def test_prediction_job_archive_keeps_selected_model_export_as_direct_regression():
+    paths = [
+        "src/opendde_workbench/prediction_archive.py",
+        "src/opendde_workbench/science_routes.py",
+        "frontend/src/presentation/PredictionArchiveDownload.tsx",
+        "frontend/src/studio/PredictionResults.tsx",
+    ]
+    assert scope.job_archive_only(paths)
+    assert scope.sample_export_changed(paths)
+    assert scope.selected(paths)
+    assert not scope.job_archive_only(paths + ["frontend/src/studio/Header.tsx"])

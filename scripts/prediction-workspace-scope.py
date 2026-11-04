@@ -615,11 +615,43 @@ def history_input_only(changed, event="push"):
     )
 
 
+JOB_ARCHIVE_SOURCES = (
+    "src/opendde_workbench/prediction_archive.py",
+    "frontend/src/presentation/PredictionArchiveDownload.tsx",
+    "server_tests/test_prediction_job_archive_browser.py",
+)
+JOB_ARCHIVE_FILES = (
+    HISTORY_INPUT_FILES
+    + JOB_ARCHIVE_SOURCES
+    + (
+        "src/opendde_workbench/prediction_sample_export.py",
+        "src/opendde_workbench/science_routes.py",
+        "tests/test_prediction_sample_export.py",
+    )
+)
+
+
+def job_archive_changed(changed):
+    return any(name in JOB_ARCHIVE_SOURCES for name in changed)
+
+
+def job_archive_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and job_archive_changed(changed)
+        and all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in JOB_ARCHIVE_FILES)
+            for name in changed
+        )
+    )
+
+
 def selected(changed, event="push"):
     if (
         sample_export_only(changed, event)
         or reference_review_only(changed, event)
         or history_input_only(changed, event)
+        or job_archive_only(changed, event)
         or drafts_only(changed, event)
         or final_review_only(changed, event)
     ):
@@ -653,6 +685,10 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "job_archive_changed": job_archive_changed(changed),
+            "job_archive_only": job_archive_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "history_input_changed": history_input_changed(changed),
             "history_input_only": history_input_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

@@ -1,7 +1,10 @@
+import asyncio
 import hashlib
 import io
 import json
+import time
 import zipfile
+from threading import Event
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -10,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from opendde_workbench.models import Prediction, Status
+from opendde_workbench.prediction_archive import ArchiveCancelled, prediction_archive
 from opendde_workbench.prediction_sample_export import (
     BOLTZ_OUTPUT,
     UnsealedPredictionSource,
@@ -175,25 +179,39 @@ def test_mol1_requires_declared_summary_identity(tmp_path):
     name = key + ".cif"
     summary_name = key + "-confidence.json"
     summary = b'{"plddt":84}'
+    full_name = key + "-full-data.json"
+    full = b'{"token_pair_pae":[[0]]}'
     job, output = manifest(
         tmp_path,
         "mol1_predict",
         "mol1",
         [{"id": key, "artifact": name}],
-        {name: b"data_mol1", summary_name: summary},
+        {name: b"data_mol1", summary_name: summary, full_name: full},
         mol1={
             "model": "mol-1-base",
             "samples": [
-                {"candidate_id": key, "seed": 101, "rank": 0, "summary_artifact": summary_name}
+                {
+                    "candidate_id": key,
+                    "seed": 101,
+                    "rank": 0,
+                    "summary_artifact": summary_name,
+                    "full_data_artifact": full_name,
+                }
             ],
             "confidence_axes": "token_indices_not_residue_numbers",
             "scope": "model_confidence_not_experimental_binding",
         },
     )
     assert unpack(tmp_path, job, key) == {"structure": b"data_mol1", "confidence_summary": summary}
+    request_sha = hashlib.sha256(job.request.model_dump_json().encode()).hexdigest()
+    stream, _ = prediction_archive(tmp_path, job, request_sha, {})
+    with stream, zipfile.ZipFile(stream) as archive:
+        assert archive.read(f"outputs/{full_name}") == full
     (output / summary_name).write_bytes(b'{"plddt":40}')
     with pytest.raises(ValueError, match="changed after it was recorded"):
         sample_zip(tmp_path, job, key)
+    with pytest.raises(ValueError, match="recorded checksum"):
+        prediction_archive(tmp_path, job, request_sha, {})
 
 
 def test_download_route_distinguishes_missing_and_replaced_sources(tmp_path):
@@ -231,3 +249,178 @@ def test_download_route_distinguishes_missing_and_replaced_sources(tmp_path):
         result = client.get(endpoint)
         assert result.status_code == 422
         assert "legacy_unsealed_structure" not in result.text
+
+
+def test_job_archive_retains_native_alignment_and_full_confidence(tmp_path):
+    output = tmp_path / "jobs" / "source" / "output"
+    prediction = output / "source" / "seed_101" / "predictions"
+    prediction.mkdir(parents=True)
+    native = output / "native" / "msa" / "A"
+    native.mkdir(parents=True)
+    files = {
+        prediction / "source_sample_0.cif": b"coordinates",
+        prediction / "source_summary_confidence_sample_0.json": b'{"ptm":0.7}',
+        prediction / "source_full_data_sample_0.json": b'{"token_pair_pae":[[0]]}',
+        native / "pairing.a3m": b">protein\nACDE\n",
+    }
+    for path, data in files.items():
+        path.write_bytes(data)
+    (output / "runtime.json").write_text('{"implementation":"private"}')
+    (native / "unrelated.a3m").write_text(">unrelated\nACDE\n")
+    full = prediction / "source_full_data_sample_0.json"
+    sealed = {full.relative_to(output).as_posix(): hashlib.sha256(files[full]).hexdigest()}
+    job = SimpleNamespace(
+        id="source",
+        request=SimpleNamespace(
+            operation="predict", parameters=SimpleNamespace(seeds=[101], samples=2)
+        ),
+    )
+    stream, size = prediction_archive(output.parent, job, "a" * 64, sealed)
+    with stream, zipfile.ZipFile(stream) as archive:
+        receipt = json.loads(archive.read("prediction.json"))
+        assert receipt["source_job"] == "source"
+        assert receipt["request_sha256"] == "a" * 64
+        assert receipt["limitations"] == [
+            "The archive does not establish a complete set of requested OpenDDE samples."
+        ]
+        assert size > 0
+        names = {
+            "outputs/" + path.relative_to(output).as_posix(): data for path, data in files.items()
+        }
+        assert set(archive.namelist()) == {*names, "prediction.json"}
+        assert all(archive.read(name) == data for name, data in names.items())
+        confidence = next(
+            row for row in receipt["files"].values() if row["role"] == "confidence_full"
+        )
+        assert confidence["matched_recorded_checksum"] is True
+    full.write_text("replaced confidence")
+    with pytest.raises(ValueError, match="recorded checksum"):
+        prediction_archive(output.parent, job, "a" * 64, sealed)
+    full.unlink()
+    with pytest.raises(FileNotFoundError):
+        prediction_archive(output.parent, job, "a" * 64, sealed)
+
+
+def test_unsealed_boltz_uses_verified_normalized_files_and_retains_affinity(tmp_path, monkeypatch):
+    candidates = [{"id": f"structure-00{i}", "artifact": f"structure-00{i}.cif"} for i in (1, 2)]
+    job, output = manifest(
+        tmp_path,
+        "boltz_predict",
+        "boltz",
+        candidates,
+        {
+            "structure-001.cif": b"one",
+            "structure-002.cif": b"two",
+            "structure-001-confidence.json": b'{"ptm":0.8}',
+            "structure-002-confidence.json": b'{"ptm":0.7}',
+        },
+        metrics=[
+            {
+                "name": "affinity_pred_value",
+                "value": 0.4,
+                "unit": "log10(IC50 / µM)",
+                "method": "Boltz-2",
+                "meaning": "score",
+            }
+        ],
+    )
+    native = output / BOLTZ_OUTPUT
+    native.mkdir(parents=True)
+    (native / "prediction_model_0.cif").write_bytes(b"two")
+    (native / "prediction_model_1.cif").write_bytes(b"one")
+    (native / "confidence_prediction_model_0.json").write_bytes(b'{"ptm":0.8}')
+    request_sha = hashlib.sha256(job.request.model_dump_json().encode()).hexdigest()
+    stream, _ = prediction_archive(tmp_path, job, request_sha, {})
+    with stream, zipfile.ZipFile(stream) as archive:
+        assert not any("/native/" in name for name in archive.namelist())
+        assert (
+            json.loads(archive.read("outputs/result.json"))["metrics"][0]["name"]
+            == "affinity_pred_value"
+        )
+        assert json.loads(archive.read("prediction.json"))["limitations"]
+
+    source_name = (BOLTZ_OUTPUT / "prediction_model_0.cif").as_posix()
+    sealed = {source_name: hashlib.sha256(b"two").hexdigest()}
+    stream, _ = prediction_archive(tmp_path, job, request_sha, sealed)
+    with stream, zipfile.ZipFile(stream) as archive:
+        assert f"outputs/{source_name}" in archive.namelist()
+        assert not any("confidence_prediction_model_0.json" in name for name in archive.namelist())
+
+    import opendde_workbench.prediction_archive as archives
+
+    original = archives.prediction_files
+
+    def replace_after_validation(*args):
+        files = original(*args)
+        (output / "result.json").write_text('{"replacement":true}')
+        return files
+
+    monkeypatch.setattr(archives, "prediction_files", replace_after_validation)
+    with pytest.raises(ValueError, match="native report changed"):
+        prediction_archive(tmp_path, job, request_sha, sealed)
+
+
+def test_job_archive_releases_slot_after_disconnect_during_preparation(tmp_path, monkeypatch):
+    import opendde_workbench.science_routes as routes
+
+    store = Store(tmp_path / "jobs.sqlite3")
+    job = store.create(
+        Prediction(name="Completed", components=[{"kind": "protein", "value": "ACDE", "count": 1}]),
+        str(uuid4()),
+        5,
+        20,
+    )
+    assert store.claim(job.id)
+    store.finish(job.id, Status.SUCCEEDED)
+    started, stopped = Event(), Event()
+
+    def prepare(_root, _job, _sha, _sealed, cancelled):
+        if started.is_set():
+            return io.BytesIO(b"valid bytes"), 11
+        started.set()
+        deadline = time.monotonic() + 5
+        while not cancelled():
+            if time.monotonic() >= deadline:
+                raise AssertionError("Disconnect never reached archive worker")
+            stopped.wait(0.01)
+        stopped.set()
+        raise ArchiveCancelled
+
+    monkeypatch.setattr(routes, "prediction_archive", prepare)
+    app = FastAPI()
+    register_science(app, store, object(), SimpleNamespace(state_dir=tmp_path))
+    endpoint = f"/api/jobs/{job.id}/prediction-results.zip"
+
+    async def disconnect():
+        response = []
+
+        async def receive():
+            while not started.is_set():
+                await asyncio.sleep(0.01)
+            return {"type": "http.disconnect"}
+
+        async def send(message):
+            response.append(message)
+
+        await app(
+            {
+                "type": "http",
+                "asgi": {"version": "3.0", "spec_version": "2.4"},
+                "method": "GET",
+                "path": endpoint,
+                "query_string": b"",
+                "headers": [],
+            },
+            receive,
+            send,
+        )
+        for _ in range(100):
+            if stopped.is_set():
+                break
+            await asyncio.sleep(0.01)
+        assert stopped.is_set()
+        assert response[0]["status"] == 499
+
+    asyncio.run(disconnect())
+    with TestClient(app) as client:
+        assert client.get(endpoint).content == b"valid bytes"
