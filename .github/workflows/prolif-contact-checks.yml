@@ -7,6 +7,8 @@ on:
       - 'frontend/src/diffsbdd/DiffForm*'
       - 'frontend/src/diffsbdd/DiffQuestions.tsx'
       - 'frontend/src/diffsbdd/DiffReview*'
+      - 'frontend/src/diffsbdd/SpatialDesignJobReview.tsx'
+      - 'frontend/src/diffsbdd/spatial-design-review.*'
       - 'frontend/src/diffsbdd/ReviewReference*'
       - 'frontend/src/diffsbdd/DesignOptions*'
       - 'frontend/src/diffsbdd/OptimizationBudget*'

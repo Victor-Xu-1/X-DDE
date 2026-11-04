@@ -10,6 +10,8 @@ import type { MoleculeRef } from "../research/types";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { DiffInputQuestions, DiffSettingQuestions } from "./DiffQuestions";
 import { DiffReview } from "./DiffReview";
+import { SpatialDesignJobReview } from "./SpatialDesignJobReview";
+import type { CorePreviewSource } from "./spatial-design-review";
 import { PocketPicker } from "./PocketPicker";
 import { FixedAtomPicker } from "./FixedAtomPicker";
 import {
@@ -84,6 +86,10 @@ export function DiffForm({
     [name, setName] = useState("");
   const [error, setError] = useState("");
   const [alignedPose, setAlignedPose] = useState(false);
+  const [corePreview, setCorePreview] = useState<CorePreviewSource | null>(
+    null,
+  );
+  const spatialMode = isDesign(mode) || mode === "pocket" ? mode : null;
   const {
     ready,
     error: readinessError,
@@ -114,6 +120,7 @@ export function DiffForm({
   }
   function selectMolecule(ref: MoleculeRef | null) {
     setMolecule(ref);
+    setCorePreview(null);
     setFixed([]);
     setSavedRegions(null);
     setConstraints(null);
@@ -123,27 +130,7 @@ export function DiffForm({
     setError("");
     try {
       let payload: Record<string, unknown> & { mode: DiffMode };
-      if (isDesign(mode)) {
-        if (!protein || !pocket)
-          throw new Error(
-            zh ? "请选择受体和口袋。" : "Choose a receptor and a pocket.",
-          );
-        payload = designPayload(
-          mode,
-          protein,
-          pocket,
-          molecule,
-          options,
-          fixed,
-          savedRegions,
-        );
-      } else if (mode === "pocket") {
-        if (!protein || !pocket)
-          throw new Error(
-            zh ? "请选择受体和口袋。" : "Choose a receptor and a pocket.",
-          );
-        payload = { mode, protein, pocket };
-      } else if (mode === "prepare") {
+      if (mode === "prepare") {
         if (!protein)
           throw new Error(zh ? "请选择受体。" : "Choose a receptor.");
         payload = {
@@ -245,6 +232,7 @@ export function DiffForm({
             setSavedRegions(null);
           }}
           onSaved={setSavedRegions}
+          onCorePreview={setCorePreview}
           language={language}
         />
       )}
@@ -392,7 +380,13 @@ export function DiffForm({
     properties: ["候选性质", "Candidate properties"],
     export: ["候选导出", "Candidate export"],
   };
-  const review = (
+  const review = spatialMode ? (
+    <p className="field-help">
+      {zh
+        ? "提交前可检查受体、口袋和本次设计方案。"
+        : "Inspect the receptor, pocket and design settings before submitting."}
+    </p>
+  ) : (
     <DiffReview
       mode={mode}
       language={language}
@@ -410,6 +404,9 @@ export function DiffForm({
       removeH={removeH}
     />
   );
+  const unavailable = zh
+    ? "本任务所需的 DiffSBDD 环境尚未配置。请到安装与组件部署；当前输入保留。"
+    : "Configure the required DiffSBDD environment in Installation & components. Inputs are retained.";
   return (
     <Questionnaire
       language={language}
@@ -417,13 +414,48 @@ export function DiffForm({
       onCheckEnvironment={recheck}
       busy={run.busy}
       error={error || run.error || readinessError}
-      unavailable={
-        zh
-          ? "本任务所需的 DiffSBDD 环境尚未配置。请到安装与组件部署；当前输入保留。"
-          : "Configure the required DiffSBDD environment in Installation & components. Inputs are retained."
+      unavailable={unavailable}
+      submitLabel={
+        spatialMode
+          ? zh
+            ? "预览任务"
+            : "Preview job"
+          : zh
+            ? "创建任务"
+            : "Create task"
       }
-      submitLabel={zh ? "创建任务" : "Create task"}
-      onSubmit={submit}
+      onSubmit={spatialMode ? undefined : submit}
+      renderReview={
+        spatialMode
+          ? ({ confirm, dismiss }) => (
+              <SpatialDesignJobReview
+                language={language}
+                input={{
+                  mode: spatialMode,
+                  protein,
+                  molecule,
+                  pocket,
+                  options,
+                  fixed,
+                  savedRegions,
+                  constraints,
+                  name,
+                  language,
+                }}
+                corePreview={corePreview}
+                taskLabel={names[mode][zh ? 0 : 1]}
+                ready={ready}
+                unavailable={readinessError || unavailable}
+                recheck={recheck}
+                busy={run.busy}
+                error={run.error}
+                confirm={confirm}
+                onClose={dismiss}
+                submit={run.submit}
+              />
+            )
+          : undefined
+      }
       steps={[
         {
           title: zh ? "选择材料" : "Choose inputs",

@@ -21,6 +21,7 @@ export function DiffReview({
   removeWater,
   keepLigands,
   removeH,
+  preparedSources = false,
 }: {
   mode: DiffMode;
   language: Language;
@@ -36,12 +37,18 @@ export function DiffReview({
   removeWater: boolean;
   keepLigands: boolean;
   removeH: boolean;
+  preparedSources?: boolean;
 }) {
   const zh = language === "zh",
     designing = isDesign(mode);
   const rows: [string, ReactNode][] = [[zh ? "任务" : "Task", taskLabel]];
   const material = (reference: MoleculeRef, kind: "structure" | "ligand") => (
-    <ReviewReference reference={reference} kind={kind} language={language} />
+    <ReviewReference
+      reference={reference}
+      kind={kind}
+      language={language}
+      recordDownload={preparedSources}
+    />
   );
   if (
     protein &&

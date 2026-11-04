@@ -8,7 +8,23 @@ import type { PreparedExample } from "../examples/types";
 import { DiffForm } from "./DiffForm";
 import { optionsFor } from "./model";
 
-vi.mock("../viewer/StructureViewer", () => ({ StructureViewer: () => null }));
+vi.mock("../viewer/StructureViewer", () => ({
+  StructureViewer: ({ highlightedAtoms }: { highlightedAtoms?: number[] }) =>
+    highlightedAtoms ? (
+      <p>Verified atoms: {highlightedAtoms.join(",")}</p>
+    ) : null,
+}));
+vi.mock("../research/asset-file", () => ({
+  readAssetFile: async () => new Uint8Array(),
+}));
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -52,19 +68,49 @@ it("shows the saved export molecule as already selected rather than offering an 
 it.each(["generate", "inpaint"] as const)(
   "submits the explicitly loaded %s recipe including exact references and saved conditions",
   async (mode) => {
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (raw) =>
-        new Response(
-          JSON.stringify(
-            String(raw).includes("capabilities")
-              ? { availability: { configuration_present: true, missing: [] } }
-              : String(raw).includes("session")
-                ? { csrf_token: "fixture" }
-                : [],
-          ),
-          { headers: { "Content-Type": "application/json" } },
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (raw) => {
+      const path = String(raw);
+      if (path.endsWith("/research/regions/saved-core"))
+        return Response.json({
+          id: "saved-core",
+          body: { subject: molecule, identity_job: "identity-task" },
+        });
+      if (path.endsWith("/jobs/identity-task/result"))
+        return Response.json({
+          mode: "identity",
+          complete: true,
+          reference: molecule,
+          identity_basis: "rdkit_removeHs_record_order",
+          molecule_artifact: "native.sdf",
+          atoms: [
+            { index: 0, element: "C", selectable: true },
+            { index: 1, element: "N", selectable: true },
+          ],
+        });
+      if (path.endsWith("/assets/molecule?record=2"))
+        return new Response("mock record", {
+          headers: { "X-Structure-Format": "sdf", "X-Structure-Record": "2" },
+        });
+      if (path.endsWith("/assets/molecule/metadata"))
+        return Response.json({
+          id: "molecule",
+          name: "pose.sdf",
+          sha256: "a".repeat(64),
+          size: 100,
+          suffix: ".sdf",
+          kind: "ligand",
+        });
+      return new Response(
+        JSON.stringify(
+          String(raw).includes("capabilities")
+            ? { availability: { configuration_present: true, missing: [] } }
+            : String(raw).includes("session")
+              ? { csrf_token: "fixture" }
+              : [],
         ),
-    );
+        { headers: { "Content-Type": "application/json" } },
+      );
+    });
     vi.spyOn(api, "assets").mockResolvedValue([]);
     const submit = vi
       .spyOn(api, "submit")
@@ -135,10 +181,14 @@ it.each(["generate", "inpaint"] as const)(
     const user = userEvent.setup();
     for (let step = 0; step < 3; step++)
       await user.click(screen.getByRole("button", { name: "Next" }));
-    const create = screen.getByRole("button", {
-      name: "Create task",
-    });
+    await user.click(screen.getByRole("button", { name: "Preview job" }));
+    const create = await screen.findByRole("button", { name: "Submit job" });
     await waitFor(() => expect(create).toBeEnabled());
+    if (mode === "inpaint") {
+      await user.click(screen.getByRole("tab", { name: "Starting pose" }));
+      expect(screen.getByText("Verified atoms: 0,1")).toBeVisible();
+    }
+    expect(submit).not.toHaveBeenCalled();
     await user.click(create);
     expect(conditions).toHaveBeenCalledWith(
       expect.objectContaining({ payload }),

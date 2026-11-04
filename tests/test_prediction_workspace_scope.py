@@ -263,3 +263,16 @@ def test_docking_preview_delegates_only_frontend_review_without_native_runs():
         changes - {"server_tests/test_docking_job_review_browser.py"}
     )
     assert not scope.docking_review_only(changes | {"src/opendde_workbench/docking/native.py"})
+
+
+def test_diffsbdd_spatial_review_delegates_to_real_geometry_and_source_gate():
+    changes = scope.SPATIAL_DESIGN_REVIEW_REQUIRED | {
+        ".github/workflows/prolif-contact-checks.yml",
+        "frontend/src/diffsbdd/DiffForm.tsx",
+        "pyproject.toml",
+    }
+    assert scope.final_review_only(changes)
+    assert scope.selected(changes, "pull_request")
+    assert not scope.selected(changes - {"server_tests/test_diff_review_browser.py"})
+    assert not scope.selected(changes | {"src/opendde_workbench/diffsbdd/runtime.py"})
+    assert not scope.selected(changes, "workflow_dispatch")

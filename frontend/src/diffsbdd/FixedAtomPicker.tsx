@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import type { CorePreviewSource } from "./spatial-design-review";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
@@ -15,12 +17,14 @@ export function FixedAtomPicker({
   onChange,
   language,
   onSaved,
+  onCorePreview,
 }: {
   initial: MoleculeRef;
   fixed: number[];
   onChange(v: number[]): void;
   language: Language;
   onSaved(id: string | null): void;
+  onCorePreview?(source: CorePreviewSource): void;
 }) {
   const {
     ready: inspectionReady,
@@ -32,6 +36,16 @@ export function FixedAtomPicker({
     initial,
     language,
   );
+  useEffect(() => {
+    if (job?.status === "succeeded" && result)
+      onCorePreview?.({
+        reference: result.reference,
+        url: artifactUrl(job.id, result.molecule_artifact),
+        selectable: result.atoms
+          .filter((atom) => atom.selectable)
+          .map((atom) => atom.index),
+      });
+  }, [job?.id, job?.status, result, onCorePreview]);
   return (
     <section>
       <p>
