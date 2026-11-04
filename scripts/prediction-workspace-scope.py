@@ -173,6 +173,17 @@ BOLTZ_REVIEW_FILES = FINAL_REVIEW_FILES | {
     "server_tests/test_boltz_final_review_browser.py",
 }
 
+OPENDDE_REVIEW_FILES = {
+    "frontend/src/App.tsx",
+    "frontend/src/TaskForm.tsx",
+    "frontend/src/TaskForm.test.tsx",
+    "frontend/src/guided/workflows.test.tsx",
+    "frontend/src/operations/OpenDdeJobReview.tsx",
+    "frontend/src/operations/opendde-job-request.ts",
+    "frontend/src/studio/HomeWorkspace.tsx",
+    "server_tests/test_opendde_final_review_browser.py",
+}
+
 
 def final_review_only(changed, event="push"):
     changed = set(changed)
@@ -189,6 +200,26 @@ def final_review_only(changed, event="push"):
             "server_tests/test_boltz_final_review_browser.py",
         }.issubset(changed)
         and changed.issubset(BOLTZ_REVIEW_FILES)
+        or {
+            "frontend/src/TaskForm.tsx",
+            "frontend/src/operations/OpenDdeJobReview.tsx",
+            "server_tests/test_opendde_final_review_browser.py",
+        }.issubset(changed)
+        and changed.issubset(
+            OPENDDE_REVIEW_FILES
+            | {
+                "frontend/src/presentation/PredictionJobReview.tsx",
+                "scripts/prediction-workspace-scope.py",
+                "tests/test_prediction_workspace_scope.py",
+                ".github/workflows/prediction-workspace-checks.yml",
+                "pyproject.toml",
+                "uv.lock",
+                "frontend/package.json",
+                "frontend/package-lock.json",
+                "install.sh",
+                "install.ps1",
+            }
+        )
     )
 
 
@@ -218,6 +249,22 @@ def boltz_review_changed(changed, event="push"):
             "frontend/src/guided/Questionnaire.tsx",
             "frontend/src/presentation/PredictionEntityPreview.tsx",
             "frontend/src/presentation/PredictionReviewDialog.tsx",
+        }
+        for path in changed
+    )
+
+
+def opendde_review_changed(changed, event="push"):
+    return event == "workflow_dispatch" or any(
+        path in OPENDDE_REVIEW_FILES
+        or path
+        in {
+            "frontend/src/guided/Questionnaire.tsx",
+            "frontend/src/presentation/PredictionEntityPreview.tsx",
+            "frontend/src/presentation/PredictionReviewDialog.tsx",
+            "frontend/src/presentation/PredictionJobReview.tsx",
+            "frontend/src/presentation/PredictionJobSettings.tsx",
+            "frontend/src/presentation/prediction-job-review.css",
         }
         for path in changed
     )
@@ -387,6 +434,9 @@ def main():
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "boltz_review_changed": boltz_review_changed(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "opendde_review_changed": opendde_review_changed(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
         }.items():

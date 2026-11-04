@@ -5,10 +5,12 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { TaskForm } from "./TaskForm";
+import { request } from "./api";
 import type { Job, Prediction } from "./types";
 vi.mock("./api", async (original) => {
   const actual = await original<typeof import("./api")>();
@@ -38,6 +40,19 @@ vi.mock("./api", async (original) => {
   };
 });
 afterEach(cleanup);
+// jsdom lacks the native dialog lifecycle used by the real-browser test.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
+async function openReview(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  return within(await screen.findByRole("dialog", { name: "Preview job" }));
+}
 it("localizes material guidance without replacing the user's sequence or stereochemistry", async () => {
   const submit = vi.fn(),
     user = userEvent.setup();
@@ -90,9 +105,12 @@ it("offers recommended choices, retains prepared input and blocks unavailable pr
   ).toBeChecked();
   expect(screen.queryByLabelText("随机种子")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "下一步" }));
-  expect(screen.getByRole("button", { name: "开始预测" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "预览任务" }));
+  expect(screen.getByRole("button", { name: "提交任务" })).toBeDisabled();
   rerender(<TaskForm language="en" ready={true} onSubmit={vi.fn()} />);
-  expect(screen.getByRole("button", { name: "Run prediction" })).toBeEnabled();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Submit job" })).toBeEnabled(),
+  );
 });
 it("prevents an empty input from reaching the API", async () => {
   const user = userEvent.setup(),
@@ -108,7 +126,10 @@ it("prevents an empty input from reaching the API", async () => {
 it("keeps native prediction components and comparison preset while submitting only after review", async () => {
   const user = userEvent.setup(),
     submit = vi.fn().mockResolvedValue({ id: "predicted" } as Job);
-  render(<TaskForm language="en" ready onSubmit={submit} />);
+  const projectId = "a9e3ee41-54e5-43d0-a863-c4f584cb94e8";
+  render(
+    <TaskForm language="en" ready onSubmit={submit} projectId={projectId} />,
+  );
   await user.click(screen.getByLabelText("Protein–ligand complex"));
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(
@@ -120,8 +141,16 @@ it("keeps native prediction components and comparison preset while submitting on
   await user.click(screen.getByLabelText(/Compare conformers/));
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(submit).not.toHaveBeenCalled();
-  await user.click(screen.getByRole("button", { name: "Run prediction" }));
+  const review = await openReview(user);
+  await user.click(await review.findByRole("button", { name: "Request JSON" }));
+  const reviewed = JSON.parse(
+    review.getByLabelText("X-DDE submission request").textContent!,
+  );
+  expect(reviewed.project_id).toBe(projectId);
+  expect(submit).not.toHaveBeenCalled();
+  await user.click(review.getByRole("button", { name: "Submit job" }));
   expect(submit).toHaveBeenCalledOnce();
+  expect(submit.mock.calls[0][0]).toEqual(reviewed);
   expect(submit.mock.calls[0][0]).toMatchObject({
     components: [
       { kind: "protein", value: "ACDE" },
@@ -156,8 +185,9 @@ it("submits native entered values once and retains the pending state until the a
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.type(screen.getByLabelText(/Task name/), "my experiment");
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await user.click(screen.getByRole("button", { name: "Run prediction" }));
-  expect(screen.getByRole("button", { name: /Submitting/ })).toBeDisabled();
+  const review = await openReview(user);
+  await user.click(review.getByRole("button", { name: "Submit job" }));
+  expect(review.getByRole("button", { name: /Submitting/ })).toBeDisabled();
   expect(submit).toHaveBeenCalledOnce();
   expect(submit.mock.calls[0][0]).toMatchObject({
     name: "my experiment",
@@ -167,6 +197,76 @@ it("submits native entered values once and retains the pending state until the a
   expect(
     await screen.findByRole("heading", { name: "5. View results" }),
   ).toBeVisible();
+});
+
+it("blocks a mismatched FASTA source and verifies the same selected asset again on retry", async () => {
+  const id = "b9e3ee41-54e5-43d0-a863-c4f584cb94e8";
+  const sha256 = "a".repeat(64);
+  const metadata = {
+    id,
+    sha256,
+    kind: "sequences",
+    suffix: ".fasta",
+    size: 12,
+    name: "source.fasta",
+  };
+  const mockedRequest = vi.mocked(request);
+  const original = mockedRequest.getMockImplementation()!;
+  mockedRequest.mockImplementation(async (path, init) =>
+    path === `/assets/${id}/metadata`
+      ? (metadata as never)
+      : original(path, init),
+  );
+  const fetcher = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(new Response(">other\nFGHI"))
+    .mockResolvedValueOnce(new Response(">selected\rACDE\r"));
+  try {
+    const user = userEvent.setup();
+    const submit = vi.fn();
+    render(
+      <TaskForm
+        language="en"
+        ready
+        onSubmit={submit}
+        initialRequest={{
+          name: "Provenance",
+          components: [
+            { kind: "protein", count: 1, value: "ACDE", source_sequence: id },
+          ],
+          parameters: {
+            seed: 101,
+            samples: 1,
+            steps: 200,
+            cycles: 10,
+            dtype: "bf16",
+          },
+          scientific_inputs: [
+            { asset_id: id, sha256, record: 0, conformer: 0 },
+          ],
+        }}
+      />,
+    );
+    const next = screen.getByRole("button", { name: "Next" });
+    for (let step = 0; step < 3; step++)
+      await user.click(
+        step === 0 ? next : screen.getByRole("button", { name: "Next" }),
+      );
+    const review = await openReview(user);
+    expect(await review.findByRole("alert")).toHaveTextContent(
+      "could not be verified",
+    );
+    expect(review.getByRole("button", { name: "Submit job" })).toBeDisabled();
+    await user.click(review.getByRole("button", { name: "Check files again" }));
+    expect(
+      await review.findByRole("link", { name: "source.fasta" }),
+    ).toHaveAttribute("href", `/api/assets/${id}`);
+    expect(review.getByRole("button", { name: "Submit job" })).toBeEnabled();
+    expect(submit).not.toHaveBeenCalled();
+  } finally {
+    fetcher.mockRestore();
+    mockedRequest.mockImplementation(original);
+  }
 });
 it("preserves automatic name and idempotency key after uncertain failure and language changes", async () => {
   const user = userEvent.setup(),
@@ -179,12 +279,13 @@ it("preserves automatic name and idempotency key after uncertain failure and lan
   await user.type(screen.getByLabelText("SMILES or CCD_ identifier"), "CCO");
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await user.click(screen.getByRole("button", { name: "Run prediction" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(
+  const review = await openReview(user);
+  await user.click(review.getByRole("button", { name: "Submit job" }));
+  expect(await review.findByRole("alert")).toHaveTextContent(
     "connection interrupted",
   );
   rerender(<TaskForm language="zh" ready onSubmit={submit} />);
-  await user.click(screen.getByRole("button", { name: "开始预测" }));
+  await user.click(screen.getByRole("button", { name: "提交任务" }));
   await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
   expect(submit.mock.calls[0][1]).toBe(submit.mock.calls[1][1]);
   expect(submit.mock.calls[0][0].name).toBe(submit.mock.calls[1][0].name);

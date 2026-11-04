@@ -227,7 +227,7 @@ export function App() {
     refresh();
   }
   async function submit(value: Prediction, key: string) {
-    const created = await api.submit({ ...value, project_id: projectId }, key);
+    const created = await api.submit(value, key);
     changed(created);
     return created;
   }

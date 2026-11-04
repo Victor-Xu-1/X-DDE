@@ -4,6 +4,15 @@ import { expect, it, vi } from "vitest";
 import { TaskForm } from "../TaskForm";
 import { componentsFor } from "./presets";
 import { defaults, prediction, validate } from "../form-model";
+// jsdom lacks the native dialog lifecycle used by the real-browser test.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+}
 it("prepares distinct protein chains and automatically dispatches antibody tasks to ABAG", async () => {
   const user = userEvent.setup(),
     submit = vi.fn().mockResolvedValue({ id: "actual-prediction" });
@@ -16,7 +25,8 @@ it("prepares distinct protein chains and automatically dispatches antibody tasks
   await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByLabelText("多构象比较"));
   await user.click(screen.getByRole("button", { name: "下一步" }));
-  await user.click(screen.getByRole("button", { name: "开始预测" }));
+  await user.click(screen.getByRole("button", { name: "预览任务" }));
+  await user.click(screen.getByRole("button", { name: "提交任务" }));
   expect(submit.mock.calls[0][0]).toMatchObject({
     components: [
       { kind: "protein", value: "ACDE" },
@@ -58,7 +68,8 @@ it("retains edits across expert/guided mode and workflow switches", async () => 
   expect(screen.getByLabelText("RNA 序列")).toHaveValue("GUAC");
   await user.click(screen.getByRole("button", { name: "下一步" }));
   await user.click(screen.getByRole("button", { name: "下一步" }));
-  await user.click(screen.getByRole("button", { name: "开始预测" }));
+  await user.click(screen.getByRole("button", { name: "预览任务" }));
+  await user.click(screen.getByRole("button", { name: "提交任务" }));
   await waitFor(() => expect(submit).toHaveBeenCalledOnce());
   expect(submit.mock.calls[0][0]).toMatchObject({
     components: [{ kind: "rna", value: "GUAC" }],
@@ -102,6 +113,7 @@ it("honors an explicit expert checkpoint override instead of silently forcing AB
     "standard",
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await user.click(screen.getByRole("button", { name: "Run prediction" }));
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  await user.click(screen.getByRole("button", { name: "Submit job" }));
   expect(submit.mock.calls[0][0].parameters.model).toBe("standard");
 });
