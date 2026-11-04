@@ -32,7 +32,17 @@ const originalModal = Object.getOwnPropertyDescriptor(
   HTMLDialogElement.prototype,
   "showModal",
 );
+const originalClose = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  "close",
+);
 beforeEach(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.removeAttribute("open");
+    },
+  });
   Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
     configurable: true,
     value: function (this: HTMLDialogElement) {
@@ -41,6 +51,9 @@ beforeEach(() => {
   });
 });
 afterAll(() => {
+  if (originalClose)
+    Object.defineProperty(HTMLDialogElement.prototype, "close", originalClose);
+  else delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).close;
   if (originalModal)
     Object.defineProperty(
       HTMLDialogElement.prototype,
@@ -80,6 +93,27 @@ const draft = (value = state()): PredictionDraft => ({
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
+});
+
+it("closes the native modal boundary before returning to the opener", async () => {
+  vi.mocked(request).mockResolvedValue([]);
+  const user = userEvent.setup(),
+    onClose = vi.fn(() => {
+      expect(screen.getByRole("dialog", { hidden: true })).not.toHaveAttribute(
+        "open",
+      );
+    });
+  render(
+    <PredictionDraftList
+      language="en"
+      busy={false}
+      onResume={vi.fn()}
+      onClose={onClose}
+    />,
+  );
+  await screen.findByText("No drafts yet");
+  await user.click(screen.getByRole("button", { name: "Close drafts" }));
+  expect(onClose).toHaveBeenCalledOnce();
 });
 
 it("preserves unfinished text and rejects incompatible/corrupt editor shapes", () => {

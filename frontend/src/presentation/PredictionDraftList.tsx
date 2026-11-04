@@ -39,11 +39,13 @@ export function PredictionDraftList({
   resume.current = onResume;
   useEffect(() => {
     alive.current = true;
-    root.current?.showModal();
+    const dialog = root.current;
+    dialog?.showModal();
     heading.current?.focus();
     return () => {
       alive.current = false;
       serial.current++;
+      dialog?.close();
     };
   }, []);
   useEffect(() => {
@@ -110,6 +112,11 @@ export function PredictionDraftList({
   const filtered = rows.filter((row) =>
     row.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
   );
+  function close() {
+    // The native inert boundary must be released before focusing the opener.
+    root.current?.close();
+    onClose();
+  }
   return (
     <dialog
       ref={root}
@@ -117,7 +124,7 @@ export function PredictionDraftList({
       aria-labelledby={id}
       onCancel={(event) => {
         event.preventDefault();
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) close();
       }}
     >
       <header>
@@ -131,7 +138,7 @@ export function PredictionDraftList({
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={close}
           aria-label={zh ? "关闭草稿" : "Close drafts"}
         >
           ×
