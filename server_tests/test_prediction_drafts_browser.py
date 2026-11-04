@@ -108,7 +108,9 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
         expect(seeds).to_have_value("101,,unfinished,")
         expect(next_step).to_be_disabled()
-        overview = page.locator(".prediction-setup")
+        overview = page.get_by_role(
+            "complementary", name=label("Study setup", "研究设置概览"), exact=True
+        )
         expect(overview).to_contain_text(label("Check seed values", "检查种子数值"))
         expect(overview).not_to_contain_text("NaN")
         expect(overview.get_by_text("—", exact=True)).to_be_visible()
