@@ -1,23 +1,27 @@
 """Keep raw SDF record identities even when the native parser yields no molecule."""
 
+import re
 from io import BytesIO
+from itertools import islice
+
+RECORD_END = re.compile(rb"(?:^|(?<=[\r\n]))[ \t\v\f]*\$\$\$\$[ \t\v\f]*(?:\r\n|\r|\n|$)")
+
+
+def iter_records(raw):
+    """Yield original record bytes without materializing the remaining records."""
+    if not raw or len(raw) > 25 * 1024**2:
+        raise ValueError("Choose a nonempty SDF file no larger than 25 MiB.")
+    start = 0
+    for delimiter in RECORD_END.finditer(raw):
+        yield raw[start : delimiter.start()]
+        start = delimiter.end()
+    tail = raw[start:]
+    if tail.strip():
+        yield tail
 
 
 def split_records(raw):
-    if not raw or len(raw) > 25 * 1024**2:
-        raise ValueError("Choose a nonempty SDF file no larger than 25 MiB.")
-    blocks, current = [], []
-    for line in raw.splitlines(keepends=True):
-        if line.strip() == b"$$$$":
-            blocks.append(b"".join(current))
-            current = []
-            if len(blocks) > 500:
-                raise ValueError("Split this SDF into one to 500 input records.")
-        else:
-            current.append(line)
-    tail = b"".join(current)
-    if tail.strip():
-        blocks.append(tail)
+    blocks = list(islice(iter_records(raw), 501))
     if not 1 <= len(blocks) <= 500:
         raise ValueError("Split this SDF into one to 500 input records.")
     return blocks

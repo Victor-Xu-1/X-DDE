@@ -36,14 +36,17 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
     monkeypatch.setenv("WB_HOME", str(tmp_path / "home"))
     store = Store(state / "jobs.sqlite3")
     assets = AssetStore(store, state / "assets")
-    receptor, ligand, reference = (
-        assets.save(name, role, (INPUTS / name).read_bytes())
-        for name, role in (
-            ("STAT6-9BIG-observed-receptor.pdb", "structure"),
-            ("STAT6-native-search-poses.sdf", "ligand"),
-            ("9BIG-AK1690-A701.sdf", "ligand"),
-        )
-    )
+    receptor_source = INPUTS / "STAT6-9BIG-observed-receptor.pdb"
+    receptor_bytes = receptor_source.read_bytes()
+    receptor = assets.save(receptor_source.name, "structure", receptor_bytes)
+    ligand_source = INPUTS / "STAT6-native-search-poses.sdf"
+    ligand_bytes = ligand_source.read_bytes()
+    if kind == "box":
+        # Retain real distinct poses in the first group; verify a record in a >500-entry file.
+        ligand_bytes *= 501 // ligand_bytes.count(b"$$$$") + 1
+    ligand = assets.save(ligand_source.name, "ligand", ligand_bytes)
+    reference_source = INPUTS / "9BIG-AK1690-A701.sdf"
+    reference = assets.save(reference_source.name, "ligand", reference_source.read_bytes())
     evidence = Path("outputs/docking-job-review") / language
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
@@ -125,7 +128,8 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
         dialog = page.get_by_role("dialog", name=label("Preview job", "预览任务"))
         if expected:
             original = "**/api/assets/" + str(receptor.id)
-            page.route(original, lambda route: route.fulfill(body="Changed receptor"))
+            tampered = b"!" + receptor_bytes[1:]
+            page.route(original, lambda route: route.fulfill(body=tampered))
             opener.click()
             expect(dialog.get_by_role("alert")).to_contain_text("could not be verified")
             expect(dialog.get_by_role("button", name="Submit job", exact=True)).to_be_disabled()
@@ -142,6 +146,12 @@ def test_docking_review_preserves_real_stat6_sources(language, width, kind, tmp_
             )
         ).to_be_enabled(timeout=30000)
         expect(geometry.frame_locator("iframe").locator("canvas").first).to_be_visible()
+        if width >= 1000:
+            stage = geometry.locator(".molecular-stage").bounding_box()
+            body = dialog.locator(".prediction-input-preview-body").bounding_box()
+            assert stage and body
+            assert stage["y"] >= body["y"]
+            assert stage["y"] + stage["height"] <= body["y"] + body["height"] + 1
         settings = dialog.get_by_role("region", name=label("Docking plan review", "对接方案核对"))
         study_link = settings.get_by_role("link", name=ligand.name, exact=True)
         assert study_link.get_attribute("href").endswith("?record=1")
