@@ -708,12 +708,16 @@ def selected(changed, event="push"):
     )
 
 
-def shared_workbench_only(changed):
-    return native_confidence_only(changed) and bool(
-        {
-            "frontend/src/presentation/StructureWorkbench.tsx",
-            "frontend/src/presentation/structure-workbench.css",
-        }.intersection(changed)
+def shared_workbench_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and native_confidence_only(changed)
+        and bool(
+            {
+                "frontend/src/presentation/StructureWorkbench.tsx",
+                "frontend/src/presentation/structure-workbench.css",
+            }.intersection(changed)
+        )
     )
 
 
@@ -740,7 +744,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
-            "shared_workbench_only": shared_workbench_only(changed),
+            "shared_workbench_only": shared_workbench_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "job_archive_changed": job_archive_changed(changed),
             "job_archive_only": job_archive_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
