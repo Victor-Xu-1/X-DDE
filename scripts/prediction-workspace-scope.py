@@ -488,6 +488,7 @@ CONFIDENCE_LAYOUT_FILES = (
         "frontend/src/viewer/StructureViewport.tsx",
         "frontend/src/viewer/StructureInspection.test.tsx",
         "frontend/src/viewer/StructureViewer.test.tsx",
+        ".github/workflows/task-layout-checks.yml",
     )
 )
 
@@ -707,6 +708,15 @@ def selected(changed, event="push"):
     )
 
 
+def shared_workbench_only(changed):
+    return native_confidence_only(changed) and bool(
+        {
+            "frontend/src/presentation/StructureWorkbench.tsx",
+            "frontend/src/presentation/structure-workbench.css",
+        }.intersection(changed)
+    )
+
+
 def prediction_only(changed, event="push"):
     shared_workbench = {
         "frontend/src/presentation/StructureWorkbench.tsx",
@@ -730,6 +740,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "shared_workbench_only": shared_workbench_only(changed),
             "job_archive_changed": job_archive_changed(changed),
             "job_archive_only": job_archive_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

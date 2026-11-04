@@ -104,6 +104,8 @@ on:
     outputs:
       prediction_only:
         value: ${{ jobs.scope.outputs.prediction_only }}
+      shared_workbench_only:
+        value: ${{ jobs.scope.outputs.shared_workbench_only }}
 permissions:
   contents: read
 jobs:
@@ -112,6 +114,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
+      shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
       sample_export_only: ${{ steps.select.outputs.sample_export_only }}
       sample_export_changed: ${{ steps.select.outputs.sample_export_changed }}
       reference_review_only: ${{ steps.select.outputs.reference_review_only }}
