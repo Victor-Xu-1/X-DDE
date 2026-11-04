@@ -495,8 +495,41 @@ def confidence_changed(changed):
     )
 
 
+SAMPLE_EXPORT_FILES = (
+    "frontend/src/presentation/PredictionSample*.tsx",
+    "frontend/src/presentation/prediction-results.css",
+    "src/opendde_workbench/science_routes.py",
+    "src/opendde_workbench/prediction_sample_export.py",
+    "tests/test_prediction_sample_export.py",
+    "server_tests/test_prediction_sample_export_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package*.json",
+    "install.sh",
+    "install.ps1",
+)
+
+
+def sample_export_only(changed, event="push"):
+    return (
+        event in {"push", "pull_request"}
+        and "src/opendde_workbench/prediction_sample_export.py" in changed
+        and all(
+            any(fnmatch.fnmatchcase(name, pattern) for pattern in SAMPLE_EXPORT_FILES)
+            for name in changed
+        )
+    )
+
+
 def selected(changed, event="push"):
-    if drafts_only(changed, event) or final_review_only(changed, event):
+    if (
+        sample_export_only(changed, event)
+        or drafts_only(changed, event)
+        or final_review_only(changed, event)
+    ):
         return True
     if event in {"push", "pull_request"} and native_confidence_only(changed):
         return True
@@ -527,6 +560,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "sample_export_only": sample_export_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "docking_review_only": docking_review_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

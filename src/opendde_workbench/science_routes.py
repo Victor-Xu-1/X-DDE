@@ -15,6 +15,7 @@ from .backend_router import BackendRouter
 from .confidence import confidence_view
 from .engine import DockerEngine, Engine
 from .models import Status
+from .prediction_sample_export import OPERATIONS, sample_zip
 from .settings import Settings
 from .store import Store
 
@@ -71,6 +72,30 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
             ) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
+
+    @app.get("/api/jobs/{job_id}/prediction-sample.zip")
+    def download_sample(
+        job_id: UUID,
+        candidate: str = Query(pattern=r"^[A-Za-z0-9_.-]{1,100}$"),
+    ):
+        job = store.get(str(job_id))
+        if not job:
+            raise HTTPException(404, "Task not found.")
+        if job.status != Status.SUCCEEDED or job.request.operation not in OPERATIONS:
+            raise HTTPException(409, "Choose a completed structure prediction.")
+        try:
+            archive = sample_zip(settings.state_dir / "jobs" / job.id, job, candidate)
+        except FileNotFoundError as error:
+            raise HTTPException(
+                404, "The selected sample or source file is unavailable."
+            ) from error
+        except (OSError, ValueError, TypeError, KeyError) as error:
+            raise HTTPException(422, "The selected sample could not be verified.") from error
+        return Response(
+            archive,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{job_id}-{candidate}.zip"'},
+        )
 
     @app.get("/api/jobs/{job_id}/candidates.csv")
     async def candidates_csv(job_id: UUID):
