@@ -36,8 +36,14 @@ jobs:
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked pytest -q tests/test_proximity_contract.py
-      - name: English desktop and Chinese mobile STAT6 source review without inference
+      - name: Bilingual STAT6 and public ternary-source review without inference
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          gh release download proximity-inputs-v1 --repo "$GITHUB_REPOSITORY" \
+            --pattern x-dde-glue-inputs-v1.zip --dir "$RUNNER_TEMP"
+          gh release download v0.4.37 --repo "$GITHUB_REPOSITORY" \
+            --pattern '5T35-native-*' --dir "$RUNNER_TEMP"
           uv run --locked ruff check server_tests/test_ternary_job_review_browser.py
           uv run --locked playwright install chromium --with-deps
           export WB_TERNARY_VISUAL_STATE="$RUNNER_TEMP/x-dde-ternary-review-tools/state"

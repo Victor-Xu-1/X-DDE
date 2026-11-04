@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   submit: vi.fn(),
   ready: true,
   verifyProtein: vi.fn(),
+  protocol: "binary" as "binary" | "shared" | "glue",
+  sameSource: false,
   example: null as { name?: string; options: ScientificTask["options"] } | null,
 }));
 vi.mock("../examples/context", async () => ({
@@ -37,7 +39,9 @@ vi.mock("../research/asset-file", () => ({
   readAssetFile: mocks.verifyProtein,
 }));
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: () => <div>Structure viewer</div>,
+  StructureViewer: ({ urls }: { urls: string[] }) => (
+    <div data-testid="structure-viewer">{urls.join(", ")}</div>
+  ),
 }));
 vi.mock("./InitialMaterials", () => ({
   InitialMaterials: () => <p>Confirmed complete molecule</p>,
@@ -53,6 +57,14 @@ vi.mock("./useProximityDraft", async () => {
         ...defaults,
         partner_a_name: "Recruiter",
         partner_b_name: "Target",
+        ...(mocks.protocol === "shared"
+          ? {
+              input_mode: "shared_complex",
+              binding_region_a: [1, 3, 5],
+              binding_region_b: [7, 9, 11],
+            }
+          : {}),
+        ...(mocks.protocol === "glue" ? { mechanism: "molecular_glue" } : {}),
       });
       return {
         ligand: {
@@ -69,7 +81,7 @@ vi.mock("./useProximityDraft", async () => {
         },
         second: {
           asset_id: "second",
-          sha256: "c".repeat(64),
+          sha256: (mocks.sameSource ? "b" : "c").repeat(64),
           record: 0,
           conformer: 0,
         },
@@ -85,7 +97,7 @@ vi.mock("./useProximityDraft", async () => {
           record: 0,
           conformer: 0,
         },
-        binary: true,
+        binary: mocks.protocol === "binary",
         firstReady: true,
         secondReady: true,
         planReady: true,
@@ -123,6 +135,8 @@ afterEach(() => {
   cleanup();
   mocks.example = null;
   mocks.ready = true;
+  mocks.protocol = "binary";
+  mocks.sameSource = false;
   mocks.verifyProtein.mockReset();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
@@ -334,3 +348,52 @@ it.each(["x".repeat(81), "Study\u007f"])(
     expect(mocks.submit.mock.calls[0][0].inputs).toHaveLength(5);
   },
 );
+
+it.each(["shared", "glue"] as const)(
+  "renders a single intact source scene for %s and submits distinct chain roles",
+  async (protocol) => {
+    mocks.protocol = protocol;
+    mocks.sameSource = true;
+    const user = await review();
+    await user.click(screen.getByRole("button", { name: "Preview job" }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(
+      await dialog.findByRole("tab", { name: "Reference complex" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(dialog.queryByRole("tab", { name: "Protein A" })).toBeNull();
+    const scene = within(dialog.getByRole("tabpanel"));
+    expect(scene.getByTestId("structure-viewer")).toHaveTextContent(
+      /^\/api\/assets\/first$/,
+    );
+    expect(scene.getByText(/Recruiter · A, Target · B/)).toBeVisible();
+    await user.click(dialog.getByRole("tab", { name: /^Complete molecule$/ }));
+    expect(
+      within(dialog.getByRole("tabpanel")).getByTestId("structure-viewer"),
+    ).toHaveTextContent(/^\/api\/assets\/full\?record=0$/);
+    expect(
+      dialog.queryByRole("group", { name: "Inspect selected atoms" }) !== null,
+    ).toBe(protocol === "shared");
+    await submitReviewed(user);
+    const request = mocks.submit.mock.calls[0][0] as ScientificTask;
+    expect(request.inputs.map(({ role }) => role)).toEqual([
+      "ligand",
+      "partner_a",
+      "partner_b",
+    ]);
+    expect(
+      request.inputs.slice(1).map(({ source }) => source.asset_id),
+    ).toEqual(["first", "second"]);
+  },
+);
+
+it("does not combine independent molecular-glue files into a reference scene", async () => {
+  mocks.protocol = "glue";
+  const user = await review();
+  await user.click(screen.getByRole("button", { name: "Preview job" }));
+  const dialog = within(screen.getByRole("dialog"));
+  expect(await dialog.findByRole("tab", { name: "Protein A" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(dialog.queryByRole("tab", { name: "Reference complex" })).toBeNull();
+});
