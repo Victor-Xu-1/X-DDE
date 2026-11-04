@@ -56,7 +56,13 @@ export async function prepareOpenDdeJob(task: Prediction, signal: AbortSignal) {
         });
         if (!response.ok)
           throw new Error("The selected sequence file could not be read.");
-        const [header, ...lines] = (await response.text()).split(/\r?\n/);
+        const text = new TextDecoder("utf-8", { fatal: true }).decode(
+          await response.arrayBuffer(),
+        );
+        // Match Python's splitlines() in the server's FASTA admission check.
+        const [header, ...lines] = text.split(
+          /\r\n|[\n\r\u000b\u000c\u001c-\u001e\u0085\u2028\u2029]/u,
+        );
         const sequence = lines
           .map((line) => line.trim())
           .join("")

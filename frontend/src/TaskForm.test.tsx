@@ -220,7 +220,7 @@ it("blocks a mismatched FASTA source and verifies the same selected asset again 
   const fetcher = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValueOnce(new Response(">other\nFGHI"))
-    .mockResolvedValueOnce(new Response(">selected\nACDE"));
+    .mockResolvedValueOnce(new Response(">selected\rACDE\r"));
   try {
     const user = userEvent.setup();
     const submit = vi.fn();
