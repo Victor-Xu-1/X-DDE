@@ -14,6 +14,8 @@ import { useProximityDraft } from "./useProximityDraft";
 
 const verification = vi.hoisted(() => ({
   pending: null as Promise<MoleculeRef> | null,
+  pendingProtein: null as Promise<MoleculeRef> | null,
+  glue: false,
 }));
 const ref = (asset_id: string, record = 0): MoleculeRef => ({
   asset_id,
@@ -38,6 +40,7 @@ vi.mock("../examples/context", () => ({
     payload: {
       ...defaults,
       partner_a_chain: "A",
+      ...(verification.glue ? { mechanism: "molecular_glue" } : {}),
       partner_b_chain: "B",
       arm_a_map: [],
       arm_b_map: [],
@@ -53,11 +56,15 @@ vi.mock("./PartnerStep", () => ({
     onSource,
     arm,
     onArm,
+    sameSource,
+    onSameSource,
   }: {
     source: MoleculeRef | null;
     onSource(v: MoleculeRef | null): void;
     arm: MoleculeRef | null;
     onArm(v: MoleculeRef | null): void;
+    sameSource?: MoleculeRef | null;
+    onSameSource(): void;
   }) => (
     <>
       <button
@@ -67,6 +74,17 @@ vi.mock("./PartnerStep", () => ({
       >
         Choose protein version
       </button>
+      <button
+        onClick={() => {
+          onSource(null);
+          void verification.pendingProtein?.then(onSource, () => {});
+        }}
+      >
+        Verify another protein
+      </button>
+      {sameSource && (
+        <button onClick={onSameSource}>Use previous complex</button>
+      )}
       <button
         onClick={() => {
           onArm(null);
@@ -88,6 +106,8 @@ vi.mock("./PartnerStep", () => ({
 afterEach(() => {
   cleanup();
   verification.pending = null;
+  verification.pendingProtein = null;
+  verification.glue = false;
 });
 
 function Study({ language, side }: { language: Language; side: "a" | "b" }) {
@@ -104,6 +124,7 @@ function Study({ language, side }: { language: Language; side: "a" | "b" }) {
       <output aria-label="Exact draft">
         {JSON.stringify({
           arm: side === "a" ? draft.armA : draft.armB,
+          protein: side === "a" ? draft.first : draft.second,
           map: side === "a" ? draft.payload.arm_a_map : draft.payload.arm_b_map,
           ready: side === "a" ? draft.firstReady : draft.secondReady,
         })}
@@ -226,3 +247,26 @@ it.each(["en", "zh"] as const)(
     expect(field(language)).toHaveAttribute("aria-invalid", "false");
   },
 );
+
+it("keeps deliberate glue reference reuse when the previous protein lookup resolves late", async () => {
+  verification.glue = true;
+  let resolve!: (value: MoleculeRef) => void;
+  verification.pendingProtein = new Promise((done) => {
+    resolve = done;
+  });
+  render(<Study language="en" side="b" />);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Verify another protein" }),
+  );
+  expect(screen.getByLabelText("Exact draft")).toHaveTextContent(
+    '"protein":null',
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Use previous complex" }));
+  await act(async () => resolve(ref("stale-protein")));
+  expect(screen.getByLabelText("Exact draft")).toHaveTextContent(
+    '"protein":{"asset_id":"partner_a"',
+  );
+  expect(screen.getByLabelText("Exact draft")).not.toHaveTextContent(
+    "stale-protein",
+  );
+});

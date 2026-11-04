@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { PartnerStep } from "./PartnerStep";
 import { BindingRegion } from "./BindingRegion";
 import { AtomMapping } from "./AtomMapping";
@@ -19,6 +20,8 @@ export function PartnerQuestion({
     roles = partnerRoles(d.payload.mechanism, zh),
     protein = a ? d.first : d.second,
     arm = a ? d.armA : d.armB;
+  const sourceRevision = useRef(0);
+  const revision = sourceRevision.current;
   return (
     <>
       <label className="proximity-partner-name">
@@ -35,13 +38,17 @@ export function PartnerQuestion({
         />
       </label>
       <PartnerStep
+        key={revision}
         title={roles[a ? 0 : 1]}
         source={a ? d.first : d.second}
         arm={a ? d.armA : d.armB}
         chain={a ? d.payload.partner_a_chain : d.payload.partner_b_chain}
         binary={d.binary}
         language={language}
-        onSource={a ? d.onFirst : d.onSecond}
+        onSource={(value) => {
+          if (sourceRevision.current === revision)
+            (a ? d.onFirst : d.onSecond)(value);
+        }}
         onArm={(value) => {
           (a ? d.setArmA : d.setArmB)(value);
           (a ? d.setMappingValidA : d.setMappingValidB)(true);
@@ -54,7 +61,11 @@ export function PartnerQuestion({
             ? d.first
             : null
         }
-        onSameSource={() => d.onSecond(d.first)}
+        onSameSource={() => {
+          // A previous metadata lookup must not replace this deliberate reuse.
+          sourceRevision.current++;
+          d.onSecond(d.first);
+        }}
       />
       {d.binary && d.ligand && protein && arm && (
         <AtomMapping
