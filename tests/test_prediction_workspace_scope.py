@@ -378,3 +378,7 @@ def test_shared_confidence_card_selects_its_exact_native_render_gates():
     assert scope.confidence_changed(paths)
     assert scope.sample_export_changed(paths)
     assert not scope.native_confidence_only(paths + ["frontend/src/TaskForm.tsx"])
+    for name in scope.CONFIDENCE_LAYOUT_SOURCES:
+        assert scope.native_confidence_only([name])
+        assert scope.confidence_changed([name])
+        assert scope.sample_export_changed([name])

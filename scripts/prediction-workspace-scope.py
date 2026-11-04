@@ -518,7 +518,7 @@ def confidence_changed(changed):
     )
 
 
-SAMPLE_EXPORT_SOURCES = (
+SAMPLE_EXPORT_SOURCES = CONFIDENCE_LAYOUT_SOURCES + (
     "frontend/src/presentation/PredictionSample*.tsx",
     "frontend/src/presentation/prediction-results.css",
     "src/opendde_workbench/science_routes.py",

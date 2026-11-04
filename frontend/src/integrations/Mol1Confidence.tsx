@@ -155,7 +155,15 @@ export function Mol1Confidence({
       </PredictionConfidenceCard>
     );
   }
-  if (!sample || !file)
+  if (!sample)
+    return status(
+      <p>
+        {zh
+          ? "当前构象没有对应的原生置信度记录。"
+          : "No native confidence record is available for this conformer."}
+      </p>,
+    );
+  if (!file)
     return status(
       <p className="field-help">
         {zh

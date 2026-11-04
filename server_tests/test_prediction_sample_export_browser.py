@@ -13,9 +13,12 @@ from server_tests.browser_platform import platform
 from server_tests.test_workspace_fullscreen_browser import restored_workspace as restored_workspace
 
 
-@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
+@pytest.mark.parametrize(
+    ("language", "width", "theme"),
+    [("en", 1440, "light"), ("zh", 390, "light"), ("en", 1440, "dark")],
+)
 def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
-    restored_workspace, language, width
+    restored_workspace, language, width, theme
 ):
     settings, store, pins = restored_workspace
     pin = pins.get("boltz.predict", verify=True)
@@ -23,13 +26,16 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
     job = str(pin.job_id)
     assert job == "1190e938-51af-44a3-9dbc-4aacc77b5821"
     before = [row.model_dump(mode="json") for row in store.list_jobs(1000)]
-    evidence = Path("outputs/prediction-sample-package") / language
+    evidence = Path("outputs/prediction-sample-package") / (
+        language if theme == "light" else "en-dark"
+    )
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
         browser = pw.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 960}, accept_downloads=True)
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page.add_init_script(f"localStorage.setItem('x-dde-theme','{theme}')")
         writes = []
         page.on(
             "request",
@@ -55,6 +61,9 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
             "没有可预览的 PAE 矩阵" if zh else "No PAE matrix is available"
         )
         expect(panel.locator(".research-plot")).to_have_count(0)
+        if theme == "dark":
+            expect(panel.locator("p")).to_have_css("color", "rgb(178, 193, 191)")
+            expect(panel).to_have_css("background-color", "rgb(17, 24, 43)")
         expect(page.locator(".prediction-conformer-table table")).to_be_visible()
         expect(
             page.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")

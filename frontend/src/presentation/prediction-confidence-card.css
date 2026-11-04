@@ -14,6 +14,10 @@
   background: var(--surface);
   padding: 14px 16px;
 }
+/* The prediction shell supplies its own muted text color. */
+:root[data-theme="dark"] .prediction-confidence-card {
+  --confidence-caption: #b2c1bf;
+}
 .prediction-confidence-card {
   min-width: 0;
   border: 1px solid var(--line);
@@ -37,7 +41,7 @@
 .prediction-confidence-heading > span,
 .prediction-confidence-toolbar label {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--confidence-caption, var(--muted));
 }
 .prediction-confidence-toolbar .field,
 .prediction-confidence-toolbar .confidence-chain-borders {
@@ -66,7 +70,7 @@
   font-size: 12px;
 }
 .prediction-confidence-body > p {
-  color: var(--muted);
+  color: var(--confidence-caption, var(--muted));
 }
 .prediction-confidence-body > a {
   justify-self: start;

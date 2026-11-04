@@ -310,8 +310,8 @@ export function ScientificResults({
               >
                 <p>
                   {zh
-                    ? "此构象没有可预览的 PAE 矩阵。汇总置信度见上方，下载此构象可查看留存的原始数据。"
-                    : "No PAE matrix is available to preview for this conformer. Summary confidence is shown above. The conformer download contains the retained data."}
+                    ? "此构象没有可预览的 PAE 矩阵。构象下载包包含结构，以及可核验的置信度汇总（如有）。"
+                    : "No PAE matrix is available to preview for this conformer. The conformer download contains the structure and any verified confidence summary."}
                 </p>
               </PredictionConfidenceCard>
             )}
