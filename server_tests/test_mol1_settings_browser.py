@@ -118,7 +118,7 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
                 label("X-DDE submission request", "X-DDE 提交请求"), exact=True
             ).inner_text()
         )
-        assert shown["options"] == {"device": "cpu", "memory_mib": 4096, "seed": 101}
+        assert shown["options"] == {"device": "cpu", "cpu": 2, "memory_mib": 4096, "seed": 101}
         assert {
             key: shown["payload"][key]
             for key in ("samples", "cycles", "steps", "additional_seeds", "dtype")

@@ -429,7 +429,7 @@ jobs:
           WB_HOME="$RUNNER_TEMP/x-dde-computation-settings" WB_STATE_DIR="$RUNNER_TEMP/x-dde-computation-settings/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Compiled settings, real draft recovery and exact review without inference
         run: >-
-          uv run --locked pytest -x -q server_tests/test_mol1_settings_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_mol1_settings_browser.py
           server_tests/test_prediction_drafts_browser.py server_tests/test_mol1_final_review_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
