@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { historyDateError } from "./task-history-dates";
 import {
   historyUrl,
   type HistoryFilter,
@@ -7,6 +8,7 @@ import {
 } from "./task-history-model";
 
 export function useTaskHistory(filter: HistoryFilter) {
+  const invalidDates = historyDateError(filter);
   const path = historyUrl(filter);
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<{
@@ -17,6 +19,7 @@ export function useTaskHistory(filter: HistoryFilter) {
     counts: TaskHistoryPage["counts"];
   }>({ path: "", project: null, data: null, error: false, counts: {} });
   useEffect(() => {
+    if (invalidDates) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     async function read() {
@@ -58,12 +61,13 @@ export function useTaskHistory(filter: HistoryFilter) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [path, filter.project, revision]);
+  }, [path, filter.project, revision, invalidDates]);
   return {
-    data: state.path === path ? state.data : null,
+    data: !invalidDates && state.path === path ? state.data : null,
     counts: state.project === filter.project ? state.counts : {},
-    error: state.path === path && state.error,
-    loading: state.path !== path || (!state.data && !state.error),
+    error: !invalidDates && state.path === path && state.error,
+    loading:
+      !invalidDates && (state.path !== path || (!state.data && !state.error)),
     refresh: () => setRevision((value) => value + 1),
   };
 }

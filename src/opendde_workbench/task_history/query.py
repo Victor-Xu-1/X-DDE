@@ -2,6 +2,7 @@
 
 import json
 
+from .dates import utc_key
 from .example_sources import case_index, matching_case_jobs
 from .kinds import classification_sql
 
@@ -16,6 +17,8 @@ def history_page(
     offset=0,
     limit=20,
     scope="research",
+    created_from=None,
+    created_before=None,
 ):
     library.synchronize()
     classification, parameters = classification_sql()
@@ -39,7 +42,14 @@ def history_page(
     if status:
         filters.append("status = ?")
         values.append(status)
+    for boundary, operator in ((created_from, ">="), (created_before, "<")):
+        if boundary is not None:
+            filters.append(f"history_utc(created_at) {operator} ?")
+            values.append(utc_key(boundary))
     with library.store.connect() as db:
+        if created_from is not None or created_before is not None:
+            # Avoid SQLite's millisecond rounding at a midnight boundary.
+            db.create_function("history_utc", 1, utc_key, deterministic=True)
         # Counts and rows share a read snapshot even when the worker updates another job.
         db.execute("BEGIN")
         cases = case_index(db) if scope == "examples" else {}

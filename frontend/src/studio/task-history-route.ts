@@ -32,6 +32,10 @@ export function taskHistoryRoute(hash: string): HistoryFilter | null {
     query: (params.get("q") ?? "").slice(0, 180),
     page: Number.isInteger(page) && page >= 0 && page <= 50000 ? page : 0,
     project: uuid.test(project) ? project.toLowerCase() : null,
+    ...(params.has("from")
+      ? { startDate: params.get("from")!.slice(0, 40) }
+      : {}),
+    ...(params.has("to") ? { endDate: params.get("to")!.slice(0, 40) } : {}),
   };
 }
 
@@ -43,6 +47,8 @@ export function taskHistoryHash(filter: HistoryFilter, task = "") {
   if (filter.query.trim()) params.set("q", filter.query.trim());
   if (filter.page) params.set("page", String(filter.page));
   if (filter.project) params.set("project", filter.project);
+  if (filter.startDate) params.set("from", filter.startDate);
+  if (filter.endDate) params.set("to", filter.endDate);
   if (uuid.test(task)) params.set("task", task);
   return "#" + params;
 }

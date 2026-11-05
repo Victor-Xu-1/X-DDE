@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -53,6 +54,9 @@ def main():
         )
         assert store.claim(expected_id=job.id) is not None
         store.finish(job.id, Status.CANCELLED)
+        stamp = datetime(2026, 10, 1, 8, tzinfo=UTC) + timedelta(days=index // 40, minutes=index)
+        with store.connect() as db:
+            db.execute("UPDATE jobs SET created_at=? WHERE id=?", (stamp.isoformat(), job.id))
         records.append({"id": job.id, "name": job.request.name})
     evidence = Path("server_tests/evidence/task-history")
     evidence.mkdir(parents=True, exist_ok=True)
