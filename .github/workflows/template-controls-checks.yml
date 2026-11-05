@@ -19,6 +19,7 @@ on:
       - 'frontend/index.html'
       - 'frontend/src/presentation/result-layout.css'
       - 'server_tests/test_template_controls_browser.py'
+      - '.github/workflows/template-controls-checks.yml'
       # Retained-stage labels and unchanged drafts have example-result-set-checks.yml.
       - '!frontend/src/examples/ExampleActions.tsx'
   pull_request:
@@ -26,7 +27,13 @@ on:
 permissions:
   contents: read
 jobs:
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   public-case-controls:
+    needs: prediction-scope
+    if: needs.prediction-scope.outputs.prediction_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

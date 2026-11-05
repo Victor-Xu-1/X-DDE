@@ -18,12 +18,14 @@ def test_feature_policy_dialog_delegation_is_closed_to_its_two_native_forms():
     ]
     assert scope.feature_settings_only(files)
     assert scope.feature_settings_only(files, "pull_request")
+    assert scope.feature_settings_only(files + [".github/workflows/template-controls-checks.yml"])
     assert scope.prediction_only(files)
     assert not scope.feature_settings_only(files, "workflow_dispatch")
     assert not scope.feature_settings_only([".github/workflows/prediction-workspace-checks.yml"])
     for unrelated in [
         "src/opendde_workbench/integrations/native_mol1.py",
         "frontend/src/App.tsx",
+        "frontend/src/admet/AdmetResults.tsx",
         "frontend/src/simulations/SimulationForm.tsx",
         "src/opendde_workbench/form.py",
     ]:

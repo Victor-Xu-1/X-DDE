@@ -163,6 +163,7 @@ FEATURE_SETTING_FILES = (
     ENTITY_INPUT_FILES
     | FEATURE_SETTING_SOURCES
     | {
+        ".github/workflows/template-controls-checks.yml",
         "frontend/src/TaskForm.tsx",
         "frontend/src/integrations/Mol1Form.test.tsx",
         "frontend/src/operations/ExpertParameters.tsx",
