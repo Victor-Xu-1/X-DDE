@@ -44,14 +44,19 @@ def test_boltz_final_review_preserves_exact_chain_msa_and_record(language, width
         )
         page.goto(base + "/#view=new&tool=boltz.predict")
         page.get_by_role("textbox", name=label("Sequence", "序列"), exact=True).fill(sequence)
-        page.locator(".boltz-msa-input input[type=file]").set_input_files(alignment)
+        page.get_by_role(
+            "button", name=label("Chain A MSA settings", "链 A MSA 设置"), exact=True
+        ).click()
+        msa_dialog = page.get_by_role("dialog", name=label("MSA settings", "MSA 设置"), exact=True)
+        msa_dialog.locator("input[type=file]").set_input_files(alignment)
+        save_msa = msa_dialog.get_by_role("button", name=label("Save", "保存"), exact=True)
+        expect(save_msa).to_be_enabled()
+        save_msa.click()
+        page.get_by_text(label("Or choose a molecular file", "或选择分子文件"), exact=True).click()
         page.locator(".diff-reference input[type=file]").set_input_files(file)
-        expect(
-            page.get_by_text(
-                label("1 sequence rows · 847 alignment columns", "1 条序列 · 847 个比对列"),
-                exact=True,
-            )
-        ).to_be_visible()
+        expect(page.locator(".boltz-msa-input").get_by_role("status")).to_contain_text(
+            label("1 sequence rows · 847 alignment columns", "1 条序列 · 847 个比对列"),
+        )
         record = page.get_by_role(
             "spinbutton",
             name=label("Molecule record in SDF (starts at 1)", "SDF 中第几个分子（从 1 开始）"),

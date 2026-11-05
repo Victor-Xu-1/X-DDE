@@ -133,17 +133,31 @@ export function BoltzInputs({
               !rows.some(
                 (other) => other.key !== row.key && other.component.source,
               ) && (
-                <ReferencePicker
-                  key={row.revision}
-                  kind="ligand"
-                  value={component.source ?? null}
-                  onChange={(value) =>
-                    change(row, { source: value, value: "" })
-                  }
-                  language={language}
-                  label={zh ? "上传小分子结构" : "Upload molecular structure"}
-                  allowedSuffixes={[".sdf", ".mol"]}
-                />
+                <details
+                  className="boltz-ligand-file"
+                  open={component.source ? true : undefined}
+                >
+                  <summary>
+                    {component.source
+                      ? zh
+                        ? "已选分子文件"
+                        : "Selected molecular file"
+                      : zh
+                        ? "或选择分子文件"
+                        : "Or choose a molecular file"}
+                  </summary>
+                  <ReferencePicker
+                    key={row.revision}
+                    kind="ligand"
+                    value={component.source ?? null}
+                    onChange={(value) =>
+                      change(row, { source: value, value: "" })
+                    }
+                    language={language}
+                    label={zh ? "上传小分子结构" : "Upload molecular structure"}
+                    allowedSuffixes={[".sdf", ".mol"]}
+                  />
+                </details>
               )}
             <label>
               {component.kind === "ligand"
@@ -175,10 +189,7 @@ export function BoltzInputs({
                 value={component.msa ?? null}
                 mode={component.msa_mode ?? "provided"}
                 language={language}
-                onModeChange={(msa_mode) =>
-                  change(row, { msa_mode, msa: null }, true)
-                }
-                onChange={(msa) => change(row, { msa })}
+                onCommit={(msa_mode, msa) => change(row, { msa_mode, msa })}
                 onVerified={(key) => onMsaVerified?.(component.id, key)}
               />
             )}

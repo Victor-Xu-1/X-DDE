@@ -8,6 +8,34 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():
+    files = sorted(scope.BOLTZ_INPUT_FILES)
+    assert scope.boltz_inputs_only(["server_tests/test_boltz_input_settings_browser.py"])
+    assert scope.boltz_inputs_only(files)
+    assert scope.boltz_inputs_only(files, "pull_request")
+    assert scope.prediction_only(files)
+    assert not scope.boltz_inputs_only(files, "workflow_dispatch")
+    assert not scope.boltz_inputs_only([".github/workflows/prediction-workspace-checks.yml"])
+    for unrelated in [
+        "frontend/src/integrations/ScientificChoices.tsx",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "frontend/src/presentation/PredictionFeatureDialog.tsx",
+        "frontend/src/App.tsx",
+        "src/opendde_workbench/integrations/contract.py",
+        "src/opendde_workbench/integrations/native_boltz.py",
+    ]:
+        assert not scope.boltz_inputs_only(files + [unrelated])
+    workflow = (
+        Path(__file__).parents[1] / ".github/workflows/prediction-workspace-checks.yml"
+    ).read_text()
+    focused = workflow.split("  boltz-inputs:", 1)[1].split("  computation-settings:", 1)[0]
+    assert "src/integrations/BoltzInputs.test.tsx" in focused
+    assert "server_tests/test_boltz_final_review_browser.py" in focused
+    assert "tests/test_boltz_msa.py" in focused
+    assert "outputs/boltz-input-settings/**" in focused
+    assert "runner.temp" not in focused.split("    steps:", 1)[0]
+
+
 def test_computation_settings_delegation_is_closed_to_native_settings_and_consumers():
     files = sorted(scope.COMPUTATION_SETTING_SOURCES) + [
         "frontend/src/integrations/Mol1Form.tsx",

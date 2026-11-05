@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
+import { BoltzMsaInput } from "./BoltzMsaInput";
 import { validBoltzComponents } from "./validation";
 import {
   boltzMaterialInputs,
@@ -12,6 +13,23 @@ import {
 } from "./boltz-inputs";
 
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  if (!HTMLDialogElement.prototype.showModal)
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: {
+        configurable: true,
+        value() {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value() {
+          this.removeAttribute("open");
+        },
+      },
+    });
+});
 const asset = {
   id: "11111111-1111-4111-8111-111111111111",
   sha256: "a".repeat(64),
@@ -71,6 +89,58 @@ function InputFixture({
   );
 }
 
+it("stages chain MSA settings without silently changing the native provided-alignment default", async () => {
+  const user = userEvent.setup();
+  render(<InputFixture />);
+  const trigger = screen.getByRole("button", { name: "Chain A MSA settings" });
+  expect(trigger).toHaveTextContent("MSA file");
+  expect(screen.queryByLabelText("Upload Chain A MSA")).not.toBeInTheDocument();
+  await user.click(trigger);
+  const dialog = screen.getByRole("dialog", { name: "MSA settings" });
+  await user.click(
+    within(dialog).getByRole("radio", { name: "Single sequence" }),
+  );
+  expect(screen.getByLabelText("Current components")).toHaveTextContent(
+    '"msa_mode":"provided"',
+  );
+  await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+  expect(trigger).toHaveFocus();
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+  await user.click(trigger);
+  expect(screen.getByRole("radio", { name: "MSA file" })).toBeChecked();
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
+  expect(trigger).toHaveTextContent("Single sequence");
+});
+
+it("closes an uncommitted chain window when its sequence owner changes", async () => {
+  const commit = vi.fn(),
+    verified = vi.fn(),
+    user = userEvent.setup();
+  const props = {
+    chain: "A",
+    sequence: "ACDE",
+    value: null,
+    mode: "provided" as const,
+    language: "en" as const,
+    onCommit: commit,
+    onVerified: verified,
+  };
+  const view = render(<BoltzMsaInput {...props} />);
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  view.rerender(<BoltzMsaInput {...props} chain="B" sequence="ACDF" />);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Chain B MSA settings" }),
+  ).toHaveTextContent("MSA file");
+  expect(commit).not.toHaveBeenCalled();
+  expect(verified).toHaveBeenLastCalledWith("");
+});
+
 it("defaults to a fresh alignment, blocks pending checks and clears a changed protein", async () => {
   let reply!: (value: unknown) => void;
   vi.spyOn(api, "upload").mockResolvedValue(asset);
@@ -84,9 +154,10 @@ it("defaults to a fresh alignment, blocks pending checks and clears a changed pr
   render(<InputFixture />);
   const next = screen.getByRole("button", { name: "Continue" });
   expect(next).toBeDisabled();
-  expect(
-    screen.getByRole("combobox", { name: "Evolutionary information" }),
-  ).toHaveValue("provided");
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  expect(screen.getByRole("radio", { name: "MSA file" })).toBeChecked();
   await user.upload(
     screen.getByLabelText("Upload Chain A MSA"),
     new File([">q\nACDE\n>h\nAC-E\n"], "protein.a3m"),
@@ -96,6 +167,12 @@ it("defaults to a fresh alignment, blocks pending checks and clears a changed pr
   await act(async () =>
     reply({ rows: 2, unique_sequences: 2, columns: 4, name: "protein.a3m" }),
   );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled(),
+  );
+  expect(next).toBeDisabled();
+  expect(screen.getByLabelText("Bound inputs")).toHaveTextContent("[]");
+  await user.click(screen.getByRole("button", { name: "Save" }));
   await waitFor(() => expect(next).toBeEnabled());
   expect(screen.getByLabelText("Bound inputs").textContent).toContain(
     asset.sha256,
@@ -104,17 +181,103 @@ it("defaults to a fresh alignment, blocks pending checks and clears a changed pr
   await user.type(screen.getByRole("textbox", { name: "Sequence" }), "ACDF");
   expect(next).toBeDisabled();
   expect(screen.getByLabelText("Bound inputs")).toHaveTextContent("[]");
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "Evolutionary information" }),
-    "single",
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
   );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
   expect(next).toBeEnabled();
   expect(screen.getByText(/omits evolutionary alignment/)).toBeVisible();
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "Evolutionary information" }),
-    "provided",
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
   );
-  expect(next).toBeDisabled();
+  await user.click(screen.getByRole("radio", { name: "MSA file" }));
+  expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  // Unsaved mode changes cannot replace the valid committed single-sequence task.
+  // The real native dialog makes the underlying Next button inert.
+  expect(screen.getByLabelText("Current components")).toHaveTextContent(
+    '"msa_mode":"single"',
+  );
+  await user.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(next).toBeEnabled();
+});
+
+it("discards a cancelled upload even if its response arrives after closing the chain window", async () => {
+  let finish!: (value: typeof asset) => void;
+  vi.spyOn(api, "upload").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const user = userEvent.setup();
+  render(<InputFixture />);
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  await user.upload(
+    screen.getByLabelText("Upload Chain A MSA"),
+    new File([">q\nACDE\n"], "protein.a3m"),
+  );
+  await user.click(screen.getByRole("button", { name: "Cancel" }));
+  await act(async () => finish(asset));
+  expect(screen.getByLabelText("Bound inputs")).toHaveTextContent("[]");
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  expect(screen.queryByText(asset.name)).not.toBeInTheDocument();
+});
+
+it("keeps a committed alignment on cancel and atomically clears it on explicit single-sequence save", async () => {
+  const reference = {
+    asset_id: asset.id,
+    sha256: asset.sha256,
+    record: 0,
+    conformer: 0,
+    version_id: "version-kept",
+  };
+  vi.spyOn(api, "authorized").mockResolvedValue({
+    rows: 2,
+    unique_sequences: 2,
+    columns: 4,
+    name: asset.name,
+  });
+  const user = userEvent.setup();
+  render(
+    <InputFixture
+      initial={[
+        {
+          id: "A",
+          kind: "protein",
+          value: "ACDE",
+          msa: reference,
+          msa_mode: "provided",
+        },
+      ]}
+    />,
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled(),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Cancel" }));
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled(),
+  );
+  expect(screen.getByLabelText("Bound inputs")).toHaveTextContent(
+    "version-kept",
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByLabelText("Bound inputs")).toHaveTextContent("[]");
+  expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
 });
 
 it.each(["remove", "edit"] as const)(
