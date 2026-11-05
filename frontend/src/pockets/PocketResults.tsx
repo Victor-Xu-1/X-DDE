@@ -1,3 +1,4 @@
+import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
@@ -91,6 +92,36 @@ function PocketWorkspace({
         </p>
       )}
       <StructureWorkbench
+        toolbar={
+          selected && (
+            <CandidateReviewBar
+              label={zh ? "口袋预览选择" : "Pocket preview selection"}
+              caption={zh ? "口袋" : "Pocket"}
+              candidates={result.pockets.map((site) => ({
+                id: site.rank,
+                label: (zh ? "预览口袋 " : "Preview pocket ") + site.rank,
+                short: site.rank,
+              }))}
+              selected={selected.rank}
+              language={language}
+              onSelect={setRank}
+              metrics={[
+                {
+                  label: zh ? "模型概率" : "Model probability",
+                  value: selected.probability,
+                },
+                {
+                  label: zh ? "位点评分" : "Site score",
+                  value: selected.score,
+                },
+                {
+                  label: zh ? "残基数" : "Residues",
+                  value: selected.residues.length,
+                },
+              ]}
+            />
+          )
+        }
         preview={
           <StructureViewer
             key={overlay ?? "protein-only"}
