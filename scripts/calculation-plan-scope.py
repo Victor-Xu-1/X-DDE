@@ -4,6 +4,7 @@ import os
 import subprocess
 
 SOURCES = {
+    "frontend/src/integrations/ScientificChoicesBudget.test.tsx",
     "frontend/src/integrations/ScientificChoices.tsx",
     "frontend/src/integrations/ScientificChoicesCount.tsx",
     "frontend/src/integrations/ScientificChoices.css",
