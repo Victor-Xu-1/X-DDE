@@ -699,6 +699,8 @@ EXAMPLE_INSPECTION_FILES = {
     "frontend/src/presentation/PredictionSamples.test.tsx",
     "frontend/src/presentation/PredictionSampleIdentity.ts",
     "frontend/src/presentation/prediction-results.css",
+    "frontend/src/presentation/prediction-inputs.css",
+    "frontend/src/presentation/prediction-shell.css",
     "frontend/src/presentation/prediction-workspace.css",
     "frontend/src/examples/ExampleJobResult.tsx",
     "frontend/src/examples/ExampleJobResult.test.tsx",

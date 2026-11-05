@@ -10,6 +10,40 @@ from server_tests.browser_platform import platform
 from server_tests.prediction_workspace_case import INPUTS, case
 
 
+def check_prediction_setup_layout(page, width):
+    picker = page.locator(".module-task-picker:visible")
+    expect(picker).to_be_visible()
+    for side in ("top", "right", "bottom", "left"):
+        expect(picker).to_have_css(f"border-{side}-width", "0px")
+    expect(picker).to_have_css("border-top-left-radius", "0px")
+    form = page.locator(".prediction-form-body:visible")
+    review = page.locator(".prediction-setup:visible")
+    expect(review).to_be_visible()
+    preview = review.locator(".prediction-preview-open").bounding_box()
+    assert preview and preview["height"] >= 42
+    form_box, review_box = form.bounding_box(), review.bounding_box()
+    assert form_box and review_box
+    if width > 1000:
+        assert review_box["x"] >= form_box["x"] + form_box["width"] + 20
+        assert abs(review_box["y"] - form_box["y"]) <= 1
+        expect(review).to_have_css("position", "sticky")
+        header = page.locator(".studio-topbar").bounding_box()
+        offset = review.evaluate("node => parseFloat(getComputedStyle(node).top)")
+        assert header and offset >= header["height"] + 8
+    else:
+        expect(review).to_have_css("position", "static")
+        assert review_box["y"] >= form_box["y"] + form_box["height"]
+        steps = form.locator(".questionnaire-steps button").evaluate_all("""buttons =>
+            buttons.map(button => {
+                const box = button.getBoundingClientRect();
+                return {top: Math.round(box.top), height: box.height};
+            })
+        """)
+        assert len(steps) >= 4 and len({step["top"] for step in steps}) == 1
+        assert min(step["height"] for step in steps) >= 44
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, language, width):
     evidence = Path("outputs/prediction-workspace") / f"{language}-{width}"
@@ -157,6 +191,7 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "result.png"), full_page=True)
         page.goto(base + "/#view=new&tool=mol1.predict")
+        check_prediction_setup_layout(page, width)
         page.get_by_role(
             "textbox",
             name="单字母氨基酸序列" if zh else "One-letter amino-acid sequence",
@@ -181,6 +216,11 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         expect(page.locator(".questionnaire:visible > fieldset:not([hidden])")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "supporting-inputs.png"), full_page=True)
+        page.get_by_role(
+            "button", name="结构预测" if zh else "Structure prediction", exact=True
+        ).click()
+        check_prediction_setup_layout(page, width)
+        page.screenshot(path=str(evidence / "prediction-new-task.png"), full_page=True)
         assert not errors and not submissions, (errors, submissions)
         assert len(page.request.get(base + "/api/jobs").json()) == 1
         browser.close()
