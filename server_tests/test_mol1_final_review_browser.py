@@ -51,9 +51,9 @@ def test_final_prediction_review_without_engine(language, width):
         name.fill("STAT6 · Submission review")
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()
-        page.get_by_label(label("Sequence evolutionary information", "序列进化信息")).select_option(
-            "none"
-        )
+        page.get_by_role("button", name=label("MSA settings", "MSA 设置"), exact=True).click()
+        page.get_by_role("radio", name=label("No MSA", "不使用 MSA"), exact=True).check()
+        page.get_by_role("button", name=label("Save", "保存"), exact=True).click()
         next_step.click()
         next_step.click()
         preview_name = label("Preview job", "预览任务")

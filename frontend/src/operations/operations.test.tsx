@@ -131,6 +131,21 @@ it("submits standalone properties without scheduling structure prediction", asyn
 });
 
 it("keeps form labels attached to scientific inputs when help buttons are present", () => {
+  if (!HTMLDialogElement.prototype.showModal)
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+          this.removeAttribute("open");
+        },
+      },
+    });
   const update = vi.fn();
   render(
     <>
@@ -154,10 +169,9 @@ it("keeps form labels attached to scientific inputs when help buttons are presen
       />
     </>,
   );
-  fireEvent.change(
-    screen.getByRole("combobox", { name: "Include evolutionary information?" }),
-    { target: { value: "uploaded" } },
-  );
+  fireEvent.click(screen.getByRole("button", { name: "MSA settings" }));
+  fireEvent.click(screen.getByRole("radio", { name: "Uploaded MSA" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
   expect(update).toHaveBeenCalledWith(
     expect.objectContaining({ feature_mode: "uploaded" }),
   );

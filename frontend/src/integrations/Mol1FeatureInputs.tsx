@@ -1,3 +1,4 @@
+import { PredictionFeatureSettings } from "../presentation/PredictionFeatureSettings";
 import type { Dispatch, SetStateAction } from "react";
 import { AssetPicker } from "../operations/AssetPicker";
 import { usePredictionEntityState } from "../presentation/PredictionEntityState";
@@ -13,7 +14,7 @@ export function Mol1FeatureInputs({
   entityKeys,
 }: {
   value: Mol1Settings;
-  onChange(value: Mol1Settings): void;
+  onChange: Dispatch<SetStateAction<Mol1Settings>>;
   components: Component[];
   onComponents: Dispatch<SetStateAction<Component[]>>;
   language: Language;
@@ -22,79 +23,46 @@ export function Mol1FeatureInputs({
   const zh = language === "zh";
   const editing = usePredictionEntityState(onComponents, entityKeys);
   const update = (change: Partial<Mol1Settings>) =>
-    onChange({ ...value, ...change });
+    onChange((previous) => ({ ...previous, ...change }));
   return (
     <>
-      <label className="field">
-        {zh ? "序列进化信息" : "Sequence evolutionary information"}
-        <select
-          value={value.feature_mode}
-          onChange={(e) => {
-            if (e.target.value === "none")
-              editing.updateAll({
-                paired_msa: null,
-                unpaired_msa: null,
-                template_hits: null,
-              });
-            update({
-              feature_mode: e.target.value as Mol1Settings["feature_mode"],
-              ...(e.target.value === "none"
-                ? {
-                    use_template: false,
-                    use_rna_msa: false,
-                    allow_network: false,
-                  }
-                : {}),
+      <PredictionFeatureSettings
+        value={value}
+        language={language}
+        contextKey={JSON.stringify([
+          value,
+          components.map((item) => [
+            item.kind,
+            item.value,
+            item.count,
+            item.chain_ids,
+            item.modifications,
+            item.ligand_file,
+          ]),
+        ])}
+        hasRna={components.some((item) => item.kind === "rna")}
+        clearNotice={
+          components.some(
+            (item) =>
+              item.unpaired_msa || item.paired_msa || item.template_hits,
+          )
+            ? zh
+              ? "保存后将清空已选的 MSA 和模板；原文件仍可在历史文件中选择。"
+              : "Saving clears selected MSA and template files. Original files remain available in Historical files."
+            : undefined
+        }
+        onChange={(policy) => {
+          if (policy.feature_mode === "none")
+            editing.updateAll({
+              paired_msa: null,
+              unpaired_msa: null,
+              template_hits: null,
             });
-          }}
-        >
-          <option value="search">
-            {zh ? "检索 MSA · 推荐" : "Search MSAs · recommended"}
-          </option>
-          <option value="uploaded">
-            {zh ? "使用上传的 MSA" : "Use uploaded MSAs"}
-          </option>
-          <option value="none">{zh ? "不使用 MSA" : "No MSA"}</option>
-        </select>
-      </label>
-      {value.feature_mode !== "none" && (
-        <label>
-          <input
-            type="checkbox"
-            checked={value.allow_network}
-            onChange={(e) => update({ allow_network: e.target.checked })}
-          />
-          {zh
-            ? "允许本任务将序列发送到原生 MSA 服务，并获取模板结构"
-            : "Allow this task to send sequences to the native MSA service and retrieve template structures"}
-        </label>
-      )}
-      {value.feature_mode !== "none" && (
-        <div className="field-grid">
-          <label>
-            <input
-              type="checkbox"
-              checked={value.use_template}
-              onChange={(e) => {
-                update({ use_template: e.target.checked });
-                if (!e.target.checked)
-                  editing.updateAll({ template_hits: null });
-              }}
-            />
-            {zh ? "使用结构模板" : "Use structural templates"}
-          </label>
-          {components.some((component) => component.kind === "rna") && (
-            <label>
-              <input
-                type="checkbox"
-                checked={value.use_rna_msa}
-                onChange={(e) => update({ use_rna_msa: e.target.checked })}
-              />
-              {zh ? "上传并使用 RNA MSA" : "Use uploaded RNA MSAs"}
-            </label>
-          )}
-        </div>
-      )}
+          else if (value.use_template && !policy.use_template)
+            editing.updateAll({ template_hits: null });
+          update({ ...policy });
+        }}
+      />
       {value.feature_mode === "none" && (
         <p className="field-help">
           {zh

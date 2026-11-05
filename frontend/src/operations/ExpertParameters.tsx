@@ -1,6 +1,7 @@
+import { PredictionFeatureSettings } from "../presentation/PredictionFeatureSettings";
 import type { Language, Parameters } from "../types";
 import { Hint } from "../guided/Hint";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { request } from "../api";
 import { IntegerListField } from "./IntegerListField";
 
@@ -9,13 +10,14 @@ export function ExpertParameters({
   onChange,
   language,
   expert,
+  contextKey = "",
 }: {
   value: Parameters;
   onChange(p: Parameters): void;
   language: Language;
   expert: boolean;
+  contextKey?: string;
 }) {
-  const featureId = useId();
   const zh = language === "zh";
   const [checkpoints, setCheckpoints] = useState<
       { id: string; present: boolean }[]
@@ -87,74 +89,13 @@ export function ExpertParameters({
   ] as const;
   return (
     <section className="extended-parameters">
-      <div className="field">
-        <span>
-          <label htmlFor={featureId}>
-            {zh ? "是否加入进化信息？" : "Include evolutionary information?"}
-          </label>{" "}
-          <Hint label={zh ? "进化信息说明" : "Evolutionary features help"}>
-            {zh
-              ? "MSA 是同源序列比对。模板提供已有结构信息；搜索需要配置数据库或服务。"
-              : "MSA aligns homologous sequences. Templates supply existing structure information; searches require configured databases or services."}
-          </Hint>
-        </span>
-        <select
-          id={featureId}
-          value={value.feature_mode ?? "none"}
-          onChange={(e) =>
-            update({
-              feature_mode: e.target.value as Parameters["feature_mode"],
-              use_template: false,
-              use_rna_msa: false,
-              allow_network: false,
-            })
-          }
-        >
-          <option value="none">
-            {zh ? "直接预测 · 不搜索" : "Direct prediction · no search"}
-          </option>
-          <option value="search">
-            {zh
-              ? "搜索 MSA · 向配置的服务发送序列"
-              : "Search MSA · send sequences to the configured service"}
-          </option>
-          <option value="uploaded">
-            {zh ? "使用已上传的比对文件" : "Use uploaded alignments"}
-          </option>
-        </select>
-      </div>
-      {(value.feature_mode ?? "none") !== "none" && (
-        <div className="check-choices">
-          <label>
-            <input
-              type="checkbox"
-              checked={value.use_template ?? false}
-              onChange={(e) => update({ use_template: e.target.checked })}
-            />
-            {zh ? "加入蛋白模板" : "Include protein templates"}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={value.use_rna_msa ?? false}
-              onChange={(e) => update({ use_rna_msa: e.target.checked })}
-            />
-            {zh ? "加入 RNA MSA" : "Include RNA MSA"}
-          </label>
-        </div>
-      )}
-      {(value.feature_mode ?? "none") !== "none" && (
-        <label className="network-choice">
-          <input
-            type="checkbox"
-            checked={value.allow_network ?? false}
-            onChange={(e) => update({ allow_network: e.target.checked })}
-          />
-          {zh
-            ? "允许此次任务联网：搜索会发送序列，模板可能下载结构。"
-            : "Allow network for this task: searches transmit sequences; templates may download structures."}
-        </label>
-      )}
+      <PredictionFeatureSettings
+        value={value}
+        onChange={update}
+        language={language}
+        contextKey={JSON.stringify([contextKey, value])}
+        hasRna
+      />
       {expert && (
         <>
           {(checkpoints.length > 0 || value.checkpoint_id) && (

@@ -214,6 +214,16 @@ export function TaskForm({
         expert={expert}
       />
       <ExpertParameters
+        contextKey={JSON.stringify(
+          components.map((item) => [
+            item.kind,
+            item.value,
+            item.count,
+            item.chain_ids,
+            item.modifications,
+            item.ligand_file,
+          ]),
+        )}
         value={parameters}
         onChange={setParameters}
         language={language}
