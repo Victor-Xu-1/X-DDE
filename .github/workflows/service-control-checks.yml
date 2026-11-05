@@ -4,7 +4,13 @@ on:
   push:
     paths: &lifecycle_paths
       - "src/opendde_workbench/service_control.py"
+      - "src/opendde_workbench/api.py"
+      - "src/opendde_workbench/asset_routes.py"
+      - "src/opendde_workbench/asset_upload_routes.py"
+      - "src/opendde_workbench/asset_upload_workers.py"
       - "tests/test_service_control.py"
+      - "tests/test_asset_routes.py"
+      - "tests/test_dataset_uploads.py"
       - "tests/test_service_shutdown.py"
       - "tests/test_service_upload_shutdown.py"
       - "src/opendde_workbench/__main__.py"
@@ -28,5 +34,5 @@ jobs:
       - run: uv sync --locked --group dev
       - name: Loopback transport and existing shutdown protections
         run: |
-          uv run --locked ruff check src/opendde_workbench/__main__.py src/opendde_workbench/service_control.py tests/test_service_control.py tests/test_service_shutdown.py tests/test_service_upload_shutdown.py
-          uv run --locked pytest -q tests/test_service_control.py tests/test_service_shutdown.py tests/test_service_upload_shutdown.py
+          uv run --locked ruff check src/opendde_workbench/__main__.py src/opendde_workbench/service_control.py src/opendde_workbench/api.py src/opendde_workbench/asset_routes.py src/opendde_workbench/asset_upload_routes.py src/opendde_workbench/asset_upload_workers.py tests/test_service_control.py tests/test_service_shutdown.py tests/test_service_upload_shutdown.py
+          uv run --locked pytest -q tests/test_service_control.py tests/test_service_shutdown.py tests/test_service_upload_shutdown.py tests/test_asset_routes.py tests/test_dataset_uploads.py
