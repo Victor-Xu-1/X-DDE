@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
+import { BoltzMsaInput } from "./BoltzMsaInput";
 import { validBoltzComponents } from "./validation";
 import {
   boltzMaterialInputs,
@@ -111,6 +112,33 @@ it("stages chain MSA settings without silently changing the native provided-alig
   await user.click(screen.getByRole("button", { name: "Save" }));
   expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
   expect(trigger).toHaveTextContent("Single sequence");
+});
+
+it("closes an uncommitted chain window when its sequence owner changes", async () => {
+  const commit = vi.fn(),
+    verified = vi.fn(),
+    user = userEvent.setup();
+  const props = {
+    chain: "A",
+    sequence: "ACDE",
+    value: null,
+    mode: "provided" as const,
+    language: "en" as const,
+    onCommit: commit,
+    onVerified: verified,
+  };
+  const view = render(<BoltzMsaInput {...props} />);
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  view.rerender(<BoltzMsaInput {...props} chain="B" sequence="ACDF" />);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Chain B MSA settings" }),
+  ).toHaveTextContent("MSA file");
+  expect(commit).not.toHaveBeenCalled();
+  expect(verified).toHaveBeenLastCalledWith("");
 });
 
 it("defaults to a fresh alignment, blocks pending checks and clears a changed protein", async () => {
