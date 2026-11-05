@@ -96,7 +96,7 @@ def test_native_calculation_plan_review(language, width, theme):
         next_step.click()
         page.get_by_role("button", name=label("Preview job", "预览任务"), exact=True).click()
         review = page.get_by_role("dialog", name=label("Preview job", "预览任务"), exact=True)
-        review.get_by_role("button", name=label("Request JSON", "请求 JSON"), exact=True).click()
+        review.get_by_role("button", name=label("Request JSON", "提交内容"), exact=True).click()
         request = json.loads(
             review.get_by_label(
                 label("X-DDE submission request", "X-DDE 提交请求"), exact=True
