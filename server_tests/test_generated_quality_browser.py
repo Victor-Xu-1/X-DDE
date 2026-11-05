@@ -157,9 +157,9 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         assert molecular_frame
         first_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
         assert first_load and 1 in first_load["records"]
-        receptor_tab = preview.get_by_role("tab", name="原始受体" if zh else "Original receptor")
-        receptor_tab.click()
-        receptor_panel = preview.get_by_role("tabpanel", name="原始受体" if zh else "Original receptor")
+        receptor_name = "原始受体" if zh else "Original receptor"
+        preview.get_by_role("tab", name=receptor_name).click()
+        receptor_panel = preview.get_by_role("tabpanel", name=receptor_name)
         receptor_scene = receptor_panel.locator(".molecular-stage iframe")
         expect(receptor_scene).to_be_visible()
         receptor_frame = receptor_scene.element_handle().content_frame()
