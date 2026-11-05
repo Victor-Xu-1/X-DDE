@@ -12,10 +12,12 @@ from server_tests.browser_platform import platform
 WARHEAD = "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3"
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_shared_entities_on_prediction_and_feature_forms(language, width):
+@pytest.mark.parametrize(
+    "language,width,theme", [("en", 1440, "light"), ("zh", 390, "light"), ("en", 1440, "dark")]
+)
+def test_shared_entities_on_prediction_and_feature_forms(language, width, theme):
     zh = language == "zh"
-    root = Path("outputs/prediction-entities") / f"{language}-{width}"
+    root = Path("outputs/prediction-entities") / f"{language}-{width}-{theme}"
     root.mkdir(parents=True, exist_ok=True)
     state = Path(os.environ["WB_STATE_DIR"])
     assert state.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
@@ -29,6 +31,7 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width):
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 1000})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page.add_init_script(f"localStorage.setItem('x-dde-theme','{theme}')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -40,6 +43,10 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width):
         )
         for tool in ("mol1.predict", "predict", "boltz.predict", "features"):
             page.goto(base + "/#view=new&tool=" + tool)
+            if tool == "predict":
+                page.get_by_role(
+                    "button", name="专家微调" if zh else "Expert mode", exact=True
+                ).click()
             if tool in {"predict", "features"}:
                 page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
             protein = page.get_by_role(
@@ -93,6 +100,40 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width):
                 ).click()
                 assert protein.get_attribute("id") == before
                 expect(ligand).to_have_value(WARHEAD)
+                if tool == "mol1.predict":
+                    page.get_by_role(
+                        "checkbox",
+                        name="更多组分、拷贝和修饰"
+                        if zh
+                        else "Additional components, copies and modifications",
+                        exact=True,
+                    ).check()
+                card.get_by_text(
+                    "链、修饰与预先计算的特征"
+                    if zh
+                    else "Chains, modifications and precomputed features",
+                    exact=True,
+                ).click()
+                chain = card.get_by_role(
+                    "textbox", name="链名称（每个拷贝一个）" if zh else "Chain IDs (one per copy)"
+                )
+                chain.press_sequentially("STAT6")
+                expect(chain).to_have_value("STAT6")
+                expect(chain).to_be_focused()
+                assert chain.evaluate("e => e.closest('details').open")
+                card.get_by_role("button", name="添加修饰" if zh else "Add modification").click()
+                ccd = card.get_by_role("textbox", name="CCD", exact=True)
+                ccd.fill("")
+                ccd.press_sequentially("CCD_MSE")
+                expect(ccd).to_have_value("CCD_MSE")
+                expect(ccd).to_be_focused()
+                assert ccd.evaluate("e => e.closest('details').open")
+            page.evaluate("document.fonts.ready")
+            assert page.evaluate("document.documentElement.dataset.theme") == theme
+            assert protein.evaluate("e => getComputedStyle(e).fontFamily").startswith(
+                '"JetBrains Mono"'
+            )
+            assert page.evaluate("document.fonts.check('500 12px \"JetBrains Mono\"')")
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth+1")
             page.screenshot(path=root / f"{tool}-entities.png", full_page=True)
             covered.append(tool)
@@ -103,10 +144,12 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width):
                 {
                     "language": language,
                     "width": width,
+                    "theme": theme,
                     "covered_forms": covered,
                     "input": "Public STAT6 P42226 canonical sequence; owner-defined warhead",
                     "retained_inputs": True,
                     "collapsed_inputs_still_mounted": True,
+                    "expert_typing_preserves_focus": True,
                     "scientific_submissions": 0,
                     "writes": writes,
                     "scientific_acceptance": False,

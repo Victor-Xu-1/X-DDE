@@ -5,6 +5,7 @@ import os
 import subprocess
 
 PATTERNS = (
+    "frontend/public/fonts/jetbrains-mono/*",
     "frontend/public/fonts/plus-jakarta/*",
     "frontend/src/presentation/Prediction*",
     "frontend/src/presentation/prediction-*.css",
@@ -98,6 +99,10 @@ INPUT_PREVIEW_FILES = {
 }
 
 ENTITY_INPUT_FILES = {
+    "frontend/public/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2",
+    "frontend/public/fonts/jetbrains-mono/OFL.txt",
+    "frontend/public/fonts/jetbrains-mono/provenance.json",
+    "frontend/src/operations/EntityOptions.tsx",
     ".github/workflows/mol1-restraint-checks.yml",
     "frontend/src/guided/MolecularInputs.tsx",
     "frontend/src/guided/MolecularInputs.test.tsx",
@@ -111,6 +116,8 @@ ENTITY_INPUT_FILES = {
     "frontend/src/presentation/PredictionMolecularFields.tsx",
     "frontend/src/presentation/PredictionEntityEditing.test.tsx",
     "frontend/src/presentation/prediction-entity-card.css",
+    "frontend/src/presentation/prediction-inputs.css",
+    "frontend/src/presentation/prediction-workspace.css",
     "server_tests/test_prediction_entities_browser.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
@@ -131,7 +138,12 @@ def entity_inputs_only(changed, event="push"):
     return (
         event in {"push", "pull_request"}
         and bool(
-            {name for name in ENTITY_INPUT_FILES if name.startswith("frontend/src/")} & changed
+            {
+                name
+                for name in ENTITY_INPUT_FILES
+                if name.startswith(("frontend/src/", "frontend/public/fonts/jetbrains-mono/"))
+            }
+            & changed
         )
         and changed <= ENTITY_INPUT_FILES
     )

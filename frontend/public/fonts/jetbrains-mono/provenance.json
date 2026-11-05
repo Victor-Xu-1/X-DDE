@@ -1,0 +1,11 @@
+{
+  "family": "JetBrains Mono",
+  "weight": 500,
+  "source_repository": "https://github.com/JetBrains/JetBrainsMono",
+  "revision": "cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9",
+  "release": "v2.304",
+  "license": "OFL-1.1",
+  "source_url": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9/fonts/webfonts/JetBrainsMono-Medium.woff2",
+  "sha256": "086c48dfbea9ddaff1320f7e09399b8e2924e88ce67453721255db3bdbb5a353",
+  "bytes": 93824
+}

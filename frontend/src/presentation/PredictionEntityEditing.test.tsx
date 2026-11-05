@@ -141,6 +141,87 @@ it("retains input DOM, edits, copies and collapse state on the same surviving en
   ).toHaveValue("CCD_NAD");
 });
 
+it("keeps expert fields focused and expanded throughout chain and modification edits", async () => {
+  const user = userEvent.setup();
+  render(<Editor />);
+  const protein = screen.getByRole("article", {
+    name: /^Protein 1$/,
+  });
+  await user.click(
+    within(protein).getByText("Chains, modifications and precomputed features"),
+  );
+  const chain = within(protein).getByRole("textbox", {
+    name: "Chain IDs (one per copy)",
+  });
+  await user.type(chain, "STAT6");
+  expect(chain).toHaveValue("STAT6");
+  expect(chain).toHaveFocus();
+  expect(within(protein).getByLabelText("Chain IDs (one per copy)")).toBe(
+    chain,
+  );
+  expect(chain.closest("details")).toHaveAttribute("open");
+  await user.click(
+    within(protein).getByRole("button", { name: "Add modification" }),
+  );
+  const modification = within(protein).getByRole("textbox", {
+    name: /^CCD$/,
+  });
+  await user.clear(modification);
+  await user.type(modification, "CCD_MSE");
+  expect(modification).toHaveValue("CCD_MSE");
+  expect(modification).toHaveFocus();
+  expect(within(protein).getByLabelText("CCD", { exact: true })).toBe(
+    modification,
+  );
+  expect(modification.closest("details")).toHaveAttribute("open");
+  const current = JSON.parse(
+    screen.getByLabelText("Current entity inputs").textContent!,
+  );
+  expect(current[0].chain_ids).toEqual(["STAT6"]);
+  expect(current[0].modifications).toEqual([{ position: 1, ccd: "CCD_MSE" }]);
+});
+
+it("ignores an MSA reply for a chain identity edited while the upload was pending", async () => {
+  const asset = {
+    id: "11111111-1111-4111-8111-111111111111",
+    kind: "msa" as const,
+    name: "controlled.a3m",
+    sha256: "a".repeat(64),
+    suffix: ".a3m",
+    size: 25,
+    created_at: "",
+  };
+  let finish!: (value: typeof asset) => void;
+  vi.spyOn(api, "upload").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const user = userEvent.setup();
+  render(<Editor />);
+  const protein = screen.getByRole("article", { name: /^Protein 1$/ });
+  await user.click(
+    within(protein).getByText("Chains, modifications and precomputed features"),
+  );
+  await user.upload(
+    within(protein).getByLabelText("Upload Unpaired MSA"),
+    new File(["controlled transport, not scientific alignment"], asset.name),
+  );
+  expect(finish).toBeTypeOf("function");
+  const chain = within(protein).getByRole("textbox", {
+    name: "Chain IDs (one per copy)",
+  });
+  await user.type(chain, "STAT6");
+  await act(async () => finish(asset));
+  const current = JSON.parse(
+    screen.getByLabelText("Current entity inputs").textContent!,
+  );
+  expect(current[0].chain_ids).toEqual(["STAT6"]);
+  expect(current[0].unpaired_msa).toBeFalsy();
+  expect(chain).toHaveFocus();
+});
+
 it("keeps a newer molecular entry when an older upload finishes", async () => {
   const asset = {
     id: "11111111-1111-4111-8111-111111111111",

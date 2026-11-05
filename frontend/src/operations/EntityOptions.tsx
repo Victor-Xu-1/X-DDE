@@ -16,7 +16,15 @@ export function EntityOptions({
   features?: boolean;
 }) {
   const zh = language === "zh",
-    polymer = ["protein", "dna", "rna"].includes(value.kind);
+    polymer = ["protein", "dna", "rna"].includes(value.kind),
+    // Cancel pending files when their molecular context changes, without
+    // remounting the chain/modification fields that are being edited.
+    fileContext = JSON.stringify([
+      value.kind,
+      value.value,
+      value.chain_ids,
+      value.modifications,
+    ]);
   return (
     <>
       {value.kind === "ligand" && (
@@ -30,6 +38,7 @@ export function EntityOptions({
               : "Use one 3D structure per ligand. Split multi-record SDF files; property calculations accept whole libraries."}
           </p>
           <AssetPicker
+            key={"ligand:" + fileContext}
             label={zh ? "配体文件" : "Ligand file"}
             kind="ligand"
             value={value.ligand_file ?? ""}
@@ -143,6 +152,7 @@ export function EntityOptions({
           )}
           {(value.kind === "protein" || value.kind === "rna") && (
             <AssetPicker
+              key={"unpaired:" + fileContext}
               kind="msa"
               value={value.unpaired_msa ?? ""}
               onChange={(id) => onChange({ unpaired_msa: id || null })}
@@ -153,6 +163,7 @@ export function EntityOptions({
           {value.kind === "protein" && (
             <>
               <AssetPicker
+                key={"paired:" + fileContext}
                 kind="msa"
                 value={value.paired_msa ?? ""}
                 onChange={(id) => onChange({ paired_msa: id || null })}
@@ -160,6 +171,7 @@ export function EntityOptions({
                 label={zh ? "配对 MSA" : "Paired MSA"}
               />
               <AssetPicker
+                key={"template:" + fileContext}
                 kind="template"
                 value={value.template_hits ?? ""}
                 onChange={(id) => onChange({ template_hits: id || null })}

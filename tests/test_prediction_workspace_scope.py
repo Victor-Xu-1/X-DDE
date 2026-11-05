@@ -16,6 +16,9 @@ def test_entity_editing_delegates_only_its_direct_forms_and_never_engines_or_vie
     assert scope.entity_inputs_only(files)
     assert scope.entity_inputs_only(files, "pull_request")
     assert scope.prediction_only(files)
+    assert scope.entity_inputs_only(files + ["frontend/src/operations/EntityOptions.tsx"])
+    assert scope.entity_inputs_only(["frontend/public/fonts/jetbrains-mono/OFL.txt"])
+    assert scope.selected(["frontend/public/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2"])
     assert not scope.entity_inputs_only(files, "workflow_dispatch")
     assert not scope.entity_inputs_only([".github/workflows/prediction-workspace-checks.yml"])
     for unrelated in [

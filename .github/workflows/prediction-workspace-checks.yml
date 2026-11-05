@@ -2,6 +2,8 @@ name: Prediction workspace presentation checks
 on:
   push:
     paths: &paths
+      - "frontend/public/fonts/jetbrains-mono/*"
+      - "frontend/src/operations/EntityOptions.tsx"
       - "frontend/public/fonts/plus-jakarta/*"
       - "frontend/src/tokens.css"
       - "frontend/src/presentation/Prediction*"
