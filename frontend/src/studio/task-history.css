@@ -126,7 +126,11 @@
   margin-bottom: 12px;
 }
 .task-history-workspace .history-date-dialog .history-calendar-month select,
-.task-history-workspace .history-date-dialog .history-calendar-month input {
+.studio-app
+  .task-history-workspace
+  .history-date-dialog
+  .history-calendar-month
+  input[type="number"] {
   width: 100%;
   min-height: 32px;
   padding: 4px;
