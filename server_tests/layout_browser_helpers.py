@@ -316,7 +316,8 @@ def flat_surface_styles(page):
         const nodes = [...document.querySelectorAll('main ' + selectors.split(',').join(',main '))]
             .filter(e => e.getBoundingClientRect().height>0 &&
                 !e.closest('dialog,.component-removal'))
-            .filter(e => !(e.matches('.prediction-setup-layout .component-card[data-entity-kind]') &&
+            .filter(e => !(
+                e.matches('.prediction-setup-layout .component-card[data-entity-kind]') &&
                 e.querySelector(':scope > .component-heading [data-entity-index]') &&
                 e.querySelector('input,select,textarea')));
         const framed = nodes.map(e => {
