@@ -7,19 +7,23 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 
 from .asset_records import molecular_record_response
+from .asset_upload_workers import AssetUploadWorkers
 from .assets import AssetKind, AssetStore
 from .disk_space import StorageCapacityError, StorageUnavailable, require_space
 
 
-def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_bytes=0):
+def register_assets(
+    app: FastAPI,
+    assets: AssetStore,
+    mutation,
+    minimum_free_bytes=0,
+    *,
+    workers: AssetUploadWorkers | None = None,
+):
     uploads = asyncio.Semaphore(2)
-    pending = set()
+    workers = workers or AssetUploadWorkers()
 
     def release_upload(worker):
-        # An interrupted request cannot observe a later worker exception.
-        # Retrieve it here as well as releasing the worker's admission slot.
-        if not worker.cancelled():
-            worker.exception()
         uploads.release()
 
     @app.get("/api/assets")
@@ -38,9 +42,7 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_byt
             nonlocal worker
             # Shield the executor Future itself: cancelling the request (or its
             # deadline) cannot cancel the synchronous work or release its slot.
-            worker = asyncio.get_running_loop().run_in_executor(None, function, *args)
-            pending.add(worker)
-            worker.add_done_callback(pending.discard)
+            worker = workers.start(function, *args)
             return await asyncio.shield(worker)
 
         try:
@@ -115,14 +117,4 @@ def register_assets(app: FastAPI, assets: AssetStore, mutation, minimum_free_byt
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
 
-    async def close_uploads():
-        # Uvicorn drains/cancels request tasks before application shutdown, but
-        # cancelled/expired requests can still own executor work. Finish that
-        # work before the lifespan exits and Uvicorn replays its stop signal.
-        while pending:
-            await asyncio.gather(
-                *(asyncio.shield(worker) for worker in tuple(pending)),
-                return_exceptions=True,
-            )
-
-    return close_uploads
+    return workers.close
