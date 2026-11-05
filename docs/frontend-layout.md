@@ -663,3 +663,19 @@ Residue confidence is the mean of its native atom pLDDT values. PAE keeps native
 ### Boltz chain alignment input
 
 Boltz-2 keeps its native per-protein A3M/CSV alignment, 25 MiB limit and explicit single-sequence baseline. The sequence card exposes a compact chain MSA button. Its existing shared 520 px / 16 px-radius dialog stages changes until Save; Cancel, Escape, hidden/removed owners and late uploads cannot commit them. Save requires the exact file/sequence alignment check. Switching explicitly to single sequence clears only that chain's selected MSA; original files remain in history. No automatic search or Mol-1 paired/unpaired-file semantics are added. Optional ligand files are disclosed beside SMILES; selected file record/conformer/version and asynchronous row ownership retain their original authority. This increment does not restyle the advanced calculation plan or claim full-product pixel parity.
+# Native calculation planning
+
+ScientificChoices owns the common calculation-plan interface. Output budgets expose
+the actual validated integer ranges for Boltz (1–10), LigandMPNN (1–100), REINVENT
+(1–500) and BoltzGen (1–200, retaining 1–50 and no more than generated). Presets are
+shortcuts to these same fields. BoltzGen budgets are not repeated under advanced
+settings. Invalid edits remain invalid rather than silently adjusting another value.
+
+One advanced disclosure groups model parameters separately from compute resources.
+The scoped two-column grid becomes one column in narrow containers; unrelated
+scientific forms and native runtime controls retain their own contracts. This
+adopts the reference interface's visual hierarchy without implying that its model
+variants, seeds or runtime parameters are interchangeable. Calculation-plan CI
+covers exact budgets, direct form/validation consumers and compiled bilingual
+review without submitting or running scientific work.
+

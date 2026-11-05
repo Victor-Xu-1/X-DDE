@@ -23,6 +23,10 @@ on:
       - "frontend/src/integrations/ScientificSelection.tsx"
       - "frontend/src/integrations/ScientificResults*"
       - "frontend/src/integrations/ScientificChoices*"
+      - "frontend/src/integrations/ExpertChoices.tsx"
+      - "scripts/calculation-plan-scope.py"
+      - "tests/test_calculation_plan_scope.py"
+      - "server_tests/test_calculation_plan_browser.py"
       - "frontend/src/integrations/inputs.css"
       - "server_tests/test_reinvent_review_browser.py"
       - "server_tests/test_reinvent_native_browser.py"
@@ -39,9 +43,46 @@ jobs:
     uses: ./.github/workflows/property-model-review-checks.yml
     with:
       scope_only: true
+  calculation-plan:
+    needs: model-context
+    if: needs.model-context.outputs.calculation_plan_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Exact budget, expert disclosure and direct form/validation consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/ScientificChoicesBudget.test.tsx
+          src/integrations/ScientificChoices.test.tsx src/integrations/ScientificForm.test.tsx
+          src/integrations/ReinventForm.test.tsx src/integrations/validation.test.ts
+      - name: Closed selection and source checks; no native calculation
+        run: |
+          uv run --locked pytest -q tests/test_calculation_plan_scope.py
+          uv run --locked ruff check scripts/calculation-plan-scope.py tests/test_calculation_plan_scope.py server_tests/test_calculation_plan_browser.py
+      - name: Isolated bilingual compiled frontend; no submissions
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-calculation-plan" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-calculation-plan/state" >> "$GITHUB_ENV"
+          uv run --locked playwright install chromium --with-deps
+      - run: uv run --locked python -m pytest -x -q server_tests/test_calculation_plan_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calculation-plan-evidence
+          path: outputs/calculation-plan
+          if-no-files-found: warn
   design-review:
     needs: model-context
-    if: needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
+    if: needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
