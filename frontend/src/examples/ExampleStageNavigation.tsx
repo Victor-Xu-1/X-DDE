@@ -18,7 +18,10 @@ export function ExampleStageNavigation({
   const next = stages[index + 1];
   const label = zh ? "研究阶段结果" : "Study result stage";
   return (
-    <nav className="example-stage-navigation" aria-label={label}>
+    <nav
+      className="example-stage-navigation"
+      aria-label={zh ? "研究阶段导航" : "Study stage navigation"}
+    >
       <label>
         <span>{label}</span>
         <select

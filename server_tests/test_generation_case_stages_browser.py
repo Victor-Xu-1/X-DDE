@@ -96,10 +96,20 @@ def assert_template_replay(page, store, evidence, zh):
     ):
         assert visible[key] == original["payload"]["options"][key]
     next_step.click()
+    preview_label = "预览任务" if zh else "Preview job"
+    page.get_by_role("button", name=preview_label, exact=True).click()
+    dialog = page.get_by_role("dialog", name=preview_label)
     expect(
-        page.get_by_text("37 个选定残基" if zh else "37 selected residues", exact=True)
+        dialog.get_by_text("37 个选定残基" if zh else "37 selected residues", exact=True)
     ).to_be_visible()
     page.screenshot(path=evidence / "exact-template-review.png", full_page=True)
+    dialog.get_by_role("button", name="提交内容" if zh else "Request JSON", exact=True).click()
+    reviewed = json.loads(
+        dialog.get_by_label("X-DDE 提交请求" if zh else "X-DDE submission request").inner_text()
+    )
+    assert reviewed["payload"]["pocket"] == original["payload"]["pocket"]
+    assert reviewed["payload"]["protein"] == original["payload"]["protein"]
+    assert reviewed["payload"]["options"] == original["payload"]["options"]
     (evidence / "prepared-native-recipe.json").write_text(json.dumps(prepared, indent=2))
 
 
