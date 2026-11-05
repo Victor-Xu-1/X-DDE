@@ -3,7 +3,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
-  margin-block: 12px 16px;
   padding: 12px 16px;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -91,9 +90,6 @@
 .structure-workbench-toolbar {
   grid-column: 1 / -1;
   min-width: 0;
-}
-.structure-workbench-toolbar .candidate-review-bar {
-  margin: 0;
 }
 @media (min-width: 1001px) {
   .structure-workbench:fullscreen:has(> .structure-workbench-toolbar) {

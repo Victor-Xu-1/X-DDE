@@ -149,6 +149,7 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   );
   expect(screen.getByText(/实际范围/)).toBeVisible();
   expect(screen.getByRole("button", { name: "姿势 1" })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "预览姿势 1" })).toBeNull();
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "姿势 2" }));
   expect(screen.getByTestId("viewer")).toHaveTextContent(

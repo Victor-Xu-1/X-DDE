@@ -196,27 +196,29 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
       )}
       <StructureWorkbench
         toolbar={
-          <CandidateReviewBar
-            label={zh ? "姿势预览选择" : "Pose preview selection"}
-            caption={zh ? "姿势" : "Pose"}
-            candidates={qualified.map((pose) => ({
-              id: pose.record,
-              label: (zh ? "预览姿势 " : "Preview pose ") + (pose.record + 1),
-              short: pose.record + 1,
-            }))}
-            selected={inspectingPose ? selected?.record : undefined}
-            language={language}
-            onSelect={selectPose}
-            metrics={metrics}
-            actions={
-              inspectingPose &&
-              selected?.artifact && (
-                <a href={artifactUrl(job.id, selected.artifact)} download>
-                  {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-                </a>
-              )
-            }
-          />
+          qualified.length > 0 && (
+            <CandidateReviewBar
+              label={zh ? "姿势预览选择" : "Pose preview selection"}
+              caption={zh ? "姿势" : "Pose"}
+              candidates={qualified.map((pose) => ({
+                id: pose.record,
+                label: (zh ? "预览姿势 " : "Preview pose ") + (pose.record + 1),
+                short: pose.record + 1,
+              }))}
+              selected={inspectingPose ? selected?.record : undefined}
+              language={language}
+              onSelect={selectPose}
+              metrics={metrics}
+              actions={
+                inspectingPose &&
+                selected?.artifact && (
+                  <a href={artifactUrl(job.id, selected.artifact)} download>
+                    {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                  </a>
+                )
+              }
+            />
+          )
         }
         preview={
           <div className="result-inspector">
