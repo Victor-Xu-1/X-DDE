@@ -2,7 +2,8 @@ name: Sequence and pose-quality result checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    branches: [main]
+    paths: &sequence_result_paths
       - "frontend/src/presentation/SequenceTrack*"
       - "frontend/src/presentation/SequencePositions*"
       - "frontend/src/presentation/sequence-track.css"
@@ -21,6 +22,7 @@ on:
       - "frontend/src/humanization/sequence-alignment.css"
       - "frontend/src/quality/QualityResults*"
       - "frontend/src/quality/QualityCheckList*"
+      - "frontend/src/quality/QualityAssessmentBar.tsx"
       - "frontend/src/quality/quality-results.css"
       - "frontend/src/quality/tests/QualityResults.test.tsx"
       - "frontend/src/quality/tests/QualityAssessment.test.tsx"
@@ -33,6 +35,8 @@ on:
       - "server_tests/test_campaign_sequence_browser.py"
       - "server_tests/test_humanization_details_browser.py"
       - ".github/workflows/sequence-result-checks.yml"
+  pull_request:
+    paths: *sequence_result_paths
 permissions:
   contents: read
 jobs:
@@ -63,17 +67,22 @@ jobs:
       - name: Select only the changed result family
         id: scope
         env:
-          BASE_REVISION: ${{ github.event.before }}
+          BASE_REVISION: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           python - <<'PY'
           import os, subprocess
           base = os.environ.get("BASE_REVISION", "")
-          changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines() if base and set(base) != {"0"} else []
+          changed = set(subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()) if base and set(base) != {"0"} else set()
           mirrors = {"pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1"}
           own_checks = {"server_tests/test_humanization_details_browser.py", ".github/workflows/sequence-result-checks.yml"}
           only = bool(changed) and any(p.startswith("frontend/src/humanization/") for p in changed) and all(p.startswith("frontend/src/humanization/") or p in mirrors | own_checks for p in changed)
           quality_checks = {"server_tests/prepare_quality_context_cases.py", "server_tests/test_quality_context_browser.py", "tests/test_pose_quality.py", "docs/frontend-layout.md", ".github/workflows/sequence-result-checks.yml", ".github/workflows/structure-layout-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/task-layout-checks.yml"}
-          only_quality = bool(changed) and any(p.startswith("frontend/src/quality/") for p in changed) and all(p.startswith("frontend/src/quality/") or p in mirrors | quality_checks for p in changed)
+          quality_checks.update({
+              "frontend/src/presentation/structure-workbench.css",
+              "frontend/src/presentation/candidate-review-bar.css",
+              "server_tests/reviewed_batch_preview.py", "server_tests/test_sequence_results_browser.py",
+          })
+          only_quality = any(p.startswith("frontend/src/quality/") for p in changed) and all(p.startswith("frontend/src/quality/") or p in mirrors | quality_checks for p in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write("only_humanization=" + str(only).lower() + "\n")
               f.write("only_quality=" + str(only_quality).lower() + "\n")

@@ -1,63 +1,49 @@
+import { useState } from "react";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { Job, Language } from "../types";
 import { QualityPreview } from "./QualityPreview";
 import { QualityMeasurements } from "./QualityMeasurements";
 import type { PoseQualityResult } from "./types";
 import { QualityCheckList } from "./QualityCheckList";
-import { assessQuality, type AssessmentOutcome } from "./assessment";
-import { assessmentLabels } from "./labels";
+import {
+  assessQuality,
+  attentionCount,
+  type QualityFilter,
+} from "./assessment";
+import { QualityAssessmentBar } from "./QualityAssessmentBar";
 import "../presentation/result-inspection.css";
 import "./quality-results.css";
 
-export function QualityResults({
-  job,
-  result,
-  language,
-}: {
+interface QualityResultsProps {
   job: Job;
   result: PoseQualityResult;
   language: Language;
-}) {
+}
+
+export function QualityResults(props: QualityResultsProps) {
+  return <QualityWorkspace key={props.job.id} {...props} />;
+}
+
+function QualityWorkspace({ job, result, language }: QualityResultsProps) {
   const zh = language === "zh";
   const assessment = assessQuality(result);
+  const [choice, setChoice] = useState<QualityFilter>();
+  const filter =
+    choice ?? (attentionCount(assessment.counts) ? "attention" : "all");
   return (
     <section
       className="discovery-results quality-results"
       aria-label={zh ? "构象与姿势质控结果" : "Pose quality results"}
     >
-      <p
-        role="status"
-        className="quality-assessment-summary"
-        aria-label={zh ? "质控评估摘要" : "Quality assessment summary"}
-      >
-        <strong>
-          {assessment.classification === "passes"
-            ? zh
-              ? "已通过全部适用检查"
-              : "All applicable checks passed"
-            : assessment.classification === "fails"
-              ? zh
-                ? "存在需要复核的项目"
-                : "Some checks need review"
-              : assessment.counts.unassessed > 0
-                ? zh
-                  ? "部分项目未评估"
-                  : "Some checks were not assessed"
-                : zh
-                  ? "检查未完整完成"
-                  : "Checks are incomplete"}
-        </strong>
-        <span className="quality-assessment-counts">
-          {(Object.keys(assessment.counts) as AssessmentOutcome[])
-            .filter((id) => assessment.counts[id] > 0)
-            .map((id) => (
-              <span key={id} className={"quality-outcome is-" + id}>
-                {assessmentLabels[id][zh ? 0 : 1]}: {assessment.counts[id]}
-              </span>
-            ))}
-        </span>
-      </p>
       <StructureWorkbench
+        toolbar={
+          <QualityAssessmentBar
+            assessment={assessment}
+            language={language}
+            filter={filter}
+            onFilter={setChoice}
+          />
+        }
         preview={
           <div className="result-inspection-detail">
             <QualityPreview
@@ -73,6 +59,7 @@ export function QualityResults({
         <QualityCheckList
           key={job.id}
           checks={assessment.checks}
+          filter={filter}
           language={language}
         />
       </StructureWorkbench>

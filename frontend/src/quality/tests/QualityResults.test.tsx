@@ -51,11 +51,12 @@ it("keeps all check categories reachable and never treats a missing preview or c
   const result = {
     classification: "incomplete",
     inputs: {},
+    metrics: { number_bonds: 12 },
     previews_sha256: {},
     checks: [
       { id: "bond_lengths", outcome: "pass" },
-      { id: "bond_angles", outcome: "fail" },
       { id: "internal_energy", outcome: "unavailable" },
+      { id: "bond_angles", outcome: "fail" },
     ],
   } as unknown as PoseQualityResult;
   const user = userEvent.setup();
@@ -66,11 +67,16 @@ it("keeps all check categories reachable and never treats a missing preview or c
     screen.getByText("This quality result contains no preview structure."),
   ).toBeVisible();
   const table = screen.getByRole("table", { name: "Quality check outcomes" });
-  expect(within(table).getAllByRole("row")).toHaveLength(4);
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "Which checks?" }),
-    "unavailable",
+  const filter = screen.getByRole("combobox", { name: "Which checks?" });
+  expect(filter).toHaveValue("attention");
+  expect(within(table).getAllByRole("row")).toHaveLength(3);
+  expect(within(table).getAllByRole("row")[1]).toHaveTextContent(
+    "Needs review",
   );
+  expect(within(table).queryByText("Pass")).toBeNull();
+  await user.selectOptions(filter, "all");
+  expect(within(table).getAllByRole("row")).toHaveLength(4);
+  await user.selectOptions(filter, "unavailable");
   expect(within(table).getAllByRole("row")).toHaveLength(2);
   expect(within(table).getByText("Not calculated")).toBeVisible();
   expect(within(table).queryByText("Pass")).toBeNull();

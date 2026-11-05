@@ -97,3 +97,25 @@ export function assessQuality(result: PoseQualityResult) {
       : "passes";
   return { checks, counts, nativeCounts, assessed, classification };
 }
+
+export const attentionOutcomes = ["fail", "unassessed", "unavailable"] as const;
+export type QualityFilter = AssessmentOutcome | "attention" | "all";
+
+export function attentionCount(counts: Record<AssessmentOutcome, number>) {
+  return attentionOutcomes.reduce(
+    (total, outcome) => total + counts[outcome],
+    0,
+  );
+}
+
+export function filterQualityChecks(
+  checks: readonly AssessedCheck[],
+  filter: QualityFilter,
+) {
+  if (filter === "all") return checks;
+  if (filter === "attention")
+    return attentionOutcomes.flatMap((outcome) =>
+      checks.filter((check) => check.assessment === outcome),
+    );
+  return checks.filter((check) => check.assessment === filter);
+}
