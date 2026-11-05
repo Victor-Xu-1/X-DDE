@@ -216,6 +216,12 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         expect(page.locator(".questionnaire:visible > fieldset:not([hidden])")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "supporting-inputs.png"), full_page=True)
+        if width <= 960:
+            page.get_by_role(
+                "button",
+                name="打开研究导航" if zh else "Open research navigation",
+                exact=True,
+            ).click()
         page.get_by_role(
             "button", name="结构预测" if zh else "Structure prediction", exact=True
         ).click()
