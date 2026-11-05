@@ -6,6 +6,7 @@ import subprocess
 
 PATTERNS = (
     "frontend/src/diffsbdd/GeneratedCandidates*",
+    "frontend/src/presentation/MolecularPreview.tsx",
     "frontend/src/diffsbdd/GeneratedMetricsView*",
     "frontend/src/diffsbdd/generated-metrics*",
     "frontend/src/diffsbdd/DiffResults*",
@@ -41,7 +42,7 @@ def main():
     base = os.environ.get("BASE", "")
     reference = os.environ.get("GITHUB_REF_NAME", "")
     default = os.environ.get("DEFAULT_BRANCH", "main")
-    if reference and reference != default:
+    if reference and reference != default and (not base or set(base) == {"0"}):
         base = git("merge-base", "origin/" + default, "HEAD")
     changed = (
         git("diff", "--name-only", base, "HEAD").splitlines() if base and set(base) != {"0"} else []

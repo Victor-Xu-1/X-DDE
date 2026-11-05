@@ -75,7 +75,15 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         )
         expect(table).to_be_visible(timeout=30000)
         selected = table.get_by_role("button", name="候选 2" if zh else "Candidate 2", exact=True)
-        selected.click()
+        strip = page.get_by_role(
+            "region", name="生成候选预览" if zh else "Generated candidate preview"
+        )
+        preview_choice = strip.get_by_role(
+            "button", name="预览候选 2" if zh else "Preview candidate 2", exact=True
+        )
+        preview_choice.click()
+        expect(preview_choice).to_have_attribute("aria-pressed", "true")
+        expect(strip).to_contain_text(str(native_row["qed"]))
         expect(selected).to_have_attribute("aria-pressed", "true")
         expect(
             table.get_by_role("columnheader", name="输出重原子数" if zh else "Output heavy atoms")
@@ -138,7 +146,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         )
         expect(checks).to_contain_text(label)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
-        capture = preview.get_by_role(
+        candidate_panel = preview.get_by_role("tabpanel", name="三维结构" if zh else "3D structure")
+        capture = candidate_panel.get_by_role(
             "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
         )
         expect(capture).to_be_enabled(timeout=30000)
@@ -148,6 +157,20 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         assert molecular_frame
         first_load = molecular_frame.evaluate("window.__nativeViewerLoads.at(-1)")
         assert first_load and 1 in first_load["records"]
+        receptor_tab = preview.get_by_role("tab", name="原始受体" if zh else "Original receptor")
+        receptor_tab.click()
+        receptor_panel = preview.get_by_role("tabpanel", name="原始受体" if zh else "Original receptor")
+        receptor_scene = receptor_panel.locator(".molecular-stage iframe")
+        expect(receptor_scene).to_be_visible()
+        receptor_frame = receptor_scene.element_handle().content_frame()
+        expect(receptor_frame.locator("html")).to_have_attribute(
+            "data-native-viewer-load-count", "1", timeout=30000
+        )
+        receptor_load = receptor_frame.evaluate("window.__nativeViewerLoads.at(-1)")
+        assert receptor_load["urls"] == first_load["urls"][:1]
+        expect(selected).to_have_attribute("aria-pressed", "true")
+        preview.get_by_role("tab", name="三维结构" if zh else "3D structure").click()
+        expect(capture).to_be_enabled(timeout=30000)
         with molecular_frame.expect_navigation(wait_until="load", timeout=30000):
             molecular_frame.evaluate("location.reload()")
         expect(molecular_frame.locator("html")).to_have_attribute(

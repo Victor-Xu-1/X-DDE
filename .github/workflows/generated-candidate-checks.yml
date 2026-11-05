@@ -10,6 +10,7 @@ on:
       - "frontend/src/diffsbdd/DiffQualityHandoff*"
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/GeneratedCandidates*"
+      - "frontend/src/presentation/MolecularPreview.tsx"
       - "frontend/src/diffsbdd/generated-metrics*"
       - "frontend/src/diffsbdd/generated-columns*"
       - "frontend/src/diffsbdd/GeneratedMetricsView*"

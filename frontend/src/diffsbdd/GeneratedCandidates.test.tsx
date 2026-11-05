@@ -69,8 +69,12 @@ it("does not attach per-candidate metrics when the result records cannot be matc
     />,
   );
   expect(screen.getByText(/Batch checks are incomplete/)).toBeVisible();
-  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
-  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+  expect(
+    screen.getByText(/Per-structure checks are unavailable/),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("region", { name: "Selected structure checks" }),
+  ).toBeNull();
   expect(screen.queryByText("410.45")).toBeNull();
 });
 
@@ -84,6 +88,7 @@ it("uses the same verified original record for selected and batch metrics", () =
     maximum_displacement: null,
     mapping: [],
   });
+  const onSelect = vi.fn();
   render(
     <GeneratedCandidates
       records={rows}
@@ -98,13 +103,26 @@ it("uses the same verified original record for selected and batch metrics", () =
         candidates: [entry(0, 1), entry(1, 0)],
       }}
       language="en"
-      onSelect={vi.fn()}
+      onSelect={onSelect}
     />,
   );
-  expect(screen.getByRole("region", { name: "Selected structure checks" }))
-    .toHaveTextContent("Contains 3 disconnected components");
-  expect(screen.getByRole("region", { name: "Batch structure checks" }))
-    .toHaveTextContent("1 / 2");
+  expect(
+    screen.getByRole("region", { name: "Selected structure checks" }),
+  ).toHaveTextContent("Contains 3 disconnected components");
+  const strip = screen.getByRole("region", {
+    name: "Generated candidate preview",
+  });
+  expect(
+    within(strip).getByRole("button", { name: "Preview candidate 2" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(within(strip).getByText("0.2")).toBeVisible();
+  fireEvent.click(
+    within(strip).getByRole("button", { name: "Preview candidate 1" }),
+  );
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(rows[1]);
+  expect(
+    screen.getByRole("region", { name: "Batch structure checks" }),
+  ).toHaveTextContent("1 / 2");
 });
 
 it("does not show candidate properties for ambiguous qualified-record mappings", () => {
@@ -134,8 +152,12 @@ it("does not show candidate properties for ambiguous qualified-record mappings",
       onSelect={vi.fn()}
     />,
   );
-  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
-  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+  expect(
+    screen.getByText(/Per-structure checks are unavailable/),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("region", { name: "Selected structure checks" }),
+  ).toBeNull();
   expect(screen.queryByText("Fixed-region checks passed")).toBeNull();
 });
 
@@ -166,11 +188,17 @@ it("retains independently verified core labels when property metrics are unavail
       onSelect={vi.fn()}
     />,
   );
-  expect(screen.getByRole("button", {
-    name: "Candidate 2 · Fixed-region checks passed",
-  })).toBeVisible();
-  expect(screen.getByText(/Per-structure checks are unavailable/)).toBeVisible();
-  expect(screen.queryByRole("region", { name: "Selected structure checks" })).toBeNull();
+  expect(
+    screen.getByRole("button", {
+      name: "Candidate 2 · Fixed-region checks passed",
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/Per-structure checks are unavailable/),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("region", { name: "Selected structure checks" }),
+  ).toBeNull();
 });
 
 it.each(["en", "zh"] as const)(
