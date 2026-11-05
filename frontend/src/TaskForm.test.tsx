@@ -12,6 +12,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { TaskForm } from "./TaskForm";
 import { request } from "./api";
 import type { Job, Prediction } from "./types";
+import { defaults } from "./form-model";
 vi.mock("./api", async (original) => {
   const actual = await original<typeof import("./api")>();
   return {
@@ -53,6 +54,46 @@ async function openReview(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Preview job" }));
   return within(await screen.findByRole("dialog", { name: "Preview job" }));
 }
+
+it("blocks remote MSA search at the settings step until explicit sequence consent", async () => {
+  const user = userEvent.setup(),
+    submit = vi.fn();
+  render(
+    <TaskForm
+      language="en"
+      ready
+      onSubmit={submit}
+      initialRequest={{
+        name: "STAT6 settings admission",
+        components: [
+          { kind: "protein", count: 1, value: "MSLWGLVSKM" },
+          {
+            kind: "ligand",
+            count: 1,
+            value:
+              "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+          },
+        ],
+        parameters: {
+          ...defaults,
+          feature_mode: "search",
+          allow_network: false,
+        },
+      }}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(screen.getByText("Search needs network permission")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "MSA settings" }));
+  await user.click(
+    screen.getByRole("checkbox", { name: /Allow this task to send sequences/ }),
+  );
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+  expect(submit).not.toHaveBeenCalled();
+});
 it("localizes material guidance without replacing the user's sequence or stereochemistry", async () => {
   const submit = vi.fn(),
     user = userEvent.setup();

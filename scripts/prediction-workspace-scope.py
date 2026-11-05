@@ -165,6 +165,7 @@ FEATURE_SETTING_FILES = (
     | {
         ".github/workflows/template-controls-checks.yml",
         "frontend/src/TaskForm.tsx",
+        "frontend/src/TaskForm.test.tsx",
         "frontend/src/integrations/Mol1Form.test.tsx",
         "frontend/src/operations/ExpertParameters.tsx",
         "frontend/src/operations/operations.test.tsx",
