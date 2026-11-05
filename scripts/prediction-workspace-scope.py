@@ -152,6 +152,7 @@ def entity_inputs_only(changed, event="push"):
 
 
 BOLTZ_INPUT_SOURCES = {
+    "server_tests/test_boltz_input_settings_browser.py",
     "frontend/src/integrations/BoltzInputs.test.tsx",
     "frontend/src/integrations/BoltzInputs.tsx",
     "frontend/src/integrations/BoltzMsaInput.tsx",

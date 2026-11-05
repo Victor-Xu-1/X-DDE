@@ -10,6 +10,7 @@ spec.loader.exec_module(scope)
 
 def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():
     files = sorted(scope.BOLTZ_INPUT_FILES)
+    assert scope.boltz_inputs_only(["server_tests/test_boltz_input_settings_browser.py"])
     assert scope.boltz_inputs_only(files)
     assert scope.boltz_inputs_only(files, "pull_request")
     assert scope.prediction_only(files)
