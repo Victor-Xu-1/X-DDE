@@ -17,6 +17,12 @@ form retains its own supported types, copy limits, source identities and
 readiness; the shared card does not invent model capabilities.
 Changing molecular context cancels pending file selection only; chain and
 modification inputs retain their DOM, focus and expanded section while typing.
+Mol-1 keeps MSA/template file selection in its supporting-information step, rather
+than exposing duplicate selectors in the study step. Both mounted steps share a
+form-owned view-key registry. Supporting-file replies preserve newer settings and
+covalent bonds; molecular edits still invalidate their dependent setup. Bulk
+feature clearing retains view keys, while changed sequence/chain context cancels
+only the corresponding pending file pickers.
 Sequence fields use locally bundled JetBrains Mono Medium from its pinned
 official v2.304 revision, with OFL and checksum under
 `frontend/public/fonts/jetbrains-mono`. Protein, DNA, RNA, ligand and ion headers

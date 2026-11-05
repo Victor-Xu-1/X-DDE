@@ -47,6 +47,8 @@ on:
       - "frontend/src/viewer/display-readiness*"
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
+      - "frontend/src/integrations/Mol1FeatureInputs.tsx"
+      - "frontend/src/integrations/Mol1FeatureInputs.test.tsx"
       - "frontend/src/integrations/Mol1Form.test.tsx"
       - "frontend/src/integrations/Mol1Composition.ts"
       - "frontend/src/integrations/Mol1JobReview.tsx"
@@ -198,6 +200,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionEntityEditing.test.tsx
+          src/integrations/Mol1FeatureInputs.test.tsx
           src/guided/MolecularInputs.test.tsx src/TaskForm.test.tsx
           src/guided/workflows.test.tsx src/integrations/Mol1Form.test.tsx
           src/integrations/ScientificForm.test.tsx src/integrations/BoltzInputs.test.tsx

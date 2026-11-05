@@ -10,6 +10,7 @@ export function PredictionMolecularFields({
   language,
   expert,
   features,
+  supportingFiles,
   onChange,
 }: {
   item: Component;
@@ -18,6 +19,7 @@ export function PredictionMolecularFields({
   language: Language;
   expert: boolean;
   features: boolean;
+  supportingFiles?: boolean;
   onChange(patch: Partial<Component>): void;
 }) {
   const zh = language === "zh",
@@ -74,6 +76,7 @@ export function PredictionMolecularFields({
         language={language}
         expert={expert}
         features={features}
+        supportingFiles={supportingFiles}
       />
     </>
   );

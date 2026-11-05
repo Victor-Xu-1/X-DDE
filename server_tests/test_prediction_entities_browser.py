@@ -109,7 +109,9 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width, theme)
                         exact=True,
                     ).check()
                 card.get_by_text(
-                    "链、修饰与预先计算的特征"
+                    ("链与残基修饰" if zh else "Chains and modifications")
+                    if tool == "mol1.predict"
+                    else "链、修饰与预先计算的特征"
                     if zh
                     else "Chains, modifications and precomputed features",
                     exact=True,

@@ -4,15 +4,17 @@ import type { Component } from "../types";
 /** View identities only. The parent's functional state remains the input authority. */
 export function usePredictionEntityState(
   onChange: Dispatch<SetStateAction<Component[]>>,
+  sharedKeys?: WeakMap<Component, string>,
 ) {
   const scope = useId();
-  const keys = useRef(new WeakMap<Component, string>());
+  const localKeys = useRef(new WeakMap<Component, string>());
+  const keys = sharedKeys ?? localKeys.current;
   const serial = useRef(0);
   function key(item: Component) {
-    let value = keys.current.get(item);
+    let value = keys.get(item);
     if (!value) {
       value = scope + "-entity-" + serial.current++;
-      keys.current.set(item, value);
+      keys.set(item, value);
     }
     return value;
   }
@@ -21,7 +23,7 @@ export function usePredictionEntityState(
       const index = previous.findIndex((item) => key(item) === id);
       if (index < 0) return previous;
       const changed = { ...previous[index], ...patch };
-      keys.current.set(changed, id);
+      keys.set(changed, id);
       return previous.map((item, n) => (n === index ? changed : item));
     });
   }
@@ -30,6 +32,15 @@ export function usePredictionEntityState(
       previous.length > 1
         ? previous.filter((item) => key(item) !== id)
         : previous,
+    );
+  }
+  function updateAll(patch: Partial<Component>) {
+    onChange((previous) =>
+      previous.map((item) => {
+        const changed = { ...item, ...patch };
+        keys.set(changed, key(item));
+        return changed;
+      }),
     );
   }
   function add(kind: Component["kind"]) {
@@ -43,5 +54,5 @@ export function usePredictionEntityState(
       previous.length < 8 ? [...previous, item] : previous,
     );
   }
-  return { key, update, remove, add };
+  return { key, update, updateAll, remove, add };
 }

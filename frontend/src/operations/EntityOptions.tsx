@@ -8,12 +8,14 @@ export function EntityOptions({
   language,
   expert,
   features = false,
+  supportingFiles = true,
 }: {
   value: Component;
   onChange(p: Partial<Component>): void;
   language: Language;
   expert: boolean;
   features?: boolean;
+  supportingFiles?: boolean;
 }) {
   const zh = language === "zh",
     polymer = ["protein", "dna", "rna"].includes(value.kind),
@@ -52,12 +54,16 @@ export function EntityOptions({
           />
         </details>
       )}
-      {(expert || features) && (
+      {(expert || (features && supportingFiles)) && (
         <details open={features || undefined}>
           <summary>
-            {zh
-              ? "链、修饰与预先计算的特征"
-              : "Chains, modifications and precomputed features"}
+            {!supportingFiles
+              ? zh
+                ? "链与残基修饰"
+                : "Chains and modifications"
+              : zh
+                ? "链、修饰与预先计算的特征"
+                : "Chains, modifications and precomputed features"}
           </summary>
           {expert && (
             <label className="field">
@@ -150,17 +156,18 @@ export function EntityOptions({
               </button>
             </div>
           )}
-          {(value.kind === "protein" || value.kind === "rna") && (
-            <AssetPicker
-              key={"unpaired:" + fileContext}
-              kind="msa"
-              value={value.unpaired_msa ?? ""}
-              onChange={(id) => onChange({ unpaired_msa: id || null })}
-              language={language}
-              label={zh ? "非配对 MSA" : "Unpaired MSA"}
-            />
-          )}
-          {value.kind === "protein" && (
+          {supportingFiles &&
+            (value.kind === "protein" || value.kind === "rna") && (
+              <AssetPicker
+                key={"unpaired:" + fileContext}
+                kind="msa"
+                value={value.unpaired_msa ?? ""}
+                onChange={(id) => onChange({ unpaired_msa: id || null })}
+                language={language}
+                label={zh ? "非配对 MSA" : "Unpaired MSA"}
+              />
+            )}
+          {supportingFiles && value.kind === "protein" && (
             <>
               <AssetPicker
                 key={"paired:" + fileContext}

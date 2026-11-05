@@ -19,6 +19,8 @@ export function MolecularInputs({
   features = false,
   allowedKinds,
   showHeading = true,
+  entityKeys,
+  supportingFiles,
 }: {
   items: Component[];
   onChange: Dispatch<SetStateAction<Component[]>>;
@@ -28,11 +30,13 @@ export function MolecularInputs({
   features?: boolean;
   allowedKinds?: Component["kind"][];
   showHeading?: boolean;
+  entityKeys?: WeakMap<Component, string>;
+  supportingFiles?: boolean;
 }) {
   const t = translator(language),
     zh = language === "zh",
     i = zh ? 0 : 1;
-  const editing = usePredictionEntityState(onChange);
+  const editing = usePredictionEntityState(onChange, entityKeys);
   const allowed: Component["kind"][] =
     allowedKinds ??
     (expert
@@ -155,6 +159,7 @@ export function MolecularInputs({
                 language={language}
                 expert={expert}
                 features={features}
+                supportingFiles={supportingFiles}
                 onChange={(patch) => editing.update(id, patch)}
               />
             </PredictionEntityCard>

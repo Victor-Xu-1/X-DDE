@@ -99,6 +99,8 @@ INPUT_PREVIEW_FILES = {
 }
 
 ENTITY_INPUT_FILES = {
+    "frontend/src/integrations/Mol1FeatureInputs.tsx",
+    "frontend/src/integrations/Mol1FeatureInputs.test.tsx",
     "frontend/public/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2",
     "frontend/public/fonts/jetbrains-mono/OFL.txt",
     "frontend/public/fonts/jetbrains-mono/provenance.json",

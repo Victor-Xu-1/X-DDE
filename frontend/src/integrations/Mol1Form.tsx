@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Mol1JobReview } from "./Mol1JobReview";
 import { useExampleTask } from "../examples/context";
 import { validate } from "../form-model";
@@ -57,6 +57,9 @@ function Mol1Editor({
   onResume(value: PredictionDraft): void;
 }) {
   const zh = language === "zh";
+  // One ephemeral view identity shared by the mounted study/supporting steps.
+  // Native components and saved drafts never contain these keys.
+  const entityKeys = useRef(new WeakMap<Component, string>()).current;
   const preset = useExampleTask("mol1_predict");
   const {
     components,
@@ -149,6 +152,8 @@ function Mol1Editor({
           content: (
             <>
               <MolecularInputs
+                entityKeys={entityKeys}
+                supportingFiles={false}
                 showHeading={false}
                 items={components}
                 onChange={editComponents}
@@ -176,6 +181,7 @@ function Mol1Editor({
           content: (
             <>
               <Mol1FeatureInputs
+                entityKeys={entityKeys}
                 value={settings}
                 onChange={setSettings}
                 components={components}
