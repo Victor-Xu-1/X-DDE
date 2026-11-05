@@ -6,6 +6,20 @@ Pocket-conditioned generation, local redesign, diversification, optimization and
 
 ## Shared research workspace
 
+Mol-1 and OpenDDE show the current MSA strategy and template choice through one
+compact feature-policy presentation. MSA settings use a 520 px dialog with native
+Save/Cancel, focus return and Escape dismissal. The unsaved policy is local to
+that edit; cancellation never changes selected alignment/template references.
+Saving No MSA clears Mol-1's selected feature references through its existing
+parent transition without deleting original assets. Each form retains native
+file limits, supported modes, template validation and explicit sequence/network
+consent. The dialog cannot implicitly submit the task form on Enter; replacing
+source parameters or hiding its active step discards the uncommitted edit.
+OpenDDE's settings and final-review steps also enforce the native feature-policy
+combinations: remote search cannot advance without explicit sequence-transmission
+consent. Incomplete choices remain editable; the server remains the full native
+parameter authority.
+
 Prediction and feature-preparation entities use one compact, collapsible card.
 The header keeps the entity label, entered-sequence/material summary and existing
 copy/type/chain controls visible. Collapsing retains the mounted inputs, current

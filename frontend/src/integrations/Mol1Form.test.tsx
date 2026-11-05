@@ -57,33 +57,35 @@ it.each(["en", "zh"] as const)(
     await user.type(inputs[0], "PREACHINGS");
     await user.type(inputs[1], "CCD_ATP");
     expect(
-      screen.queryByLabelText(
-        zh ? "序列进化信息" : "Sequence evolutionary information",
-      ),
-    ).not.toBeVisible();
+      screen.queryByRole("button", { name: zh ? "MSA 设置" : "MSA settings" }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
     expect(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     ).toBeDisabled();
+    await user.click(
+      screen.getByRole("button", { name: zh ? "MSA 设置" : "MSA settings" }),
+    );
     if (zh) {
-      await user.selectOptions(screen.getByLabelText("序列进化信息"), "none");
+      await user.click(screen.getByRole("radio", { name: "不使用 MSA" }));
     } else {
       await user.click(
         screen.getByRole("checkbox", {
-          name: "Allow this task to send sequences to the native MSA service and retrieve template structures",
+          name: "Allow this task to send sequences to the configured MSA service and retrieve template structures",
         }),
       );
     }
     await user.click(
+      screen.getByRole("button", { name: zh ? "保存" : "Save" }),
+    );
+    await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );
     expect(
-      screen.queryByLabelText(
-        zh ? "序列进化信息" : "Sequence evolutionary information",
-      ),
-    ).not.toBeVisible();
+      screen.queryByRole("button", { name: zh ? "MSA 设置" : "MSA settings" }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: zh ? "下一步" : "Next" }),
     );

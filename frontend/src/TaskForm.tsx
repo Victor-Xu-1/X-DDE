@@ -23,6 +23,7 @@ import { CovalentEditor } from "./operations/CovalentEditor";
 import type { CovalentBond } from "./operations/types";
 import type { MoleculeRef } from "./research/types";
 import { PredictionSetup } from "./presentation/PredictionSetup";
+import { validFeaturePolicy } from "./presentation/prediction-feature-policy";
 import { OpenDdeJobReview } from "./operations/OpenDdeJobReview";
 interface Props {
   language: Language;
@@ -214,6 +215,16 @@ export function TaskForm({
         expert={expert}
       />
       <ExpertParameters
+        contextKey={JSON.stringify(
+          components.map((item) => [
+            item.kind,
+            item.value,
+            item.count,
+            item.chain_ids,
+            item.modifications,
+            item.ligand_file,
+          ]),
+        )}
         value={parameters}
         onChange={setParameters}
         language={language}
@@ -348,12 +359,12 @@ export function TaskForm({
                 {
                   title: zh ? "选择方案" : "Choose settings",
                   content: settings,
-                  valid: true,
+                  valid: validFeaturePolicy(parameters),
                 },
                 {
                   title: zh ? "确认启动" : "Review & start",
                   content: review,
-                  valid: inputValid,
+                  valid: inputValid && validFeaturePolicy(parameters),
                 },
               ]}
             />

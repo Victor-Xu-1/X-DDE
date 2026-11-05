@@ -151,6 +151,40 @@ def entity_inputs_only(changed, event="push"):
     )
 
 
+FEATURE_SETTING_SOURCES = {
+    "frontend/src/presentation/PredictionFeatureDialog.tsx",
+    "frontend/src/presentation/PredictionFeatureSettings.tsx",
+    "frontend/src/presentation/PredictionFeatureSettings.test.tsx",
+    "frontend/src/presentation/prediction-feature-policy.ts",
+    "frontend/src/presentation/prediction-feature-settings.css",
+    "server_tests/test_prediction_feature_settings_browser.py",
+}
+FEATURE_SETTING_FILES = (
+    ENTITY_INPUT_FILES
+    | FEATURE_SETTING_SOURCES
+    | {
+        ".github/workflows/template-controls-checks.yml",
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/TaskForm.test.tsx",
+        "frontend/src/integrations/Mol1Form.test.tsx",
+        "frontend/src/operations/ExpertParameters.tsx",
+        "frontend/src/operations/operations.test.tsx",
+        "server_tests/test_mol1_final_review_browser.py",
+        "server_tests/test_prediction_drafts_browser.py",
+        "server_tests/test_mol1_browser.py",
+    }
+)
+
+
+def feature_settings_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & FEATURE_SETTING_SOURCES)
+        and changed <= FEATURE_SETTING_FILES
+    )
+
+
 DRAFT_FILES = {
     "frontend/src/presentation/prediction-settings-summary.ts",
     "frontend/src/presentation/PredictionSetup.test.tsx",
@@ -800,6 +834,7 @@ def example_inspection_only(changed, event):
 def selected(changed, event="push"):
     if (
         entity_inputs_only(changed, event)
+        or feature_settings_only(changed, event)
         or example_inspection_only(changed, event)
         or sample_export_only(changed, event)
         or reference_review_only(changed, event)
@@ -859,9 +894,13 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
-            "entity_inputs": entity_inputs_only(
+            "feature_settings": feature_settings_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
+            "entity_inputs": feature_settings_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            )
+            or entity_inputs_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "shared_workbench_only": shared_workbench_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

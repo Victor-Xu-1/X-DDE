@@ -34,9 +34,9 @@ def test_frontend_submits_real_mol1_and_retains_native_outputs():
             inputs.nth(1).fill("CCD_ATP")
             next_step = page.get_by_role("button", name="Next", exact=True)
             next_step.click()
-            page.get_by_role("combobox", name="Sequence evolutionary information").select_option(
-                "none"
-            )
+            page.get_by_role("button", name="MSA settings", exact=True).click()
+            page.get_by_role("radio", name="No MSA", exact=True).check()
+            page.get_by_role("button", name="Save", exact=True).click()
             next_step.click()
             page.get_by_role("spinbutton", name="Structures per seed").fill("1")
             page.get_by_role("spinbutton", name="Recycling cycles").fill("1")

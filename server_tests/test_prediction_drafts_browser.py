@@ -54,9 +54,9 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         name.fill("STAT6 draft " + language)
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()
-        page.get_by_label(label("Sequence evolutionary information", "序列进化信息")).select_option(
-            "none"
-        )
+        page.get_by_role("button", name=label("MSA settings", "MSA 设置"), exact=True).click()
+        page.get_by_role("radio", name=label("No MSA", "不使用 MSA"), exact=True).check()
+        page.get_by_role("button", name=label("Save", "保存"), exact=True).click()
         next_step.click()
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
         seeds = page.get_by_label(
@@ -77,6 +77,7 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         identifier = active[0]["id"]
         saved = page.request.get(base + "/api/prediction-drafts/" + identifier).json()
         assert saved["state"]["seed_text"] == "101,,unfinished," and saved["state"]["seed"] == -1
+        assert saved["state"]["settings"]["feature_mode"] == "none"
         page.reload()
         expect(protein).to_have_value("")  # Fresh new task, never auto-resume an old draft.
         opener = page.get_by_role("button", name=label("Open drafts", "打开草稿"), exact=True)
@@ -102,8 +103,8 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         expect(name).to_have_value("STAT6 draft " + language)
         next_step.click()
         expect(
-            page.get_by_label(label("Sequence evolutionary information", "序列进化信息"))
-        ).to_have_value("none")
+            page.get_by_role("button", name=label("MSA settings", "MSA 设置"), exact=True)
+        ).to_contain_text(label("No MSA", "不使用 MSA"))
         next_step.click()
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
         expect(seeds).to_have_value("101,,unfinished,")

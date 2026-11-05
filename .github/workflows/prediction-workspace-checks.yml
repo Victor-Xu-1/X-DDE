@@ -4,10 +4,14 @@ on:
     paths: &paths
       - "frontend/public/fonts/jetbrains-mono/*"
       - "frontend/src/operations/EntityOptions.tsx"
+      - "frontend/src/operations/ExpertParameters.tsx"
+      - "frontend/src/operations/operations.test.tsx"
+      - "server_tests/test_prediction_feature_settings_browser.py"
       - "server_tests/test_prediction_entities_browser.py"
       - "frontend/public/fonts/plus-jakarta/*"
       - "frontend/src/tokens.css"
       - "frontend/src/presentation/Prediction*"
+      - "frontend/src/presentation/prediction-feature-policy.ts"
       - "src/opendde_workbench/science_routes.py"
       - "src/opendde_workbench/prediction_sample_export.py"
       - "src/opendde_workbench/integrations/native_boltz.py"
@@ -112,6 +116,8 @@ on:
         type: boolean
         default: false
     outputs:
+      feature_settings:
+        value: ${{ jobs.scope.outputs.feature_settings }}
       prediction_only:
         value: ${{ jobs.scope.outputs.prediction_only }}
       shared_workbench_only:
@@ -126,6 +132,7 @@ jobs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
       entity_inputs: ${{ steps.select.outputs.entity_inputs }}
+      feature_settings: ${{ steps.select.outputs.feature_settings }}
       sample_export_only: ${{ steps.select.outputs.sample_export_only }}
       sample_export_changed: ${{ steps.select.outputs.sample_export_changed }}
       reference_review_only: ${{ steps.select.outputs.reference_review_only }}
@@ -200,11 +207,16 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionEntityEditing.test.tsx
+          src/presentation/PredictionFeatureSettings.test.tsx
           src/integrations/Mol1FeatureInputs.test.tsx
           src/guided/MolecularInputs.test.tsx src/TaskForm.test.tsx
           src/guided/workflows.test.tsx src/integrations/Mol1Form.test.tsx
           src/integrations/ScientificForm.test.tsx src/integrations/BoltzInputs.test.tsx
           src/presentation/PredictionInputPreview.test.tsx src/presentation/PredictionSetup.test.tsx
+      - name: Native evolutionary-parameter labels and effective settings
+        if: needs.scope.outputs.feature_settings == 'true'
+        working-directory: frontend
+        run: npx vitest run src/operations/operations.test.tsx -t "keeps form labels attached to scientific inputs"
       - name: Current prediction input review and its direct form, sequence and depiction consumers
         if: needs.scope.outputs.input_preview == 'true'
         working-directory: frontend
@@ -281,6 +293,11 @@ jobs:
         run: |
           uv run --locked ruff check server_tests/test_prediction_entities_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_prediction_entities_browser.py
+      - name: Focused MSA settings, cancellation, source guards and native consent
+        if: needs.scope.outputs.feature_settings == 'true'
+        run: |
+          uv run --locked ruff check server_tests/test_prediction_feature_settings_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_prediction_feature_settings_browser.py
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
         if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
@@ -360,6 +377,7 @@ jobs:
             outputs/native-confidence/**
             outputs/prediction-input-preview/**
             outputs/prediction-entities/**
+            outputs/prediction-feature-settings/**
             outputs/prediction-drafts/**
             outputs/mol1-final-review/**
             outputs/boltz-final-review/**

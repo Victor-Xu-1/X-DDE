@@ -1,0 +1,199 @@
+.prediction-feature-settings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.prediction-feature-settings > button,
+.prediction-feature-settings > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px/1.45 var(--font);
+}
+.prediction-feature-settings > button strong {
+  font-weight: 600;
+}
+.studio-app .prediction-feature-settings > label select {
+  width: auto;
+  min-height: 28px;
+  padding: 2px 22px 2px 6px;
+  margin: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--ink);
+  background-color: transparent;
+  font: inherit;
+}
+.prediction-feature-settings > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.prediction-feature-dialog {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid rgb(18 30 54 / 12%);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgb(18 30 54 / 18%);
+  color: var(--ink);
+  background: var(--surface);
+  font: 500 13px/1.45 var(--font);
+  overflow: hidden;
+}
+.prediction-feature-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.prediction-feature-dialog::backdrop {
+  background: rgb(27 34 40 / 32%);
+  backdrop-filter: blur(3px);
+}
+.prediction-feature-dialog > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 18px;
+  flex-shrink: 0;
+}
+.prediction-feature-dialog h2 {
+  margin: 0;
+  font: 600 18px/1.4 var(--font);
+}
+.prediction-feature-dialog > header button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+}
+.prediction-feature-dialog-body {
+  padding: 0 24px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.feature-mode-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 20px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-muted);
+}
+.feature-mode-choices label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+}
+.feature-mode-choices label.selected {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: 0 1px 3px rgb(18 30 54 / 4%);
+}
+.feature-mode-choices input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.feature-mode-choices label:has(input:focus-visible),
+.prediction-feature-dialog button:focus-visible,
+.prediction-feature-settings > button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.prediction-feature-dialog p {
+  margin: 0;
+  font: inherit;
+  color: var(--muted);
+}
+.feature-policy-choices {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.prediction-feature-dialog .feature-clear-note {
+  margin-top: 14px;
+}
+.feature-policy-choices label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--ink);
+}
+.feature-policy-choices input {
+  margin: 3px 0 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+.prediction-feature-dialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 20px 24px;
+  flex-shrink: 0;
+}
+.prediction-feature-dialog > footer button {
+  min-width: 72px;
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--surface);
+  font: 500 12px/1.45 var(--font);
+  cursor: pointer;
+}
+.prediction-feature-dialog > footer .feature-save {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+.prediction-feature-dialog > footer button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+:root[data-theme="dark"] .prediction-feature-dialog {
+  border-color: var(--line);
+}
+@media (max-width: 420px) {
+  .prediction-feature-dialog > header {
+    padding: 18px 18px 16px;
+  }
+  .prediction-feature-dialog-body {
+    padding: 0 18px;
+  }
+  .prediction-feature-dialog > footer {
+    padding: 18px;
+  }
+  .feature-mode-choices label {
+    padding: 4px;
+  }
+}

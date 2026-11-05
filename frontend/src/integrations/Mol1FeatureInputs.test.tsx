@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { MolecularInputs } from "../guided/MolecularInputs";
 import type { Component } from "../types";
@@ -10,7 +10,30 @@ import { useMol1Composition } from "./Mol1Composition";
 import { mol1Defaults } from "./mol1-settings";
 
 afterEach(() => vi.restoreAllMocks());
-function SupportingFiles({ studyInputs = false }: { studyInputs?: boolean }) {
+beforeEach(() => {
+  if (!HTMLDialogElement.prototype.showModal)
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+          this.removeAttribute("open");
+        },
+      },
+    });
+});
+function SupportingFiles({
+  studyInputs = false,
+  retained = false,
+}: {
+  studyInputs?: boolean;
+  retained?: boolean;
+}) {
   const entityKeys = useRef(new WeakMap<Component, string>()).current;
   const {
     components,
@@ -22,7 +45,15 @@ function SupportingFiles({ studyInputs = false }: { studyInputs?: boolean }) {
     setBonds,
   } = useMol1Composition(() => ({
     components: [
-      { kind: "protein", value: "PREACHINGS", count: 1, chain_ids: ["A"] },
+      {
+        kind: "protein",
+        value: "PREACHINGS",
+        count: 1,
+        chain_ids: ["A"],
+        unpaired_msa: retained
+          ? "11111111-1111-4111-8111-111111111111"
+          : undefined,
+      },
       { kind: "protein", value: "MREACHINGS", count: 1, chain_ids: ["B"] },
     ],
     settings: { ...mol1Defaults(), feature_mode: "uploaded" },
@@ -75,6 +106,25 @@ function SupportingFiles({ studyInputs = false }: { studyInputs?: boolean }) {
     </>
   );
 }
+
+it("retains selected alignments on Cancel and clears their selection only on explicit Save", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(
+    async () => new Response(null, { status: 404 }),
+  );
+  const user = userEvent.setup();
+  render(<SupportingFiles retained />);
+  const read = () =>
+    JSON.parse(screen.getByLabelText("Current supporting inputs").textContent!);
+  await user.click(screen.getByRole("button", { name: "MSA settings" }));
+  await user.click(screen.getByRole("radio", { name: "No MSA" }));
+  expect(read()[0].unpaired_msa).toBe("11111111-1111-4111-8111-111111111111");
+  await user.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(read()[0].unpaired_msa).toBe("11111111-1111-4111-8111-111111111111");
+  await user.click(screen.getByRole("button", { name: "MSA settings" }));
+  await user.click(screen.getByRole("radio", { name: "No MSA" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(read()[0].unpaired_msa).toBeNull();
+});
 
 it.each(["uploading", "earlier"] as const)(
   "keeps a supporting MSA on its owner when the %s study entity is removed",
@@ -221,13 +271,11 @@ it.each(["sequence", "feature mode"] as const)(
       new File(["controlled transport"], asset.name),
     );
     if (change === "sequence") await user.type(sequence, "G");
-    else
-      await user.selectOptions(
-        screen.getByRole("combobox", {
-          name: "Sequence evolutionary information",
-        }),
-        "none",
-      );
+    else {
+      await user.click(screen.getByRole("button", { name: "MSA settings" }));
+      await user.click(screen.getByRole("radio", { name: "No MSA" }));
+      await user.click(screen.getByRole("button", { name: "Save" }));
+    }
     await act(async () => finish(asset));
     const current = JSON.parse(
       screen.getByLabelText("Current supporting inputs").textContent!,
