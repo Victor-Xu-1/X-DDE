@@ -17,7 +17,7 @@ export const checkLabels: Record<string, [string, string]> = {
   tetrahedral_chirality: ["与参考手性一致", "Reference tetrahedral chirality"],
   bond_lengths: ["键长合理", "Bond lengths"],
   bond_angles: ["键角合理", "Bond angles"],
-  internal_steric_clash: ["无明显内部碰撞", "Internal steric clashes"],
+  internal_steric_clash: ["分子内部空间碰撞", "Internal steric clashes"],
   aromatic_ring_flatness: ["芳香环平面合理", "Aromatic ring flatness"],
   "non-aromatic_ring_non-flatness": [
     "非芳香环构象合理",
@@ -26,41 +26,29 @@ export const checkLabels: Record<string, [string, string]> = {
   double_bond_flatness: ["双键周围平面合理", "Double-bond flatness"],
   internal_energy: ["内部能量检查", "Internal energy check"],
   "protein-ligand_maximum_distance": [
-    "分子靠近受体",
+    "配体与受体的邻近性",
     "Ligand is near the receptor",
   ],
-  minimum_distance_to_protein: [
-    "与蛋白无明显距离冲突",
-    "Protein distance clash",
-  ],
+  minimum_distance_to_protein: ["蛋白距离碰撞", "Protein distance clash"],
   minimum_distance_to_organic_cofactors: [
-    "与有机辅因子无明显距离冲突",
+    "有机辅因子距离碰撞",
     "Organic-cofactor distance clash",
   ],
   minimum_distance_to_inorganic_cofactors: [
-    "与无机辅因子无明显距离冲突",
+    "无机辅因子距离碰撞",
     "Inorganic-cofactor distance clash",
   ],
-  minimum_distance_to_waters: [
-    "与结构水无明显距离冲突",
-    "Water distance clash",
-  ],
-  volume_overlap_with_protein: [
-    "与蛋白无明显体积重叠",
-    "Protein volume overlap",
-  ],
+  minimum_distance_to_waters: ["结构水距离碰撞", "Water distance clash"],
+  volume_overlap_with_protein: ["蛋白体积重叠", "Protein volume overlap"],
   volume_overlap_with_organic_cofactors: [
-    "与有机辅因子无明显体积重叠",
+    "有机辅因子体积重叠",
     "Organic-cofactor volume overlap",
   ],
   volume_overlap_with_inorganic_cofactors: [
-    "与无机辅因子无明显体积重叠",
+    "无机辅因子体积重叠",
     "Inorganic-cofactor volume overlap",
   ],
-  volume_overlap_with_waters: [
-    "与结构水无明显体积重叠",
-    "Water volume overlap",
-  ],
+  volume_overlap_with_waters: ["结构水体积重叠", "Water volume overlap"],
   "rmsd_≤_2å": ["与参考姿势偏差 ≤ 2 Å", "Reference RMSD ≤ 2 Å"],
 };
 export const assessmentLabels: Record<AssessmentOutcome, [string, string]> = {

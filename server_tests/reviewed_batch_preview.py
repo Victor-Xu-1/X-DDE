@@ -98,10 +98,13 @@ def review_batch_example(page, base, language, evidence):
         checks = quality.get_by_role(
             "table", name="质控检查结果" if zh else "Quality check outcomes"
         )
-        expect(checks.get_by_role("row")).to_have_count(23)
-        quality.get_by_role(
+        selector = quality.get_by_role(
             "combobox", name="显示哪些检查？" if zh else "Which checks?", exact=True
-        ).select_option("unassessed")
+        )
+        expect(selector).to_have_value("attention")
+        selector.select_option("all")
+        expect(checks.get_by_role("row")).to_have_count(23)
+        selector.select_option("unassessed")
         expect(checks.get_by_role("row")).to_have_count(7)
     page.screenshot(path=str(evidence / "batch-retained-quality.png"), full_page=True)
     return {

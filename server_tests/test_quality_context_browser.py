@@ -79,7 +79,7 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
         page.screenshot(path=evidence / "native-before-assessment.png", full_page=True)
         water = table.get_by_role("row").filter(
             has=page.get_by_text(
-                "与结构水无明显距离冲突" if zh else "Water distance clash", exact=True
+                "结构水距离碰撞" if zh else "Water distance clash", exact=True
             )
         )
         expect(water.get_by_text("未评估" if zh else "Not assessed", exact=True)).to_be_visible()
@@ -107,6 +107,10 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
         ).to_be_visible()
         disclosure.locator("summary").click()
         selector = panel.get_by_role("combobox", name="显示哪些检查？" if zh else "Which checks?")
+        expect(selector).to_have_value("attention")
+        expect(table.get_by_role("row")).to_have_count(7)
+        selector.select_option("all")
+        expect(table.get_by_role("row")).to_have_count(len(result["checks"]) + 1)
         selector.select_option("not_applicable")
         expect(table.get_by_role("row")).to_have_count(2)
         expect(table.get_by_text("不适用" if zh else "Not applicable", exact=True)).to_have_count(1)

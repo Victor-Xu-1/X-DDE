@@ -86,13 +86,3 @@
   border: 1px solid var(--line);
   border-radius: 999px;
 }
-
-.structure-workbench-toolbar {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-@media (min-width: 1001px) {
-  .structure-workbench:fullscreen:has(> .structure-workbench-toolbar) {
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-}

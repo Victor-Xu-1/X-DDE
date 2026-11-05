@@ -218,6 +218,7 @@ def test_native_quality_checks_stay_visible_beside_unmodified_3d_files(result_pa
     expect(panel.get_by_role("button", name="生成三维视图图片", exact=True)).to_be_enabled(
         timeout=30000
     )
+    panel.get_by_role("combobox", name="显示哪些检查？", exact=True).select_option("all")
     expect(
         panel.get_by_role("table", name="质控检查结果", exact=True).locator("tbody tr")
     ).to_have_count(len(report["checks"]))
