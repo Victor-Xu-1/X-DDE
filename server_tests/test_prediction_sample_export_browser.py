@@ -63,7 +63,7 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         expect(panel.locator(".research-plot")).to_have_count(0)
         if theme == "dark":
             expect(panel.locator("p")).to_have_css("color", "rgb(178, 193, 191)")
-            expect(panel).to_have_css("background-color", "rgb(17, 24, 43)")
+            expect(panel).to_have_css("background-color", "rgb(26, 36, 39)")
         expect(page.locator(".prediction-conformer-table table")).to_be_visible()
         expect(
             page.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")

@@ -8,6 +8,15 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_shared_theme_selects_native_confidence_without_hiding_other_consumers():
+    changed = ["frontend/src/tokens.css"]
+    assert scope.confidence_changed(changed)
+    assert scope.sample_export_changed(changed)
+    assert not scope.native_confidence_only(changed)
+    assert not scope.sample_export_only(changed)
+    assert not scope.prediction_only(changed)
+
+
 def test_final_review_delegation_requires_browser_and_native_form_changes():
     changed = [
         "frontend/src/integrations/Mol1Form.tsx",

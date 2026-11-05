@@ -519,6 +519,7 @@ def confidence_changed(changed):
         or name in CONFIDENCE_LAYOUT_SOURCES
         or name
         in {
+            "frontend/src/tokens.css",
             "src/opendde_workbench/confidence.py",
             "src/opendde_workbench/confidence_binding.py",
             "tests/test_confidence_binding.py",
@@ -554,7 +555,7 @@ SAMPLE_EXPORT_FILES = SAMPLE_EXPORT_SOURCES + (
 
 
 def sample_export_changed(changed):
-    return any(
+    return "frontend/src/tokens.css" in changed or any(
         fnmatch.fnmatchcase(name, pattern) for name in changed for pattern in SAMPLE_EXPORT_SOURCES
     )
 
