@@ -304,7 +304,7 @@ def capture(page, evidence, name, stage):
 
 
 def flat_surface_styles(page):
-    """Read real styles while retaining functional inputs, focus rings and popovers."""
+    """Reject decorative frames; preserve the reference's real molecular entity groups."""
     return page.evaluate("""() => {
         const selectors = '.questionnaire,.studio-panel,.panel,.tool-form,.setup-card,' +
             '.management-card,.molecular-preview,.research-table,.result-section-card,' +
@@ -315,7 +315,10 @@ def flat_surface_styles(page):
             '.module-task-picker,.workspace-tabs,.workspace-tabs>button';
         const nodes = [...document.querySelectorAll('main ' + selectors.split(',').join(',main '))]
             .filter(e => e.getBoundingClientRect().height>0 &&
-                !e.closest('dialog,.component-removal'));
+                !e.closest('dialog,.component-removal'))
+            .filter(e => !(e.matches('.prediction-setup-layout .component-card[data-entity-kind]') &&
+                e.querySelector(':scope > .component-heading [data-entity-index]') &&
+                e.querySelector('input,select,textarea')));
         const framed = nodes.map(e => {
             const s=getComputedStyle(e);
             return {class:e.className, border:[s.borderTopWidth,s.borderRightWidth,

@@ -22,6 +22,12 @@ and coverage map enumerate the submodules; a shared shell change is not proof of
 pixel parity for every input, result, dialog and preview state. Record those
 comparisons with their actual data and viewport before claiming acceptance.
 
+Molecular entity groups retain the selected reference's numbered, tinted headers
+and rounded input containers. They group one actual molecular input with its
+editable fields; general forms and nested result panels stay flat. The layout
+gate recognizes only these marked entity groups inside the prediction setup,
+and continues to reject generic decorative frames, including outer questionnaires.
+
 The existing questionnaire still exposes one step at a time. The setup sidebar is
 a projection of the current form values, not another draft, task or validation
 authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
