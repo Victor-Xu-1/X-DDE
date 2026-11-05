@@ -32,6 +32,17 @@
   padding: 20px;
   min-height: 0;
 }
+.studio-app .questionnaire.tool-form {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px 24px;
+}
+@media (max-width: 600px) {
+  .studio-app .questionnaire.tool-form {
+    padding: 16px;
+    border-radius: 16px;
+  }
+}
 .studio-app .input-panel .panel-heading {
   margin-bottom: 20px;
 }
@@ -115,7 +126,7 @@ textarea {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--accent-contrast);
-  border-radius: 8px;
+  border-radius: 999px;
   min-height: 40px;
   font-size: 14px;
   font-weight: 600;
@@ -127,7 +138,7 @@ textarea {
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 999px;
   min-height: 38px;
   font-size: 13px;
   padding: 8px 14px;

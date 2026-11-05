@@ -199,6 +199,10 @@ button:disabled {
 .studio-content > [hidden] {
   display: none;
 }
+.studio-content:has(> .task-workspace.is-input) {
+  max-width: 1536px;
+  margin-inline: auto;
+}
 .research-heading,
 .management-heading {
   margin-bottom: 12px;

@@ -40,7 +40,7 @@
   padding: 8px 16px;
   background: transparent;
 }
-.studio-app .module-workspace-navigation button.selected {
+.studio-app .studio-topbar .module-workspace-navigation button.selected {
   background: var(--accent);
   color: var(--accent-contrast);
 }

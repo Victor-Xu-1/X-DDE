@@ -129,6 +129,12 @@ on:
       - "!frontend/src/studio/ModuleTaskPicker*"
       - "!frontend/src/studio.css"
       - "!frontend/src/design/workspaces.css"
+      # Shared shell appearance has navigation-shell-checks.yml and real page consumers.
+      - "!frontend/src/design/layout.css"
+      - "!frontend/src/design/controls.css"
+      - "!frontend/src/design/module-surfaces.css"
+      - "!frontend/src/presentation/prediction-shell.css"
+      - "!frontend/src/presentation/prediction-workspace.css"
       # Public case controls have a focused native gate.
       - "!frontend/src/examples/ExampleActions*"
       - "!frontend/src/examples/ExampleToolbar*"
@@ -436,6 +442,12 @@ on:
       - "!frontend/src/studio/ModuleTaskPicker*"
       - "!frontend/src/studio.css"
       - "!frontend/src/design/workspaces.css"
+      # Shared shell appearance has navigation-shell-checks.yml and real page consumers.
+      - "!frontend/src/design/layout.css"
+      - "!frontend/src/design/controls.css"
+      - "!frontend/src/design/module-surfaces.css"
+      - "!frontend/src/presentation/prediction-shell.css"
+      - "!frontend/src/presentation/prediction-workspace.css"
       # Public case controls have a focused native gate.
       - "!frontend/src/examples/ExampleActions*"
       - "!frontend/src/examples/ExampleToolbar*"
