@@ -45,6 +45,7 @@ on:
       - "frontend/src/integrations/prediction-presentation*"
       - "frontend/src/integrations/Mol1Form.tsx"
       - "frontend/src/integrations/Mol1Form.test.tsx"
+      - "frontend/src/integrations/Mol1Composition.ts"
       - "frontend/src/integrations/Mol1JobReview.tsx"
       - "frontend/src/integrations/BoltzJobReview.tsx"
       - "frontend/src/integrations/BoltzInputs.tsx"

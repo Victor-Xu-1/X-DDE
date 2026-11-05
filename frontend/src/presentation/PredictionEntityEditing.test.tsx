@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
@@ -7,6 +14,8 @@ import { MolecularInputs } from "../guided/MolecularInputs";
 import type { Component } from "../types";
 import { predictionEntitySummary } from "./PredictionEntitySummary";
 import { FeatureForm } from "../operations/FeatureForm";
+import { useMol1Composition } from "../integrations/Mol1Composition";
+import { mol1Defaults } from "../integrations/mol1-settings";
 
 vi.mock("../guided/useTaskReadiness", () => ({
   useTaskReadiness: () => ({ ready: false, error: "", recheck: vi.fn() }),
@@ -132,6 +141,44 @@ it("retains input DOM, edits, copies and collapse state on the same surviving en
   ).toHaveValue("CCD_NAD");
 });
 
+it("keeps a newer molecular entry when an older upload finishes", async () => {
+  const asset = {
+    id: "11111111-1111-4111-8111-111111111111",
+    kind: "ligand" as const,
+    name: "controlled.sdf",
+    sha256: "a".repeat(64),
+    suffix: ".sdf",
+    size: 25,
+    created_at: "",
+  };
+  let finish!: (value: typeof asset) => void;
+  vi.spyOn(api, "upload").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const user = userEvent.setup();
+  render(<Editor />);
+  await user.click(screen.getAllByText("Use an existing 3D molecule file")[0]);
+  await user.upload(
+    screen.getAllByLabelText("Upload Ligand file")[0],
+    new File(["controlled transport"], asset.name),
+  );
+  const field = screen.getAllByRole("textbox", {
+    name: "SMILES or CCD_ identifier",
+  })[0];
+  await user.clear(field);
+  await user.type(field, "CCD_HEM");
+  await act(async () => finish(asset));
+  const items = JSON.parse(
+    screen.getByLabelText("Current entity inputs").textContent!,
+  ) as Component[];
+  expect(items[1].value).toBe("CCD_HEM");
+  expect(items[1].ligand_file).toBeFalsy();
+  expect(items[2]).toEqual({ kind: "ligand", value: "CCD_NAD", count: 1 });
+});
+
 it("reveals an invalid collapsed input when native form constraints are checked", async () => {
   const user = userEvent.setup();
   render(<Editor />);
@@ -191,7 +238,7 @@ it("uses the same entity card in supporting-feature inputs without creating a ta
   const submit = vi.spyOn(api, "submit");
   const user = userEvent.setup();
   render(<FeatureForm language="en" onCreated={vi.fn()} />);
-  await user.click(screen.getByRole("button", { name: "Next", exact: true }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
   const field = screen.getByRole("textbox", {
     name: "One-letter amino-acid sequence",
   });
@@ -225,4 +272,30 @@ it("summarizes entered sequences and files without claiming calculated geometry"
   expect(
     predictionEntitySummary({ kind: "ligand", value: "CCD_ATP" }, "en"),
   ).toBe("CCD · ATP");
+});
+
+it("updates Mol-1 dependent setup atomically and preserves ignored late intents", () => {
+  const { result } = renderHook(() =>
+    useMol1Composition(() => ({
+      components: [
+        { kind: "protein", value: "PREACHINGS", count: 1 },
+        { kind: "rna", value: "AUGC", count: 1 },
+      ],
+      settings: { ...mol1Defaults(), use_template: true, use_rna_msa: true },
+      bonds: [],
+    })),
+  );
+  act(() => {
+    result.current.setSettings((previous) => ({ ...previous, samples: 3 }));
+    result.current.editComponents((previous) =>
+      previous.filter((item) => item.kind !== "protein"),
+    );
+  });
+  expect(result.current.settings.samples).toBe(3);
+  expect(result.current.settings.use_template).toBe(false);
+  expect(result.current.settings.use_rna_msa).toBe(true);
+  const before = result.current.components;
+  act(() => result.current.editComponents((previous) => previous));
+  expect(result.current.components).toBe(before);
+  expect(result.current.settings.samples).toBe(3);
 });

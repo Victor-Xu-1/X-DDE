@@ -20,6 +20,7 @@ def test_entity_editing_delegates_only_its_direct_forms_and_never_engines_or_vie
     assert not scope.entity_inputs_only([".github/workflows/prediction-workspace-checks.yml"])
     for unrelated in [
         "src/opendde_workbench/integrations/native_mol1.py",
+        "src/opendde_workbench/simulations/restraints.py",
         "frontend/src/viewer/StructureInspection.tsx",
         "frontend/src/App.tsx",
         "frontend/src/presentation/PredictionSetup.tsx",

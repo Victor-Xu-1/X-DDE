@@ -98,10 +98,13 @@ INPUT_PREVIEW_FILES = {
 }
 
 ENTITY_INPUT_FILES = {
+    ".github/workflows/mol1-restraint-checks.yml",
     "frontend/src/guided/MolecularInputs.tsx",
     "frontend/src/guided/MolecularInputs.test.tsx",
     "frontend/src/integrations/BoltzInputs.tsx",
     "frontend/src/integrations/BoltzInputs.test.tsx",
+    "frontend/src/integrations/Mol1Form.tsx",
+    "frontend/src/integrations/Mol1Composition.ts",
     "frontend/src/presentation/PredictionEntityCard.tsx",
     "frontend/src/presentation/PredictionEntityState.ts",
     "frontend/src/presentation/PredictionEntitySummary.ts",

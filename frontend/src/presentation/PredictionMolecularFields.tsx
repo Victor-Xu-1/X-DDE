@@ -69,6 +69,12 @@ export function PredictionMolecularFields({
         )}
       </div>
       <EntityOptions
+        key={JSON.stringify([
+          item.kind,
+          item.value,
+          item.chain_ids,
+          item.modifications,
+        ])}
         value={item}
         onChange={onChange}
         language={language}
