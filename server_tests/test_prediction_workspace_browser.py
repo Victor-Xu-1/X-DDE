@@ -57,7 +57,14 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True)
         ).to_have_attribute("aria-pressed", "true")
         page.get_by_role("button", name="构象 1" if zh else "Sample 1", exact=True).click()
-        download = strip.get_by_role("link")
+        # This fixture intentionally has no source checksum.
+        with page.expect_response(lambda reply: "/prediction-sample.zip?" in reply.url) as package:
+            strip.get_by_role("button", name="下载此构象 ↓" if zh else "This model ↓").click()
+        assert package.value.status == 409
+        assert package.value.json()["detail"]["code"] == "legacy_unsealed_structure"
+        download = strip.get_by_role(
+            "link", name="下载原始 CIF" if zh else "Download original CIF"
+        )
         expect(download).to_have_attribute(
             "href", f"/api/jobs/{identifier}/download?name=reference_sample_1.cif"
         )
