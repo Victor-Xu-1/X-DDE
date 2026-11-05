@@ -68,6 +68,11 @@ on:
       - "frontend/src/guided/Questionnaire.tsx"
       - "server_tests/test_mol1_final_review_browser.py"
       - "frontend/src/integrations/Mol1Settings.tsx"
+      - "frontend/src/integrations/Mol1SeedEditor*"
+      - "frontend/src/integrations/Mol1RuntimeSettings.tsx"
+      - "frontend/src/integrations/mol1-seeds.ts"
+      - "frontend/src/integrations/mol1-computation-settings.css"
+      - "server_tests/test_mol1_settings_browser.py"
       - "frontend/src/presentation/prediction-draft-model.ts"
       - "frontend/src/presentation/prediction-settings-summary.ts"
       - "src/opendde_workbench/drafts/**"
@@ -116,6 +121,8 @@ on:
         type: boolean
         default: false
     outputs:
+      computation_settings:
+        value: ${{ jobs.scope.outputs.computation_settings }}
       feature_settings:
         value: ${{ jobs.scope.outputs.feature_settings }}
       prediction_only:
@@ -129,6 +136,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     outputs:
+      computation_settings: ${{ steps.select.outputs.computation_settings }}
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
       entity_inputs: ${{ steps.select.outputs.entity_inputs }}
@@ -161,7 +169,7 @@ jobs:
         run: python scripts/prediction-workspace-scope.py
   interface:
     needs: scope
-    if: ${{ !inputs.scope_only }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.computation_settings != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
@@ -381,6 +389,61 @@ jobs:
             outputs/prediction-drafts/**
             outputs/mol1-final-review/**
             outputs/boltz-final-review/**
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prediction-interface-web
+          path: src/opendde_workbench/web
+          retention-days: 3
+  computation-settings:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.computation_settings == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Native settings, exact requests and unfinished draft consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/Mol1Form.test.tsx
+          src/integrations/Mol1SeedEditor.test.tsx
+          src/integrations/mol1-job-request.test.ts
+          src/presentation/PredictionDraftControls.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Closed scope, original drafts and native model contracts
+        run: >-
+          uv run --locked pytest -x -q tests/test_prediction_workspace_scope.py
+          tests/test_prediction_drafts.py tests/test_mol1.py tests/test_mol1_native_contract.py
+      - name: Scoped settings and browser source lint
+        run: >-
+          uv run --locked ruff check scripts/prediction-workspace-scope.py
+          tests/test_prediction_workspace_scope.py server_tests/test_mol1_settings_browser.py
+          server_tests/test_prediction_drafts_browser.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Prepare native drawing and isolated browser state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-computation-settings" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-computation-settings/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-computation-settings" WB_STATE_DIR="$RUNNER_TEMP/x-dde-computation-settings/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Compiled settings, real draft recovery and exact review without inference
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_mol1_settings_browser.py
+          server_tests/test_prediction_drafts_browser.py server_tests/test_mol1_final_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mol1-computation-evidence
+          path: |
+            outputs/mol1-settings/**
+            outputs/prediction-drafts/**
+            outputs/mol1-final-review/**
       - uses: actions/upload-artifact@v4
         if: always()
         with:

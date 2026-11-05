@@ -8,6 +8,48 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_computation_settings_delegation_is_closed_to_native_settings_and_consumers():
+    files = sorted(scope.COMPUTATION_SETTING_SOURCES) + [
+        "frontend/src/integrations/Mol1Form.tsx",
+        "frontend/src/integrations/Mol1Form.test.tsx",
+        "server_tests/test_prediction_drafts_browser.py",
+        "pyproject.toml",
+    ]
+    assert scope.computation_settings_only(files)
+    assert scope.computation_settings_only(files, "pull_request")
+    assert scope.prediction_only(files)
+    assert not scope.computation_settings_only(files, "workflow_dispatch")
+    assert not scope.computation_settings_only(
+        [".github/workflows/prediction-workspace-checks.yml"]
+    )
+    for unrelated in [
+        "src/opendde_workbench/integrations/mol1_contract.py",
+        "src/opendde_workbench/drafts/models.py",
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/simulations/SimulationForm.tsx",
+    ]:
+        assert not scope.computation_settings_only(files + [unrelated])
+
+
+def test_computation_settings_have_exact_consumers_without_native_scientific_execution():
+    root = Path(__file__).parents[1]
+    native = (root / ".github/workflows/mol1-restraint-checks.yml").read_text()
+    drawing = native.split("  visual-evidence-contract:", 1)[1].split("    runs-on:", 1)[0]
+    assert "needs: scope" in drawing
+    assert "outputs.computation_settings != 'true'" in drawing
+    forces = native.split("      - name: Actual OpenMM forces", 1)[1].split("        run:", 1)[0]
+    assert "outputs.computation_settings != 'true'" in forces
+    workflow = (root / ".github/workflows/prediction-workspace-checks.yml").read_text()
+    focused = workflow.split("  computation-settings:", 1)[1]
+    assert "outputs.computation_settings == 'true'" in focused
+    assert "outputs/mol1-settings/**" in focused and "outputs/prediction-drafts/**" in focused
+    assert "src/integrations/Mol1SeedEditor.test.tsx" in focused
+    assert "server_tests/test_mol1_final_review_browser.py" in focused
+    assert "runner.temp" not in focused.split("    steps:", 1)[0]
+
+
 def test_feature_policy_dialog_delegation_is_closed_to_its_two_native_forms():
     files = sorted(scope.FEATURE_SETTING_SOURCES) + [
         "frontend/src/operations/ExpertParameters.tsx",

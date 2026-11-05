@@ -28,7 +28,7 @@ export interface PredictionDraft extends PredictionDraftSummary {
   state: Mol1DraftState;
 }
 export const parseSeedText = (text: string) =>
-  text.trim()
+  text !== ""
     ? text.split(",").map((token) => (token.trim() ? Number(token) : NaN))
     : [];
 export function draftFingerprint(value: unknown): string {

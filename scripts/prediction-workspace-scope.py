@@ -151,6 +151,44 @@ def entity_inputs_only(changed, event="push"):
     )
 
 
+COMPUTATION_SETTING_SOURCES = {
+    "frontend/src/integrations/Mol1Settings.tsx",
+    "frontend/src/integrations/Mol1SeedEditor.tsx",
+    "frontend/src/integrations/Mol1RuntimeSettings.tsx",
+    "frontend/src/integrations/mol1-seeds.ts",
+    "frontend/src/integrations/mol1-computation-settings.css",
+    "server_tests/test_mol1_settings_browser.py",
+}
+COMPUTATION_SETTING_FILES = COMPUTATION_SETTING_SOURCES | {
+    "frontend/src/integrations/Mol1SeedEditor.test.tsx",
+    "frontend/src/integrations/Mol1Form.tsx",
+    "frontend/src/integrations/Mol1Form.test.tsx",
+    "frontend/src/presentation/prediction-draft-model.ts",
+    "server_tests/test_prediction_drafts_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/mol1-restraint-checks.yml",
+    "docs/frontend-layout.md",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def computation_settings_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & COMPUTATION_SETTING_SOURCES)
+        and changed <= COMPUTATION_SETTING_FILES
+    )
+
+
 FEATURE_SETTING_SOURCES = {
     "frontend/src/presentation/PredictionFeatureDialog.tsx",
     "frontend/src/presentation/PredictionFeatureSettings.tsx",
@@ -833,7 +871,8 @@ def example_inspection_only(changed, event):
 
 def selected(changed, event="push"):
     if (
-        entity_inputs_only(changed, event)
+        computation_settings_only(changed, event)
+        or entity_inputs_only(changed, event)
         or feature_settings_only(changed, event)
         or example_inspection_only(changed, event)
         or sample_export_only(changed, event)
@@ -894,6 +933,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "computation_settings": computation_settings_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "feature_settings": feature_settings_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

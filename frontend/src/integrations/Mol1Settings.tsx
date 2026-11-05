@@ -1,5 +1,8 @@
 import type { Language } from "../types";
 import type { Mol1Settings as Settings } from "./mol1-settings";
+import { Mol1SeedEditor } from "./Mol1SeedEditor";
+import { Mol1RuntimeSettings } from "./Mol1RuntimeSettings";
+import "./mol1-computation-settings.css";
 
 export function Mol1Settings({
   value,
@@ -7,12 +10,24 @@ export function Mol1Settings({
   language,
   seedText,
   onSeedText,
+  seed,
+  onSeed,
+  device,
+  onDevice,
+  memory,
+  onMemory,
 }: {
   value: Settings;
   onChange(value: Settings): void;
   language: Language;
   seedText: string;
   onSeedText(value: string): void;
+  seed: number;
+  onSeed(value: number): void;
+  device: "cpu" | "cuda";
+  onDevice(value: "cpu" | "cuda"): void;
+  memory: number;
+  onMemory(value: number): void;
 }) {
   const zh = language === "zh";
   const update = (change: Partial<Settings>) =>
@@ -23,126 +38,57 @@ export function Mol1Settings({
     ["steps", "生成精细度（步）", "Diffusion steps", 1, 1000],
   ] as const;
   return (
-    <>
-      <div className="field-grid">
-        {numbers.map(([key, cn, en, min, max]) => (
-          <label className="field" key={key}>
-            {zh ? cn : en}
-            <input
-              type="number"
-              min={min}
-              max={max}
-              value={value[key]}
-              onChange={(e) => update({ [key]: Number(e.target.value) })}
-            />
-          </label>
-        ))}
-      </div>
-      <label>
+    <div className="mol1-settings">
+      <section
+        aria-label={zh ? "构象采样" : "Sampling"}
+        className="mol1-sampling"
+      >
+        <h3>{zh ? "构象采样" : "Sampling"}</h3>
+        <div className="mol1-setting-grid">
+          {numbers.map(([key, cn, en, min, max]) => (
+            <label className="field" key={key}>
+              {zh ? cn : en}
+              <input
+                type="number"
+                min={min}
+                max={max}
+                value={value[key]}
+                onChange={(event) =>
+                  update({ [key]: Number(event.target.value) })
+                }
+              />
+            </label>
+          ))}
+        </div>
+      </section>
+      <Mol1SeedEditor
+        primary={seed}
+        onPrimary={onSeed}
+        text={seedText}
+        onText={onSeedText}
+        language={language}
+      />
+      <label className="mol1-confidence-choice">
         <input
           type="checkbox"
           checked={value.atom_confidence}
-          onChange={(e) => update({ atom_confidence: e.target.checked })}
+          onChange={(event) =>
+            update({ atom_confidence: event.target.checked })
+          }
         />
         {zh
           ? "保留逐原子置信度和 PAE / PDE / 接触概率"
           : "Retain atom confidence, PAE / PDE and contact probabilities"}
       </label>
-      <details>
-        <summary>{zh ? "专业计算设置" : "Advanced computation"}</summary>
-        <label className="field">
-          {zh
-            ? "额外随机种子（逗号分隔，最多 7 个）"
-            : "Additional seeds (comma-separated, up to 7)"}
-          <input
-            value={seedText}
-            onChange={(e) => {
-              onSeedText(e.target.value);
-            }}
-          />
-        </label>
-        <label className="field">
-          {zh ? "数值精度" : "Numerical precision"}
-          <select
-            value={value.dtype}
-            onChange={(e) =>
-              update({ dtype: e.target.value as Settings["dtype"] })
-            }
-          >
-            <option value="bf16">BF16</option>
-            <option value="fp32">FP32</option>
-          </select>
-        </label>
-        <label className="field">
-          {zh ? "扩散缓存" : "Diffusion cache"}
-          <select
-            value={value.diffusion_cache_mode}
-            onChange={(e) =>
-              update({
-                diffusion_cache_mode: e.target
-                  .value as Settings["diffusion_cache_mode"],
-              })
-            }
-          >
-            {["full", "shared", "off"].map((mode) => (
-              <option key={mode}>{mode}</option>
-            ))}
-          </select>
-        </label>
-        <div className="field-grid">
-          {(
-            [
-              ["attention_chunk", "注意力分块", "Attention chunk", 4096],
-              ["msa_chunk", "MSA 分块", "MSA chunk", 4096],
-              [
-                "sample_chunk",
-                "同时生成的构象数",
-                "Simultaneous samples",
-                value.samples,
-              ],
-            ] as const
-          ).map(([key, cn, en, max]) => (
-            <label className="field" key={key}>
-              {zh ? cn : en}
-              <input
-                type="number"
-                min={1}
-                max={max}
-                value={value[key]}
-                onChange={(e) => update({ [key]: Number(e.target.value) })}
-              />
-            </label>
-          ))}
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            checked={value.enable_tf32}
-            onChange={(e) => update({ enable_tf32: e.target.checked })}
-          />
-          TF32
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={value.msa_pair_as_unpair}
-            onChange={(event) =>
-              update({ msa_pair_as_unpair: event.target.checked })
-            }
-          />
-          {zh
-            ? "配对 MSA 同时作为非配对信息 · 原生默认"
-            : "Also use paired MSAs as unpaired information · native default"}
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={value.enable_fusion}
-            onChange={(e) => update({ enable_fusion: e.target.checked })}
-          />
-          {zh ? "原生算子融合" : "Native operator fusion"}
-        </label>
-      </details>
-    </>
+      <Mol1RuntimeSettings
+        value={value}
+        onChange={onChange}
+        language={language}
+        device={device}
+        onDevice={onDevice}
+        memory={memory}
+        onMemory={onMemory}
+      />
+    </div>
   );
 }

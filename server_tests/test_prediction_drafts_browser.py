@@ -58,14 +58,13 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         page.get_by_role("radio", name=label("No MSA", "不使用 MSA"), exact=True).check()
         page.get_by_role("button", name=label("Save", "保存"), exact=True).click()
         next_step.click()
-        page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
-        seeds = page.get_by_label(
-            label(
-                "Additional seeds (comma-separated, up to 7)", "额外随机种子（逗号分隔，最多 7 个）"
-            ),
-            exact=True,
-        )
-        seeds.fill("101,,unfinished,")
+        for _ in range(4):
+            page.get_by_role("button", name=label("Add seed", "添加种子"), exact=True).click()
+        seeds = [
+            page.get_by_label(label(f"Seed {i}", f"种子 {i}"), exact=True) for i in range(2, 6)
+        ]
+        for field, text in zip(seeds, ["101", "", "unfinished", ""], strict=True):
+            field.fill(text)
         page.get_by_label(label("Primary seed", "主随机种子"), exact=True).fill("-1")
         expect(next_step).to_be_disabled()
         page.get_by_role("button", name=label("Save draft", "保存草稿"), exact=True).click()
@@ -106,8 +105,8 @@ def test_unfinished_mol1_draft_round_trip(language, width):
             page.get_by_role("button", name=label("MSA settings", "MSA 设置"), exact=True)
         ).to_contain_text(label("No MSA", "不使用 MSA"))
         next_step.click()
-        page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
-        expect(seeds).to_have_value("101,,unfinished,")
+        for field, text in zip(seeds, ["101", "", "unfinished", ""], strict=True):
+            expect(field).to_have_value(text)
         expect(next_step).to_be_disabled()
         overview = page.get_by_role(
             "complementary", name=label("Study setup", "研究设置概览"), exact=True

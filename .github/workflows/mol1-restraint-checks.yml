@@ -44,6 +44,7 @@ jobs:
   scope:
     runs-on: ubuntu-24.04
     outputs:
+      computation_settings: ${{ steps.select.outputs.computation_settings }}
       final_review_only: ${{ steps.select.outputs.final_review_only }}
       entity_inputs: ${{ steps.select.outputs.entity_inputs }}
     steps:
@@ -55,6 +56,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/prediction-workspace-scope.py
   visual-evidence-contract:
+    needs: scope
+    if: needs.scope.outputs.computation_settings != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -78,11 +81,16 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --python 3.12 --group dev
       - name: Typed model inputs and exact source-bound conditions
+        if: needs.scope.outputs.computation_settings != 'true'
         run: uv run --locked pytest -q tests/test_mol1.py tests/test_mol1_native_contract.py tests/test_simulation_restraints.py
+      - name: Exact native Mol-1 settings contract
+        if: needs.scope.outputs.computation_settings == 'true'
+        run: uv run --locked pytest -q tests/test_mol1.py tests/test_mol1_native_contract.py
       - name: Actual OpenMM forces and analytical energies; no dynamics
-        if: needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.entity_inputs != 'true'
+        if: needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.computation_settings != 'true'
         run: uv run --locked --with openmm==8.6.1 pytest -q server_tests/test_openmm_restraints.py
   interface:
+    needs: scope
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -93,8 +101,13 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm run build --prefix frontend
       - name: Changed forms and direct method-selection consumers
+        if: needs.scope.outputs.computation_settings != 'true'
         working-directory: frontend
         run: npx vitest run src/integrations/Mol1Form.test.tsx src/simulations/RestraintEditor.test.tsx src/integrations/ScientificForm.test.tsx src/simulations/SimulationForm.test.tsx src/studio/MethodSwitch.test.tsx
+      - name: Changed Mol-1 settings and seed editor
+        if: needs.scope.outputs.computation_settings == 'true'
+        working-directory: frontend
+        run: npx vitest run src/integrations/Mol1Form.test.tsx src/integrations/Mol1SeedEditor.test.tsx
   native-mol1-browser:
     if: github.event_name == 'workflow_dispatch' && inputs.native && inputs.native_engine != 'openmm'
     runs-on: ubuntu-24.04
