@@ -313,13 +313,11 @@ export function App() {
             onJob={showJob}
             storageWarning={storageWarning}
             workspace={
-              predictionLayout ? (
-                <ModuleWorkspaceNavigation
-                  view={view}
-                  language={language}
-                  onView={navigate}
-                />
-              ) : undefined
+              <ModuleWorkspaceNavigation
+                view={view}
+                language={language}
+                onView={navigate}
+              />
             }
           />
           <main
@@ -434,13 +432,6 @@ export function App() {
                     : "Compute resources are unavailable; submitted tasks remain queued."}
                 </p>
               )}
-            {!predictionLayout && (
-              <ModuleWorkspaceNavigation
-                view={view}
-                language={language}
-                onView={navigate}
-              />
-            )}
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"

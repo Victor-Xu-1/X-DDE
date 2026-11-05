@@ -134,7 +134,11 @@ it("preserves the original and switches only to successful retained native stage
   );
   expect(screen.getByText("Native output generator")).toBeVisible();
   const choose = screen.getByRole("combobox", { name: "Study result stage" });
-  fireEvent.change(choose, { target: { value: "refined" } });
+  const previous = screen.getByRole("button", { name: "Previous study stage" });
+  const next = screen.getByRole("button", { name: "Next study stage" });
+  expect(previous).toBeDisabled();
+  fireEvent.click(next);
+  expect(choose).toHaveValue("refined");
   expect(await screen.findByText("Native output refined")).toBeVisible();
   expect(screen.getByText("Native output generator")).not.toBeVisible();
   expect(
@@ -142,6 +146,9 @@ it("preserves the original and switches only to successful retained native stage
   ).toBeVisible();
   fireEvent.change(choose, { target: { value: "quality" } });
   expect(await screen.findByText("Native output quality")).toBeVisible();
+  expect(next).toBeDisabled();
+  fireEvent.click(previous);
+  expect(screen.getByText("Native output refined")).toBeVisible();
   fireEvent.change(choose, { target: { value: "generator" } });
   expect(screen.getByText("Native output generator")).toBeVisible();
   expect(transport.request).toHaveBeenCalledTimes(2);
@@ -178,7 +185,9 @@ it.each([
 ])(
   "rejects wrong-identity or unsuccessful responses without showing them",
   async (response) => {
-    transport.request.mockResolvedValue(response);
+    transport.request
+      .mockResolvedValueOnce(response)
+      .mockResolvedValueOnce(refined);
     render(
       <ExampleResultSet job={primary} supporting={supporting} language="en" />,
     );
@@ -187,6 +196,10 @@ it.each([
     });
     expect(await screen.findByRole("alert")).toHaveTextContent("unavailable");
     expect(screen.queryByText(`Native output ${response.id}`)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Retry this stage" }));
+    expect(await screen.findByText("Native output refined")).toBeVisible();
+    expect(screen.getByRole("combobox")).toHaveValue(refined.id);
+    expect(transport.request).toHaveBeenCalledTimes(2);
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "generator" },
     });

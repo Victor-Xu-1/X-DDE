@@ -11,6 +11,7 @@ from layout_browser_helpers import (
     expect_layout_identities,
     flat_surface_styles,
     initialize_layout_page,
+    questionnaire_workspace,
 )
 from playwright.sync_api import expect, sync_playwright
 
@@ -100,7 +101,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1"), name
             questionnaire = page.locator(".questionnaire:visible")
             if questionnaire.count():
-                form_box = questionnaire.bounding_box()
+                form_box = questionnaire_workspace(page).bounding_box()
                 main_box = page.locator("main").bounding_box()
                 assert form_box["width"] >= main_box["width"] * 0.9, name
                 assert page.locator(".questionnaire-page-mark:visible").count() == 0

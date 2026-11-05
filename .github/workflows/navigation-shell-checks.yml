@@ -3,19 +3,26 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'frontend/src/studio/Navigation*'
-      - 'frontend/src/studio/ModuleWorkspaceNavigation*'
-      - 'frontend/src/studio/navigation-frame.css'
-      - 'frontend/src/studio/Header*'
-      - 'frontend/src/studio/header.css'
-      - 'frontend/src/studio/TaskSearch*'
-      - 'frontend/src/studio/TaskNotifications*'
-      - 'frontend/src/studio/ModuleTaskPicker*'
-      - 'frontend/src/studio.css'
-      - 'frontend/src/design/workspaces.css'
-      - 'server_tests/test_navigation_shell_browser.py'
-      - 'server_tests/prepare_shell_history.py'
-      - '.github/workflows/navigation-shell-checks.yml'
+      - "frontend/src/studio/Navigation*"
+      - "frontend/src/studio/ModuleWorkspaceNavigation*"
+      - "frontend/src/studio/navigation-frame.css"
+      - "frontend/src/studio/Header*"
+      - "frontend/src/studio/header.css"
+      - "frontend/src/studio/TaskSearch*"
+      - "frontend/src/studio/TaskNotifications*"
+      - "frontend/src/studio/ModuleTaskPicker*"
+      - "frontend/src/studio/MethodSwitch*"
+      - "frontend/src/studio.css"
+      - "frontend/src/design/workspaces.css"
+      - "frontend/src/tokens.css"
+      - "frontend/index.html"
+      - "frontend/src/theme.test.ts"
+      - "frontend/src/design/layout.css"
+      - "frontend/src/design/controls.css"
+      - "frontend/src/design/module-surfaces.css"
+      - "server_tests/test_navigation_shell_browser.py"
+      - "server_tests/prepare_shell_history.py"
+      - ".github/workflows/navigation-shell-checks.yml"
 permissions:
   contents: read
 jobs:
@@ -23,13 +30,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      WB_AUTO_DEPLOY: '0'
+      WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Navigation, header and direct application consumers
@@ -41,6 +48,7 @@ jobs:
           src/studio/MethodSwitch.test.tsx src/studio/BindingEntryDialog.test.tsx
           src/studio/research-modules.test.ts src/studio/InterfaceSettings.test.tsx
           src/App.test.tsx src/studio/TaskWorkspace.test.tsx
+          src/theme.test.ts src/guided/Questionnaire.test.tsx
       - name: Restore reviewed public state without inference
         env:
           GH_TOKEN: ${{ github.token }}

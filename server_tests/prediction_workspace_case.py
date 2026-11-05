@@ -50,7 +50,7 @@ def case(state):
                 "ptm": 0.6,
                 "iptm": None,
                 "has_clash": None,
-                "rmsd_to_first": None,
+                "rmsd_to_first": 0.0,
                 "contacts": [],
             }
         )

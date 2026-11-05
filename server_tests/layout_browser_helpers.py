@@ -239,6 +239,12 @@ def catalog(page):
         summary.click()
 
 
+def questionnaire_workspace(page):
+    """A live setup summary shares the task's width with its editable form."""
+    setup = page.locator("main .prediction-setup-layout:visible")
+    return setup if setup.count() else page.locator("main .questionnaire:visible")
+
+
 def capture(page, evidence, name, stage):
     settle_visible_drawings(page)
     panels = page.locator("main .questionnaire > fieldset:visible")
@@ -274,8 +280,10 @@ def capture(page, evidence, name, stage):
         form = page.locator("main .questionnaire:visible").bounding_box()
         template = page.locator("main .module-template:visible").bounding_box()
         if template:
+            workspace = questionnaire_workspace(page).bounding_box()
             assert (
-                abs(form["x"] - template["x"]) <= 2 and abs(form["width"] - template["width"]) <= 2
+                abs(workspace["x"] - template["x"]) <= 2
+                and abs(workspace["width"] - template["width"]) <= 2
             ), f"{name}: task and template widths differ"
         actions = page.locator(".questionnaire-actions:visible").bounding_box()
         if actions:
@@ -296,7 +304,7 @@ def capture(page, evidence, name, stage):
 
 
 def flat_surface_styles(page):
-    """Read real styles while retaining functional inputs, focus rings and popovers."""
+    """Reject decorative frames; preserve the reference's real molecular entity groups."""
     return page.evaluate("""() => {
         const selectors = '.questionnaire,.studio-panel,.panel,.tool-form,.setup-card,' +
             '.management-card,.molecular-preview,.research-table,.result-section-card,' +
@@ -307,7 +315,11 @@ def flat_surface_styles(page):
             '.module-task-picker,.workspace-tabs,.workspace-tabs>button';
         const nodes = [...document.querySelectorAll('main ' + selectors.split(',').join(',main '))]
             .filter(e => e.getBoundingClientRect().height>0 &&
-                !e.closest('dialog,.component-removal'));
+                !e.closest('dialog,.component-removal'))
+            .filter(e => !(
+                e.matches('.prediction-setup-layout .component-card[data-entity-kind]') &&
+                e.querySelector(':scope > .component-heading [data-entity-index]') &&
+                e.querySelector('input,select,textarea')));
         const framed = nodes.map(e => {
             const s=getComputedStyle(e);
             return {class:e.className, border:[s.borderTopWidth,s.borderRightWidth,

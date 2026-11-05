@@ -41,7 +41,7 @@ it("selects a conformer and overlays no more than three, without an empty affini
   expect(screen.queryByRole("tooltip")).toBeNull();
   await user.click(screen.getByRole("button", { name: "构象与评分说明" }));
   expect(screen.getByRole("tooltip")).toHaveTextContent("不是药效");
-  const row = screen.getByRole("row", { name: /构象 2/ });
+  const row = screen.getByRole("row", { name: /构象 1/ });
   await user.click(row.querySelector("td.score")!);
   expect(select).toHaveBeenCalledExactlyOnceWith("sample-1");
   select.mockClear();
@@ -49,10 +49,10 @@ it("selects a conformer and overlays no more than three, without an empty affini
   await user.keyboard("{Enter}");
   expect(select).toHaveBeenCalledExactlyOnceWith("sample-1");
   select.mockClear();
-  expect(within(row).getByRole("button", { name: "构象 2" })).toBeEnabled();
-  await user.click(screen.getByRole("button", { name: "构象 2" }));
+  expect(within(row).getByRole("button", { name: "构象 1" })).toBeEnabled();
+  await user.click(screen.getByRole("button", { name: "构象 1" }));
   expect(select).toHaveBeenCalledWith("sample-1");
-  await user.click(screen.getByRole("checkbox", { name: "叠加 构象 1" }));
+  await user.click(screen.getByRole("checkbox", { name: "叠加 构象 0" }));
   expect(compare).toHaveBeenCalledWith(["sample-0"]);
   rerender(
     <CandidatePanel
@@ -60,8 +60,8 @@ it("selects a conformer and overlays no more than three, without an empty affini
       compared={["sample-0", "sample-1", "sample-2"]}
     />,
   );
-  expect(screen.getByRole("checkbox", { name: "叠加 构象 4" })).toBeDisabled();
+  expect(screen.getByRole("checkbox", { name: "叠加 构象 3" })).toBeDisabled();
   await user.selectOptions(screen.getByLabelText("构象筛选"), "unclashed");
-  expect(screen.queryByRole("button", { name: "构象 1" })).toBeNull();
-  expect(screen.getByRole("button", { name: "构象 2" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "构象 0" })).toBeNull();
+  expect(screen.getByRole("button", { name: "构象 1" })).toBeVisible();
 });

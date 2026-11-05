@@ -98,6 +98,14 @@ All-atom detail remains subject to the platform donor-only hydrogen display rule
 Overlays retain their established model colors and separate selection contracts.
 No row above constitutes full-product parity acceptance without recorded evidence.
 
+Shared-shell continuation in PR #179 moves the bundled font, palette, floating
+header and module task/result navigation into their shared owners. The module
+tabs have one instance in the header on every research route. The focused
+navigation gate checks the actual research destinations, language/theme controls,
+mobile menu and input-preserving navigation; prediction and retained-stage gates
+continue to check their own source identities and interactions. This increment
+does not mark the remaining per-submodule forms, previews and results as accepted.
+
 
 Source-bound confidence increment: targeted acceptance must include the retained native STAT6 943-atom/116-token result in English desktop and Chinese narrow compiled UI; exact input/download hashes; real confidence/chain coloring, sequence selection, PAE clicks and two-axis ranges; stale candidate/source rejection; unsupported mapping fallback; hidden-chain behavior; source geometry and hydrogen policy preservation. This is not whole-module pixel parity or a new scientific inference. Mol-1 and unsupported historical formats need their own source mapping and remain separate acceptance items.
 

@@ -6,13 +6,14 @@ from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, Query, Request
 
+from .asset_upload_workers import AssetUploadWorkers
 from .asset_uploads import UploadInput, UploadStore
 from .dataset_inputs import UPLOAD_CHUNK_BYTES
 from .store import ConflictError
 from .wsl_storage import StorageUnavailable
 
 
-def register_uploads(app, assets, settings, mutation):
+def register_uploads(app, assets, settings, mutation, *, workers: AssetUploadWorkers):
     uploads = UploadStore(
         assets,
         settings.dataset_file_bytes,
@@ -33,9 +34,9 @@ def register_uploads(app, assets, settings, mutation):
         return HTTPException(status, str(exc))
 
     @app.post("/api/assets/uploads", status_code=201, dependencies=[Depends(mutation)])
-    def create(value: UploadInput, idempotency_key: Annotated[UUID, Header()]):
+    async def create(value: UploadInput, idempotency_key: Annotated[UUID, Header()]):
         try:
-            return uploads.create(value, idempotency_key)
+            return await workers.run(uploads.create, value, idempotency_key)
         except (ValueError, ConflictError, OSError, StorageUnavailable) as exc:
             raise translate(exc) from exc
 
@@ -60,7 +61,7 @@ def register_uploads(app, assets, settings, mutation):
                     if len(body) + len(part) > UPLOAD_CHUNK_BYTES:
                         raise HTTPException(413, "Research chunk exceeds4MiB.")
                     body.extend(part)
-                return await asyncio.to_thread(
+                return await workers.run(
                     uploads.append, upload_id, offset, bytes(body), x_chunk_sha256
                 )
         except TimeoutError as exc:
@@ -84,13 +85,13 @@ def register_uploads(app, assets, settings, mutation):
     @app.post("/api/assets/uploads/{upload_id}/complete", dependencies=[Depends(mutation)])
     async def complete(upload_id: UUID):
         try:
-            return await asyncio.to_thread(uploads.finalize, upload_id)
+            return await workers.run(uploads.finalize, upload_id)
         except (ValueError, ConflictError, OSError, EOFError, StorageUnavailable) as exc:
             raise translate(exc) from exc
 
     @app.delete("/api/assets/uploads/{upload_id}", dependencies=[Depends(mutation)])
-    def cancel(upload_id: UUID):
+    async def cancel(upload_id: UUID):
         try:
-            return uploads.cancel(upload_id)
+            return await workers.run(uploads.cancel, upload_id)
         except (ValueError, ConflictError, OSError) as exc:
             raise translate(exc) from exc

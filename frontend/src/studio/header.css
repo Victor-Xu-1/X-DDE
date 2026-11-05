@@ -22,6 +22,28 @@
 .page-context {
   min-width: 0;
 }
+.studio-app .module-workspace-navigation {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: auto;
+  gap: 4px;
+  padding: 4px;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+.studio-app .module-workspace-navigation button {
+  border: 0;
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 8px 16px;
+  background: transparent;
+}
+.studio-app .studio-topbar .module-workspace-navigation button.selected {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
 .compact-search-close {
   width: auto;
   min-width: 48px;
@@ -51,9 +73,6 @@
     white-space: normal;
     font-size: 15px;
     line-height: 1.25;
-  }
-  .studio-app .page-context-signature {
-    display: none;
   }
   .task-search {
     position: static;
@@ -85,5 +104,21 @@
   .studio-app .top-actions {
     flex: 0 0 auto;
     gap: 0;
+  }
+}
+@media (max-width: 600px) {
+  .studio-app .studio-topbar {
+    height: auto;
+    margin: 8px;
+    padding: 10px 12px 8px 56px;
+    border-radius: 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .studio-app .module-workspace-navigation {
+    order: 3;
+    flex: 1 0 100%;
+    max-width: 100%;
+    margin-left: -40px;
   }
 }
