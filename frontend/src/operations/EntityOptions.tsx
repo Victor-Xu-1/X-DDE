@@ -55,7 +55,7 @@ export function EntityOptions({
         </details>
       )}
       {(expert || (features && supportingFiles)) && (
-        <details open={features || undefined}>
+        <details open={(supportingFiles && features) || undefined}>
           <summary>
             {!supportingFiles
               ? zh

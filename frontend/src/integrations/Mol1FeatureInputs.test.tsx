@@ -36,6 +36,7 @@ function SupportingFiles({ studyInputs = false }: { studyInputs?: boolean }) {
           onChange={editComponents}
           entityKeys={entityKeys}
           supportingFiles={false}
+          features={settings.feature_mode === "uploaded"}
           language="en"
           expert
           workflow="protein-complex"
@@ -160,10 +161,15 @@ it.each(["unpaired-first", "paired-first"] as const)(
       screen.getByRole("button", { name: "Update later setup" }),
     );
     const paired = { ...asset, id: "22222222-2222-4222-8222-222222222222" };
-    await act(async () => {
-      for (const index of order === "unpaired-first" ? [0, 1] : [1, 0])
-        replies[index](index === 0 ? asset : paired);
-    });
+    for (const index of order === "unpaired-first" ? [0, 1] : [1, 0]) {
+      await act(async () => replies[index](index === 0 ? asset : paired));
+      const intermediate = JSON.parse(
+        screen.getByLabelText("Current supporting inputs").textContent!,
+      );
+      expect(intermediate[0][index === 0 ? "unpaired_msa" : "paired_msa"]).toBe(
+        index === 0 ? asset.id : paired.id,
+      );
+    }
     const current = JSON.parse(
       screen.getByLabelText("Current supporting inputs").textContent!,
     );
@@ -207,6 +213,9 @@ it.each(["sequence", "feature mode"] as const)(
     const sequence = within(study).getByRole("textbox", {
       name: "One-letter amino-acid sequence",
     });
+    const advanced = within(study).getByText("Chains and modifications");
+    await user.click(advanced);
+    expect(advanced.closest("details")).toHaveAttribute("open");
     await user.upload(
       screen.getAllByLabelText("Upload Unpaired A3M")[0],
       new File(["controlled transport"], asset.name),
@@ -229,5 +238,6 @@ it.each(["sequence", "feature mode"] as const)(
         name: "One-letter amino-acid sequence",
       }),
     ).toBe(sequence);
+    expect(advanced.closest("details")).toHaveAttribute("open");
   },
 );
