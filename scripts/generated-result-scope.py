@@ -11,6 +11,7 @@ PATTERNS = (
     "frontend/src/presentation/molecular-record*",
     "frontend/src/presentation/artifact-digest*",
     "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/examples/review-highlights*",
     "frontend/src/diffsbdd/GeneratedMetricsView*",
     "frontend/src/diffsbdd/generated-metrics*",
     "frontend/src/diffsbdd/DiffResults*",

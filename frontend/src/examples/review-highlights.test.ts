@@ -51,7 +51,7 @@ describe("review highlights are tied to exact retained evidence", () => {
       3,
       "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a",
       "87c304e38e2eafa8de112a5cc3e201572e1836ab91e2cd7d0338403ced59facc",
-      "geometry issues",
+      "original record 2 contains two disconnected components",
     ],
   ] as const)(
     "keeps %s limitations tied to its exact output",
@@ -66,6 +66,10 @@ describe("review highlights are tied to exact retained evidence", () => {
         },
       };
       expect(reviewedHighlight(info, "en")).toContain(text);
+      if (capability === "diffsbdd.generate")
+        expect(reviewedHighlight(info, "zh")).toContain(
+          "原始记录 2 含两个非连通组分",
+        );
     },
   );
 

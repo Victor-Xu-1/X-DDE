@@ -54,8 +54,8 @@ const highlights = [
     job: "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a",
     result: "87c304e38e2eafa8de112a5cc3e201572e1836ab91e2cd7d0338403ced59facc",
     text: [
-      "原始生成结果中两个连续候选存在几何问题，另一个不连续；后续优化片段仍未经过活性验证。",
-      "Both connected raw candidates have geometry issues and the third is disconnected. The subsequently refined fragment has not been activity validated.",
+      "原始记录 1 和 3 为连通结构但存在几何问题；原始记录 2 含两个非连通组分。后续优化片段仍未经过活性验证。",
+      "Original records 1 and 3 are connected but have geometry issues; original record 2 contains two disconnected components. The subsequently refined fragment has not been activity validated.",
     ],
   },
 ] as const;
