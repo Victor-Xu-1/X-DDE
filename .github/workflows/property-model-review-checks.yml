@@ -29,6 +29,8 @@ on:
     outputs:
       model_context_only:
         value: ${{ jobs.scope.outputs.model_context_only }}
+      calculation_plan_only:
+        value: ${{ jobs.scope.outputs.calculation_plan_only }}
       managed_compute_only:
         value: ${{ jobs.scope.outputs.managed_compute_only }}
 permissions:
@@ -38,6 +40,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     outputs:
+      calculation_plan_only: ${{ steps.plan.outputs.calculation_plan_only }}
       model_context_only: ${{ steps.select.outputs.model_context_only }}
       managed_compute_only: ${{ steps.compute.outputs.managed_compute_only }}
     steps:
@@ -48,13 +51,17 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/property-model-scope.py
+      - id: plan
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/calculation-plan-scope.py
       - id: compute
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/managed_compute_scope.py
   model-review:
     needs: scope
-    if: inputs.scope_only != true && needs.scope.outputs.managed_compute_only != 'true'
+    if: inputs.scope_only != true && needs.scope.outputs.calculation_plan_only != 'true' && needs.scope.outputs.managed_compute_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:
