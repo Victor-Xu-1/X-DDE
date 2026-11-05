@@ -134,6 +134,21 @@ it("keeps keyboard selection, native viewer region and both research handoffs on
       language="en"
     />,
   );
+  const strip = screen.getByRole("region", {
+    name: "Pocket preview selection",
+  });
+  await user.click(
+    within(strip).getByRole("button", { name: "Next candidate" }),
+  );
+  expect(screen.getByLabelText("Viewer region")).toHaveTextContent(
+    JSON.stringify(sites[1].residues),
+  );
+  expect(
+    within(strip).getByRole("button", { name: "Preview pocket 2" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await user.click(
+    within(strip).getByRole("button", { name: "Preview pocket 1" }),
+  );
   const select = screen.getByRole("button", { name: "Pocket 2" });
   select.focus();
   await user.keyboard("{Enter}");

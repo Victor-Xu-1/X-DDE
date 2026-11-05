@@ -149,6 +149,7 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   );
   expect(screen.getByText(/实际范围/)).toBeVisible();
   expect(screen.getByRole("button", { name: "姿势 1" })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "预览姿势 1" })).toBeNull();
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "姿势 2" }));
   expect(screen.getByTestId("viewer")).toHaveTextContent(
@@ -307,6 +308,29 @@ it.each(["en", "zh"] as const)(
         result={result}
       />,
     );
+    const strip = screen.getByRole("region", {
+      name: zh ? "姿势预览选择" : "Pose preview selection",
+    });
+    const download = () =>
+      within(strip).queryByRole("link", {
+        name: zh ? "下载所选姿势 SDF" : "Download selected pose SDF",
+      });
+    expect(download()).toHaveAttribute("href", "/artifact/j/pose-001.sdf");
+    await user.click(
+      within(strip).getByRole("button", {
+        name: zh ? "下一个候选" : "Next candidate",
+      }),
+    );
+    expect(download()).toHaveAttribute("href", "/artifact/j/pose-002.sdf");
+    expect(screen.getByTestId("viewer")).toHaveTextContent(
+      "/artifact/j/pose-002.sdf",
+    );
+    expect(
+      within(strip).getByRole("button", {
+        name: zh ? "预览姿势 2" : "Preview pose 2",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(within(strip).getByText("-7.000")).toBeVisible();
     await user.click(
       screen.getByRole("checkbox", {
         name: zh ? "对比 姿势 1" : "Compare Pose 1",
@@ -342,6 +366,7 @@ it.each(["en", "zh"] as const)(
         records: [0, 0, 0],
       }),
     );
+    expect(download()).toBeNull();
     expect(
       within(comparison).getByTestId("native-score"),
     ).toBeEmptyDOMElement();
