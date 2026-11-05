@@ -12,7 +12,7 @@
 }
 @media (max-width: 1250px) {
   .prediction-setup-layout {
-    grid-template-columns: minmax(0, 1fr) 240px;
+    grid-template-columns: minmax(0, 1fr) 260px;
     gap: 18px;
   }
   .prediction-setup {
@@ -59,6 +59,17 @@
   }
   .prediction-setup-layout .questionnaire-heading {
     font-size: 20px;
+  }
+  .studio-app .prediction-setup-layout .questionnaire-steps {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+  .prediction-setup-layout .questionnaire-steps button {
+    min-height: 44px;
+    justify-content: center;
   }
   .prediction-result .structure-workbench-view,
   .prediction-result .structure-workbench-details {

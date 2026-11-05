@@ -5,19 +5,10 @@ import { artifactUrl } from "../api";
 import { MetricHelp } from "../guided/MetricHelp";
 import { Hint } from "../guided/Hint";
 import { ResultRow } from "../presentation/ResultRow";
+import { predictionSampleName } from "../presentation/PredictionSampleIdentity";
 import type { Analysis, Job, Language } from "../types";
 const n = (v: number | null | undefined, d = 2) =>
   v == null ? "—" : v.toFixed(d);
-export const conformerName = (id: string, zh: boolean) => {
-  const multi = /^seed-(\d+)-sample-(\d+)$/.exec(id);
-  if (multi)
-    return `${zh ? "种子" : "Seed"} ${multi[1]} · ${zh ? "构象" : "Conformer"} ${Number(multi[2]) + 1}`;
-  return (
-    (zh ? "构象 " : "Conformer ") +
-    (Number(id.split("-")[1]) + 1) +
-    (id.split("-")[2] ? " · " + id.split("-")[2].slice(0, 6) : "")
-  );
-};
 interface Props {
   job: Job | null;
   analysis: Analysis | null;
@@ -156,7 +147,7 @@ export function CandidatePanel({
                     aria-pressed={row.id === selected}
                     onClick={() => onSelect(row.id)}
                   >
-                    {conformerName(row.id, zh)}
+                    {predictionSampleName(row.id, zh)}
                   </button>
                   <small>
                     {row.atom_count} {zh ? "原子" : "atoms"}
@@ -173,7 +164,7 @@ export function CandidatePanel({
                         type="checkbox"
                         aria-label={
                           (zh ? "叠加 " : "Overlay ") +
-                          conformerName(row.id, zh)
+                          predictionSampleName(row.id, zh)
                         }
                         checked={compared.includes(row.id)}
                         disabled={
@@ -193,7 +184,7 @@ export function CandidatePanel({
                       <a
                         aria-label={
                           (zh ? "下载 " : "Download ") +
-                          conformerName(row.id, zh)
+                          predictionSampleName(row.id, zh)
                         }
                         title={
                           zh
