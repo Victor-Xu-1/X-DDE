@@ -296,6 +296,8 @@ on:
       - "!frontend/src/studio/PredictionResults.tsx"
       - "!frontend/src/viewer/MinimizedPoseResults.tsx"
       - "!frontend/src/presentation/StructureWorkbench.tsx"
+      - "!frontend/src/presentation/CandidateReviewBar.tsx"
+      - "!frontend/src/presentation/candidate-review-bar.css"
       # Native workspace fullscreen and retained figure/trajectory checks have exact scopes.
       - "!frontend/src/presentation/WorkspaceFullscreenControl*"
       - "!frontend/src/presentation/useWorkspaceFullscreen.ts"
@@ -581,6 +583,8 @@ on:
       - "!frontend/src/studio/PredictionResults.tsx"
       - "!frontend/src/viewer/MinimizedPoseResults.tsx"
       - "!frontend/src/presentation/StructureWorkbench.tsx"
+      - "!frontend/src/presentation/CandidateReviewBar.tsx"
+      - "!frontend/src/presentation/candidate-review-bar.css"
       # Native workspace fullscreen and retained figure/trajectory checks have exact scopes.
       - "!frontend/src/presentation/WorkspaceFullscreenControl*"
       - "!frontend/src/presentation/useWorkspaceFullscreen.ts"

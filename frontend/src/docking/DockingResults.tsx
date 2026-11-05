@@ -1,3 +1,5 @@
+import { scoreLabel } from "./scoreLabels";
+import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import { searchNotice } from "./searchNotice";
 import { ReceptorRefinementSummary } from "./ReceptorRefinementSummary";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
@@ -57,6 +59,39 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const selected = result.poses.find(
     (v) => v.record === record && v.valid && v.artifact,
   );
+  const nativeScore = selected ? poseScore(result, selected) : null;
+  const qualified = result.poses.filter((pose) => pose.valid && pose.artifact);
+  const inspectingPose = compared.length !== 2 && !diagnostic;
+  const metrics = inspectingPose
+    ? [
+        ...(nativeScore
+          ? [
+              {
+                label: zh ? "整姿势对接分数" : "Whole-pose docking score",
+                value: nativeScore.value.toFixed(3),
+                detail: nativeScore.unit,
+              },
+            ]
+          : []),
+        ...["CNNscore", "CNNaffinity"].flatMap((name) => {
+          const score = selected?.scores.find(
+            (item) =>
+              item.name === name &&
+              item.unit === "model_output" &&
+              Number.isFinite(item.value),
+          );
+          return score
+            ? [
+                {
+                  label: scoreLabel(name, language),
+                  value: score.value.toFixed(3),
+                  detail: zh ? "模型输出" : "model output",
+                },
+              ]
+            : [];
+        }),
+      ]
+    : [];
   const target: PoseAssetTarget | null = selected?.artifact
     ? { name: selected.artifact, kind: "molecule", record: 0 }
     : null;
@@ -82,7 +117,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
     molecularSource: selected?.artifact
       ? { url: artifactUrl(job.id, selected.artifact) }
       : undefined,
-    nativeScore: selected ? poseScore(result, selected) : undefined,
+    nativeScore,
   };
   const wrap = (content: ReactNode) => (
     <PoseSession frame={frame}>{content}</PoseSession>
@@ -90,6 +125,12 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const handoff = usePoseHandoff<"properties" | "score" | "quality">(
     JSON.stringify([job.id, record, posePlan(frame).key]),
   );
+  function selectPose(poseRecord: number) {
+    setDiagnostic(null);
+    setComparison(null);
+    setRecord(poseRecord);
+    handoff.clear();
+  }
   const next = handoff.value?.action;
   const nextInput = handoff.value?.selection.reference;
   if (nextInput && next)
@@ -154,6 +195,29 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
         </p>
       )}
       <StructureWorkbench
+        toolbar={
+          <CandidateReviewBar
+            label={zh ? "姿势预览选择" : "Pose preview selection"}
+            caption={zh ? "姿势" : "Pose"}
+            candidates={qualified.map((pose) => ({
+              id: pose.record,
+              label: (zh ? "预览姿势 " : "Preview pose ") + (pose.record + 1),
+              short: pose.record + 1,
+            }))}
+            selected={inspectingPose ? selected?.record : undefined}
+            language={language}
+            onSelect={selectPose}
+            metrics={metrics}
+            actions={
+              inspectingPose &&
+              selected?.artifact && (
+                <a href={artifactUrl(job.id, selected.artifact)} download>
+                  {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                </a>
+              )
+            }
+          />
+        }
         preview={
           <div className="result-inspector">
             {compared.length === 2 ? (
@@ -163,11 +227,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 poses={compared}
                 language={language}
                 onClose={() => setComparison(null)}
-                onInspect={(pose) => {
-                  setRecord(pose.record);
-                  setComparison(null);
-                  handoff.clear();
-                }}
+                onInspect={(pose) => selectPose(pose.record)}
               />
             ) : (
               <>
@@ -201,7 +261,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                       label={(zh ? "姿势 " : "Pose ") + (selected.record + 1)}
                       source={{ url: artifactUrl(job.id, selected.artifact) }}
                       defaultView="3d"
-                      nativeScore={poseScore(result, selected)}
+                      nativeScore={nativeScore}
                       urls={[
                         artifactUrl(job.id, result.receptor_artifact),
                         artifactUrl(job.id, selected.artifact),
@@ -209,9 +269,6 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                       language={language}
                       focusModel={1}
                     />
-                    <a href={artifactUrl(job.id, selected.artifact)} download>
-                      {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-                    </a>
                     {selected.mapping_status ===
                       "ambiguous_reconfirm_selections" && (
                       <p className="field-help" role="note">
@@ -297,12 +354,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
             result={result}
             language={language}
             selected={record}
-            onSelect={(pose) => {
-              setDiagnostic(null);
-              setComparison(null);
-              setRecord(pose.record);
-              handoff.clear();
-            }}
+            onSelect={(pose) => selectPose(pose.record)}
             onDiagnostic={(artifact) => {
               setRecord(null);
               setComparison(null);
