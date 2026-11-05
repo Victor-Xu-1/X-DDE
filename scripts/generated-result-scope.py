@@ -24,6 +24,7 @@ PATTERNS = (
     "server_tests/test_generated_quality_browser.py",
     "scripts/generated-result-scope.py",
     ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/artifact-digest-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/task-layout-checks.yml",
     ".github/workflows/reference-pocket-checks.yml",
@@ -55,7 +56,10 @@ def main():
         bool(changed)
         and any(
             name.startswith("frontend/src/diffsbdd/")
-            or name == "server_tests/test_generated_quality_browser.py"
+            or name in {
+                "server_tests/test_generated_quality_browser.py",
+                "scripts/generated-result-scope.py",
+            }
             for name in changed
         )
         and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
