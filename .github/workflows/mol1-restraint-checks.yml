@@ -44,6 +44,7 @@ jobs:
   scope:
     runs-on: ubuntu-24.04
     outputs:
+      computation_settings: ${{ steps.select.outputs.computation_settings }}
       final_review_only: ${{ steps.select.outputs.final_review_only }}
       entity_inputs: ${{ steps.select.outputs.entity_inputs }}
     steps:
@@ -80,7 +81,7 @@ jobs:
       - name: Typed model inputs and exact source-bound conditions
         run: uv run --locked pytest -q tests/test_mol1.py tests/test_mol1_native_contract.py tests/test_simulation_restraints.py
       - name: Actual OpenMM forces and analytical energies; no dynamics
-        if: needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.entity_inputs != 'true'
+        if: needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.computation_settings != 'true'
         run: uv run --locked --with openmm==8.6.1 pytest -q server_tests/test_openmm_restraints.py
   interface:
     runs-on: ubuntu-latest

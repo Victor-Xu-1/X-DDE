@@ -8,6 +8,31 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_computation_settings_delegation_is_closed_to_native_settings_and_consumers():
+    files = sorted(scope.COMPUTATION_SETTING_SOURCES) + [
+        "frontend/src/integrations/Mol1Form.tsx",
+        "frontend/src/integrations/Mol1Form.test.tsx",
+        "server_tests/test_prediction_drafts_browser.py",
+        "pyproject.toml",
+    ]
+    assert scope.computation_settings_only(files)
+    assert scope.computation_settings_only(files, "pull_request")
+    assert scope.prediction_only(files)
+    assert not scope.computation_settings_only(files, "workflow_dispatch")
+    assert not scope.computation_settings_only(
+        [".github/workflows/prediction-workspace-checks.yml"]
+    )
+    for unrelated in [
+        "src/opendde_workbench/integrations/mol1_contract.py",
+        "frontend/src/presentation/prediction-draft-model.ts",
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/simulations/SimulationForm.tsx",
+    ]:
+        assert not scope.computation_settings_only(files + [unrelated])
+
+
 def test_feature_policy_dialog_delegation_is_closed_to_its_two_native_forms():
     files = sorted(scope.FEATURE_SETTING_SOURCES) + [
         "frontend/src/operations/ExpertParameters.tsx",

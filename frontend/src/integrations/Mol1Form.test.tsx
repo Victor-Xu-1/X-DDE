@@ -137,3 +137,40 @@ it.each(["en", "zh"] as const)(
     });
   },
 );
+
+it("offers independently editable seeds with the native eight-seed limit", async () => {
+  const user = userEvent.setup();
+  render(<Mol1Form language="en" onCreated={vi.fn()} />);
+  await user.type(
+    screen.getByLabelText("One-letter amino-acid sequence"),
+    "PREACHINGS",
+  );
+  await user.type(
+    screen.getByLabelText("SMILES or CCD_ identifier"),
+    "CCD_ATP",
+  );
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.click(screen.getByRole("button", { name: "MSA settings" }));
+  await user.click(screen.getByRole("radio", { name: "No MSA" }));
+  await user.click(screen.getByRole("button", { name: "Save", exact: true }));
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  const seeds = within(
+    screen.getByRole("region", { name: "Seeds", exact: true }),
+  );
+  await user.click(seeds.getByRole("button", { name: "Add seed" }));
+  expect(seeds.getByLabelText("Seed 2")).toHaveValue("102");
+  await user.clear(seeds.getByLabelText("Seed 2"));
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  await user.type(seeds.getByLabelText("Seed 2"), "101");
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  await user.clear(seeds.getByLabelText("Seed 2"));
+  await user.type(seeds.getByLabelText("Seed 2"), "202");
+  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+  for (let i = 0; i < 6; i++)
+    await user.click(seeds.getByRole("button", { name: "Add seed" }));
+  expect(seeds.getByRole("button", { name: "Add seed" })).toBeDisabled();
+  expect(seeds.getByLabelText("Seed 8")).toBeVisible();
+  await user.click(seeds.getByRole("button", { name: "Remove seed 8" }));
+  expect(seeds.getByRole("button", { name: "Add seed" })).toBeEnabled();
+  expect(api.submit).not.toHaveBeenCalled();
+});
