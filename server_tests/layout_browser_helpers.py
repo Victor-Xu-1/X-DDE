@@ -239,6 +239,12 @@ def catalog(page):
         summary.click()
 
 
+def questionnaire_workspace(page):
+    """A live setup summary shares the task's width with its editable form."""
+    setup = page.locator("main .prediction-setup-layout:visible")
+    return setup if setup.count() else page.locator("main .questionnaire:visible")
+
+
 def capture(page, evidence, name, stage):
     settle_visible_drawings(page)
     panels = page.locator("main .questionnaire > fieldset:visible")
@@ -274,8 +280,10 @@ def capture(page, evidence, name, stage):
         form = page.locator("main .questionnaire:visible").bounding_box()
         template = page.locator("main .module-template:visible").bounding_box()
         if template:
+            workspace = questionnaire_workspace(page).bounding_box()
             assert (
-                abs(form["x"] - template["x"]) <= 2 and abs(form["width"] - template["width"]) <= 2
+                abs(workspace["x"] - template["x"]) <= 2
+                and abs(workspace["width"] - template["width"]) <= 2
             ), f"{name}: task and template widths differ"
         actions = page.locator(".questionnaire-actions:visible").bounding_box()
         if actions:
