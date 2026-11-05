@@ -11,6 +11,7 @@ on:
       - "frontend/src/studio/TaskSearch*"
       - "frontend/src/studio/TaskNotifications*"
       - "frontend/src/studio/ModuleTaskPicker*"
+      - "frontend/src/studio/MethodSwitch*"
       - "frontend/src/studio.css"
       - "frontend/src/design/workspaces.css"
       - "frontend/src/tokens.css"
