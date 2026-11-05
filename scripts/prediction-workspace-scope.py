@@ -686,9 +686,49 @@ def job_archive_only(changed, event="push"):
     )
 
 
+EXAMPLE_INSPECTION_FILES = {
+    "frontend/src/studio/PredictionInspection.tsx",
+    "frontend/src/studio/PredictionResults.tsx",
+    "frontend/src/examples/ExampleJobResult.tsx",
+    "frontend/src/examples/ExampleJobResult.test.tsx",
+    "server_tests/test_prediction_workspace_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/example-result-set-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+# A stacked service candidate has its own lifecycle and upgrade checks.
+SERVICE_SHUTDOWN_FILES = {
+    "src/opendde_workbench/__main__.py",
+    "tests/test_service_shutdown.py",
+    ".github/workflows/service-control-checks.yml",
+    ".github/workflows/service-upgrade-checks.yml",
+    "docs/development.md",
+}
+
+
+def example_inspection_only(changed, event):
+    paths = set(changed)
+    if event not in {"push", "pull_request"} or not {
+        "frontend/src/studio/PredictionInspection.tsx",
+        "frontend/src/examples/ExampleJobResult.tsx",
+    } & paths:
+        return False
+    if SERVICE_SHUTDOWN_FILES <= paths:
+        paths -= SERVICE_SHUTDOWN_FILES
+    return paths <= EXAMPLE_INSPECTION_FILES
+
+
 def selected(changed, event="push"):
     if (
-        sample_export_only(changed, event)
+        example_inspection_only(changed, event)
+        or sample_export_only(changed, event)
         or reference_review_only(changed, event)
         or history_input_only(changed, event)
         or job_archive_only(changed, event)
