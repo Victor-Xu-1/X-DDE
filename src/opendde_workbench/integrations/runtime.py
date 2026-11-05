@@ -1,5 +1,6 @@
 """Installation/model readiness is independent for every scientific program."""
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -56,24 +57,31 @@ async def readiness(settings, identifier):
         ) != recipe_digest(identifier):
             raise RuntimeError("The installed scientific image differs from its reviewed recipe.")
         if spec["models"]:
-            root = Path(models.get("models", ""))
-            manifest = root / "manifest.json"
-            if (
-                not root.is_absolute()
-                or root.is_symlink()
-                or not manifest.is_file()
-                or manifest.is_symlink()
-            ):
-                raise RuntimeError("Install the selected program's model resources in Components.")
-            from .native_resources import model_files
-
-            model_files(root, spec)
-            if models.get("manifest_sha256") != _digest(manifest):
-                raise RuntimeError("Native model manifest differs from its installed identity.")
+            # CCD libraries contain tens of thousands of files. Retain the full
+            # verification while letting health/session/cancellation requests run.
+            # ReadinessCache owns this observation across reader timeouts.
+            await asyncio.to_thread(_check_model_resources, models, spec)
         value["ready"] = True
     except (ValueError, OSError, RuntimeError, TimeoutError) as exc:
         value["reason"] = str(exc)
     return value
+
+
+def _check_model_resources(models, spec):
+    root = Path(models.get("models", ""))
+    manifest = root / "manifest.json"
+    if (
+        not root.is_absolute()
+        or root.is_symlink()
+        or not manifest.is_file()
+        or manifest.is_symlink()
+    ):
+        raise RuntimeError("Install the selected program's model resources in Components.")
+    from .native_resources import model_files
+
+    model_files(root, spec)
+    if models.get("manifest_sha256") != _digest(manifest):
+        raise RuntimeError("Native model manifest differs from its installed identity.")
 
 
 def _digest(file):

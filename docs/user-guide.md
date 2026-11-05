@@ -230,3 +230,7 @@ Restart X-DDE after component changes to refresh the platform execution settings
 The existing Chemistry environment provides both methods; no additional model or environment is needed. Choose the purpose, then an explicit alert policy or per-scaffold budget and review before submission. Native schema 2 adds actual rule/group evidence and a checked CSV artifact; schema 1 records remain readable and unevaluated. Input molecular identities, stereochemistry, isotopes, charges, coordinates and properties are retained. The methods do not estimate activity, experimental toxicity or affinity.
 
 独立科学环境与实际支持范围：[科学环境升级说明](scientific-upgrade.md)。
+
+### Scientific environment availability
+
+Availability checks inspect the installed environment and its complete model-resource manifest without loading a scientific model. Large resource libraries are checked while the workbench remains available for editing and navigation. Readiness is published only after verification finishes; missing, redirected or changed resources remain unavailable. A timed-out or interrupted observation does not become a successful check later, and concurrent readers share the current observation. Installation readiness does not establish the scientific quality of a prediction.
