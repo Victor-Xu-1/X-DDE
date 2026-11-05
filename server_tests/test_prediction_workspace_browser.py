@@ -7,6 +7,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
+from server_tests.fullscreen_browser_helpers import inspect_full_workspace
 from server_tests.prediction_workspace_case import INPUTS, case
 
 
@@ -58,7 +59,10 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
     zh = language == "zh"
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
-        page = browser.new_page(viewport={"width": width, "height": 1000})
+        page = browser.new_page(
+            viewport={"width": width, "height": 1000},
+            screen={"width": width, "height": 1000},
+        )
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
@@ -203,6 +207,15 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             assert content["width"] >= available["width"] - 1
             assert a["x"] - available["x"] <= 40
             assert stage["width"] >= 1000 and stage["height"] >= 600
+
+            def check_expanded_height():
+                expanded = preview.locator(".molecular-stage").bounding_box()
+                height = page.evaluate("innerHeight")
+                assert expanded and expanded["height"] >= max(360, height - 220)
+
+            inspect_full_workspace(
+                page, preview, evidence, language, "wide-prediction", check_expanded_height
+            )
         page.evaluate("window.scrollTo(0, 0)")
         page.screenshot(path=str(evidence / "result-viewport.png"), full_page=False)
         page.screenshot(path=str(evidence / "result.png"), full_page=True)
