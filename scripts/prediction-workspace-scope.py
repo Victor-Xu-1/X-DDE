@@ -151,6 +151,35 @@ def entity_inputs_only(changed, event="push"):
     )
 
 
+BOLTZ_INPUT_SOURCES = {
+    "frontend/src/integrations/BoltzInputs.test.tsx",
+    "frontend/src/integrations/BoltzInputs.tsx",
+    "frontend/src/integrations/BoltzMsaInput.tsx",
+    "frontend/src/integrations/boltz-input-settings.css",
+}
+BOLTZ_INPUT_FILES = BOLTZ_INPUT_SOURCES | {
+    "frontend/src/integrations/BoltzInputs.test.tsx",
+    "server_tests/test_boltz_input_settings_browser.py",
+    "server_tests/test_boltz_final_review_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/frontend-layout.md",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
+    "install.sh", "install.ps1",
+}
+
+
+def boltz_inputs_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & BOLTZ_INPUT_SOURCES)
+        and changed <= BOLTZ_INPUT_FILES
+    )
+
+
 COMPUTATION_SETTING_SOURCES = {
     "frontend/src/integrations/Mol1Settings.tsx",
     "frontend/src/integrations/Mol1SeedEditor.tsx",
@@ -871,7 +900,8 @@ def example_inspection_only(changed, event):
 
 def selected(changed, event="push"):
     if (
-        computation_settings_only(changed, event)
+        boltz_inputs_only(changed, event)
+        or computation_settings_only(changed, event)
         or entity_inputs_only(changed, event)
         or feature_settings_only(changed, event)
         or example_inspection_only(changed, event)
@@ -933,6 +963,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "boltz_inputs": boltz_inputs_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "computation_settings": computation_settings_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

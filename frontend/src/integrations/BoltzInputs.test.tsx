@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { BoltzInputs, type BoltzInputRow } from "./BoltzInputs";
 import { validBoltzComponents } from "./validation";
@@ -12,6 +12,23 @@ import {
 } from "./boltz-inputs";
 
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  if (!HTMLDialogElement.prototype.showModal)
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: {
+        configurable: true,
+        value() {
+          this.setAttribute("open", "");
+        },
+      },
+      close: {
+        configurable: true,
+        value() {
+          this.removeAttribute("open");
+        },
+      },
+    });
+});
 const asset = {
   id: "11111111-1111-4111-8111-111111111111",
   sha256: "a".repeat(64),
@@ -70,6 +87,31 @@ function InputFixture({
     </>
   );
 }
+
+it("stages chain MSA settings without silently changing the native provided-alignment default", async () => {
+  const user = userEvent.setup();
+  render(<InputFixture />);
+  const trigger = screen.getByRole("button", { name: "Chain A MSA settings" });
+  expect(trigger).toHaveTextContent("MSA file");
+  expect(screen.queryByLabelText("Upload Chain A MSA")).not.toBeInTheDocument();
+  await user.click(trigger);
+  const dialog = screen.getByRole("dialog", { name: "MSA settings" });
+  await user.click(
+    within(dialog).getByRole("radio", { name: "Single sequence" }),
+  );
+  expect(screen.getByLabelText("Current components")).toHaveTextContent(
+    '"msa_mode":"provided"',
+  );
+  await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+  expect(trigger).toHaveFocus();
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+  await user.click(trigger);
+  expect(screen.getByRole("radio", { name: "MSA file" })).toBeChecked();
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
+  expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
+  expect(trigger).toHaveTextContent("Single sequence");
+});
 
 it("defaults to a fresh alignment, blocks pending checks and clears a changed protein", async () => {
   let reply!: (value: unknown) => void;

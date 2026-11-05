@@ -59,6 +59,9 @@ on:
       - "frontend/src/integrations/BoltzJobReview.tsx"
       - "frontend/src/integrations/BoltzInputs.tsx"
       - "frontend/src/integrations/BoltzInputs.test.tsx"
+      - "frontend/src/integrations/BoltzMsaInput.tsx"
+      - "frontend/src/integrations/boltz-input-settings.css"
+      - "server_tests/test_boltz_input_settings_browser.py"
       - "frontend/src/integrations/ScientificInputs.tsx"
       - "frontend/src/integrations/boltz-job-request.ts"
       - "frontend/src/research/asset-download.ts"
@@ -136,6 +139,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     outputs:
+      boltz_inputs: ${{ steps.select.outputs.boltz_inputs }}
       computation_settings: ${{ steps.select.outputs.computation_settings }}
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
@@ -169,7 +173,7 @@ jobs:
         run: python scripts/prediction-workspace-scope.py
   interface:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.computation_settings != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
@@ -388,6 +392,57 @@ jobs:
             outputs/prediction-feature-settings/**
             outputs/prediction-drafts/**
             outputs/mol1-final-review/**
+            outputs/boltz-final-review/**
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prediction-interface-web
+          path: src/opendde_workbench/web
+          retention-days: 3
+  boltz-inputs:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.boltz_inputs == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Chain MSA transaction and exact input ownership
+        working-directory: frontend
+        run: >-
+          npx vitest run src/integrations/BoltzInputs.test.tsx
+          src/integrations/useBoltzMsa.test.ts src/integrations/ScientificForm.test.tsx
+          src/integrations/ScientificReview.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Closed scope and native alignment identity contracts
+        run: uv run --locked python -m pytest -x -q tests/test_prediction_workspace_scope.py tests/test_boltz_msa.py
+      - name: Scoped input source lint
+        run: >-
+          uv run --locked ruff check scripts/prediction-workspace-scope.py
+          tests/test_prediction_workspace_scope.py server_tests/test_boltz_input_settings_browser.py
+          server_tests/test_boltz_final_review_browser.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Prepare native drawing and isolated browser state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-boltz-inputs" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-boltz-inputs/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-boltz-inputs" WB_STATE_DIR="$RUNNER_TEMP/x-dde-boltz-inputs/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Native input dialogs and exact final review without inference
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_boltz_input_settings_browser.py
+          server_tests/test_boltz_final_review_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boltz-input-evidence
+          path: |
+            outputs/boltz-input-settings/**
             outputs/boltz-final-review/**
       - uses: actions/upload-artifact@v4
         if: always()
