@@ -48,7 +48,7 @@ button:disabled {
   color: var(--ink);
 }
 .studio-sidebar {
-  background: linear-gradient(180deg, var(--sidebar), var(--surface));
+  background: var(--sidebar);
   border-color: var(--line);
   padding: 20px 12px 12px;
 }
@@ -127,15 +127,15 @@ button:disabled {
   display: none;
 }
 .studio-topbar {
-  height: 68px;
-  padding: 0 24px;
+  min-height: 68px;
+  height: auto;
+  margin: 18px 28px 8px;
+  padding: 10px 24px;
   background: var(--surface);
-  background-image: var(--workspace-ambient);
-  background-size: auto 150px;
-  background-position: right center;
-  background-repeat: no-repeat;
-  border-bottom-color: var(--line);
-  gap: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgb(37 45 50 / 3%);
+  gap: 16px;
 }
 .page-context {
   display: flex;
@@ -145,12 +145,6 @@ button:disabled {
   font-weight: 650;
   color: var(--ink);
   white-space: nowrap;
-}
-.page-context-signature {
-  color: var(--muted);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  font-weight: 600;
 }
 .global-search {
   width: min(400px, 45vw);

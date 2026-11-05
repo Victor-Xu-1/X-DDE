@@ -23,9 +23,6 @@ export function Header({
   return (
     <header className="studio-topbar">
       <div className="page-context">
-        <span className="page-context-signature" aria-hidden="true">
-          AI · BIOPHARMA
-        </span>
         <span className="page-context-title" title={viewTitle(view, language)}>
           {viewTitle(view, language)}
         </span>

@@ -113,7 +113,7 @@ textarea {
   width: auto;
   margin-top: 0;
   border: 1px solid var(--accent);
-  background: linear-gradient(110deg, var(--accent), var(--accent-secondary));
+  background: var(--accent);
   color: var(--accent-contrast);
   border-radius: 8px;
   min-height: 40px;
