@@ -121,15 +121,16 @@ it("keeps a consciously chosen single-sequence baseline when navigating back to 
     screen.getAllByRole("button", { name: "Remove component" })[1],
   );
   expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "Evolutionary information" }),
-    "single",
+  await user.click(
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
   );
+  await user.click(screen.getByRole("radio", { name: "Single sequence" }));
+  await user.click(screen.getByRole("button", { name: "Save" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "Back" }));
   expect(
-    screen.getByRole("combobox", { name: "Evolutionary information" }),
-  ).toHaveValue("single");
+    screen.getByRole("button", { name: "Chain A MSA settings" }),
+  ).toHaveTextContent("Single sequence");
   expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
 });
 it.each(["chemprop.train", "chemprop.predict"] as const)(

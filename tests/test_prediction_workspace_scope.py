@@ -24,7 +24,9 @@ def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():
         "src/opendde_workbench/integrations/native_boltz.py",
     ]:
         assert not scope.boltz_inputs_only(files + [unrelated])
-    workflow = (Path(__file__).parents[1] / ".github/workflows/prediction-workspace-checks.yml").read_text()
+    workflow = (
+        Path(__file__).parents[1] / ".github/workflows/prediction-workspace-checks.yml"
+    ).read_text()
     focused = workflow.split("  boltz-inputs:", 1)[1].split("  computation-settings:", 1)[0]
     assert "src/integrations/BoltzInputs.test.tsx" in focused
     assert "server_tests/test_boltz_final_review_browser.py" in focused

@@ -1,0 +1,63 @@
+.boltz-msa-summary {
+  margin: 12px 0 0;
+}
+.boltz-msa-input > p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.boltz-msa-editor .feature-mode-choices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 14px 0 18px;
+}
+.boltz-msa-editor > .asset-picker {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.boltz-msa-editor .input-purpose {
+  display: none;
+}
+.boltz-msa-editor .file-upload {
+  margin: 0;
+}
+.boltz-msa-editor .file-select {
+  min-height: 72px;
+  padding: 12px;
+  gap: 10px;
+}
+.boltz-msa-editor .file-select-symbol {
+  width: 28px;
+  height: 28px;
+  font-size: 17px;
+}
+.boltz-msa-editor .file-select-copy {
+  gap: 3px;
+}
+.boltz-msa-editor p,
+.boltz-msa-editor .selected-file {
+  overflow-wrap: anywhere;
+}
+.boltz-msa-editor > .field-help {
+  margin: 10px 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.boltz-ligand-file {
+  margin: 10px 0;
+  padding: 0;
+  border: 0;
+}
+.boltz-ligand-file > summary {
+  padding: 8px 0;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.boltz-ligand-file > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.boltz-ligand-file > .diff-reference {
+  margin: 6px 0 14px;
+}

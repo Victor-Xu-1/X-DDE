@@ -158,6 +158,7 @@ BOLTZ_INPUT_SOURCES = {
     "frontend/src/integrations/boltz-input-settings.css",
 }
 BOLTZ_INPUT_FILES = BOLTZ_INPUT_SOURCES | {
+    "frontend/src/integrations/ScientificForm.test.tsx",
     "frontend/src/integrations/BoltzInputs.test.tsx",
     "server_tests/test_boltz_input_settings_browser.py",
     "server_tests/test_boltz_final_review_browser.py",
@@ -166,8 +167,12 @@ BOLTZ_INPUT_FILES = BOLTZ_INPUT_SOURCES | {
     ".github/workflows/prediction-workspace-checks.yml",
     "docs/frontend-layout.md",
     "docs/quality/frontend-coverage.md",
-    "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
-    "install.sh", "install.ps1",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
 }
 
 
