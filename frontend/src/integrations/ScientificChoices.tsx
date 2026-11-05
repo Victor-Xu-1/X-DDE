@@ -1,5 +1,7 @@
 import { Hint } from "../guided/Hint";
-import { ChoiceCards } from "../guided/ChoiceCards";
+import { useId } from "react";
+import { ScientificChoicesCount } from "./ScientificChoicesCount";
+import "./ScientificChoices.css";
 import { ExpertChoices } from "./ExpertChoices";
 import { validScientificChoices } from "./validation";
 import type { Language } from "../types";
@@ -29,65 +31,21 @@ export function ScientificChoices({
   onExpert(value: boolean): void;
 }) {
   const zh = language === "zh";
-  const countField =
-    program === "boltz"
-      ? "samples"
-      : ["reinvent", "ligandmpnn", "boltzgen"].includes(program)
-        ? "candidates"
-        : null;
-  const standardChoices =
-    program === "boltz"
-      ? [1, 3, 5]
-      : program === "ligandmpnn"
-        ? [8, 20, 50]
-        : [20, 50, 100];
-  const currentCount = countField ? Number(payload[countField]) : NaN;
-  const choices =
-    program === "boltzgen"
-      ? Array.from(new Set([2, ...standardChoices, currentCount]))
-          .filter((n) => Number.isInteger(n) && n >= 1 && n <= 200)
-          .sort((a, b) => a - b)
-      : standardChoices;
+  const settingsId = useId();
+  const modelSettings =
+    ["boltz", "ligandmpnn", "openmm", "apbs"].includes(program) ||
+    (program === "boltzgen" &&
+      !["antibody", "nanobody"].includes(String(payload.modality))) ||
+    (program === "reinvent" && payload.mode === "optimize") ||
+    (program === "chemprop" && payload.mode === "train");
   return (
-    <>
-      {countField && (
-        <div className="scientific-count-choice">
-          <h3>
-            {zh
-              ? "希望查看多少个候选？"
-              : "How many candidates would you like?"}
-          </h3>
-          <ChoiceCards
-            label={zh ? "候选数量" : "Candidate count"}
-            value={String(payload[countField])}
-            onChange={(value) => onChange({ [countField]: Number(value) })}
-            options={choices.map((value) => ({
-              value: String(value),
-              title: `${value} ${zh ? "个候选" : "candidates"}`,
-            }))}
-          />
-        </div>
-      )}
-      {program === "boltzgen" && (
-        <>
-          <label className="field">
-            {zh ? "保留候选" : "Retain candidates"}
-            <select
-              value={Number(payload.retain)}
-              onChange={(e) => onChange({ retain: Number(e.target.value) })}
-            >
-              {Array.from(new Set([1, 2, 5, 10, 20, Number(payload.retain)]))
-                .filter((n) => Number.isInteger(n) && n >= 1 && n <= 50)
-                .sort((a, b) => a - b)
-                .map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-            </select>
-          </label>
-        </>
-      )}
+    <div className="scientific-calculation-plan">
+      <ScientificChoicesCount
+        program={program}
+        payload={payload}
+        language={language}
+        onChange={onChange}
+      />
       {program === "apbs" && (
         <div className="inline-fields">
           <label className="field">
@@ -163,63 +121,82 @@ export function ScientificChoices({
         type="button"
         className="text-button scientific-expert-toggle"
         aria-expanded={expert}
+        aria-controls={settingsId}
         onClick={() => onExpert(!expert)}
       >
-        {zh ? "专家微调" : "Expert tuning"}
+        {zh ? "高级设置" : "Advanced settings"}
+        <span aria-hidden="true">{expert ? "−" : "+"}</span>
       </button>
       {expert && (
-        <div className="expert-fields">
-          <ExpertChoices
-            program={program}
-            payload={payload}
-            language={language}
-            onChange={onChange}
-          />
-          <label className="field">
-            {zh ? "CPU 核数" : "CPU cores"}
-            <input
-              type="number"
-              min={1}
-              max={16}
-              value={options.cpu}
-              onChange={(e) =>
-                onOptions({ ...options, cpu: Number(e.target.value) })
-              }
-            />
-          </label>
-          <label className="field">
-            {zh ? "内存上限（MiB）" : "Memory budget (MiB)"}
-            <input
-              type="number"
-              min={1024}
-              max={65536}
-              step={1024}
-              value={options.memory_mib}
-              onChange={(e) =>
-                onOptions({ ...options, memory_mib: Number(e.target.value) })
-              }
-            />
-          </label>
-          {!["boltzgen", "apbs", "plip"].includes(program) && (
-            <label className="field">
-              {zh ? "随机种子" : "Random seed"}
-              <Hint label={zh ? "随机种子说明" : "Random seed help"}>
-                {zh
-                  ? "可控制的随机步骤使用此数值；不同软件的结果不能保证完全相同。"
-                  : "Controls supported random steps; results are not identical across different software."}
-              </Hint>
-              <input
-                type="number"
-                aria-label={zh ? "随机种子" : "Random seed"}
-                min={0}
-                max={2147483647}
-                value={options.seed}
-                onChange={(e) =>
-                  onOptions({ ...options, seed: Number(e.target.value) })
-                }
-              />
-            </label>
+        <div className="scientific-plan-advanced" id={settingsId}>
+          {modelSettings && (
+            <section aria-label={zh ? "模型参数" : "Model parameters"}>
+              <h3>{zh ? "模型参数" : "Model parameters"}</h3>
+              <div className="scientific-plan-grid">
+                <ExpertChoices
+                  program={program}
+                  payload={payload}
+                  language={language}
+                  onChange={onChange}
+                />
+              </div>
+            </section>
           )}
+          <section aria-label={zh ? "计算资源" : "Compute resources"}>
+            <h3>{zh ? "计算资源" : "Compute resources"}</h3>
+            <div className="scientific-plan-grid">
+              <label className="field">
+                {zh ? "CPU 核数" : "CPU cores"}
+                <input
+                  type="number"
+                  min={1}
+                  max={16}
+                  value={options.cpu}
+                  onChange={(e) =>
+                    onOptions({ ...options, cpu: Number(e.target.value) })
+                  }
+                />
+              </label>
+              <label className="field">
+                {zh ? "内存上限（MiB）" : "Memory budget (MiB)"}
+                <input
+                  type="number"
+                  min={1024}
+                  max={65536}
+                  step={1024}
+                  value={options.memory_mib}
+                  onChange={(e) =>
+                    onOptions({
+                      ...options,
+                      memory_mib: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              {!["boltzgen", "apbs", "plip"].includes(program) && (
+                <label className="field">
+                  <span className="scientific-plan-seed-heading">
+                    {zh ? "随机种子" : "Random seed"}
+                    <Hint label={zh ? "随机种子说明" : "Random seed help"}>
+                      {zh
+                        ? "可控制的随机步骤使用此数值；不同软件的结果不能保证完全相同。"
+                        : "Controls supported random steps; results are not identical across different software."}
+                    </Hint>
+                  </span>
+                  <input
+                    type="number"
+                    aria-label={zh ? "随机种子" : "Random seed"}
+                    min={0}
+                    max={2147483647}
+                    value={options.seed}
+                    onChange={(e) =>
+                      onOptions({ ...options, seed: Number(e.target.value) })
+                    }
+                  />
+                </label>
+              )}
+            </div>
+          </section>
         </div>
       )}
       {!validScientificChoices(payload) && (
@@ -229,6 +206,6 @@ export function ScientificChoices({
             : "Check candidate counts, length ranges and expert values. Retained designs cannot exceed generated designs."}
         </p>
       )}
-    </>
+    </div>
   );
 }

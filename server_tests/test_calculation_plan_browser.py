@@ -72,7 +72,7 @@ def test_native_calculation_plan_review(language, width, theme):
             ("Recycling steps", "结构迭代轮数", "4"),
             ("Sampling steps", "构象采样步数", "180"),
             ("CPU cores", "CPU 核数", "4"),
-            ("Memory budget (MiB)", "内存预算（MiB）", "9216"),
+            ("Memory budget (MiB)", "内存上限（MiB）", "9216"),
             ("Random seed", "随机种子", "202"),
         ]
         for en, cn, value in fields:

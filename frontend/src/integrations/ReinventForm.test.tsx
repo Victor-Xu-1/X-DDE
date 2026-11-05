@@ -83,7 +83,7 @@ it("submits only the reviewed R-group scope after editing the count, resources a
     JSON.stringify({ smiles: scaffold }),
   );
   await user.click(next());
-  await user.click(screen.getByRole("button", { name: "Expert tuning" }));
+  await user.click(screen.getByRole("button", { name: "Advanced settings" }));
   const seed = screen.getByRole("spinbutton", {
     name: "Random seed",
   });

@@ -60,7 +60,7 @@ it.each(["en", "zh"] as const)(
   async (language) => {
     const user = userEvent.setup();
     render(<BudgetForm language={language} />);
-    const toggle = language === "en" ? "Expert tuning" : "专家微调";
+    const toggle = language === "en" ? "Advanced settings" : "高级设置";
     await user.click(screen.getByRole("button", { name: toggle }));
     const generated = screen.getByRole("spinbutton", {
       name: language === "en" ? "Generated candidates" : "生成候选数",
@@ -78,16 +78,12 @@ it.each(["en", "zh"] as const)(
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: toggle }));
+    expect(generated).toHaveValue(4);
     expect(
-      screen.getByRole("radio", {
-        name: language === "en" ? "4 candidates" : "4 个候选",
+      screen.getByRole("spinbutton", {
+        name: language === "en" ? "Retained candidates" : "保留候选数",
       }),
-    ).toBeChecked();
-    expect(
-      screen.getByRole("combobox", {
-        name: language === "en" ? "Retain candidates" : "保留候选",
-      }),
-    ).toHaveValue("2");
+    ).toHaveValue(2);
     await user.click(screen.getByRole("button", { name: toggle }));
     expect(
       screen.getByRole("spinbutton", {
@@ -108,17 +104,20 @@ it.each(["en", "zh"] as const)(
       }),
     );
     expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
-    await user.selectOptions(
-      screen.getByRole("combobox", {
-        name: language === "en" ? "Retain candidates" : "保留候选",
-      }),
-      "2",
-    );
+    const retained = screen.getByRole("spinbutton", {
+      name: language === "en" ? "Retained candidates" : "保留候选数",
+    });
+    await user.clear(retained);
+    await user.type(retained, "2");
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
-    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("spinbutton", {
+        name: language === "en" ? "CPU cores" : "CPU 核数",
+      }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
-        name: language === "en" ? "Expert tuning" : "专家微调",
+        name: language === "en" ? "Advanced settings" : "高级设置",
       }),
     );
     expect(
@@ -132,7 +131,7 @@ it.each(["en", "zh"] as const)(
 it("blocks fractional, empty and server-out-of-range budgets without replacing the user's edit", async () => {
   const user = userEvent.setup();
   render(<BudgetForm language="en" />);
-  await user.click(screen.getByRole("button", { name: "Expert tuning" }));
+  await user.click(screen.getByRole("button", { name: "Advanced settings" }));
   const count = screen.getByRole("spinbutton", {
     name: "Generated candidates",
   });

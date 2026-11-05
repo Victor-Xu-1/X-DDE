@@ -19,59 +19,54 @@ export function ExpertChoices({
           ["recycling_steps", "结构迭代轮数", "Recycling steps", 1, 10, 1],
           ["sampling_steps", "构象采样步数", "Sampling steps", 20, 500, 1],
         ]
-      : program === "boltzgen"
+      : program === "ligandmpnn"
         ? [
-            ["candidates", "生成候选数", "Generated candidates", 1, 200, 1],
-            ["retain", "保留候选数", "Retained candidates", 1, 50, 1],
+            [
+              "temperature",
+              "序列采样温度",
+              "Sequence sampling temperature",
+              0.01,
+              1,
+              0.01,
+            ],
           ]
-        : program === "ligandmpnn"
+        : program === "reinvent" && payload.mode === "optimize"
           ? [
               [
-                "temperature",
-                "序列采样温度",
-                "Sequence sampling temperature",
-                0.01,
+                "optimization_steps",
+                "优化轮数",
+                "Optimization steps",
+                5,
+                200,
                 1,
-                0.01,
               ],
             ]
-          : program === "reinvent" && payload.mode === "optimize"
+          : program === "openmm"
             ? [
+                ["ph", "蛋白质子化 pH", "Protein protonation pH", 2, 12, 0.1],
                 [
-                  "optimization_steps",
-                  "优化轮数",
-                  "Optimization steps",
-                  5,
-                  200,
-                  1,
+                  "restraint_kj_mol_nm2",
+                  "骨架约束（kJ/mol/nm²）",
+                  "Backbone restraint (kJ/mol/nm²)",
+                  100,
+                  10000,
+                  100,
                 ],
               ]
-            : program === "openmm"
+            : program === "apbs"
               ? [
-                  ["ph", "蛋白质子化 pH", "Protein protonation pH", 2, 12, 0.1],
                   [
-                    "restraint_kj_mol_nm2",
-                    "骨架约束（kJ/mol/nm²）",
-                    "Backbone restraint (kJ/mol/nm²)",
-                    100,
-                    10000,
-                    100,
+                    "temperature_kelvin",
+                    "温度（K）",
+                    "Temperature (K)",
+                    273.15,
+                    330,
+                    0.1,
                   ],
                 ]
-              : program === "apbs"
-                ? [
-                    [
-                      "temperature_kelvin",
-                      "温度（K）",
-                      "Temperature (K)",
-                      273.15,
-                      330,
-                      0.1,
-                    ],
-                  ]
-                : program === "chemprop" && payload.mode === "train"
-                  ? [["epochs", "训练轮数", "Training epochs", 5, 200, 1]]
-                  : [];
+              : program === "chemprop" && payload.mode === "train"
+                ? [["epochs", "训练轮数", "Training epochs", 5, 200, 1]]
+                : [];
   return (
     <>
       {fields.map(([key, cn, en, min, max, step]) => (
