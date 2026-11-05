@@ -35,6 +35,7 @@ on:
       - "frontend/src/examples/examples.css"
       - "frontend/src/examples/useExampleTemplate.ts"
       - "frontend/src/examples/ExampleJobResult*"
+      - "frontend/src/studio/PredictionInspection.tsx"
       - "frontend/src/datasets/CandidateView*"
       - "frontend/src/datasets/CandidateTable*"
       - "frontend/src/datasets/DatasetResults*"

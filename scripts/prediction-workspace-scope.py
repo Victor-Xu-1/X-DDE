@@ -43,6 +43,8 @@ PATTERNS = (
     "frontend/src/integrations/ScientificResults.tsx",
     "frontend/src/studio/PredictionResults.tsx",
     "frontend/src/studio/PredictionResults.test.tsx",
+    "frontend/src/studio/PredictionInspection.tsx",
+    "frontend/src/examples/ExampleJobResult*",
     "frontend/src/studio/HomeWorkspace.test.tsx",
     "frontend/src/studio/Header.tsx",
     "frontend/src/operations/ConfidencePanel*",

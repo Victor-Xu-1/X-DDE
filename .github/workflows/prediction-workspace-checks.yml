@@ -68,6 +68,7 @@ on:
       - "frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/integrations/ScientificResults.tsx"
       - "frontend/src/studio/PredictionResults.tsx"
+      - "frontend/src/studio/PredictionInspection.tsx"
       - "frontend/src/studio/PredictionResults.test.tsx"
       - "frontend/src/studio/HomeWorkspace.test.tsx"
       - "frontend/src/studio/Header.tsx"
