@@ -1,0 +1,70 @@
+.example-stage-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 30rem) auto;
+  align-items: end;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin-block: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.example-stage-navigation label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.example-stage-navigation label > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.example-stage-navigation select {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  text-overflow: ellipsis;
+}
+.example-stage-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+.example-stage-buttons > button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 4px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.example-stage-buttons > button:disabled {
+  opacity: 0.45;
+}
+.example-stage-buttons > span {
+  min-width: 38px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.example-stage-error {
+  margin-block: 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.example-stage-error > p {
+  margin: 0;
+}
+@media (max-width: 480px) {
+  .example-stage-navigation {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 8px;
+  }
+}

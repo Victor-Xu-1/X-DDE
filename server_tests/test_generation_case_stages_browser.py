@@ -145,13 +145,23 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
         ]
         before_files = file_hashes(settings.state_dir)
         expect(choose.locator("option")).to_have_count(6)
+        previous = page.get_by_role(
+            "button", name="上一个研究阶段" if zh else "Previous study stage", exact=True
+        )
+        next_stage = page.get_by_role(
+            "button", name="下一个研究阶段" if zh else "Next study stage", exact=True
+        )
+        expect(previous).to_be_disabled()
+        bounds = choose.locator("xpath=ancestor::nav").bounding_box()
+        assert bounds and bounds["x"] >= 0 and bounds["x"] + bounds["width"] <= width + 1
         table = page.get_by_role(
             "table", name="生成的候选分子" if zh else "Generated candidate molecules"
         )
         expect(table.get_by_role("row")).to_have_count(4)
         table.get_by_text("候选 3" if zh else "Candidate 3", exact=True).click()
         for identifier in RAW_QUALITY:
-            choose.select_option(identifier)
+            next_stage.click()
+            expect(choose).to_have_value(identifier)
             summary = quality_panel(page, zh).get_by_role(
                 "status", name="质控评估摘要" if zh else "Quality assessment summary"
             )
@@ -178,7 +188,9 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
         assert response.ok
         original_pose = settings.state_dir / "jobs" / REFINED / "output" / "pose-001.sdf"
         assert response.body() == original_pose.read_bytes()
-        choose.select_option(QUALITY)
+        next_stage.click()
+        expect(choose).to_have_value(QUALITY)
+        expect(next_stage).to_be_disabled()
         panel = quality_panel(page, zh)
         summary = panel.get_by_role(
             "status", name="质控评估摘要" if zh else "Quality assessment summary"
