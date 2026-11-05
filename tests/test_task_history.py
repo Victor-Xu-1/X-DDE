@@ -1,6 +1,7 @@
 """History query acceptance over real SQLite, without scientific calculations."""
 
 import json
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -133,3 +134,56 @@ def test_actual_read_route_validates_boundaries_and_returns_original_request(lib
         ):
             assert client.get("/api/task-history?" + query).status_code == 422
         assert client.get("/api/task-history?offset=999999").json()["items"] == []
+
+
+def test_local_day_bounds_apply_before_paging_and_preserve_exact_midnight_microseconds(library):
+    stamps = [
+        "2026-10-01T15:59:59.999999+00:00",  # Just before Oct2 in Shanghai.
+        "2026-10-01T16:00:00Z",
+        *["2026-10-02T12:00:00+00:00"] * 23,
+        "2026-10-02T23:59:59.999999+08:00",  # Still Oct2; SQLite julianday rounds up.
+        "2026-10-02T16:00:00+00:00",
+    ]
+    jobs = [create(library, f"STAT6 dated {i}") for i in range(len(stamps))]
+    for job, stamp in zip(jobs, stamps, strict=True):
+        with library.store.connect() as db:
+            db.execute("UPDATE jobs SET created_at=? WHERE id=?", (stamp, job.id))
+    fixed = create(library, "Fixed dated reference")
+    library.classify([fixed.id])
+    with library.store.connect() as db:
+        db.execute("UPDATE jobs SET created_at=? WHERE id=?", (stamps[2], fixed.id))
+    before = [(job.id, job.created_at, job.status) for job in library.store.list_jobs(100)]
+    bounds = {
+        "created_from": "2026-10-02T00:00:00+08:00",
+        "created_before": "2026-10-03T00:00:00+08:00",
+        "capability": "properties",
+    }
+    app = FastAPI()
+    register_task_history(app, library)
+    with TestClient(app) as client:
+        first = client.get("/api/task-history", params={**bounds, "limit": 20}).json()
+        second = client.get(
+            "/api/task-history", params={**bounds, "limit": 20, "offset": 20}
+        ).json()
+        ids = {item["job"]["id"] for result in (first, second) for item in result["items"]}
+        assert first["total"] == second["total"] == 25
+        assert ids == {job.id for job in jobs[1:-1]}
+        assert first["counts"]["properties"]["total"] == len(jobs)
+        examples = client.get("/api/task-history", params={**bounds, "scope": "examples"}).json()
+        assert [item["job"]["id"] for item in examples["items"]] == [fixed.id]
+        assert (
+            client.get("/api/task-history", params={**bounds, "status": "failed"}).json()["total"]
+            == 0
+        )
+        for extra in (
+            {"created_from": "2026-10-02"},
+            {"created_before": "bad"},
+            {"created_from": "2026-10-03T00:00:00+08:00"},
+            {"created_from": "2026-10-04T00:00:00+08:00"},
+        ):
+            assert client.get("/api/task-history", params={**bounds, **extra}).status_code == 422
+    assert before == [(job.id, job.created_at, job.status) for job in library.store.list_jobs(100)]
+    # Legacy UTC timestamps without an offset continue to be readable.
+    with library.store.connect() as db:
+        db.execute("UPDATE jobs SET created_at='2026-10-02T01:00:00' WHERE id=?", (jobs[0].id,))
+    assert history_page(library, created_from=datetime(2026, 10, 2, tzinfo=UTC))["total"] == 26

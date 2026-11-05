@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field
 
 from ..models import Job, Status
 from .identity import task_identity
@@ -68,7 +68,11 @@ def register_task_history(app, library):
         offset: int = Query(0, ge=0, le=1000000),
         limit: int = Query(20, ge=1, le=100),
         scope: Literal["research", "examples"] = "research",
+        created_from: AwareDatetime | None = None,
+        created_before: AwareDatetime | None = None,
     ):
+        if created_from and created_before and created_from >= created_before:
+            raise HTTPException(422, "The start date must precede the exclusive end date.")
         identifiers = tuple(dict.fromkeys(capability or ()))
         registered = {rule["id"] for rule in task_kind_rules()} | {"other"}
         if any(value not in registered for value in identifiers):
@@ -83,6 +87,8 @@ def register_task_history(app, library):
                 offset=offset,
                 limit=limit,
                 scope=scope,
+                created_from=created_from,
+                created_before=created_before,
             )
         except (ValueError, KeyError, TypeError) as exc:
             raise HTTPException(

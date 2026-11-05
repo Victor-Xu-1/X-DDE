@@ -59,7 +59,9 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
     root.mkdir(exist_ok=True)
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1000})
+        page = browser.new_page(
+            viewport={"width": width, "height": 1000}, timezone_id="America/New_York"
+        )
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         errors, mutations = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -100,6 +102,73 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         open_list(page)
         expect(pages).to_contain_text("7 / 7")
         page.screenshot(path=root / "older-history.png")
+
+        # The range applies to all125records, not just the current7thpage.
+        def choose_day(control, day, month=9):
+            page.get_by_role("button", name=control, exact=True).click()
+            calendar = page.get_by_role("dialog")
+            expect(calendar).to_be_visible()
+            year = calendar.get_by_role("spinbutton", name="选择年份" if zh else "Choose year")
+            year.fill("2026")
+            year.press("Tab")
+            calendar.get_by_role(
+                "combobox", name="选择月份" if zh else "Choose month"
+            ).select_option(str(month))
+            calendar.get_by_role("button", name=day, exact=True).click()
+            expect(calendar).not_to_be_visible()
+
+        choose_day("开始日期" if zh else "Start date", "2026年10月2日" if zh else "October 2, 2026")
+        choose_day("结束日期" if zh else "End date", "2026年10月2日" if zh else "October 2, 2026")
+        expect(pages).to_contain_text("1 / 2")
+        expect(rows).to_have_count(20)
+        pages.get_by_role("button", name="下一页" if zh else "Next", exact=True).click()
+        expect(pages).to_contain_text("2 / 2")
+        dated = fixture["controlled_metadata_records"][43]
+        page.get_by_role("button", name=dated["name"], exact=True).click()
+        expect(page.locator(".detail-panel h2")).to_have_text(dated["name"])
+        open_list(page)
+        page.reload()
+        open_list(page)
+        expect(pages).to_contain_text("2 / 2")
+        assert parse_qs(urlsplit(page.url).fragment)["from"] == ["2026-10-02"]
+        assert parse_qs(urlsplit(page.url).fragment)["to"] == ["2026-10-02"]
+        page.screenshot(path=root / "dated-history.png")
+        page.get_by_role("button", name="清除筛选" if zh else "Clear filters", exact=True).click()
+        expect(rows).to_have_count(20)
+        # A DST end day is25hours in the selected local timezone.
+        choose_day(
+            "开始日期" if zh else "Start date",
+            "2026年11月1日" if zh else "November 1, 2026",
+            month=10,
+        )
+        with page.expect_request(
+            lambda request: "/api/task-history?" in request.url and "created_before=" in request.url
+        ) as dated_request:
+            choose_day(
+                "结束日期" if zh else "End date",
+                "2026年11月1日" if zh else "November 1, 2026",
+                month=10,
+            )
+        dated_params = parse_qs(urlsplit(dated_request.value.url).query)
+        assert dated_params["created_from"] == ["2026-11-01T04:00:00.000Z"]
+        assert dated_params["created_before"] == ["2026-11-02T05:00:00.000Z"]
+        expect(
+            page.get_by_role(
+                "heading", name="没有匹配的任务" if zh else "No matching tasks", exact=True
+            )
+        ).to_be_visible()
+        page.get_by_role("button", name="清除筛选" if zh else "Clear filters", exact=True).click()
+        expect(rows).to_have_count(20)
+        # Calendar cancellation returns keyboard focus and leaves the filter unchanged.
+        start_button = page.get_by_role(
+            "button", name="开始日期" if zh else "Start date", exact=True
+        )
+        start_button.click()
+        page.get_by_role("dialog").press("Escape")
+        expect(page.get_by_role("dialog")).not_to_be_visible()
+        expect(start_button).to_be_focused()
+        assert "from=" not in page.url
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth+1")
         status = page.get_by_role("combobox", name="状态" if zh else "Status", exact=True)
         status.select_option("failed")
         expect(

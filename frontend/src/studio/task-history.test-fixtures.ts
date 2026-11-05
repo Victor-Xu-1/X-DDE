@@ -37,6 +37,12 @@ export function historyFixture(jobs: Job[], path: string): TaskHistoryPage {
       (job) =>
         (!capabilities.length || capabilities.includes(kindForJob(job))) &&
         (!status || status === job.status) &&
+        (!params.get("created_from") ||
+          Date.parse(job.created_at) >=
+            Date.parse(params.get("created_from")!)) &&
+        (!params.get("created_before") ||
+          Date.parse(job.created_at) <
+            Date.parse(params.get("created_before")!)) &&
         `${job.request.name} ${job.id}`.toLowerCase().includes(query),
     )
     .map((job) => ({ job, capability_id: kindForJob(job) }));

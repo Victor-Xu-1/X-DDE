@@ -84,6 +84,36 @@ function props(
 async function modulePage() {
   await screen.findByRole("button", { name: "STAT6 descriptors" });
 }
+it("rejects invalid date URLs without issuing a broader history query", async () => {
+  window.history.replaceState(
+    null,
+    "",
+    "/#view=results&module=evaluation&from=2026-02-31",
+  );
+  render(<TaskWorkspace {...props()} />);
+  expect(screen.getByRole("alert")).toHaveTextContent("Choose valid dates");
+  expect(api.taskHistory).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+  await modulePage();
+});
+it("restores date filters from the module route and clears them with the other filters", async () => {
+  window.history.replaceState(
+    null,
+    "",
+    "/#view=results&module=evaluation&from=2026-10-02&to=2026-10-02",
+  );
+  render(<TaskWorkspace {...props()} />);
+  await screen.findByRole("heading", { name: "No matching tasks" });
+  expect(screen.getByRole("button", { name: /Start date: / })).toBeVisible();
+  expect(api.taskHistory).toHaveBeenCalledWith(
+    expect.stringContaining("created_from="),
+    expect.any(AbortSignal),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+  await modulePage();
+  expect(window.location.hash).not.toContain("from=");
+  expect(window.location.hash).not.toContain("to=");
+});
 it("uses current task-service availability for retries inside a module", () => {
   const p = props({ job: descriptors, retryAvailable: false });
   const view = render(<TaskWorkspace {...p} />);

@@ -6,6 +6,7 @@ import {
   type ModuleId,
 } from "./research-modules";
 import { taskKindRules } from "./task-kind-rules";
+import { historyDateParams } from "./task-history-dates";
 
 export type HistoryModule = ModuleId | "other";
 export const historyStatuses: readonly Status[] = [
@@ -45,6 +46,8 @@ export interface HistoryFilter {
   query: string;
   page: number;
   project: string | null;
+  startDate?: string;
+  endDate?: string;
 }
 const internalModules: Record<string, ModuleId> = {
   "native.inspect": "structures",
@@ -119,6 +122,7 @@ export function historyUrl(filter: HistoryFilter) {
   const params = new URLSearchParams({
     limit: String(historyPageSize),
     offset: String(filter.page * historyPageSize),
+    ...historyDateParams(filter),
   });
   if (filter.project) params.set("project_id", filter.project);
   if (filter.scope === "examples") params.set("scope", "examples");

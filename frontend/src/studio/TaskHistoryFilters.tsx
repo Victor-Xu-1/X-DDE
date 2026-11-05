@@ -2,6 +2,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import { translator } from "../i18n";
 import type { Language, Status } from "../types";
 import { historyKindLabel, historyStatuses } from "./task-history-model";
+import { TaskHistoryDatePicker } from "./TaskHistoryDatePicker";
 export function TaskHistoryFilters({
   language,
   type,
@@ -11,6 +12,11 @@ export function TaskHistoryFilters({
   onType,
   onStatus,
   onQuery,
+  startDate,
+  endDate,
+  onStartDate,
+  onEndDate,
+  onClear,
 }: {
   language: Language;
   type: string;
@@ -20,6 +26,11 @@ export function TaskHistoryFilters({
   onType(value: string): void;
   onStatus(value: Status | "all"): void;
   onQuery(value: string): void;
+  startDate: string;
+  endDate: string;
+  onStartDate(value: string): void;
+  onEndDate(value: string): void;
+  onClear(): void;
 }) {
   const zh = language === "zh",
     t = translator(language);
@@ -63,6 +74,39 @@ export function TaskHistoryFilters({
           />
         </div>
       </label>
+      <div
+        className="task-history-date-controls"
+        role="group"
+        aria-label={zh ? "提交日期 · 本地时间" : "Submitted dates · local time"}
+      >
+        <TaskHistoryDatePicker
+          language={language}
+          label={zh ? "开始日期" : "Start date"}
+          value={startDate}
+          maximum={endDate}
+          onChange={onStartDate}
+        />
+        <TaskHistoryDatePicker
+          language={language}
+          label={zh ? "结束日期" : "End date"}
+          value={endDate}
+          minimum={startDate}
+          onChange={onEndDate}
+        />
+        {(type !== "all" ||
+          status !== "all" ||
+          query ||
+          startDate ||
+          endDate) && (
+          <button
+            type="button"
+            className="task-history-clear"
+            onClick={onClear}
+          >
+            {zh ? "清除筛选" : "Clear filters"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

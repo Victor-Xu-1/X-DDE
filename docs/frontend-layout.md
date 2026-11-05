@@ -294,6 +294,18 @@ X-DDE uses one guided task component and one source-selection contract. Scientif
 
 ## Scoped verification
 
+Module task lists share compact start/end submission-date calendars and one clear
+action beside the existing filters. Days follow the browser's local timezone;
+the end day includes that whole day. URL dates survive reload, pagination and
+return from an exact result. Invalid date URLs remain visible and issue no broader
+history request. The server receives timezone-aware inclusive-start/exclusive-end
+instants and filters complete retained history before total and pagination, using
+exact UTC timestamp keys rather than millisecond-rounded SQLite dates. Existing
+module/project/status/search and personal/example boundaries remain authoritative;
+module counts retain their project-wide meaning. No task timestamps are rewritten.
+Calendar dismissal, bilingual narrow layouts, DST and native-file preservation are
+covered by the focused history gate without scientific execution.
+
 `Task layout and browser checks` runs only the affected frontend contracts and a real Chromium sweep of every registered research task (currently 71). Desktop and mobile run in independent bounded jobs. It restores the reviewed public case bundle into fresh runner state; it does not launch scientific calculations. The sweep checks one visible step, aligned input surfaces, desktop/mobile overflow, archived example views and absence of new compute tasks. Screenshot and geometry evidence are uploaded as workflow artifacts.
 
 A production UI update also needs visual review of its installed preview. Compiling source or passing DOM checks alone is not a visual acceptance result.

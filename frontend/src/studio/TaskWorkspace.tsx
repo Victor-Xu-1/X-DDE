@@ -17,6 +17,7 @@ import { TaskHistoryToolbar } from "./TaskHistoryToolbar";
 import { TaskHistoryFilters } from "./TaskHistoryFilters";
 import { TaskHistoryList } from "./TaskHistoryList";
 import { useTaskHistory } from "./useTaskHistory";
+import { historyDateError } from "./task-history-dates";
 import { taskIdFromHash } from "../useWorkbench";
 import { taskHistoryHash, taskHistoryRoute } from "./task-history-route";
 import {
@@ -69,6 +70,10 @@ export function TaskWorkspace(p: Props) {
     [search, setSearch] = useState(initialRoute.current?.query ?? "");
   const [page, setPage] = useState(initialRoute.current?.page ?? 0),
     [choosing, setChoosing] = useState(!taskJob);
+  const [startDate, setStartDate] = useState(
+    initialRoute.current?.startDate ?? "",
+  );
+  const [endDate, setEndDate] = useState(initialRoute.current?.endDate ?? "");
   const chosenHere = useRef<string | null>(
     initialRoute.current ? taskIdFromHash(window.location.hash) : null,
   );
@@ -81,6 +86,8 @@ export function TaskWorkspace(p: Props) {
       setQuery(route.query);
       setSearch(route.query);
       setPage(route.page);
+      setStartDate(route.startDate ?? "");
+      setEndDate(route.endDate ?? "");
       chosenHere.current = taskIdFromHash(window.location.hash);
       setChoosing(!chosenHere.current);
     }
@@ -96,11 +103,30 @@ export function TaskWorkspace(p: Props) {
       null,
       "",
       taskHistoryHash(
-        { module, type, status, query, page, project: p.projectId },
+        {
+          module,
+          type,
+          status,
+          query,
+          page,
+          project: p.projectId,
+          startDate,
+          endDate,
+        },
         taskIdFromHash(window.location.hash),
       ),
     );
-  }, [module, type, status, query, page, p.projectId, taskJob?.id]);
+  }, [
+    module,
+    type,
+    status,
+    query,
+    page,
+    p.projectId,
+    taskJob?.id,
+    startDate,
+    endDate,
+  ]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(query);
@@ -122,6 +148,8 @@ export function TaskWorkspace(p: Props) {
     setStatus("all");
     setQuery("");
     setSearch("");
+    setStartDate("");
+    setEndDate("");
     setPage(0);
     setChoosing(false);
   }, [taskJob?.id, p.scopedModule]);
@@ -138,7 +166,10 @@ export function TaskWorkspace(p: Props) {
     query: search,
     page,
     project: p.projectId,
+    startDate,
+    endDate,
   });
+  const invalidDates = historyDateError({ startDate, endDate });
   useEffect(() => {
     if (
       history.data &&
@@ -177,7 +208,21 @@ export function TaskWorkspace(p: Props) {
       )
     : [];
   const blank = !currentJob && !history.loading && history.data?.total === 0;
-  const filtered = type !== "all" || status !== "all" || Boolean(query.trim());
+  const filtered =
+    type !== "all" ||
+    status !== "all" ||
+    Boolean(query.trim()) ||
+    Boolean(startDate || endDate);
+  function clearFilters() {
+    changeFilter(() => {
+      setType("all");
+      setStatus("all");
+      setQuery("");
+      setSearch("");
+      setStartDate("");
+      setEndDate("");
+    });
+  }
   return (
     <section className="utility-page task-history-workspace">
       <h1 className="sr-only">
@@ -216,6 +261,8 @@ export function TaskWorkspace(p: Props) {
             query,
             page,
             project: p.projectId,
+            startDate,
+            endDate,
           })}
         />
       ) : (
@@ -238,7 +285,19 @@ export function TaskWorkspace(p: Props) {
               onType={(value) => changeFilter(() => setType(value))}
               onStatus={(value) => changeFilter(() => setStatus(value))}
               onQuery={(value) => changeFilter(() => setQuery(value))}
+              startDate={startDate}
+              endDate={endDate}
+              onStartDate={(value) => changeFilter(() => setStartDate(value))}
+              onEndDate={(value) => changeFilter(() => setEndDate(value))}
+              onClear={clearFilters}
             />
+            {invalidDates && (
+              <div className="error-box" role="alert">
+                {zh
+                  ? "请选择有效的开始与结束日期；开始日期不能晚于结束日期。"
+                  : "Choose valid dates. The start date cannot follow the end date."}
+              </div>
+            )}
             {history.loading && (
               <p className="notice" role="status">
                 {zh ? "正在读取任务…" : "Loading tasks…"}
@@ -280,24 +339,7 @@ export function TaskWorkspace(p: Props) {
                       ? "新建任务后，在这里查看进度与结果。"
                       : "Create a task to track progress and inspect results here."
                 }
-              >
-                {filtered && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      changeFilter(() => {
-                        setType("all");
-                        setStatus("all");
-                        setQuery("");
-                        setSearch("");
-                      })
-                    }
-                  >
-                    {zh ? "清除筛选" : "Clear filters"}
-                  </button>
-                )}
-              </EmptyState>
+              />
             )}
           </details>
           {currentJob && (

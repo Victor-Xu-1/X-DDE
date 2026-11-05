@@ -48,6 +48,7 @@ jobs:
           src/studio/task-history-model.test.ts src/studio/useTaskHistory.test.tsx
           src/studio/research-modules.test.ts src/App.test.tsx
           src/studio/task-history-route.test.ts src/useWorkbench.test.ts
+          src/studio/task-history-dates.test.ts
           src/examples/useTaskLabel.test.tsx src/studio/TaskHistoryList.test.tsx
           src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
           src/studio/PredictionResults.test.tsx
