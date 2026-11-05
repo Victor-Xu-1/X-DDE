@@ -65,6 +65,15 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
         second = seeds.get_by_label(label("Seed 2", "种子 2"), exact=True)
         expect(second).to_have_value("102")
         expect(second).to_be_focused()
+        focus_box = second.evaluate("""input => {
+            const box = input.getBoundingClientRect();
+            const viewport = input.closest('ul').getBoundingClientRect();
+            const style = getComputedStyle(input);
+            return {above: box.top - viewport.top, below: viewport.bottom - box.bottom,
+                extent: parseFloat(style.outlineWidth) + Math.max(0, parseFloat(style.outlineOffset))};
+        }""")
+        assert min(focus_box["above"], focus_box["below"]) >= focus_box["extent"]
+        page.screenshot(path=root / "seed-keyboard-focus.png")
         second.fill("")
         expect(next_step).to_be_disabled()
         second.fill("101")
