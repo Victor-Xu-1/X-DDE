@@ -83,7 +83,7 @@ def test_native_calculation_plan_review(language, width, theme):
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         seed = page.get_by_role("spinbutton", name=label("Random seed", "随机种子"), exact=True)
         seed_box = seed.bounding_box()
-        footer_box = page.locator(".questionnaire-actions").bounding_box()
+        footer_box = page.locator(".questionnaire-actions:visible").bounding_box()
         assert seed_box and footer_box and seed_box["y"] + seed_box["height"] + 6 <= footer_box["y"]
         expect(seed).to_be_in_viewport()
         page.screenshot(path=root / "advanced-plan.png", full_page=True)
