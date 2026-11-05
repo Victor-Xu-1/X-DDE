@@ -165,7 +165,13 @@ it("defaults to a fresh alignment, blocks pending checks and clears a changed pr
   );
   await user.click(screen.getByRole("radio", { name: "MSA file" }));
   expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
-  expect(next).toBeDisabled();
+  // Unsaved mode changes cannot replace the valid committed single-sequence task.
+  // The real native dialog makes the underlying Next button inert.
+  expect(screen.getByLabelText("Current components")).toHaveTextContent(
+    '"msa_mode":"single"',
+  );
+  await user.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(next).toBeEnabled();
 });
 
 it("discards a cancelled upload even if its response arrives after closing the chain window", async () => {
