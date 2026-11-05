@@ -166,49 +166,6 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
-.studio-app .prediction-setup-layout .component-card,
-.studio-app .prediction-setup-layout .scientific-component-input {
-  padding: 20px;
-  margin: 0;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface);
-  box-shadow: 0 4px 16px rgb(37 45 50 / 2%);
-}
-.studio-app .prediction-setup-layout .component-heading {
-  min-height: 62px;
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  margin: -20px -20px 18px;
-  border-radius: 20px 20px 0 0;
-  border-bottom: 1px solid var(--line);
-  background: #e4efeb;
-}
-.prediction-setup-layout [data-entity-kind="ligand"] .component-heading {
-  background: #f0ece3;
-}
-.prediction-setup-layout [data-entity-kind="rna"] .component-heading,
-.prediction-setup-layout [data-entity-kind="dna"] .component-heading {
-  background: #ece9f5;
-}
-.prediction-setup-layout .component-heading strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.prediction-setup-layout .component-heading strong::before {
-  content: attr(data-entity-index);
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 55%);
-  font-size: 12px;
-}
 .studio-app .prediction-setup-layout textarea {
   min-height: 112px;
   padding: 16px;

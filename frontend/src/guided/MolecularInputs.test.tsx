@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
+import type { Component } from "../types";
+import type { SetStateAction } from "react";
 import { MolecularInputs } from "./MolecularInputs";
 
 it("keeps labels bound to their own mounted prediction form", () => {
@@ -13,8 +15,18 @@ it("keeps labels bound to their own mounted prediction form", () => {
   };
   render(
     <>
-      <MolecularInputs {...input} onChange={first} />
-      <MolecularInputs {...input} onChange={second} />
+      <MolecularInputs
+        {...input}
+        onChange={(update: SetStateAction<Component[]>) =>
+          first(typeof update === "function" ? update(input.items) : update)
+        }
+      />
+      <MolecularInputs
+        {...input}
+        onChange={(update: SetStateAction<Component[]>) =>
+          second(typeof update === "function" ? update(input.items) : update)
+        }
+      />
     </>,
   );
   const fields = screen.getAllByRole("textbox", {

@@ -1,4 +1,6 @@
+import type { Dispatch, SetStateAction } from "react";
 import { AssetPicker } from "../operations/AssetPicker";
+import { usePredictionEntityState } from "../presentation/PredictionEntityState";
 import type { Component, Language } from "../types";
 import type { Mol1Settings } from "./mol1-settings";
 
@@ -8,27 +10,19 @@ export function Mol1FeatureInputs({
   components,
   onComponents,
   language,
+  entityKeys,
 }: {
   value: Mol1Settings;
   onChange(value: Mol1Settings): void;
   components: Component[];
-  onComponents(value: Component[]): void;
+  onComponents: Dispatch<SetStateAction<Component[]>>;
   language: Language;
+  entityKeys?: WeakMap<Component, string>;
 }) {
   const zh = language === "zh";
+  const editing = usePredictionEntityState(onComponents, entityKeys);
   const update = (change: Partial<Mol1Settings>) =>
     onChange({ ...value, ...change });
-  function file(
-    index: number,
-    key: "unpaired_msa" | "paired_msa" | "template_hits",
-    id: string,
-  ) {
-    onComponents(
-      components.map((component, i) =>
-        i === index ? { ...component, [key]: id || null } : component,
-      ),
-    );
-  }
   return (
     <>
       <label className="field">
@@ -37,14 +31,11 @@ export function Mol1FeatureInputs({
           value={value.feature_mode}
           onChange={(e) => {
             if (e.target.value === "none")
-              onComponents(
-                components.map((component) => ({
-                  ...component,
-                  paired_msa: null,
-                  unpaired_msa: null,
-                  template_hits: null,
-                })),
-              );
+              editing.updateAll({
+                paired_msa: null,
+                unpaired_msa: null,
+                template_hits: null,
+              });
             update({
               feature_mode: e.target.value as Mol1Settings["feature_mode"],
               ...(e.target.value === "none"
@@ -87,12 +78,7 @@ export function Mol1FeatureInputs({
               onChange={(e) => {
                 update({ use_template: e.target.checked });
                 if (!e.target.checked)
-                  onComponents(
-                    components.map((component) => ({
-                      ...component,
-                      template_hits: null,
-                    })),
-                  );
+                  editing.updateAll({ template_hits: null });
               }}
             />
             {zh ? "使用结构模板" : "Use structural templates"}
@@ -117,44 +103,62 @@ export function Mol1FeatureInputs({
         </p>
       )}
       {value.feature_mode !== "none" &&
-        components.map((component, index) =>
-          (component.kind === "protein" && value.feature_mode === "uploaded") ||
-          (component.kind === "rna" && value.use_rna_msa) ? (
-            <section key={index}>
+        components.map((component, index) => {
+          const id = editing.key(component);
+          const context = JSON.stringify([
+            id,
+            component.kind,
+            component.value,
+            component.chain_ids,
+            component.modifications,
+          ]);
+          return (component.kind === "protein" &&
+            value.feature_mode === "uploaded") ||
+            (component.kind === "rna" && value.use_rna_msa) ? (
+            <section key={id}>
               <h3>
                 {component.chain_ids?.join(",") ||
                   `${zh ? "组分" : "Component"} ${index + 1}`}
               </h3>
               <AssetPicker
+                key={"unpaired:" + context}
                 kind="msa"
                 label={zh ? "非配对 A3M" : "Unpaired A3M"}
                 value={component.unpaired_msa ?? ""}
-                onChange={(id) => file(index, "unpaired_msa", id)}
+                onChange={(file) =>
+                  editing.update(id, { unpaired_msa: file || null })
+                }
                 language={language}
               />
               {component.kind === "protein" && (
                 <>
                   <AssetPicker
+                    key={"paired:" + context}
                     kind="msa"
                     label={zh ? "配对 A3M（可选）" : "Paired A3M (optional)"}
                     value={component.paired_msa ?? ""}
-                    onChange={(id) => file(index, "paired_msa", id)}
+                    onChange={(file) =>
+                      editing.update(id, { paired_msa: file || null })
+                    }
                     language={language}
                   />
                   {value.use_template && (
                     <AssetPicker
+                      key={"template:" + context}
                       kind="template"
                       label={zh ? "结构模板命中" : "Structural template hits"}
                       value={component.template_hits ?? ""}
-                      onChange={(id) => file(index, "template_hits", id)}
+                      onChange={(file) =>
+                        editing.update(id, { template_hits: file || null })
+                      }
                       language={language}
                     />
                   )}
                 </>
               )}
             </section>
-          ) : null,
-        )}
+          ) : null;
+        })}
     </>
   );
 }

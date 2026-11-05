@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Mol1JobReview } from "./Mol1JobReview";
 import { useExampleTask } from "../examples/context";
 import { validate } from "../form-model";
@@ -11,6 +11,7 @@ import type { Component, Job, Language } from "../types";
 
 import { mol1Defaults, validMol1Settings } from "./mol1-settings";
 import { Mol1Settings } from "./Mol1Settings";
+import { useMol1Composition } from "./Mol1Composition";
 import { Mol1CovalentBonds } from "./Mol1CovalentBonds";
 import { Mol1FeatureInputs, validMol1Features } from "./Mol1FeatureInputs";
 import { PredictionSetup } from "../presentation/PredictionSetup";
@@ -56,30 +57,38 @@ function Mol1Editor({
   onResume(value: PredictionDraft): void;
 }) {
   const zh = language === "zh";
+  // One ephemeral view identity shared by the mounted study/supporting steps.
+  // Native components and saved drafts never contain these keys.
+  const entityKeys = useRef(new WeakMap<Component, string>()).current;
   const preset = useExampleTask("mol1_predict");
-  const [components, setComponents] = useState<Component[]>(
-    () =>
-      initial?.state.components ??
+  const {
+    components,
+    settings,
+    bonds,
+    setComponents,
+    setSettings,
+    setBonds,
+    editComponents,
+  } = useMol1Composition(() => ({
+    components: initial?.state.components ??
       (preset?.payload.components as Component[]) ?? [
         { kind: "protein", value: "", count: 1, chain_ids: ["A"] },
         { kind: "ligand", value: "", count: 1, chain_ids: ["B"] },
       ],
-  );
-  const [settings, setSettings] = useState(() => ({
-    ...mol1Defaults(),
-    ...preset?.payload,
-    ...initial?.state.settings,
-    additional_seeds: initial
-      ? parseSeedText(initial.state.seed_text)
-      : ((preset?.payload.additional_seeds as number[]) ?? []),
-    kind: "mol1" as const,
-  }));
-  const [bonds, setBonds] = useState<CovalentBond[]>(
-    () =>
+    settings: {
+      ...mol1Defaults(),
+      ...preset?.payload,
+      ...initial?.state.settings,
+      additional_seeds: initial
+        ? parseSeedText(initial.state.seed_text)
+        : ((preset?.payload.additional_seeds as number[]) ?? []),
+      kind: "mol1" as const,
+    },
+    bonds:
       initial?.state.bonds ??
       (preset?.payload.covalent_bonds as CovalentBond[]) ??
       [],
-  );
+  }));
   const [advanced, setAdvanced] = useState(initial?.state.advanced ?? false);
   const [name, setName] = useState(initial?.state.name ?? preset?.name ?? "");
   const [seedText, setSeedText] = useState(
@@ -143,21 +152,11 @@ function Mol1Editor({
           content: (
             <>
               <MolecularInputs
+                entityKeys={entityKeys}
+                supportingFiles={false}
                 showHeading={false}
                 items={components}
-                onChange={(items) => {
-                  setComponents(items);
-                  setBonds([]);
-                  setSettings((value) => ({
-                    ...value,
-                    use_rna_msa:
-                      value.use_rna_msa &&
-                      items.some((item) => item.kind === "rna"),
-                    use_template:
-                      value.use_template &&
-                      items.some((item) => item.kind === "protein"),
-                  }));
-                }}
+                onChange={editComponents}
                 expert={advanced}
                 workflow="complex"
                 features={settings.feature_mode === "uploaded"}
@@ -182,6 +181,7 @@ function Mol1Editor({
           content: (
             <>
               <Mol1FeatureInputs
+                entityKeys={entityKeys}
                 value={settings}
                 onChange={setSettings}
                 components={components}

@@ -1,0 +1,200 @@
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+.prediction-entity-card {
+  --entity-header: #e3efea;
+  --entity-border: rgb(18 30 54 / 12%);
+  --entity-muted: #4b555c;
+  min-width: 0;
+  border: 1px solid var(--entity-border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgb(18 30 54 / 3.5%);
+}
+.prediction-entity-card[data-entity-kind="ligand"] {
+  --entity-header: #f3eae5;
+}
+.prediction-entity-card[data-entity-kind="dna"] {
+  --entity-header: #e5edf4;
+}
+.prediction-entity-card[data-entity-kind="rna"] {
+  --entity-header: #eeeaf3;
+}
+.prediction-entity-card[data-entity-kind="ion"] {
+  --entity-header: #edf0e4;
+}
+.prediction-entity-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 15px 20px;
+  min-height: 65.4px;
+  border-bottom: 1px solid var(--entity-border);
+  border-radius: 19px 19px 0 0;
+  background: var(--entity-header);
+}
+.prediction-entity-card:has(.prediction-entity-body[hidden])
+  .prediction-entity-heading {
+  border-bottom-color: transparent;
+  border-radius: 19px;
+}
+.prediction-entity-badge {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+  font-size: 12px;
+}
+.prediction-entity-heading .prediction-entity-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.prediction-entity-toggle strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.prediction-entity-toggle > .anticon {
+  font-size: 10px;
+  transition: transform 120ms ease;
+}
+.prediction-entity-toggle[aria-expanded="false"] > .anticon {
+  transform: rotate(-90deg);
+}
+.prediction-entity-material {
+  color: var(--entity-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.prediction-entity-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.prediction-entity-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.studio-app .prediction-entity-card .prediction-entity-controls select,
+.studio-app
+  .prediction-entity-card
+  .prediction-entity-controls
+  input.prediction-entity-control[type="text"] {
+  width: auto;
+  min-height: 34px;
+  max-width: 160px;
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+.studio-app .prediction-entity-card .prediction-entity-copies select {
+  width: 72px;
+  height: 34.4px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.studio-app
+  .prediction-entity-card
+  .prediction-entity-controls
+  input.prediction-entity-control[type="text"] {
+  width: 70px;
+}
+.prediction-entity-controls .icon-button {
+  min-height: 30px;
+  min-width: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.prediction-entity-body {
+  padding: 20px;
+}
+.studio-app .prediction-entity-card .prediction-entity-body textarea {
+  min-height: 128px;
+  padding: 14px;
+  border-radius: 8px;
+  background: transparent;
+  font:
+    500 12px / 1.45 "JetBrains Mono",
+    var(--mono);
+}
+.studio-app .prediction-entity-card[data-entity-kind="ligand"] textarea {
+  min-height: 96px;
+}
+.prediction-entity-body[hidden] {
+  display: none;
+}
+.prediction-entity-body > :last-child {
+  margin-bottom: 0;
+}
+.prediction-entity-card :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+:root[data-theme="dark"] .prediction-entity-card {
+  --entity-border: var(--line);
+  --entity-muted: var(--muted);
+  --entity-header: color-mix(in srgb, var(--surface), #3d7569 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="ligand"] {
+  --entity-header: color-mix(in srgb, var(--surface), #89744c 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="dna"] {
+  --entity-header: color-mix(in srgb, var(--surface), #57758d 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="rna"] {
+  --entity-header: color-mix(in srgb, var(--surface), #776698 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="ion"] {
+  --entity-header: color-mix(in srgb, var(--surface), #7b884b 28%);
+}
+@media (max-width: 600px) {
+  .prediction-entity-heading {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .prediction-entity-body {
+    padding: 14px;
+  }
+  .prediction-entity-controls {
+    flex-basis: 100%;
+    padding-left: 36px;
+  }
+  .prediction-entity-material {
+    flex: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prediction-entity-toggle > .anticon {
+    transition: none;
+  }
+}

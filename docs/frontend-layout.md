@@ -6,6 +6,28 @@ Pocket-conditioned generation, local redesign, diversification, optimization and
 
 ## Shared research workspace
 
+Prediction and feature-preparation entities use one compact, collapsible card.
+The header keeps the entity label, entered-sequence/material summary and existing
+copy/type/chain controls visible. Collapsing retains the mounted inputs, current
+file operations and native validation; an invalid collapsed field is revealed
+when its form checks it. Editing and removal use stable view identities and
+functional updates to the parent form, so delayed files cannot move to another
+entity after a deletion. View keys never enter a task or saved draft. Each native
+form retains its own supported types, copy limits, source identities and
+readiness; the shared card does not invent model capabilities.
+Changing molecular context cancels pending file selection only; chain and
+modification inputs retain their DOM, focus and expanded section while typing.
+Mol-1 keeps MSA/template file selection in its supporting-information step, rather
+than exposing duplicate selectors in the study step. Both mounted steps share a
+form-owned view-key registry. Supporting-file replies preserve newer settings and
+covalent bonds; molecular edits still invalidate their dependent setup. Bulk
+feature clearing retains view keys, while changed sequence/chain context cancels
+only the corresponding pending file pickers.
+Sequence fields use locally bundled JetBrains Mono Medium from its pinned
+official v2.304 revision, with OFL and checksum under
+`frontend/public/fonts/jetbrains-mono`. Protein, DNA, RNA, ligand and ion headers
+have distinct reference-measured tints, with separate readable dark variants.
+
 Every research module follows the owner's selected Molence Lab visual
 reference: a 68 px floating toolbar, paper-white canvas, blue pill actions,
 24 px content rhythm, compact entity sections and an aligned live setup summary.
@@ -35,9 +57,9 @@ for their two native token axes when their container changes size.
 
 Molecular entity groups retain the selected reference's numbered, tinted headers
 and rounded input containers. They group one actual molecular input with its
-editable fields; general forms and nested result panels stay flat. The layout
-gate recognizes only these marked entity groups inside the prediction setup,
-and continues to reject generic decorative frames, including outer questionnaires.
+editable fields; general forms and nested result panels stay flat. Focused
+compiled-form checks cover these entity groups without making generic decorative
+frames or outer questionnaires part of the design.
 
 The existing questionnaire still exposes one step at a time. The setup sidebar is
 a projection of the current form values, not another draft, task or validation

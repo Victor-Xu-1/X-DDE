@@ -2,7 +2,6 @@
 @import url("./prediction-inputs.css");
 @import url("./prediction-results.css");
 
-:root[data-theme="dark"] .prediction-setup-layout .component-heading,
 :root[data-theme="dark"] .prediction-confidence-metrics > div {
   background: #253632;
 }

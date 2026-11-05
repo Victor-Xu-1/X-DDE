@@ -4,6 +4,9 @@ import type { Language } from "../types";
 import { assetDownloadUrl } from "../research/asset-download";
 import type { BoltzComponent } from "./boltz-inputs";
 import { BoltzMsaInput } from "./BoltzMsaInput";
+import { CloseOutlined } from "@ant-design/icons";
+import { PredictionEntityCard } from "../presentation/PredictionEntityCard";
+import { predictionEntitySummary } from "../presentation/PredictionEntitySummary";
 
 export interface BoltzInputRow {
   // Editable chain labels are part of the job; these identifiers belong only to the form.
@@ -48,49 +51,84 @@ export function BoltzInputs({
   }
   return (
     <div className="scientific-input-grid">
-      {rows.map((row) => {
+      {rows.map((row, index) => {
         const { component } = row;
+        const labels: Record<string, string> = {
+          protein: zh ? "蛋白质" : "Protein",
+          ligand: zh ? "配体" : "Ligand",
+          dna: "DNA",
+          rna: "RNA",
+        };
+        const label = labels[component.kind] ?? component.kind;
         return (
-          <div key={row.key} className="scientific-component-input">
-            <div className="inline-fields">
-              <label>
-                {zh ? "分子类型" : "Molecular type"}
-                <select
-                  value={component.kind}
-                  onChange={(e) =>
-                    change(
-                      row,
-                      {
-                        kind: e.target.value,
-                        value: "",
-                        source: null,
-                        msa: null,
-                        msa_mode:
-                          e.target.value === "protein" ? "provided" : null,
-                      },
-                      true,
-                    )
-                  }
-                >
-                  <option value="protein">{zh ? "蛋白" : "Protein"}</option>
-                  <option value="ligand">
-                    {zh ? "小分子" : "Small molecule"}
-                  </option>
-                  <option value="rna">RNA</option>
-                  <option value="dna">DNA</option>
-                </select>
-              </label>
-              <label>
-                {zh ? "链编号" : "Chain"}
-                <input
-                  maxLength={8}
-                  value={component.id}
-                  onChange={(e) =>
-                    change(row, { id: e.target.value, msa: null }, true)
-                  }
-                />
-              </label>
-            </div>
+          <PredictionEntityCard
+            key={row.key}
+            index={index}
+            kind={component.kind}
+            language={language}
+            title={label + " " + (index + 1)}
+            summary={predictionEntitySummary(
+              { ...component, ligand_file: component.source?.asset_id },
+              language,
+            )}
+            controls={
+              <>
+                <label>
+                  {zh ? "分子类型" : "Molecular type"}
+                  <select
+                    value={component.kind}
+                    onChange={(e) =>
+                      change(
+                        row,
+                        {
+                          kind: e.target.value,
+                          value: "",
+                          source: null,
+                          msa: null,
+                          msa_mode:
+                            e.target.value === "protein" ? "provided" : null,
+                        },
+                        true,
+                      )
+                    }
+                  >
+                    <option value="protein">{zh ? "蛋白" : "Protein"}</option>
+                    <option value="ligand">
+                      {zh ? "小分子" : "Small molecule"}
+                    </option>
+                    <option value="rna">RNA</option>
+                    <option value="dna">DNA</option>
+                  </select>
+                </label>
+                <label>
+                  {zh ? "链编号" : "Chain"}
+                  <input
+                    type="text"
+                    className="prediction-entity-control"
+                    maxLength={8}
+                    value={component.id}
+                    onChange={(e) =>
+                      change(row, { id: e.target.value, msa: null }, true)
+                    }
+                  />
+                </label>
+                {rows.length > 1 && (
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label={zh ? "移除此组分" : "Remove component"}
+                    onClick={() =>
+                      onRows((previous) =>
+                        previous.filter((item) => item.key !== row.key),
+                      )
+                    }
+                  >
+                    <CloseOutlined />
+                  </button>
+                )}
+              </>
+            }
+          >
             {component.kind === "ligand" &&
               !rows.some(
                 (other) => other.key !== row.key && other.component.source,
@@ -161,20 +199,7 @@ export function BoltzInputs({
                   label={zh ? "本次输入分子" : "Entered molecule"}
                 />
               )}
-            {rows.length > 1 && (
-              <button
-                type="button"
-                className="text-button"
-                onClick={() =>
-                  onRows((previous) =>
-                    previous.filter((item) => item.key !== row.key),
-                  )
-                }
-              >
-                {zh ? "移除此组分" : "Remove component"}
-              </button>
-            )}
-          </div>
+          </PredictionEntityCard>
         );
       })}
       {rows.length < 8 && (
