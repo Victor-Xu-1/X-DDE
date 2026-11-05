@@ -5,10 +5,10 @@ import { afterEach, expect, it } from "vitest";
 import { ScientificChoices } from "./ScientificChoices";
 import { nativeDefaults } from "./generated";
 import { validScientificChoices } from "./validation";
-import type { ScientificPayload, ScientificProgram } from "./types";
+import type { ScientificPayload } from "./types";
 
 afterEach(cleanup);
-function Plan({ program }: { program: ScientificProgram }) {
+function Plan({ program }: { program: keyof typeof nativeDefaults }) {
   const [payload, setPayload] = useState<ScientificPayload>({
     ...nativeDefaults[program],
     kind: program,
