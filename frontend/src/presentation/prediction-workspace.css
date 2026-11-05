@@ -56,6 +56,12 @@
     column-gap: 24px;
   }
 }
+@media (max-width: 960px) {
+  .studio-app:has(.studio-content[data-prediction-layout="true"])
+    .studio-topbar {
+    padding-inline-start: 36px;
+  }
+}
 @media (max-width: 600px) {
   .studio-app:has(.studio-content[data-prediction-layout="true"])
     .studio-topbar {
@@ -64,6 +70,10 @@
     border-radius: 18px;
     flex-wrap: wrap;
     gap: 8px;
+  }
+  .studio-app:has(.studio-content[data-prediction-layout="true"])
+    .page-context {
+    margin-inline-start: 42px;
   }
   .studio-app:has(.studio-content[data-prediction-layout="true"])
     .module-workspace-navigation {

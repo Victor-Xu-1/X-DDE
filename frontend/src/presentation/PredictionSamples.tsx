@@ -16,13 +16,14 @@ export interface PredictionSample {
   }[];
 }
 
+const rankingScore = (row: PredictionSample) =>
+  row.metrics.find((metric) => metric.name === "Ranking score")?.value;
+
 function bestRanked(rows: PredictionSample[]) {
   let best: PredictionSample | undefined;
   let score = -Infinity;
   for (const row of rows) {
-    const ranking = row.metrics.find(
-      (metric) => metric.name === "Ranking score",
-    )?.value;
+    const ranking = rankingScore(row);
     if (
       typeof ranking === "number" &&
       Number.isFinite(ranking) &&
@@ -42,12 +43,14 @@ export function PredictionSamples({
   selected,
   onSelect,
   language,
+  overlayCount = 0,
 }: {
   job: string;
   rows: PredictionSample[];
   selected: string;
   onSelect(id: string): void;
   language: Language;
+  overlayCount?: number;
 }) {
   const zh = language === "zh";
   const active = rows.find((row) => row.id === selected);
@@ -69,6 +72,7 @@ export function PredictionSamples({
   const group = rows.filter((row) => row.seed === active.seed);
   const current = group.findIndex((row) => row.id === active.id);
   const best = active.seed === null ? undefined : bestRanked(group);
+  const overlay = overlayCount > 1;
   const label = (row: PredictionSample) =>
     `${zh ? "构象" : "Sample"} ${row.sample ?? row.id}`;
   return (
@@ -93,11 +97,19 @@ export function PredictionSamples({
               if (next) onSelect(next.id);
             }}
           >
-            {seeds.map((seed) => (
-              <option key={seed ?? "unknown"} value={seed ?? "unknown"}>
-                {seed ?? (zh ? "未记录" : "Not recorded")}
-              </option>
-            ))}
+            {seeds.map((seed) => {
+              const ranked =
+                seed === null
+                  ? undefined
+                  : bestRanked(rows.filter((row) => row.seed === seed));
+              const score = ranked ? rankingScore(ranked) : undefined;
+              return (
+                <option key={seed ?? "unknown"} value={seed ?? "unknown"}>
+                  {seed ?? (zh ? "未记录" : "Not recorded")}
+                  {typeof score === "number" && ` · ${score.toFixed(2)}`}
+                </option>
+              );
+            })}
           </select>
         </label>
       </div>
@@ -134,11 +146,17 @@ export function PredictionSamples({
                 type="button"
                 key={row.id}
                 aria-label={label(row)}
-                aria-pressed={row.id === active.id}
+                aria-pressed={!overlay && row.id === active.id}
                 title={row.id}
                 onClick={() => onSelect(row.id)}
               >
                 {row.sample ?? /^structure-(\d+)$/.exec(row.id)?.[1] ?? row.id}
+                {best?.id === row.id && group.length > 1 && (
+                  <span
+                    className="prediction-sample-marker"
+                    aria-hidden="true"
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -152,32 +170,40 @@ export function PredictionSamples({
           </button>
         </nav>
       </div>
-      <dl
-        className="prediction-confidence-metrics"
-        aria-label={
-          zh ? "当前构象的原生指标" : "Selected sample native metrics"
-        }
-      >
-        {active.metrics.slice(0, 4).map((metric) => (
-          <div key={metric.name + metric.unit}>
-            <dt title={metric.method}>
-              {metric.name}
-              {metric.unit && <small>{metric.unit}</small>}
-            </dt>
-            <dd>
-              {metric.value !== null && Number.isFinite(metric.value)
-                ? metric.value.toFixed(
-                    metric.name.toLowerCase().includes("plddt") &&
-                      metric.unit !== "0–1"
-                      ? 1
-                      : 2,
-                  )
-                : "—"}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      {active.artifact && (
+      {overlay ? (
+        <p className="prediction-overlay-status" role="status">
+          {zh
+            ? `正在叠加 ${overlayCount} 个构象`
+            : `Overlaying ${overlayCount} samples`}
+        </p>
+      ) : (
+        <dl
+          className="prediction-confidence-metrics"
+          aria-label={
+            zh ? "当前构象的原生指标" : "Selected sample native metrics"
+          }
+        >
+          {active.metrics.slice(0, 4).map((metric) => (
+            <div key={metric.name + metric.unit}>
+              <dt title={metric.method}>
+                {metric.name}
+                {metric.unit && <small>{metric.unit}</small>}
+              </dt>
+              <dd>
+                {metric.value !== null && Number.isFinite(metric.value)
+                  ? metric.value.toFixed(
+                      metric.name.toLowerCase().includes("plddt") &&
+                        metric.unit !== "0–1"
+                        ? 1
+                        : 2,
+                    )
+                  : "—"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {!overlay && active.artifact && (
         <PredictionSampleDownload
           key={JSON.stringify([job, active.id, active.artifact])}
           job={job}

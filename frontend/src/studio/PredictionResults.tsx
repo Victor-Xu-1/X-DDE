@@ -31,6 +31,10 @@ export function PredictionResults(p: PredictionResultsProps) {
   const zh = p.language === "zh",
     t = translator(p.language),
     taskLabel = useTaskLabel(p.job, p.language);
+  const selectSample = (id: string) => {
+    p.onCompare([]);
+    p.onCandidate(id);
+  };
   return (
     <div className="prediction-workspace prediction-result task-workspace is-result">
       {p.job && (
@@ -47,12 +51,9 @@ export function PredictionResults(p: PredictionResultsProps) {
         candidate={p.candidate}
         urls={p.urls}
         language={p.language}
-        comparison={p.compared.length > 1}
+        overlayCount={p.urls.length}
         focusResidue={p.focusResidue}
-        onCandidate={(id) => {
-          p.onCompare([]);
-          p.onCandidate(id);
-        }}
+        onCandidate={selectSample}
       />
       <section className="prediction-conformer-table">
         <CandidatePanel
@@ -64,7 +65,7 @@ export function PredictionResults(p: PredictionResultsProps) {
           onRetry={p.onRetry}
           language={p.language}
           selected={p.candidate?.id ?? null}
-          onSelect={p.onCandidate}
+          onSelect={selectSample}
           compared={p.compared}
           onCompare={p.onCompare}
         />

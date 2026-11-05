@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import type { Analysis, Job } from "../types";
 import { defaults } from "../form-model";
@@ -83,7 +83,9 @@ it("keeps preview, candidate selection and exports together, while unavailable a
     "href",
     `/api/jobs/${job.id}/candidates.csv`,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Conformer 1" }));
+  fireEvent.click(
+    within(screen.getByRole("table")).getByRole("button", { name: "Sample 0" }),
+  );
   expect(p.onCandidate).toHaveBeenCalledWith("sample-0");
   expect(screen.getByTitle("Interactive molecular structure")).toBeVisible();
 });
@@ -120,4 +122,7 @@ it("keeps a hash-qualified sample's unknown seed distinct from the requested pri
     "aria-pressed",
     "true",
   );
+  expect(
+    screen.getByRole("button", { name: "Seed 202 · Sample 4" }),
+  ).toBeVisible();
 });

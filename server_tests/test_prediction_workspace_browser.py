@@ -56,10 +56,26 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         expect(
             page.get_by_role("button", name="构象 0" if zh else "Sample 0", exact=True)
         ).to_have_attribute("aria-pressed", "true")
+        seed = strip.get_by_role("combobox", name="选择随机种子" if zh else "Select seed")
+        expect(seed).to_contain_text("101 · 0.50")
+        for sample in (0, 1):
+            name = f"叠加 种子 101 · 构象 {sample}" if zh else f"Overlay Seed 101 · Sample {sample}"
+            page.get_by_role("checkbox", name=name, exact=True).check()
+        expect(strip.get_by_role("status")).to_have_text(
+            "正在叠加 2 个构象" if zh else "Overlaying 2 samples"
+        )
+        model_download = strip.get_by_role("button", name="下载此构象 ↓" if zh else "This model ↓")
+        expect(model_download).to_have_count(0)
+        expect(plot).to_have_count(0)
+        page.get_by_role(
+            "button", name="种子 101 · 构象 0" if zh else "Seed 101 · Sample 0", exact=True
+        ).click()
+        expect(strip).to_contain_text("80.0")
+        expect(strip.get_by_role("status")).to_have_count(0)
         page.get_by_role("button", name="构象 1" if zh else "Sample 1", exact=True).click()
         # This fixture intentionally has no source checksum.
         with page.expect_response(lambda reply: "/prediction-sample.zip?" in reply.url) as package:
-            strip.get_by_role("button", name="下载此构象 ↓" if zh else "This model ↓").click()
+            model_download.click()
         assert package.value.status == 409
         assert package.value.json()["detail"]["code"] == "legacy_unsealed_structure"
         download = strip.get_by_role(
@@ -135,6 +151,9 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             assert a["x"] < b["x"] and a["width"] > b["width"] and abs(a["y"] - b["y"]) < 2
         else:
             assert a["y"] < b["y"]
+            menu = page.locator(".mobile-navigation-trigger").bounding_box()
+            title = page.locator(".studio-topbar .page-context-title").bounding_box()
+            assert menu and title and title["x"] >= menu["x"] + menu["width"] + 8
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         page.screenshot(path=str(evidence / "result.png"), full_page=True)
         page.goto(base + "/#view=new&tool=mol1.predict")
