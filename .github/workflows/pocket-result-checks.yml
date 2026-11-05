@@ -8,6 +8,8 @@ on:
       - 'frontend/src/docking/DockingForm.tsx'
       - '.github/workflows/pocket-result-checks.yml'
       - 'frontend/src/pockets/PocketResults*'
+      - 'frontend/src/presentation/CandidateReviewBar.tsx'
+      - 'frontend/src/presentation/candidate-review-bar.css'
       - 'frontend/src/pockets/PocketSelection*'
       - 'frontend/src/pockets/pocket-results.css'
       - 'frontend/src/presentation/ResearchTable*'
@@ -74,8 +76,9 @@ jobs:
           while IFS= read -r file; do
             case "$file" in
               frontend/src/pockets/PocketResultsHandoff.tsx|server_tests/test_stat6_pocket_handoff_browser.py) handoff_changed=true ;;
+              frontend/src/presentation/CandidateReviewBar.tsx|frontend/src/presentation/candidate-review-bar.css|frontend/src/presentation/StructureWorkbench.tsx|frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|server_tests/test_docking_table_browser.py) ;;
               frontend/src/pockets/PocketResults*.tsx|frontend/src/pockets/PocketSelection.tsx|frontend/src/pockets/ReferenceComparison*.tsx|frontend/src/pockets/pocket-results.css) ;;
-              .github/workflows/pocket-result-checks.yml|.github/workflows/task-layout-checks.yml|.github/workflows/user-interface-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              .github/workflows/pocket-result-checks.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/task-layout-checks.yml|.github/workflows/user-interface-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) handoff_only=false ;;
             esac
           done < <(git diff --name-only "$BASE" HEAD)
