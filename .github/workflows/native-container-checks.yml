@@ -8,6 +8,9 @@ on:
       - 'tests/test_native_runtime_leases.py'
       - 'src/opendde_workbench/prepared_container.py'
       - 'src/opendde_workbench/integrations/runtime.py'
+      - 'tests/test_runtime_readiness.py'
+      - 'scripts/native-container-scope.py'
+      - 'tests/test_native_container_scope.py'
       - 'src/opendde_workbench/docking/backend.py'
       - 'src/opendde_workbench/pockets/backend.py'
       - 'src/opendde_workbench/deployment/native_probe*.py'
@@ -34,6 +37,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       stop_only: ${{ steps.change.outputs.stop_only }}
+      metadata_only: ${{ steps.change.outputs.metadata_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,25 +47,33 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           EVENT: ${{ github.event_name }}
           BRANCH_REF: ${{ github.ref }}
-        shell: bash
-        run: |
-          stop_only=true
-          found=false
-          if [[ "$EVENT" == push && "$BRANCH_REF" != refs/heads/main ]]; then
-            BASE=$(git merge-base HEAD origin/main)
-          fi
-          if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE=$(git merge-base HEAD origin/main)
-          fi
-          while IFS= read -r path; do
-            case "$path" in
-              tests/test_container_stop.py|server_tests/test_container_stop_native.py) found=true ;;
-              src/opendde_workbench/prepared_container.py|src/opendde_workbench/docking/backend.py|src/opendde_workbench/pockets/backend.py|src/opendde_workbench/container_supervision.py|.github/workflows/native-container-checks.yml|docs/user-guide.md|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
-              *) stop_only=false ;;
-            esac
-          done < <(git diff --name-only "$BASE" HEAD)
-          if [[ "$found" != true ]]; then stop_only=false; fi
-          echo "stop_only=$stop_only" >> "$GITHUB_OUTPUT"
+        run: python scripts/native-container-scope.py
+  model-readiness:
+    needs: scope
+    if: needs.scope.outputs.metadata_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --group dev
+      - name: Only native metadata, shared observation and original integrity consumers
+        run: >-
+          uv run --locked python -m pytest -q tests/test_runtime_readiness.py
+          tests/test_native_container_scope.py tests/test_readiness_cache.py tests/test_health_recovery.py
+          tests/test_integrated_science.py::test_empty_or_redirected_model_manifests_cannot_be_ready
+          tests/test_boltzgen_molecule_layout.py::test_flat_archive_readiness_and_missing_extracted_component_fail_closed
+          tests/test_model_recipe_compatibility.py::test_resource_checks_still_reject_unknown_recipe_or_changed_weight_bytes
+      - name: Scoped native readiness source lint
+        run: >-
+          uv run --locked ruff check src/opendde_workbench/integrations/runtime.py
+          tests/test_runtime_readiness.py scripts/native-container-scope.py tests/test_native_container_scope.py
   cancellation:
     needs: scope
     if: needs.scope.outputs.stop_only == 'true'
@@ -91,7 +103,7 @@ jobs:
         run: docker pull "$(uv run --locked python -c 'from opendde_workbench.receptors.image import PYTHON_IMAGE; print(PYTHON_IMAGE)')"
       - name: Real owned container and process-tree cleanup; no science or GPU
         env:
-          WB_NATIVE_CONTAINER_STOP: "1"
+          WB_NATIVE_CONTAINER_STOP: '1'
         run: uv run --locked python -m pytest -x -q server_tests/test_container_stop_native.py
       - uses: actions/upload-artifact@v4
         if: always()
@@ -100,7 +112,7 @@ jobs:
           path: ${{ runner.temp }}/container-stop/**
   lifecycle:
     needs: scope
-    if: needs.scope.outputs.stop_only != 'true'
+    if: needs.scope.outputs.stop_only != 'true' && needs.scope.outputs.metadata_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -120,7 +132,7 @@ jobs:
           uv run --locked python server_tests/native_cleanup_probe.py --bind-local-daemon --output "$RUNNER_TEMP/native-cleanup/bound"
       - name: Real installation probe admission and frozen-host cleanup
         env:
-          WB_TEST_NATIVE_INSTALL_PROBE: "1"
+          WB_TEST_NATIVE_INSTALL_PROBE: '1'
         run: uv run --locked pytest -x -q server_tests/test_install_probe_native.py
       - uses: actions/upload-artifact@v4
         if: always()
