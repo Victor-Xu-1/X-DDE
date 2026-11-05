@@ -46,11 +46,11 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
             ),
         )
         page.goto(base + "/#view=new&tool=mol1.predict")
-        page.get_by_label(
-            label("One-letter amino-acid sequence", "单字母氨基酸序列"), exact=True
+        page.get_by_role(
+            "textbox", name=label("One-letter amino-acid sequence", "单字母氨基酸序列"), exact=True
         ).fill(sequence)
-        page.get_by_label(
-            label("SMILES or CCD_ identifier", "SMILES 或 CCD_ 编号"), exact=True
+        page.get_by_role(
+            "textbox", name=label("SMILES or CCD_ identifier", "SMILES 或 CCD_ 编号"), exact=True
         ).fill("O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3")
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()
@@ -74,11 +74,17 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
         second.fill("202")
         expect(next_step).to_be_enabled()
         expect(
-            page.get_by_label(label("Compute device", "计算设备"), exact=True)
+            page.get_by_role("combobox", name=label("Compute device", "计算设备"), exact=True)
         ).not_to_be_visible()
-        samples = page.get_by_label(label("Structures per seed", "候选构象数"), exact=True)
-        cycles = page.get_by_label(label("Recycling cycles", "结构优化轮数"), exact=True)
-        steps = page.get_by_label(label("Diffusion steps", "生成精细度（步）"), exact=True)
+        samples = page.get_by_role(
+            "spinbutton", name=label("Structures per seed", "候选构象数"), exact=True
+        )
+        cycles = page.get_by_role(
+            "spinbutton", name=label("Recycling cycles", "结构优化轮数"), exact=True
+        )
+        steps = page.get_by_role(
+            "spinbutton", name=label("Diffusion steps", "生成精细度（步）"), exact=True
+        )
         samples.fill("2")
         cycles.fill("24")
         steps.fill("180")
@@ -100,13 +106,17 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
                 "button", name=label(f"Remove seed {ordinal}", f"删除种子 {ordinal}"), exact=True
             ).click()
         page.get_by_text(label("Advanced computation", "专业计算设置"), exact=True).click()
-        page.get_by_label(label("Compute device", "计算设备"), exact=True).select_option("cpu")
+        page.get_by_role(
+            "combobox", name=label("Compute device", "计算设备"), exact=True
+        ).select_option("cpu")
         expect(
-            page.get_by_label(label("Numerical precision", "数值精度"), exact=True)
+            page.get_by_role("combobox", name=label("Numerical precision", "数值精度"), exact=True)
         ).to_have_value("fp32")
-        page.get_by_label(label("Memory limit (MiB)", "内存上限（MiB）"), exact=True).fill("4096")
-        page.get_by_label(
-            label("Memory limit (MiB)", "内存上限（MiB）"), exact=True
+        page.get_by_role(
+            "spinbutton", name=label("Memory limit (MiB)", "内存上限（MiB）"), exact=True
+        ).fill("4096")
+        page.get_by_role(
+            "spinbutton", name=label("Memory limit (MiB)", "内存上限（MiB）"), exact=True
         ).scroll_into_view_if_needed()
         page.screenshot(path=root / "runtime-settings.png")
         next_step.click()
