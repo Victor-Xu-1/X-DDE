@@ -4,6 +4,7 @@ import os
 import subprocess
 
 SOURCES = {
+    "server_tests/test_calculation_plan_browser.py",
     "frontend/src/integrations/ScientificChoicesBudget.test.tsx",
     "frontend/src/integrations/ScientificChoices.tsx",
     "frontend/src/integrations/ScientificChoicesCount.tsx",

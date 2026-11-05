@@ -11,6 +11,10 @@ def test_exact_interface_and_publication_files():
     assert SCOPE["selected"](SCOPE["FILES"])
 
 
+def test_browser_only_edit_keeps_its_dedicated_gate():
+    assert SCOPE["selected"](["server_tests/test_calculation_plan_browser.py"])
+
+
 @pytest.mark.parametrize(
     "path",
     [
