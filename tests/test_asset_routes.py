@@ -480,9 +480,10 @@ async def assert_admission_recovered(app):
     state = inspect.getclosurevars(endpoint).nonlocals
     # Await genuinely owned executor futures, then their done callbacks. The
     # white-box assertion complements the externally checked third-request gate.
-    await asyncio.gather(*tuple(state["pending"]), return_exceptions=True)
+    pending = state["workers"].pending
+    await asyncio.gather(*tuple(pending), return_exceptions=True)
     await asyncio.sleep(0)
-    assert not state["pending"] and state["uploads"]._value == 2
+    assert not pending and state["uploads"]._value == 2
 
 
 def test_uvicorn_sigterm_drains_expired_publication_before_lifespan_exit(tmp_path):
@@ -530,8 +531,8 @@ def _uvicorn_signal_child():
     entered, release = threading.Event(), threading.Event()
     register = api.register_assets
 
-    def observed_register(*args):
-        close = register(*args)
+    def observed_register(*args, **kwargs):
+        close = register(*args, **kwargs)
 
         async def observed_close():
             (root / "drain_started").touch()

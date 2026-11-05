@@ -8,6 +8,15 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_shared_theme_selects_native_confidence_without_hiding_other_consumers():
+    changed = ["frontend/src/tokens.css"]
+    assert scope.confidence_changed(changed)
+    assert scope.sample_export_changed(changed)
+    assert not scope.native_confidence_only(changed)
+    assert not scope.sample_export_only(changed)
+    assert not scope.prediction_only(changed)
+
+
 def test_final_review_delegation_requires_browser_and_native_form_changes():
     changed = [
         "frontend/src/integrations/Mol1Form.tsx",
@@ -411,3 +420,17 @@ def test_prediction_sequence_layout_selects_both_retained_result_paths():
         assert scope.native_confidence_only([path])
         assert not scope.prediction_only([path])
         assert scope.shared_workbench_only([path])
+
+
+def test_shared_example_inspection_runs_its_own_browser_checks_for_stacked_candidates():
+    changed = [
+        "frontend/src/studio/PredictionInspection.tsx",
+        "frontend/src/examples/ExampleJobResult.tsx",
+        "server_tests/test_prediction_workspace_browser.py",
+        "frontend/package.json",
+    ]
+    assert scope.prediction_only(changed, "pull_request")
+    assert scope.prediction_only(changed + sorted(scope.SERVICE_SHUTDOWN_FILES))
+    assert not scope.prediction_only(changed, "workflow_dispatch")
+    assert not scope.prediction_only(changed + ["src/opendde_workbench/__main__.py"])
+    assert not scope.prediction_only(changed + ["frontend/src/App.tsx"])

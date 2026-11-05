@@ -6,6 +6,12 @@ import subprocess
 
 PATTERNS = (
     "frontend/src/diffsbdd/GeneratedCandidates*",
+    "frontend/src/diffsbdd/GeneratedCandidateDownload*",
+    "frontend/src/diffsbdd/generated-candidate-download.css",
+    "frontend/src/presentation/molecular-record*",
+    "frontend/src/presentation/artifact-digest*",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/examples/review-highlights*",
     "frontend/src/diffsbdd/GeneratedMetricsView*",
     "frontend/src/diffsbdd/generated-metrics*",
     "frontend/src/diffsbdd/DiffResults*",
@@ -19,6 +25,7 @@ PATTERNS = (
     "server_tests/test_generated_quality_browser.py",
     "scripts/generated-result-scope.py",
     ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/artifact-digest-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/task-layout-checks.yml",
     ".github/workflows/reference-pocket-checks.yml",
@@ -41,14 +48,21 @@ def main():
     base = os.environ.get("BASE", "")
     reference = os.environ.get("GITHUB_REF_NAME", "")
     default = os.environ.get("DEFAULT_BRANCH", "main")
-    if reference and reference != default:
+    if reference and reference != default and (not base or set(base) == {"0"}):
         base = git("merge-base", "origin/" + default, "HEAD")
     changed = (
         git("diff", "--name-only", base, "HEAD").splitlines() if base and set(base) != {"0"} else []
     )
     selected = (
         bool(changed)
-        and any(name.startswith("frontend/src/diffsbdd/") for name in changed)
+        and any(
+            name.startswith("frontend/src/diffsbdd/")
+            or name in {
+                "server_tests/test_generated_quality_browser.py",
+                "scripts/generated-result-scope.py",
+            }
+            for name in changed
+        )
         and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:

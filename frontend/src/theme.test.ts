@@ -11,7 +11,7 @@ beforeEach(() => {
   sessionStorage.clear();
   for (const key of ["theme", "themeReady", "themeStorageWarning"])
     delete document.documentElement.dataset[key];
-  document.head.innerHTML = '<meta name="theme-color" content="#f8faf9" />';
+  document.head.innerHTML = '<meta name="theme-color" content="#faf8f3" />';
   const style = document.createElement("style");
   style.textContent = tokenStyles;
   document.head.append(style);
@@ -32,8 +32,8 @@ async function startTheme() {
 
 describe("theme persistence", () => {
   it.each([
-    ["light", "#f8faf9"],
-    ["dark", "#141b18"],
+    ["light", "#faf8f3"],
+    ["dark", "#151c20"],
   ])("restores the saved %s theme", async (saved, color) => {
     localStorage.setItem("x-dde-theme", saved);
     const theme = await startTheme();
@@ -71,7 +71,7 @@ describe("theme persistence", () => {
     });
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
       "content",
-      "#141b18",
+      "#151c20",
     );
   });
 

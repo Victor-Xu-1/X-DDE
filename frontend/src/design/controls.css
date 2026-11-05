@@ -113,9 +113,9 @@ textarea {
   width: auto;
   margin-top: 0;
   border: 1px solid var(--accent);
-  background: linear-gradient(110deg, var(--accent), var(--accent-secondary));
+  background: var(--accent);
   color: var(--accent-contrast);
-  border-radius: 8px;
+  border-radius: 999px;
   min-height: 40px;
   font-size: 14px;
   font-weight: 600;
@@ -127,7 +127,7 @@ textarea {
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 999px;
   min-height: 38px;
   font-size: 13px;
   padding: 8px 14px;

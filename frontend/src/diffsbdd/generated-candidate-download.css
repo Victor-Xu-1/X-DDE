@@ -1,0 +1,18 @@
+.generated-candidate-download {
+  margin-inline-start: auto;
+  min-width: 0;
+}
+
+.generated-candidate-download > button {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.generated-candidate-download > p {
+  margin: 5px 0 0;
+  max-width: 220px;
+  font-size: 12px;
+}

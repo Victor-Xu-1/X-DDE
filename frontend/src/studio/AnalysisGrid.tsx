@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MetricHelp, metrics } from "../guided/MetricHelp";
-import { conformerName } from "./CandidatePanel";
+import { predictionSampleName } from "../presentation/PredictionSampleIdentity";
 import type { Analysis, Candidate, Language, Component } from "../types";
 export function AnalysisGrid({
   analysis,
@@ -85,7 +85,7 @@ export function AnalysisGrid({
         <h3>{zh ? "如何看这次结果" : "How to read this result"}</h3>
         {candidate ? (
           <div className="result-explanation">
-            <strong>{conformerName(candidate.id, zh)}</strong>
+            <strong>{predictionSampleName(candidate.id, zh)}</strong>
             <p>
               {zh ? "综合排序分数" : "Model ranking"}:{" "}
               {candidate.ranking_score?.toFixed(3) ?? "—"}{" "}

@@ -3,6 +3,7 @@ on:
   push:
     paths: &artifact_digest_paths
       - "frontend/src/presentation/artifact-digest*"
+      - "frontend/src/presentation/molecular-record*"
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/useGeneratedRecords*"
       - ".github/workflows/artifact-digest-checks.yml"
@@ -29,4 +30,4 @@ jobs:
           npx prettier --check src/presentation/artifact-digest.ts src/presentation/artifact-digest.test.ts
       - name: Verify bounded downloads, hashes, cancellation, and direct result consumer
         working-directory: frontend
-        run: npx vitest run src/presentation/artifact-digest.test.ts src/diffsbdd/DiffResults.test.tsx
+        run: npx vitest run src/presentation/artifact-digest.test.ts src/presentation/molecular-record.test.ts src/diffsbdd/DiffResults.test.tsx

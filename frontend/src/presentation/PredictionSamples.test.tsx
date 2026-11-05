@@ -168,6 +168,13 @@ it("uses native ranking within each seed and leaves the selected sample in contr
     "aria-pressed",
     "true",
   );
+  expect(screen.getByRole("option", { name: "101 · 0.82" })).toHaveProperty(
+    "selected",
+    true,
+  );
+  expect(
+    screen.getByRole("option", { name: "202 · 0.99" }),
+  ).toBeInTheDocument();
 });
 
 it("offers the selected original CIF only for unsealed legacy results", async () => {

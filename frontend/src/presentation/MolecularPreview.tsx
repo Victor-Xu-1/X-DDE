@@ -11,6 +11,7 @@ export function MolecularPreview({
   urls,
   records,
   nativeScore,
+  receptorUrl,
   defaultView = "2d",
   focusModel,
 }: {
@@ -19,6 +20,7 @@ export function MolecularPreview({
   source: DepictionSource | null;
   urls?: string[];
   records?: number[];
+  receptorUrl?: string;
   defaultView?: "2d" | "3d";
   focusModel?: number;
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
@@ -53,6 +55,24 @@ export function MolecularPreview({
       <StructureViewer {...frame} language={language} focusModel={focusModel} />
     ),
   };
+  const tabs = urls?.length
+    ? defaultView === "3d"
+      ? [structure, drawing]
+      : [drawing, structure]
+    : [drawing];
+  if (receptorUrl) {
+    tabs.push({
+      id: "receptor",
+      label: zh ? "原始受体" : "Original receptor",
+      content: (
+        <StructureViewer
+          urls={[receptorUrl]}
+          language={language}
+          sourceSnapshot
+        />
+      ),
+    });
+  }
   return (
     <PoseSession frame={frame}>
       <section
@@ -62,13 +82,7 @@ export function MolecularPreview({
         <PoseViewTabs
           key={label + JSON.stringify(source)}
           label={zh ? "结构视图" : "Structure views"}
-          tabs={
-            urls?.length
-              ? defaultView === "3d"
-                ? [structure, drawing]
-                : [drawing, structure]
-              : [drawing]
-          }
+          tabs={tabs}
         />
       </section>
     </PoseSession>

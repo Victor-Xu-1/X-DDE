@@ -2,19 +2,6 @@
 @import url("./prediction-inputs.css");
 @import url("./prediction-results.css");
 
-:root[data-theme="dark"]
-  .studio-app:has(.studio-content[data-prediction-layout="true"]) {
-  --canvas: #151c20;
-  --ink: #e9efed;
-  --muted: #b2c1bf;
-  --line: #34413f;
-  --accent: #91b9ef;
-  --accent-secondary: #91b9ef;
-  --accent-soft: #25394d;
-  --surface-muted: #222d2c;
-  --surface-hover: #2d3a38;
-  --focus: #91b9ef;
-}
 :root[data-theme="dark"] .prediction-setup-layout .component-heading,
 :root[data-theme="dark"] .prediction-confidence-metrics > div {
   background: #253632;
@@ -25,7 +12,7 @@
 }
 @media (max-width: 1250px) {
   .prediction-setup-layout {
-    grid-template-columns: minmax(0, 1fr) 240px;
+    grid-template-columns: minmax(0, 1fr) 260px;
     gap: 18px;
   }
   .prediction-setup {
@@ -57,21 +44,6 @@
   }
 }
 @media (max-width: 600px) {
-  .studio-app:has(.studio-content[data-prediction-layout="true"])
-    .studio-topbar {
-    margin: 8px;
-    padding: 8px 12px;
-    border-radius: 18px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .studio-app:has(.studio-content[data-prediction-layout="true"])
-    .module-workspace-navigation {
-    order: 3;
-    flex: 1 0 100%;
-    margin-left: 0;
-    max-width: 100%;
-  }
   .studio-app .studio-content[data-prediction-layout="true"] {
     padding: 12px;
   }
@@ -87,6 +59,17 @@
   }
   .prediction-setup-layout .questionnaire-heading {
     font-size: 20px;
+  }
+  .studio-app .prediction-setup-layout .questionnaire-steps {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+  .prediction-setup-layout .questionnaire-steps button {
+    min-height: 44px;
+    justify-content: center;
   }
   .prediction-result .structure-workbench-view,
   .prediction-result .structure-workbench-details {

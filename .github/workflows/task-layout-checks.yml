@@ -92,6 +92,9 @@ on:
       - "!frontend/src/viewer/attachment-geometry*"
       - "!frontend/src/viewer/InteractionControls*"
       - "frontend/src/presentation/**"
+      # Source record parsing has bounded-file, depiction and native-download checks.
+      - "!frontend/src/presentation/artifact-digest*"
+      - "!frontend/src/presentation/molecular-record*"
       - "!frontend/src/presentation/ensemble-results.css"
       - "frontend/src/docking/DockingResults*"
       # Saved-material handoff uses result-handoff-checks.yml.

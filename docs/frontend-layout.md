@@ -4,16 +4,29 @@
 
 Pocket-conditioned generation, local redesign, diversification, optimization and pocket inspection use the same final review dialog. The left view shows the selected receptor and its pocket definition in source coordinates. The right view lists the effective model, budget and downloadable source records. A starting molecule is inspected separately. A saved fixed region can load its existing atom identity and highlight the core without queuing another identity task. The request view and the confirmation action use the same prepared body.
 
-## Structure-prediction workspace
+## Shared research workspace
 
-Structure and complex prediction follows the owner's selected Molence Lab visual
+Every research module follows the owner's selected Molence Lab visual
 reference: a 68 px floating toolbar, paper-white canvas, blue pill actions,
 24 px content rhythm, compact entity sections and an aligned live setup summary.
-This scoped composition supersedes the earlier fully flat treatment for prediction
-pages only. The original X-DDE raster brand and research-module navigation remain.
+The shared shell supersedes the earlier split between prediction and the other
+modules. The original X-DDE raster brand and research-module navigation remain.
 Plus Jakarta Sans is bundled from a pinned Google Fonts revision with its OFL and
 checksum under `frontend/public/fonts/plus-jakarta`; no reference-site assets or
 private research data are redistributed.
+
+Shared tokens own the palette and font; shared header and control styles own the
+toolbar, module tabs and questionnaire surface. Prediction styles contain only
+their entity, sample and confidence composition. The existing capability registry
+and coverage map enumerate the submodules; a shared shell change is not proof of
+pixel parity for every input, result, dialog and preview state. Record those
+comparisons with their actual data and viewport before claiming acceptance.
+
+Molecular entity groups retain the selected reference's numbered, tinted headers
+and rounded input containers. They group one actual molecular input with its
+editable fields; general forms and nested result panels stay flat. The layout
+gate recognizes only these marked entity groups inside the prediction setup,
+and continues to reject generic decorative frames, including outer questionnaires.
 
 The existing questionnaire still exposes one step at a time. The setup sidebar is
 a projection of the current form values, not another draft, task or validation
