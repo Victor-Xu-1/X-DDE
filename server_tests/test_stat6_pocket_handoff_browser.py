@@ -76,7 +76,13 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
         pick = page.get_by_role(
             "button", name=f"{label('Pocket', '口袋')} {site['rank']}", exact=True
         )
-        pick.click()
+        strip = page.get_by_role("region", name=label("Pocket preview selection", "口袋预览选择"))
+        strip.get_by_role(
+            "button", name=f"{label('Preview pocket', '预览口袋')} {site['rank']}", exact=True
+        ).click()
+        expect(pick).to_have_attribute("aria-pressed", "true")
+        expect(strip).to_contain_text(str(site["probability"]))
+        expect(strip).to_contain_text(str(site["score"]))
         selected = page.get_by_role("region", name=label("Selected pocket", "所选口袋"))
         name = f"{label('Predicted pocket', '预测口袋')} {site['rank']}"
         origin = page.get_by_role("region", name=label("Starting research inputs", "起始研究材料"))

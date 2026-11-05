@@ -19,12 +19,29 @@ from contextlib import asynccontextmanager
 from dataclasses import replace
 from pathlib import Path
 import sys
+import time
 
 from starlette.responses import StreamingResponse
 from opendde_workbench import api
 from opendde_workbench.settings import Settings
 
 root = Path(sys.argv.pop(1))
+
+if (root / "hold-upload").exists():
+    original_replace = Path.replace
+
+    def held_replace(source, target):
+        result = original_replace(source, target)
+        if source.name == "content" and source.parent.parent.name == ".uploads":
+            (root / "upload-moved").touch()
+            deadline = time.monotonic() + 30
+            while not (root / "release-upload").exists():
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("Upload fixture was not released")
+                time.sleep(0.05)
+        return result
+
+    Path.replace = held_replace
 
 class NoComputeEngine:
     async def readiness(self):

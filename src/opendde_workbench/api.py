@@ -20,6 +20,7 @@ from . import PRODUCT_NAME, __version__
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .asset_upload_routes import register_uploads
+from .asset_upload_workers import AssetUploadWorkers
 from .assets import AssetStore
 from .backend_router import BackendRouter
 from .capabilities import register_capabilities
@@ -587,8 +588,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             headers={**headers, "X-XDDE-Input-Source": "recorded-request"},
         )
 
-    close_uploads = register_assets(app, assets, mutation, settings.minimum_free_bytes)
-    register_uploads(app, assets, settings, mutation)
+    upload_workers = AssetUploadWorkers()
+    close_uploads = register_assets(
+        app, assets, mutation, settings.minimum_free_bytes, workers=upload_workers
+    )
+    register_uploads(app, assets, settings, mutation, workers=upload_workers)
     harness_service = register_harness(app, store, assets, settings, mutation)
 
     async def scientific_busy(*, include_paused=False):

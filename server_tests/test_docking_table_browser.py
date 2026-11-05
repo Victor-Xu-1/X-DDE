@@ -89,9 +89,17 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             expect(table.get_by_role("columnheader", name=mapping, exact=True)).to_have_count(0)
             expect(table.get_by_role("columnheader", name=status, exact=True)).to_have_count(0)
             row = table.locator("tbody tr").nth(1)
-            row.scroll_into_view_if_needed()
-            row.click()
+            strip = workspace.get_by_role(
+                "region", name="姿势预览选择" if language == "zh" else "Pose preview selection"
+            )
+            preview = strip.get_by_role(
+                "button", name="预览姿势 2" if language == "zh" else "Preview pose 2"
+            )
+            preview.click()
+            expect(preview).to_have_attribute("aria-pressed", "true")
             expect(row).to_have_attribute("aria-selected", "true")
+            for score in selected["scores"]:
+                expect(strip).to_contain_text(f"{score['value']:.3f}")
             expect(export).to_be_enabled(timeout=30000)
             expect(workspace.get_by_role("note")).to_have_count(1)
             with page.expect_download() as download:
