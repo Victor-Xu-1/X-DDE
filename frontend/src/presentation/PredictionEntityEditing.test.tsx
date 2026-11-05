@@ -16,6 +16,7 @@ import { predictionEntitySummary } from "./PredictionEntitySummary";
 import { FeatureForm } from "../operations/FeatureForm";
 import { useMol1Composition } from "../integrations/Mol1Composition";
 import { mol1Defaults } from "../integrations/mol1-settings";
+import { Mol1FeatureInputs } from "../integrations/Mol1FeatureInputs";
 
 vi.mock("../guided/useTaskReadiness", () => ({
   useTaskReadiness: () => ({ ready: false, error: "", recheck: vi.fn() }),
@@ -44,6 +45,76 @@ function Editor() {
     </>
   );
 }
+
+function SupportingFiles() {
+  const [components, setComponents] = useState<Component[]>([
+    { kind: "protein", value: "PREACHINGS", count: 1, chain_ids: ["A"] },
+    { kind: "protein", value: "MREACHINGS", count: 1, chain_ids: ["B"] },
+  ]);
+  return (
+    <>
+      <button onClick={() => setComponents((current) => current.slice(1))}>
+        Remove first study entity
+      </button>
+      <Mol1FeatureInputs
+        value={{ ...mol1Defaults(), feature_mode: "uploaded" }}
+        onChange={vi.fn()}
+        components={components}
+        onComponents={setComponents}
+        language="en"
+      />
+      <output aria-label="Current supporting inputs">
+        {JSON.stringify(components)}
+      </output>
+    </>
+  );
+}
+
+it.each(["uploading", "earlier"] as const)(
+  "keeps a supporting MSA on its owner when the %s study entity is removed",
+  async (removed) => {
+    const asset = {
+      id: "11111111-1111-4111-8111-111111111111",
+      kind: "msa" as const,
+      name: "controlled.a3m",
+      sha256: "a".repeat(64),
+      suffix: ".a3m",
+      size: 25,
+      created_at: "",
+    };
+    let finish!: (value: typeof asset) => void;
+    vi.spyOn(api, "upload").mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () => new Response(null, { status: 404 }),
+    );
+    const user = userEvent.setup();
+    render(<SupportingFiles />);
+    await user.upload(
+      screen.getAllByLabelText("Upload Unpaired A3M")[
+        removed === "uploading" ? 0 : 1
+      ],
+      new File(["controlled transport, not scientific alignment"], asset.name),
+    );
+    expect(finish).toBeTypeOf("function");
+    await user.click(
+      screen.getByRole("button", { name: "Remove first study entity" }),
+    );
+    await act(async () => finish(asset));
+    const current = JSON.parse(
+      screen.getByLabelText("Current supporting inputs").textContent!,
+    );
+    expect(current).toHaveLength(1);
+    expect(current[0].value).toBe("MREACHINGS");
+    expect(current[0].chain_ids).toEqual(["B"]);
+    if (removed === "uploading") expect(current[0].unpaired_msa).toBeFalsy();
+    else expect(current[0].unpaired_msa).toBe(asset.id);
+  },
+);
 
 it.each(["uploading", "earlier"] as const)(
   "keeps a delayed molecular upload on its actual owner when the %s entity is removed",
