@@ -73,7 +73,7 @@ jobs:
           echo "WB_HOME=$RUNNER_TEMP/x-dde-calculation-plan" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-calculation-plan/state" >> "$GITHUB_ENV"
           uv run --locked playwright install chromium --with-deps
-      - run: uv run --locked pytest -x -q server_tests/test_calculation_plan_browser.py
+      - run: uv run --locked python -m pytest -x -q server_tests/test_calculation_plan_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
