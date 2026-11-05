@@ -1,6 +1,20 @@
 /* Prediction-only content composition; the shared shell owns its visual tokens. */
 .studio-app .studio-content[data-prediction-layout="true"] {
-  max-width: 1376px;
   margin-inline: auto;
   padding-top: 12px;
+}
+
+/* Keep the active form readable; hidden legacy workspaces must not size results. */
+.studio-app
+  .studio-content[data-prediction-layout="true"]:has(
+    > .task-workspace.is-input,
+    > div:not([hidden]) > .task-workspace.is-input
+  ) {
+  max-width: 1376px;
+}
+
+@media (min-width: 1800px) {
+  .studio-app .studio-content[data-prediction-layout="true"] {
+    --prediction-stage-height: clamp(520px, 64vh, 860px);
+  }
 }

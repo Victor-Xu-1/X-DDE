@@ -43,8 +43,12 @@ def check_prediction_setup_layout(page, width):
         assert min(step["height"] for step in steps) >= 44
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
 
+    if width >= 1800:
+        content = page.locator("main.studio-content").bounding_box()
+        assert content and content["width"] <= 1400, "Input reading width must return after results"
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390), ("en", 2560)])
 def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, language, width):
     evidence = Path("outputs/prediction-workspace") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
@@ -189,6 +193,16 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             title = page.locator(".studio-topbar .page-context-title").bounding_box()
             assert menu and title and title["x"] >= menu["x"] + menu["width"] + 8
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        if width >= 1800:
+            available = page.locator(".studio-main").bounding_box()
+            content = page.locator("main.studio-content").bounding_box()
+            stage = preview.locator(".molecular-stage").bounding_box()
+            assert available and content and stage
+            assert content["width"] >= available["width"] - 1
+            assert a["x"] - available["x"] <= 40
+            assert stage["width"] >= 1000 and stage["height"] >= 600
+        page.evaluate("window.scrollTo(0, 0)")
+        page.screenshot(path=str(evidence / "result-viewport.png"), full_page=False)
         page.screenshot(path=str(evidence / "result.png"), full_page=True)
         page.goto(base + "/#view=new&tool=mol1.predict")
         check_prediction_setup_layout(page, width)
