@@ -10,16 +10,22 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 BEFORE = """import json
 async def readiness(settings, identifier):
-    return {"ready": False}
+    code, output = await runtime.command(command, "docker", "image", "inspect", image)
+    labels = json.loads(output)
+    if labels.get("recipe") != expected:
+        raise ValueError("Unreviewed image")
+    if spec["models"]:
+        verify_models(models, spec)
+    return {"ready": True}
 def configuration(settings, identifier):
     return "immutable-image"
 """
 AFTER = (
     BEFORE.replace("import json", "import asyncio\nimport json").replace(
-        'return {"ready": False}',
-        "return await asyncio.to_thread(_check_model_resources, settings)",
+        "        verify_models(models, spec)",
+        "        await asyncio.to_thread(_check_model_resources, models, spec)",
     )
-    + '\ndef _check_model_resources(settings):\n    return {"ready": True}\n'
+    + "\ndef _check_model_resources(models, spec):\n    verify_models(models, spec)\n"
 )
 
 
@@ -49,8 +55,15 @@ def test_metadata_delegation_cannot_hide_image_identity_or_native_execution_chan
         ),
         AFTER + "\ndef start():\n    return True\n",
         AFTER.replace("import json", "import os\nimport json"),
+        AFTER.replace('"image", "inspect"', '"container", "inspect"'),
+        AFTER.replace(
+            '    if labels.get("recipe") != expected:\n        raise ValueError("Unreviewed image")\n',
+            "",
+        ),
+        AFTER.replace("verify_models(models, spec)", "skip_models(models, spec)"),
         "not valid python: !",
     ]:
+        assert after != AFTER
         assert not scope.metadata_only([scope.RUNTIME], before=BEFORE, after=after)
 
 

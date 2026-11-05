@@ -39,23 +39,56 @@ STOP_FILES = (
 
 def metadata_surface(source):
     tree = ast.parse(source, type_comments=True)
-    nodes = []
-    found = False
-    for node in tree.body:
+    functions = [
+        node
+        for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "readiness"
+    ]
+    if len(functions) != 1:
+        raise ValueError("Native readiness interface is missing")
+    condition = ast.dump(ast.parse('spec["models"]', mode="eval").body)
+    blocks = [
+        node
+        for node in ast.walk(functions[0])
+        if isinstance(node, ast.If) and ast.dump(node.test) == condition and not node.orelse
+    ]
+    if len(blocks) != 1:
+        raise ValueError("Native model-resource block is ambiguous")
+    approved = ast.parse("await asyncio.to_thread(_check_model_resources, models, spec)").body
+
+    def dump_body(body):
+        return ast.dump(ast.Module(body=body, type_ignores=[]))
+
+    inlined = None
+    if dump_body(blocks[0].body) == dump_body(approved):
+        helpers = [
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "_check_model_resources"
+        ]
+        args = ast.parse("def helper(models, spec): pass").body[0].args
         if (
+            len(helpers) != 1
+            or ast.dump(helpers[0].args) != ast.dump(args)
+            or helpers[0].decorator_list
+            or helpers[0].returns
+            or getattr(helpers[0], "type_params", [])
+        ):
+            raise ValueError("Native model-resource helper is not the approved interface")
+        inlined = helpers[0]
+        # Expand the exact approved offload back to its original statements.
+        # Image inspection, label rejection, exception handling and ready-state
+        # publication remain in the comparison; no readiness body is erased.
+        blocks[0].body = inlined.body
+    tree.body = [
+        node
+        for node in tree.body
+        if node is not inlined
+        and not (
             isinstance(node, ast.Import)
             and ast.dump(node) == "Import(names=[alias(name='asyncio')])"
-        ):
-            continue
-        if isinstance(node, ast.FunctionDef) and node.name == "_check_model_resources":
-            continue
-        if isinstance(node, ast.AsyncFunctionDef) and node.name == "readiness":
-            node.body = [ast.Pass()]
-            found = True
-        nodes.append(node)
-    if not found:
-        raise ValueError("Native readiness interface is missing")
-    tree.body = nodes
+        )
+    ]
     return ast.dump(tree)
 
 
