@@ -1,4 +1,7 @@
 import { expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   calendarDay,
   dayLabel,
@@ -25,9 +28,74 @@ it("validates calendar dates, leap days and inclusive ranges without rollover", 
   expect(
     historyDateError({ startDate: "2026-10-02", endDate: "2026-10-02" }),
   ).toBe(false);
-  expect(historyDateError({ endDate: "9999-12-31" })).toBe(true);
-  expect(historyDateParams({ endDate: "9999-12-31" })).toEqual({});
 });
+
+it.each([
+  ["UTC", "", "9999-12-31", true, {}],
+  [
+    "Asia/Shanghai",
+    "",
+    "9999-12-31",
+    false,
+    { created_before: "9999-12-31T16:00:00.000Z" },
+  ],
+  [
+    "America/Sao_Paulo",
+    "2018-11-04",
+    "2018-11-04",
+    false,
+    {
+      created_from: "2018-11-04T03:00:00.000Z",
+      created_before: "2018-11-05T02:00:00.000Z",
+    },
+  ],
+  [
+    "America/New_York",
+    "2026-03-08",
+    "2026-03-08",
+    false,
+    {
+      created_from: "2026-03-08T05:00:00.000Z",
+      created_before: "2026-03-09T04:00:00.000Z",
+    },
+  ],
+  [
+    "America/New_York",
+    "2026-11-01",
+    "2026-11-01",
+    false,
+    {
+      created_from: "2026-11-01T04:00:00.000Z",
+      created_before: "2026-11-02T05:00:00.000Z",
+    },
+  ],
+])(
+  "preserves exact local-day bounds in an isolated %s timezone",
+  (timezone, startDate, endDate, error, bounds) => {
+    // A subprocess gives Date/Intl an explicit timezone, without altering other tests.
+    const source = pathToFileURL(
+      resolve("src/studio/task-history-dates.ts"),
+    ).href;
+    const code = [
+      "import {historyDateError,historyDateParams} from " +
+        JSON.stringify(source) +
+        ";",
+      "const filter=" + JSON.stringify({ startDate, endDate }) + ";",
+      "console.log(JSON.stringify({error:historyDateError(filter),bounds:historyDateParams(filter)}));",
+    ].join("\n");
+    const result = spawnSync(
+      process.execPath,
+      ["--experimental-strip-types", "--input-type=module", "--eval", code],
+      {
+        env: { ...process.env, TZ: String(timezone) },
+        encoding: "utf8",
+        timeout: 10000,
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ error, bounds });
+  },
+);
 it("converts local calendar days to half-open instants and retains them in the module URL", () => {
   const filter = {
     module: "evaluation" as const,

@@ -22,7 +22,11 @@ export function dayLabel(date: Date) {
 function boundaryDay(value: string, nextDay = false) {
   const date = calendarDay(value);
   if (!date) return null;
-  if (nextDay) date.setDate(date.getDate() + 1);
+  if (nextDay) {
+    date.setDate(date.getDate() + 1);
+    // Midnight may have normalized to01:00 on the selected DST transition day.
+    date.setHours(0, 0, 0, 0);
+  }
   return date.getUTCFullYear() >= 1 && date.getUTCFullYear() <= 9999
     ? date
     : null;
