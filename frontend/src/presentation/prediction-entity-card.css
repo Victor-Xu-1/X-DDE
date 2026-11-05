@@ -1,0 +1,156 @@
+.prediction-entity-card {
+  --entity-header: #e4efeb;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgb(37 45 50 / 2%);
+}
+.prediction-entity-card[data-entity-kind="ligand"] {
+  --entity-header: #f0ece3;
+}
+.prediction-entity-card[data-entity-kind="dna"],
+.prediction-entity-card[data-entity-kind="rna"] {
+  --entity-header: #ece9f5;
+}
+.prediction-entity-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  min-height: 62px;
+  border-radius: 20px 20px 0 0;
+  background: var(--entity-header);
+}
+.prediction-entity-card:has(.prediction-entity-body[hidden])
+  .prediction-entity-heading {
+  border-radius: 20px;
+}
+.prediction-entity-badge {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+  font-size: 12px;
+}
+.prediction-entity-heading .prediction-entity-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.prediction-entity-toggle strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.prediction-entity-toggle > .anticon {
+  font-size: 10px;
+  transition: transform 120ms ease;
+}
+.prediction-entity-toggle[aria-expanded="false"] > .anticon {
+  transform: rotate(-90deg);
+}
+.prediction-entity-material {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.prediction-entity-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.prediction-entity-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.studio-app .prediction-entity-card .prediction-entity-controls select,
+.studio-app
+  .prediction-entity-card
+  .prediction-entity-controls
+  input.prediction-entity-control[type="text"] {
+  width: auto;
+  min-height: 34px;
+  max-width: 160px;
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+.studio-app
+  .prediction-entity-card
+  .prediction-entity-controls
+  input.prediction-entity-control[type="text"] {
+  width: 70px;
+}
+.prediction-entity-controls .icon-button {
+  min-height: 30px;
+  min-width: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.prediction-entity-body {
+  padding: 20px;
+  border-top: 1px solid var(--line);
+}
+.prediction-entity-body[hidden] {
+  display: none;
+}
+.prediction-entity-body > :last-child {
+  margin-bottom: 0;
+}
+.prediction-entity-card :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+:root[data-theme="dark"] .prediction-entity-card {
+  --entity-header: color-mix(in srgb, var(--surface), #3d7569 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="ligand"] {
+  --entity-header: color-mix(in srgb, var(--surface), #89744c 28%);
+}
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="dna"],
+:root[data-theme="dark"] .prediction-entity-card[data-entity-kind="rna"] {
+  --entity-header: color-mix(in srgb, var(--surface), #776698 28%);
+}
+@media (max-width: 600px) {
+  .prediction-entity-heading {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+  .prediction-entity-body {
+    padding: 14px;
+  }
+  .prediction-entity-controls {
+    flex-basis: 100%;
+    padding-left: 36px;
+  }
+  .prediction-entity-material {
+    flex: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prediction-entity-toggle > .anticon {
+    transition: none;
+  }
+}

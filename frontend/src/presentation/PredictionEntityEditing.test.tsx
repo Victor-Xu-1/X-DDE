@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { MolecularInputs } from "../guided/MolecularInputs";
 import type { Component } from "../types";
+import { predictionEntitySummary } from "./PredictionEntitySummary";
+import { FeatureForm } from "../operations/FeatureForm";
+
+vi.mock("../guided/useTaskReadiness", () => ({
+  useTaskReadiness: () => ({ ready: false, error: "", recheck: vi.fn() }),
+}));
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -89,3 +95,134 @@ it.each(["uploading", "earlier"] as const)(
     }
   },
 );
+
+it("retains input DOM, edits, copies and collapse state on the same surviving entity", async () => {
+  const user = userEvent.setup();
+  render(<Editor />);
+  const protein = screen.getByRole("textbox", {
+    name: "One-letter amino-acid sequence",
+  });
+  await user.type(protein, "G");
+  expect(protein).toHaveFocus();
+  expect(protein).toHaveValue("PREACHINGSG");
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Copies 1" }),
+    "2",
+  );
+  expect(
+    screen.getByRole("textbox", { name: "One-letter amino-acid sequence" }),
+  ).toBe(protein);
+  await user.click(
+    screen.getByRole("button", { name: "Collapse Small molecule / ligand 3" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Remove 1" }));
+  const collapsed = screen.getByRole("button", {
+    name: "Expand Small molecule / ligand 2",
+  });
+  expect(collapsed).toHaveAttribute("aria-expanded", "false");
+  const entity = screen.getByRole("article", {
+    name: "Small molecule / ligand 2",
+  });
+  expect(
+    within(entity).getByLabelText("SMILES or CCD_ identifier"),
+  ).toHaveValue("CCD_NAD");
+  await user.click(collapsed);
+  expect(
+    within(entity).getByRole("textbox", { name: "SMILES or CCD_ identifier" }),
+  ).toHaveValue("CCD_NAD");
+});
+
+it("reveals an invalid collapsed input when native form constraints are checked", async () => {
+  const user = userEvent.setup();
+  render(<Editor />);
+  const field = screen.getByRole("textbox", {
+    name: "One-letter amino-acid sequence",
+  });
+  await user.clear(field);
+  await user.click(screen.getByRole("button", { name: "Collapse Protein 1" }));
+  expect(field).not.toBeVisible();
+  act(() => {
+    expect((field as HTMLTextAreaElement).checkValidity()).toBe(false);
+  });
+  await waitFor(() => expect(field).toBeVisible());
+  expect(field).toHaveFocus();
+});
+
+it("combines concurrent upload replies through the parent input authority", async () => {
+  const asset = {
+    id: "11111111-1111-4111-8111-111111111111",
+    kind: "ligand" as const,
+    name: "controlled.sdf",
+    sha256: "a".repeat(64),
+    suffix: ".sdf",
+    size: 25,
+    created_at: "",
+  };
+  const replies: Array<(value: typeof asset) => void> = [];
+  vi.spyOn(api, "upload").mockImplementation(
+    () => new Promise((resolve) => replies.push(resolve)),
+  );
+  vi.spyOn(globalThis, "fetch").mockImplementation(
+    async () => new Response(null, { status: 404 }),
+  );
+  const user = userEvent.setup();
+  render(<Editor />);
+  for (const summary of screen.getAllByText("Use an existing 3D molecule file"))
+    await user.click(summary);
+  const uploads = screen.getAllByLabelText("Upload Ligand file");
+  await user.upload(uploads[0], new File(["controlled transport"], asset.name));
+  await user.upload(uploads[1], new File(["controlled transport"], asset.name));
+  expect(replies).toHaveLength(2);
+  const second = { ...asset, id: "22222222-2222-4222-8222-222222222222" };
+  await act(async () => {
+    replies[0](asset);
+    replies[1](second);
+  });
+  const items = JSON.parse(
+    screen.getByLabelText("Current entity inputs").textContent!,
+  ) as Component[];
+  expect(items.slice(1).map((item) => item.ligand_file)).toEqual([
+    asset.id,
+    second.id,
+  ]);
+});
+
+it("uses the same entity card in supporting-feature inputs without creating a task", async () => {
+  const submit = vi.spyOn(api, "submit");
+  const user = userEvent.setup();
+  render(<FeatureForm language="en" onCreated={vi.fn()} />);
+  await user.click(screen.getByRole("button", { name: "Next", exact: true }));
+  const field = screen.getByRole("textbox", {
+    name: "One-letter amino-acid sequence",
+  });
+  await user.type(field, "PREACHINGS");
+  await user.click(screen.getByRole("button", { name: "Collapse Protein 1" }));
+  expect(field).not.toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Expand Protein 1" }));
+  expect(field).toHaveValue("PREACHINGS");
+  expect(submit).not.toHaveBeenCalled();
+});
+
+it("summarizes entered sequences and files without claiming calculated geometry", () => {
+  expect(
+    predictionEntitySummary(
+      { kind: "protein", value: ">STAT6 input\nPREA CHINGS" },
+      "en",
+    ),
+  ).toBe("10 residues");
+  expect(predictionEntitySummary({ kind: "dna", value: "ATGCNX" }, "zh")).toBe(
+    "6 个碱基",
+  );
+  expect(
+    predictionEntitySummary({ kind: "protein", value: "BAD*" }, "en"),
+  ).toBe("Check sequence");
+  expect(
+    predictionEntitySummary(
+      { kind: "ligand", value: "", ligand_file: "native-id" },
+      "en",
+    ),
+  ).toBe("Structure file");
+  expect(
+    predictionEntitySummary({ kind: "ligand", value: "CCD_ATP" }, "en"),
+  ).toBe("CCD · ATP");
+});

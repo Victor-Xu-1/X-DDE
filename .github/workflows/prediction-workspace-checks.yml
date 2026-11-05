@@ -264,11 +264,16 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - run: uv run --locked playwright install chromium --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
-        if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && (needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true' || needs.scope.outputs.boltz_review_changed == 'true' || needs.scope.outputs.opendde_review_changed == 'true')
+        if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && (needs.scope.outputs.entity_inputs == 'true' || needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true' || needs.scope.outputs.boltz_review_changed == 'true' || needs.scope.outputs.opendde_review_changed == 'true')
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-input-preview" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-input-preview/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-input-preview" WB_STATE_DIR="$RUNNER_TEMP/x-dde-input-preview/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Bilingual shared entity editing, compact headers and preserved STAT6 inputs
+        if: needs.scope.outputs.entity_inputs == 'true'
+        run: |
+          uv run --locked ruff check server_tests/test_prediction_entities_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_prediction_entities_browser.py
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
         if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
@@ -347,6 +352,7 @@ jobs:
             outputs/opendde-final-review/**
             outputs/native-confidence/**
             outputs/prediction-input-preview/**
+            outputs/prediction-entities/**
             outputs/prediction-drafts/**
             outputs/mol1-final-review/**
             outputs/boltz-final-review/**

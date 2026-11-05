@@ -105,6 +105,7 @@ ENTITY_INPUT_FILES = {
     "frontend/src/presentation/PredictionEntityCard.tsx",
     "frontend/src/presentation/PredictionEntityState.ts",
     "frontend/src/presentation/PredictionEntitySummary.ts",
+    "frontend/src/presentation/PredictionMolecularFields.tsx",
     "frontend/src/presentation/PredictionEntityEditing.test.tsx",
     "frontend/src/presentation/prediction-entity-card.css",
     "server_tests/test_prediction_entities_browser.py",

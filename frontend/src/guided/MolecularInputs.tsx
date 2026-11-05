@@ -1,11 +1,15 @@
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
-import { useId } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Hint } from "./Hint";
-import { entityInfo, ions } from "./entities";
+import { entityInfo } from "./entities";
 import { translator } from "../i18n";
 import type { TaskKind } from "./presets";
 import type { Component, Language } from "../types";
-import { EntityOptions } from "../operations/EntityOptions";
+import { PredictionEntityCard } from "../presentation/PredictionEntityCard";
+import { PredictionMolecularFields } from "../presentation/PredictionMolecularFields";
+import { predictionEntitySummary } from "../presentation/PredictionEntitySummary";
+import { usePredictionEntityState } from "../presentation/PredictionEntityState";
+
 export function MolecularInputs({
   items,
   onChange,
@@ -17,7 +21,7 @@ export function MolecularInputs({
   showHeading = true,
 }: {
   items: Component[];
-  onChange(items: Component[]): void;
+  onChange: Dispatch<SetStateAction<Component[]>>;
   language: Language;
   expert: boolean;
   workflow: TaskKind;
@@ -25,18 +29,10 @@ export function MolecularInputs({
   allowedKinds?: Component["kind"][];
   showHeading?: boolean;
 }) {
-  const scope = useId();
   const t = translator(language),
     zh = language === "zh",
     i = zh ? 0 : 1;
-  function update(index: number, patch: Partial<Component>) {
-    onChange(
-      items.map((item, n) => (n === index ? { ...item, ...patch } : item)),
-    );
-  }
-  function add(kind: Component["kind"]) {
-    onChange([...items, { kind, value: kind === "ion" ? "MG" : "", count: 1 }]);
-  }
+  const editing = usePredictionEntityState(onChange);
   const allowed: Component["kind"][] =
     allowedKinds ??
     (expert
@@ -61,16 +57,16 @@ export function MolecularInputs({
             : "Enter the antigen first, followed by the existing antibody. Enter heavy and light chains separately."}
         </p>
       )}
-      {workflow === "nucleic" && (
+      {workflow === "nucleic" && items[0] && (
         <div className="nucleic-choice">
           <span>{zh ? "第一条链" : "First strand"}</span>
           {(["rna", "dna"] as const).map((kind) => (
             <label key={kind}>
               <input
                 type="radio"
-                name={scope + "-nucleic-type"}
-                checked={items[0]?.kind === kind}
-                onChange={() => update(0, { kind })}
+                name={editing.key(items[0]) + "-nucleic-type"}
+                checked={items[0].kind === kind}
+                onChange={() => editing.update(editing.key(items[0]), { kind })}
               />
               {kind.toUpperCase()}
             </label>
@@ -79,7 +75,7 @@ export function MolecularInputs({
       )}
       <div className="molecular-fields">
         {items.map((item, index) => {
-          const info = entityInfo[item.kind];
+          const id = editing.key(item);
           const role =
             workflow === "antibody" && item.kind === "protein"
               ? (index === 0
@@ -92,119 +88,76 @@ export function MolecularInputs({
                           "Antibody (VHH / scFv / heavy chain)",
                         ]
                     : ["抗体轻链", "Antibody light chain"])[i]
-              : info.name[i];
+              : entityInfo[item.kind].name[i];
+          const removable =
+            expert ||
+            index >=
+              (["complex", "protein-complex", "antibody"].includes(workflow)
+                ? 2
+                : 1);
           return (
-            <div
-              className="component-card"
-              key={index}
-              data-entity-kind={item.kind}
+            <PredictionEntityCard
+              key={id}
+              language={language}
+              index={index}
+              kind={item.kind}
+              title={role + " " + (index + 1)}
+              summary={predictionEntitySummary(item, language)}
+              controls={
+                expert || removable || item.count > 1 ? (
+                  <>
+                    {expert ? (
+                      <label className="prediction-entity-copies">
+                        {t("copies")}
+                        <Hint
+                          label={role + (zh ? "拷贝数说明" : " copies help")}
+                        >
+                          {zh
+                            ? "相同组分在同一复合物中的份数，通常为 1；这不是批量预测次数。"
+                            : "Identical copies in one complex, usually 1. This is not the number of prediction jobs."}
+                        </Hint>
+                        <select
+                          aria-label={t("copies") + " " + (index + 1)}
+                          value={item.count}
+                          onChange={(e) =>
+                            editing.update(id, {
+                              count: Number(e.target.value),
+                            })
+                          }
+                        >
+                          {[1, 2, 3, 4].map((n) => (
+                            <option key={n}>{n}</option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : (
+                      item.count > 1 && <small>{item.count} ×</small>
+                    )}
+                    {removable && (
+                      <button
+                        className="icon-button"
+                        type="button"
+                        aria-label={t("remove") + " " + (index + 1)}
+                        disabled={items.length === 1}
+                        onClick={() => editing.remove(id)}
+                      >
+                        <CloseOutlined />
+                      </button>
+                    )}
+                  </>
+                ) : undefined
+              }
             >
-              <div className="component-heading">
-                <strong data-entity-index={index + 1}>
-                  {role} {index + 1}
-                </strong>
-                {(expert ||
-                  index >=
-                    (["complex", "protein-complex", "antibody"].includes(
-                      workflow,
-                    )
-                      ? 2
-                      : 1)) && (
-                  <button
-                    className="icon-button"
-                    type="button"
-                    aria-label={t("remove") + " " + (index + 1)}
-                    disabled={items.length === 1}
-                    onClick={() =>
-                      onChange(items.filter((_, n) => n !== index))
-                    }
-                  >
-                    <CloseOutlined />
-                  </button>
-                )}
-              </div>
-              <div className="field sequence-field">
-                <span>
-                  <label htmlFor={scope + "-molecule-" + index}>
-                    {info.field[i]}
-                  </label>
-                  <Hint label={role + (zh ? "输入说明" : " input help")}>
-                    {info.help[i]}
-                  </Hint>
-                </span>
-                {item.kind === "ion" && expert ? (
-                  <input
-                    id={scope + "-molecule-" + index}
-                    value={item.value}
-                    maxLength={4}
-                    required
-                    pattern="[A-Za-z0-9]{1,4}"
-                    placeholder="MG, ZN, FE2…"
-                    onChange={(e) =>
-                      update(index, { value: e.target.value.toUpperCase() })
-                    }
-                  />
-                ) : item.kind === "ion" ? (
-                  <select
-                    id={scope + "-molecule-" + index}
-                    value={item.value}
-                    onChange={(e) => update(index, { value: e.target.value })}
-                  >
-                    {ions.map(([code, cn, en]) => (
-                      <option key={code} value={code}>
-                        {zh ? cn : en} ({code})
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <textarea
-                    id={scope + "-molecule-" + index}
-                    required={!item.ligand_file}
-                    disabled={Boolean(item.ligand_file)}
-                    maxLength={5000}
-                    rows={item.kind === "ligand" ? 2 : 4}
-                    value={item.value}
-                    spellCheck={false}
-                    placeholder={info.placeholder[i]}
-                    onChange={(e) => update(index, { value: e.target.value })}
-                  />
-                )}
-              </div>
-              <EntityOptions
-                value={item}
-                onChange={(patch) => update(index, patch)}
+              <PredictionMolecularFields
+                item={item}
+                id={id + "-input"}
+                role={role}
                 language={language}
                 expert={expert}
                 features={features}
+                onChange={(patch) => editing.update(id, patch)}
               />
-              {expert && (
-                <label className="copy-choice">
-                  {t("copies")}{" "}
-                  <Hint label={role + (zh ? "拷贝数说明" : " copies help")}>
-                    {zh
-                      ? "相同组分在同一复合物中的份数，通常为 1；这不是批量预测次数。"
-                      : "Identical copies in one complex, usually 1. This is not the number of prediction jobs."}
-                  </Hint>
-                  <select
-                    aria-label={t("copies") + " " + (index + 1)}
-                    value={item.count}
-                    onChange={(e) =>
-                      update(index, { count: Number(e.target.value) })
-                    }
-                  >
-                    {[1, 2, 3, 4].map((n) => (
-                      <option key={n}>{n}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              {!expert && item.count > 1 && (
-                <p className="small">
-                  {zh ? "相同组分份数：" : "Identical copies: "}
-                  {item.count}
-                </p>
-              )}
-            </div>
+            </PredictionEntityCard>
           );
         })}
       </div>
@@ -212,7 +165,7 @@ export function MolecularInputs({
         <button
           className="add-button"
           type="button"
-          onClick={() => add("protein")}
+          onClick={() => editing.add("protein")}
           disabled={items.length >= 8}
         >
           <PlusOutlined />
@@ -232,7 +185,7 @@ export function MolecularInputs({
               className="add-button"
               type="button"
               disabled={items.length >= 8}
-              onClick={() => add(kind)}
+              onClick={() => editing.add(kind)}
             >
               <PlusOutlined />
               {entityInfo[kind].name[i]}

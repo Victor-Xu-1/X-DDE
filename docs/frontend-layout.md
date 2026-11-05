@@ -6,6 +6,16 @@ Pocket-conditioned generation, local redesign, diversification, optimization and
 
 ## Shared research workspace
 
+Prediction and feature-preparation entities use one compact, collapsible card.
+The header keeps the entity label, entered-sequence/material summary and existing
+copy/type/chain controls visible. Collapsing retains the mounted inputs, current
+file operations and native validation; an invalid collapsed field is revealed
+when its form checks it. Editing and removal use stable view identities and
+functional updates to the parent form, so delayed files cannot move to another
+entity after a deletion. View keys never enter a task or saved draft. Each native
+form retains its own supported types, copy limits, source identities and
+readiness; the shared card does not invent model capabilities.
+
 Every research module follows the owner's selected Molence Lab visual
 reference: a 68 px floating toolbar, paper-white canvas, blue pill actions,
 24 px content rhythm, compact entity sections and an aligned live setup summary.
