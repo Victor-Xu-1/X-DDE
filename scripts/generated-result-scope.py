@@ -6,6 +6,10 @@ import subprocess
 
 PATTERNS = (
     "frontend/src/diffsbdd/GeneratedCandidates*",
+    "frontend/src/diffsbdd/GeneratedCandidateDownload*",
+    "frontend/src/diffsbdd/generated-candidate-download.css",
+    "frontend/src/presentation/molecular-record*",
+    "frontend/src/presentation/artifact-digest*",
     "frontend/src/presentation/MolecularPreview.tsx",
     "frontend/src/diffsbdd/GeneratedMetricsView*",
     "frontend/src/diffsbdd/generated-metrics*",

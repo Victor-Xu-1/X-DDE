@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { molecularRecordText } from "./molecular-record";
+import { molecularRecordText, sdfRecordBytes } from "./molecular-record";
 it("preserves a blank title and exact coordinates while extracting the second SDF record", () => {
   const first =
     "Imatinib\n  source\n\n  1  0  0  0  0  0            999 V2000\n    1.0000    2.0000    3.0000 C   0  0  0  0  0  0\nM  END\n";
@@ -9,6 +9,19 @@ it("preserves a blank title and exact coordinates while extracting the second SD
     molecularRecordText(first + "$$$$\n" + second + "$$$$\n", 1, "sdf"),
   ).toBe(second);
   expect(molecularRecordText(first, 0, "mol")).toBe(first);
+});
+
+it("downloads the selected bytes, including CRLF, non-ASCII properties and the original delimiter", () => {
+  const encoder = new TextEncoder();
+  const first = "Molecule 1\nM  END\n$$$$\n";
+  const second = "\r\nM  END\r\n> <Origin>\r\n实验 α\u2028$$$$\r\n\r\n$$$$ \r\n";
+  const third = "Molecule 3\nM  END\n";
+  const source = encoder.encode(first + second + third);
+  expect(sdfRecordBytes(source, 1)).toEqual(encoder.encode(second));
+  expect(molecularRecordText(first + second + third, 1, "sdf")).toBe(
+    second.slice(0, -7),
+  );
+  expect(sdfRecordBytes(source, 2)).toEqual(encoder.encode(third));
 });
 it("never substitutes another molecule for an empty, missing or unsupported record", () => {
   for (const [text, n, format] of [

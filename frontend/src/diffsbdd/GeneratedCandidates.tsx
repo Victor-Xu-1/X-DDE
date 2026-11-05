@@ -14,6 +14,7 @@ import {
 import { generatedColumns } from "./generated-columns";
 import { GeneratedMetricsView } from "./GeneratedMetricsView";
 import { GeneratedCandidatesBatch } from "./GeneratedCandidatesBatch";
+import { GeneratedCandidateDownload } from "./GeneratedCandidateDownload";
 import { OptimizationFigures } from "./OptimizationFigures";
 import type { OptimizationData } from "./optimization-model";
 export interface GeneratedRecord {
@@ -25,6 +26,7 @@ export function GeneratedCandidates({
   generated = true,
   url,
   selected,
+  sourceSha256,
   language,
   verification,
   proteinUrl,
@@ -37,6 +39,7 @@ export function GeneratedCandidates({
   generated?: boolean;
   url: string;
   selected: GeneratedRecord | null;
+  sourceSha256?: string | null;
   language: Language;
   verification?: CoreVerificationData;
   proteinUrl?: string;
@@ -94,6 +97,20 @@ export function GeneratedCandidates({
               const candidate = records.find(({ record }) => record === id);
               if (candidate) onSelect(candidate);
             }}
+            actions={
+              selected &&
+              sourceSha256 &&
+              (selected.object?.reference.conformer ?? 0) === 0 && (
+                <GeneratedCandidateDownload
+                  key={JSON.stringify([url, sourceSha256, selected.record])}
+                  url={url}
+                  sha256={sourceSha256}
+                  record={selected.record}
+                  number={originalNumber(selected.record)}
+                  language={language}
+                />
+              )
+            }
           />
         )
       }

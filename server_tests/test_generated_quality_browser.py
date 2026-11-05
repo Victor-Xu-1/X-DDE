@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.chemistry.sdf_io import RECORD_END
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
@@ -85,6 +86,17 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         expect(preview_choice).to_have_attribute("aria-pressed", "true")
         expect(strip).to_contain_text(str(native_row["qed"]))
         expect(selected).to_have_attribute("aria-pressed", "true")
+        with page.expect_download() as sdf_download:
+            strip.get_by_role(
+                "button",
+                name="下载所选候选 SDF" if zh else "Download selected candidate SDF",
+                exact=True,
+            ).click()
+        assert sdf_download.value.suggested_filename == "candidate-2.sdf"
+        original_sdf = (root / result["molecule_artifact"]).read_bytes()
+        first, second, *_ = RECORD_END.finditer(original_sdf)
+        expected_record = original_sdf[first.end() : second.end()]
+        assert Path(sdf_download.value.path()).read_bytes() == expected_record
         expect(
             table.get_by_role("columnheader", name="输出重原子数" if zh else "Output heavy atoms")
         ).to_be_visible()

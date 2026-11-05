@@ -276,6 +276,7 @@ export function DiffResults({
             generated={designing}
             url={artifactUrl(job.id, targetArtifact)}
             selected={selectedRecord}
+            sourceSha256={candidates.sourceSha256}
             language={language}
             verification={data.core_verification}
             proteinUrl={

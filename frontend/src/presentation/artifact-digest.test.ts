@@ -125,13 +125,14 @@ it.each([null, ""])("rejects an empty response body: %s", async (body) => {
   await expect(artifactInfo(url, signal())).rejects.toThrow("empty");
 });
 
-it.each(["Molecule without terminator", record + "Invalid next record"])(
-  "preserves rejection of invalid SDF records",
-  async (text) => {
-    serve([encoder.encode(text)]);
-    await expect(artifactInfo(url, signal())).rejects.toThrow("valid SDF");
-  },
-);
+it.each([
+  "Molecule without terminator",
+  record + "Invalid next record",
+  record + "$$$$\n" + record,
+])("preserves rejection of invalid SDF records", async (text) => {
+  serve([encoder.encode(text)]);
+  await expect(artifactInfo(url, signal())).rejects.toThrow("valid SDF");
+});
 
 it.each([10000, 10001])("preserves the %i-record boundary", async (count) => {
   const bytes = encoder.encode(record.repeat(count));

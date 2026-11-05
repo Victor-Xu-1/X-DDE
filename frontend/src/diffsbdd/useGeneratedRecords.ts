@@ -14,11 +14,12 @@ interface RecordState {
   error: string;
   preparing: boolean;
   receptor: MoleculeRef | null;
+  sourceSha256: string | null;
 }
 interface SourceHandle {
   key: string;
   controller: AbortController;
-  read(): Promise<{ records: GeneratedRecord[]; receptor: MoleculeRef | null }>;
+  read(): Promise<Pick<RecordState, "records" | "receptor" | "sourceSha256">>;
 }
 
 /** Verified native records and the existing idempotent material-registration authority. */
@@ -45,6 +46,7 @@ export function useGeneratedRecords(
     error: "",
     preparing: false,
     receptor: null,
+    sourceSha256: null,
   });
   const [state, setState] = useState<RecordState>(() => blank(key));
   const active = useRef<SourceHandle | null>(null);
@@ -58,7 +60,8 @@ export function useGeneratedRecords(
       key,
       controller,
       async read() {
-        if (!file || data.valid === 0) return { records: [], receptor: null };
+        if (!file || data.valid === 0)
+          return { records: [], receptor: null, sourceSha256: null };
         const signal = AbortSignal.any([
           controller.signal,
           AbortSignal.timeout(30000),
@@ -132,20 +135,23 @@ export function useGeneratedRecords(
           inputReceptor.conformer === 0
             ? inputReceptor
             : null;
-        return { records, receptor: matchingInput ?? outputReceptor ?? null };
+        return {
+          records,
+          receptor: matchingInput ?? outputReceptor ?? null,
+          sourceSha256: info.sha256,
+        };
       },
     };
     active.current = handle;
     setState(blank(key));
     void handle
       .read()
-      .then(({ records, receptor }) => {
+      .then((result) => {
         if (!controller.signal.aborted)
           setState({
             ...blank(key),
-            records,
-            receptor,
-            record: records[0]?.record ?? null,
+            ...result,
+            record: result.records[0]?.record ?? null,
           });
       })
       .catch((error) => {
@@ -169,15 +175,15 @@ export function useGeneratedRecords(
     try {
       await api.post(`/jobs/${encodeURIComponent(job)}/index-assets`, {});
       if (active.current !== handle || handle.controller.signal.aborted) return;
-      const { records, receptor } = await handle.read();
-      if (!records.find((value) => value.record === record)?.object)
+      const result = await handle.read();
+      if (!result.records.find((value) => value.record === record)?.object)
         throw new Error(
           "The selected candidate is not available as a research input.",
         );
       if (active.current === handle && !handle.controller.signal.aborted)
         setState((value) =>
           value.key === key
-            ? { ...value, records, receptor, preparing: false, error: "" }
+            ? { ...value, ...result, preparing: false, error: "" }
             : value,
         );
     } catch (error) {
@@ -195,6 +201,7 @@ export function useGeneratedRecords(
   }
   return {
     records: visible.records,
+    sourceSha256: visible.sourceSha256,
     receptor: visible.receptor,
     selected:
       visible.records.find((value) => value.record === visible.record) ?? null,
