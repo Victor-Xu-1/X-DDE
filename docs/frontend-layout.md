@@ -22,6 +22,17 @@ and coverage map enumerate the submodules; a shared shell change is not proof of
 pixel parity for every input, result, dialog and preview state. Record those
 comparisons with their actual data and viewport before claiming acceptance.
 
+Input workspaces retain their reading width. Prediction results, including saved
+in-module examples, use the available workspace width; large displays also allow
+a taller live molecular canvas. Returning to a new task restores the input width.
+Hidden legacy workspaces do not determine the active page's width. Narrow-screen
+stacking and fullscreen height retain their shared sizing rules; compact result
+cards do not override fullscreen viewports.
+The wide-screen confidence inspector keeps a readable width in both normal and
+fullscreen views while the molecular view takes the remaining space.
+PAE/PDE/contact matrices retain equal pixel scales
+for their two native token axes when their container changes size.
+
 Molecular entity groups retain the selected reference's numbered, tinted headers
 and rounded input containers. They group one actual molecular input with its
 editable fields; general forms and nested result panels stay flat. The layout

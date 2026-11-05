@@ -125,7 +125,11 @@
 .studio-app .questionnaire-choices label:has(small) {
   min-height: 96px;
 }
-.studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
+/* Compact result cards yield to the shared fullscreen viewport sizing. */
+.studio-app
+  .task-workspace.is-result:where(:not(:fullscreen):not(:has(:fullscreen)))
+  .viewer-panel
+  .molecular-stage {
   height: 520px;
 }
 
@@ -152,7 +156,10 @@
   .studio-app .module-task-picker > label {
     flex: 1 1 100%;
   }
-  .studio-app .task-workspace.is-result .viewer-panel .molecular-stage {
+  .studio-app
+    .task-workspace.is-result:where(:not(:fullscreen):not(:has(:fullscreen)))
+    .viewer-panel
+    .molecular-stage {
     height: 360px;
   }
 }

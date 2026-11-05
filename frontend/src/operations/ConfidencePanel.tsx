@@ -216,6 +216,9 @@ export function ConfidencePanel({
               },
               yaxis: {
                 title: { text: zh ? "原始 token 索引" : "Native token index" },
+                scaleanchor: "x",
+                scaleratio: 1,
+                constrain: "domain",
               },
             }}
           />
