@@ -116,6 +116,16 @@ def test_every_research_destination_has_full_navigation_and_visible_context(shel
                 expect(page.locator(".page-context-title")).to_be_visible()
                 if width <= 960:
                     expect(page.get_by_role("dialog")).to_have_count(0)
+                if page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"):
+                    stem = f"overflow-{language}-{width}-{index}"
+                    page.screenshot(path=EVIDENCE / (stem + ".png"))
+                    layout = page.evaluate("""() => [...document.querySelectorAll('body *')]
+                        .map(e=>({tag:e.tagName,cls:String(e.className),
+                            x:e.getBoundingClientRect().x,right:e.getBoundingClientRect().right,
+                            width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))
+                        .filter(e=>e.width>0 && e.height>0 && e.right>innerWidth+1).slice(0,40)
+                    """)
+                    (EVIDENCE / (stem + ".json")).write_text(json.dumps(layout, indent=2))
                 assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
                 if index in (0, 1, 5, 7, 11):
                     capture(page, f"{language}-{width}-destination-{index}")

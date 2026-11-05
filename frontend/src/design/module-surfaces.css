@@ -58,11 +58,13 @@
 }
 .studio-app .workspace-tabs > button {
   border: 0;
-  border-radius: 999px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   background: transparent;
 }
 .studio-app .workspace-tabs > button[aria-pressed="true"] {
-  background: var(--accent-soft);
+  border-bottom-color: var(--accent);
+  background: transparent;
   color: var(--accent);
 }
 .studio-app .modality-filters button {

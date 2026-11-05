@@ -32,17 +32,6 @@
   padding: 20px;
   min-height: 0;
 }
-.studio-app .questionnaire.tool-form {
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 22px 24px;
-}
-@media (max-width: 600px) {
-  .studio-app .questionnaire.tool-form {
-    padding: 16px;
-    border-radius: 16px;
-  }
-}
 .studio-app .input-panel .panel-heading {
   margin-bottom: 20px;
 }
