@@ -377,6 +377,7 @@ jobs:
             outputs/native-confidence/**
             outputs/prediction-input-preview/**
             outputs/prediction-entities/**
+            outputs/prediction-feature-settings/**
             outputs/prediction-drafts/**
             outputs/mol1-final-review/**
             outputs/boltz-final-review/**

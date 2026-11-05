@@ -32,6 +32,23 @@ def test_feature_policy_dialog_delegation_is_closed_to_its_two_native_forms():
         assert not scope.feature_settings_only(files + [unrelated])
 
 
+def test_feature_policy_exemption_does_not_skip_public_cases_for_a_mixed_app_change():
+    mixed = [
+        "frontend/src/presentation/PredictionFeatureDialog.tsx",
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/App.tsx",
+    ]
+    assert scope.prediction_only(mixed)
+    assert not scope.feature_settings_only(mixed)
+    root = Path(__file__).parents[1]
+    workflow = (root / ".github/workflows/template-controls-checks.yml").read_text()
+    guard = workflow.split("  public-case-controls:", 1)[1].split("    runs-on:", 1)[0]
+    assert "outputs.feature_settings != 'true'" in guard
+    assert "outputs.prediction_only" not in guard
+    evidence = (root / ".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "outputs/prediction-feature-settings/**" in evidence
+
+
 def test_entity_editing_delegates_only_its_direct_forms_and_never_engines_or_viewers():
     files = [
         "frontend/src/presentation/PredictionEntityEditing.test.tsx",

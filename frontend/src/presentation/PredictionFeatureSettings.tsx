@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Language } from "../types";
 import { PredictionFeatureDialog } from "./PredictionFeatureDialog";
 import {
@@ -28,6 +28,7 @@ export function PredictionFeatureSettings({
     name = useId(),
     current = featurePolicy(value);
   const source = JSON.stringify([contextKey, current]);
+  const trigger = useRef<HTMLButtonElement>(null);
   const [editing, setEditing] = useState<{
     source: string;
     value: FeaturePolicy;
@@ -49,6 +50,7 @@ export function PredictionFeatureSettings({
         aria-label={zh ? "进化信息设置" : "Evolutionary information settings"}
       >
         <button
+          ref={trigger}
           type="button"
           aria-haspopup="dialog"
           aria-expanded={Boolean(editing)}
@@ -97,6 +99,7 @@ export function PredictionFeatureSettings({
       </div>
       {editing && (
         <PredictionFeatureDialog
+          invoker={trigger.current}
           language={language}
           valid={
             editing.source === source &&

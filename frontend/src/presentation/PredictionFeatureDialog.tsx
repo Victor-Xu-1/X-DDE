@@ -2,6 +2,14 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 
+function activeSource(element: HTMLElement | null) {
+  return Boolean(
+    element?.isConnected &&
+    !element.closest("[hidden],[aria-hidden='true']") &&
+    !element.matches(":disabled"),
+  );
+}
+
 /** Outside the task form: Enter cannot implicitly advance or submit its steps. */
 export function PredictionFeatureDialog({
   language,
@@ -9,55 +17,45 @@ export function PredictionFeatureDialog({
   save,
   cancel,
   valid,
+  invoker,
 }: {
   language: Language;
   children: ReactNode;
   save(): void;
   cancel(): void;
   valid: boolean;
+  invoker: HTMLElement | null;
 }) {
   const id = useId(),
     dialog = useRef<HTMLDialogElement>(null),
     close = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef(cancel);
+  const origin = useRef(invoker);
   cancelRef.current = cancel;
+  origin.current = invoker;
   const zh = language === "zh";
   useEffect(() => {
     const element = dialog.current!;
-    const trigger =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    const hidden = () =>
-      Boolean(trigger?.closest("[hidden],[aria-hidden='true']"));
-    if (hidden()) {
+    const trigger = origin.current;
+    if (!activeSource(trigger)) {
       cancelRef.current();
       return;
     }
     element.showModal();
     close.current?.focus();
     const observer = new MutationObserver(() => {
-      if (hidden()) cancelRef.current();
+      if (!activeSource(trigger)) cancelRef.current();
     });
-    for (
-      let parent = trigger?.parentElement;
-      parent;
-      parent = parent.parentElement
-    )
+    for (let parent = trigger; parent; parent = parent.parentElement)
       observer.observe(parent, {
         attributes: true,
-        attributeFilter: ["hidden", "aria-hidden"],
+        attributeFilter: ["hidden", "aria-hidden", "disabled"],
       });
     return () => {
       observer.disconnect();
       if (element.open) element.close();
-      if (
-        trigger?.isConnected &&
-        !hidden() &&
-        !trigger.matches(":disabled") &&
-        !document.querySelector("dialog[open]")
-      )
-        trigger.focus();
+      if (activeSource(trigger) && !document.querySelector("dialog[open]"))
+        trigger?.focus();
     };
   }, []);
   return createPortal(
@@ -93,7 +91,13 @@ export function PredictionFeatureDialog({
           type="button"
           className="feature-save"
           disabled={!valid}
-          onClick={save}
+          onClick={() => {
+            if (!activeSource(origin.current)) {
+              cancel();
+              return;
+            }
+            save();
+          }}
         >
           {zh ? "保存" : "Save"}
         </button>

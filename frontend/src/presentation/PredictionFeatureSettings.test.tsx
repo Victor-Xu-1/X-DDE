@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -154,6 +155,32 @@ it("discards settings when its mounted task step is hidden", async () => {
   );
   expect(update).not.toHaveBeenCalled();
 });
+
+it.each(["hidden", "disabled"])(
+  "rejects Save synchronously when its source becomes %s before the observer runs",
+  async (attribute) => {
+    const user = userEvent.setup(),
+      update = vi.fn();
+    render(
+      <fieldset data-testid="scope">
+        <PredictionFeatureSettings
+          value={source}
+          onChange={update}
+          language="en"
+        />
+      </fieldset>,
+    );
+    await user.click(screen.getByRole("button", { name: "MSA settings" }));
+    await user.click(screen.getByRole("radio", { name: "No MSA" }));
+    const save = screen.getByRole("button", { name: "Save" });
+    act(() => {
+      screen.getByTestId("scope").setAttribute(attribute, "");
+      fireEvent.click(save);
+    });
+    expect(update).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  },
+);
 
 it("keeps dialog controls outside the task form and never submits it on Enter", async () => {
   const submit = vi.fn((event) => event.preventDefault()),
