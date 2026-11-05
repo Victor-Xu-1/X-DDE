@@ -45,7 +45,7 @@ def test_ui_shutdown_finishes_a_cancelled_resumable_upload(tmp_path, monkeypatch
                 method,
                 path,
                 body=body,
-                headers={"X-Workbench-Token": token, **(headers or {})},
+                headers={"X-Workbench-Csrf": token, **(headers or {})},
             )
             response = client.getresponse()
             data = response.read()
