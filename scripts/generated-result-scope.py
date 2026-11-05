@@ -49,7 +49,11 @@ def main():
     )
     selected = (
         bool(changed)
-        and any(name.startswith("frontend/src/diffsbdd/") for name in changed)
+        and any(
+            name.startswith("frontend/src/diffsbdd/")
+            or name == "server_tests/test_generated_quality_browser.py"
+            for name in changed
+        )
         and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in PATTERNS) for name in changed)
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:

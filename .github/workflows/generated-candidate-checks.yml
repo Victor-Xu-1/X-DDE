@@ -44,7 +44,7 @@ jobs:
       - name: Select changed result presentation and direct consumers
         id: scope
         env:
-          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/generated-result-scope.py
       - uses: actions/setup-node@v4
         with:
