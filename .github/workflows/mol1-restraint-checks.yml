@@ -12,6 +12,8 @@ on:
       - "src/opendde_workbench/simulations/native_restraints.py"
       - "src/opendde_workbench/simulations/options.py"
       - "frontend/src/integrations/Mol1*"
+      - "frontend/src/presentation/PredictionFeature*"
+      - "frontend/src/presentation/prediction-feature-policy.ts"
       - "frontend/src/integrations/mol1*"
       - "frontend/src/simulations/*estraint*"
       - "tests/test_mol1*"

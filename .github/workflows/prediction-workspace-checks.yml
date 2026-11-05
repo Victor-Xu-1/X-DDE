@@ -11,6 +11,7 @@ on:
       - "frontend/public/fonts/plus-jakarta/*"
       - "frontend/src/tokens.css"
       - "frontend/src/presentation/Prediction*"
+      - "frontend/src/presentation/prediction-feature-policy.ts"
       - "src/opendde_workbench/science_routes.py"
       - "src/opendde_workbench/prediction_sample_export.py"
       - "src/opendde_workbench/integrations/native_boltz.py"
