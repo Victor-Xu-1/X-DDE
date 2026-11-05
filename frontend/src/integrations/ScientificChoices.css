@@ -7,7 +7,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px 24px;
 }
-.scientific-calculation-plan .field {
+.scientific-calculation-plan .scientific-plan-grid .field {
   margin: 0;
   min-width: 0;
   gap: 8px;
@@ -27,7 +27,7 @@
   border: 0;
 }
 .scientific-plan-budget legend,
-.scientific-plan-advanced h3 {
+.scientific-calculation-plan .scientific-plan-advanced h3 {
   padding: 0;
   margin: 0 0 16px;
   font-size: 14px;
@@ -94,6 +94,9 @@
   gap: 28px;
   padding: 8px 0 20px;
 }
+.scientific-calculation-plan .scientific-plan-advanced section {
+  margin: 0;
+}
 .scientific-plan-advanced section + section {
   padding-top: 22px;
   border-top: 1px solid var(--line);
@@ -108,6 +111,10 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+.questionnaire:has(> fieldset:not([hidden]) .scientific-calculation-plan)
+  .questionnaire-actions {
+  position: static;
 }
 @container (max-width: 560px) {
   .scientific-calculation-plan .scientific-plan-grid,
