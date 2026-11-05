@@ -57,7 +57,8 @@ def test_metadata_delegation_cannot_hide_image_identity_or_native_execution_chan
         AFTER.replace("import json", "import os\nimport json"),
         AFTER.replace('"image", "inspect"', '"container", "inspect"'),
         AFTER.replace(
-            '    if labels.get("recipe") != expected:\n        raise ValueError("Unreviewed image")\n',
+            '    if labels.get("recipe") != expected:\n'
+            '        raise ValueError("Unreviewed image")\n',
             "",
         ),
         AFTER.replace("verify_models(models, spec)", "skip_models(models, spec)"),
