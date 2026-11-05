@@ -69,8 +69,9 @@ def test_mol1_numbered_seeds_and_compact_native_settings(language, width, theme)
             const box = input.getBoundingClientRect();
             const viewport = input.closest('ul').getBoundingClientRect();
             const style = getComputedStyle(input);
-            return {above: box.top - viewport.top, below: viewport.bottom - box.bottom,
-                extent: parseFloat(style.outlineWidth) + Math.max(0, parseFloat(style.outlineOffset))};
+            const extent = parseFloat(style.outlineWidth) +
+                Math.max(0, parseFloat(style.outlineOffset));
+            return {above: box.top - viewport.top, below: viewport.bottom - box.bottom, extent};
         }""")
         assert min(focus_box["above"], focus_box["below"]) >= focus_box["extent"]
         page.screenshot(path=root / "seed-keyboard-focus.png")

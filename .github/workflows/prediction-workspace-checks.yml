@@ -421,6 +421,11 @@ jobs:
         run: >-
           uv run --locked pytest -x -q tests/test_prediction_workspace_scope.py
           tests/test_prediction_drafts.py tests/test_mol1.py tests/test_mol1_native_contract.py
+      - name: Scoped settings and browser source lint
+        run: >-
+          uv run --locked ruff check scripts/prediction-workspace-scope.py
+          tests/test_prediction_workspace_scope.py server_tests/test_mol1_settings_browser.py
+          server_tests/test_prediction_drafts_browser.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Prepare native drawing and isolated browser state
         run: |
