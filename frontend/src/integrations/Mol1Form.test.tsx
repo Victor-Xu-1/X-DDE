@@ -152,11 +152,9 @@ it("offers independently editable seeds with the native eight-seed limit", async
   await user.click(screen.getByRole("button", { name: "Next" }));
   await user.click(screen.getByRole("button", { name: "MSA settings" }));
   await user.click(screen.getByRole("radio", { name: "No MSA" }));
-  await user.click(screen.getByRole("button", { name: "Save", exact: true }));
+  await user.click(screen.getByRole("button", { name: /^Save$/ }));
   await user.click(screen.getByRole("button", { name: "Next" }));
-  const seeds = within(
-    screen.getByRole("region", { name: "Seeds", exact: true }),
-  );
+  const seeds = within(screen.getByRole("region", { name: /^Seeds$/ }));
   await user.click(seeds.getByRole("button", { name: "Add seed" }));
   expect(seeds.getByLabelText("Seed 2")).toHaveValue("102");
   await user.clear(seeds.getByLabelText("Seed 2"));

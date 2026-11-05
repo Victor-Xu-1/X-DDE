@@ -402,8 +402,6 @@ jobs:
     timeout-minutes: 18
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-computation-settings
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-computation-settings/state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -423,7 +421,11 @@ jobs:
           uv run --locked pytest -x -q tests/test_prediction_workspace_scope.py
           tests/test_prediction_drafts.py tests/test_mol1.py tests/test_mol1_native_contract.py
       - run: uv run --locked playwright install chromium --with-deps
-      - run: uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+      - name: Prepare native drawing and isolated browser state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-computation-settings" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-computation-settings/state" >> "$GITHUB_ENV"
+          WB_HOME="$RUNNER_TEMP/x-dde-computation-settings" WB_STATE_DIR="$RUNNER_TEMP/x-dde-computation-settings/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Compiled settings, real draft recovery and exact review without inference
         run: >-
           uv run --locked pytest -x -q server_tests/test_mol1_settings_browser.py
