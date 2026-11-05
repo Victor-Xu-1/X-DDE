@@ -3,6 +3,7 @@ import { request } from "../api";
 import type { Job, Language } from "../types";
 import { historyKindLabel, kindForJob } from "../studio/task-history-model";
 import { ExampleJobResult } from "./ExampleJobResult";
+import { ExampleStageNavigation } from "./ExampleStageNavigation";
 
 type PrimaryResult =
   | { job: Job; primary?: never; primaryId?: never; primaryLabel?: never }
@@ -39,7 +40,11 @@ export function ExampleResultSet(
         id: props.primaryId,
         content: props.primary,
       };
-  const [choice, setChoice] = useState({ root: root.id, id: root.id });
+  const [choice, setChoice] = useState({
+    root: root.id,
+    id: root.id,
+    attempt: 0,
+  });
   const selected =
     choice.root === root.id &&
     supporting.some((entry) => entry.job_id === choice.id)
@@ -49,10 +54,8 @@ export function ExampleResultSet(
   const [failure, setFailure] = useState<{
     root: string;
     id: string;
-    message: string;
   } | null>(null);
-  const error =
-    failure?.root === root.id && failure.id === selected ? failure.message : "";
+  const error = failure?.root === root.id && failure.id === selected;
   const zh = language === "zh";
   useEffect(() => {
     if (selected === root.id || loaded[selected]) return;
@@ -67,56 +70,70 @@ export function ExampleResultSet(
         if (!controller.signal.aborted)
           setLoaded((previous) => ({ ...previous, [selected]: value }));
       })
-      .catch((failure) => {
+      .catch(() => {
         if (!controller.signal.aborted)
-          setFailure({ root: root.id, id: selected, message: String(failure) });
+          setFailure({ root: root.id, id: selected });
       });
     return () => controller.abort();
-  }, [selected, root.id, loaded]);
+  }, [selected, root.id, loaded, choice.attempt]);
   const current = selected === root.id ? null : loaded[selected];
   function chooseStage(id: string) {
     if (id !== root.id && !supporting.some((entry) => entry.job_id === id))
       return;
     setFailure(null);
-    setChoice({ root: root.id, id });
+    setChoice((previous) => ({
+      root: root.id,
+      id,
+      attempt: previous.attempt + 1,
+    }));
   }
   if (!supporting.length) return <>{root.content}</>;
   return (
     <>
       {props.stageSummary?.(chooseStage)}
-      <label className="field">
-        {zh ? "研究阶段结果" : "Study result stage"}
-        <select
-          aria-label={zh ? "研究阶段结果" : "Study result stage"}
-          value={selected}
-          onChange={(event) => chooseStage(event.target.value)}
-        >
-          <option value={root.id}>
-            {props.job
+      <ExampleStageNavigation
+        language={language}
+        selected={selected}
+        onSelect={chooseStage}
+        stages={[
+          {
+            id: root.id,
+            label: props.job
               ? historyKindLabel(kindForJob(props.job), language)
-              : props.primaryLabel}
-          </option>
-          {supporting.map((entry, index) => (
-            <option key={entry.job_id} value={entry.job_id}>
-              {props.stageNames?.[entry.job_id] ||
-                (loaded[entry.job_id]
-                  ? historyKindLabel(
-                      kindForJob(loaded[entry.job_id]),
-                      language,
-                    ) +
-                    (loaded[entry.job_id].request.name
-                      ? ` · ${loaded[entry.job_id].request.name}`
-                      : "")
-                  : `${zh ? "后续结果" : "Follow-up result"} ${index + 1}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+              : props.primaryLabel,
+          },
+          ...supporting.map(({ job_id: id }, index) => {
+            const job = loaded[id];
+            return {
+              id,
+              label:
+                props.stageNames?.[id] ||
+                (job
+                  ? historyKindLabel(kindForJob(job), language) +
+                    (job.request.name ? ` · ${job.request.name}` : "")
+                  : `${zh ? "后续结果" : "Follow-up result"} ${index + 1}`),
+            };
+          }),
+        ]}
+      />
       <div key={root.id} hidden={selected !== root.id}>
         {root.content}
       </div>
       {selected === root.id ? null : error ? (
-        <p role="alert">{error}</p>
+        <div className="example-stage-error">
+          <p role="alert">
+            {zh
+              ? "此阶段的已核对结果暂不可用。"
+              : "This reviewed stage is unavailable."}
+          </p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => chooseStage(selected)}
+          >
+            {zh ? "重试此阶段" : "Retry this stage"}
+          </button>
+        </div>
       ) : current ? (
         <ExampleJobResult key={current.id} job={current} language={language} />
       ) : (

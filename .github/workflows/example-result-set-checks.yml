@@ -28,6 +28,8 @@ on:
       - "tests/test_example_native_lineage.py"
       - "tests/test_stat6_predicted_references.py"
       - "frontend/src/examples/ExampleResultSet*"
+      - "frontend/src/examples/ExampleStageNavigation.tsx"
+      - "frontend/src/examples/example-stage-navigation.css"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/examples/review-highlights*"
       - "frontend/src/examples/reviewed-*"

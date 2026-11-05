@@ -78,7 +78,11 @@ export function MethodSwitch({
           onChange={onChange}
         />
       ))}
-      <ActiveIndicator container={track} selection={value + ":" + language} />
+      <ActiveIndicator
+        key={group.id}
+        container={track}
+        selection={value + ":" + language}
+      />
       <Hint label={zh ? "如何选择模型？" : "How to choose a model?"}>
         <p>{group.default_basis[zh ? 0 : 1]}</p>
         {group.options.map((option) => (

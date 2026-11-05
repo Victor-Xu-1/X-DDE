@@ -28,6 +28,9 @@ on:
       - 'server_tests/test_surface_region_replay_browser.py'
       - 'server_tests/test_pocket_results_browser.py'
       - 'server_tests/test_generation_case_stages_browser.py'
+      - 'frontend/src/examples/ExampleResultSet*'
+      - 'frontend/src/examples/ExampleStageNavigation.tsx'
+      - 'frontend/src/examples/example-stage-navigation.css'
       - 'server_tests/prepare_quality_context_cases.py'
       - 'tests/test_stat6_case_data.py'
       - 'tests/stat6_original_port_case.py'
@@ -128,8 +131,25 @@ jobs:
               "frontend/src/pockets/PocketForm.tsx", "frontend/src/chemistry/StateForm.tsx",
               "frontend/src/examples/RecipeInputs.test.tsx",
           }
-          only_data = bool(set(changed) & data) and all(path in data | companions for path in changed)
+          stage_files = {
+              "frontend/src/examples/ExampleResultSet.tsx",
+              "frontend/src/examples/ExampleResultSet.test.tsx",
+              "frontend/src/examples/ExampleStageNavigation.tsx",
+              "frontend/src/examples/example-stage-navigation.css",
+              "server_tests/test_generation_case_stages_browser.py",
+          }
+          stage_companions = {
+              "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
+              "install.sh", "install.ps1", ".github/workflows/module-example-checks.yml",
+              ".github/workflows/examples-checks.yml", ".github/workflows/example-result-set-checks.yml",
+          }
+          if base and set(base) == {"0"}:
+              base = subprocess.check_output(["git", "merge-base", "HEAD", "origin/main"], text=True).strip()
+              changed = subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()
+          stage_only = bool(set(changed) & stage_files) and set(changed) <= stage_files | stage_companions
+          only_data = stage_only or bool(set(changed) & data) and all(path in data | companions | stage_files for path in changed)
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("stage_only=" + str(stage_only).lower() + "\n")
               output.write("data_only=" + str(only_data).lower() + "\n")
           print("Reviewed design recipes and case-stage consumers" if only_data else "Changed module-input and surface consumers")
           PY
@@ -142,10 +162,10 @@ jobs:
       - if: steps.scope.outputs.data_only != 'true'
         run: uv run --locked pytest -q tests/test_stat6_prepared_handoff.py tests/test_stat6_templates.py tests/test_stat6_guidance.py
       - name: Exact authored recipe, integrity and preparation contracts
-        if: steps.scope.outputs.data_only == 'true'
+        if: steps.scope.outputs.data_only == 'true' && steps.scope.outputs.stage_only != 'true'
         run: uv run --locked pytest -q tests/test_examples.py tests/test_example_pins.py tests/test_stat6_prepared_handoff.py tests/test_stat6_design_replay.py
       - name: Exact published cohort, comparison result and sealed input replay
-        if: steps.scope.outputs.data_only == 'true'
+        if: steps.scope.outputs.data_only == 'true' && steps.scope.outputs.stage_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -157,7 +177,7 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write(f'WB_REVIEWED_STAT6_ARCHIVE={archive}\n')
           PY
-      - if: steps.scope.outputs.data_only == 'true'
+      - if: steps.scope.outputs.data_only == 'true' && steps.scope.outputs.stage_only != 'true'
         run: uv run --locked --with biopython==1.88 --with numpy==1.26.4 pytest -q tests/test_stat6_case_data.py tests/test_stat6_recipe_replay.py
       - working-directory: frontend
         if: steps.scope.outputs.data_only != 'true'
@@ -233,6 +253,12 @@ jobs:
           uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m playwright install --with-deps chromium
           uv run --locked python -m pytest -x -q server_tests/test_generation_case_stages_browser.py
+      - name: Historical cohort replay for case-data changes
+        if: steps.scope.outputs.data_only == 'true' && steps.scope.outputs.stage_only != 'true'
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-generation-case-stages
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-generation-case-stages/state
+        run: |
           uv run --locked ruff check tests/stat6_original_port_case.py server_tests/test_original_port_case_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_original_port_case_browser.py
       - uses: actions/upload-artifact@v4
