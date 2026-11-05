@@ -27,6 +27,9 @@ in-module examples, use the available workspace width; large displays also allow
 a taller live molecular canvas. Returning to a new task restores the input width.
 Hidden legacy workspaces do not determine the active page's width. Narrow-screen
 stacking and the shared fullscreen layout retain their own sizing rules.
+The wide-screen confidence inspector keeps a readable width while the molecular
+view takes the remaining space. PAE/PDE/contact matrices retain equal pixel scales
+for their two native token axes when their container changes size.
 
 Molecular entity groups retain the selected reference's numbered, tinted headers
 and rounded input containers. They group one actual molecular input with its

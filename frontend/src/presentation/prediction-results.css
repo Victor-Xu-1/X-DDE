@@ -173,6 +173,11 @@
   height: var(--prediction-stage-height, clamp(360px, 46vh, 520px));
   min-height: 360px;
 }
+@media (min-width: 1800px) {
+  .prediction-result .structure-workbench {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 640px);
+  }
+}
 .prediction-conformer-table {
   padding: 20px;
   border: 1px solid var(--line);

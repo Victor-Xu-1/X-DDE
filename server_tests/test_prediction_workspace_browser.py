@@ -193,6 +193,8 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
             title = page.locator(".studio-topbar .page-context-title").bounding_box()
             assert menu and title and title["x"] >= menu["x"] + menu["width"] + 8
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        matrix = plot.locator(".hm image").bounding_box()
+        assert matrix and abs(matrix["width"] - matrix["height"]) <= 2
         if width >= 1800:
             available = page.locator(".studio-main").bounding_box()
             content = page.locator("main.studio-content").bounding_box()
