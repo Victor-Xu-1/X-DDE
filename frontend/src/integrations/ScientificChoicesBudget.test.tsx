@@ -49,7 +49,7 @@ it.each([
   async (program, label, count, max, key) => {
     render(<Plan program={program} />);
     const user = userEvent.setup();
-    const input = screen.getByRole("spinbutton", { name: label, exact: true });
+    const input = screen.getByRole("spinbutton", { name: label });
     expect(input).toHaveAttribute("min", "1");
     expect(input).toHaveAttribute("max", String(max));
     await user.clear(input);
@@ -70,11 +70,9 @@ it("owns each binder budget once and preserves values across advanced disclosure
   const user = userEvent.setup();
   const generated = screen.getByRole("spinbutton", {
     name: "Generated candidates",
-    exact: true,
   });
   const retain = screen.getByRole("spinbutton", {
     name: "Retained candidates",
-    exact: true,
   });
   await user.clear(generated);
   await user.type(generated, "4");
@@ -85,23 +83,20 @@ it("owns each binder budget once and preserves values across advanced disclosure
   const before = JSON.parse(screen.getByRole("status").textContent!);
   const toggle = screen.getByRole("button", {
     name: "Advanced settings",
-    exact: true,
   });
   await user.click(toggle);
   expect(
     screen.getAllByRole("spinbutton", {
       name: "Generated candidates",
-      exact: true,
     }),
   ).toHaveLength(1);
   expect(
     screen.getAllByRole("spinbutton", {
       name: "Retained candidates",
-      exact: true,
     }),
   ).toHaveLength(1);
   expect(
-    screen.queryByRole("spinbutton", { name: "Random seed", exact: true }),
+    screen.queryByRole("spinbutton", { name: "Random seed" }),
   ).not.toBeInTheDocument();
   await user.click(toggle);
   expect(JSON.parse(screen.getByRole("status").textContent!)).toEqual(before);
