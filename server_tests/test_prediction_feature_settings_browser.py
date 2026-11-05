@@ -123,8 +123,17 @@ def test_source_bound_msa_settings_on_native_forms(language, width, theme):
                 exact=True,
             )
             expect(consent).not_to_be_checked()
+            dialog.get_by_role("button", name=label("Save", "保存"), exact=True).click()
+            expect(next_step).to_be_disabled()
+            expect(
+                page.get_by_text(
+                    label("Search needs network permission", "搜索需要联网许可"), exact=True
+                )
+            ).to_be_visible()
+            trigger.click()
             consent.check()
             dialog.get_by_role("button", name=label("Save", "保存"), exact=True).click()
+            expect(next_step).to_be_enabled()
             expect(trigger).to_contain_text(label("Automatic search", "自动搜索"))
             trigger.click()
             expect(consent).to_be_checked()

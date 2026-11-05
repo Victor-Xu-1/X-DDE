@@ -15,6 +15,10 @@ parent transition without deleting original assets. Each form retains native
 file limits, supported modes, template validation and explicit sequence/network
 consent. The dialog cannot implicitly submit the task form on Enter; replacing
 source parameters or hiding its active step discards the uncommitted edit.
+OpenDDE's settings and final-review steps also enforce the native feature-policy
+combinations: remote search cannot advance without explicit sequence-transmission
+consent. Incomplete choices remain editable; the server remains the full native
+parameter authority.
 
 Prediction and feature-preparation entities use one compact, collapsible card.
 The header keeps the entity label, entered-sequence/material summary and existing

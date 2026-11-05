@@ -16,6 +16,16 @@ export function featurePolicy(value: Partial<FeaturePolicy>): FeaturePolicy {
   };
 }
 
+/** Wizard admission for the native feature combinations; the server validates all parameters. */
+export function validFeaturePolicy(value: Partial<FeaturePolicy>) {
+  const mode = value.feature_mode ?? "none";
+  return (
+    ["none", "uploaded", "search"].includes(mode) &&
+    (mode !== "none" || (!value.use_template && !value.use_rna_msa)) &&
+    (mode !== "search" || value.allow_network === true)
+  );
+}
+
 export function selectFeatureMode(
   value: FeaturePolicy,
   mode: FeatureMode,
