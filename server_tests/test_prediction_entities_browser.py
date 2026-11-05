@@ -117,6 +117,7 @@ def test_shared_entities_on_prediction_and_feature_forms(language, width, theme)
                 chain = card.get_by_role(
                     "textbox", name="链名称（每个拷贝一个）" if zh else "Chain IDs (one per copy)"
                 )
+                chain.fill("")
                 chain.press_sequentially("STAT6")
                 expect(chain).to_have_value("STAT6")
                 expect(chain).to_be_focused()
