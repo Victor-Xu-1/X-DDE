@@ -162,6 +162,23 @@ export function DiffResults({
         />
       </ResearchHandoff>,
     );
+  const fileDownloads = (
+    <ul>
+      {names.map((v) => (
+        <li key={v.key}>
+          <a
+            className="research-download"
+            href={artifactUrl(job.id, v.name)}
+            title={v.name.split("/").at(-1)}
+            download
+          >
+            {fileLabels[v.key]?.[zh ? 0 : 1] ?? v.name.split("/").at(-1)} ·{" "}
+            {v.name.split(".").at(-1)?.toUpperCase()}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
   return wrap(
     <section
       aria-label={
@@ -234,24 +251,16 @@ export function DiffResults({
       {designing && data.valid === 0 && (
         <DesignInputContext job={job} language={language} />
       )}
-      {names.length > 0 && (
-        <ul>
-          {names.map((v) => (
-            <li key={v.key}>
-              <a
-                className="research-download"
-                href={artifactUrl(job.id, v.name)}
-                title={v.name.split("/").at(-1)}
-                download
-              >
-                {fileLabels[v.key]?.[zh ? 0 : 1] ?? v.name.split("/").at(-1)} ·{" "}
-                {v.name.split(".").at(-1)?.toUpperCase()}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-      {protein && mode !== "pocket" && (
+      {names.length > 0 &&
+        (designing ? (
+          <details>
+            <summary>{zh ? "原始结果文件" : "Original result files"}</summary>
+            {fileDownloads}
+          </details>
+        ) : (
+          fileDownloads
+        ))}
+      {protein && mode !== "pocket" && !(designing && currentUrl) && (
         <details>
           <summary>{zh ? "查看受体结构" : "View receptor structure"}</summary>
           <StructureViewer
@@ -267,6 +276,7 @@ export function DiffResults({
             generated={designing}
             url={artifactUrl(job.id, targetArtifact)}
             selected={selectedRecord}
+            sourceSha256={candidates.sourceSha256}
             language={language}
             verification={data.core_verification}
             proteinUrl={

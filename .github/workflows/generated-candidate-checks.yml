@@ -10,6 +10,12 @@ on:
       - "frontend/src/diffsbdd/DiffQualityHandoff*"
       - "frontend/src/diffsbdd/DiffResults*"
       - "frontend/src/diffsbdd/GeneratedCandidates*"
+      - "frontend/src/diffsbdd/GeneratedCandidateDownload*"
+      - "frontend/src/diffsbdd/generated-candidate-download.css"
+      - "frontend/src/presentation/molecular-record*"
+      - "frontend/src/presentation/artifact-digest*"
+      - "frontend/src/presentation/MolecularPreview.tsx"
+      - "frontend/src/examples/review-highlights*"
       - "frontend/src/diffsbdd/generated-metrics*"
       - "frontend/src/diffsbdd/generated-columns*"
       - "frontend/src/diffsbdd/GeneratedMetricsView*"
@@ -43,7 +49,7 @@ jobs:
       - name: Select changed result presentation and direct consumers
         id: scope
         env:
-          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/generated-result-scope.py
       - uses: actions/setup-node@v4
         with:
@@ -62,7 +68,7 @@ jobs:
         id: review
         continue-on-error: true
         working-directory: frontend
-        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/quality/tests/QualityForm.test.tsx
+        run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GeneratedCandidateDownload.test.tsx src/presentation/molecular-record.test.ts src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/examples/review-highlights.test.ts src/quality/tests/QualityForm.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:
