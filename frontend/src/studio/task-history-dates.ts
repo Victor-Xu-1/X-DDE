@@ -19,14 +19,23 @@ export function dayLabel(date: Date) {
     .join("-");
 }
 
+function boundaryDay(value: string, nextDay = false) {
+  const date = calendarDay(value);
+  if (!date) return null;
+  if (nextDay) date.setDate(date.getDate() + 1);
+  return date.getUTCFullYear() >= 1 && date.getUTCFullYear() <= 9999
+    ? date
+    : null;
+}
+
 export function historyDateError(filter: {
   startDate?: string;
   endDate?: string;
 }) {
   const { startDate = "", endDate = "" } = filter;
   return Boolean(
-    (startDate && !calendarDay(startDate)) ||
-    (endDate && !calendarDay(endDate)) ||
+    (startDate && !boundaryDay(startDate)) ||
+    (endDate && !boundaryDay(endDate, true)) ||
     (startDate && endDate && startDate > endDate),
   );
 }
@@ -36,11 +45,10 @@ export function historyDateParams(filter: {
   endDate?: string;
 }) {
   const params: Record<string, string> = {};
-  const start = calendarDay(filter.startDate ?? "");
-  const end = calendarDay(filter.endDate ?? "");
+  const start = boundaryDay(filter.startDate ?? "");
+  const end = boundaryDay(filter.endDate ?? "", true);
   if (start) params.created_from = start.toISOString();
   if (end) {
-    end.setDate(end.getDate() + 1); // The next local day can be 23 or 25 hours away.
     params.created_before = end.toISOString();
   }
   return params;

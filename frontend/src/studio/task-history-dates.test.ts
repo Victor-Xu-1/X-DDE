@@ -25,6 +25,8 @@ it("validates calendar dates, leap days and inclusive ranges without rollover", 
   expect(
     historyDateError({ startDate: "2026-10-02", endDate: "2026-10-02" }),
   ).toBe(false);
+  expect(historyDateError({ endDate: "9999-12-31" })).toBe(true);
+  expect(historyDateParams({ endDate: "9999-12-31" })).toEqual({});
 });
 it("converts local calendar days to half-open instants and retains them in the module URL", () => {
   const filter = {
