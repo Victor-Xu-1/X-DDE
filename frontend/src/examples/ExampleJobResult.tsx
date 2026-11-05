@@ -1,10 +1,9 @@
-import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useState } from "react";
 import { api, artifactUrl } from "../api";
 import type { Analysis, Job, Language } from "../types";
 import { isPrediction } from "../operations/types";
 import { CandidatePanel } from "../studio/CandidatePanel";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { PredictionInspection } from "../studio/PredictionInspection";
 import { OperationResults } from "../operations/OperationResults";
 import { TemplatePreviewContext } from "./context";
 
@@ -32,7 +31,12 @@ export function ExampleJobResult({
         .then((value) => {
           if (!controller.signal.aborted) {
             setAnalysis(value);
-            setSelected(value.candidates[0]?.id ?? null);
+            setSelected(
+              value.candidates.find((row) => row.id === initialCandidateId)
+                ?.id ??
+                value.candidates[0]?.id ??
+                null,
+            );
           }
         })
         .catch((failure) => {
@@ -40,7 +44,7 @@ export function ExampleJobResult({
         });
     }
     return () => controller.abort();
-  }, [job.id, prediction]);
+  }, [job.id, prediction, initialCandidateId]);
   const candidate = analysis?.candidates.find((value) => value.id === selected);
   return (
     <TemplatePreviewContext.Provider value={true}>
@@ -55,32 +59,30 @@ export function ExampleJobResult({
             {job.request.name}
           </p>
         )}
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
         {prediction ? (
-          <StructureWorkbench
-            preview={
-              <StructureViewer
-                urls={
-                  candidate ? [artifactUrl(job.id, candidate.artifact)] : []
-                }
+          <div className="prediction-result">
+            {candidate && (
+              <PredictionInspection
+                job={job}
+                analysis={analysis}
+                candidate={candidate}
+                urls={[artifactUrl(job.id, candidate.artifact)]}
                 language={language}
+                onCandidate={setSelected}
               />
-            }
-          >
-            <CandidatePanel
-              job={job}
-              analysis={analysis}
-              language={language}
-              loading={!analysis && !error}
-              error={error}
-              selected={selected}
-              onSelect={setSelected}
-            />
-          </StructureWorkbench>
+            )}
+            <section className="prediction-conformer-table">
+              <CandidatePanel
+                job={job}
+                analysis={analysis}
+                language={language}
+                loading={!analysis && !error}
+                error={error}
+                selected={selected}
+                onSelect={setSelected}
+              />
+            </section>
+          </div>
         ) : (
           <OperationResults
             job={job}
