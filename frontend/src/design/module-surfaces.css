@@ -127,7 +127,7 @@
 }
 /* Compact result cards yield to the shared fullscreen viewport sizing. */
 .studio-app
-  .task-workspace.is-result:not(:fullscreen):not(:has(:fullscreen))
+  .task-workspace.is-result:where(:not(:fullscreen):not(:has(:fullscreen)))
   .viewer-panel
   .molecular-stage {
   height: 520px;
@@ -157,7 +157,7 @@
     flex: 1 1 100%;
   }
   .studio-app
-    .task-workspace.is-result:not(:fullscreen):not(:has(:fullscreen))
+    .task-workspace.is-result:where(:not(:fullscreen):not(:has(:fullscreen)))
     .viewer-panel
     .molecular-stage {
     height: 360px;
