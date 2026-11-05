@@ -163,6 +163,7 @@ COMPUTATION_SETTING_FILES = COMPUTATION_SETTING_SOURCES | {
     "frontend/src/integrations/Mol1SeedEditor.test.tsx",
     "frontend/src/integrations/Mol1Form.tsx",
     "frontend/src/integrations/Mol1Form.test.tsx",
+    "frontend/src/presentation/prediction-draft-model.ts",
     "server_tests/test_prediction_drafts_browser.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",

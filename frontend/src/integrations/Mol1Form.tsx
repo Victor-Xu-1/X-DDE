@@ -11,6 +11,7 @@ import type { Component, Job, Language } from "../types";
 
 import { mol1Defaults, validMol1Settings } from "./mol1-settings";
 import { Mol1Settings } from "./Mol1Settings";
+import { validSeedEntries } from "./mol1-seeds";
 import { useMol1Composition } from "./Mol1Composition";
 import { Mol1CovalentBonds } from "./Mol1CovalentBonds";
 import { Mol1FeatureInputs, validMol1Features } from "./Mol1FeatureInputs";
@@ -110,10 +111,7 @@ function Mol1Editor({
     bonds.every((bond) => bond.left.atom && bond.right.atom);
   const settingsValid =
     validMol1Settings(settings) &&
-    Number.isSafeInteger(seed) &&
-    seed >= 0 &&
-    seed <= 2147483647 &&
-    !settings.additional_seeds.includes(seed) &&
+    validSeedEntries(seed, seedText) &&
     Number.isSafeInteger(memory) &&
     memory >= 1024 &&
     memory <= 65536;
@@ -231,6 +229,16 @@ function Mol1Editor({
                 onChange={setSettings}
                 language={language}
                 seedText={seedText}
+                seed={seed}
+                onSeed={setSeed}
+                device={device}
+                onDevice={(value) => {
+                  setDevice(value);
+                  if (value === "cpu")
+                    setSettings((current) => ({ ...current, dtype: "fp32" }));
+                }}
+                memory={memory}
+                onMemory={setMemory}
                 onSeedText={(text) => {
                   setSeedText(text);
                   setSettings((value) => ({
@@ -239,40 +247,6 @@ function Mol1Editor({
                   }));
                 }}
               />
-              <label className="field">
-                {zh ? "计算设备" : "Compute device"}
-                <select
-                  value={device}
-                  onChange={(e) => {
-                    setDevice(e.target.value as typeof device);
-                    if (e.target.value === "cpu")
-                      setSettings({ ...settings, dtype: "fp32" });
-                  }}
-                >
-                  <option value="cuda">NVIDIA GPU</option>
-                  <option value="cpu">CPU</option>
-                </select>
-              </label>
-              <label className="field">
-                {zh ? "内存上限（MiB）" : "Memory limit (MiB)"}
-                <input
-                  type="number"
-                  min={1024}
-                  max={65536}
-                  value={memory}
-                  onChange={(e) => setMemory(Number(e.target.value))}
-                />
-              </label>
-              <label className="field">
-                {zh ? "主随机种子" : "Primary seed"}
-                <input
-                  type="number"
-                  min={0}
-                  max={2147483647}
-                  value={seed}
-                  onChange={(e) => setSeed(Number(e.target.value))}
-                />
-              </label>
             </>
           ),
         },

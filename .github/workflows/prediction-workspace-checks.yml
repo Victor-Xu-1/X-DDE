@@ -413,6 +413,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/Mol1Form.test.tsx
+          src/integrations/Mol1SeedEditor.test.tsx
           src/integrations/mol1-job-request.test.ts
           src/presentation/PredictionDraftControls.test.tsx
       - run: uv sync --locked --group dev --group browser
