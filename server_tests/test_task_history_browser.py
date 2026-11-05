@@ -111,9 +111,12 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             year = calendar.get_by_role("spinbutton", name="选择年份" if zh else "Choose year")
             year.fill("2026")
             year.press("Tab")
+            assert year.bounding_box()["width"] >= 78
+            assert year.evaluate("node => parseFloat(getComputedStyle(node).paddingLeft)") <= 5
             calendar.get_by_role(
                 "combobox", name="选择月份" if zh else "Choose month"
             ).select_option(str(month))
+            calendar.screenshot(path=root / "date-calendar.png")
             calendar.get_by_role("button", name=day, exact=True).click()
             expect(calendar).not_to_be_visible()
 

@@ -42,10 +42,9 @@
 }
 .task-history-controls {
   display: grid;
-  grid-template-columns: minmax(160px, 0.9fr) minmax(120px, 0.65fr) minmax(
-      200px,
-      1.2fr
-    ) auto;
+  grid-template-columns:
+    minmax(160px, 0.9fr) minmax(120px, 0.65fr) minmax(200px, 1.2fr)
+    auto;
   gap: 16px;
   padding: 18px 0;
 }
@@ -121,13 +120,13 @@
 }
 .history-calendar-month {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 66px 28px;
+  grid-template-columns: 28px minmax(0, 1fr) 80px 28px;
   align-items: center;
   gap: 4px;
   margin-bottom: 12px;
 }
-.history-date-dialog .history-calendar-month select,
-.history-date-dialog .history-calendar-month input {
+.task-history-workspace .history-date-dialog .history-calendar-month select,
+.task-history-workspace .history-date-dialog .history-calendar-month input {
   width: 100%;
   min-height: 32px;
   padding: 4px;
