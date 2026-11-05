@@ -8,6 +8,25 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_entity_editing_delegates_only_its_direct_forms_and_never_engines_or_viewers():
+    files = [
+        "frontend/src/presentation/PredictionEntityEditing.test.tsx",
+        "frontend/src/guided/MolecularInputs.tsx",
+    ]
+    assert scope.entity_inputs_only(files)
+    assert scope.entity_inputs_only(files, "pull_request")
+    assert scope.prediction_only(files)
+    assert not scope.entity_inputs_only(files, "workflow_dispatch")
+    assert not scope.entity_inputs_only([".github/workflows/prediction-workspace-checks.yml"])
+    for unrelated in [
+        "src/opendde_workbench/integrations/native_mol1.py",
+        "frontend/src/viewer/StructureInspection.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/presentation/PredictionSetup.tsx",
+    ]:
+        assert not scope.entity_inputs_only(files + [unrelated])
+
+
 def test_shared_theme_selects_native_confidence_without_hiding_other_consumers():
     changed = ["frontend/src/tokens.css"]
     assert scope.confidence_changed(changed)

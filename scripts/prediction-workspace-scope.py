@@ -97,6 +97,41 @@ INPUT_PREVIEW_FILES = {
     "install.ps1",
 }
 
+ENTITY_INPUT_FILES = {
+    "frontend/src/guided/MolecularInputs.tsx",
+    "frontend/src/guided/MolecularInputs.test.tsx",
+    "frontend/src/integrations/BoltzInputs.tsx",
+    "frontend/src/integrations/BoltzInputs.test.tsx",
+    "frontend/src/presentation/PredictionEntityCard.tsx",
+    "frontend/src/presentation/PredictionEntityState.ts",
+    "frontend/src/presentation/PredictionEntitySummary.ts",
+    "frontend/src/presentation/PredictionEntityEditing.test.tsx",
+    "frontend/src/presentation/prediction-entity-card.css",
+    "server_tests/test_prediction_entities_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/frontend-layout.md",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def entity_inputs_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(
+            {name for name in ENTITY_INPUT_FILES if name.startswith("frontend/src/")} & changed
+        )
+        and changed <= ENTITY_INPUT_FILES
+    )
+
 
 DRAFT_FILES = {
     "frontend/src/presentation/prediction-settings-summary.ts",
@@ -730,10 +765,14 @@ SERVICE_SHUTDOWN_FILES = {
 
 def example_inspection_only(changed, event):
     paths = set(changed)
-    if event not in {"push", "pull_request"} or not {
-        "frontend/src/studio/PredictionInspection.tsx",
-        "frontend/src/examples/ExampleJobResult.tsx",
-    } & paths:
+    if (
+        event not in {"push", "pull_request"}
+        or not {
+            "frontend/src/studio/PredictionInspection.tsx",
+            "frontend/src/examples/ExampleJobResult.tsx",
+        }
+        & paths
+    ):
         return False
     if SERVICE_SHUTDOWN_FILES <= paths:
         paths -= SERVICE_SHUTDOWN_FILES
@@ -742,7 +781,8 @@ def example_inspection_only(changed, event):
 
 def selected(changed, event="push"):
     if (
-        example_inspection_only(changed, event)
+        entity_inputs_only(changed, event)
+        or example_inspection_only(changed, event)
         or sample_export_only(changed, event)
         or reference_review_only(changed, event)
         or history_input_only(changed, event)
@@ -801,6 +841,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "entity_inputs": entity_inputs_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "shared_workbench_only": shared_workbench_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

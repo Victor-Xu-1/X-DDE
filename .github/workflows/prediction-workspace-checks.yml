@@ -119,6 +119,7 @@ jobs:
     outputs:
       prediction_only: ${{ steps.select.outputs.prediction_only }}
       shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
+      entity_inputs: ${{ steps.select.outputs.entity_inputs }}
       sample_export_only: ${{ steps.select.outputs.sample_export_only }}
       sample_export_changed: ${{ steps.select.outputs.sample_export_changed }}
       reference_review_only: ${{ steps.select.outputs.reference_review_only }}
@@ -166,7 +167,7 @@ jobs:
           npx vitest run src/presentation/PredictionSamples.test.tsx src/studio/PredictionResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/integrations/prediction-presentation.test.ts
       - name: Prediction presentation, selection identity and direct form/navigation consumers
-        if: needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
+        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
@@ -188,6 +189,15 @@ jobs:
           src/integrations/ScientificForm.test.tsx src/studio/MethodSwitch.test.tsx
           src/studio/Header.test.tsx src/App.test.tsx src/App.live-status.test.tsx
           src/studio/HomeWorkspace.test.tsx
+      - name: Entity input ownership, row editing and direct prediction form consumers
+        if: needs.scope.outputs.entity_inputs == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/PredictionEntityEditing.test.tsx
+          src/guided/MolecularInputs.test.tsx src/TaskForm.test.tsx
+          src/guided/workflows.test.tsx src/integrations/Mol1Form.test.tsx
+          src/integrations/ScientificForm.test.tsx src/integrations/BoltzInputs.test.tsx
+          src/presentation/PredictionInputPreview.test.tsx src/presentation/PredictionSetup.test.tsx
       - name: Current prediction input review and its direct form, sequence and depiction consumers
         if: needs.scope.outputs.input_preview == 'true'
         working-directory: frontend
@@ -260,7 +270,7 @@ jobs:
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-input-preview/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-input-preview" WB_STATE_DIR="$RUNNER_TEMP/x-dde-input-preview/state" uv run --locked python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
-        if: needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
+        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.preview_changed == 'true'
