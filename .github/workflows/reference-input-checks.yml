@@ -16,12 +16,15 @@ on:
       - "tests/test_material_input_scope.py"
       - "server_tests/test_material_sources_browser.py"
       - "server_tests/test_sequence_material_browser.py"
+      - "server_tests/test_molecular_material_browser.py"
+      - "server_tests/material_capture.py"
       - ".github/workflows/reference-input-checks.yml"
       - "frontend/src/diffsbdd/ReferencePicker*"
       - "frontend/src/diffsbdd/reference-metadata*"
       - "frontend/src/diffsbdd/useReferenceSelection*"
       - "frontend/src/diffsbdd/useReferenceHistory*"
       - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/PropertyForm*"
       - "frontend/src/operations/ArtifactPicker*"
       - "frontend/src/operations/ResultTaskSelect*"
       - "frontend/src/operations/useResultFiles*"
@@ -100,6 +103,19 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Seal the exact compiled web preview for read-only inspection
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, shutil, subprocess
+          from pathlib import Path
+          root = Path("outputs/material-web-preview")
+          shutil.copytree("src/opendde_workbench/web", root / "web")
+          files = {str(p.relative_to(root / "web")): hashlib.sha256(p.read_bytes()).hexdigest()
+                   for p in sorted((root / "web").rglob("*")) if p.is_file()}
+          source = {"head": os.environ["GITHUB_SHA"], "version": json.loads(Path("frontend/package.json").read_text())["version"],
+                    "frontend_tree": subprocess.check_output(["git", "rev-parse", "HEAD:frontend"], text=True).strip(), "files": files}
+          (root / "source.json").write_text(json.dumps(source, indent=2))
+          PY
       - name: Source-change regression first; existing direct material contracts
         working-directory: frontend
         run: >-
@@ -109,20 +125,34 @@ jobs:
           src/pockets/PocketForm.test.tsx src/docking/DockingForm.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/proximity/Form.test.tsx
           src/operations/AssetPicker.test.tsx
+          src/operations/AssetPickerSources.test.tsx
+          src/operations/PropertyFormFileVerification.test.tsx src/operations/PropertyForm.test.tsx
           src/research/SequencePickerRetention.test.tsx
           src/research/SequencePicker.test.tsx src/research/useSequenceSave.test.tsx
           src/antibodies/AntibodyNumberForm.test.tsx src/humanization/HumanizationForm.test.tsx
+          src/operations/useSelectedAsset.test.tsx src/operations/AssetHistorySelect.test.tsx
+          src/operations/ArtifactPicker.test.tsx src/operations/useResultReuse.test.tsx
+          src/integrations/Mol1FeatureInputs.test.tsx src/integrations/BoltzInputs.test.tsx
+          src/evidence/EvidenceForm.test.tsx src/admet/AdmetForm.test.tsx
+          src/chemistry/LibraryScreenForm.test.tsx src/operations/CampaignForm.test.tsx
       - run: uv sync --locked --group dev --group browser
       - run: uv run --locked pytest -q tests/test_material_input_scope.py
-      - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py
+      - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py server_tests/test_generic_input_browser.py server_tests/test_molecular_material_browser.py server_tests/material_capture.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Real bilingual STAT6 material upload, source lifecycle and layout; no computation
-        run: uv run --locked python -m pytest -x -q server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py server_tests/test_generic_input_browser.py server_tests/test_molecular_material_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: compact-material-input-evidence
-          path: outputs/material-input
+          path: |
+            outputs/material-input
+            outputs/reference-input/generic
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: material-web-preview
+          path: outputs/material-web-preview
   refinement-scope:
     runs-on: ubuntu-24.04
     outputs:

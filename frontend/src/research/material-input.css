@@ -129,12 +129,12 @@
 }
 @media (max-width: 640px) {
   .studio-app
-    .reference-material[data-material-kind="sequences"]
+    .reference-material[data-source-count="3"]
     .reference-material-heading
     .questionnaire-choices {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .reference-material[data-material-kind="sequences"]
+  .reference-material[data-source-count="3"]
     .reference-material-heading
     .questionnaire-choices
     label {

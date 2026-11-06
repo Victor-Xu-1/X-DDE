@@ -26,6 +26,8 @@ def test_browser_fixture_does_not_match_the_broad_layout_pattern():
     for browser in (
         "server_tests/test_material_sources_browser.py",
         "server_tests/test_sequence_material_browser.py",
+        "server_tests/test_molecular_material_browser.py",
+        "server_tests/test_generic_input_browser.py",
     ):
         assert browser in scope["SOURCES"]
         assert not fnmatch.fnmatch(browser, "server_tests/*layout*")

@@ -152,3 +152,16 @@ native hashes and English desktop/Chinese narrow layout. This is a STAT6-pathway
 input reference, not a demonstrated STAT6 binder or a new calculation. Candidate
 CI, owner visual review and original4322 deployment remain separate gates; no
 global suite or scientific work is authorized by this change.
+
+Standalone file-source continuation (Issue #208): test-only baseline4cf18b4e /
+run42150076606 reproduced twelve expected bilingual eligibility/lifetime failures
+with65 related passes. Earlier fixture compilation and ambiguous-label failures
+are excluded. Standalone AssetPicker adopts the shared material header/body and
+source choices; its native upload is mounted only while active. Bare-file embeds
+retain their transport, file kinds, caller formats and size bounds. PropertyForm
+requires verified metadata for every participating file and a matching digest
+for an original bound record; it never silently removes that reference or changes
+record scope. Isolated public STAT6 file-source browser cases cover property,
+ADMET candidate sets and early library selection alongside existing molecular,
+sequence and generic file contracts. Native scientific execution is not part of
+this interface acceptance; owner visual/release/data gates remain separate.

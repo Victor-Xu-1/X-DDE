@@ -2,25 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
-import { FileSelect } from "../presentation/FileSelect";
-import { researchError } from "../presentation/research-content";
+import { MaterialInput } from "../research/MaterialInput";
 import { useReferenceHistory } from "../diffsbdd/useReferenceHistory";
 import { AssetHistorySelect } from "./AssetHistorySelect";
 import { useSelectedAsset } from "./useSelectedAsset";
-import { useAssetUpload } from "./useAssetUpload";
 import { assetFormats } from "./asset-acceptance";
+import { useAssetSources, type AssetSource } from "./AssetPickerSources";
+import { AssetPickerUpload } from "./AssetPickerUpload";
 
-export function AssetPicker({
-  kind,
-  value,
-  onChange,
-  onSelectedAsset,
-  language,
-  label,
-  allowedSuffixes,
-  showHistory = true,
-  maxBytes = 25 * 1024 ** 2,
-}: {
+type Props = {
   kind: AssetKind;
   value: string;
   onChange(id: string): void;
@@ -30,13 +20,46 @@ export function AssetPicker({
   allowedSuffixes?: readonly string[];
   showHistory?: boolean;
   maxBytes?: number;
+};
+
+export function AssetPicker(props: Props) {
+  const formats = props.allowedSuffixes ?? assetFormats[props.kind];
+  const maxBytes = props.maxBytes ?? 25 * 1024 ** 2;
+  const showHistory = props.showHistory ?? true;
+  // A changed type/format/limit is a different input context, including pending work.
+  return (
+    <AssetPickerBody
+      {...props}
+      formats={formats}
+      maxBytes={maxBytes}
+      showHistory={showHistory}
+      key={[props.kind, formats.join(","), maxBytes, showHistory].join(":")}
+    />
+  );
+}
+
+function AssetPickerBody({
+  kind,
+  value,
+  onChange,
+  onSelectedAsset,
+  language,
+  label,
+  formats,
+  showHistory,
+  maxBytes,
+}: Props & {
+  formats: readonly string[];
+  showHistory: boolean;
+  maxBytes: number;
 }) {
-  const zh = language === "zh",
-    formats = allowedSuffixes ?? assetFormats[kind],
-    accepted = formats.join(",");
-  const [recent, setRecent] = useState<Asset | null>(null),
-    [opened, setOpened] = useState(Boolean(value)),
-    [showResults, setShowResults] = useState(false);
+  const zh = language === "zh";
+  const sources = useAssetSources(value, showHistory, onChange);
+  const { source } = sources;
+  const [knownBySource, setKnownBySource] = useState<
+    Partial<Record<AssetSource, Asset>>
+  >({});
+  const [editingResult, setEditingResult] = useState(false);
   const [query, setQuery] = useState(""),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0);
@@ -51,7 +74,7 @@ export function AssetPicker({
   const history = useReferenceHistory(
     kind,
     formats,
-    showHistory && opened && !showResults,
+    showHistory && source === "saved",
     {
       query: search,
       page,
@@ -64,7 +87,7 @@ export function AssetPicker({
       setPage(Math.max(0, Math.ceil(history.data.total / 25) - 1));
   }, [history.data, page]);
   const known =
-    (recent?.id === value ? recent : null) ??
+    (knownBySource[source]?.id === value ? knownBySource[source] : null) ??
     (history.selected?.asset.id === value ? history.selected.asset : null) ??
     history.files.find((file) => file.id === value) ??
     null;
@@ -74,60 +97,105 @@ export function AssetPicker({
   useEffect(() => {
     callback.current?.(selected.asset);
   }, [selected.asset]);
-  const upload = useAssetUpload(
-    kind,
-    formats,
-    maxBytes,
-    value,
-    onChange,
-    setRecent,
-  );
-  const error =
-    upload.error === "size"
-      ? zh
-        ? `文件必须非空且不能超过 ${maxBytes / 1024 ** 2} MiB。`
-        : `Use a nonempty file up to ${maxBytes / 1024 ** 2} MiB.`
-      : upload.error === "format"
-        ? zh
-          ? "请选择本任务支持的文件格式。"
-          : "Choose a supported format for this task."
-        : researchError(upload.error, zh);
-  return (
-    <div className="asset-picker">
-      {showHistory && <h3 className="input-purpose">{label}</h3>}
-      <label className="file-upload">
-        {upload.busy && (
-          <span role="status">{zh ? "上传中…" : "Uploading…"}</span>
-        )}
-        <FileSelect
+  function rememberAsset(asset: Asset) {
+    setKnownBySource((previous) => ({ ...previous, [source]: asset }));
+  }
+  const content = (
+    <>
+      {(!showHistory || source === "file") && (
+        <AssetPickerUpload
+          kind={kind}
+          formats={formats}
+          maxBytes={maxBytes}
+          value={value}
+          onChange={sources.choose}
+          onAsset={rememberAsset}
           language={language}
-          description={
-            accepted.replaceAll(".", "").split(",").join(" · ").toUpperCase() +
-            (zh ? " · 最大 " : " · Up to ") +
-            maxBytes / 1024 ** 2 +
-            " MiB"
-          }
-          aria-label={(zh ? "上传 " : "Upload ") + label}
-          accept={accepted}
-          disabled={upload.busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = "";
-            if (file) {
-              setOpened(false);
-              setShowResults(false);
-              void upload.upload(file);
-            }
-          }}
+          label={label}
         />
-      </label>
+      )}
+      {showHistory && source === "saved" && (
+        <>
+          <AssetHistorySelect
+            language={language}
+            label={label}
+            value={value}
+            data={history.data}
+            selected={selected.asset}
+            loading={history.loading}
+            query={query}
+            page={page}
+            onQuery={setQuery}
+            onPage={setPage}
+            onSelect={(asset) => {
+              if (asset) rememberAsset(asset);
+              sources.choose(asset?.id ?? "");
+            }}
+          />
+          {history.loading && (
+            <p role="status">
+              {zh ? "正在读取历史文件…" : "Loading historical files…"}
+            </p>
+          )}
+          {history.error && (
+            <div className="error-box">
+              <p role="alert">
+                {zh
+                  ? "暂时无法读取历史文件，请重试。"
+                  : "Historical files could not be loaded. Try again."}
+              </p>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={history.retry}
+              >
+                {zh ? "重试历史文件" : "Retry historical files"}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {showHistory && source === "results" && (
+        <>
+          {!value || editingResult ? (
+            <ArtifactPicker
+              kind={kind}
+              accept={formats.join(",")}
+              language={language}
+              maxBytes={maxBytes}
+              currentInput={value}
+              onPending={() => sources.choose("")}
+              onSelected={(asset) => {
+                rememberAsset(asset);
+                sources.choose(asset.id);
+                setEditingResult(false);
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setEditingResult(true)}
+            >
+              {zh ? "选择其他任务结果" : "Choose another task result"}
+            </button>
+          )}
+        </>
+      )}
       {value && (
         <p
           className="selected-file"
           role={!showHistory ? "status" : undefined}
           aria-live="polite"
         >
-          {selected.asset?.name ?? (zh ? "正在核对文件…" : "Checking file…")}
+          {selected.asset?.name ??
+            (selected.error
+              ? zh
+                ? "所选文件尚未核验"
+                : "Selected file not verified"
+              : zh
+                ? "正在核对文件…"
+                : "Checking file…")}
         </p>
       )}
       {selected.error && (
@@ -146,91 +214,32 @@ export function AssetPicker({
           </button>
         </div>
       )}
-      {showHistory && (
-        <details
-          className="historical-files"
-          open={opened}
-          onToggle={(event) => {
-            setOpened(event.currentTarget.open);
-            if (!event.currentTarget.open) setShowResults(false);
+    </>
+  );
+  return (
+    <div className="asset-picker">
+      {showHistory ? (
+        <MaterialInput
+          kind={kind}
+          label={label}
+          source={source}
+          onSource={(next) => {
+            setEditingResult(false);
+            sources.changeSource(next);
           }}
+          options={[
+            { value: "file", title: zh ? "上传新文件" : "Upload a new file" },
+            { value: "saved", title: zh ? "历史文件" : "Historical files" },
+            {
+              value: "results",
+              title: zh ? "任务结果文件" : "Task result files",
+            },
+          ]}
         >
-          <summary>{zh ? "历史文件" : "Historical files"}</summary>
-          {!showResults && (
-            <AssetHistorySelect
-              language={language}
-              label={label}
-              value={value}
-              data={history.data}
-              selected={selected.asset}
-              loading={upload.busy || history.loading}
-              query={query}
-              page={page}
-              onQuery={setQuery}
-              onPage={setPage}
-              onSelect={(asset) => {
-                setShowResults(false);
-                setRecent(asset);
-                upload.clearError();
-                onChange(asset?.id ?? "");
-              }}
-            />
-          )}
-          {!showResults && history.loading && (
-            <p role="status">
-              {zh ? "正在读取历史文件…" : "Loading historical files…"}
-            </p>
-          )}
-          {!showResults && history.error && (
-            <div className="error-box">
-              <p role="alert">
-                {zh
-                  ? "暂时无法读取历史文件，请重试。"
-                  : "Historical files could not be loaded. Try again."}
-              </p>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={history.retry}
-              >
-                {zh ? "重试历史文件" : "Retry historical files"}
-              </button>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowResults((state) => !state)}
-          >
-            {showResults
-              ? zh
-                ? "返回历史文件"
-                : "Back to historical files"
-              : zh
-                ? "从已有任务结果中选择"
-                : "Choose from task results"}
-          </button>
-          {opened && showResults && (
-            <ArtifactPicker
-              kind={kind}
-              accept={accepted}
-              language={language}
-              maxBytes={maxBytes}
-              currentInput={value}
-              onPending={() => onChange("")}
-              onSelected={(asset) => {
-                setRecent(asset);
-                onChange(asset.id);
-                setShowResults(false);
-                setOpened(false);
-              }}
-            />
-          )}
-        </details>
-      )}
-      {upload.error && (
-        <p role="alert" className="error-box">
-          {error}
-        </p>
+          {content}
+        </MaterialInput>
+      ) : (
+        content
       )}
     </div>
   );

@@ -44,10 +44,20 @@ export function PropertyForm({
             .map((s) => s.trim())
             .filter(Boolean),
     selectedFile = mode === "smiles" ? "" : file;
-  const valid = Boolean(selectedFile || lines.length) && lines.length <= 500;
   const bound = Boolean(
     scientificInput && selectedFile === scientificInput.asset_id,
   );
+  const fileVerified = Boolean(
+    selectedFile && selectedAsset?.id === selectedFile,
+  );
+  const changedReference = Boolean(
+    bound && fileVerified && scientificInput!.sha256 !== selectedAsset!.sha256,
+  );
+  const valid =
+    Boolean(selectedFile || lines.length) &&
+    lines.length <= 500 &&
+    (!selectedFile || fileVerified) &&
+    !changedReference;
   const objects = (
     <>
       {mode !== "file" && (
@@ -96,6 +106,13 @@ export function PropertyForm({
           {zh
             ? `已选择第${scientificInput!.record + 1}个分子记录，仅计算此记录。`
             : `Molecule record ${scientificInput!.record + 1} is selected; only this record is calculated.`}
+        </p>
+      )}
+      {changedReference && (
+        <p role="alert">
+          {zh
+            ? "所选文件与原始分子记录不一致，请重新选择原始文件。"
+            : "The selected file does not match the original molecular record. Choose the original file again."}
         </p>
       )}
     </>
@@ -148,8 +165,8 @@ export function PropertyForm({
                       ? "下一步确认这份分子文件。"
                       : "Review the selected file in the next step."
                     : zh
-                      ? "保留文件和研究版本的来源。"
-                      : "Retain file and research-version provenance.",
+                      ? "一个分子或一组分子，可上传新文件或选择历史文件。"
+                      : "One molecule or a set, from a new or historical file.",
                 },
                 {
                   value: "smiles",

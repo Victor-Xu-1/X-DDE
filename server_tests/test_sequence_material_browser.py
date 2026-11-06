@@ -11,18 +11,7 @@ from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.stat6.catalogue import verified_input
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
-
-
-def capture(page, path):
-    """Capture the document from its verified top after native focus/step scrolling."""
-    page.evaluate("""() => {
-        window.scrollTo({top:0, left:0, behavior:'instant'});
-        return new Promise(resolve => requestAnimationFrame(
-            () => requestAnimationFrame(resolve)));
-    }""")
-    assert page.evaluate("window.scrollY") == 0
-    assert page.locator(".studio-topbar").bounding_box()["y"] < 40
-    page.screenshot(path=path, full_page=True)
+from server_tests.material_capture import capture_material as capture
 
 
 @pytest.mark.parametrize("language,width,theme", [("en", 1280, "warm"), ("zh", 390, "dark")])
@@ -115,7 +104,11 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         )
         if width <= 640:
             labels = material.locator(".questionnaire-choices label")
-            boxes = [label.bounding_box() for label in labels.all()]
+            boxes = labels.evaluate_all(
+                """els => els.map(e => {
+                    const r=e.getBoundingClientRect(); return {y:r.y,height:r.height};
+                })"""
+            )
             assert len(boxes) == 3 and all(box["height"] >= 44 for box in boxes)
             assert max(box["y"] for box in boxes) - min(box["y"] for box in boxes) < 1
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
@@ -165,7 +158,7 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         expect(next_button).to_be_disabled()
 
         def hold_upload(route):
-            held.append((route, route.fetch()))
+            held.append(route)
 
         page.route("**/api/assets?*", hold_upload)
         confirm.click()
@@ -177,7 +170,8 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         expect(picker).to_have_value("file:" + historical.id)
         expect(next_button).to_be_enabled()
         assert len(held) == 1
-        for route, response in held:
+        for route in held:
+            response = route.fetch()
             with page.expect_response(
                 lambda reply: reply.request.method == "POST" and "/api/assets?" in reply.url
             ):

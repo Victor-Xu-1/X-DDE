@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { AssetKind } from "../operations/types";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import "./material-input.css";
 
@@ -12,14 +13,18 @@ export function MaterialInput<T extends string>({
   children,
 }: {
   label: string;
-  kind: "structure" | "ligand" | "sequences";
+  kind: AssetKind;
   source: T;
   onSource(value: T): void;
   options: readonly { value: T; title: string }[];
   children: ReactNode;
 }) {
   return (
-    <div className="reference-material" data-material-kind={kind}>
+    <div
+      className="reference-material"
+      data-material-kind={kind}
+      data-source-count={options.length}
+    >
       <header className="reference-material-heading">
         <h3 className="input-purpose">{label}</h3>
         <ChoiceCards
