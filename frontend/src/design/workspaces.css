@@ -23,14 +23,6 @@
 .task-page-list button.active {
   background: var(--accent-soft);
 }
-@media (max-width: 640px) {
-  .theme-option > small {
-    grid-column: 2;
-  }
-  .theme-option > .theme-swatch {
-    grid-row: 1 / span 2;
-  }
-}
 .studio-app .terminal {
   background: var(--code-bg);
   color: var(--ink);

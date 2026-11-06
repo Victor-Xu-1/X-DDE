@@ -124,6 +124,8 @@ on:
         type: boolean
         default: false
     outputs:
+      appearance_only:
+        value: ${{ jobs.scope.outputs.appearance_only }}
       computation_settings:
         value: ${{ jobs.scope.outputs.computation_settings }}
       feature_settings:
