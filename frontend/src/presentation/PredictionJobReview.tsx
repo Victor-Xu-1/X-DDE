@@ -130,59 +130,63 @@ export function PredictionJobReview<
         </button>
       }
     >
-      {!current && (
-        <p role="status">
-          {zh ? "正在核对研究文件…" : "Checking research files…"}
-        </p>
+      {(dismiss) => (
+        <>
+          {!current && (
+            <p role="status">
+              {zh ? "正在核对研究文件…" : "Checking research files…"}
+            </p>
+          )}
+          {current && "error" in current && (
+            <div role="alert" className="error-box">
+              <p>
+                {(typeof preparationError === "function"
+                  ? preparationError(current.error)
+                  : preparationError) ??
+                  (zh
+                    ? "无法核对所选文件。请重试，或返回编辑更换材料。"
+                    : "The selected files could not be verified. Try again or return to edit them.")}
+              </p>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  setState(null);
+                  retry((n) => n + 1);
+                }}
+              >
+                {zh ? "重新核对文件" : "Check files again"}
+              </button>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="error-box">
+              {researchError(error, zh)}
+            </p>
+          )}
+          {prepared && (
+            <div className="job-review-grid">
+              <PredictionJobOverview
+                key={identity}
+                language={language}
+                name={prepared.task.name}
+                components={prepared.components}
+                summary={summary?.(prepared)}
+                request={prepared.task}
+                busy={busy}
+                onEdit={dismiss}
+              >
+                {renderOverview?.(prepared)}
+              </PredictionJobOverview>
+              <div className="job-review-sidebar">
+                {renderSettings(prepared)}
+                {availability}
+              </div>
+            </div>
+          )}
+          {!prepared && availability}
+        </>
       )}
-      {current && "error" in current && (
-        <div role="alert" className="error-box">
-          <p>
-            {(typeof preparationError === "function"
-              ? preparationError(current.error)
-              : preparationError) ??
-              (zh
-                ? "无法核对所选文件。请重试，或返回编辑更换材料。"
-                : "The selected files could not be verified. Try again or return to edit them.")}
-          </p>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
-              setState(null);
-              retry((n) => n + 1);
-            }}
-          >
-            {zh ? "重新核对文件" : "Check files again"}
-          </button>
-        </div>
-      )}
-      {error && (
-        <p role="alert" className="error-box">
-          {researchError(error, zh)}
-        </p>
-      )}
-      {prepared && (
-        <div className="job-review-grid">
-          <PredictionJobOverview
-            key={identity}
-            language={language}
-            name={prepared.task.name}
-            components={prepared.components}
-            summary={summary?.(prepared)}
-            request={prepared.task}
-            busy={busy}
-            onEdit={onClose}
-          >
-            {renderOverview?.(prepared)}
-          </PredictionJobOverview>
-          <div className="job-review-sidebar">
-            {renderSettings(prepared)}
-            {availability}
-          </div>
-        </div>
-      )}
-      {!prepared && availability}
     </PredictionReviewDialog>
   );
 }

@@ -121,6 +121,13 @@ def test_shared_job_layout_and_retained_native_entity(
         expect(dialog).to_have_count(0)
         expect(opener).to_be_focused()
         expect(name).to_have_value("STAT6 · Native input review")
+        name.fill("STAT6 · Edited native input review")
+        opener.click()
+        expect(dialog.get_by_text("STAT6 · Edited native input review", exact=True)).to_be_visible()
+        expect(dialog.get_by_text("STAT6 · Native input review", exact=True)).to_have_count(0)
+        expect(entities.first).to_have_attribute("open", "")
+        dialog.get_by_role("button", name=label("Back to edit", "返回编辑"), exact=True).click()
+        expect(opener).to_be_focused()
         assert not errors and not writes
         assert page.request.get(base + "/api/jobs").json() == []
         (evidence / "acceptance.json").write_text(

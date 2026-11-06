@@ -202,6 +202,9 @@ it.each(["en", "zh"] as const)(
       }),
     );
     expect(close).toHaveBeenCalledOnce();
+    expect(screen.getByRole("dialog", { hidden: true })).not.toHaveAttribute(
+      "open",
+    );
     expect(submit).not.toHaveBeenCalled();
   },
 );
