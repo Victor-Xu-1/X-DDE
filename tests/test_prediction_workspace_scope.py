@@ -58,6 +58,10 @@ def test_closed_confidence_delegation_keeps_mixed_molecular_design_checks_active
     design = Path(".github/workflows/molecule-design-review-checks.yml").read_text()
     assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in design
     assert "needs.prediction-context.outputs.boltz_confidence != 'true'" in design
+    assert (
+        "(github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_confidence != 'true')"
+        in design
+    )
 
 
 def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof():

@@ -50,9 +50,21 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
         page.get_by_role("button", name="清除选择" if zh else "Clear sequence selection").click()
         curve.scroll_into_view_if_needed()
         expect(curve.get_by_role("application")).to_have_attribute("aria-busy", "false")
-        marker = curve.locator(".scatterlayer .point").first.bounding_box()
+        point = curve.locator(".scatterlayer .point").first
+        point.scroll_into_view_if_needed()
+        marker = point.bounding_box()
         assert marker and marker["width"] > 0 and marker["height"] > 0
-        page.mouse.click(marker["x"] + marker["width"] / 2, marker["y"] + marker["height"] / 2)
+        coordinates = {
+            "x": marker["x"] + marker["width"] / 2,
+            "y": marker["y"] + marker["height"] / 2,
+        }
+        target = curve.evaluate(
+            "(plot, point) => { const hit = document.elementFromPoint(point.x, point.y); return { inside: Boolean(hit && plot.contains(hit)), tag: hit?.tagName, text: hit?.textContent?.slice(0,120), point }; }",
+            coordinates,
+        )
+        (evidence / "curve-hit-target.json").write_text(json.dumps(target))
+        assert target["inside"], target
+        page.mouse.click(coordinates["x"], coordinates["y"])
         page.screenshot(path=evidence / "curve-point-selection.png", full_page=True)
         expect(first).to_have_attribute("aria-checked", "true")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
