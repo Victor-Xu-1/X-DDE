@@ -692,6 +692,9 @@ BOLTZ_CONFIDENCE_FILES = (
     "server_tests/test_boltz_confidence*.py",
     ".github/workflows/scientific-upgrade-checks.yml",
     ".github/workflows/molecule-design-review-checks.yml",
+    ".github/workflows/protein-interface-checks.yml",
+    "scripts/protein-interface-scope.py",
+    "tests/test_protein_interface_scope.py",
 )
 
 

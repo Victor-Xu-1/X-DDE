@@ -33,6 +33,7 @@ def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     for name in (
         "src/opendde_workbench/api.py",
         "src/opendde_workbench/integrations/options.py",
+        "src/opendde_workbench/integrations/protein_interface.py",
         "frontend/src/viewer/frame.ts",
         "frontend/src/App.tsx",
     ):
