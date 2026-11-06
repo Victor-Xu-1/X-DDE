@@ -18,6 +18,14 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
     evidence.mkdir(parents=True, exist_ok=True)
     state = Path(os.environ["WB_STATE_DIR"]) / "opendde-drafts" / f"{language}-{width}"
     assert state.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
+    # Keep the database isolated, but reuse the CI's verified native drawing bundle.
+    # A fresh state directory otherwise has no component registry and only an unavailable view.
+    registry = (Path(os.environ["WB_STATE_DIR"]) / "deployment.json").read_bytes()
+    assert Path(json.loads(registry)["root"]).resolve().is_relative_to(
+        Path(os.environ["RUNNER_TEMP"]).resolve()
+    )
+    state.mkdir(parents=True, exist_ok=True)
+    (state / "deployment.json").write_bytes(registry)
     sequence = "".join(
         Path("src/opendde_workbench/examples/stat6/inputs/STAT6-human-P42226.fasta")
         .read_text()
@@ -33,6 +41,7 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 1000})
+        assert page.request.get(base + "/api/deployment").json()["installed"].get("ketcher")
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
