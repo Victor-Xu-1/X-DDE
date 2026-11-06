@@ -80,9 +80,10 @@ def inspect_native_review_scene(state, evidence):
         expect(geometry.frame_locator("iframe").locator("canvas").first).to_be_visible()
         initial = stable_view(page, frame)
         geometry.get_by_role("button", name="Zoom in", exact=True).click()
+        zoomed = stable_view(page, frame)
+        assert zoomed != initial, "Zoom did not change the native camera view"
         geometry.get_by_role("combobox", name="Focus residues", exact=True).select_option("3")
         adjusted = stable_view(page, frame)
-        assert adjusted != initial
         dialog.get_by_role("button", name="Request JSON", exact=True).click()
         shown = json.loads(dialog.get_by_label("X-DDE submission request").inner_text())
         assert shown["receptor"]["sha256"] == receptor.sha256
@@ -104,6 +105,7 @@ def inspect_native_review_scene(state, evidence):
         page.screenshot(path=evidence / "download-menu.png")
         control.click()
         (evidence / "adjusted-camera.png").write_bytes(adjusted)
+        (evidence / "zoomed-camera.png").write_bytes(zoomed)
         (evidence / "restored-camera.png").write_bytes(restored)
         dialog.get_by_role("button", name="Edit setup", exact=True).click()
         expect(opener).to_be_focused()
@@ -112,6 +114,7 @@ def inspect_native_review_scene(state, evidence):
             json.dumps(
                 {
                     "retained_camera_pixels": True,
+                    "zoom_alone_changed_pixels": True,
                     "retained_residue_choice": "3",
                     "viewer_document_requests": len(viewer_requests),
                     "download_width": bounds["width"],
