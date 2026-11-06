@@ -7,7 +7,7 @@
   font-display: swap;
 }
 :root,
-:root[data-theme="light"] {
+:root[data-theme="warm"] {
   color-scheme: light;
   background: var(--canvas);
   --canvas: #faf8f3;
@@ -43,22 +43,31 @@
   --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 
+:root[data-theme="light"] {
+  --canvas: #ffffff;
+  --sidebar: #f6f8fc;
+  --line: #dfe5ed;
+  --surface-muted: #f2f5fa;
+  --surface-hover: #edf2f8;
+  --code-bg: #f4f7fb;
+}
+
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --canvas: #151c20;
+  --canvas: #0c0f14;
   --ink: #e9efed;
-  --muted: #b2c1bf;
+  --muted: #b7c2cf;
   --accent: #91b9ef;
   --accent-secondary: #91b9ef;
   --teal: #75d9c5;
   --violet: #c4b5fd;
-  --sidebar: #151c20;
-  --line: #34413f;
-  --surface: #1a2427;
-  --surface-muted: #222d2c;
-  --surface-hover: #2d3a38;
+  --sidebar: #0c0f14;
+  --line: #354052;
+  --surface: #151a21;
+  --surface-muted: #1f2630;
+  --surface-hover: #293441;
   --accent-soft: #25394d;
-  --accent-contrast: #151c20;
+  --accent-contrast: #0c0f14;
   --success: #75d9c5;
   --success-soft: #163a37;
   --warning: #e3c88d;
@@ -70,6 +79,6 @@
   --focus: #91b9ef;
   --shadow: 0 3px 12px rgb(0 0 0 / 24%);
   --overlay: rgb(0 0 0 / 64%);
-  --code-bg: #12191c;
-  --chart-bg: #1a2427;
+  --code-bg: #090c10;
+  --chart-bg: #151a21;
 }

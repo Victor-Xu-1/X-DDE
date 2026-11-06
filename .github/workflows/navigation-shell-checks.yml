@@ -26,7 +26,22 @@ on:
 permissions:
   contents: read
 jobs:
+  appearance-scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      appearance_only: ${{ steps.select.outputs.appearance_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/appearance-scope.py
   research-shell:
+    needs: appearance-scope
+    if: needs.appearance-scope.outputs.appearance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

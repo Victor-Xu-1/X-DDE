@@ -1,16 +1,16 @@
 import { useSyncExternalStore } from "react";
 
 export const THEME_STORAGE_KEY = "x-dde-theme";
-export const THEMES = ["light", "dark"] as const;
+export const THEMES = ["warm", "light", "dark"] as const;
 export type Theme = (typeof THEMES)[number];
 
 type ThemeState = { theme: Theme; storageWarning: boolean };
-const defaultState: ThemeState = { theme: "light", storageWarning: false };
+const defaultState: ThemeState = { theme: "warm", storageWarning: false };
 let snapshot: ThemeState | undefined;
 const listeners = new Set<() => void>();
 
 function isTheme(value: unknown): value is Theme {
-  return value === "light" || value === "dark";
+  return value === "warm" || value === "light" || value === "dark";
 }
 
 function restoreTheme(): ThemeState {
@@ -21,11 +21,11 @@ function restoreTheme(): ThemeState {
   try {
     const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
     return {
-      theme: isTheme(saved) ? saved : "light",
+      theme: isTheme(saved) ? saved : "warm",
       storageWarning: false,
     };
   } catch {
-    return { theme: "light", storageWarning: true };
+    return { theme: "warm", storageWarning: true };
   }
 }
 
@@ -80,7 +80,7 @@ function onStorage(event: StorageEvent) {
     }
   }
   publish({
-    theme: isTheme(event.newValue) ? event.newValue : "light",
+    theme: isTheme(event.newValue) ? event.newValue : "warm",
     storageWarning: false,
   });
 }

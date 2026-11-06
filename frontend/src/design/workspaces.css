@@ -23,14 +23,6 @@
 .task-page-list button.active {
   background: var(--accent-soft);
 }
-@media (max-width: 640px) {
-  .theme-option > small {
-    grid-column: 2;
-  }
-  .theme-option > .theme-swatch {
-    grid-row: 1 / span 2;
-  }
-}
 .studio-app .terminal {
   background: var(--code-bg);
   color: var(--ink);
@@ -130,8 +122,7 @@ dialog::backdrop {
   .studio-content h1,
   .tool-grid,
   .guide-grid,
-  .model-grid,
-  .theme-options {
+  .model-grid {
     grid-template-columns: 1fr;
   }
   .tool-card {
@@ -148,15 +139,6 @@ dialog::backdrop {
   .management-card,
   .setup-card {
     padding: 18px;
-  }
-  .theme-option {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    align-items: center;
-    min-height: 0;
-  }
-  .theme-swatch {
-    height: 45px;
   }
   .empty-state {
     padding: 32px 18px;

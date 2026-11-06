@@ -23,65 +23,6 @@
   border-color: var(--line);
   box-shadow: var(--shadow);
 }
-.theme-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-.theme-option {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  min-height: 210px;
-  border: 0;
-  border-radius: 0;
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-.theme-option-selected {
-  box-shadow: none;
-  background: var(--accent-soft);
-}
-.theme-option:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 3px;
-}
-.theme-swatch {
-  display: block;
-  height: 104px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface-muted);
-}
-.theme-option[data-theme-preview="light"] .theme-swatch {
-  background: #ffffff;
-}
-.theme-option[data-theme-preview="dark"] .theme-swatch {
-  background: #11182b;
-}
-.theme-preference {
-  padding: 0;
-  margin: 0;
-  border: 0;
-  min-width: 0;
-}
-.theme-preference legend {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.theme-description {
-  margin-bottom: 18px;
-}
-.theme-preference + .preference-row {
-  border-top: 1px solid var(--line);
-  margin-top: 24px;
-  padding-top: 24px;
-}
 .studio-app .studio-topbar .global-search input[type="search"] {
   border: 0;
   background: transparent;
@@ -89,56 +30,6 @@
   border-radius: 0;
   height: auto;
   box-shadow: none;
-}
-.theme-option > input {
-  position: absolute;
-  right: 10px;
-  bottom: 16px;
-  accent-color: var(--accent);
-}
-.theme-option > strong {
-  font-size: 13px;
-  padding-right: 20px;
-}
-.theme-option > small {
-  font-size: 12px;
-  color: var(--muted);
-}
-.theme-swatch {
-  display: flex;
-  overflow: hidden;
-  gap: 8px;
-}
-.theme-swatch-sidebar {
-  width: 26%;
-  height: 100%;
-  background: #eef3f0;
-}
-.theme-swatch-content {
-  flex: 1;
-  padding: 12px 8px 0 0;
-}
-.theme-swatch-content i {
-  display: block;
-  height: 4px;
-  margin-bottom: 6px;
-  border-radius: 3px;
-  background: #a7b6ad;
-}
-.theme-swatch-content i:first-child {
-  width: 60%;
-}
-.theme-option[data-theme-preview="light"] .theme-swatch-sidebar {
-  background: #eef2ff;
-}
-.theme-option[data-theme-preview="light"] .theme-swatch-content i {
-  background: #bfcaec;
-}
-.theme-option[data-theme-preview="dark"] .theme-swatch-sidebar {
-  background: #19233b;
-}
-.theme-option[data-theme-preview="dark"] .theme-swatch-content i {
-  background: #91a0c8;
 }
 .preference-warning {
   color: var(--warning);

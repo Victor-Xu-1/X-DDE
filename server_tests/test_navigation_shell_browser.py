@@ -138,7 +138,9 @@ def test_every_research_destination_has_full_navigation_and_visible_context(shel
                     }
                 )
         settings(page, language)
-        page.get_by_role("radio", name="深色" if language == "zh" else "Dark", exact=True).check()
+        page.get_by_role(
+            "radio", name="夜间黑色" if language == "zh" else "Night black", exact=True
+        ).check()
         page.set_viewport_size({"width": 390, "height": 1000})
         open_navigation(page, language)
         capture(page, f"navigation-{language}-dark-390")
@@ -150,7 +152,7 @@ def test_every_research_destination_has_full_navigation_and_visible_context(shel
                 exact=True,
             )
         ).to_be_focused()
-        page.get_by_role("radio", name="浅色" if language == "zh" else "Light", exact=True).check()
+        page.get_by_role("radio", name="暖色" if language == "zh" else "Warm", exact=True).check()
     (EVIDENCE / "destinations.json").write_text(
         json.dumps(measurements, ensure_ascii=False, indent=2)
     )
