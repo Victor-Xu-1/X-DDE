@@ -156,7 +156,8 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         # the document viewport explicitly before capturing a sticky header.
         page.evaluate("""() => {
             window.scrollTo({top:0, left:0, behavior:'instant'});
-            return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            return new Promise(resolve => requestAnimationFrame(
+                () => requestAnimationFrame(resolve)));
         }""")
         assert page.evaluate("window.scrollY") == 0
         assert page.locator(".studio-topbar").bounding_box()["y"] < 40
