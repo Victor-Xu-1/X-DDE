@@ -67,7 +67,7 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The task, docking and ternary-input review pages below are **actual English-language captures from a PR CI checkout with the same complete source tree as v0.7.98**. They show inputs and plans, without new scientific calculations. Material-selection and antibody-sequence screenshots retain their **v0.7.96** attribution; the calculation-plan image is a **historical v0.7.93 capture**. Other result and template images keep their existing v0.4.53 attribution. Latest-release captures of every result module remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
+The BRD4 pocket-result image is an **actual v0.7.99 English-language CI capture of retained native results**. The task, docking and ternary-input review pages are **actual English-language captures from a PR CI checkout with the same complete source tree as v0.7.98**. Those review pages show inputs and plans. None of these browser checks reran scientific calculations. Material-selection and antibody-sequence screenshots retain their **v0.7.96** attribution; the calculation-plan image is a **historical v0.7.93 capture**. Other result and template images keep their existing v0.4.53 attribution. Latest-release captures of every result module remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
 
 ### 1. Prepare tasks like a questionnaire
 
@@ -83,7 +83,7 @@ The review places the selected inputs beside the method settings and retains exp
 
 ![Historical v0.7.93 English calculation plan: Boltz-2 output count, model settings and compute resources](docs/images/calculation-plan-v0.7.93.png)
 
-This historical v0.7.93 capture illustrates calculation planning, not the default v0.7.98 appearance. The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
+This historical v0.7.93 capture illustrates calculation planning, not a current-version appearance reference. The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
@@ -102,6 +102,10 @@ Select a table row to inspect its actual structure, chains, ligand, pocket and c
 ![Actual v0.7.98-source English docking review: observed STAT6 receptor and planned search region](docs/images/docking-review-v0.7.98.png)
 
 Before docking, review the receptor coordinate frame, search box and selected molecule record. This view uses the observed 9BIG STAT6 receptor and record 2 from retained native search poses. The test repeats the pose file to exercise selection in a file larger than 500 records; those repetitions are not independent candidates. GNINA is unavailable, so this is an unsubmitted plan, with no new docking or affinity result.
+
+![Actual v0.7.99 English BRD4–JQ1 pocket result: retained P2Rank candidates and structure](docs/images/pocket-result-v0.7.99.png)
+
+This focused result page displays the public BRD4–JQ1 case’s retained P2Rank output. The candidate probabilities, site scores and structure come from the archived files, whose hashes were checked unchanged; the browser check did not rerun pocket detection. These model values are not experimental binding probabilities or affinity. The image opens the verified example directly, without displaying the synthetic history records used elsewhere in the navigation test.
 
 ![Actual English BRD4–JQ1 native structure result and ligand/pocket preview](docs/images/structure-and-pocket.jpg)
 

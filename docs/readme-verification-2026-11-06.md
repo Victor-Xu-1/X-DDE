@@ -4,8 +4,8 @@
 
 ## Revision and scope
 
-- Initial runtime verification: [v0.7.93](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.93), commit [`ac74b7fc078c146720355360ffd002fefdeef36f`](https://github.com/Victor-Xu-1/X-DDE/commit/ac74b7fc078c146720355360ffd002fefdeef36f). The release tag matched `main` when that initial check was performed. A later source and release check verified [v0.7.96](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.96) at [`920600cb20977865a14ea920efd71b82119e5a85`](https://github.com/Victor-Xu-1/X-DDE/commit/920600cb20977865a14ea920efd71b82119e5a85). The latest check verified [v0.7.98](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.98) at [`456531004b22d0cb3756ddbc7f223ebce0aa99a5`](https://github.com/Victor-Xu-1/X-DDE/commit/456531004b22d0cb3756ddbc7f223ebce0aa99a5), with the exact CI checkout relationship detailed below.
-- The v0.7.93 backend's `frontend_catalogue()` returned **76 entries**. The capability source is unchanged through v0.7.98, so the count remains 76 (directory tree `263a1f711fe2f0bed6e15a648558cd87e511f015`). Both overviews use that count. Entries describe available task interfaces, not installed or scientifically accepted environments.
+- Initial runtime verification: [v0.7.93](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.93), commit [`ac74b7fc078c146720355360ffd002fefdeef36f`](https://github.com/Victor-Xu-1/X-DDE/commit/ac74b7fc078c146720355360ffd002fefdeef36f). The release tag matched `main` when that initial check was performed. A later source and release check verified [v0.7.96](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.96) at [`920600cb20977865a14ea920efd71b82119e5a85`](https://github.com/Victor-Xu-1/X-DDE/commit/920600cb20977865a14ea920efd71b82119e5a85). A subsequent check verified [v0.7.98](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.98) at [`456531004b22d0cb3756ddbc7f223ebce0aa99a5`](https://github.com/Victor-Xu-1/X-DDE/commit/456531004b22d0cb3756ddbc7f223ebce0aa99a5), with the exact CI checkout relationship detailed below. The newest source check and pocket-result capture are pinned to [v0.7.99](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.99), commit [`517d5f9d9a4988b1bd873e9a7e6dca59e3571c62`](https://github.com/Victor-Xu-1/X-DDE/commit/517d5f9d9a4988b1bd873e9a7e6dca59e3571c62).
+- The v0.7.93 backend's `frontend_catalogue()` returned **76 entries**. The capability source is unchanged through v0.7.99, so the count remains 76 (directory tree `263a1f711fe2f0bed6e15a648558cd87e511f015`). Both overviews use that count. Entries describe available task interfaces, not installed or scientifically accepted environments.
 - This update changes documentation and screenshot assets only. It preserves the existing scientific caveats and old image files. The separate draft [PR #71](https://github.com/Victor-Xu-1/X-DDE/pull/71) is not overwritten.
 
 ## Retained v0.7.93 calculation-plan screenshot
@@ -31,7 +31,7 @@ With automatic component deployment disabled, the release served its packaged ho
 
 ## Remaining limits
 
-Fresh maintenance-session screenshots of the other core result modules were not completed: the isolated command session's loopback service was not reachable from the separate cloud browser session. The existing result and template images therefore retain their previous v0.4.53 attribution instead of being relabeled as current-version captures. The v0.7.96 input and v0.7.98-source review screenshots below are separately obtained CI evidence, not a claim that the blocked browser session was repaired or that the release was redeployed during this follow-up.
+Fresh maintenance-session screenshots of the other core result modules were not completed: the isolated command session's loopback service was not reachable from the separate cloud browser session. The old result and template images retain their previous v0.4.53 attribution instead of being relabeled as current-version captures. A separately obtained v0.7.99 CI image now shows retained BRD4 pocket results. The v0.7.96 input, v0.7.98-source review and v0.7.99 pocket screenshots below are CI evidence, not a claim that the blocked browser session was repaired or that the release was redeployed during this follow-up.
 
 This maintenance check does not certify inference, molecular dynamics, FEP, all optional components or scientific validity. No global test suite or new scientific calculation was run. Main-branch integration and an installer publication remain separate steps under the repository's version policy.
 
@@ -80,6 +80,27 @@ The complete artifact contains additional tests with different contracts, includ
 
 The successful source CI covers the checked application tree. Documentation-only branch changes have separate local verification and are not claimed to have inherited a new CI run. This update does not merge application changes into the documentation branch or publish a release.
 
+## v0.7.99 retained BRD4 pocket-result screenshot
+
+The [owner's #213 delivery report](https://github.com/Victor-Xu-1/X-DDE/pull/213#issuecomment-6678643235) describes local STAT6 Boltz-2 and 9BIG pocket captures, but provides no downloadable images. Those local pictures and deployment were not independently inspected or used here. The available public CI evidence instead contains a **BRD4–JQ1 P2Rank pocket result**; its identity is kept distinct.
+
+- Source: successful [Modular task history and result navigation run 42173334885](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42173334885), triggered by a push to `main` at `517d5f9d9a4988b1bd873e9a7e6dca59e3571c62`, exactly matching the v0.7.99 tag. [Job 127746002977](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42173334885/job/127746002977) logs confirm this actual checkout. The tree is `7252cc2193924317617c091ffab3bcbb128e2c9c`.
+- Artifact: [`task-history-native-evidence`, ID 13481489065](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42173334885/artifacts/13481489065), 19,394,094 bytes; archive SHA-256 `740909ade278a1a3b4f3c3181617723cef3210228c47388b6bd6b32cc60700a0`, matching GitHub metadata and the upload log.
+- `images/pocket-result-v0.7.99.png` is an unchanged copy of `en/verified-case-title.png`, 1440 × 1000 pixels, 234,357 bytes; SHA-256 `496aa5974152a4404c858f0d66fd0014cc67d41e68904e6647737601bf202479`. The image was visually inspected. It is the original viewport capture, not a full-page view or an edited composite.
+- Public data source: [`examples-v1`](https://github.com/Victor-Xu-1/X-DDE/releases/tag/examples-v1), `x-dde-public-cases-v1.zip`; SHA-256 `e0df54c105e695480ab568048ac131f732ca1d02c1286a0574b69be16e975f29`. This existing public archive was independently checked against the result evidence. No private workstation data was uploaded.
+
+The [restore step](https://github.com/Victor-Xu-1/X-DDE/blob/517d5f9d9a4988b1bd873e9a7e6dca59e3571c62/server_tests/prepare_layout_cases.py) verifies the public bundle. The [history preparation](https://github.com/Victor-Xu-1/X-DDE/blob/517d5f9d9a4988b1bd873e9a7e6dca59e3571c62/server_tests/prepare_task_history.py) verifies the `p2rank.detect` pin and clones its existing files for navigation checks. It also creates 125 cancelled metadata-only task records in isolated CI storage, without executing them. Thus this preparation is not a zero-write operation, and its history list is not a collection of 125 real scientific runs.
+
+The [browser check](https://github.com/Victor-Xu-1/X-DDE/blob/517d5f9d9a4988b1bd873e9a7e6dca59e3571c62/server_tests/test_task_history_browser.py) finally opens the **original verified example**, source job `ae24dc7a-6cea-4808-8e96-7cdd752be5ac`, and captures the selected `verified-case-title.png`. The controlled history records are not displayed in this image. The original task title and case identity are preserved. No screenshot from the separate stubbed project-response test was selected.
+
+All five retained scientific files in the CI fixture were checked against the public bundle: native predictions CSV, native residue CSV, native parameters, `protein.pdb` and `result.json`. In particular:
+
+- Native predictions CSV SHA-256: `fba9bba65001c449f161b97c322d07983aefac936a4147d5ac1c6026cfd53a58`.
+- `protein.pdb` SHA-256: `1f59bf725f67beff28cce2352e8a56350948e1c85b55091df05b3d48fd7930c6`.
+- `result.json` SHA-256: `c814eda792a39517f5a6e87e3096861086645937cb237c985a3c8d266d023409`.
+
+The visible first-pocket probability 0.732, site score 14.72 and 17 residues agree with the retained native output. They are model outputs, not measured affinity or experimental binding probabilities. The receipt records unchanged native artifacts, zero submitted jobs and `scientific_inference: false`. Existing results were restored and displayed; pocket detection was not rerun, and this image is not a STAT6 or Boltz-2 result. Source CI passed 139 frontend, 48 backend and four browser checks; these are existing application-run results, not tests newly executed by this README update.
+
 ## 中文摘要
 
-初次核验保留 v0.7.93 的发行包与隔离启动证据，计算计划图明确标为历史截图；v0.7.96 材料选择和序列输入图保留原版本说明。最新补入三张与 v0.7.98 完整源码树一致的真实 PR CI 复核图，已核对实际检出的合并提交，区分序列输入、已有对接姿势和两端独立装配材料。对接文件的重复记录、S/R 条件假设及临时输入写入均明确说明，没有新运行科学任务。能力目录仍为 76 项。其余结果页保留历史说明，尚未完成逐模块重拍；本次后续核验没有重新部署应用、合并主线或发布安装包。
+初次核验保留 v0.7.93 的发行包与隔离启动证据，计算计划图明确标为历史截图；v0.7.96 材料选择和序列输入图保留原版本说明。另保留三张与 v0.7.98 完整源码树一致的真实 PR CI 复核图，已核对实际检出的合并提交，区分序列输入、已有对接姿势和两端独立装配材料。对接文件的重复记录、S/R 条件假设及临时输入写入均明确说明，没有新运行科学任务。最新加入 v0.7.99 精确主线 CI 的 BRD4–JQ1 原生 P2Rank 历史结果图，已与公开案例包逐文件校验；不将其标为尚未取得的 STAT6/9BIG 图片，也没有重新计算。能力目录仍为 76 项。其余结果页保留历史说明，尚未完成逐模块重拍；本次后续核验没有重新部署应用、合并主线或发布安装包。

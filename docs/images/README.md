@@ -16,6 +16,7 @@
 | [job-review-v0.7.98.png](job-review-v0.7.98.png) | 与 v0.7.98 源码树一致 | STAT6 序列与未提交的 Mol-1 计划 |
 | [docking-review-v0.7.98.png](docking-review-v0.7.98.png) | 与 v0.7.98 源码树一致 | 9BIG 受体、已有姿势记录与搜索框，未运行新对接 |
 | [ternary-review-v0.7.98.png](ternary-review-v0.7.98.png) | 与 v0.7.98 源码树一致 | 独立两端材料与条件性手性假设，未计算三元装配 |
+| [pocket-result-v0.7.99.png](pocket-result-v0.7.99.png) | v0.7.99 | 公开 BRD4–JQ1 保留的原生 P2Rank 结果，未重新计算 |
 
 ### 历史 v0.4.53 页面
 
@@ -43,7 +44,7 @@
 
 ## English
 
-The six later CI images are listed separately above, with version-specific provenance and input-only scientific limits in the [verification record](../readme-verification-2026-11-06.md). The v0.7.98-source images share the release's complete Git tree but were captured on its PR merge ref, not the release commit. None is a new scientific calculation.
+The seven later CI images are listed separately above, with version-specific provenance and scientific limits in the [verification record](../readme-verification-2026-11-06.md). The v0.7.98-source images share the release's complete Git tree but were captured on its PR merge ref, not the release commit. The v0.7.99 pocket image displays an unchanged archived BRD4 P2Rank result; the other later images show inputs or plans. None records a new scientific calculation.
 
 The seven original interface images in the historical table are direct captures of the running v0.4.53 application after selecting **English** in its language settings. Historical interface images referenced by either README use these English-language captures. Screenshot text and scientific content were not repainted or replaced. Native results, unbound conformers, input-only design examples and actual installation states remain distinct. Existing public cases were inspected without running new inference or installing components. Capture revision and prior automated validation are recorded separately in the provenance file.
 
