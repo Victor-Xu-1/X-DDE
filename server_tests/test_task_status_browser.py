@@ -354,7 +354,9 @@ def test_new_selection_cancels_old_metadata_and_files(fixture_page, language, wi
     )
     picker = page.locator(".task-picker")
     page.get_by_role(
-        "button", name="返回任务结果" if language == "zh" else "Back to task results", exact=True
+        "button",
+        name="返回任务结果" if language == "zh" else "Back to task results",
+        exact=True,
     ).click()
     expect(picker.locator("summary")).to_be_focused()
     picker.get_by_role("button", name="Browser control task B", exact=True).click()

@@ -29,7 +29,9 @@ def open_list(page, language):
     picker = page.locator(".task-picker")
     if not picker.is_visible():
         page.get_by_role(
-            "button", name="返回任务结果" if language == "zh" else "Back to task results", exact=True
+            "button",
+            name="返回任务结果" if language == "zh" else "Back to task results",
+            exact=True,
         ).click()
         expect(picker.locator("summary")).to_be_focused()
     if not picker.evaluate("node => node.open"):
