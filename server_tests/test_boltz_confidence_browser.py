@@ -51,7 +51,11 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
         curve.scroll_into_view_if_needed()
         expect(curve.get_by_role("application")).to_have_attribute("aria-busy", "false")
         point = curve.locator(".scatterlayer .point").first
-        point.scroll_into_view_if_needed()
+        # Nearest scrolling can leave a point behind the two-row sticky mobile
+        # header. Center the real target, then verify the pointer hits the plot.
+        point.evaluate(
+            "point => point.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'})"
+        )
         marker = point.bounding_box()
         assert marker and marker["width"] > 0 and marker["height"] > 0
         coordinates = {
