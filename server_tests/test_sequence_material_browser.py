@@ -105,7 +105,9 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         if width <= 640:
             labels = material.locator(".questionnaire-choices label")
             boxes = labels.evaluate_all(
-                "els => els.map(e => {const r=e.getBoundingClientRect(); return {y:r.y,height:r.height};})"
+                """els => els.map(e => {
+                    const r=e.getBoundingClientRect(); return {y:r.y,height:r.height};
+                })"""
             )
             assert len(boxes) == 3 and all(box["height"] >= 44 for box in boxes)
             assert max(box["y"] for box in boxes) - min(box["y"] for box in boxes) < 1

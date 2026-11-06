@@ -75,7 +75,9 @@ def test_molecular_sources_do_not_replace_selected_inputs_or_dispatch_science(
             assert material.locator(".file-select").bounding_box()["height"] <= 76
         else:
             boxes = material.locator(".questionnaire-choices label").evaluate_all(
-                "els => els.map(e => {const r=e.getBoundingClientRect(); return {y:r.y,height:r.height};})"
+                """els => els.map(e => {
+                    const r=e.getBoundingClientRect(); return {y:r.y,height:r.height};
+                })"""
             )
             assert len(boxes) == 3 and all(box["height"] >= 44 for box in boxes)
             assert max(box["y"] for box in boxes) - min(box["y"] for box in boxes) < 1
