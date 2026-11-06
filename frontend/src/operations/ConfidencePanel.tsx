@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { artifactUrl, request } from "../api";
+import { artifactUrl } from "../api";
 import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { Language } from "../types";
@@ -11,6 +11,7 @@ import { ConfidencePlddt } from "./ConfidencePlddt";
 import { ConfidenceDownload } from "./ConfidenceDownload";
 import type { Confidence } from "./confidence-data";
 import { confidencePlotLayout } from "./confidence-plot";
+import { requestConfidence } from "./confidence-request";
 
 type ConfidenceMetric = "pae" | "pde" | "contacts";
 
@@ -53,12 +54,12 @@ export function ConfidencePanel({
   }>({ key: "" });
   useEffect(() => {
     const controller = new AbortController();
-    void request<Confidence>(
+    void requestConfidence(
       "/jobs/" +
         jobId +
         "/confidence?" +
         new URLSearchParams({ candidate, metric }),
-      { signal: controller.signal },
+      controller.signal,
     )
       .then((data) => {
         if (!controller.signal.aborted) setState({ key, data });

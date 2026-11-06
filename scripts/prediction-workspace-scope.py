@@ -667,6 +667,7 @@ BOLTZ_CONFIDENCE_FILES = (
     "frontend/src/operations/ConfidenceDownload*",
     "frontend/src/operations/ConfidencePlddt*",
     "frontend/src/operations/confidence-data.ts",
+    "frontend/src/operations/confidence-request*",
     "frontend/src/presentation/prediction-confidence-card.css",
     "server_tests/test_prediction_sample_export_browser.py",
     "src/opendde_workbench/native_arrays.py",

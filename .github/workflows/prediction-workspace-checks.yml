@@ -289,6 +289,7 @@ jobs:
           src/viewer/confidence-mapping.test.ts src/presentation/usePredictionConfidence.test.tsx
           src/operations/ConfidenceDownload.test.tsx
           src/operations/ConfidencePlddt.test.tsx
+          src/operations/confidence-request.test.ts
           src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
         if: needs.scope.outputs.boltz_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
