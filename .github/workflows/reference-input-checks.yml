@@ -16,12 +16,14 @@ on:
       - "tests/test_material_input_scope.py"
       - "server_tests/test_material_sources_browser.py"
       - "server_tests/test_sequence_material_browser.py"
+      - "server_tests/test_molecular_material_browser.py"
       - ".github/workflows/reference-input-checks.yml"
       - "frontend/src/diffsbdd/ReferencePicker*"
       - "frontend/src/diffsbdd/reference-metadata*"
       - "frontend/src/diffsbdd/useReferenceSelection*"
       - "frontend/src/diffsbdd/useReferenceHistory*"
       - "frontend/src/operations/AssetPicker*"
+      - "frontend/src/operations/PropertyForm*"
       - "frontend/src/operations/ArtifactPicker*"
       - "frontend/src/operations/ResultTaskSelect*"
       - "frontend/src/operations/useResultFiles*"
@@ -109,6 +111,8 @@ jobs:
           src/pockets/PocketForm.test.tsx src/docking/DockingForm.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/proximity/Form.test.tsx
           src/operations/AssetPicker.test.tsx
+          src/operations/AssetPickerSources.test.tsx
+          src/operations/PropertyFormFileVerification.test.tsx src/operations/PropertyForm.test.tsx
           src/research/SequencePickerRetention.test.tsx
           src/research/SequencePicker.test.tsx src/research/useSequenceSave.test.tsx
           src/antibodies/AntibodyNumberForm.test.tsx src/humanization/HumanizationForm.test.tsx

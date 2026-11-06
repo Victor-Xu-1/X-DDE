@@ -4,6 +4,14 @@ import os
 import subprocess
 
 SOURCES = {
+    "frontend/src/operations/AssetPicker.tsx",
+    "frontend/src/operations/AssetPickerSources.ts",
+    "frontend/src/operations/AssetPickerUpload.tsx",
+    "frontend/src/operations/AssetPickerSources.test.tsx",
+    "frontend/src/operations/PropertyForm.tsx",
+    "frontend/src/operations/PropertyFormFileVerification.test.tsx",
+    "frontend/src/operations/PropertyForm.test.tsx",
+    "server_tests/test_molecular_material_browser.py",
     "frontend/src/research/SequencePicker.tsx",
     "frontend/src/research/SequencePickerRetention.test.tsx",
     "frontend/src/research/SequenceTextInput.tsx",
