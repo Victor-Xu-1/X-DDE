@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -133,9 +134,15 @@ def test_boltz_draft_recovers_exact_materials_and_review_without_admission(
         page.keyboard.press("Escape")
         expect(preview).to_be_focused()
         assert not errors, errors
-        assert all("/api/assets" in url or "/api/prediction-drafts/" in url for url in writes), (
-            writes
-        )
+        inspections = [
+            url for url in writes if urlsplit(url).path == "/api/scientific/boltz/msa-check"
+        ]
+        assert len(inspections) >= 2, "Restored MSA must receive a fresh source inspection"
+        assert all(
+            urlsplit(url).path.startswith(("/api/assets", "/api/prediction-drafts/"))
+            or urlsplit(url).path == "/api/scientific/boltz/msa-check"
+            for url in writes
+        ), writes
         assert page.request.get(base + "/api/jobs").json() == []
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         (evidence / "acceptance.json").write_text(
