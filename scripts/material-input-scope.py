@@ -8,7 +8,7 @@ SOURCES = {
     "frontend/src/diffsbdd/ReferencePickerHeading.tsx",
     "frontend/src/diffsbdd/ReferencePicker.css",
     "frontend/src/diffsbdd/ReferencePickerUpload.test.tsx",
-    "server_tests/test_material_input_layout_browser.py",
+    "server_tests/test_material_sources_browser.py",
 }
 FILES = SOURCES | {
     "scripts/material-input-scope.py",
@@ -24,9 +24,9 @@ FILES = SOURCES | {
 }
 
 
-def selected(changed):
+def selected(changed, event="push"):
     changed = set(changed)
-    return bool(changed & SOURCES) and changed <= FILES
+    return event in {"push", "pull_request"} and bool(changed & SOURCES) and changed <= FILES
 
 
 if __name__ == "__main__":
@@ -43,4 +43,8 @@ if __name__ == "__main__":
         else []
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-        output.write("material_only=" + str(selected(changed)).lower() + "\n")
+        output.write(
+            "material_only="
+            + str(selected(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))).lower()
+            + "\n"
+        )

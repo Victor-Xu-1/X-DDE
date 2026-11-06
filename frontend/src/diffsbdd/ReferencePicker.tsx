@@ -1,4 +1,5 @@
-import { ChoiceCards } from "../guided/ChoiceCards";
+import { ReferencePickerHeading } from "./ReferencePickerHeading";
+import "./ReferencePicker.css";
 import { useEffect, useRef, useState } from "react";
 import { HistoricalFileSelect } from "../research/HistoricalFileSelect";
 import { AssetPicker } from "../operations/AssetPicker";
@@ -131,113 +132,115 @@ export function ReferencePicker({
             : null));
   return (
     <section className="diff-reference">
-      <h3 className="input-purpose">{label}</h3>
-      <ChoiceCards<"saved" | "file">
-        label={label}
-        value={source}
-        onChange={changeSource}
-        options={[
-          { value: "file", title: zh ? "上传新文件" : "Upload a new file" },
-          { value: "saved", title: zh ? "历史文件" : "Historical files" },
-        ]}
-      />
-      <div hidden={source !== "saved"}>
-        <HistoryFileControls
-          language={language}
-          query={query}
-          page={page}
-          data={history.data}
-          loading={history.loading}
-          onQuery={setQuery}
-          onPage={setPage}
-        />
-        <HistoricalFileSelect
-          compact
-          language={language}
+      <div className="reference-material" data-material-kind={kind}>
+        <ReferencePickerHeading
           label={label}
-          value={invalidRecord ? recordBase : value}
-          versions={history.versions}
-          files={history.files}
-          busy={history.loading || selection.loading}
-          requestedChoice={
-            selection.requestedChoice ||
-            (wholeFile ? inputChoiceKey(value, true) : "")
-          }
-          selectedFile={history.selected?.asset}
-          selectedVersion={history.selected?.version ?? undefined}
-          sourceTasks={history.sourceTasks}
-          onSelect={chooseHistorical}
+          source={source}
+          onChange={changeSource}
+          language={language}
         />
-        {history.loading && (
-          <p role="status">
-            {zh ? "正在读取历史文件…" : "Loading historical files…"}
-          </p>
-        )}
-        {history.error && (
-          <div className="error-box">
-            <p role="alert">
-              {zh
-                ? "暂时无法读取历史文件列表，请重试。"
-                : "Historical files could not be loaded. Try again."}
-            </p>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={history.retry}
-            >
-              {zh ? "重试历史文件" : "Retry historical files"}
-            </button>
+        <div className="reference-material-body">
+          <div hidden={source !== "saved"}>
+            <HistoryFileControls
+              language={language}
+              query={query}
+              page={page}
+              data={history.data}
+              loading={history.loading}
+              onQuery={setQuery}
+              onPage={setPage}
+            />
+            <HistoricalFileSelect
+              compact
+              language={language}
+              label={label}
+              value={invalidRecord ? recordBase : value}
+              versions={history.versions}
+              files={history.files}
+              busy={history.loading || selection.loading}
+              requestedChoice={
+                selection.requestedChoice ||
+                (wholeFile ? inputChoiceKey(value, true) : "")
+              }
+              selectedFile={history.selected?.asset}
+              selectedVersion={history.selected?.version ?? undefined}
+              sourceTasks={history.sourceTasks}
+              onSelect={chooseHistorical}
+            />
+            {history.loading && (
+              <p role="status">
+                {zh ? "正在读取历史文件…" : "Loading historical files…"}
+              </p>
+            )}
+            {history.error && (
+              <div className="error-box">
+                <p role="alert">
+                  {zh
+                    ? "暂时无法读取历史文件列表，请重试。"
+                    : "Historical files could not be loaded. Try again."}
+                </p>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={history.retry}
+                >
+                  {zh ? "重试历史文件" : "Retry historical files"}
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <div hidden={source !== "file"}>
-        <AssetPicker
-          showHistory={false}
-          kind={kind}
-          allowedSuffixes={formats}
-          value={
-            value?.asset_id ??
-            (invalidRecord ? (recordBase?.asset_id ?? "") : "")
-          }
-          onChange={(id) => void selection.choose(id)}
-          language={language}
-          label={label}
-        />
-      </div>
-      {kind === "ligand" &&
-        !wholeFile &&
-        recordBase &&
-        !recordBase.version_id &&
-        recordFormat === ".sdf" && (
-          <SdfRecordPicker
-            key={recordBase.asset_id + recordBase.sha256}
-            base={recordBase}
-            language={language}
-            onChange={(reference) => {
-              setInvalidRecord(!reference);
-              onChange(reference);
-            }}
-          />
-        )}
-      {selection.loading && (
-        <p role="status">
-          {zh ? "正在核对所选文件…" : "Checking the selected file…"}
-        </p>
-      )}
-      {selection.error && (
-        <div className="error-box">
-          <p role="alert">{error}</p>
-          {selection.error === "unavailable" && (
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={selection.retry}
-            >
-              {zh ? "重新读取文件" : "Retry selected file"}
-            </button>
+          {source === "file" && (
+            <div>
+              <AssetPicker
+                showHistory={false}
+                kind={kind}
+                allowedSuffixes={formats}
+                value={
+                  value?.asset_id ??
+                  (invalidRecord ? (recordBase?.asset_id ?? "") : "")
+                }
+                onChange={(id) => void selection.choose(id)}
+                language={language}
+                label={label}
+              />
+            </div>
+          )}
+          {kind === "ligand" &&
+            !wholeFile &&
+            recordBase &&
+            !recordBase.version_id &&
+            recordFormat === ".sdf" && (
+              <SdfRecordPicker
+                key={recordBase.asset_id + recordBase.sha256}
+                base={recordBase}
+                language={language}
+                onChange={(reference) => {
+                  setInvalidRecord(!reference);
+                  onChange(reference);
+                }}
+              />
+            )}
+          {selection.loading && (
+            <p role="status">
+              {zh ? "正在核对所选文件…" : "Checking the selected file…"}
+            </p>
+          )}
+          {selection.error && (
+            <div className="error-box">
+              <p role="alert">{error}</p>
+              {selection.error === "unavailable" && (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={selection.retry}
+                >
+                  {zh ? "重新读取文件" : "Retry selected file"}
+                </button>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </section>
   );
 }

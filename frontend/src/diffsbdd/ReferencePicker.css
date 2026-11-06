@@ -1,0 +1,115 @@
+.reference-material {
+  min-width: 0;
+  margin: 12px 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.reference-material-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  min-height: 65px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--line);
+  border-radius: 19px 19px 0 0;
+  background: #e3efea;
+}
+.reference-material[data-material-kind="ligand"] .reference-material-heading {
+  background: #f3eae5;
+}
+.reference-material-heading h3.input-purpose {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.studio-app .reference-material-heading .questionnaire-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+}
+.studio-app .reference-material-heading .questionnaire-choices label {
+  width: auto;
+  min-height: 34px;
+  padding: 7px 10px;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+}
+.studio-app .reference-material-heading .questionnaire-choices label.selected {
+  border-color: var(--line);
+  background: var(--surface);
+}
+.studio-app .reference-material-heading .questionnaire-choices label:hover {
+  border-color: var(--accent);
+}
+.reference-material-heading .questionnaire-choices strong {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.reference-material-heading .questionnaire-choices input {
+  margin: 0;
+  flex-shrink: 0;
+}
+.reference-material-heading label:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.reference-material-body {
+  padding: 20px;
+  min-width: 0;
+}
+.reference-material-body > :last-child {
+  margin-bottom: 0;
+}
+.reference-material-body .asset-picker {
+  margin: 0;
+}
+.reference-material-body .file-select {
+  min-height: 72px;
+  padding: 12px 14px;
+  justify-content: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border-style: dashed;
+}
+.reference-material-body .file-select-symbol {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+}
+.reference-material-body .selected-file {
+  width: 100%;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+:root[data-theme="dark"] .reference-material-heading {
+  background: var(--surface-muted);
+}
+@media (max-width: 640px) {
+  .reference-material-heading {
+    align-items: stretch;
+    padding: 14px;
+    gap: 10px;
+  }
+  .reference-material-heading h3.input-purpose {
+    width: 100%;
+  }
+  .studio-app .reference-material-heading .questionnaire-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .studio-app .reference-material-heading .questionnaire-choices label {
+    min-height: 44px;
+    padding: 8px;
+  }
+  .reference-material-body {
+    padding: 14px;
+  }
+}
