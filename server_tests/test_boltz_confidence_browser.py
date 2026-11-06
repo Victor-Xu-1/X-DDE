@@ -111,16 +111,17 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
         # A declared result binds all sidecars as one bundle; a historical task
         # independently verifies only its requested matrix. Neither may display
         # a corrupt PDE, and recovery must reread the same selected source.
-        if not declared:
-            modes.select_option("pae")
+        modes.select_option("pae")
+        if declared:
+            expect(panel.get_by_role("status")).to_contain_text("无法核验")
+            expect(panel.get_by_role("link")).to_have_count(0)
+        else:
             expect(panel.get_by_role("heading", name=re.compile("PAE"))).to_be_visible()
             expect(
                 panel.get_by_role(
                     "link", name="下载完整原生置信度" if zh else "Download full native confidence"
                 )
             ).to_be_visible()
-        else:
-            page.reload()
         modes.select_option("pde")
         expect(panel.get_by_role("status")).to_contain_text(
             "无法核验" if zh else "could not be verified"
