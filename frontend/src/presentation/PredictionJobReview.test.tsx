@@ -112,9 +112,7 @@ it.each(["en", "zh"] as const)(
   async (language) => {
     const { dialog, submit } = await review(language);
     const name = entityInfo.protein.name[language === "zh" ? 0 : 1] + " 1";
-    expect(
-      dialog.getByText(name, { selector: "h3", exact: true }),
-    ).toBeVisible();
+    expect(dialog.getByRole("button", { name: `${name} · 1 M` })).toBeVisible();
     expect(dialog.getByText("847 aa", { exact: true })).toBeVisible();
     expect(submit).not.toHaveBeenCalled();
   },
@@ -145,7 +143,9 @@ it("invalidates the old view and request when prepared input identity changes", 
   const user = userEvent.setup();
   const { dialog, replace, submit } = await review("en");
   await user.click(dialog.getByRole("button", { name: "Request JSON" }));
-  expect(dialog.queryByRole("button", { name: "Download FASTA" })).toBeNull();
+  expect(
+    dialog.queryByRole("button", { name: "Download this sequence FASTA" }),
+  ).toBeNull();
   expect(dialog.getByLabelText("X-DDE submission request")).toBeVisible();
   const next = { ...task, name: "STAT6 · Changed study" };
   replace(next);

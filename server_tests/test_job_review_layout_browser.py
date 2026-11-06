@@ -97,6 +97,13 @@ def test_shared_job_layout_and_retained_native_entity(
             settings = dialog.get_by_role("complementary").bounding_box()
             assert identity and settings and abs(identity["y"] - settings["y"]) < 2
             assert identity["x"] < settings["x"]
+            sequence_view = dialog.locator(".sequence-track-scroll").bounding_box()
+            footer = dialog.locator(":scope > footer").bounding_box()
+            assert sequence_view and footer
+            visible_sequence_height = min(
+                sequence_view["y"] + sequence_view["height"], footer["y"]
+            ) - sequence_view["y"]
+            assert visible_sequence_height >= 160, "Repeated headings displaced the input sequence"
         page.screenshot(path=evidence / "sequence-overview.png")
         entities.first.locator("summary").first.click()
         entities.nth(1).locator("summary").first.click()

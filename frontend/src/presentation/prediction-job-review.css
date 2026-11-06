@@ -22,6 +22,9 @@
 .prediction-job-preview > header {
   padding-block: 16px;
 }
+.prediction-job-preview > footer {
+  padding-block: 14px;
+}
 .job-review-description {
   flex-basis: 100%;
   margin: 0;
@@ -105,7 +108,7 @@
   padding: 0 18px;
 }
 .prediction-job-preview .job-review-tabs button {
-  padding: 14px 0;
+  padding: 12px 0;
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
@@ -146,6 +149,7 @@
   border: 0;
   border-top: 1px solid var(--line);
   border-radius: 0;
+  margin: 0;
 }
 .job-review-overview .prediction-preview-entity:first-child {
   border-top: 0;
@@ -153,7 +157,7 @@
 .job-review-overview .prediction-preview-entity > summary {
   grid-template-columns: 28px minmax(0, 1fr) 12px;
   gap: 4px 12px;
-  padding: 18px;
+  padding: 16px 18px;
   background: transparent;
   border-bottom: 0;
 }
@@ -195,9 +199,20 @@
 .job-review-overview .prediction-preview-metadata dt {
   font-size: 10px;
   margin-bottom: 4px;
+  line-height: 1.4;
 }
 .job-review-overview .prediction-preview-metadata dd {
   font-size: 12px;
+  line-height: 1.4;
+}
+.job-review-overview .sequence-track-compact {
+  padding: 0;
+}
+.job-review-overview .sequence-track-compact footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 .job-review-overview .sequence-track-scroll {
   padding: 8px;
@@ -205,12 +220,13 @@
   border-radius: 8px;
 }
 .job-review-overview .sequence-residue-grid {
-  grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(18px, 1fr));
+  gap: 6px 4px;
 }
 .job-review-overview .sequence-residue-grid button {
   background: transparent;
   border-radius: 3px;
+  color: var(--ink);
 }
 .job-review-overview .sequence-residue-grid button.is-selected {
   background: var(--accent-soft);

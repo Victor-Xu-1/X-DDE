@@ -78,7 +78,11 @@ export function PredictionEntityPreview({
               <>
                 <div>
                   <dt>{zh ? "类型" : "Type"}</dt>
-                  <dd>{name}</dd>
+                  <dd>
+                    {name}
+                    {!!item.chain_ids?.length &&
+                      ` · ${zh ? "链" : "Chain"} ${item.chain_ids.join(", ")}`}
+                  </dd>
                 </div>
                 <div>
                   <dt>{zh ? "副本数" : "Copies"}</dt>
@@ -92,7 +96,7 @@ export function PredictionEntityPreview({
                 )}
               </>
             )}
-            {!!item.chain_ids?.length && (
+            {!showMetadata && !!item.chain_ids?.length && (
               <div>
                 <dt>{zh ? "链" : "Chains"}</dt>
                 <dd>{item.chain_ids.join(", ")}</dd>
@@ -135,6 +139,7 @@ export function PredictionEntityPreview({
             language={language}
             label={label}
             unit={item.kind === "protein" ? "aa" : "nt"}
+            compact={showMetadata}
           />
         ) : item.kind === "ligand" && source ? (
           <>

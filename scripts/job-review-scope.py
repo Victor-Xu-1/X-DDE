@@ -8,6 +8,7 @@ PRODUCTION = {
     "frontend/src/presentation/PredictionReviewDialog.tsx",
     "frontend/src/presentation/PredictionJobSettings.tsx",
     "frontend/src/presentation/PredictionEntityPreview.tsx",
+    "frontend/src/presentation/SequenceTrack.tsx",
     "frontend/src/presentation/prediction-job-review.css",
     "frontend/src/integrations/Mol1JobReview.tsx",
     "frontend/src/integrations/BoltzJobReview.tsx",
@@ -16,6 +17,7 @@ PRODUCTION = {
 }
 FILES = PRODUCTION | {
     TEST,
+    "frontend/src/presentation/SequenceTrack.test.tsx",
     BROWSER,
     "server_tests/job_review_scene_case.py",
     "server_tests/test_fold_msa_sources_browser.py",

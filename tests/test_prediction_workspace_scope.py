@@ -23,6 +23,13 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
     assert scope.final_review_only(changes)
     assert scope.prediction_only(changes)
     assert scope.final_review_changed(changes)
+    assert scope.job_review_layout_only(
+        changes
+        + [
+            "frontend/src/presentation/SequenceTrack.tsx",
+            "frontend/src/presentation/SequenceTrack.test.tsx",
+        ]
+    )
     for unrelated in (
         "src/opendde_workbench/backend.py",
         "frontend/src/operations/useTaskSubmit.ts",
@@ -51,6 +58,7 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
     assert 'WB_DOCKING_VISUAL_STATE="$WB_STATE_DIR"' in native
     assert 'WB_TERNARY_VISUAL_STATE="$WB_STATE_DIR"' in native
     assert "server_tests/job_review_scene_case.py" in native
+    assert "src/presentation/SequenceTrack.test.tsx" in workflow
     assert (
         '      - "server_tests/job_review_scene_case.py"' in workflow.split("  pull_request:", 1)[0]
     )

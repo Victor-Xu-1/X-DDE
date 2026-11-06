@@ -181,3 +181,10 @@ adapter, never inferred from translated labels. The focused CI checks all seven
 native consumers with isolated real files and existing drawing components; no
 owner installation, inference or global suite is part of this interface gate.
 Candidate CI, independent visual review and official4322 delivery remain required.
+Fixed-viewport comparison additionally requires a useful first-screen sequence
+area. Job entities keep chain IDs inline with type metadata and use the existing
+sequence viewer's compact presentation, with unchanged positions and byte-exact
+FASTA export below the sequence. Input-only and result sequence viewers retain
+their default presentation. This opt-in variant has bilingual sequence/export
+checks and a native viewport assertion; a title being present alone is insufficient
+evidence that researchers can inspect the sequence.
