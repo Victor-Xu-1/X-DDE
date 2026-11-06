@@ -7,6 +7,7 @@ on:
       - "frontend/src/tokens.css"
       - "frontend/src/studio/InterfaceSettings*"
       - "frontend/src/design/preferences.css"
+      - "frontend/src/design/theme-preferences.css"
       - "frontend/src/design/workspaces.css"
       - "scripts/appearance-scope.py"
       - "tests/test_appearance_scope.py"

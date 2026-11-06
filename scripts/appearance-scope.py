@@ -13,6 +13,7 @@ SOURCES = {
     "frontend/src/studio/InterfaceSettings.tsx",
     "frontend/src/studio/InterfaceSettings.test.tsx",
     "frontend/src/design/preferences.css",
+    "frontend/src/design/theme-preferences.css",
     "server_tests/test_appearance_browser.py",
 }
 FILES = SOURCES | {
@@ -34,6 +35,7 @@ FILES = SOURCES | {
     "install.ps1",
 }
 WORKSPACES = "frontend/src/design/workspaces.css"
+PREFERENCES = "frontend/src/design/preferences.css"
 CLEANUPS = {
     "  .model-grid,\n  .theme-options {": "  .model-grid {",
     (
@@ -54,25 +56,46 @@ def workspace_cleanup_only(before, after):
     return re.sub(r"\s+", " ", before).strip() == re.sub(r"\s+", " ", after).strip()
 
 
-def selected(changed, event="push", before=None, after=None):
+def preferences_cleanup_only(before, after):
+    if not isinstance(before, str) or not isinstance(after, str):
+        return False
+    try:
+        prefix = before[: before.index(".theme-options {")]
+        start = before.index('.studio-app .studio-topbar .global-search input[type="search"] {')
+        end = before.index(".theme-option > input {", start)
+        warning = before[before.index(".preference-warning {") :]
+    except ValueError:
+        return False
+    expected = prefix + before[start:end] + warning
+    return re.sub(r"\s+", " ", expected).strip() == re.sub(r"\s+", " ", after).strip()
+
+
+def selected(changed, event="push", before=None, after=None, pref_before=None, pref_after=None):
     changed = set(changed)
     return (
         event in {"push", "pull_request"}
         and bool(changed & SOURCES)
         and changed <= FILES
         and (WORKSPACES not in changed or workspace_cleanup_only(before, after))
+        and (PREFERENCES not in changed or preferences_cleanup_only(pref_before, pref_after))
     )
 
 
 def from_git(changed, base, event="push"):
     before = after = None
-    if WORKSPACES in changed:
-        try:
+    pref_before = pref_after = None
+    try:
+        if WORKSPACES in changed:
             before = subprocess.check_output(["git", "show", f"{base}:{WORKSPACES}"], text=True)
             after = subprocess.check_output(["git", "show", f"HEAD:{WORKSPACES}"], text=True)
-        except subprocess.CalledProcessError:
-            return False
-    return selected(changed, event, before, after)
+        if PREFERENCES in changed:
+            pref_before = subprocess.check_output(
+                ["git", "show", f"{base}:{PREFERENCES}"], text=True
+            )
+            pref_after = subprocess.check_output(["git", "show", f"HEAD:{PREFERENCES}"], text=True)
+    except subprocess.CalledProcessError:
+        return False
+    return selected(changed, event, before, after, pref_before, pref_after)
 
 
 def main():

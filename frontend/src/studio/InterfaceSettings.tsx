@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 import { THEMES, useTheme } from "../theme";
+import "../design/theme-preferences.css";
 
 export function InterfaceSettings({
   language,
@@ -13,17 +14,21 @@ export function InterfaceSettings({
   const zh = language === "zh";
   const { theme, setTheme, storageWarning: themeStorageWarning } = useTheme();
   const themeLabels = {
-    light: {
-      name: zh ? "浅色" : "Light",
+    warm: {
+      name: zh ? "暖色" : "Warm",
       description: zh
-        ? "浅灰背景与白色工作区，默认主题"
-        : "Light gray canvas and white workspaces · Default",
+        ? "柔和米白背景，温暖舒适"
+        : "Soft ivory canvas and warm surfaces",
+    },
+    light: {
+      name: zh ? "白色" : "White",
+      description: zh ? "白色背景，清晰明亮" : "A crisp white workspace",
     },
     dark: {
-      name: zh ? "深色" : "Dark",
+      name: zh ? "夜间黑色" : "Night black",
       description: zh
-        ? "深色背景，适合暗光环境"
-        : "Dark surfaces for low light",
+        ? "黑色背景，适合暗光环境"
+        : "Black surfaces for low light",
     },
   };
   return (

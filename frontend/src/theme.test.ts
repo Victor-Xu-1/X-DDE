@@ -32,8 +32,9 @@ async function startTheme() {
 
 describe("theme persistence", () => {
   it.each([
-    ["light", "#faf8f3"],
-    ["dark", "#151c20"],
+    ["warm", "#faf8f3"],
+    ["light", "#ffffff"],
+    ["dark", "#0c0f14"],
   ])("restores the saved %s theme", async (saved, color) => {
     localStorage.setItem("x-dde-theme", saved);
     const theme = await startTheme();
@@ -48,13 +49,13 @@ describe("theme persistence", () => {
     );
   });
 
-  it.each([null, "", "warm", "sepia", "DARK"])(
-    "uses light for an absent, invalid or retired preference (%s)",
+  it.each([null, "", "sepia", "DARK"])(
+    "uses warm for an absent or invalid preference (%s)",
     async (saved) => {
       if (saved !== null) localStorage.setItem("x-dde-theme", saved);
       const theme = await startTheme();
       expect(theme.getThemeSnapshot()).toEqual({
-        theme: "light",
+        theme: "warm",
         storageWarning: false,
       });
     },
@@ -71,7 +72,7 @@ describe("theme persistence", () => {
     });
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
       "content",
-      "#151c20",
+      "#0c0f14",
     );
   });
 
@@ -81,7 +82,7 @@ describe("theme persistence", () => {
     });
     const theme = await startTheme();
     expect(theme.getThemeSnapshot()).toEqual({
-      theme: "light",
+      theme: "warm",
       storageWarning: true,
     });
     theme.setTheme("dark");
@@ -137,7 +138,7 @@ describe("theme persistence", () => {
     window.dispatchEvent(
       new StorageEvent("storage", { key: null, storageArea: localStorage }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("light");
+    expect(theme.getThemeSnapshot().theme).toBe("warm");
     expect(write).not.toHaveBeenCalled();
   });
 
@@ -151,7 +152,7 @@ describe("theme persistence", () => {
         storageArea: localStorage,
       }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("light");
+    expect(theme.getThemeSnapshot().theme).toBe("warm");
     stopSync?.();
     stopSync = undefined;
     window.dispatchEvent(
@@ -161,12 +162,12 @@ describe("theme persistence", () => {
         storageArea: localStorage,
       }),
     );
-    expect(theme.getThemeSnapshot().theme).toBe("light");
+    expect(theme.getThemeSnapshot().theme).toBe("warm");
   });
 });
 
 describe("theme before the app loads", () => {
-  it.each(["light", "dark"])(
+  it.each(["warm", "light", "dark"])(
     "restores %s in the synchronous bootstrap and hands it to React",
     async (saved) => {
       localStorage.setItem("x-dde-theme", saved);
@@ -182,12 +183,12 @@ describe("theme before the app loads", () => {
     },
   );
 
-  it.each(["unsupported", "warm"])(
-    "uses the light default for invalid bootstrap data (%s)",
+  it.each(["unsupported", "sepia"])(
+    "uses the warm default for invalid bootstrap data (%s)",
     (saved) => {
       localStorage.setItem("x-dde-theme", saved);
       new Function(bootstrapScript)();
-      expect(document.documentElement.dataset.theme).toBe("light");
+      expect(document.documentElement.dataset.theme).toBe("warm");
     },
   );
 
@@ -196,7 +197,7 @@ describe("theme before the app loads", () => {
       throw new DOMException("Storage is disabled", "SecurityError");
     });
     new Function(bootstrapScript)();
-    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.dataset.theme).toBe("warm");
     const theme = await startTheme();
     expect(theme.getThemeSnapshot().storageWarning).toBe(true);
   });
@@ -228,7 +229,7 @@ function luminance(hex: string) {
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
 }
 
-it.each(["light", "dark"])(
+it.each(["warm", "light", "dark"])(
   "%s text, actions and status colors meet normal-text contrast",
   (theme) => {
     document.documentElement.dataset.theme = theme;

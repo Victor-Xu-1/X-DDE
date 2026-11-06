@@ -679,3 +679,13 @@ variants, seeds or runtime parameters are interchangeable. Calculation-plan CI
 covers exact budgets, direct form/validation consumers and compiled bilingual
 review without submitting or running scientific work.
 
+# Workbench appearance
+
+Settings exposes three palettes: Warm (the retained ivory workspace and default
+for an unsaved preference), White, and Night black. Palette tokens remain shared
+by the workbench, dialogs, tables and the same-origin molecular preview. The
+synchronous same-origin bootstrap and React store recognize the same three keys;
+explicit stored light/dark choices retain their identifiers. Storage failures do
+not prevent applying a requested palette. Theme swatches and responsive settings
+layout have one stylesheet, theme-preferences.css; legacy copies are removed.
+
