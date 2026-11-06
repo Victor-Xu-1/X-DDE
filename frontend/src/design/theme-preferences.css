@@ -28,6 +28,8 @@
   position: relative;
   min-width: 0;
   display: grid;
+  grid-template-rows: 104px auto 1fr;
+  align-content: start;
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--line);
@@ -115,6 +117,7 @@
   }
   .theme-option {
     grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto auto;
     grid-template-areas: "preview title" "preview description";
     align-items: center;
     gap: 6px 14px;
