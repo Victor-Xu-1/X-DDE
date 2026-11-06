@@ -117,3 +117,28 @@
     padding: 14px;
   }
 }
+
+.reference-material .sequence-material-text {
+  height: 128px;
+  min-height: 128px;
+  padding: 14px;
+  border-radius: 8px;
+  font-family: "JetBrains Mono", var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .studio-app
+    .reference-material[data-material-kind="sequences"]
+    .reference-material-heading
+    .questionnaire-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .reference-material[data-material-kind="sequences"]
+    .reference-material-heading
+    .questionnaire-choices
+    label {
+    align-items: flex-start;
+    padding: 8px 6px;
+  }
+}

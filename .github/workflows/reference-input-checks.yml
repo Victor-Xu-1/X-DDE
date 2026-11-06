@@ -15,6 +15,7 @@ on:
       - "scripts/material-input-scope.py"
       - "tests/test_material_input_scope.py"
       - "server_tests/test_material_sources_browser.py"
+      - "server_tests/test_sequence_material_browser.py"
       - ".github/workflows/reference-input-checks.yml"
       - "frontend/src/diffsbdd/ReferencePicker*"
       - "frontend/src/diffsbdd/reference-metadata*"
@@ -41,6 +42,10 @@ on:
       - "frontend/src/operations/useAssetUpload*"
       - "frontend/src/operations/useSelectedAsset*"
       - "frontend/src/research/SequencePicker*"
+      - "frontend/src/research/MaterialInput*"
+      - "frontend/src/research/material-input.css"
+      - "frontend/src/research/SequenceTextInput*"
+      - "frontend/src/research/useSequenceSources*"
       - "frontend/src/research/useSequenceSave*"
       - "frontend/src/research/HistoricalFileSelect*"
       - "frontend/src/research/HistoryFileControls*"
@@ -104,12 +109,15 @@ jobs:
           src/pockets/PocketForm.test.tsx src/docking/DockingForm.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/proximity/Form.test.tsx
           src/operations/AssetPicker.test.tsx
+          src/research/SequencePickerRetention.test.tsx
+          src/research/SequencePicker.test.tsx src/research/useSequenceSave.test.tsx
+          src/antibodies/AntibodyNumberForm.test.tsx src/humanization/HumanizationForm.test.tsx
       - run: uv sync --locked --group dev --group browser
       - run: uv run --locked pytest -q tests/test_material_input_scope.py
-      - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py
+      - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py
       - run: uv run --locked playwright install chromium --with-deps
       - name: Real bilingual STAT6 material upload, source lifecycle and layout; no computation
-        run: uv run --locked python -m pytest -x -q server_tests/test_material_sources_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_material_sources_browser.py server_tests/test_sequence_material_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
