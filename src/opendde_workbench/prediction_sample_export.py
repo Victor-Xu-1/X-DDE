@@ -158,6 +158,18 @@ def sample_zip(root, job, candidate, sealed=None):
     files = {"structure": structure}
     if summary:
         files["confidence_summary"] = summary
+    if job.request.operation == "boltz_predict":
+        from .integrations.boltz_result import confidence_files, validate_boltz_result
+
+        result, _ = retained_native_result(root, job.request)
+        validate_boltz_result(result, job.request)
+        for role, name in confidence_files(result.boltz, candidate).items():
+            remaining = 128 * 1024**2 - sum(len(body) for _, body in files.values())
+            if remaining <= 0:
+                raise ValueError("Selected prediction sources exceed their combined export limit.")
+            files[role] = verified(
+                root / "output", name, result.artifact_sha256[name], min(64 * 1024**2, remaining)
+            )
     manifest = {
         "schema_version": 1,
         "source_job": job.id,

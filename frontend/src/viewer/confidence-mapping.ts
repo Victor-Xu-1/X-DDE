@@ -28,13 +28,14 @@ export async function mapNativeConfidence(
   source: { url: string; sha256: string; text: string },
   atoms: AtomSpec[],
 ): Promise<MappedConfidence> {
+  const boltz = binding.protocol === "boltz-2.2.1-cif-row-v1";
   if (
-    binding.protocol !== "opendde-cif-row-v1" ||
+    (!boltz && binding.protocol !== "opendde-cif-row-v1") ||
     binding.url !== source.url ||
     binding.structure_sha256 !== source.sha256 ||
     !/^[a-f0-9]{64}$/.test(binding.confidence_sha256) ||
     !/^[a-f0-9]{64}$/.test(source.sha256) ||
-    !source.text.slice(0, 512).includes("_predicted_by_opendde")
+    (!boltz && !source.text.slice(0, 512).includes("_predicted_by_opendde"))
   )
     fail();
   const scores = binding.atom_plddt,
@@ -52,7 +53,8 @@ export async function mapNativeConfidence(
     links.some(
       (v) => !Number.isSafeInteger(v) || v < 0 || v >= chains.length,
     ) ||
-    chains.some((v) => !Number.isSafeInteger(v) || v < 0)
+    chains.some((v) => !Number.isSafeInteger(v) || v < 0) ||
+    (boltz && binding.native_atom_identity?.length !== scores.length)
   )
     fail();
   const parsed = await parseCifText(source.text).run();
@@ -81,6 +83,7 @@ export async function mapNativeConfidence(
     atomTokens = new Map<number, number>(),
     residueValues = new Map<string, number[]>();
   const tokens = new Map<number, ConfidenceToken>(),
+    tokenAtoms = new Map<number, string>(),
     asymToChain = new Map<number, string>(),
     chainToAsym = new Map<string, number>();
   for (let i = 0; i < site.rowCount; i++) {
@@ -93,9 +96,14 @@ export async function mapNativeConfidence(
     const chain = read("auth_asym_id", i),
       resn = read("auth_comp_id", i),
       resi = Number(read("auth_seq_id", i));
-    const atom = renderer.get(
-      identity(chain, resn, resi, read("auth_atom_id", i)),
-    );
+    const atomName = read(boltz ? "label_atom_id" : "auth_atom_id", i);
+    if (
+      boltz &&
+      JSON.stringify(binding.native_atom_identity![i]) !==
+        JSON.stringify([read("label_asym_id", i), resn, resi, atomName])
+    )
+      return fail();
+    const atom = renderer.get(identity(chain, resn, resi, atomName));
     if (!atom || atomScores.has(atom.index!)) return fail();
     const coordinates = ["Cartn_x", "Cartn_y", "Cartn_z"].map((f) =>
       Number(read(f, i)),
@@ -111,7 +119,10 @@ export async function mapNativeConfidence(
     const b = Number(read("B_iso_or_equiv", i));
     // Native JSON is rounded to two decimal fractions; CIF retains hundredths of a percent.
     // This is corroboration of the proven writer order, never the source of confidence.
-    if (!Number.isFinite(b) || Math.abs(b - scores[i] * 100) > 0.511)
+    if (
+      !Number.isFinite(b) ||
+      Math.abs(b - scores[i] * 100) > (boltz ? 0.00051 : 0.511)
+    )
       return fail();
     const residue = residueRef(atom),
       token = links[i],
@@ -132,6 +143,7 @@ export async function mapNativeConfidence(
       residue: residue.key,
       label: residueLabel(residue),
     });
+    tokenAtoms.set(token, atomName);
     atomScores.set(atom.index!, scores[i] * 100);
     atomTokens.set(atom.index!, token);
     const values = residueValues.get(residue.key) ?? [];
@@ -139,6 +151,12 @@ export async function mapNativeConfidence(
     residueValues.set(residue.key, values);
   }
   if (tokens.size !== chains.length) return fail();
+  const residueTokens = new Map<string, number>();
+  for (const token of tokens.values())
+    residueTokens.set(
+      token.residue,
+      (residueTokens.get(token.residue) ?? 0) + 1,
+    );
   return {
     key: confidenceIdentity(binding),
     atomScores,
@@ -149,6 +167,15 @@ export async function mapNativeConfidence(
         values.reduce((a, b) => a + b, 0) / values.length,
       ]),
     ),
-    tokens: [...tokens.values()].sort((a, b) => a.index - b.index),
+    tokens: [...tokens.values()]
+      .sort((a, b) => a.index - b.index)
+      .map((token) =>
+        boltz && residueTokens.get(token.residue)! > 1
+          ? {
+              ...token,
+              label: `${token.label} · ${tokenAtoms.get(token.index)}`,
+            }
+          : token,
+      ),
   };
 }

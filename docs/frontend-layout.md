@@ -97,8 +97,8 @@ renderer provides zoom, pan, hover and figure export for PAE/PDE/contact maps;
 the old separate heatmap canvas is retired. Missing confidence remains explicit.
 Changing candidates cannot reuse a previous candidate's late confidence response.
 Native token and atom indices are not relabeled as residue numbers; no unverified
-PAE-to-residue mapping is invented. Boltz's 0–1 pLDDT and Mol-1/OpenDDE's 0–100
-values retain their reported scales and units.
+PAE-to-residue mapping is invented. Summary scores retain their reported scales;
+native fractional pLDDT arrays are explicitly converted to a 0–100 display axis.
 
 The prediction viewer's chain menu displays the actual native chain identifiers,
 including unnamed and multi-character IDs. Hide, show, only and restore update
@@ -659,6 +659,29 @@ The full native OpenDDE CIF can expose confidence coloring and linked sequence/P
 The reviewed native dumper writes the complete AtomArray to CIF without an output mask and serializes atom/token confidence in that same order ([writer](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/runner/dumper.py), [CIF serialization](https://github.com/aurekaresearch/OpenDDE/blob/9d0d9c975178074c1ce722d2d6eefac8b7057062/opendde/data/utils.py)). The adapter additionally validates all array dimensions, tokens and units; the viewer resolves each original CIF row to a unique renderer atom by chain/residue/atom identity and original coordinates. Atom serials, numeric chain offsets and experimental B-factors are never confidence authorities. CIF pLDDT stored in B fields only corroborates the known native writer order within its rounding tolerance. Missing, duplicate, filtered, alternate-location, insertion-code or multi-model records whose identities cannot be proven retain chain colors and the valid native matrix/download.
 
 Residue confidence is the mean of its native atom pLDDT values. PAE keeps native token axes and labels the corresponding real residue; multiple ligand atom tokens can refer to one residue. Chain borders come from the observed mapping. Point selection and double-axis range selection use mapped atoms, clear scientific atom-pick callbacks, respect hidden chains and share the existing renderer completion/export gate. Matrix navigation does not change a user's chosen color scheme. Experimental structures and other adapters without this verified binding keep their existing styles; further native protocol adapters remain separately gated.
+
+### Retained Boltz confidence
+
+Boltz-2 2.2.1 results use the same confidence route, Plotly inspector, sequence
+selection and molecular viewer as the shared prediction workspace. Native PAE
+and PDE retain their orientation, indices and angstrom units. Native token pLDDT
+is converted from 0–1 to 0–100 for display; polymer-residue tokens and individual
+ligand-atom tokens are distinct. Ligand element colors remain unchanged.
+
+The bounded NumPy-format reader never imports a scientific runtime, loads pickle
+or extracts an archive. It checks all matrix values before display sampling.
+Processed structure tables supply the pinned tokenizer identities; exact CIF
+identity, coordinates and writer pLDDT rounding corroborate renderer linkage.
+Unsupported correspondence leaves a numerical preview and raw download with
+linking explicitly disabled. Missing and invalid sources have separate retry states.
+
+New adapter outputs declare ranked-sample associations and checksum-bound full
+matrices and processed metadata. The selected-sample and job archives include
+these original files. Historical unsealed confidence is labeled as such: a
+content-matched native CIF establishes current correspondence, not a retroactive
+completion-time seal. No historical result, pin or scientific file is rewritten.
+Native matrix downloads bind the displayed file fingerprint and return its exact
+byte snapshot; a changed source requires reloading the preview. No model is run.
 
 ### Boltz chain alignment input
 

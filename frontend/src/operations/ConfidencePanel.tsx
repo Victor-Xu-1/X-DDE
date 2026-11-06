@@ -5,24 +5,14 @@ import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { Language } from "../types";
 import type {
   ConfidenceBinding,
-  NativeConfidence,
   ConfidenceInspection,
 } from "../viewer/confidence-types";
+import { ConfidencePlddt } from "./ConfidencePlddt";
+import { ConfidenceDownload } from "./ConfidenceDownload";
+import type { Confidence } from "./confidence-data";
 import { confidencePlotLayout } from "./confidence-plot";
 
-interface Confidence {
-  metric: string;
-  token_count: number;
-  indices: number[];
-  stride: number;
-  matrix: number[][];
-  atom_plddt: { index: number; value: number }[];
-  atom_stride: number;
-  atom_plddt_unit?: string;
-  native_artifact: string;
-  structure_artifact?: string;
-  binding?: NativeConfidence | null;
-}
+type ConfidenceMetric = "pae" | "pde" | "contacts";
 
 export function ConfidencePanel({
   jobId,
@@ -33,6 +23,7 @@ export function ConfidencePanel({
   selectedResidues = [],
   selectedTokens = [],
   onTokens,
+  metrics,
 }: {
   jobId: string;
   candidate: string;
@@ -42,9 +33,11 @@ export function ConfidencePanel({
   selectedResidues?: string[];
   selectedTokens?: number[];
   onTokens?(tokens: number[]): void;
+  metrics?: readonly [ConfidenceMetric, ...ConfidenceMetric[]];
 }) {
   const zh = language === "zh";
-  const [metric, setMetric] = useState("pae");
+  const [choice, setMetric] = useState<ConfidenceMetric>("pae");
+  const metric = !metrics || metrics.includes(choice) ? choice : metrics[0];
   const [attempt, setAttempt] = useState(0);
   const [borders, setBorders] = useState(true);
   const bindingCallback = useRef(onBinding);
@@ -56,7 +49,7 @@ export function ConfidencePanel({
   const [state, setState] = useState<{
     key: string;
     data?: Confidence;
-    error?: string;
+    error?: number | "request";
   }>({ key: "" });
   useEffect(() => {
     const controller = new AbortController();
@@ -71,14 +64,21 @@ export function ConfidencePanel({
         if (!controller.signal.aborted) setState({ key, data });
       })
       .catch((error) => {
-        if (!controller.signal.aborted) setState({ key, error: String(error) });
+        if (!controller.signal.aborted)
+          setState({
+            key,
+            error: typeof error?.status === "number" ? error.status : "request",
+          });
       });
     return () => controller.abort();
   }, [jobId, candidate, metric, key]);
   const data = state.key === key ? state.data : undefined;
   const error = state.key === key ? state.error : undefined;
   useEffect(() => {
-    if (!data) return;
+    if (!data) {
+      bindingCallback.current?.(null);
+      return;
+    }
     bindingCallback.current?.(
       data.binding && data.structure_artifact
         ? {
@@ -90,13 +90,6 @@ export function ConfidencePanel({
         : null,
     );
   }, [data, jobId, candidate]);
-  const atomScores =
-    data?.atom_plddt_unit === "0-1" &&
-    data.atom_plddt.every(
-      (row) => Number.isFinite(row.value) && row.value >= 0 && row.value <= 1,
-    )
-      ? data.atom_plddt.map((row) => 100 * row.value)
-      : null;
   const labels: Record<string, string> = {
     pae: zh ? "预测对齐误差 PAE" : "Predicted aligned error (PAE)",
     pde: zh ? "预测距离误差 PDE" : "Predicted distance error (PDE)",
@@ -113,13 +106,20 @@ export function ConfidencePanel({
             {zh ? "置信度视图" : "Confidence view"}
             <select
               value={metric}
-              onChange={(event) => setMetric(event.target.value)}
+              onChange={(event) =>
+                setMetric(event.target.value as ConfidenceMetric)
+              }
             >
-              {Object.entries(labels).map(([id, label]) => (
-                <option value={id} key={id}>
-                  {label}
-                </option>
-              ))}
+              {Object.entries(labels)
+                .filter(
+                  ([id]) =>
+                    !metrics || metrics.includes(id as ConfidenceMetric),
+                )
+                .map(([id, label]) => (
+                  <option value={id} key={id}>
+                    {label}
+                  </option>
+                ))}
             </select>
           </label>
           {inspection && (
@@ -137,7 +137,19 @@ export function ConfidencePanel({
     >
       {error ? (
         <div role="status" className="notice">
-          <p>{error}</p>
+          <p>
+            {error === 404
+              ? zh
+                ? "此构象没有保留所选视图的原生置信度矩阵。"
+                : "No native confidence matrix was retained for this view of the selected structure."
+              : error === 422
+                ? zh
+                  ? "无法核验此构象的置信度数据。原始结构和文件保持不变。"
+                  : "Confidence could not be verified for this structure. Its original files are preserved."
+                : zh
+                  ? "暂时无法读取置信度，请重试。"
+                  : "Confidence could not be loaded. Please retry."}
+          </p>
           <button
             type="button"
             onClick={() => setAttempt((value) => value + 1)}
@@ -189,9 +201,18 @@ export function ConfidencePanel({
                       `${inspection?.tokens[x]?.label ?? x} · ${inspection?.tokens[y]?.label ?? y}`,
                   ),
                 ),
-                hovertemplate: "%{text}<br>%{z}<extra></extra>",
+                hovertemplate:
+                  metric === "contacts"
+                    ? "%{text}<br>%{z:.3f}<extra></extra>"
+                    : "%{text}<br>%{z:.2f} Å<extra></extra>",
                 zmin: 0,
-                zmax: metric === "contacts" ? 1 : 30,
+                zmax:
+                  metric === "contacts"
+                    ? 1
+                    : data.matrix.reduce(
+                        (max, row) => row.reduce((m, v) => Math.max(m, v), max),
+                        30,
+                      ),
                 colorbar: {
                   title: {
                     text:
@@ -233,44 +254,32 @@ export function ConfidencePanel({
                 ? " 原始 token 索引不等同于残基编号。"
                 : " Native token indices are not residue numbers."}
           </p>
-          {data.atom_plddt.length > 0 && atomScores !== null && (
-            <details>
-              <summary>{zh ? "逐原子置信度" : "Atom confidence"}</summary>
-              <InteractivePlot
-                title="Atom pLDDT"
-                language={language}
-                height={220}
-                data={[
-                  {
-                    type: "scatter",
-                    mode: "lines",
-                    x: data.atom_plddt.map((row) => row.index),
-                    y: atomScores,
-                    name: "pLDDT",
-                  },
-                ]}
-                layout={{
-                  xaxis: {
-                    title: { text: zh ? "原始原子索引" : "Native atom index" },
-                  },
-                  yaxis: { title: { text: "pLDDT (0–100)" }, range: [0, 100] },
-                }}
-              />
-              <p className="small">
-                {zh ? "显示步长" : "Display stride"} {data.atom_stride}
-              </p>
-            </details>
-          )}
-          {data.atom_plddt.length > 0 && atomScores === null && (
-            <p role="status" className="small">
+          <ConfidencePlddt
+            data={data}
+            language={language}
+            inspection={inspection}
+            onTokens={onTokens}
+          />
+          <ConfidenceDownload
+            job={jobId}
+            candidate={candidate}
+            data={data}
+            language={language}
+          />
+          {data.source_integrity === "current_files" && (
+            <p className="small">
               {zh
-                ? "逐原子置信度的数值范围尚无法核验，请下载原生数据查看。"
-                : "The atom-confidence scale could not be verified. Download the native data to inspect it."}
+                ? "对应关系已按此任务保留的文件核对；原始置信度文件未记录完成时的校验信息。"
+                : "Correspondence checked against retained task files; original confidence-file integrity was not recorded at completion."}
             </p>
           )}
-          <a href={artifactUrl(jobId, data.native_artifact)} download>
-            {zh ? "下载完整原生置信度" : "Download full native confidence"}
-          </a>
+          {data.mapping_status === "unsupported" && (
+            <p role="status" className="small">
+              {zh
+                ? "此文件的结构对应关系暂不受支持；可查看矩阵和下载原生数据，三维联动未启用。"
+                : "Structural correspondence is unsupported for this file. Matrix inspection and native downloads remain available; 3D linking is disabled."}
+            </p>
+          )}
         </>
       )}
     </PredictionConfidenceCard>

@@ -64,6 +64,19 @@ export interface NativeInteraction {
   bridge_position?: [number, number, number] | null;
 }
 export interface NativeResult {
+  boltz?: {
+    protocol: "boltz-2.2.1-cif-row-v1";
+    writer_version: "2.2.1";
+    mapping_artifact: "boltz-processed-structure.npz" | null;
+    samples: {
+      candidate_id: string;
+      native_rank: number;
+      structure_artifact: string;
+      pae_artifact: string | null;
+      pde_artifact: string | null;
+      plddt_artifact: string | null;
+    }[];
+  } | null;
   mol1?: {
     model: "mol-1-base";
     samples: {

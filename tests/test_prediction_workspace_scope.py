@@ -8,6 +8,36 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
+    changed = [
+        "src/opendde_workbench/boltz_confidence.py",
+        "src/opendde_workbench/native_arrays.py",
+        "src/opendde_workbench/integrations/boltz_result.py",
+        "src/opendde_workbench/integrations/result.py",
+        "src/opendde_workbench/science_routes.py",
+        "src/opendde_workbench/prediction_archive.py",
+        "frontend/src/viewer/confidence-mapping.ts",
+        "frontend/src/presentation/usePredictionConfidence.ts",
+        "frontend/src/integrations/ScientificResults.tsx",
+        "server_tests/test_boltz_confidence_format.py",
+        ".github/workflows/scientific-upgrade-checks.yml",
+    ]
+    assert scope.boltz_confidence_only(changed)
+    assert scope.native_confidence_only(changed)
+    assert scope.confidence_changed(changed)
+    assert scope.prediction_only(changed, "push")
+    assert scope.prediction_only(changed, "pull_request")
+    assert not scope.prediction_only(changed, "workflow_dispatch")
+    for name in (
+        "src/opendde_workbench/api.py",
+        "src/opendde_workbench/integrations/options.py",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/App.tsx",
+    ):
+        assert not scope.boltz_confidence_only(changed + [name])
+    assert not scope.boltz_confidence_only(["pyproject.toml"])
+
+
 def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof():
     test = "frontend/src/presentation/PredictionJobReview.test.tsx"
     browser = "server_tests/test_job_review_layout_browser.py"

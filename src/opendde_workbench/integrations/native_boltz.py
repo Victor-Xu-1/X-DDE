@@ -68,12 +68,17 @@ def run(request):
             "0",
             "--output_format",
             "mmcif",
+            "--write_full_pae",
+            "--write_full_pde",
         ]
     )
     predicted = sorted(raw.rglob("prediction_model_*.cif"))
     if len(predicted) != payload["samples"]:
         raise ValueError("Boltz did not produce the requested number of native structures.")
-    candidates = []
+    candidates, confidence_samples = [], []
+    processed = raw / "boltz_results_prediction/processed/structures/prediction.npz"
+    if processed.is_file():
+        copy_artifact(processed, "boltz-processed-structure.npz")
     for index, file in enumerate(predicted):
         report = file.with_name("confidence_" + file.stem + ".json")
         if not report.is_file():
@@ -86,6 +91,19 @@ def run(request):
         ]
         name = copy_artifact(file, f"structure-{index + 1:03d}.cif")
         copy_artifact(report, f"{Path(name).stem}-confidence.json")
+        sample = {
+            "candidate_id": Path(name).stem,
+            "native_rank": int(file.stem.rsplit("_", 1)[1]),
+            "structure_artifact": name,
+        }
+        # Preserve the writer's exact ranked sidecars, not a reconstructed matrix.
+        for field in ("pae", "pde", "plddt"):
+            source = file.with_name(f"{field}_{file.stem}.npz")
+            if source.is_file():
+                sample[field + "_artifact"] = copy_artifact(
+                    source, f"{Path(name).stem}-{field}.npz"
+                )
+        confidence_samples.append(sample)
         candidates.append(
             {
                 "id": f"structure-{index + 1:03d}",
@@ -114,4 +132,15 @@ def run(request):
         ["Structure", "Metric", "Value", "Unit"],
         [[c["id"], m["name"], m["value"], m["unit"]] for c in candidates for m in c["metrics"]],
     )
-    finish(request, version("boltz"), candidates, affinity_metrics)
+    finish(
+        request,
+        version("boltz"),
+        candidates,
+        affinity_metrics,
+        boltz={
+            "protocol": "boltz-2.2.1-cif-row-v1",
+            "writer_version": version("boltz"),
+            "mapping_artifact": "boltz-processed-structure.npz" if processed.is_file() else None,
+            "samples": confidence_samples,
+        },
+    )

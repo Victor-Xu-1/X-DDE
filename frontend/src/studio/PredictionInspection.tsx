@@ -1,14 +1,11 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { ConfidencePanel } from "../operations/ConfidencePanel";
 import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
 import { PredictionSamples } from "../presentation/PredictionSamples";
 import { predictionSampleIdentity } from "../presentation/PredictionSampleIdentity";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { Analysis, Candidate, Job, Language } from "../types";
-import type {
-  ConfidenceBinding,
-  ConfidenceInspection,
-} from "../viewer/confidence-types";
+import { usePredictionConfidence } from "../presentation/usePredictionConfidence";
 import { StructureViewer } from "../viewer/StructureViewer";
 
 export function PredictionInspection(p: {
@@ -22,34 +19,6 @@ export function PredictionInspection(p: {
   onCandidate(id: string): void;
 }) {
   const [sequenceHost, setSequenceHost] = useState<HTMLDivElement | null>(null);
-  const selectedKey = `${p.job?.id}:${p.candidate?.id}`;
-  const [annotation, setAnnotation] = useState<{
-    key: string;
-    value: ConfidenceBinding | null;
-  }>();
-  const [inspection, setInspection] = useState<{
-    key: string;
-    value: ConfidenceInspection | null;
-  }>();
-  const [residueSelection, setResidueSelection] = useState<{
-    key: string;
-    value: string[];
-  }>();
-  const [tokenSelection, setTokenSelection] = useState<{
-    key: string;
-    tokens: number[];
-    nonce: number;
-  } | null>(null);
-  const [actualTokens, setActualTokens] = useState<{
-    key: string;
-    tokens: number[];
-  } | null>(null);
-  const receiveBinding = useCallback(
-    (value: ConfidenceBinding | null) =>
-      setAnnotation({ key: selectedKey, value }),
-    [selectedKey],
-  );
-  const mapped = inspection?.key === selectedKey ? inspection.value : null;
   const zh = p.language === "zh";
   const comparison = (p.overlayCount ?? 0) > 1;
   const confidenceAvailable =
@@ -57,6 +26,11 @@ export function PredictionInspection(p: {
     p.candidate &&
     (!("parameters" in p.job.request) ||
       p.job.request.parameters.atom_confidence !== false);
+  const confidence = usePredictionConfidence(
+    p.job?.id ?? "",
+    p.candidate?.id ?? "",
+    Boolean(confidenceAvailable && !comparison),
+  );
   const samples = (p.analysis?.candidates ?? []).map((row) => ({
     id: row.id,
     artifact: row.artifact,
@@ -90,21 +64,7 @@ export function PredictionInspection(p: {
               language={p.language}
               focusResidue={p.focusResidue ?? null}
               comparison={comparison}
-              confidence={
-                comparison || annotation?.key !== selectedKey
-                  ? null
-                  : annotation?.value
-              }
-              onConfidenceInspection={(value) =>
-                setInspection({ key: selectedKey, value })
-              }
-              confidenceSelection={
-                mapped?.key === tokenSelection?.key ? tokenSelection : null
-              }
-              onConfidenceSelected={setActualTokens}
-              onResiduesSelected={(value) =>
-                setResidueSelection({ key: selectedKey, value })
-              }
+              {...confidence.viewer}
             />
           </div>
         }
@@ -122,24 +82,7 @@ export function PredictionInspection(p: {
             jobId={p.job.id}
             candidate={p.candidate.id}
             language={p.language}
-            onBinding={receiveBinding}
-            inspection={mapped}
-            selectedResidues={
-              residueSelection?.key === selectedKey
-                ? residueSelection.value
-                : []
-            }
-            selectedTokens={
-              actualTokens?.key === mapped?.key ? actualTokens?.tokens : []
-            }
-            onTokens={(tokens) => {
-              if (mapped)
-                setTokenSelection({
-                  key: mapped.key,
-                  tokens,
-                  nonce: Date.now(),
-                });
-            }}
+            {...confidence.panel}
           />
         ) : (
           <PredictionConfidenceCard
