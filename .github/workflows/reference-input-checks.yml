@@ -12,6 +12,10 @@ on:
         description: Recheck only the retained native quality browser after unchanged input gates passed
   push:
     paths:
+      - "scripts/material-input-scope.py"
+      - "tests/test_material_input_scope.py"
+      - "server_tests/test_material_sources_browser.py"
+      - ".github/workflows/reference-input-checks.yml"
       - "frontend/src/diffsbdd/ReferencePicker*"
       - "frontend/src/diffsbdd/reference-metadata*"
       - "frontend/src/diffsbdd/useReferenceSelection*"
@@ -65,6 +69,52 @@ on:
 permissions:
   contents: read
 jobs:
+  material-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      material_only: ${{ steps.scope.outputs.material_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/material-input-scope.py
+  material-inputs:
+    needs: material-scope
+    if: needs.material-scope.outputs.material_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Source-change regression first; existing direct material contracts
+        working-directory: frontend
+        run: >-
+          npx vitest run src/diffsbdd/ReferencePickerUpload.test.tsx
+          src/diffsbdd/ReferencePicker.test.tsx src/diffsbdd/ReferencePickerLifecycle.test.tsx
+          src/diffsbdd/ReferenceFormats.test.tsx src/research/SdfRecordPicker.test.tsx
+          src/pockets/PocketForm.test.tsx src/docking/DockingForm.test.tsx
+          src/diffsbdd/DiffForm.test.tsx src/proximity/Form.test.tsx
+          src/operations/AssetPicker.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - run: uv run --locked pytest -q tests/test_material_input_scope.py
+      - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py
+      - run: uv run --locked playwright install chromium --with-deps
+      - name: Real bilingual STAT6 material upload, source lifecycle and layout; no computation
+        run: uv run --locked python -m pytest -x -q server_tests/test_material_sources_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-material-input-evidence
+          path: outputs/material-input
   refinement-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -102,8 +152,8 @@ jobs:
           name: coordinate-confirmation-evidence
           path: outputs/coordinate-confirmation
   inputs:
-    needs: refinement-scope
-    if: ${{ !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' }}
+    needs: [refinement-scope, material-scope]
+    if: ${{ !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' && needs.material-scope.outputs.material_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
