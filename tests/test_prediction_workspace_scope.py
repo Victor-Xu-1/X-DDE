@@ -363,6 +363,11 @@ def test_boltz_draft_delegation_requires_its_native_editor_and_all_recovery_cont
     ]:
         assert not scope.boltz_drafts_only(files + [unrelated])
         assert not scope.drafts_only(files + [unrelated])
+    design = Path(".github/workflows/molecule-design-review-checks.yml").read_text()
+    assert (
+        "(github.event_name == 'workflow_dispatch' || "
+        "needs.prediction-context.outputs.boltz_drafts != 'true')" in design
+    )
 
 
 def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
