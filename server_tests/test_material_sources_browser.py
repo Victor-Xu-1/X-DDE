@@ -152,6 +152,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
             >= record.bounding_box()["y"] + record.bounding_box()["height"] + 8
         )
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        page.keyboard.press("Control+Home")
         page.screenshot(path=root / "docking-materials.png", full_page=True)
         for asset in (protein, ligand):
             assert (
