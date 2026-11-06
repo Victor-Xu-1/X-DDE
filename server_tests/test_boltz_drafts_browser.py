@@ -18,7 +18,7 @@ def test_boltz_draft_recovers_exact_materials_and_review_without_admission(
 ):
     evidence = Path("outputs/prediction-drafts/boltz") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
-    state = Path(os.environ["WB_STATE_DIR"])
+    state = Path(os.environ["WB_STATE_DIR"]) / "boltz-drafts" / f"{language}-{width}"
     assert state.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     inputs = Path("src/opendde_workbench/examples/stat6/inputs")
     sequence = "".join((inputs / "STAT6-human-P42226.fasta").read_text().splitlines()[1:])
