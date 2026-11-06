@@ -361,7 +361,9 @@ def test_failed_metadata_retry_and_public_preview_preserve_real_sequence_input(c
     expect(trigger).to_be_focused()
     if width == 390:
         settings(page, language)
-        page.get_by_role("radio", name="夜间黑色" if index == 0 else "Night black", exact=True).check()
+        page.get_by_role(
+            "radio", name="夜间黑色" if index == 0 else "Night black", exact=True
+        ).check()
         region = open_case(page, language, "admet.predict", CASES[1][1])
         region.get_by_role(
             "button", name="查看研究材料" if index == 0 else "Preview study inputs", exact=True
