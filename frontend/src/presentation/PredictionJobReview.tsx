@@ -1,10 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Job, Language } from "../types";
 import { EnvironmentRecheck } from "../guided/EnvironmentRecheck";
-import {
-  PredictionEntityPreview,
-  type PreviewComponent,
-} from "./PredictionEntityPreview";
+import type { PreviewComponent } from "./PredictionEntityPreview";
+import { PredictionJobOverview } from "./PredictionJobOverview";
 import { PredictionReviewDialog } from "./PredictionReviewDialog";
 import { researchError } from "./research-content";
 import type { ScientificTask } from "../integrations/types";
@@ -67,7 +65,6 @@ export function PredictionJobReview<
     | null
   >(null);
   const [attempt, retry] = useState(0);
-  const [technical, setTechnical] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     setState(null);
@@ -87,6 +84,23 @@ export function PredictionJobReview<
   }, [identity, attempt, prepare]);
   const current = state?.identity === identity ? state : null;
   const prepared = current && "result" in current ? current.result : null;
+  const availability = !ready && (
+    <div className="job-review-availability">
+      <p role="status" className="notice">
+        {ready === undefined
+          ? zh
+            ? "正在检查计算环境…"
+            : "Checking the calculation environment…"
+          : unavailable}
+      </p>
+      <EnvironmentRecheck
+        ready={ready}
+        onRecheck={recheck}
+        language={language}
+        busy={busy}
+      />
+    </div>
+  );
 
   return (
     <PredictionReviewDialog
@@ -150,94 +164,25 @@ export function PredictionJobReview<
       )}
       {prepared && (
         <div className="job-review-grid">
-          <div className="job-review-primary">
-            <div className="job-review-identity">
-              <strong>{prepared.task.name}</strong>
-              {summary ? (
-                <span>{summary(prepared)}</span>
-              ) : (
-                <span>
-                  {prepared.components.length} {zh ? "个组分" : "entities"} ·{" "}
-                  {prepared.components.reduce(
-                    (n, component) => n + component.count,
-                    0,
-                  )}{" "}
-                  {zh ? "条链/分子" : "chains/molecules"}
-                </span>
-              )}
-            </div>
-            <div
-              className="job-review-tabs"
-              role="group"
-              aria-label={zh ? "任务预览视图" : "Job preview view"}
-            >
-              <button
-                type="button"
-                aria-pressed={!technical}
-                onClick={() => setTechnical(false)}
-              >
-                {zh ? "概览" : "Overview"}
-              </button>
-              <button
-                type="button"
-                aria-pressed={technical}
-                onClick={() => setTechnical(true)}
-              >
-                {zh ? "提交内容" : "Request JSON"}
-              </button>
-            </div>
-            {technical ? (
-              <div className="job-review-payload">
-                <p>
-                  {zh
-                    ? "这是发送到 X-DDE 的请求。引擎输入由服务器另行生成。"
-                    : "This is the request sent to X-DDE. The server prepares the engine input separately."}
-                </p>
-                <pre
-                  tabIndex={0}
-                  aria-label={
-                    zh ? "X-DDE 提交请求" : "X-DDE submission request"
-                  }
-                >
-                  {JSON.stringify(prepared.task, null, 2)}
-                </pre>
-              </div>
-            ) : renderOverview ? (
-              renderOverview(prepared)
-            ) : (
-              <div className="prediction-preview-entities">
-                {prepared.components.map((item, index) => (
-                  <PredictionEntityPreview
-                    key={index}
-                    item={item}
-                    index={index}
-                    language={language}
-                    initiallyExpanded={false}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-          {renderSettings(prepared)}
-        </div>
-      )}
-      {!ready && (
-        <div className="job-review-availability">
-          <p role="status" className="notice">
-            {ready === undefined
-              ? zh
-                ? "正在检查计算环境…"
-                : "Checking the calculation environment…"
-              : unavailable}
-          </p>
-          <EnvironmentRecheck
-            ready={ready}
-            onRecheck={recheck}
+          <PredictionJobOverview
+            key={identity}
             language={language}
+            name={prepared.task.name}
+            components={prepared.components}
+            summary={summary?.(prepared)}
+            request={prepared.task}
             busy={busy}
-          />
+            onEdit={onClose}
+          >
+            {renderOverview?.(prepared)}
+          </PredictionJobOverview>
+          <div className="job-review-sidebar">
+            {renderSettings(prepared)}
+            {availability}
+          </div>
         </div>
       )}
+      {!prepared && availability}
     </PredictionReviewDialog>
   );
 }

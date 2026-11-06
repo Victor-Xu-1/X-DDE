@@ -63,6 +63,8 @@ function Mol1ReviewSettings({
       settings.use_template ? (zh ? "启用" : "Enabled") : zh ? "关闭" : "Off",
     ],
     [zh ? "共价连接" : "Covalent bonds", job.bonds.length],
+  ] as const;
+  const secondaryRows = [
     [
       zh ? "计算设备" : "Compute device",
       task.options.device === "cuda" ? "NVIDIA GPU" : "CPU",
@@ -76,7 +78,11 @@ function Mol1ReviewSettings({
     template: zh ? "模板" : "Template",
   };
   return (
-    <PredictionJobSettings language={language} rows={rows}>
+    <PredictionJobSettings
+      language={language}
+      rows={rows}
+      secondaryRows={secondaryRows}
+    >
       {job.files.length > 0 && (
         <>
           <h3>{zh ? "已核对的引用文件" : "Verified source files"}</h3>

@@ -52,8 +52,6 @@ function OpenDdeSettings({
       : []),
     [zh ? "随机种子" : "Seeds", seeds.join(", ")],
     [zh ? "每个种子的构象数" : "Structures per seed", p.samples],
-    [zh ? "扩散步数" : "Diffusion steps", p.steps],
-    [zh ? "循环次数" : "Recycling cycles", p.cycles],
     ["MSA", msa],
     [zh ? "结构模板" : "Structure templates", onOff(p.use_template)],
     [zh ? "RNA MSA" : "RNA MSA", onOff(p.use_rna_msa)],
@@ -67,12 +65,16 @@ function OpenDdeSettings({
           ? "未允许"
           : "Not allowed",
     ],
+    [zh ? "共价键" : "Covalent bonds", bonds?.length ?? 0],
+  ] as const;
+  const secondaryRows = [
+    [zh ? "扩散步数" : "Diffusion steps", p.steps],
+    [zh ? "循环次数" : "Recycling cycles", p.cycles],
     [
       zh ? "计算设备" : "Compute device",
       p.device === "cpu" ? "CPU" : "NVIDIA GPU",
     ],
     [zh ? "计算精度" : "Precision", p.dtype.toUpperCase()],
-    [zh ? "共价键" : "Covalent bonds", bonds?.length ?? 0],
   ] as const;
   const atom = (site: BondAtom) => {
     const copy = site.copy_index;
@@ -98,7 +100,11 @@ function OpenDdeSettings({
     return `${name} · ${site.position}:${site.atom}`;
   };
   return (
-    <PredictionJobSettings language={language} rows={rows}>
+    <PredictionJobSettings
+      language={language}
+      rows={rows}
+      secondaryRows={secondaryRows}
+    >
       {project_id && (
         <p>
           {zh

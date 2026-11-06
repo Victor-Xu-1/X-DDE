@@ -17,6 +17,7 @@ export function PredictionEntityPreview({
   initiallyExpanded = index === 0,
   title,
   summary,
+  showMetadata = false,
   children,
 }: {
   item: PreviewComponent;
@@ -25,6 +26,7 @@ export function PredictionEntityPreview({
   initiallyExpanded?: boolean;
   title?: string;
   summary?: ReactNode;
+  showMetadata?: boolean;
   children?: ReactNode;
 }) {
   const zh = language === "zh";
@@ -68,8 +70,28 @@ export function PredictionEntityPreview({
         </span>
       </summary>
       <div className="prediction-preview-entity-body">
-        {item.chain_ids?.length || item.modifications?.length ? (
+        {showMetadata ||
+        item.chain_ids?.length ||
+        item.modifications?.length ? (
           <dl className="prediction-preview-metadata">
+            {showMetadata && (
+              <>
+                <div>
+                  <dt>{zh ? "类型" : "Type"}</dt>
+                  <dd>{name}</dd>
+                </div>
+                <div>
+                  <dt>{zh ? "副本数" : "Copies"}</dt>
+                  <dd>{item.count}</dd>
+                </div>
+                {!item.modifications?.length && (
+                  <div>
+                    <dt>{zh ? "输入位置修饰" : "Input modifications"}</dt>
+                    <dd>{zh ? "无" : "None"}</dd>
+                  </div>
+                )}
+              </>
+            )}
             {!!item.chain_ids?.length && (
               <div>
                 <dt>{zh ? "链" : "Chains"}</dt>

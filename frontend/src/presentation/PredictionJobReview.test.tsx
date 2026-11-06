@@ -62,35 +62,42 @@ const task: ScientificTask = {
   payload: { kind: "mol1", components },
   options: { device: "cpu", cpu: 2, memory_mib: 4096, seed: 101 },
 };
-const prepare = async () => ({ task, components });
+const prepare = async (input: ScientificTask) => ({ task: input, components });
 
-async function review(language: Language) {
+async function review(language: Language, busy = false) {
   const close = vi.fn();
   const submit = vi.fn(async () => undefined);
-  render(
-    <PredictionJobReview
-      language={language}
-      input={task}
-      prepare={prepare}
-      renderSettings={() => (
-        <PredictionJobSettings
-          language={language}
-          rows={[["Model", "Mol-1"]]}
-        />
-      )}
-      ready={false}
-      unavailable="The model remains unavailable."
-      busy={false}
-      error=""
-      confirm={async (send) => {
-        await send();
-      }}
-      onClose={close}
-      submit={submit}
-    />,
-  );
+  const props = {
+    language,
+    input: task,
+    prepare,
+    renderSettings: () => (
+      <PredictionJobSettings
+        language={language}
+        rows={[["Network access", "Not allowed"]]}
+        secondaryRows={[["Memory limit", "4096 MiB"]]}
+      />
+    ),
+    ready: false,
+    unavailable: "The model remains unavailable.",
+    busy,
+    error: "",
+    confirm: async (send: () => Promise<unknown>) => {
+      await send();
+    },
+    onClose: close,
+    submit,
+  };
+  const view = render(<PredictionJobReview {...props} />);
   await screen.findByText(task.name, { exact: true });
-  return { dialog: within(screen.getByRole("dialog")), close, submit };
+  return {
+    dialog: within(screen.getByRole("dialog")),
+    close,
+    submit,
+    replace(input: ScientificTask) {
+      view.rerender(<PredictionJobReview {...props} input={input} />);
+    },
+  };
 }
 
 it.each(["en", "zh"] as const)(
@@ -105,6 +112,42 @@ it.each(["en", "zh"] as const)(
     expect(submit).not.toHaveBeenCalled();
   },
 );
+
+it("blocks every dismiss action during an in-flight submission", async () => {
+  const user = userEvent.setup();
+  const { dialog, close, submit } = await review("en", true);
+  for (const name of ["Edit setup", "Back to edit", "Close input preview"])
+    expect(dialog.getByRole("button", { name })).toBeDisabled();
+  await user.click(dialog.getByRole("button", { name: "Edit setup" }));
+  expect(close).not.toHaveBeenCalled();
+  expect(submit).not.toHaveBeenCalled();
+});
+
+it("keeps consent visible while secondary compute values are collapsed", async () => {
+  const user = userEvent.setup();
+  const { dialog } = await review("en");
+  expect(dialog.getByText("Network access")).toBeVisible();
+  expect(dialog.getByText("Not allowed")).toBeVisible();
+  expect(dialog.getByText("4096 MiB")).not.toBeVisible();
+  await user.click(dialog.getByText("Computation details", { exact: true }));
+  expect(dialog.getByText("4096 MiB")).toBeVisible();
+  expect(dialog.getByText("Not allowed")).toBeVisible();
+});
+
+it("invalidates the old view and request when prepared input identity changes", async () => {
+  const user = userEvent.setup();
+  const { dialog, replace, submit } = await review("en");
+  await user.click(dialog.getByRole("button", { name: "Request JSON" }));
+  expect(dialog.queryByRole("button", { name: "Download FASTA" })).toBeNull();
+  expect(dialog.getByLabelText("X-DDE submission request")).toBeVisible();
+  const next = { ...task, name: "STAT6 · Changed study" };
+  replace(next);
+  await screen.findByText(next.name, { exact: true });
+  expect(dialog.queryByText(task.name, { exact: true })).toBeNull();
+  expect(dialog.getByLabelText("X-DDE submission request")).not.toBeVisible();
+  expect(dialog.getByText("847 aa", { exact: true })).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
+});
 
 it.each(["en", "zh"] as const)(
   "offers an identity-level edit action without submitting in %s",

@@ -22,6 +22,7 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
     assert scope.job_review_layout_only(changes, "pull_request")
     assert scope.final_review_only(changes)
     assert scope.prediction_only(changes)
+    assert scope.final_review_changed(changes)
     for unrelated in (
         "src/opendde_workbench/backend.py",
         "frontend/src/operations/useTaskSubmit.ts",
@@ -29,6 +30,24 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
         "frontend/src/App.tsx",
     ):
         assert not scope.job_review_layout_only(changes + [unrelated])
+    assert not scope.job_review_layout_only(["pyproject.toml"])
+    assert not scope.job_review_layout_only([".github/workflows/prediction-workspace-checks.yml"])
+    workflow = (
+        Path(__file__).parents[1] / ".github/workflows/prediction-workspace-checks.yml"
+    ).read_text()
+    native = workflow.split("      - name: Shared layout and all four remaining", 1)[1].split(
+        "      - name:", 1
+    )[0]
+    assert "outputs.job_review_layout == 'true'" in native
+    for entry in (
+        browser,
+        "server_tests/test_fold_msa_sources_browser.py",
+        "server_tests/test_docking_job_review_browser.py",
+        "server_tests/test_ternary_job_review_browser.py::test_ternary_review_uses_real_independent_binary_frames",
+    ):
+        assert entry in native
+    assert 'WB_DOCKING_VISUAL_STATE="$WB_STATE_DIR"' in native
+    assert 'WB_TERNARY_VISUAL_STATE="$WB_STATE_DIR"' in native
 
 
 def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():

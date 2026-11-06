@@ -61,6 +61,13 @@ export function PredictionReviewDialog({
               {zh ? "尚未提交" : "Not submitted"}
             </span>
           )}
+          {job && (
+            <p className="job-review-description">
+              {zh
+                ? "核对本次任务的研究材料与计算设置。"
+                : "Review the research inputs and settings for this task."}
+            </p>
+          )}
         </div>
         <button
           type="button"
