@@ -110,7 +110,9 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         expect(picker).to_have_value("file:" + protein.id)
 
         page.goto(base + "/#view=new&tool=gnina.dock")
-        panels = page.locator(".reference-material")
+        # The later search-region step retains its own hidden reference picker.
+        # Inspect the two material inputs actually displayed in this step.
+        panels = page.locator(".reference-material:visible")
         expect(panels).to_have_count(2)
         receptor, molecule = panels.nth(0), panels.nth(1)
         for field, asset in ((receptor, protein), (molecule, ligand)):

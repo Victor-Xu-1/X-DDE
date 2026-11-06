@@ -10,11 +10,13 @@
 对应证据为原生表单/请求/草稿回归、`Mol1SeedEditor.test.tsx` 与
 `server_tests/test_mol1_settings_browser.py`；完成状态以精确候选和部署验收为准，不表示已执行模型。
 
-## 进化信息设置
+## 研究材料输入
 
 共享蛋白/分子材料选择采用紧凑标题栏，上传新文件仍为默认入口；历史文件只在明确切换后读取。
 上传控件离开活动来源时卸载，迟到的回复不能把文件重新选中或启用下一步；原来源的确切版本与 SDF 条目仍由父级选择状态保留。
 `ReferencePickerUpload.test.tsx` 和 `server_tests/test_material_sources_browser.py` 检查来源切换、原文件摘要、条目恢复与双语布局；不启动科研计算。
+
+## 进化信息设置
 
 Mol-1 和 OpenDDE 共用 MSA 策略设置界面，保留各自的原生参数、文件规则和联网许可。
 设置窗口采用待确认的局部编辑；取消不改变已选文件，保存才交给原表单应用。
