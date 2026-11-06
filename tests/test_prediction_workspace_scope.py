@@ -59,7 +59,8 @@ def test_closed_confidence_delegation_keeps_mixed_molecular_design_checks_active
     assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in design
     assert "needs.prediction-context.outputs.boltz_confidence != 'true'" in design
     assert (
-        "(github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_confidence != 'true')"
+        "(github.event_name == 'workflow_dispatch' || "
+        "needs.prediction-context.outputs.boltz_confidence != 'true')"
         in design
     )
 

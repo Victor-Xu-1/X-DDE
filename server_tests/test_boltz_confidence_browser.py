@@ -59,7 +59,9 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
             "y": marker["y"] + marker["height"] / 2,
         }
         target = curve.evaluate(
-            "(plot, point) => { const hit = document.elementFromPoint(point.x, point.y); return { inside: Boolean(hit && plot.contains(hit)), tag: hit?.tagName, text: hit?.textContent?.slice(0,120), point }; }",
+            "(plot, point) => { const hit = document.elementFromPoint(point.x, point.y); "
+            "return { inside: Boolean(hit && plot.contains(hit)), tag: hit?.tagName, "
+            "text: hit?.textContent?.slice(0,120), point }; }",
             coordinates,
         )
         (evidence / "curve-hit-target.json").write_text(json.dumps(target))
