@@ -34,7 +34,7 @@ function service(metadata: () => Promise<Asset>) {
   });
 }
 const next = (zh: boolean) =>
-  screen.getByRole("button", { name: zh ? "下一步" : "Next", exact: true });
+  screen.getByRole("button", { name: zh ? "下一步" : "Next" });
 
 it.each(["en", "zh"] as const)(
   "waits for matching file metadata before advancing (%s)",
@@ -84,7 +84,6 @@ it.each(["en", "zh"] as const)(
     await user.click(next(zh));
     await screen.findByRole("button", {
       name: zh ? "重新读取文件" : "Retry selected file",
-      exact: true,
     });
     expect(next(zh)).toBeDisabled();
     expect(api.submit).not.toHaveBeenCalled();
@@ -137,7 +136,6 @@ it.each(["en", "zh"] as const)(
     await user.click(next(zh));
     await screen.findByRole("button", {
       name: zh ? "重新读取文件" : "Retry selected file",
-      exact: true,
     });
     expect(next(zh)).toBeDisabled();
     expect(api.submit).not.toHaveBeenCalled();

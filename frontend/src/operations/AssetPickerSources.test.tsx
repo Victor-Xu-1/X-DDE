@@ -74,12 +74,11 @@ it.each(["en", "zh"] as const)(
       new File(["ATOM"], uploaded.name),
     );
     await user.click(
-      screen.getByText(zh ? "历史文件" : "Historical files", { exact: true }),
+      screen.getByText(zh ? "历史文件" : "Historical files", {}),
     );
-    await screen.findByRole("option", { name: historical.name, exact: true });
+    await screen.findByRole("option", { name: historical.name });
     const picker = screen.getByRole("combobox", {
       name: "Receptor",
-      exact: true,
     });
     try {
       expect(picker).toBeEnabled();
@@ -110,9 +109,9 @@ it.each(["en", "zh"] as const)(
       new File(["ATOM"], uploaded.name),
     );
     await user.click(
-      screen.getByText(zh ? "历史文件" : "Historical files", { exact: true }),
+      screen.getByText(zh ? "历史文件" : "Historical files", {}),
     );
-    await screen.findByRole("option", { name: historical.name, exact: true });
+    await screen.findByRole("option", { name: historical.name });
     await finish();
     expect(screen.getByLabelText("Current input")).toHaveTextContent("None");
   },
