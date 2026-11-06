@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -6,7 +7,6 @@ import type { ScientificTask } from "../integrations/types";
 import { entityInfo } from "../guided/entities";
 import { PredictionJobReview } from "./PredictionJobReview";
 import { PredictionJobSettings } from "./PredictionJobSettings";
-import fasta from "../../../src/opendde_workbench/examples/stat6/inputs/STAT6-human-P42226.fasta?raw";
 
 vi.mock("./MoleculeImage", () => ({
   MoleculeImage: () => <div data-testid="native-depiction" />,
@@ -43,6 +43,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const fasta = readFileSync(
+  "../src/opendde_workbench/examples/stat6/inputs/STAT6-human-P42226.fasta",
+  "utf8",
+);
 const components: Component[] = [
   { kind: "protein", value: fasta.split(/\r?\n/).slice(1).join(""), count: 1 },
   {
