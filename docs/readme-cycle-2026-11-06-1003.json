@@ -1,0 +1,41 @@
+{
+  "wheel_version": "0.7.100",
+  "wheel_sha256": "52d9592149edf81c7c5dce0e2bae1d206efbecbbd821024ed704bff565c0b485",
+  "restored": {
+    "modules": 58,
+    "computed": 58,
+    "validated": 0
+  },
+  "job_count": 115,
+  "job_states": {
+    "succeeded": 111,
+    "failed": 4
+  },
+  "scientific_files_verified": 1098,
+  "jobs_unchanged": true,
+  "scientific_files_unchanged": true,
+  "catalogue_count": 76,
+  "homepage_status": 200,
+  "jobs_status": 200,
+  "retained_confidence": {
+    "source_job": "716024e7-0a4a-4b9f-8962-fae4257bba48",
+    "candidate": "seed-101-sample-0",
+    "token_count": 116,
+    "atom_count": 943,
+    "confidence_sha256": "bc1aec74789de9786f048eeb3f63f56fc0aa673d8ae43c42d2fa09b4d96d0e17",
+    "structure_sha256": "affc4ef88404951e0906c08674e1bac7bb2a8c2ca0b2530b8998ed82906d73f6"
+  },
+  "server_exit_code": -15,
+  "new_scientific_computations": 0,
+  "auto_deploy": false,
+  "screenshot_source": "separately obtained exact-main CI, not this loopback smoke run",
+  "cycle": "2026-11-06T10:03:00Z",
+  "receipt_written_utc": "2026-11-06T10:06:45.509332+00:00",
+  "release_commit": "27d62f162755cfa2dd1cfc8816493a580d6744fb",
+  "release_tree": "ddc4517c896837c091eb23f4e930f6c5fdb71c55",
+  "platform_ready": true,
+  "worker_ready": true,
+  "service": "isolated loopback port 4394; stopped after smoke check",
+  "shutdown_log": "Application shutdown complete.",
+  "public_bundle_sha256": "62e8d64dd4be5dca420f7f1ef659aae932345128c9306697d3d2cea9a99a9f48"
+}
