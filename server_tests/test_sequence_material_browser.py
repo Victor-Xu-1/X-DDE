@@ -11,18 +11,7 @@ from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.stat6.catalogue import verified_input
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
-
-
-def capture(page, path):
-    """Capture the document from its verified top after native focus/step scrolling."""
-    page.evaluate("""() => {
-        window.scrollTo({top:0, left:0, behavior:'instant'});
-        return new Promise(resolve => requestAnimationFrame(
-            () => requestAnimationFrame(resolve)));
-    }""")
-    assert page.evaluate("window.scrollY") == 0
-    assert page.locator(".studio-topbar").bounding_box()["y"] < 40
-    page.screenshot(path=path, full_page=True)
+from server_tests.material_capture import capture_material as capture
 
 
 @pytest.mark.parametrize("language,width,theme", [("en", 1280, "warm"), ("zh", 390, "dark")])

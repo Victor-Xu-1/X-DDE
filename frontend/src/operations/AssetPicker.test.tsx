@@ -8,6 +8,7 @@ import type { Asset } from "./types";
 import { useState } from "react";
 import type { Job } from "../types";
 import { historyFixture } from "../studio/task-history.test-fixtures";
+import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
 
 const previous: Asset = {
   id: "previous",
@@ -152,82 +153,113 @@ it("rejects an oversized replacement without retaining the previous task input",
   expect(upload).not.toHaveBeenCalled();
 });
 
-it("shows one history source and clears the old input until a result is confirmed, then closes", async () => {
-  const source = {
-    id: "source",
-    request: { operation: "predict", name: "Archived structure" },
-    status: "succeeded",
-    created_at: "2026-10-10T00:00:00Z",
-  } as Job;
-  vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
-    historyFixture([source], path),
-  );
-  vi.spyOn(api, "artifacts").mockResolvedValue([
-    { name: next.name, size: next.size },
-  ]);
-  vi.mocked(client.request).mockImplementation(
-    async (path) =>
-      (path.includes("artifact-metadata")
-        ? {
-            job_id: source.id,
-            name: next.name,
-            size: next.size,
-            sha256: next.sha256,
-          }
-        : previous) as never,
-  );
-  let finish!: (asset: Asset) => void;
-  vi.spyOn(api, "authorized").mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        finish = resolve;
-      }) as never,
-  );
-  function Form() {
-    const [value, change] = useState(previous.id);
-    return (
-      <>
-        <AssetPicker
-          kind="structure"
-          value={value}
-          onChange={change}
-          label="Receptor"
-          language="en"
-        />
-        <button disabled={!value}>Continue with selected material</button>
-      </>
+it.each(["confirm", "leave"] as const)(
+  "keeps source-owned eligibility when a pending result is handled by %s",
+  async (action) => {
+    const source = {
+      id: "source",
+      request: { operation: "predict", name: "Archived structure" },
+      status: "succeeded",
+      created_at: "2026-10-10T00:00:00Z",
+    } as Job;
+    vi.spyOn(api, "taskHistory").mockImplementation(async (path) =>
+      historyFixture([source], path),
     );
-  }
-  const user = userEvent.setup();
-  render(<Form />);
-  await user.click(
-    screen.getByRole("button", { name: "Choose from task results" }),
-  );
-  expect(screen.queryByRole("combobox", { name: "Receptor" })).toBeNull();
-  const tasks = screen.getByRole("combobox", { name: "Source task" });
-  await waitFor(() => expect(tasks).toBeEnabled());
-  await user.selectOptions(tasks, source.id);
-  expect(
-    screen.getByRole("button", { name: "Continue with selected material" }),
-  ).toBeDisabled();
-  const files = screen.getByRole("combobox", { name: "Result file" });
-  await waitFor(() => expect(files).toBeEnabled());
-  await user.selectOptions(files, next.name);
-  await user.click(screen.getByRole("button", { name: "Use this result" }));
-  expect(
-    screen.getByRole("button", { name: "Continue with selected material" }),
-  ).toBeDisabled();
-  await act(async () => finish(next));
-  await waitFor(() =>
+    vi.spyOn(api, "artifacts").mockResolvedValue([
+      { name: next.name, size: next.size },
+    ]);
+    vi.mocked(client.request).mockImplementation(
+      async (path) =>
+        (path.includes("artifact-metadata")
+          ? {
+              job_id: source.id,
+              name: next.name,
+              size: next.size,
+              sha256: next.sha256,
+            }
+          : path.startsWith("/research/input-catalog?")
+            ? catalogFixture([], [previous])
+            : previous) as never,
+    );
+    let finish!: (asset: Asset) => void;
+    vi.spyOn(api, "authorized").mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }) as never,
+    );
+    function Form() {
+      const [value, change] = useState(previous.id);
+      return (
+        <>
+          <AssetPicker
+            kind="structure"
+            value={value}
+            onChange={change}
+            label="Receptor"
+            language="en"
+          />
+          <button disabled={!value}>Continue with selected material</button>
+        </>
+      );
+    }
+    const user = userEvent.setup();
+    render(<Form />);
+    await user.click(screen.getByRole("radio", { name: "Task result files" }));
+    expect(screen.queryByRole("combobox", { name: "Receptor" })).toBeNull();
+    const tasks = screen.getByRole("combobox", { name: "Source task" });
+    await waitFor(() => expect(tasks).toBeEnabled());
+    await user.selectOptions(tasks, source.id);
     expect(
       screen.getByRole("button", { name: "Continue with selected material" }),
-    ).toBeEnabled(),
-  );
-  expect(
-    screen.queryByRole("region", { name: "Choose a task result" }),
-  ).toBeNull();
-  expect(
-    screen.getByText(next.name, { selector: ".selected-file" }),
-  ).toBeVisible();
-  expect(document.querySelector("details")).not.toHaveAttribute("open");
-});
+    ).toBeDisabled();
+    const files = screen.getByRole("combobox", { name: "Result file" });
+    await waitFor(() => expect(files).toBeEnabled());
+    await user.selectOptions(files, next.name);
+    await user.click(screen.getByRole("button", { name: "Use this result" }));
+    expect(
+      screen.getByRole("button", { name: "Continue with selected material" }),
+    ).toBeDisabled();
+    if (action === "leave") {
+      await user.click(screen.getByRole("radio", { name: "Historical files" }));
+      await act(async () => finish(next));
+      expect(
+        screen.getByRole("radio", { name: "Historical files" }),
+      ).toBeChecked();
+      expect(
+        screen.getByText(previous.name, { selector: ".selected-file" }),
+      ).toBeVisible();
+      expect(
+        screen.queryByRole("region", { name: "Choose a task result" }),
+      ).toBeNull();
+      return;
+    }
+    await act(async () => finish(next));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Continue with selected material" }),
+      ).toBeEnabled(),
+    );
+    expect(
+      screen.queryByRole("region", { name: "Choose a task result" }),
+    ).toBeNull();
+    expect(
+      screen.getByText(next.name, { selector: ".selected-file" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("radio", { name: "Task result files" }),
+    ).toBeChecked();
+    await user.click(screen.getByRole("radio", { name: "Upload a new file" }));
+    expect(
+      screen.getByRole("button", { name: "Continue with selected material" }),
+    ).toBeDisabled();
+    await user.click(screen.getByRole("radio", { name: "Task result files" }));
+    expect(
+      screen.getByRole("button", { name: "Continue with selected material" }),
+    ).toBeEnabled();
+    expect(
+      screen.getByText(next.name, { selector: ".selected-file" }),
+    ).toBeVisible();
+    expect(api.authorized).toHaveBeenCalledOnce();
+  },
+);

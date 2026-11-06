@@ -11,6 +11,7 @@ from opendde_workbench.assets import AssetStore
 from opendde_workbench.examples.stat6.catalogue import FILES, verified_input
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.material_capture import capture_material
 
 
 @pytest.mark.parametrize("language,width,theme", [("en", 1280, "warm"), ("zh", 390, "dark")])
@@ -71,7 +72,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
             assert heading.bounding_box()["height"] < 90
             assert material.locator(".file-select").bounding_box()["height"] <= 76
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-        page.screenshot(path=root / "pocket-new.png", full_page=True)
+        capture_material(page, root / "pocket-new.png")
 
         def hold(route):
             if route.request.method == "POST":
@@ -105,7 +106,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         history.check()
         expect(picker).to_have_value("file:" + protein.id)
         expect(next_button).to_be_enabled()
-        page.screenshot(path=root / "pocket-history.png", full_page=True)
+        capture_material(page, root / "pocket-history.png")
         next_button.click()
         panel.get_by_role("button", name="上一步" if zh else "Back", exact=True).click()
         expect(picker).to_have_value("file:" + protein.id)
@@ -152,16 +153,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
             >= record.bounding_box()["y"] + record.bounding_box()["height"] + 8
         )
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-        # Home while a number input is focused can move its caret only. Restore
-        # the document viewport explicitly before capturing a sticky header.
-        page.evaluate("""() => {
-            window.scrollTo({top:0, left:0, behavior:'instant'});
-            return new Promise(resolve => requestAnimationFrame(
-                () => requestAnimationFrame(resolve)));
-        }""")
-        assert page.evaluate("window.scrollY") == 0
-        assert page.locator(".studio-topbar").bounding_box()["y"] < 40
-        page.screenshot(path=root / "docking-materials.png", full_page=True)
+        capture_material(page, root / "docking-materials.png")
         for asset in (protein, ligand):
             assert (
                 hashlib.sha256(

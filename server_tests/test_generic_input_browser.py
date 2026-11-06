@@ -12,6 +12,7 @@ from opendde_workbench.examples.stat6.catalogue import FILES, verified_input
 from opendde_workbench.research.storage import ScientificStore
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.material_capture import capture_material
 from server_tests.test_navigation_shell_browser import open_navigation
 
 
@@ -58,7 +59,9 @@ def test_shared_history_sequence_retry_and_preserved_originals(tmp_path, languag
             "button", name="下一步" if zh else "Next", exact=True
         ).click()
         picker = page.locator(".questionnaire:visible .asset-picker")
-        picker.locator("summary").click()
+        picker.get_by_role(
+            "radio", name="历史文件" if zh else "Historical files", exact=True
+        ).check()
         expect(
             picker.get_by_role("combobox").locator("option[value]:not([value=''])")
         ).to_have_count(25)
@@ -67,7 +70,7 @@ def test_shared_history_sequence_retry_and_preserved_originals(tmp_path, languag
         picker.get_by_role("searchbox").fill("no-match")
         expect(picker.get_by_role("status")).to_contain_text("没有匹配" if zh else "No matching")
         expect(picker.get_by_role("combobox")).to_have_value(molecule.id)
-        page.screenshot(path=evidence / "generic-selected-off-page.png")
+        capture_material(page, evidence / "generic-selected-off-page.png")
         open_navigation(page, language).get_by_role(
             "button", name="生物药研究" if zh else "Biologics research", exact=True
         ).click()
@@ -117,7 +120,7 @@ def test_shared_history_sequence_retry_and_preserved_originals(tmp_path, languag
         page.unroute("**/api/research/objects", lost_reply)
         confirm.click()
         expect(next_button).to_be_enabled()
-        page.screenshot(path=evidence / "sequence-explicit-save-recovered.png")
+        capture_material(page, evidence / "sequence-explicit-save-recovered.png")
         with scientific.store.connect() as db:
             assert db.execute("SELECT COUNT(*) FROM scientific_objects").fetchone()[0] == before + 1
         for item in (sequence, molecule):
