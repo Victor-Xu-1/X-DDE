@@ -13,6 +13,7 @@ import * as client from "../api";
 import { defaults } from "../form-model";
 import type { Job } from "../types";
 import { TaskWorkspace } from "./TaskWorkspace";
+import { PredictionResultHeader } from "../presentation/PredictionResultHeader";
 import { historyFixture, identityFixture } from "./task-history.test-fixtures";
 const job: Job = {
   id: "00000000-0000-0000-0000-000000000001",
@@ -121,11 +122,106 @@ it("uses current task-service availability for retries inside a module", () => {
   view.rerender(<TaskWorkspace {...p} retryAvailable />);
   expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
 });
-function openList() {
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker")!;
-  picker.open = true;
-  fireEvent(picker, new Event("toggle"));
-}
+it.each(["en", "zh"] as const)(
+  "leads directly into the selected %s prediction and returns through its native header",
+  async (language) => {
+    function Harness() {
+      const [selected, setSelected] = useState<Job | null>(job);
+      return (
+        <TaskWorkspace
+          {...props({
+            language,
+            scopedModule: "structures",
+            job: selected,
+            onJob: (id) => setSelected(id ? job : null),
+            renderPrediction: (onHistory) => (
+              <PredictionResultHeader
+                job={job}
+                title="STAT6 structure"
+                language={language}
+                onHistory={onHistory}
+              />
+            ),
+          })}
+        />
+      );
+    }
+    render(<Harness />);
+    expect(
+      screen.queryByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toBeNull();
+    expect(document.querySelector(".task-picker")).not.toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "STAT6 structure" }),
+    ).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "预测记录" : "Predictions",
+      }),
+    );
+    await screen.findByRole("heading", {
+      level: 2,
+      name: language === "zh" ? "任务结果" : "Task results",
+    });
+    expect(document.querySelector(".task-picker > summary")).toHaveFocus();
+    expect(document.querySelector(".task-result-content")).toBeNull();
+  },
+);
+it.each(["en", "zh"] as const)(
+  "keeps project context and one return control in a selected %s operation",
+  async (language) => {
+    const projectJob = {
+      ...descriptors,
+      request: { ...descriptors.request, project_id: "study" },
+    } as Job;
+    historyJobs = [projectJob];
+    function Harness() {
+      const [selected, setSelected] = useState<Job | null>(projectJob);
+      return (
+        <TaskWorkspace
+          {...props({
+            language,
+            job: selected,
+            projectId: "study",
+            projects: [
+              {
+                id: "study",
+                name: "STAT6 study",
+                description: "",
+                created_at: "2026-10-01",
+              },
+            ],
+            onJob: (id) => setSelected(id ? projectJob : null),
+          })}
+        />
+      );
+    }
+    render(<Harness />);
+    expect(
+      screen.queryByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toBeNull();
+    expect(document.querySelector(".task-picker")).not.toBeVisible();
+    expect(
+      screen.getByRole("group", {
+        name: language === "zh" ? "项目筛选" : "Project filter",
+      }),
+    ).toHaveTextContent("STAT6 study");
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "返回任务结果" : "Back to task results",
+      }),
+    );
+    await screen.findByRole("button", { name: "STAT6 descriptors" });
+    expect(document.querySelector(".task-picker > summary")).toHaveFocus();
+    expect(document.querySelector(".task-result-content")).toBeNull();
+  },
+);
 it("opens only the owning module and never a mixed task list", async () => {
   const p = props();
   render(<TaskWorkspace {...p} />);
@@ -133,6 +229,75 @@ it("opens only the owning module and never a mixed task list", async () => {
   expect(screen.queryByRole("button", { name: "STAT6 structure" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "New task" }));
   expect(p.onStart).toHaveBeenCalledWith("admet.predict");
+});
+it.each([
+  { ...job, status: "failed" },
+  {
+    ...job,
+    status: "cancelled",
+    request: {
+      operation: "mol1_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  },
+  {
+    ...job,
+    status: "interrupted",
+    request: {
+      operation: "boltz_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  },
+] as Job[])(
+  "keeps the native history action for a terminal prediction $status",
+  (selected) => {
+    render(
+      <TaskWorkspace
+        {...props({ scopedModule: "structures", job: selected })}
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Predictions" })).toHaveLength(
+      1,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Back to task results" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Task results" }),
+    ).toBeNull();
+    expect(document.querySelector(".task-picker")).not.toBeVisible();
+  },
+);
+it("moves a running native prediction from common navigation to its terminal header", () => {
+  const native = {
+    ...job,
+    status: "running",
+    request: {
+      operation: "mol1_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  } as Job;
+  const p = props({ scopedModule: "structures", job: native });
+  const view = render(<TaskWorkspace {...p} />);
+  expect(
+    screen.getAllByRole("button", { name: "Back to task results" }),
+  ).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Predictions" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Refresh tasks" }));
+  expect(p.onRefresh).toHaveBeenCalledOnce();
+  view.rerender(<TaskWorkspace {...p} job={{ ...native, status: "failed" }} />);
+  expect(screen.getAllByRole("button", { name: "Predictions" })).toHaveLength(
+    1,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Back to task results" }),
+  ).toBeNull();
 });
 it("opens an exact linked task in its owning module and masks foreign selected results", async () => {
   const p = props({ job, scopedModule: "structures" });
@@ -190,7 +355,8 @@ it("preserves page and query when selecting a row and returning to its list", as
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   await screen.findByRole("button", { name: "STAT6 series 20" });
   fireEvent.click(screen.getByRole("button", { name: "STAT6 series 20" }));
-  openList();
+  expect(document.querySelector(".task-picker")).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Back to task results" }));
   expect(
     screen.getByRole("searchbox", { name: "Search this module" }),
   ).toHaveValue("STAT6 series");
@@ -199,6 +365,7 @@ it("preserves page and query when selecting a row and returning to its list", as
       "2 / 2",
     ),
   ).toBeVisible();
+  expect(document.querySelector(".task-picker > summary")).toHaveFocus();
 });
 it("keeps projects isolated and hides a selected task belonging to another project", async () => {
   historyJobs = [

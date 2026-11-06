@@ -25,8 +25,15 @@ def navigation(page, language):
     return nav
 
 
-def open_list(page):
+def open_list(page, language):
     picker = page.locator(".task-picker")
+    if not picker.is_visible():
+        page.get_by_role(
+            "button",
+            name="返回任务结果" if language == "zh" else "Back to task results",
+            exact=True,
+        ).click()
+        expect(picker.locator("summary")).to_be_focused()
     if not picker.evaluate("node => node.open"):
         picker.locator("summary").click()
 
@@ -99,9 +106,31 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             page.request.get(base + "/api/jobs/" + oldest["id"]).json()["request"]["name"]
             == oldest["name"]
         )
-        open_list(page)
+        open_list(page, language)
         expect(pages).to_contain_text("7 / 7")
         page.screenshot(path=root / "older-history.png")
+
+        # Browser navigation must dismiss a calendar before its list becomes hidden.
+        page.get_by_role(
+            "button", name="开始日期" if zh else "Start date", exact=True
+        ).click()
+        expect(page.get_by_role("dialog")).to_be_visible()
+        page.evaluate(
+            """id => {
+              const query = new URLSearchParams(location.hash.slice(1));
+              query.set('task', id);
+              location.hash = query.toString();
+            }""",
+            oldest["id"],
+        )
+        expect(page.locator(".detail-panel h2")).to_have_text(oldest["name"])
+        expect(page.get_by_role("dialog")).to_have_count(0)
+        expect(page.locator(".task-picker")).not_to_be_visible()
+        assert page.evaluate("!document.activeElement.closest('[hidden]')")
+        expect(page.locator(".task-history-heading")).to_have_count(0)
+        page.screenshot(path=root / "focused-result.png")
+        open_list(page, language)
+        expect(pages).to_contain_text("7 / 7")
 
         # The range applies to all125records, not just the current7thpage.
         def choose_day(control, day, month=9):
@@ -129,9 +158,9 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         dated = fixture["controlled_metadata_records"][43]
         page.get_by_role("button", name=dated["name"], exact=True).click()
         expect(page.locator(".detail-panel h2")).to_have_text(dated["name"])
-        open_list(page)
+        open_list(page, language)
         page.reload()
-        open_list(page)
+        open_list(page, language)
         expect(pages).to_contain_text("2 / 2")
         assert parse_qs(urlsplit(page.url).fragment)["from"] == ["2026-10-02"]
         assert parse_qs(urlsplit(page.url).fragment)["to"] == ["2026-10-02"]
@@ -204,6 +233,11 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             "口袋与对接" if zh else "Pockets and docking"
         )
         expect(page.get_by_role("heading", name=fixture["native_name"], exact=True)).to_be_visible()
+        expect(page.locator(".task-picker")).not_to_be_visible()
+        expect(page.locator(".task-history-heading")).to_have_count(0)
+        expect(page.get_by_role(
+            "button", name="返回任务结果" if zh else "Back to task results", exact=True
+        )).to_be_visible()
         page.screenshot(path=root / "native-result.png")
         page.reload()
         expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)

@@ -316,12 +316,17 @@ it("keeps a linked non-prediction task in its task view across both history even
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
   expect(
-    await screen.findByRole("heading", { name: "Task results" }),
+    await screen.findByRole("heading", { name: "Linked descriptors" }),
   ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Back to task results" }),
+  ).toBeVisible();
   act(() => window.dispatchEvent(new HashChangeEvent("hashchange")));
   expect(
-    await screen.findByRole("heading", { name: "Task results" }),
+    await screen.findByRole("heading", { name: "Linked descriptors" }),
   ).toBeInTheDocument();
+  expect(window.location.hash).toContain("module=evaluation");
+  expect(window.location.hash).toContain("task=" + linked.id);
   expect(
     screen.queryByRole("heading", { name: "Structure prediction" }),
   ).not.toBeInTheDocument();
@@ -346,7 +351,7 @@ it("opens a fresh prediction form when the current task belongs to another engin
     name: "Main navigation",
   });
   expect(
-    await screen.findByRole("heading", { name: "Task results" }),
+    await screen.findByRole("heading", { name: "Descriptors" }),
   ).toBeVisible();
   await user.click(
     within(nav).getByRole("button", { name: "Structure prediction" }),

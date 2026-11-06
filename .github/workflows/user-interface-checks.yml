@@ -357,8 +357,12 @@ on:
       - "!frontend/src/integrations/inputs.css"
       - "frontend/src/App.tsx"
       - "frontend/src/App.test.tsx"
+      # Match push scope: application/history navigation has its dedicated native gates.
+      - "!frontend/src/App.tsx"
+      - "!frontend/src/App.test.tsx"
       - "frontend/src/TaskDetail*"
       - "frontend/src/useWorkbench*"
+      - "!frontend/src/useWorkbench*"
       - "frontend/src/studio/RuntimeStatus*"
       - "frontend/src/studio/EnvironmentStatusTable*"
       - "frontend/src/studio/runtime-status.css"
