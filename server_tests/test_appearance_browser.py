@@ -17,6 +17,15 @@ PALETTES = {
 }
 
 
+RENDERER_BACKGROUND = """() => {
+    for (const canvas of document.querySelectorAll('canvas')) {
+        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+        if (gl) return Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE));
+    }
+    return null;
+}"""
+
+
 def canonical_hex(value):
     value = value.strip().lower()
     if len(value) == 4 and value.startswith("#"):
@@ -36,7 +45,10 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
             args=["--enable-unsafe-swiftshader", "--use-angle=swiftshader"]
         )
         context = browser.new_context(viewport={"width": width, "height": 1000})
-        context.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        context.add_init_script(
+            f"if (location.origin === {json.dumps(base)}) "
+            f"localStorage.setItem('opendde-workbench.language','{language}')"
+        )
         context.on(
             "page", lambda page: page.on("pageerror", lambda error: errors.append(str(error)))
         )
@@ -92,6 +104,12 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
                 canonical_hex(page.locator('meta[name="theme-color"]').get_attribute("content"))
                 == canvas
             )
+            renderer_color = [int(chart[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+            preview.wait_for_function(
+                f"expected => {{ const read = {RENDERER_BACKGROUND}; const actual = read(); "
+                "return actual && expected.every((n, i) => Math.abs(n - actual[i]) < 0.00393); }",
+                arg=renderer_color,
+            )
             page.reload(wait_until="domcontentloaded")
             expect(page.locator("html")).to_have_attribute("data-theme", theme)
             settings(page, language)
@@ -110,11 +128,13 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
             else:
                 assert boxes[0]["y"] + boxes[0]["height"] <= boxes[1]["y"]
             page.screenshot(path=root / f"settings-{theme}.png", full_page=True)
+            preview.screenshot(path=root / f"renderer-background-{theme}.png")
             measurements.append(
                 {
                     "theme": theme,
                     "canvas": canvas,
                     "preview_background": chart,
+                    "native_renderer_background_rgba": preview.evaluate(RENDERER_BACKGROUND),
                     "cross_tab_sync": True,
                     "refresh_persistence": True,
                     "width": width,
