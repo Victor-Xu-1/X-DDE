@@ -1,30 +1,30 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ExampleContext } from "./examples/context";
 import type { PreparedExample } from "./examples/types";
 import { ExampleActions } from "./examples/ExampleActions";
 import { examplePrediction } from "./examples/prediction";
-import { defaults, prediction, validate } from "./form-model";
+import { prediction, validate } from "./form-model";
 import { translator } from "./i18n";
-import {
-  taskKinds,
-  kindFor,
-  componentsFor,
-  completeWorkflow,
-  type TaskKind,
-} from "./guided/presets";
+import { taskKinds, completeWorkflow, type TaskKind } from "./guided/presets";
 import { WorkflowChoices } from "./guided/WorkflowChoices";
 import { MolecularInputs } from "./guided/MolecularInputs";
 import { ParameterChoices } from "./guided/ParameterChoices";
 import { Hint } from "./guided/Hint";
 import { Questionnaire } from "./guided/Questionnaire";
-import type { Component, Job, Language, Parameters, Prediction } from "./types";
+import type { Job, Language, Prediction } from "./types";
 import { ExpertParameters } from "./operations/ExpertParameters";
 import { CovalentEditor } from "./operations/CovalentEditor";
-import type { CovalentBond } from "./operations/types";
-import type { MoleculeRef } from "./research/types";
 import { PredictionSetup } from "./presentation/PredictionSetup";
 import { validFeaturePolicy } from "./presentation/prediction-feature-policy";
 import { OpenDdeJobReview } from "./operations/OpenDdeJobReview";
+import { PredictionDraftBoundary } from "./presentation/PredictionDraftBoundary";
+import { SharedPredictionDraftControls } from "./presentation/SharedPredictionDraftControls";
+import {
+  openDdeDraftAdapter,
+  type OpenDdeDraft,
+} from "./operations/opendde-draft";
+import { useOpenDdeEditor } from "./operations/useOpenDdeEditor";
+import { validIntegerTexts } from "./operations/integer-list-model";
 interface Props {
   language: Language;
   ready: boolean;
@@ -35,7 +35,23 @@ interface Props {
   onPreviewChange?(value: boolean): void;
   onSubmit(value: Prediction, key: string): Promise<Job>;
 }
-export function TaskForm({
+export function TaskForm(props: Props) {
+  return (
+    <PredictionDraftBoundary<OpenDdeDraft>
+      key={JSON.stringify(props.initialRequest ?? null)}
+    >
+      {({ initialDraft, edition, onResume }) => (
+        <TaskFormEditor
+          {...props}
+          key={edition}
+          initialDraft={initialDraft}
+          onResumeDraft={onResume}
+        />
+      )}
+    </PredictionDraftBoundary>
+  );
+}
+function TaskFormEditor({
   language,
   ready,
   initialRequest,
@@ -44,56 +60,34 @@ export function TaskForm({
   onSubmit,
   abagAvailable = false,
   onPreviewChange,
-}: Props) {
+  initialDraft,
+  onResumeDraft,
+}: Props & {
+  initialDraft: OpenDdeDraft | null;
+  onResumeDraft(value: OpenDdeDraft): void;
+}) {
   const t = translator(language),
     zh = language === "zh";
   const [example, setExample] = useState<PreparedExample | null>(null);
   const [previewing, setPreviewing] = useState(false);
-  const [templateRevision, setTemplateRevision] = useState(0);
-  const [kind, setKind] = useState<TaskKind>("complex");
-  const [expert, setExpert] = useState(false);
-  const [name, setName] = useState(""),
-    [components, setComponents] = useState<Component[]>(
-      componentsFor("complex", []),
-    );
-  const [parameters, setParameters] = useState<Parameters>({
-    ...defaults,
-    model: "standard",
-  });
+  const editor = useOpenDdeEditor(initialDraft, initialRequest);
+  const {
+    name,
+    kind,
+    expert,
+    components,
+    parameters,
+    bonds,
+    input_references: inputReferences,
+    integer_text: integerText,
+  } = editor.state;
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const [inputReferences, setInputReferences] = useState<MoleculeRef[]>([]);
-  const drafts = useRef<Partial<Record<TaskKind, Component[]>>>({});
   const request = useRef({ body: "", key: crypto.randomUUID() });
   const automaticName = useRef("");
   const [openedAt] = useState(() => new Date());
-  const [bonds, setBonds] = useState<CovalentBond[]>([]);
-  useEffect(() => {
-    if (!initialRequest) return;
-    setName(initialRequest.name);
-    setKind(
-      kindFor(initialRequest.components, initialRequest.parameters.model),
-    );
-    setComponents(initialRequest.components.map((x) => ({ ...x })));
-    drafts.current = {
-      [kindFor(initialRequest.components, initialRequest.parameters.model)]:
-        initialRequest.components.map((x) => ({ ...x })),
-    };
-    automaticName.current = "";
-    setParameters({ ...initialRequest.parameters });
-    setBonds(initialRequest.covalent_bonds ?? []);
-    setInputReferences(initialRequest.scientific_inputs ?? []);
-    setError("");
-  }, [initialRequest]);
   function chooseKind(next: TaskKind) {
-    drafts.current[kind] = components;
-    setComponents(drafts.current[next] ?? componentsFor(next, components));
-    setKind(next);
-    setBonds([]);
-    setParameters((p) => ({
-      ...p,
-      model: next === "antibody" ? "abag" : "standard",
-    }));
+    editor.chooseKind(next);
     setError("");
     automaticName.current = "";
   }
@@ -151,7 +145,7 @@ export function TaskForm({
         type="button"
         aria-pressed={!expert}
         className={!expert ? "selected" : ""}
-        onClick={() => setExpert(false)}
+        onClick={() => editor.patch({ expert: false })}
       >
         {zh ? "简易模式" : "Guided mode"}
       </button>
@@ -159,7 +153,7 @@ export function TaskForm({
         type="button"
         aria-pressed={expert}
         className={expert ? "selected" : ""}
-        onClick={() => setExpert(true)}
+        onClick={() => editor.patch({ expert: true })}
       >
         {zh ? "专家微调" : "Expert mode"}
       </button>
@@ -184,9 +178,7 @@ export function TaskForm({
       <MolecularInputs
         showHeading={false}
         items={components}
-        onChange={(items) => {
-          setComponents(items);
-        }}
+        onChange={editor.changeComponents}
         language={language}
         expert={expert}
         workflow={kind}
@@ -197,7 +189,7 @@ export function TaskForm({
           components={components}
           parameters={parameters}
           value={bonds}
-          onChange={setBonds}
+          onChange={(value) => editor.patch({ bonds: value })}
           language={language}
         />
       )}
@@ -210,7 +202,7 @@ export function TaskForm({
         abagAvailable={abagAvailable}
         language={language}
         value={parameters}
-        onChange={setParameters}
+        onChange={editor.changeParameters}
         hasProtein={components.some((x) => x.kind === "protein")}
         expert={expert}
       />
@@ -226,27 +218,32 @@ export function TaskForm({
           ]),
         )}
         value={parameters}
-        onChange={setParameters}
+        onChange={editor.changeParameters}
         language={language}
         expert={expert}
+        integerText={integerText}
+        onIntegerTextChange={editor.changeIntegerText}
       />
       <p className="small model-summary">
         {zh ? "本次模型：" : "Model: "}
         {model === "abag" ? "OpenDDE ABAG" : "OpenDDE"} ·{" "}
         {zh ? "服务端计算" : "Server computation"}
       </p>
-      <label className="field task-name">
-        {t("name")}{" "}
-        <span className="muted small">
-          {zh ? "（可选，留空自动命名）" : "(optional; automatic if blank)"}
-        </span>
-        <input
-          value={name}
-          maxLength={80}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("nameHint")}
-        />
-      </label>
+      {!validIntegerTexts(parameters, integerText) && (
+        <p className="notice" role="alert">
+          {zh
+            ? "请在专家参数中检查随机种子和 GPU 编号；未完成的输入已保留。"
+            : "Check seeds and GPU indices in expert settings. Your unfinished input is retained."}
+          {!expert && (
+            <button
+              type="button"
+              onClick={() => editor.patch({ expert: true })}
+            >
+              {zh ? "显示专家参数" : "Show expert settings"}
+            </button>
+          )}
+        </p>
+      )}
     </>
   );
   const inputValid =
@@ -254,6 +251,9 @@ export function TaskForm({
     (expert || completeWorkflow(kind, components));
   const modelReady =
     model !== "abag" || Boolean(parameters.checkpoint_id) || abagAvailable;
+  const settingsValid =
+    validFeaturePolicy(parameters) &&
+    validIntegerTexts(parameters, integerText);
   const unavailable = zh
     ? "本任务所需的结构预测环境或模型尚未就绪。请在安装与组件中配置；已填信息保留。"
     : "Configure this task's prediction environment and model in Installation & components. Inputs are retained.";
@@ -284,28 +284,15 @@ export function TaskForm({
         }}
         onClear={() => {
           setExample(null);
-          setName("");
-          setKind("complex");
-          setExpert(false);
-          setComponents(componentsFor("complex", []));
-          setParameters({ ...defaults, model: "standard" });
-          setBonds([]);
-          setInputReferences([]);
+          editor.clear();
           setError("");
-          drafts.current = {};
           automaticName.current = "";
-          setTemplateRevision((value) => value + 1);
         }}
         onLoad={(prepared) => {
           setExample(prepared);
-          setTemplateRevision((value) => value + 1);
           const value = examplePrediction(prepared);
-          setName(value.name);
-          setKind(kindFor(value.components, value.parameters.model));
-          setComponents(value.components);
-          setParameters(value.parameters);
-          setBonds([]);
-          setInputReferences(value.scientific_inputs ?? []);
+          editor.load(value);
+          automaticName.current = "";
           setError("");
         }}
       />
@@ -318,9 +305,20 @@ export function TaskForm({
             seeds={[parameters.seed, ...(parameters.additional_seeds ?? [])]}
             samples={parameters.samples}
             valid={inputValid}
+            draftControls={
+              <SharedPredictionDraftControls
+                adapter={openDdeDraftAdapter}
+                state={editor.snapshot}
+                initial={initialDraft}
+                language={language}
+                busy={busy}
+                onName={(value) => editor.patch({ name: value })}
+                onResume={onResumeDraft}
+              />
+            }
           >
             <Questionnaire
-              key={templateRevision}
+              key={editor.revision}
               language={language}
               ready={ready && modelReady}
               busy={busy}
@@ -359,12 +357,12 @@ export function TaskForm({
                 {
                   title: zh ? "选择方案" : "Choose settings",
                   content: settings,
-                  valid: validFeaturePolicy(parameters),
+                  valid: settingsValid,
                 },
                 {
                   title: zh ? "确认启动" : "Review & start",
                   content: review,
-                  valid: inputValid && validFeaturePolicy(parameters),
+                  valid: inputValid && settingsValid,
                 },
               ]}
             />

@@ -12,7 +12,7 @@ class SnapshotModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-def bounded_state(state):
+def bounded_state(state, settings=None):
     def visit(value, depth=0):
         if depth > 8:
             raise ValueError("Draft settings exceed the supported nesting depth.")
@@ -31,7 +31,9 @@ def bounded_state(state):
         elif isinstance(value, str) and len(value) > 50000:
             raise ValueError("Draft value is too long.")
 
-    visit(state.settings.model_dump() if isinstance(state.settings, BaseModel) else state.settings)
+    if settings is None:
+        settings = state.settings
+    visit(settings.model_dump() if isinstance(settings, BaseModel) else settings)
     try:
         body = json.dumps(state.model_dump(mode="json"), allow_nan=False)
     except ValueError as exc:

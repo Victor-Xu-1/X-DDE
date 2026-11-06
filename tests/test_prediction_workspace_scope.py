@@ -8,6 +8,40 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_opendde_editor_drafts_delegate_only_with_their_closed_native_and_browser_proof():
+    changed = {
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/TaskFormDrafts.test.tsx",
+        "frontend/src/operations/opendde-draft.ts",
+        "src/opendde_workbench/drafts/opendde.py",
+        "tests/test_opendde_drafts.py",
+        "server_tests/test_opendde_drafts_browser.py",
+        "src/opendde_workbench/drafts/models.py",
+        "src/opendde_workbench/drafts/entities.py",
+    }
+    for event in ["push", "pull_request"]:
+        assert scope.opendde_drafts_only(changed, event)
+        assert scope.drafts_only(changed, event)
+        assert scope.prediction_only(changed, event)
+    assert scope.drafts_changed(changed)
+    assert not scope.opendde_drafts_only(changed, "workflow_dispatch")
+    for missing in ["tests/test_opendde_drafts.py", "server_tests/test_opendde_drafts_browser.py"]:
+        assert not scope.opendde_drafts_only(changed - {missing})
+    for unrelated in [
+        "src/opendde_workbench/engine.py",
+        "src/opendde_workbench/api.py",
+        "frontend/src/App.tsx",
+    ]:
+        assert not scope.opendde_drafts_only(changed | {unrelated})
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "src/TaskFormDrafts.test.tsx src/operations/opendde-draft.test.ts" in workflow
+    assert "tests/test_opendde_drafts.py tests/test_api_security.py" in workflow
+    assert (
+        "server_tests/test_boltz_drafts_browser.py server_tests/test_opendde_drafts_browser.py"
+        in workflow
+    )
+
+
 def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     changed = [
         "src/opendde_workbench/boltz_confidence.py",
