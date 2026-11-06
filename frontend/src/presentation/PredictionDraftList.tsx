@@ -1,29 +1,40 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { FileTextOutlined } from "@ant-design/icons";
 import { api, request } from "../api";
 import type { Language } from "../types";
+import type { PredictionDraft } from "./prediction-draft-model";
+import { mol1DraftAdapter } from "./mol1-draft-adapter";
 import {
-  readPredictionDraft,
-  type PredictionDraft,
-  type PredictionDraftSummary,
-} from "./prediction-draft-model";
+  draftToolQuery,
+  type DraftAdapter,
+  type DraftEditorState,
+  type DraftRecord,
+  type DraftSummary,
+  type DraftTool,
+} from "./prediction-draft-contract";
 import "./prediction-drafts.css";
 
-export function PredictionDraftList({
+export function SharedPredictionDraftList<
+  State extends DraftEditorState,
+  Tool extends DraftTool,
+>({
+  adapter,
   language,
   busy,
   onResume,
   onClose,
 }: {
+  adapter: DraftAdapter<State, Tool>;
   language: Language;
   busy: boolean;
-  onResume(value: PredictionDraft): void;
+  onResume(value: DraftRecord<State, Tool>): void;
   onClose(): void;
 }) {
   const zh = language === "zh",
     id = useId();
   const root = useRef<HTMLDialogElement>(null),
     heading = useRef<HTMLHeadingElement>(null);
-  const [rows, setRows] = useState<PredictionDraftSummary[]>([]),
+  const [rows, setRows] = useState<DraftSummary<Tool>[]>([]),
     [query, setQuery] = useState("");
   const [archived, setArchived] = useState(false),
     [page, setPage] = useState(0),
@@ -31,7 +42,7 @@ export function PredictionDraftList({
   const [loading, setLoading] = useState(true),
     [pending, setPending] = useState(false),
     [error, setError] = useState("");
-  const [selected, setSelected] = useState<PredictionDraftSummary | null>(null);
+  const [selected, setSelected] = useState<DraftSummary<Tool> | null>(null);
   const serial = useRef(0),
     alive = useRef(true),
     action = useRef(false);
@@ -55,12 +66,16 @@ export function PredictionDraftList({
     setError("");
     setRows([]);
     setSelected(null);
-    request<PredictionDraftSummary[]>(
-      `/prediction-drafts?archived=${archived}&offset=${page * 30}`,
+    request<DraftSummary<Tool>[]>(
+      `/prediction-drafts?archived=${archived}&offset=${page * 30}${draftToolQuery(adapter.tool).replace("?", "&")}`,
       { signal: controller.signal },
     )
       .then((values) => {
-        if (serial.current === token) setRows(values);
+        if (serial.current === token) {
+          if (values.some((row) => row.tool !== adapter.tool))
+            throw new Error("Draft list belongs to another prediction model.");
+          setRows(values);
+        }
       })
       .catch((reason) => {
         if (!controller.signal.aborted && serial.current === token)
@@ -70,9 +85,9 @@ export function PredictionDraftList({
         if (serial.current === token) setLoading(false);
       });
     return () => controller.abort();
-  }, [archived, page, refresh]);
+  }, [archived, page, refresh, adapter.tool]);
   async function perform(
-    row: PredictionDraftSummary,
+    row: DraftSummary<Tool>,
     operation: "resume" | "archive",
   ) {
     if (action.current || busy) return;
@@ -82,10 +97,18 @@ export function PredictionDraftList({
     const token = serial.current;
     try {
       if (operation === "resume") {
-        const loaded = readPredictionDraft(
-          await request<PredictionDraft>(`/prediction-drafts/${row.id}`),
+        const loaded = adapter.readDraft(
+          await request<DraftRecord<State, Tool>>(
+            `/prediction-drafts/${row.id}${draftToolQuery(adapter.tool)}`,
+          ),
         );
         if (alive.current && serial.current === token) {
+          if (loaded.id !== row.id || loaded.revision !== row.revision)
+            throw new Error(
+              zh
+                ? "草稿在读取期间有更新，请刷新列表后重试。"
+                : "This draft changed while opening. Refresh the list and try again.",
+            );
           if (loaded.archived)
             throw new Error(
               zh
@@ -95,10 +118,13 @@ export function PredictionDraftList({
           resume.current(loaded);
         }
       } else {
-        await api.post(`/prediction-drafts/${row.id}/archive`, {
-          revision: row.revision,
-          archived: !archived,
-        });
+        await api.post(
+          `/prediction-drafts/${row.id}/archive${draftToolQuery(adapter.tool)}`,
+          {
+            revision: row.revision,
+            archived: !archived,
+          },
+        );
         if (alive.current && serial.current === token)
           setRefresh((value) => value + 1);
       }
@@ -130,7 +156,7 @@ export function PredictionDraftList({
       <header>
         <div>
           <small>
-            {zh ? "结构预测 · Mol-1" : "STRUCTURE PREDICTION · Mol-1"}
+            {`${zh ? "结构预测" : "STRUCTURE PREDICTION"} · ${adapter.model}`}
           </small>
           <h2 ref={heading} tabIndex={-1} id={id}>
             {zh ? "草稿" : "Drafts"}
@@ -226,7 +252,7 @@ export function PredictionDraftList({
           </ul>
         ) : (
           <div className="prediction-drafts-empty">
-            <span aria-hidden="true">▤</span>
+            <FileTextOutlined aria-hidden="true" />
             <h3>
               {query
                 ? zh
@@ -323,4 +349,14 @@ export function PredictionDraftList({
       </footer>
     </dialog>
   );
+}
+
+/** Legacy Mol-1 entry stays source-compatible with native consumers. */
+export function PredictionDraftList(props: {
+  language: Language;
+  busy: boolean;
+  onResume(value: PredictionDraft): void;
+  onClose(): void;
+}) {
+  return <SharedPredictionDraftList {...props} adapter={mol1DraftAdapter} />;
 }

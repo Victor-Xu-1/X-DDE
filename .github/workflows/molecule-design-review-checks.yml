@@ -86,7 +86,7 @@ jobs:
           if-no-files-found: warn
   design-review:
     needs: [model-context, prediction-context]
-    if: (github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_confidence != 'true') && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
+    if: (github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_confidence != 'true') && (github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_drafts != 'true') && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
