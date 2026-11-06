@@ -8,6 +8,29 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof():
+    test = "frontend/src/presentation/PredictionJobReview.test.tsx"
+    browser = "server_tests/test_job_review_layout_browser.py"
+    source = "frontend/src/presentation/PredictionJobReview.tsx"
+    assert scope.job_review_layout_only([test])
+    assert scope.final_review_only([test])
+    assert scope.prediction_only([test])
+    assert not scope.job_review_layout_only([test], "workflow_dispatch")
+    assert not scope.job_review_layout_only([source, test])
+    assert not scope.job_review_layout_only([source, browser])
+    changes = [source, test, browser, "scripts/job-review-scope.py"]
+    assert scope.job_review_layout_only(changes, "pull_request")
+    assert scope.final_review_only(changes)
+    assert scope.prediction_only(changes)
+    for unrelated in (
+        "src/opendde_workbench/backend.py",
+        "frontend/src/operations/useTaskSubmit.ts",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/App.tsx",
+    ):
+        assert not scope.job_review_layout_only(changes + [unrelated])
+
+
 def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():
     files = sorted(scope.BOLTZ_INPUT_FILES)
     assert scope.boltz_inputs_only(["server_tests/test_boltz_input_settings_browser.py"])

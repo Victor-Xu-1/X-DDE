@@ -444,10 +444,15 @@ SPATIAL_DESIGN_REVIEW_FILES = SPATIAL_DESIGN_REVIEW_REQUIRED | {
 }
 
 
+def job_review_layout_only(changed, event="push"):
+    return runpy.run_path("scripts/job-review-scope.py")["selected"](changed, event)
+
+
 def final_review_only(changed, event="push"):
     changed = set(changed)
     return event in {"push", "pull_request"} and (
-        {
+        job_review_layout_only(changed, event)
+        or {
             "frontend/src/integrations/Mol1Form.tsx",
             "frontend/src/integrations/Mol1JobReview.tsx",
             "server_tests/test_mol1_final_review_browser.py",
@@ -491,7 +496,7 @@ def final_review_only(changed, event="push"):
 
 
 def final_review_changed(changed, event="push"):
-    return event == "workflow_dispatch" or any(
+    return job_review_layout_only(changed, event) or event == "workflow_dispatch" or any(
         path.startswith("frontend/src/integrations/mol1-job-")
         or path
         in {
@@ -979,6 +984,9 @@ def main():
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "feature_settings": feature_settings_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "job_review_layout": job_review_layout_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "entity_inputs": feature_settings_only(

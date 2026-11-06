@@ -1,0 +1,146 @@
+import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import type { Language, Component } from "../types";
+import type { ScientificTask } from "../integrations/types";
+import { entityInfo } from "../guided/entities";
+import { PredictionJobReview } from "./PredictionJobReview";
+import { PredictionJobSettings } from "./PredictionJobSettings";
+import fasta from "../../../src/opendde_workbench/examples/stat6/inputs/STAT6-human-P42226.fasta?raw";
+
+vi.mock("./MoleculeImage", () => ({
+  MoleculeImage: () => <div data-testid="native-depiction" />,
+}));
+
+const nativeDialog = ["showModal", "close"].map(
+  (name) =>
+    [
+      name,
+      Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, name),
+    ] as const,
+);
+beforeEach(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+    },
+  });
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value: function (this: HTMLDialogElement) {
+      this.removeAttribute("open");
+    },
+  });
+});
+afterEach(() => {
+  cleanup();
+  for (const [name, original] of nativeDialog) {
+    if (original)
+      Object.defineProperty(HTMLDialogElement.prototype, name, original);
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+  }
+  vi.restoreAllMocks();
+});
+
+const components: Component[] = [
+  { kind: "protein", value: fasta.split(/\r?\n/).slice(1).join(""), count: 1 },
+  {
+    kind: "ligand",
+    value: "O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3",
+    count: 1,
+  },
+];
+const task: ScientificTask = {
+  operation: "mol1_predict",
+  name: "STAT6 · Submitted-input inspection",
+  inputs: [],
+  payload: { kind: "mol1", components },
+  options: { device: "cpu", cpu: 2, memory_mib: 4096, seed: 101 },
+};
+const prepare = async () => ({ task, components });
+
+async function review(language: Language) {
+  const close = vi.fn();
+  const submit = vi.fn(async () => undefined);
+  render(
+    <PredictionJobReview
+      language={language}
+      input={task}
+      prepare={prepare}
+      renderSettings={() => (
+        <PredictionJobSettings
+          language={language}
+          rows={[["Model", "Mol-1"]]}
+        />
+      )}
+      ready={false}
+      unavailable="The model remains unavailable."
+      busy={false}
+      error=""
+      confirm={async (send) => {
+        await send();
+      }}
+      onClose={close}
+      submit={submit}
+    />,
+  );
+  await screen.findByText(task.name, { exact: true });
+  return { dialog: within(screen.getByRole("dialog")), close, submit };
+}
+
+it.each(["en", "zh"] as const)(
+  "makes the first actual study sequence visible immediately in %s",
+  async (language) => {
+    const { dialog, submit } = await review(language);
+    const name = entityInfo.protein.name[language === "zh" ? 0 : 1] + " 1";
+    expect(
+      dialog.getByText(name, { selector: "h3", exact: true }),
+    ).toBeVisible();
+    expect(dialog.getByText("847 aa", { exact: true })).toBeVisible();
+    expect(submit).not.toHaveBeenCalled();
+  },
+);
+
+it.each(["en", "zh"] as const)(
+  "offers an identity-level edit action without submitting in %s",
+  async (language) => {
+    const user = userEvent.setup();
+    const { dialog, close, submit } = await review(language);
+    await user.click(
+      dialog.getByRole("button", {
+        name: language === "zh" ? "编辑设置" : "Edit setup",
+        exact: true,
+      }),
+    );
+    expect(close).toHaveBeenCalledOnce();
+    expect(submit).not.toHaveBeenCalled();
+  },
+);
+
+it.each(["en", "zh"] as const)(
+  "retains the selected entity disclosure across JSON and overview in %s",
+  async (language) => {
+    const user = userEvent.setup();
+    const { dialog, submit } = await review(language);
+    const name = entityInfo.ligand.name[language === "zh" ? 0 : 1] + " 2";
+    await user.click(
+      dialog.getByText(name, { selector: "strong", exact: true }),
+    );
+    expect(dialog.getByTestId("native-depiction")).toBeVisible();
+    await user.click(
+      dialog.getByRole("button", {
+        name: language === "zh" ? "提交内容" : "Request JSON",
+        exact: true,
+      }),
+    );
+    await user.click(
+      dialog.getByRole("button", {
+        name: language === "zh" ? "概览" : "Overview",
+        exact: true,
+      }),
+    );
+    expect(dialog.getByTestId("native-depiction")).toBeVisible();
+    expect(submit).not.toHaveBeenCalled();
+  },
+);

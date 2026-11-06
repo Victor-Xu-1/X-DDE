@@ -113,6 +113,7 @@ on:
       - "server_tests/test_prediction_input_preview_browser.py"
       - "server_tests/test_prediction_entry_browser.py"
       - "scripts/prediction-workspace-scope.py"
+      - "scripts/job-review-scope.py"
       - "tests/test_prediction_workspace_scope.py"
       - ".github/workflows/prediction-workspace-checks.yml"
   pull_request:
@@ -130,6 +131,8 @@ on:
         value: ${{ jobs.scope.outputs.computation_settings }}
       feature_settings:
         value: ${{ jobs.scope.outputs.feature_settings }}
+      job_review_layout:
+        value: ${{ jobs.scope.outputs.job_review_layout }}
       prediction_only:
         value: ${{ jobs.scope.outputs.prediction_only }}
       shared_workbench_only:
@@ -148,6 +151,7 @@ jobs:
       shared_workbench_only: ${{ steps.select.outputs.shared_workbench_only }}
       entity_inputs: ${{ steps.select.outputs.entity_inputs }}
       feature_settings: ${{ steps.select.outputs.feature_settings }}
+      job_review_layout: ${{ steps.select.outputs.job_review_layout }}
       sample_export_only: ${{ steps.select.outputs.sample_export_only }}
       sample_export_changed: ${{ steps.select.outputs.sample_export_changed }}
       reference_review_only: ${{ steps.select.outputs.reference_review_only }}
@@ -241,11 +245,21 @@ jobs:
           src/presentation/MoleculeImage.test.tsx src/guided/MolecularInputs.test.tsx
           src/TaskForm.test.tsx src/integrations/Mol1Form.test.tsx src/integrations/ScientificForm.test.tsx
       - name: Final review, exact task payload and shared dialog/questionnaire consumers
-        if: needs.scope.outputs.final_review_changed == 'true'
+        if: needs.scope.outputs.final_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/Mol1Form.test.tsx src/integrations/mol1-job-request.test.ts
           src/guided/Questionnaire.test.tsx src/presentation/PredictionInputPreview.test.tsx
+      - name: Shared review visibility, editing and retained overview state
+        if: needs.scope.outputs.job_review_layout == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/PredictionJobReview.test.tsx
+          src/presentation/PredictionInputPreview.test.tsx src/integrations/Mol1Form.test.tsx
+          src/integrations/mol1-job-request.test.ts src/integrations/ScientificForm.test.tsx
+          src/TaskForm.test.tsx src/operations/HarnessFoldInputs.test.tsx
+          src/docking/DockingForm.test.tsx src/diffsbdd/DiffForm.test.tsx
+          src/proximity/Form.test.tsx src/guided/Questionnaire.test.tsx
       - name: Native confidence interpretation and direct prediction result consumer
         if: needs.scope.outputs.native_confidence == 'true'
         working-directory: frontend
@@ -253,13 +267,13 @@ jobs:
           npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/viewer/StructureInspection.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
-        if: needs.scope.outputs.boltz_review_changed == 'true'
+        if: needs.scope.outputs.boltz_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/ScientificForm.test.tsx
           src/integrations/ScientificReview.test.tsx src/integrations/BoltzInputs.test.tsx
       - name: OpenDDE request identity, project ownership and structure input consumers
-        if: needs.scope.outputs.opendde_review_changed == 'true'
+        if: needs.scope.outputs.opendde_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
         working-directory: frontend
         run: npx vitest run src/TaskForm.test.tsx src/guided/workflows.test.tsx src/studio/HomeWorkspace.test.tsx
       - name: Unfinished saved drafts and their native form and shared setup consumers
