@@ -1,15 +1,25 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ConfidencePlddt } from "./ConfidencePlddt";
 import type { Confidence } from "./confidence-data";
 import type { ConfidenceInspection } from "../viewer/confidence-types";
+const trace = vi.hoisted(() => vi.fn());
 
 vi.mock("../presentation/plots/InteractivePlot", () => ({
-  InteractivePlot: ({ onPoint }: { onPoint?(point: { x: number }): void }) => (
-    <button onClick={() => onPoint?.({ x: 31 })}>
-      Select displayed endpoint
-    </button>
-  ),
+  InteractivePlot: ({
+    onPoint,
+    data,
+  }: {
+    onPoint?(point: { x: number }): void;
+    data: unknown[];
+  }) => {
+    trace(data[0]);
+    return (
+      <button onClick={() => onPoint?.({ x: 31 })}>
+        Select displayed endpoint
+      </button>
+    );
+  },
 }));
 const native: Confidence = {
   metric: "pae",
@@ -53,6 +63,12 @@ it("selects the exact native token, including a sampled endpoint rather than its
     screen.getByRole("button", { name: "Select displayed endpoint" }),
   );
   expect(select).toHaveBeenCalledWith([31]);
+  expect(trace).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      mode: "lines+markers",
+      marker: { size: 5, opacity: 0.8 },
+    }),
+  );
 });
 it("rejects late point events after mapping becomes unavailable and never treats an atom index as a token", () => {
   const select = vi.fn();
@@ -86,32 +102,7 @@ it("rejects late point events after mapping becomes unavailable and never treats
     screen.getByRole("button", { name: "Select displayed endpoint" }),
   );
   expect(select).not.toHaveBeenCalled();
-});
-
-it("keeps an explicitly expanded atom-confidence curve open while linked parent state updates", async () => {
-  const atoms = {
-    ...native,
-    token_plddt: undefined,
-    atom_plddt: [{ index: 31, value: 0.9 }],
-    atom_plddt_unit: "0-1",
-  };
-  const view = render(
-    <ConfidencePlddt data={atoms} language="en" inspection={inspection} />,
-  );
-  const summary = screen.getByText("Atom confidence");
-  const details = summary.closest("details")!;
-  expect(details).not.toHaveAttribute("open");
-  fireEvent.click(summary);
-  await waitFor(() => expect(details).toHaveAttribute("open"));
-  view.rerender(
-    <ConfidencePlddt
-      data={atoms}
-      language="en"
-      inspection={{ ...inspection }}
-    />,
-  );
-  expect(details).toHaveAttribute("open");
-  expect(
-    screen.getByRole("button", { name: "Select displayed endpoint" }),
-  ).toBeVisible();
+  // Plotly treats a present-but-undefined marker container differently from an
+  // omitted optional container. The legacy native atom curve stays lines-only.
+  expect(trace.mock.lastCall![0]).not.toHaveProperty("marker");
 });

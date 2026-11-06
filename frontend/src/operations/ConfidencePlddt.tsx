@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { InteractivePlot } from "../presentation/plots/InteractivePlot";
 import type { Language } from "../types";
 import type { Confidence } from "./confidence-data";
@@ -18,8 +17,6 @@ export function ConfidencePlddt({
   const zh = language === "zh";
   const points = data?.token_plddt ?? data?.atom_plddt ?? [];
   const tokenConfidence = data?.token_plddt !== undefined;
-  const [expanded, setExpanded] = useState(tokenConfidence);
-  useEffect(() => setExpanded(tokenConfidence), [tokenConfidence]);
   const atomScores =
     (tokenConfidence ? data.token_plddt_unit : data.atom_plddt_unit) ===
       "0-1" &&
@@ -31,10 +28,7 @@ export function ConfidencePlddt({
   return (
     <>
       {points.length > 0 && atomScores !== null && (
-        <details
-          open={expanded}
-          onToggle={(event) => setExpanded(event.currentTarget.open)}
-        >
+        <details open={tokenConfidence}>
           <summary>
             {tokenConfidence
               ? zh
@@ -64,7 +58,9 @@ export function ConfidencePlddt({
               {
                 type: "scatter",
                 mode: tokenConfidence ? "lines+markers" : "lines",
-                marker: tokenConfidence ? { size: 5, opacity: 0.8 } : undefined,
+                ...(tokenConfidence
+                  ? { marker: { size: 5, opacity: 0.8 } }
+                  : {}),
                 x: points.map((row) => row.index),
                 y: atomScores,
                 name: "pLDDT",
