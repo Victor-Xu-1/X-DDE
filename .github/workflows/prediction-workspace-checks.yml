@@ -139,6 +139,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     outputs:
+      appearance_only: ${{ steps.select.outputs.appearance_only }}
       boltz_inputs: ${{ steps.select.outputs.boltz_inputs }}
       computation_settings: ${{ steps.select.outputs.computation_settings }}
       prediction_only: ${{ steps.select.outputs.prediction_only }}
@@ -173,7 +174,7 @@ jobs:
         run: python scripts/prediction-workspace-scope.py
   interface:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

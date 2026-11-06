@@ -2,6 +2,7 @@
 
 import fnmatch
 import os
+import runpy
 import subprocess
 
 PATTERNS = (
@@ -967,8 +968,12 @@ def main():
         if base and set(base) != {"0"}
         else []
     )
+    appearance = runpy.run_path("scripts/appearance-scope.py")["from_git"](
+        changed, base, os.environ.get("GITHUB_EVENT_NAME", "push")
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "appearance_only": appearance,
             "boltz_inputs": boltz_inputs_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "computation_settings": computation_settings_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

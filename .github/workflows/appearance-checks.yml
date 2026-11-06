@@ -1,0 +1,56 @@
+name: Three-theme appearance checks
+on:
+  push:
+    paths: &appearance_paths
+      - "frontend/src/theme*"
+      - "frontend/public/theme-init.js"
+      - "frontend/src/tokens.css"
+      - "frontend/src/studio/InterfaceSettings*"
+      - "frontend/src/design/preferences.css"
+      - "frontend/src/design/workspaces.css"
+      - "scripts/appearance-scope.py"
+      - "tests/test_appearance_scope.py"
+      - "server_tests/test_appearance_browser.py"
+      - ".github/workflows/appearance-checks.yml"
+  pull_request:
+    paths: *appearance_paths
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  appearance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Theme bootstrap, contrast, persistence and actual settings consumers only
+        working-directory: frontend
+        run: >-
+          npx vitest run src/theme.warm.test.ts src/theme.test.ts
+          src/studio/InterfaceSettings.test.tsx src/studio/Navigation.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Exact appearance delegation and existing scope consumers
+        run: |
+          uv run --locked pytest -q tests/test_appearance_scope.py tests/test_prediction_workspace_scope.py
+          uv run --locked ruff check scripts/appearance-scope.py scripts/prediction-workspace-scope.py tests/test_appearance_scope.py server_tests/test_appearance_browser.py
+      - name: Isolated bilingual rendered appearance; no scientific tasks
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-appearance" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-appearance/state" >> "$GITHUB_ENV"
+          uv run --locked playwright install chromium --with-deps
+      - run: uv run --locked python -m pytest -x -q server_tests/test_appearance_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: three-theme-appearance-evidence
+          path: outputs/appearance
+          if-no-files-found: warn
