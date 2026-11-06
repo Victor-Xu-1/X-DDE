@@ -60,7 +60,7 @@ def test_opendde_final_review_uses_current_request(language, width):
         opener.click()
         dialog = page.get_by_role("dialog", name=preview, exact=True)
         expect(dialog.get_by_role("heading", name=preview)).to_be_focused()
-        expect(dialog.get_by_text("STAT6 · OpenDDE submission review")).to_be_visible()
+        expect(dialog.get_by_text("STAT6 · OpenDDE submission review", exact=True)).to_be_visible()
         expect(dialog.get_by_text(label("No MSA", "不使用 MSA"), exact=True)).to_be_visible()
         confirm = dialog.get_by_role("button", name=label("Submit job", "提交任务"), exact=True)
         expect(confirm).to_be_disabled()
@@ -91,7 +91,7 @@ def test_opendde_final_review_uses_current_request(language, width):
         name.fill("STAT6 · Updated review")
         next_step.click()
         opener.click()
-        expect(dialog.get_by_text("STAT6 · Updated review")).to_be_visible()
+        expect(dialog.get_by_text("STAT6 · Updated review", exact=True)).to_be_visible()
         assert not writes and not errors
         assert page.request.get(base + "/api/jobs").json() == []
         (evidence / "acceptance.json").write_text(

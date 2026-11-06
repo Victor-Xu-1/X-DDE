@@ -24,6 +24,7 @@
 }
 .prediction-job-preview > footer {
   padding-block: 14px;
+  margin: 0;
 }
 .job-review-description {
   flex-basis: 100%;
