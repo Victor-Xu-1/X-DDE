@@ -18,6 +18,7 @@ export function PredictionEntityPreview({
   title,
   summary,
   showMetadata = false,
+  emptyMessage,
   children,
 }: {
   item: PreviewComponent;
@@ -27,6 +28,7 @@ export function PredictionEntityPreview({
   title?: string;
   summary?: ReactNode;
   showMetadata?: boolean;
+  emptyMessage?: ReactNode;
   children?: ReactNode;
 }) {
   const zh = language === "zh";
@@ -153,9 +155,10 @@ export function PredictionEntityPreview({
           <pre>{item.value}</pre>
         ) : (
           <p>
-            {zh
-              ? "请在任务步骤中填写这项材料。"
-              : "Provide this input in the task form."}
+            {emptyMessage ??
+              (zh
+                ? "请在任务步骤中填写这项材料。"
+                : "Provide this input in the task form.")}
           </p>
         )}
         {files.length > 0 && (

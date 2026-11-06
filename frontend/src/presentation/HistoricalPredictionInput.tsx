@@ -3,6 +3,8 @@ import type { Language } from "../types";
 import { readArtifactResponse } from "./artifact-file";
 import { PredictionReviewDialog } from "./PredictionReviewDialog";
 import { downloadBlob } from "./visual-export";
+import { historicalStudies } from "./prediction-history-model";
+import { HistoricalInputOverview } from "./HistoricalInputOverview";
 import "./prediction-history-input.css";
 
 const sources = {
@@ -40,6 +42,7 @@ async function readInput(jobId: string, signal: AbortSignal) {
     text,
     preview: JSON.stringify(value, null, 2),
     bytes,
+    studies: historicalStudies(value),
   };
 }
 
@@ -60,6 +63,7 @@ function InputDialog({
     ReturnType<typeof readInput>
   > | null>(null);
   const [failed, setFailed] = useState(false);
+  const [technical, setTechnical] = useState(false);
   const [copyState, setCopyState] = useState<
     "pending" | "done" | "failed" | null
   >(null);
@@ -135,7 +139,47 @@ function InputDialog({
           <p className="prediction-history-source">
             {input.sourceLabel[zh ? 0 : 1]}
           </p>
-          <pre tabIndex={0} aria-label={zh ? "输入 JSON" : "Input JSON"}>
+          {input.studies ? (
+            <>
+              <div
+                className="prediction-history-tabs"
+                role="group"
+                aria-label={zh ? "输入视图" : "Input view"}
+              >
+                <button
+                  type="button"
+                  aria-pressed={!technical}
+                  onClick={() => setTechnical(false)}
+                >
+                  {zh ? "概览" : "Overview"}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={technical}
+                  onClick={() => setTechnical(true)}
+                >
+                  {zh ? "原始 JSON" : "Original JSON"}
+                </button>
+              </div>
+              {!technical && (
+                <HistoricalInputOverview
+                  studies={input.studies}
+                  language={language}
+                />
+              )}
+            </>
+          ) : (
+            <p>
+              {zh
+                ? "此格式暂不支持结构化概览，请查看或下载原始输入。"
+                : "A readable overview is unavailable for this format. Inspect or download the original input."}
+            </p>
+          )}
+          <pre
+            hidden={!!input.studies && !technical}
+            tabIndex={0}
+            aria-label={zh ? "输入 JSON" : "Input JSON"}
+          >
             {input.preview}
           </pre>
           {copyState === "failed" && (
@@ -192,6 +236,7 @@ export function HistoricalPredictionInput({
       </button>
       {open && (
         <InputDialog
+          key={jobId}
           jobId={jobId}
           label={label}
           language={language}

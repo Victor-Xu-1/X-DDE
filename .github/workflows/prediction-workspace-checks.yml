@@ -24,6 +24,9 @@ on:
       - "server_tests/test_prediction_job_archive_browser.py"
       - "src/opendde_workbench/prediction_archive.py"
       - "frontend/src/presentation/HistoricalPredictionInput.tsx"
+      - "frontend/src/presentation/HistoricalPredictionInput.test.tsx"
+      - "frontend/src/presentation/HistoricalInputOverview.tsx"
+      - "frontend/src/presentation/prediction-history-*.ts"
       - "frontend/src/presentation/prediction-*.css"
       - "frontend/src/presentation/prediction-heading-focus*"
       - "frontend/src/viewer/confidence-*"
@@ -436,6 +439,8 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-prediction-history
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-prediction-history/state
         run: |
+          (cd frontend && npx vitest run src/presentation/prediction-history-model.test.ts src/presentation/HistoricalPredictionInput.test.tsx src/presentation/PredictionInputPreview.test.tsx)
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked ruff check src/opendde_workbench/api.py tests/test_jobs.py server_tests/test_prediction_history_input_browser.py
           uv run --locked python -m pytest -x -q tests/test_jobs.py::test_real_process_result_download_and_durable_request server_tests/test_prediction_history_input_browser.py
 

@@ -616,6 +616,24 @@ def test_historical_input_selects_its_archive_and_direct_result_consumers():
     assert not scope.history_input_only(mixed)
 
 
+def test_historical_input_readers_keep_the_existing_closed_scope():
+    paths = [
+        "frontend/src/presentation/HistoricalInputOverview.tsx",
+        "frontend/src/presentation/prediction-history-model.ts",
+        "frontend/src/presentation/prediction-history-native.ts",
+        "frontend/src/presentation/prediction-history-types.ts",
+        "frontend/src/presentation/prediction-history-model.test.ts",
+        "frontend/src/presentation/HistoricalPredictionInput.test.tsx",
+        "frontend/src/presentation/PredictionEntityPreview.tsx",
+        "docs/quality/frontend-coverage.md",
+    ]
+    assert scope.history_input_changed(paths)
+    assert scope.history_input_only(paths)
+    assert not scope.history_input_only(
+        paths + ["src/opendde_workbench/integrations/native_mol1.py"]
+    )
+
+
 def test_prediction_job_archive_keeps_selected_model_export_as_direct_regression():
     paths = [
         "src/opendde_workbench/prediction_archive.py",
