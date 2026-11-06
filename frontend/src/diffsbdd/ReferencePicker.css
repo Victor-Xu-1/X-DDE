@@ -88,6 +88,10 @@
   margin: 8px 0 0;
   overflow-wrap: anywhere;
 }
+.questionnaire:has(> fieldset:not([hidden]) .reference-material)
+  .questionnaire-actions {
+  position: static;
+}
 :root[data-theme="dark"] .reference-material-heading {
   background: var(--surface-muted);
 }

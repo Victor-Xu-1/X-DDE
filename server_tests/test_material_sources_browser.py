@@ -130,6 +130,13 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
             "radio", name="历史文件" if zh else "Historical files", exact=True
         ).check()
         expect(record).to_have_value("2")
+        record.scroll_into_view_if_needed()
+        actions = page.locator(".questionnaire-actions:visible")
+        assert actions.evaluate("e => getComputedStyle(e).position") == "static"
+        assert (
+            actions.bounding_box()["y"]
+            >= record.bounding_box()["y"] + record.bounding_box()["height"] + 8
+        )
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.screenshot(path=root / "docking-materials.png", full_page=True)
         for asset in (protein, ligand):
