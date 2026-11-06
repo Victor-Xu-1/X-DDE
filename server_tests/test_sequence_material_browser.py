@@ -154,7 +154,7 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         expect(next_button).to_be_disabled()
 
         def hold_upload(route):
-            held.append((route, route.fetch()))
+            held.append(route)
 
         page.route("**/api/assets?*", hold_upload)
         confirm.click()
@@ -166,7 +166,8 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         expect(picker).to_have_value("file:" + historical.id)
         expect(next_button).to_be_enabled()
         assert len(held) == 1
-        for route, response in held:
+        for route in held:
+            response = route.fetch()
             with page.expect_response(
                 lambda reply: reply.request.method == "POST" and "/api/assets?" in reply.url
             ):

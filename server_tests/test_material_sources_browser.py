@@ -76,7 +76,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
 
         def hold(route):
             if route.request.method == "POST":
-                held.append((route, route.fetch()))
+                held.append(route)
             else:
                 route.continue_()
 
@@ -89,7 +89,8 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         ).to_be_visible()
         history.check()
         assert len(held) == 1
-        for route, response in held:
+        for route in held:
+            response = route.fetch()
             with page.expect_response(
                 lambda response: (
                     response.request.method == "POST" and "/api/assets?" in response.url
