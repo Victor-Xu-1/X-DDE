@@ -67,6 +67,7 @@ def test_opendde_final_review_uses_current_request(language, width):
         assert dialog.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
         page.screenshot(path=str(evidence / "overview.png"))
         dialog.locator(".prediction-preview-entity > summary").nth(1).click()
+        dialog.locator(".molecule-image").scroll_into_view_if_needed()
         drawing = dialog.get_by_role("img", name=re.compile("二维分子结构|2D molecular structure"))
         expect(drawing).to_be_visible(timeout=60000)
         assert drawing.evaluate("image => image.complete && image.naturalWidth > 0")
