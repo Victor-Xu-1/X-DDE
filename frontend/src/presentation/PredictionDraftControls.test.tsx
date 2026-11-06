@@ -153,7 +153,10 @@ it.each(["en", "zh"] as const)(
       unpaired_msa: null,
       template_hits: null,
     };
-    vi.mocked(api.authorized).mockResolvedValue(draft());
+    vi.mocked(api.authorized).mockImplementation(async (path) => ({
+      ...draft(),
+      id: path.split("/").pop()!,
+    }));
     const props = {
       state: value,
       initial: null,

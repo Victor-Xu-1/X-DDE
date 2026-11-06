@@ -41,14 +41,15 @@ class DraftStore:
                 db.execute("SELECT * FROM prediction_drafts WHERE id=?", (identifier,)).fetchone()
             )
 
-    def list(self, archived: bool = False, offset: int = 0):
+    def list(self, archived: bool = False, offset: int = 0, tool: str = "mol1.predict"):
         with self.store.connect() as db:
             return [
                 DraftSummary.model_validate(self.decode(row).model_dump(exclude={"state"}))
                 for row in db.execute(
                     "SELECT * FROM prediction_drafts WHERE archived=? "
+                    "AND json_extract(body,'$.tool')=? "
                     "ORDER BY updated_at DESC,id DESC LIMIT 30 OFFSET ?",
-                    (int(archived), offset),
+                    (int(archived), tool, offset),
                 )
             ]
 
@@ -66,6 +67,8 @@ class DraftStore:
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM prediction_drafts WHERE id=?", (identifier,)).fetchone()
+            if row and json.loads(row["body"])["tool"] != value.tool:
+                raise ConflictError("A draft cannot change its prediction model. Save a new draft.")
             if row and row["archived"]:
                 raise ConflictError("This draft was archived. Restore it before saving changes.")
             if row and row["body"] == encoded:
@@ -94,12 +97,14 @@ class DraftStore:
                 db.execute("SELECT * FROM prediction_drafts WHERE id=?", (identifier,)).fetchone()
             )
 
-    def archive(self, identifier: str, revision: int, archived: bool):
+    def archive(self, identifier: str, revision: int, archived: bool, tool: str | None = None):
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM prediction_drafts WHERE id=?", (identifier,)).fetchone()
             if not row:
                 raise KeyError(identifier)
+            if tool is not None and json.loads(row["body"])["tool"] != tool:
+                raise ConflictError("This draft belongs to another prediction model.")
             if row["revision"] != revision:
                 raise ConflictError("This draft changed elsewhere. Refresh the draft list.")
             if bool(row["archived"]) != archived:

@@ -80,12 +80,20 @@ on:
       - "frontend/src/integrations/mol1-computation-settings.css"
       - "server_tests/test_mol1_settings_browser.py"
       - "frontend/src/presentation/prediction-draft-model.ts"
+      - "frontend/src/presentation/prediction-draft-contract.ts"
+      - "frontend/src/presentation/mol1-draft-adapter.ts"
+      - "frontend/src/presentation/SharedPredictionDraftControls.tsx"
+      - "frontend/src/presentation/BoltzDraftControls.test.tsx"
+      - "frontend/src/integrations/BoltzDraftBoundary.tsx"
+      - "frontend/src/integrations/boltz-draft.ts"
       - "frontend/src/presentation/prediction-settings-summary.ts"
       - "src/opendde_workbench/drafts/**"
       - "src/opendde_workbench/api.py"
       - "src/opendde_workbench/assets.py"
       - "tests/test_prediction_drafts.py"
+      - "tests/test_boltz_drafts.py"
       - "server_tests/test_prediction_drafts_browser.py"
+      - "server_tests/test_boltz_drafts_browser.py"
       - "frontend/src/integrations/Mol1Confidence.tsx"
       - "frontend/src/integrations/ScientificForm.tsx"
       - "frontend/src/integrations/ScientificResults.tsx"
@@ -155,6 +163,8 @@ on:
         value: ${{ jobs.scope.outputs.shared_workbench_only }}
       boltz_confidence:
         value: ${{ jobs.scope.outputs.boltz_confidence }}
+      boltz_drafts:
+        value: ${{ jobs.scope.outputs.boltz_drafts }}
 permissions:
   contents: read
 jobs:
@@ -163,6 +173,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       appearance_only: ${{ steps.select.outputs.appearance_only }}
+      boltz_drafts: ${{ steps.select.outputs.boltz_drafts }}
       boltz_inputs: ${{ steps.select.outputs.boltz_inputs }}
       computation_settings: ${{ steps.select.outputs.computation_settings }}
       prediction_only: ${{ steps.select.outputs.prediction_only }}
@@ -306,14 +317,16 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionDraftControls.test.tsx
+          src/presentation/BoltzDraftControls.test.tsx src/integrations/ScientificForm.test.tsx
+          src/integrations/BoltzInputs.test.tsx src/integrations/ReinventForm.test.tsx
           src/integrations/Mol1Form.test.tsx src/presentation/PredictionSetup.test.tsx
           src/presentation/PredictionInputPreview.test.tsx
       - name: Real SQLite, revision conflicts, asset retention and same-origin draft API
         if: needs.scope.outputs.drafts_changed == 'true'
         run: |
           uv sync --locked --group dev
-          uv run --locked pytest -q tests/test_prediction_drafts.py tests/test_api_security.py
-          uv run --locked ruff check src/opendde_workbench/drafts tests/test_prediction_drafts.py server_tests/test_prediction_drafts_browser.py
+          uv run --locked pytest -q tests/test_prediction_drafts.py tests/test_boltz_drafts.py tests/test_api_security.py
+          uv run --locked ruff check src/opendde_workbench/drafts tests/test_prediction_drafts.py tests/test_boltz_drafts.py server_tests/test_prediction_drafts_browser.py server_tests/test_boltz_drafts_browser.py
       - run: uv sync --locked --group dev --group browser
       - name: Scope contract and changed browser fixture checks
         run: |
@@ -373,7 +386,7 @@ jobs:
           server_tests/test_boltz_confidence_format.py server_tests/test_boltz_confidence_browser.py
       - name: Bilingual real saved-draft refresh, explicit resume and archive recovery without computation
         if: needs.scope.outputs.drafts_changed == 'true'
-        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_drafts_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_drafts_browser.py server_tests/test_boltz_drafts_browser.py
       - name: Bilingual final job preview with the real server and engine unavailable
         if: needs.scope.outputs.final_review_changed == 'true'
         run: |

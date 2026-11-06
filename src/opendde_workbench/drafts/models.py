@@ -1,16 +1,14 @@
 """Versioned UI snapshots deliberately allow unfinished scientific inputs."""
 
-import json
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
+from pydantic import Field, JsonValue, model_validator
 
-Number = Annotated[float, Field(allow_inf_nan=False, ge=-1e12, le=1e12)]
+from .boltz import BoltzState
+from .snapshot import Number, SnapshotModel, bounded_state
 
-
-class SnapshotModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+DraftTool = Literal["mol1.predict", "boltz.predict"]
 
 
 class Modification(SnapshotModel):
@@ -58,36 +56,9 @@ class Mol1State(SnapshotModel):
 
     @model_validator(mode="after")
     def bounded_snapshot(self):
-        # Native settings validation still happens only when submitting a task.
-        # Refuse non-finite JSON and unreasonable nested UI metadata at this boundary.
-        def visit(value, depth=0):
-            if depth > 8:
-                raise ValueError("Draft settings exceed the supported nesting depth.")
-            if isinstance(value, dict):
-                if len(value) > 64:
-                    raise ValueError("Too many draft settings.")
-                for key, item in value.items():
-                    if len(key) > 80:
-                        raise ValueError("Draft setting name is too long.")
-                    visit(item, depth + 1)
-            elif isinstance(value, list):
-                if len(value) > 5000:
-                    raise ValueError("Too many draft values.")
-                for item in value:
-                    visit(item, depth + 1)
-            elif isinstance(value, str) and len(value) > 50000:
-                raise ValueError("Draft value is too long.")
-
-        visit(self.settings)
         if "additional_seeds" in self.settings:
             raise ValueError("Additional seeds belong in the lossless seed_text editor field.")
-        try:
-            body = json.dumps(self.model_dump(mode="json"), allow_nan=False)
-        except ValueError as exc:
-            raise ValueError("Draft values must be finite JSON.") from exc
-        if len(body.encode()) > 200000:
-            raise ValueError("Draft exceeds the 200 kB snapshot limit.")
-        return self
+        return bounded_state(self)
 
     def asset_ids(self):
         return {
@@ -105,15 +76,22 @@ class Mol1State(SnapshotModel):
 
 
 class DraftInput(SnapshotModel):
-    tool: Literal["mol1.predict"]
+    tool: DraftTool
     schema_version: Literal[1]
     revision: int = Field(ge=0)
-    state: Mol1State
+    state: Mol1State | BoltzState
+
+    @model_validator(mode="after")
+    def matching_editor(self):
+        expected = Mol1State if self.tool == "mol1.predict" else BoltzState
+        if not isinstance(self.state, expected):
+            raise ValueError("Draft state does not match its prediction model.")
+        return self
 
 
 class DraftSummary(SnapshotModel):
     id: str
-    tool: Literal["mol1.predict"]
+    tool: DraftTool
     schema_version: Literal[1]
     revision: int
     name: str
@@ -124,7 +102,14 @@ class DraftSummary(SnapshotModel):
 
 
 class Draft(DraftSummary):
-    state: Mol1State
+    state: Mol1State | BoltzState
+
+    @model_validator(mode="after")
+    def matching_editor(self):
+        expected = Mol1State if self.tool == "mol1.predict" else BoltzState
+        if not isinstance(self.state, expected):
+            raise ValueError("Draft state does not match its prediction model.")
+        return self
 
 
 class ArchiveInput(SnapshotModel):

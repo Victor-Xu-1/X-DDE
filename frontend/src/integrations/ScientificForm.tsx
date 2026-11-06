@@ -2,6 +2,13 @@ import { useState } from "react";
 import "./inputs.css";
 import { Questionnaire } from "../guided/Questionnaire";
 import { PredictionSetup } from "../presentation/PredictionSetup";
+import { SharedPredictionDraftControls } from "../presentation/SharedPredictionDraftControls";
+import { BoltzDraftBoundary } from "./BoltzDraftBoundary";
+import {
+  boltzDraftAdapter,
+  snapshotBoltzSettings,
+  type BoltzDraft,
+} from "./boltz-draft";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Job, Language } from "../types";
@@ -44,18 +51,37 @@ import {
   type ScientificTask,
 } from "./types";
 
-export function ScientificForm({
-  form,
-  language,
-  onCreated,
-  initialStructure: chosenStructure = null,
-  onChooseTask,
-}: {
+interface ScientificFormProps {
   form: FormId;
   language: Language;
   onCreated(job: Job): void;
   initialStructure?: MoleculeRef | null;
   onChooseTask?(form: FormId): void;
+}
+
+export function ScientificForm(props: ScientificFormProps) {
+  return props.form === "boltz.predict" ? (
+    <BoltzDraftBoundary>
+      {({ edition, ...draft }) => (
+        <ScientificEditor key={edition} {...props} {...draft} />
+      )}
+    </BoltzDraftBoundary>
+  ) : (
+    <ScientificEditor {...props} />
+  );
+}
+
+function ScientificEditor({
+  form,
+  language,
+  onCreated,
+  initialStructure: chosenStructure = null,
+  onChooseTask,
+  initialDraft = null,
+  onResume,
+}: ScientificFormProps & {
+  initialDraft?: BoltzDraft | null;
+  onResume?(value: BoltzDraft): void;
 }) {
   const zh = language === "zh",
     [program, operation] = scientificForms[form];
@@ -115,19 +141,20 @@ export function ScientificForm({
     ...(program === "ligandmpnn" ? { redesigned_residues: [] } : {}),
     ...(program === "boltzgen" ? { target_chains: [] } : {}),
     ...(preset?.payload ?? {}),
+    ...initialDraft?.state.settings,
   }));
   const [boltzRows, setBoltzRows] = useState<BoltzInputRow[]>(() => {
     if (program !== "boltz") return [];
-    const components = (preset?.payload?.components as
-      BoltzComponent[] | undefined) ?? [
-      {
-        id: "A",
-        kind: "protein",
-        value: example?.sequences.protein ?? "",
-        msa_mode: "provided",
-      },
-      { id: "B", kind: "ligand", value: "", source: initialLigand },
-    ];
+    const components = initialDraft?.state.components ??
+      (preset?.payload?.components as BoltzComponent[] | undefined) ?? [
+        {
+          id: "A",
+          kind: "protein",
+          value: example?.sequences.protein ?? "",
+          msa_mode: "provided",
+        },
+        { id: "B", kind: "ligand", value: "", source: initialLigand },
+      ];
     return components.map((component, index) => ({
       key: String(index),
       revision: 0,
@@ -141,7 +168,7 @@ export function ScientificForm({
   const [selectionValid, setSelectionValid] = useState(
     !["ligandmpnn", "boltzgen", "plip"].includes(program),
   );
-  const [expert, setExpert] = useState(false);
+  const [expert, setExpert] = useState(initialDraft?.state.expert ?? false);
   const [restraints, setRestraints] = useState<SimulationRestraint[]>(() => {
     const saved = (preset?.payload.restraints ?? []) as SimulationRestraint[];
     const matches = (atom: RestraintAtom) => {
@@ -158,7 +185,10 @@ export function ScientificForm({
       : [];
   });
   const [name, setName] = useState(
-    preset?.name ?? example?.case.label[zh ? 0 : 1] ?? "",
+    initialDraft?.state.name ??
+      preset?.name ??
+      example?.case.label[zh ? 0 : 1] ??
+      "",
   );
   const [options, setOptions] = useState<ScientificTask["options"]>(() => ({
     device: ["boltz", "boltzgen"].includes(program) ? "cuda" : "cpu",
@@ -166,6 +196,7 @@ export function ScientificForm({
     memory_mib: ["boltz", "boltzgen"].includes(program) ? 24576 : 4096,
     seed: 101,
     ...structuredClone(preset?.options ?? {}),
+    ...initialDraft?.state.options,
   }));
   const readiness = useTaskReadiness(form),
     run = useTaskSubmit(onCreated);
@@ -462,6 +493,25 @@ export function ScientificForm({
       seeds={[options.seed]}
       samples={Number(payload.samples ?? 1)}
       valid={inputValid}
+      draftControls={
+        program === "boltz" && onResume ? (
+          <SharedPredictionDraftControls
+            adapter={boltzDraftAdapter}
+            state={{
+              name,
+              components: boltzRows.map((row) => row.component),
+              settings: snapshotBoltzSettings(settings),
+              options,
+              expert,
+            }}
+            initial={initialDraft}
+            language={language}
+            busy={run.busy}
+            onName={setName}
+            onResume={onResume}
+          />
+        ) : undefined
+      }
     >
       {questionnaire}
     </PredictionSetup>

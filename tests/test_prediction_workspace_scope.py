@@ -61,8 +61,7 @@ def test_closed_confidence_delegation_keeps_mixed_molecular_design_checks_active
     assert "needs.prediction-context.outputs.boltz_confidence != 'true'" in design
     assert (
         "(github.event_name == 'workflow_dispatch' || "
-        "needs.prediction-context.outputs.boltz_confidence != 'true')"
-        in design
+        "needs.prediction-context.outputs.boltz_confidence != 'true')" in design
     )
 
 
@@ -338,6 +337,32 @@ def test_unsubmitted_draft_delegation_is_bounded_to_storage_and_its_native_form(
     ]:
         assert scope.drafts_changed([consumer])
         assert not scope.drafts_only([consumer])
+
+
+def test_boltz_draft_delegation_requires_its_native_editor_and_all_recovery_contracts():
+    files = [
+        "frontend/src/integrations/ScientificForm.tsx",
+        "frontend/src/integrations/boltz-draft.ts",
+        "frontend/src/presentation/SharedPredictionDraftControls.tsx",
+        "src/opendde_workbench/drafts/storage.py",
+        "src/opendde_workbench/drafts/models.py",
+        "tests/test_boltz_drafts.py",
+        "server_tests/test_boltz_drafts_browser.py",
+    ]
+    assert scope.boltz_drafts_only(files, "pull_request")
+    assert scope.drafts_only(files) and scope.selected(files)
+    assert scope.drafts_changed(files)
+    assert not scope.boltz_drafts_only(files, "workflow_dispatch")
+    assert not scope.boltz_drafts_only(files[:-1])
+    for unrelated in [
+        "src/opendde_workbench/integrations/native_boltz.py",
+        "src/opendde_workbench/integrations/native_mol1.py",
+        "frontend/src/operations/useTaskSubmit.ts",
+        "frontend/src/App.tsx",
+        "frontend/src/integrations/ReinventForm.tsx",
+    ]:
+        assert not scope.boltz_drafts_only(files + [unrelated])
+        assert not scope.drafts_only(files + [unrelated])
 
 
 def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():

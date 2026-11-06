@@ -37,7 +37,7 @@ export function draftFingerprint(value: unknown): string {
       ? {
           ...value,
           components: value.components.map((component) =>
-            record(component) ? withoutNulls(component) : component,
+            record(component) ? normalizedComponent(component) : component,
           ),
         }
       : value;
@@ -208,4 +208,16 @@ export function readPredictionDraft(value: PredictionDraft): PredictionDraft {
       "This draft version is not supported. Your current inputs were retained.",
     );
   return { ...value, state: readMol1Draft(value.state) };
+}
+
+/** Nested optional file-version fields also round-trip through API nulls. */
+function normalizedComponent(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(withoutNulls(value)).map(([key, item]) => [
+      key,
+      record(item) ? normalizedComponent(item) : item,
+    ]),
+  );
 }

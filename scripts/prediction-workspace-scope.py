@@ -294,6 +294,23 @@ DRAFT_FILES = {
 }
 
 
+BOLTZ_DRAFT_FILES = DRAFT_FILES | {
+    "frontend/src/integrations/ScientificForm.tsx",
+    "frontend/src/integrations/ScientificForm.test.tsx",
+    "frontend/src/integrations/BoltzDraftBoundary.tsx",
+    "frontend/src/integrations/boltz-draft.ts",
+    "frontend/src/presentation/BoltzDraftControls.test.tsx",
+    "frontend/src/presentation/SharedPredictionDraftControls.tsx",
+    "frontend/src/presentation/prediction-draft-contract.ts",
+    "frontend/src/presentation/mol1-draft-adapter.ts",
+    "src/opendde_workbench/drafts/boltz.py",
+    "src/opendde_workbench/drafts/snapshot.py",
+    "tests/test_boltz_drafts.py",
+    "server_tests/test_boltz_drafts_browser.py",
+    ".github/workflows/molecule-design-review-checks.yml",
+}
+
+
 FINAL_REVIEW_FILES = {
     ".github/workflows/mol1-restraint-checks.yml",
     "frontend/src/integrations/Mol1Form.tsx",
@@ -496,20 +513,24 @@ def final_review_only(changed, event="push"):
 
 
 def final_review_changed(changed, event="push"):
-    return job_review_layout_only(changed, event) or event == "workflow_dispatch" or any(
-        path.startswith("frontend/src/integrations/mol1-job-")
-        or path
-        in {
-            "frontend/src/integrations/Mol1Form.tsx",
-            "frontend/src/integrations/Mol1JobReview.tsx",
-            "frontend/src/guided/Questionnaire.tsx",
-            "frontend/src/presentation/PredictionReviewDialog.tsx",
-            "frontend/src/presentation/PredictionJobReview.tsx",
-            "frontend/src/presentation/PredictionJobSettings.tsx",
-            "frontend/src/presentation/prediction-job-review.css",
-            "server_tests/test_mol1_final_review_browser.py",
-        }
-        for path in changed
+    return (
+        job_review_layout_only(changed, event)
+        or event == "workflow_dispatch"
+        or any(
+            path.startswith("frontend/src/integrations/mol1-job-")
+            or path
+            in {
+                "frontend/src/integrations/Mol1Form.tsx",
+                "frontend/src/integrations/Mol1JobReview.tsx",
+                "frontend/src/guided/Questionnaire.tsx",
+                "frontend/src/presentation/PredictionReviewDialog.tsx",
+                "frontend/src/presentation/PredictionJobReview.tsx",
+                "frontend/src/presentation/PredictionJobSettings.tsx",
+                "frontend/src/presentation/prediction-job-review.css",
+                "server_tests/test_mol1_final_review_browser.py",
+            }
+            for path in changed
+        )
     )
 
 
@@ -542,9 +563,26 @@ def opendde_review_changed(changed, event="push"):
     )
 
 
-def drafts_only(changed, event="push"):
+def boltz_drafts_only(changed, event="push"):
     changed = set(changed)
     return (
+        event in {"push", "pull_request"}
+        and {
+            "frontend/src/integrations/ScientificForm.tsx",
+            "frontend/src/integrations/boltz-draft.ts",
+            "frontend/src/presentation/SharedPredictionDraftControls.tsx",
+            "src/opendde_workbench/drafts/storage.py",
+            "src/opendde_workbench/drafts/models.py",
+            "tests/test_boltz_drafts.py",
+            "server_tests/test_boltz_drafts_browser.py",
+        }.issubset(changed)
+        and changed.issubset(BOLTZ_DRAFT_FILES)
+    )
+
+
+def drafts_only(changed, event="push"):
+    changed = set(changed)
+    return boltz_drafts_only(changed, event) or (
         event in {"push", "pull_request"}
         and {
             "frontend/src/presentation/PredictionDraftControls.tsx",
@@ -571,6 +609,14 @@ def drafts_changed(changed, event="push"):
             "src/opendde_workbench/assets.py",
             "tests/test_prediction_drafts.py",
             "server_tests/test_prediction_drafts_browser.py",
+            "frontend/src/integrations/boltz-draft.ts",
+            "frontend/src/integrations/BoltzDraftBoundary.tsx",
+            "frontend/src/presentation/SharedPredictionDraftControls.tsx",
+            "frontend/src/presentation/BoltzDraftControls.test.tsx",
+            "frontend/src/presentation/prediction-draft-contract.ts",
+            "frontend/src/presentation/mol1-draft-adapter.ts",
+            "tests/test_boltz_drafts.py",
+            "server_tests/test_boltz_drafts_browser.py",
         }
         for name in changed
     )
@@ -710,7 +756,8 @@ def boltz_confidence_only(changed):
                 "frontend/src/operations/ConfidenceDownload",
             )
         )
-        or name in {
+        or name
+        in {
             "src/opendde_workbench/native_arrays.py",
             "frontend/src/operations/confidence-data.ts",
         }
@@ -1037,6 +1084,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "boltz_drafts": boltz_drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "boltz_confidence": boltz_confidence_only(changed),
             "appearance_only": appearance,
             "boltz_inputs": boltz_inputs_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
