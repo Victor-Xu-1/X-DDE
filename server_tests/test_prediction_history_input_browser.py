@@ -68,6 +68,7 @@ def test_historical_prediction_input_replays_and_downloads_the_exact_document(
         rows = recorded.json()["payload"]["components"]
         protein = next(row for row in rows if row["kind"] == "protein")
         expect(dialog).to_contain_text(f"{len(protein['value'])} aa")
+        page.screenshot(path=evidence / "view-overview.png")
         ligand = next(row for row in rows if row["kind"] == "ligand")
         reference = ligand["source"]
         # Native drawing is deliberately lazy: a narrow user scrolls past the
