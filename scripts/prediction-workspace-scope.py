@@ -312,6 +312,7 @@ BOLTZ_DRAFT_FILES = DRAFT_FILES | {
 
 OPENDDE_DRAFT_FILES = {
     "server_tests/test_prediction_drafts_browser.py",
+    "server_tests/test_boltz_drafts_browser.py",
     "server_tests/test_template_controls_browser.py",
     "frontend/src/TaskForm.tsx",
     "frontend/src/TaskForm.test.tsx",
