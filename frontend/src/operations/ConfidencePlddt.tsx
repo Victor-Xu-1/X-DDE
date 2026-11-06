@@ -57,7 +57,8 @@ export function ConfidencePlddt({
             data={[
               {
                 type: "scatter",
-                mode: "lines",
+                mode: tokenConfidence ? "lines+markers" : "lines",
+                marker: tokenConfidence ? { size: 5, opacity: 0.8 } : undefined,
                 x: points.map((row) => row.index),
                 y: atomScores,
                 name: "pLDDT",

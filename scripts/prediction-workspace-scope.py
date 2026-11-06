@@ -665,7 +665,7 @@ CONFIDENCE_LAYOUT_FILES = (
 
 BOLTZ_CONFIDENCE_FILES = (
     "frontend/src/operations/ConfidenceDownload*",
-    "frontend/src/operations/ConfidencePlddt.tsx",
+    "frontend/src/operations/ConfidencePlddt*",
     "frontend/src/operations/confidence-data.ts",
     "src/opendde_workbench/native_arrays.py",
     "src/opendde_workbench/boltz_confidence*.py",

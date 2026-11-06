@@ -50,9 +50,10 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
         page.get_by_role("button", name="清除选择" if zh else "Clear sequence selection").click()
         curve.scroll_into_view_if_needed()
         expect(curve.get_by_role("application")).to_have_attribute("aria-busy", "false")
-        line = curve.locator(".scatterlayer .js-line").bounding_box()
-        assert line
-        page.mouse.click(line["x"] + 0.3, line["y"] + 0.3)
+        marker = curve.locator(".scatterlayer .point").first.bounding_box()
+        assert marker and marker["width"] > 0 and marker["height"] > 0
+        page.mouse.click(marker["x"] + marker["width"] / 2, marker["y"] + marker["height"] / 2)
+        page.screenshot(path=evidence / "curve-point-selection.png", full_page=True)
         expect(first).to_have_attribute("aria-checked", "true")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
         page.get_by_role("button", name="清除选择" if zh else "Clear sequence selection").click()

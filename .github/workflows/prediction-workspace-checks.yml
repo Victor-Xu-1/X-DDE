@@ -97,7 +97,7 @@ on:
       - "frontend/src/studio/HomeWorkspace.test.tsx"
       - "frontend/src/studio/Header.tsx"
       - "frontend/src/operations/ConfidencePanel*"
-      - "frontend/src/operations/ConfidencePlddt.tsx"
+      - "frontend/src/operations/ConfidencePlddt*"
       - "frontend/src/operations/ConfidenceDownload*"
       - "frontend/src/operations/confidence-data.ts"
       - "frontend/src/presentation/usePredictionConfidence*"
@@ -286,6 +286,7 @@ jobs:
           src/integrations/ScientificResults.test.tsx src/viewer/StructureInspection.test.tsx
           src/viewer/confidence-mapping.test.ts src/presentation/usePredictionConfidence.test.tsx
           src/operations/ConfidenceDownload.test.tsx
+          src/operations/ConfidencePlddt.test.tsx
           src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
         if: needs.scope.outputs.boltz_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
