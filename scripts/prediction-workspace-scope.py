@@ -887,10 +887,19 @@ def reference_review_only(changed, event="push"):
 
 HISTORY_INPUT_SOURCES = (
     "frontend/src/presentation/HistoricalPredictionInput.tsx",
+    "frontend/src/presentation/HistoricalPredictionInput.test.tsx",
+    "frontend/src/presentation/HistoricalInputOverview.tsx",
+    "frontend/src/presentation/prediction-history-types.ts",
+    "frontend/src/presentation/prediction-history-model.ts",
+    "frontend/src/presentation/prediction-history-model.test.ts",
+    "frontend/src/presentation/prediction-history-native.ts",
     "frontend/src/presentation/prediction-history-input.css",
     "server_tests/test_prediction_history_input_browser.py",
 )
 HISTORY_INPUT_FILES = HISTORY_INPUT_SOURCES + (
+    "frontend/src/presentation/PredictionEntityPreview.tsx",
+    "frontend/src/presentation/PredictionInputPreview.test.tsx",
+    "docs/quality/frontend-coverage.md",
     "frontend/src/TaskDetail.tsx",
     "frontend/src/studio/PredictionResults.tsx",
     "frontend/src/presentation/PredictionReviewDialog.tsx",
