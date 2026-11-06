@@ -13,6 +13,18 @@ from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 
 
+def capture(page, path):
+    """Capture the document from its verified top after native focus/step scrolling."""
+    page.evaluate("""() => {
+        window.scrollTo({top:0, left:0, behavior:'instant'});
+        return new Promise(resolve => requestAnimationFrame(
+            () => requestAnimationFrame(resolve)));
+    }""")
+    assert page.evaluate("window.scrollY") == 0
+    assert page.locator(".studio-topbar").bounding_box()["y"] < 40
+    page.screenshot(path=path, full_page=True)
+
+
 @pytest.mark.parametrize("language,width,theme", [("en", 1280, "warm"), ("zh", 390, "dark")])
 def test_sequence_material_retention_explicit_retry_and_real_consumers(
     tmp_path, language, width, theme
@@ -107,7 +119,7 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
             assert len(boxes) == 3 and all(box["height"] >= 44 for box in boxes)
             assert max(box["y"] for box in boxes) - min(box["y"] for box in boxes) < 1
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-        page.screenshot(path=root / "sequence-paste.png", full_page=True)
+        capture(page, root / "sequence-paste.png")
 
         def uncertain_first_reply(route):
             if route.request.method != "POST":
@@ -177,7 +189,7 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
         expect(confirm).to_be_enabled()
         expect(next_button).to_be_disabled()
         assert len(versions) == 2
-        page.screenshot(path=root / "sequence-restored.png", full_page=True)
+        capture(page, root / "sequence-restored.png")
         page.unroute("**/api/assets?*", hold_upload)
 
         # The second real consumer uploads FASTA through the same source control.
@@ -207,7 +219,7 @@ def test_sequence_material_retention_explicit_retry_and_real_consumers(
             "radio", name="上传 FASTA 文件" if zh else "Upload FASTA file", exact=True
         ).check()
         expect(next_button).to_be_enabled()
-        page.screenshot(path=root / "numbering-upload.png", full_page=True)
+        capture(page, root / "numbering-upload.png")
         assert (
             hashlib.sha256(
                 page.request.get(base + "/api/assets/" + reference["asset_id"]).body()
