@@ -99,7 +99,8 @@ def test_boltz_final_review_preserves_exact_chain_msa_and_record(language, width
         settings = dialog.get_by_role(
             "complementary", name=label("Prediction settings", "预测设置")
         )
-        expect(settings.locator("dl")).to_contain_text(label("Chain B", "链 B"))
+        expect(settings.locator(":scope > dl")).to_contain_text(label("Chain B", "链 B"))
+        expect(dialog.locator(".prediction-preview-entity").first).to_have_attribute("open", "")
         expect(settings.get_by_role("link", name=alignment.name, exact=True)).to_be_visible()
         link = settings.get_by_role("link", name=file.name, exact=True)
         assert link.get_attribute("href").endswith("?record=1")

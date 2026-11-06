@@ -15,7 +15,7 @@ export function PredictionReviewDialog({
 }: {
   language: Language;
   title: string;
-  children: ReactNode;
+  children: ReactNode | ((dismiss: () => void) => ReactNode);
   actions?: ReactNode;
   onClose(): void;
   busy?: boolean;
@@ -61,6 +61,13 @@ export function PredictionReviewDialog({
               {zh ? "尚未提交" : "Not submitted"}
             </span>
           )}
+          {job && (
+            <p className="job-review-description">
+              {zh
+                ? "核对本次任务的研究材料与计算设置。"
+                : "Review the research inputs and settings for this task."}
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -72,7 +79,9 @@ export function PredictionReviewDialog({
           ×
         </button>
       </header>
-      <div className="prediction-input-preview-body">{children}</div>
+      <div className="prediction-input-preview-body">
+        {typeof children === "function" ? children(dismiss) : children}
+      </div>
       <footer>
         {historical && actions}
         <button

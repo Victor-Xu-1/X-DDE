@@ -60,13 +60,14 @@ def test_opendde_final_review_uses_current_request(language, width):
         opener.click()
         dialog = page.get_by_role("dialog", name=preview, exact=True)
         expect(dialog.get_by_role("heading", name=preview)).to_be_focused()
-        expect(dialog.get_by_text("STAT6 · OpenDDE submission review")).to_be_visible()
+        expect(dialog.get_by_text("STAT6 · OpenDDE submission review", exact=True)).to_be_visible()
         expect(dialog.get_by_text(label("No MSA", "不使用 MSA"), exact=True)).to_be_visible()
         confirm = dialog.get_by_role("button", name=label("Submit job", "提交任务"), exact=True)
         expect(confirm).to_be_disabled()
         assert dialog.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
         page.screenshot(path=str(evidence / "overview.png"))
         dialog.locator(".prediction-preview-entity > summary").nth(1).click()
+        dialog.locator(".molecule-image").scroll_into_view_if_needed()
         drawing = dialog.get_by_role("img", name=re.compile("二维分子结构|2D molecular structure"))
         expect(drawing).to_be_visible(timeout=60000)
         assert drawing.evaluate("image => image.complete && image.naturalWidth > 0")
@@ -90,7 +91,7 @@ def test_opendde_final_review_uses_current_request(language, width):
         name.fill("STAT6 · Updated review")
         next_step.click()
         opener.click()
-        expect(dialog.get_by_text("STAT6 · Updated review")).to_be_visible()
+        expect(dialog.get_by_text("STAT6 · Updated review", exact=True)).to_be_visible()
         assert not writes and not errors
         assert page.request.get(base + "/api/jobs").json() == []
         (evidence / "acceptance.json").write_text(

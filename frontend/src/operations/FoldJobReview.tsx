@@ -127,7 +127,8 @@ function FoldOverview({
               language={language}
               title={(zh ? "链 " : "Chain ") + chain.chain}
               summary={chain.sequence.replace(/\s/g, "").length + " aa"}
-              initiallyExpanded={false}
+              initiallyExpanded={index === 0 && chainIndex === 0}
+              showMetadata
             >
               {chain.files.length > 0 && (
                 <ul className="prediction-preview-files">
@@ -203,16 +204,22 @@ function FoldSettings({
     ]);
   if (Array.isArray(options.seeds) && options.seeds.every(Number.isSafeInteger))
     rows.push([zh ? "随机种子" : "Seeds", options.seeds.join(", ")]);
+  if (typeof options.diffusion_samples === "number")
+    rows.push([zh ? "采样数" : "Samples", options.diffusion_samples]);
+  const secondaryRows: [string, number][] = [];
   for (const [key, label] of [
-    ["diffusion_samples", zh ? "采样数" : "Samples"],
     ["diffusion_steps", zh ? "扩散步数" : "Diffusion steps"],
     ["recycling_cycles", zh ? "循环次数" : "Recycling cycles"],
   ]) {
     const value = options[key];
-    if (typeof value === "number") rows.push([label, value]);
+    if (typeof value === "number") secondaryRows.push([label, value]);
   }
   return (
-    <PredictionJobSettings language={language} rows={rows}>
+    <PredictionJobSettings
+      language={language}
+      rows={rows}
+      secondaryRows={secondaryRows}
+    >
       {data.source_files.length > 0 && (
         <>
           <h3>{zh ? "请求中的引用材料" : "Source files in this request"}</h3>

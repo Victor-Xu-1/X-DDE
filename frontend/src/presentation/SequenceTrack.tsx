@@ -19,6 +19,7 @@ export function SequenceTrack({
   onSelect,
   selectedPosition,
   unit = "aa",
+  compact = false,
 }: {
   sequence: string;
   language: Language;
@@ -28,6 +29,7 @@ export function SequenceTrack({
   onSelect?(position: number): void;
   selectedPosition?: number | null;
   unit?: "aa" | "nt" | "positions";
+  compact?: boolean;
 }) {
   const zh = language === "zh";
   const fastaLabel = recordName ?? label;
@@ -64,37 +66,43 @@ export function SequenceTrack({
     (region) =>
       position != null && position >= region.start && position <= region.end,
   );
+  const length = `${sequence.length} ${unit === "positions" ? (zh ? "个位置" : "positions") : unit}`;
+  const exportButton = (
+    <button
+      type="button"
+      className="visual-export-button"
+      aria-label={zh ? "下载此序列 FASTA" : "Download this sequence FASTA"}
+      onClick={() =>
+        downloadBlob(
+          new Blob(
+            [
+              ">" +
+                fastaLabel.replace(/[\r\n]/g, " ") +
+                "\n" +
+                (sequence.match(/.{1,80}/g)?.join("\n") ?? "") +
+                "\n",
+            ],
+            { type: "text/plain;charset=utf-8" },
+          ),
+          fastaLabel.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_") + ".fasta",
+        )
+      }
+    >
+      <DownloadOutlined /> FASTA
+    </button>
+  );
   return (
-    <section className="sequence-track" aria-label={label}>
-      <header>
-        <h3>{label}</h3>
-        <span>
-          {sequence.length}{" "}
-          {unit === "positions" ? (zh ? "个位置" : "positions") : unit}
-        </span>
-        <button
-          type="button"
-          className="visual-export-button"
-          aria-label={zh ? "下载此序列 FASTA" : "Download this sequence FASTA"}
-          onClick={() =>
-            downloadBlob(
-              new Blob(
-                [
-                  ">" +
-                    fastaLabel.replace(/[\r\n]/g, " ") +
-                    "\n" +
-                    (sequence.match(/.{1,80}/g)?.join("\n") ?? "") +
-                    "\n",
-                ],
-                { type: "text/plain;charset=utf-8" },
-              ),
-              fastaLabel.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_") + ".fasta",
-            )
-          }
-        >
-          <DownloadOutlined /> FASTA
-        </button>
-      </header>
+    <section
+      className={`sequence-track${compact ? " sequence-track-compact" : ""}`}
+      aria-label={label}
+    >
+      {!compact && (
+        <header>
+          <h3>{label}</h3>
+          <span>{length}</span>
+          {exportButton}
+        </header>
+      )}
       {regions.length > 0 && (
         <div
           className="sequence-region-map"
@@ -133,15 +141,20 @@ export function SequenceTrack({
         <pre className="sequence-cell">{sequence}</pre>
       </details>
       <footer>
-        {position
-          ? (zh ? "序列位置 " : "Sequence position ") +
-            position +
-            " · " +
-            sequence[position - 1] +
-            (selectedRegion ? " · " + selectedRegion.label : "")
-          : zh
-            ? "点击残基查看位置；编号以这条输入序列为准。"
-            : "Select a position in this input. Use arrow keys to move, Home for the start and End for the end."}
+        <span>
+          {position
+            ? (zh ? "序列位置 " : "Sequence position ") +
+              position +
+              " · " +
+              sequence[position - 1] +
+              (selectedRegion ? " · " + selectedRegion.label : "")
+            : compact
+              ? length
+              : zh
+                ? "点击残基查看位置；编号以这条输入序列为准。"
+                : "Select a position in this input. Use arrow keys to move, Home for the start and End for the end."}
+        </span>
+        {compact && exportButton}
       </footer>
     </section>
   );

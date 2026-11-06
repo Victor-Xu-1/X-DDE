@@ -124,8 +124,8 @@ def test_native_msa_form_retains_exact_numbering_then_detaches_edited_sequence(l
                 dialog.get_by_text(payload["candidates"][0]["candidate_id"], exact=True)
             ).to_be_visible()
             target = dialog.get_by_role("region", name="靶标" if zh else "Target", exact=True)
-            target.locator("summary").first.click()
-            expect(target.get_by_role("link", name="protocol.a3m", exact=False)).to_have_count(1)
+            expect(target.locator(".prediction-preview-entity").first).to_have_attribute("open", "")
+            expect(target.get_by_role("link", name="protocol.a3m", exact=False)).to_be_visible()
             assert dialog.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
             assert len(submissions) == int(edited)
             submit = dialog.get_by_role(

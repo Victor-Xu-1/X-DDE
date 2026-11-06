@@ -165,3 +165,26 @@ record scope. Isolated public STAT6 file-source browser cases cover property,
 ADMET candidate sets and early library selection alongside existing molecular,
 sequence and generic file contracts. Native scientific execution is not part of
 this interface acceptance; owner visual/release/data gates remain separate.
+
+Shared job-preview continuation (Issue #210): the valid test-only baseline
+fa52e614 / run42161454422 reproduced six bilingual visibility/edit/state failures
+with 78 direct-consumer passes. Earlier type and Vite fixture-import failures are
+excluded. One verified request owns the mounted Overview and request panels;
+switching panels retains entity disclosure and native preview state, while a new
+input identity or failed verification removes the previous snapshot. A job-only
+identity edit action follows the existing dismissal/focus path and is disabled
+during submission. Default job geometry, grouped entity metadata and settings
+follow the observed reference; wide spatial previews retain their native left
+view and exact source contracts. Explicit network, remote-transfer and external
+compute permissions remain visible. Secondary compute rows are supplied by each
+adapter, never inferred from translated labels. The focused CI checks all seven
+native consumers with isolated real files and existing drawing components; no
+owner installation, inference or global suite is part of this interface gate.
+Candidate CI, independent visual review and official4322 delivery remain required.
+Fixed-viewport comparison additionally requires a useful first-screen sequence
+area. Job entities keep chain IDs inline with type metadata and use the existing
+sequence viewer's compact presentation, with unchanged positions and byte-exact
+FASTA export below the sequence. Input-only and result sequence viewers retain
+their default presentation. This opt-in variant has bilingual sequence/export
+checks and a native viewport assertion; a title being present alone is insufficient
+evidence that researchers can inspect the sequence.

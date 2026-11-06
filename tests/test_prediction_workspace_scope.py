@@ -8,6 +8,68 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof():
+    test = "frontend/src/presentation/PredictionJobReview.test.tsx"
+    browser = "server_tests/test_job_review_layout_browser.py"
+    source = "frontend/src/presentation/PredictionJobReview.tsx"
+    assert scope.job_review_layout_only([test])
+    assert scope.final_review_only([test])
+    assert scope.prediction_only([test])
+    assert not scope.job_review_layout_only([test], "workflow_dispatch")
+    assert not scope.job_review_layout_only([source, test])
+    assert not scope.job_review_layout_only([source, browser])
+    changes = [source, test, browser, "scripts/job-review-scope.py"]
+    assert scope.job_review_layout_only(changes, "pull_request")
+    assert scope.final_review_only(changes)
+    assert scope.prediction_only(changes)
+    assert scope.final_review_changed(changes)
+    assert scope.job_review_layout_only(
+        changes
+        + [
+            "frontend/src/presentation/SequenceTrack.tsx",
+            "frontend/src/presentation/SequenceTrack.test.tsx",
+        ]
+    )
+    for unrelated in (
+        "src/opendde_workbench/backend.py",
+        "frontend/src/operations/useTaskSubmit.ts",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/App.tsx",
+        "src/opendde_workbench/harness_msa.py",
+        "tests/fixtures/stat6/antibody_cdr/provenance.json",
+    ):
+        assert not scope.job_review_layout_only(changes + [unrelated])
+    assert not scope.job_review_layout_only(["pyproject.toml"])
+    assert not scope.job_review_layout_only([".github/workflows/prediction-workspace-checks.yml"])
+    workflow = (
+        Path(__file__).parents[1] / ".github/workflows/prediction-workspace-checks.yml"
+    ).read_text()
+    native = workflow.split("      - name: Shared layout and all four remaining", 1)[1].split(
+        "      - name:", 1
+    )[0]
+    assert "outputs.job_review_layout == 'true'" in native
+    for entry in (
+        browser,
+        "server_tests/test_fold_msa_sources_browser.py",
+        "server_tests/test_docking_job_review_browser.py",
+        "server_tests/test_ternary_job_review_browser.py::test_ternary_review_uses_real_independent_binary_frames",
+    ):
+        assert entry in native
+    assert 'WB_DOCKING_VISUAL_STATE="$WB_STATE_DIR"' in native
+    assert 'WB_TERNARY_VISUAL_STATE="$WB_STATE_DIR"' in native
+    assert "server_tests/job_review_scene_case.py" in native
+    assert "src/presentation/SequenceTrack.test.tsx" in workflow
+    assert (
+        '      - "server_tests/job_review_scene_case.py"' in workflow.split("  pull_request:", 1)[0]
+    )
+    antibody = (
+        Path(__file__).parents[1] / ".github/workflows/antibody-cdr-input-checks.yml"
+    ).read_text()
+    assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in antibody
+    assert "needs: [case-scope, prediction-scope]" in antibody
+    assert "needs.prediction-scope.outputs.job_review_layout != 'true'" in antibody
+
+
 def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():
     files = sorted(scope.BOLTZ_INPUT_FILES)
     assert scope.boltz_inputs_only(["server_tests/test_boltz_input_settings_browser.py"])

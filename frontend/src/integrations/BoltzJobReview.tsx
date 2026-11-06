@@ -40,8 +40,6 @@ function BoltzReviewSettings({
     [zh ? "预测模型" : "Prediction model", "Boltz-2"],
     [zh ? "随机种子" : "Seed", options.seed],
     [zh ? "请求构象" : "Requested structures", Number(payload.samples)],
-    [zh ? "循环次数" : "Recycling steps", Number(payload.recycling_steps)],
-    [zh ? "采样步数" : "Sampling steps", Number(payload.sampling_steps)],
     [
       zh ? "模型亲和力" : "Model affinity",
       affinityLigand
@@ -50,6 +48,10 @@ function BoltzReviewSettings({
           ? "关闭"
           : "Off",
     ],
+  ] as const;
+  const secondaryRows = [
+    [zh ? "循环次数" : "Recycling steps", Number(payload.recycling_steps)],
+    [zh ? "采样步数" : "Sampling steps", Number(payload.sampling_steps)],
     [
       zh ? "计算设备" : "Compute device",
       options.device === "cuda" ? "NVIDIA GPU" : "CPU",
@@ -75,7 +77,11 @@ function BoltzReviewSettings({
   }
 
   return (
-    <PredictionJobSettings language={language} rows={entries}>
+    <PredictionJobSettings
+      language={language}
+      rows={entries}
+      secondaryRows={secondaryRows}
+    >
       <h3>{zh ? "链与引用材料" : "Chains and source files"}</h3>
       <ul className="job-review-chain-list">
         {rows.map((row) => (

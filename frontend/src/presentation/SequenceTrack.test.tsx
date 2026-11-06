@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
@@ -8,6 +9,54 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+
+it.each(["en", "zh"] as const)(
+  "keeps exact STAT6 positions and FASTA in the compact review in %s",
+  async (language) => {
+    const sequence = readFileSync(
+      "../src/opendde_workbench/examples/stat6/inputs/STAT6-human-P42226.fasta",
+      "utf8",
+    )
+      .split(/\r?\n/)
+      .slice(1)
+      .join("");
+    const user = userEvent.setup();
+    render(
+      <SequenceTrack
+        sequence={sequence}
+        label="STAT6"
+        language={language}
+        compact
+      />,
+    );
+    expect(screen.queryByRole("heading", { name: "STAT6" })).toBeNull();
+    expect(screen.getByText("847 aa", { exact: true })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "STAT6 · 3 L" }));
+    expect(
+      screen.getByText(
+        language === "zh" ? "序列位置 3 · L" : "Sequence position 3 · L",
+      ),
+    ).toBeVisible();
+    await user.click(
+      screen.getByRole("button", {
+        name:
+          language === "zh"
+            ? "下载此序列 FASTA"
+            : "Download this sequence FASTA",
+      }),
+    );
+    const [blob, filename] = vi.mocked(downloadBlob).mock.calls[0];
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsText(blob);
+    });
+    expect(filename).toBe("STAT6.fasta");
+    expect(text).toBe(
+      ">STAT6\n" + sequence.match(/.{1,80}/g)!.join("\n") + "\n",
+    );
+  },
+);
 
 it("binds residue selection to the displayed source rather than retaining an index on a different sequence", async () => {
   const user = userEvent.setup();
