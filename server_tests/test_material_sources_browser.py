@@ -32,7 +32,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         page.add_init_script(
             f"if(location.origin === {json.dumps(base)}) {{"
             f"localStorage.setItem('opendde-workbench.language','{language}');"
-            f"localStorage.setItem('opendde-workbench.theme','{theme}');}}"
+            f"localStorage.setItem('x-dde-theme','{theme}');}}"
         )
         errors, science, held = [], [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -48,6 +48,7 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
             ),
         )
         page.goto(base + "/#view=new&tool=p2rank.detect")
+        expect(page.locator("html")).to_have_attribute("data-theme", theme)
         panel = page.get_by_role(
             "region",
             name="发现多个候选口袋" if zh else "Discover candidate protein pockets",
@@ -110,11 +111,24 @@ def test_compact_sources_and_abandoned_real_upload(tmp_path, language, width, th
         expect(picker).to_have_value("file:" + protein.id)
 
         page.goto(base + "/#view=new&tool=gnina.dock")
+        expect(page.locator("html")).to_have_attribute("data-theme", theme)
         # The later search-region step retains its own hidden reference picker.
         # Inspect the two material inputs actually displayed in this step.
-        panels = page.locator(".reference-material:visible")
+        input_step = page.locator(".questionnaire > fieldset:not([hidden])")
+        panels = input_step.locator(".reference-material")
         expect(panels).to_have_count(2)
-        receptor, molecule = panels.nth(0), panels.nth(1)
+        receptor = panels.filter(
+            has=page.get_by_role(
+                "heading", name="受体结构" if zh else "Receptor structure", exact=True
+            )
+        )
+        molecule = panels.filter(
+            has=page.get_by_role(
+                "heading",
+                name="选择分子或已有姿势" if zh else "Choose a molecule or existing pose",
+                exact=True,
+            )
+        )
         for field, asset in ((receptor, protein), (molecule, ligand)):
             field.get_by_role(
                 "radio", name="历史文件" if zh else "Historical files", exact=True
