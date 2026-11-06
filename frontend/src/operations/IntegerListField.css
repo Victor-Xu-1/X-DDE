@@ -1,0 +1,8 @@
+.integer-list-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.integer-list-field > small[role="alert"] {
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
+}

@@ -21,8 +21,10 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
     # Keep the database isolated, but reuse the CI's verified native drawing bundle.
     # A fresh state directory otherwise has no component registry and only an unavailable view.
     registry = (Path(os.environ["WB_STATE_DIR"]) / "deployment.json").read_bytes()
-    assert Path(json.loads(registry)["root"]).resolve().is_relative_to(
-        Path(os.environ["RUNNER_TEMP"]).resolve()
+    assert (
+        Path(json.loads(registry)["root"])
+        .resolve()
+        .is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     )
     state.mkdir(parents=True, exist_ok=True)
     (state / "deployment.json").write_bytes(registry)
@@ -134,6 +136,12 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
         next_step.click()
         expect(seeds).to_have_value("4294967295, unfinished")
         assert not seeds.evaluate("input => input.validity.valid")
+        expect(seeds).to_have_attribute("aria-invalid", "true")
+        expect(
+            page.get_by_role("alert").filter(
+                has_text=label("Use up to 7 distinct integers", "请填写最多 7 个互不重复的整数")
+            )
+        ).to_be_visible()
         expect(next_step).to_be_disabled()
         seeds.scroll_into_view_if_needed()
         page.screenshot(path=evidence / "restored-unfinished-settings.png")

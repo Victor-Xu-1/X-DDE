@@ -321,6 +321,7 @@ OPENDDE_DRAFT_FILES = {
     "frontend/src/TaskFormDrafts.test.tsx",
     "frontend/src/operations/ExpertParameters.tsx",
     "frontend/src/operations/IntegerListField.tsx",
+    "frontend/src/operations/IntegerListField.css",
     "frontend/src/operations/IntegerListField.test.tsx",
     "frontend/src/operations/integer-list-model.ts",
     "frontend/src/operations/opendde-draft.ts",

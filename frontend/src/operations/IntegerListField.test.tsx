@@ -22,6 +22,10 @@ it("marks restored invalid text as invalid without submitting the last valid num
   const input = screen.getByLabelText("Seeds");
   expect(input).toHaveValue("2, unfinished");
   expect(input).toBeInvalid();
+  expect(input).toHaveAccessibleDescription(
+    "Use up to 3 distinct integers from 0 to 10.",
+  );
+  expect(screen.getByRole("alert")).toBeVisible();
   expect(change).not.toHaveBeenCalled();
   rerender(
     <IntegerListField
@@ -34,6 +38,8 @@ it("marks restored invalid text as invalid without submitting the last valid num
     />,
   );
   expect(input).toBeValid();
+  expect(input).not.toHaveAttribute("aria-describedby");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   const user = userEvent.setup();
   await user.clear(input);
   expect(change).toHaveBeenLastCalledWith([]);
