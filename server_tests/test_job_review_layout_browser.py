@@ -63,7 +63,10 @@ def test_shared_job_layout_and_retained_native_entity(
         page.get_by_role(
             "textbox", name=label("SMILES or CCD_ identifier", "SMILES 或 CCD_ 编号"), exact=True
         ).fill("O=C(CCN1C=CN=N1)N(C2)CCC=C2C3=C(F)C4=C(C=C(N4)C(N(C)C)=O)C=C3")
-        name = page.get_by_label(label("Task name (optional)", "任务名称（可选）"), exact=True)
+        name = page.get_by_role(
+            "textbox", name=label("Task name (optional)", "任务名称（可选）"), exact=True
+        )
+        expect(name).to_have_count(1)
         name.fill("STAT6 · Native input review")
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()

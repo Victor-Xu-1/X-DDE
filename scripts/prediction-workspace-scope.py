@@ -310,6 +310,87 @@ BOLTZ_DRAFT_FILES = DRAFT_FILES | {
     ".github/workflows/molecule-design-review-checks.yml",
 }
 
+OPENDDE_DRAFT_FILES = {
+    "src/opendde_workbench/drafts/compatibility_process.py",
+    "tests/test_draft_compatibility_process.py",
+    "src/opendde_workbench/drafts/compatibility.py",
+    "src/opendde_workbench/drafts/compatibility_probe.py",
+    "scripts/check-draft-compatibility.py",
+    "tests/test_draft_compatibility.py",
+    "server_tests/test_mol1_final_review_browser.py",
+    "server_tests/test_job_review_layout_browser.py",
+    "server_tests/test_prediction_drafts_browser.py",
+    "server_tests/test_boltz_drafts_browser.py",
+    "server_tests/test_template_controls_browser.py",
+    "frontend/src/TaskForm.tsx",
+    "frontend/src/TaskForm.test.tsx",
+    "frontend/src/TaskFormDrafts.test.tsx",
+    "frontend/src/operations/ExpertParameters.tsx",
+    "frontend/src/operations/IntegerListField.tsx",
+    "frontend/src/operations/IntegerListField.css",
+    "frontend/src/operations/IntegerListField.test.tsx",
+    "frontend/src/operations/integer-list-model.ts",
+    "frontend/src/operations/opendde-draft.ts",
+    "frontend/src/operations/opendde-draft.test.ts",
+    "frontend/src/operations/useOpenDdeEditor.ts",
+    "frontend/src/presentation/PredictionDraftBoundary.tsx",
+    "src/opendde_workbench/drafts/entities.py",
+    "src/opendde_workbench/drafts/opendde.py",
+    "tests/test_opendde_drafts.py",
+    "server_tests/test_opendde_drafts_browser.py",
+    "frontend/src/integrations/BoltzDraftBoundary.tsx",
+    "frontend/src/presentation/prediction-draft-contract.ts",
+    "frontend/src/presentation/prediction-draft-model.ts",
+    "src/opendde_workbench/drafts/boltz.py",
+    "src/opendde_workbench/drafts/models.py",
+    "src/opendde_workbench/drafts/snapshot.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+DRAFT_COMPATIBILITY_SOURCES = {
+    "src/opendde_workbench/drafts/compatibility_process.py",
+    "tests/test_draft_compatibility_process.py",
+    "src/opendde_workbench/drafts/compatibility.py",
+    "src/opendde_workbench/drafts/compatibility_probe.py",
+    "scripts/check-draft-compatibility.py",
+    "tests/test_draft_compatibility.py",
+}
+DRAFT_COMPATIBILITY_FILES = DRAFT_COMPATIBILITY_SOURCES | {
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def draft_compatibility_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & DRAFT_COMPATIBILITY_SOURCES)
+        and changed <= DRAFT_COMPATIBILITY_FILES
+    )
+
+
+def draft_compatibility_changed(changed):
+    return bool(set(changed) & DRAFT_COMPATIBILITY_SOURCES)
+
 
 FINAL_REVIEW_FILES = {
     ".github/workflows/mol1-restraint-checks.yml",
@@ -580,21 +661,44 @@ def boltz_drafts_only(changed, event="push"):
     )
 
 
-def drafts_only(changed, event="push"):
+def opendde_drafts_only(changed, event="push"):
     changed = set(changed)
-    return boltz_drafts_only(changed, event) or (
+    return (
         event in {"push", "pull_request"}
         and {
-            "frontend/src/presentation/PredictionDraftControls.tsx",
-            "src/opendde_workbench/drafts/storage.py",
-            "tests/test_prediction_drafts.py",
-            "server_tests/test_prediction_drafts_browser.py",
+            "frontend/src/TaskForm.tsx",
+            "frontend/src/TaskFormDrafts.test.tsx",
+            "frontend/src/operations/opendde-draft.ts",
+            "src/opendde_workbench/drafts/opendde.py",
+            "tests/test_opendde_drafts.py",
+            "server_tests/test_opendde_drafts_browser.py",
         }.issubset(changed)
-        and changed.issubset(DRAFT_FILES)
+        and changed.issubset(OPENDDE_DRAFT_FILES)
+    )
+
+
+def drafts_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        draft_compatibility_only(changed, event)
+        or opendde_drafts_only(changed, event)
+        or boltz_drafts_only(changed, event)
+        or (
+            event in {"push", "pull_request"}
+            and {
+                "frontend/src/presentation/PredictionDraftControls.tsx",
+                "src/opendde_workbench/drafts/storage.py",
+                "tests/test_prediction_drafts.py",
+                "server_tests/test_prediction_drafts_browser.py",
+            }.issubset(changed)
+            and changed.issubset(DRAFT_FILES)
+        )
     )
 
 
 def drafts_changed(changed, event="push"):
+    if draft_compatibility_only(changed, event):
+        return False
     return event == "workflow_dispatch" or any(
         name.startswith(
             ("src/opendde_workbench/drafts/", "frontend/src/presentation/PredictionDraft")
@@ -617,6 +721,15 @@ def drafts_changed(changed, event="push"):
             "frontend/src/presentation/mol1-draft-adapter.ts",
             "tests/test_boltz_drafts.py",
             "server_tests/test_boltz_drafts_browser.py",
+            "frontend/src/TaskFormDrafts.test.tsx",
+            "frontend/src/operations/opendde-draft.ts",
+            "frontend/src/operations/opendde-draft.test.ts",
+            "frontend/src/operations/useOpenDdeEditor.ts",
+            "frontend/src/operations/IntegerListField.tsx",
+            "frontend/src/operations/IntegerListField.test.tsx",
+            "frontend/src/operations/integer-list-model.ts",
+            "tests/test_opendde_drafts.py",
+            "server_tests/test_opendde_drafts_browser.py",
         }
         for name in changed
     )
@@ -636,6 +749,8 @@ def input_preview_only(changed, event="push"):
 
 
 def preview_changed(changed, event="push"):
+    if draft_compatibility_only(changed, event):
+        return False
     return event == "workflow_dispatch" or any(
         name.startswith(
             (
@@ -1093,6 +1208,10 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "draft_compatibility": draft_compatibility_changed(changed),
+            "draft_compatibility_only": draft_compatibility_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "boltz_drafts": boltz_drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "boltz_confidence": boltz_confidence_only(changed),
             "appearance_only": appearance,

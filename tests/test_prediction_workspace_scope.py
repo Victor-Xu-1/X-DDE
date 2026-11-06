@@ -8,6 +8,75 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():
+    changed = {
+        "src/opendde_workbench/drafts/compatibility_process.py",
+        "tests/test_draft_compatibility_process.py",
+        "src/opendde_workbench/drafts/compatibility.py",
+        "src/opendde_workbench/drafts/compatibility_probe.py",
+        "scripts/check-draft-compatibility.py",
+        "tests/test_draft_compatibility.py",
+        "scripts/prediction-workspace-scope.py",
+        ".github/workflows/prediction-workspace-checks.yml",
+    }
+    assert scope.draft_compatibility_changed(changed)
+    for event in ["push", "pull_request"]:
+        assert scope.draft_compatibility_only(changed, event)
+        assert scope.drafts_only(changed, event)
+        assert scope.prediction_only(changed, event)
+        assert not scope.drafts_changed(changed, event)
+        assert not scope.preview_changed(changed, event)
+        assert not scope.opendde_review_changed(changed, event)
+    assert not scope.draft_compatibility_only(changed, "workflow_dispatch")
+    assert scope.drafts_changed(changed, "workflow_dispatch")
+    assert scope.preview_changed(changed, "workflow_dispatch")
+    for related in ["frontend/src/TaskForm.tsx", "src/opendde_workbench/drafts/models.py"]:
+        assert not scope.draft_compatibility_only(changed | {related})
+        assert scope.drafts_changed(changed | {related})
+    for unrelated in ["src/opendde_workbench/engine.py", "frontend/src/App.tsx"]:
+        assert not scope.draft_compatibility_only(changed | {unrelated})
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "gh release download v0.8.1" in workflow
+    assert 'uv build --wheel --out-dir "$WB_DRAFT_CURRENT_WHEEL_DIR"' in workflow
+    assert "python -m pytest -q tests/test_draft_compatibility.py" in workflow
+    assert "tests/test_draft_compatibility_process.py" in workflow
+    assert workflow.count("if: needs.scope.outputs.draft_compatibility_only != 'true'") == 2
+
+
+def test_opendde_editor_drafts_delegate_only_with_their_closed_native_and_browser_proof():
+    changed = {
+        "frontend/src/TaskForm.tsx",
+        "frontend/src/TaskFormDrafts.test.tsx",
+        "frontend/src/operations/opendde-draft.ts",
+        "src/opendde_workbench/drafts/opendde.py",
+        "tests/test_opendde_drafts.py",
+        "server_tests/test_opendde_drafts_browser.py",
+        "src/opendde_workbench/drafts/models.py",
+        "src/opendde_workbench/drafts/entities.py",
+    }
+    for event in ["push", "pull_request"]:
+        assert scope.opendde_drafts_only(changed, event)
+        assert scope.drafts_only(changed, event)
+        assert scope.prediction_only(changed, event)
+    assert scope.drafts_changed(changed)
+    assert not scope.opendde_drafts_only(changed, "workflow_dispatch")
+    for missing in ["tests/test_opendde_drafts.py", "server_tests/test_opendde_drafts_browser.py"]:
+        assert not scope.opendde_drafts_only(changed - {missing})
+    for unrelated in [
+        "src/opendde_workbench/engine.py",
+        "src/opendde_workbench/api.py",
+        "frontend/src/App.tsx",
+    ]:
+        assert not scope.opendde_drafts_only(changed | {unrelated})
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "src/TaskFormDrafts.test.tsx src/operations/opendde-draft.test.ts" in workflow
+    assert "tests/test_opendde_drafts.py tests/test_api_security.py" in workflow
+    assert (
+        "server_tests/test_boltz_drafts_browser.py server_tests/test_opendde_drafts_browser.py"
+        in workflow
+    )
+
+
 def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     changed = [
         "src/opendde_workbench/boltz_confidence.py",

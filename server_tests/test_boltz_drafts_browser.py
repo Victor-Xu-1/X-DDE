@@ -63,7 +63,10 @@ def test_boltz_draft_recovers_exact_materials_and_review_without_admission(
             exact=True,
         )
         record.fill("2")
-        name = page.get_by_label(label("Task name (optional)", "任务名称（可选）"), exact=True)
+        name = page.get_by_role(
+            "textbox", name=label("Task name (optional)", "任务名称（可选）"), exact=True
+        )
+        expect(name).to_have_count(1)
         name.fill("STAT6 · Boltz saved inputs " + language)
         step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         expect(step).to_be_enabled()
