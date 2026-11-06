@@ -165,7 +165,6 @@ it.each(["en", "zh"] as const)(
     fireEvent.click(
       screen.getByRole("button", {
         name: language === "zh" ? "预测记录" : "Predictions",
-        exact: true,
       }),
     );
     await screen.findByRole("heading", {
@@ -221,7 +220,6 @@ it.each(["en", "zh"] as const)(
     fireEvent.click(
       screen.getByRole("button", {
         name: language === "zh" ? "返回任务结果" : "Back to task results",
-        exact: true,
       }),
     );
     await screen.findByRole("button", { name: "STAT6 descriptors" });
