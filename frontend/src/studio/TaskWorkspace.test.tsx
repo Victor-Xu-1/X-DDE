@@ -122,11 +122,6 @@ it("uses current task-service availability for retries inside a module", () => {
   view.rerender(<TaskWorkspace {...p} retryAvailable />);
   expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
 });
-function openList() {
-  const picker = document.querySelector<HTMLDetailsElement>(".task-picker")!;
-  picker.open = true;
-  fireEvent(picker, new Event("toggle"));
-}
 it.each(["en", "zh"] as const)(
   "leads directly into the selected %s prediction and returns through its native header",
   async (language) => {
@@ -235,6 +230,75 @@ it("opens only the owning module and never a mixed task list", async () => {
   fireEvent.click(screen.getByRole("button", { name: "New task" }));
   expect(p.onStart).toHaveBeenCalledWith("admet.predict");
 });
+it.each([
+  { ...job, status: "failed" },
+  {
+    ...job,
+    status: "cancelled",
+    request: {
+      operation: "mol1_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  },
+  {
+    ...job,
+    status: "interrupted",
+    request: {
+      operation: "boltz_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  },
+] as Job[])(
+  "keeps the native history action for a terminal prediction $status",
+  (selected) => {
+    render(
+      <TaskWorkspace
+        {...props({ scopedModule: "structures", job: selected })}
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Predictions" })).toHaveLength(
+      1,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Back to task results" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Task results" }),
+    ).toBeNull();
+    expect(document.querySelector(".task-picker")).not.toBeVisible();
+  },
+);
+it("moves a running native prediction from common navigation to its terminal header", () => {
+  const native = {
+    ...job,
+    status: "running",
+    request: {
+      operation: "mol1_predict",
+      name: "STAT6 native prediction",
+      payload: {},
+      options: {},
+    },
+  } as Job;
+  const p = props({ scopedModule: "structures", job: native });
+  const view = render(<TaskWorkspace {...p} />);
+  expect(
+    screen.getAllByRole("button", { name: "Back to task results" }),
+  ).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Predictions" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Refresh tasks" }));
+  expect(p.onRefresh).toHaveBeenCalledOnce();
+  view.rerender(<TaskWorkspace {...p} job={{ ...native, status: "failed" }} />);
+  expect(screen.getAllByRole("button", { name: "Predictions" })).toHaveLength(
+    1,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Back to task results" }),
+  ).toBeNull();
+});
 it("opens an exact linked task in its owning module and masks foreign selected results", async () => {
   const p = props({ job, scopedModule: "structures" });
   const view = render(<TaskWorkspace key="structures" {...p} />);
@@ -291,7 +355,8 @@ it("preserves page and query when selecting a row and returning to its list", as
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   await screen.findByRole("button", { name: "STAT6 series 20" });
   fireEvent.click(screen.getByRole("button", { name: "STAT6 series 20" }));
-  openList();
+  expect(document.querySelector(".task-picker")).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Back to task results" }));
   expect(
     screen.getByRole("searchbox", { name: "Search this module" }),
   ).toHaveValue("STAT6 series");
@@ -300,6 +365,7 @@ it("preserves page and query when selecting a row and returning to its list", as
       "2 / 2",
     ),
   ).toBeVisible();
+  expect(document.querySelector(".task-picker > summary")).toHaveFocus();
 });
 it("keeps projects isolated and hides a selected task belonging to another project", async () => {
   historyJobs = [

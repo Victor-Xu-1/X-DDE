@@ -17,6 +17,7 @@ export function TaskHistoryFilters({
   onStartDate,
   onEndDate,
   onClear,
+  active,
 }: {
   language: Language;
   type: string;
@@ -31,6 +32,7 @@ export function TaskHistoryFilters({
   onStartDate(value: string): void;
   onEndDate(value: string): void;
   onClear(): void;
+  active: boolean;
 }) {
   const zh = language === "zh",
     t = translator(language);
@@ -79,20 +81,24 @@ export function TaskHistoryFilters({
         role="group"
         aria-label={zh ? "提交日期 · 本地时间" : "Submitted dates · local time"}
       >
-        <TaskHistoryDatePicker
-          language={language}
-          label={zh ? "开始日期" : "Start date"}
-          value={startDate}
-          maximum={endDate}
-          onChange={onStartDate}
-        />
-        <TaskHistoryDatePicker
-          language={language}
-          label={zh ? "结束日期" : "End date"}
-          value={endDate}
-          minimum={startDate}
-          onChange={onEndDate}
-        />
+        {active && (
+          <>
+            <TaskHistoryDatePicker
+              language={language}
+              label={zh ? "开始日期" : "Start date"}
+              value={startDate}
+              maximum={endDate}
+              onChange={onStartDate}
+            />
+            <TaskHistoryDatePicker
+              language={language}
+              label={zh ? "结束日期" : "End date"}
+              value={endDate}
+              minimum={startDate}
+              onChange={onEndDate}
+            />
+          </>
+        )}
         {(type !== "all" ||
           status !== "all" ||
           query ||

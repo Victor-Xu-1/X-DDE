@@ -353,7 +353,10 @@ def test_new_selection_cancels_old_metadata_and_files(fixture_page, language, wi
         "Task A is visible from the list while its status and files are pending.",
     )
     picker = page.locator(".task-picker")
-    picker.locator("summary").click()
+    page.get_by_role(
+        "button", name="返回任务结果" if language == "zh" else "Back to task results", exact=True
+    ).click()
+    expect(picker.locator("summary")).to_be_focused()
     picker.get_by_role("button", name="Browser control task B", exact=True).click()
     expect(page.locator(".detail-panel h2")).to_have_text("Browser control task B")
     expect(page.locator(".detail-panel .status")).to_have_text(

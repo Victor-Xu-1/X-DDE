@@ -2,6 +2,24 @@
   width: 100%;
   min-width: 0;
 }
+.task-history-workspace .task-picker[hidden] {
+  display: none;
+}
+.task-result-history {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.task-result-history > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-history-workspace .task-project-filter.is-result-context {
+  margin: 0 0 12px;
+}
 .task-history-heading {
   display: flex;
   align-items: center;

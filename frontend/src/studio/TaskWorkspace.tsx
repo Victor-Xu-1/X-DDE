@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import { TaskDetail } from "../TaskDetail";
 import { isPrediction } from "../operations/types";
@@ -11,6 +17,8 @@ import type {
   Prediction,
   Status,
 } from "../types";
+import { terminal } from "../types";
+import { predictionMethodId } from "../presentation/PredictionResultHeader";
 import { TaskWorkspaceSelectionState } from "./TaskWorkspaceSelectionState";
 import { EmptyState } from "./EmptyState";
 import { TaskHistoryToolbar } from "./TaskHistoryToolbar";
@@ -135,7 +143,10 @@ export function TaskWorkspace(p: Props) {
     return () => clearTimeout(timer);
   }, [query]);
   useEffect(() => {
-    if (!taskJob) return;
+    if (!taskJob) {
+      setChoosing(true);
+      return;
+    }
     if (
       chosenHere.current === taskJob.id &&
       module === moduleForKind(kindForJob(taskJob))
@@ -154,6 +165,13 @@ export function TaskWorkspace(p: Props) {
     setChoosing(false);
   }, [taskJob?.id, p.scopedModule]);
   const taskListSummary = useRef<HTMLElement>(null);
+  const returnFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (choosing && returnFocus.current) {
+      returnFocus.current = false;
+      taskListSummary.current?.focus();
+    }
+  }, [choosing]);
   const lastProject = useRef(p.projectId);
   useEffect(() => {
     if (lastProject.current !== p.projectId) setPage(0);
@@ -194,9 +212,9 @@ export function TaskWorkspace(p: Props) {
     p.onJob("");
   }
   function returnToHistory() {
+    returnFocus.current = true;
     setChoosing(true);
     p.onJob("");
-    taskListSummary.current?.focus();
   }
   function refresh() {
     history.refresh();
@@ -208,6 +226,12 @@ export function TaskWorkspace(p: Props) {
       )
     : [];
   const blank = !currentJob && !history.loading && history.data?.total === 0;
+  const resultView =
+    !currentJob || choosing
+      ? "history"
+      : terminal(currentJob.status) && predictionMethodId(currentJob.request)
+        ? "prediction"
+        : "detail";
   const filtered =
     type !== "all" ||
     status !== "all" ||
@@ -234,6 +258,8 @@ export function TaskWorkspace(p: Props) {
         module={module}
         projectName={projectName}
         hasProject={Boolean(p.projectId)}
+        view={resultView}
+        onHistory={returnToHistory}
         onRefresh={refresh}
         onStart={p.onStart}
         onClearProject={() => p.onProject(null)}
@@ -269,6 +295,7 @@ export function TaskWorkspace(p: Props) {
         <div className="task-page-content">
           <details
             className="task-picker"
+            hidden={resultView !== "history"}
             open={choosing}
             onToggle={(event) => setChoosing(event.currentTarget.open)}
           >
@@ -277,6 +304,7 @@ export function TaskWorkspace(p: Props) {
               {history.data && <span> · {history.data.total}</span>}
             </summary>
             <TaskHistoryFilters
+              active={resultView === "history"}
               language={p.language}
               type={type}
               status={status}
@@ -342,7 +370,7 @@ export function TaskWorkspace(p: Props) {
               />
             )}
           </details>
-          {currentJob && (
+          {currentJob && resultView !== "history" && (
             <div className="task-result-content">
               {currentJob.status === "succeeded" &&
               isPrediction(currentJob.request) ? (
