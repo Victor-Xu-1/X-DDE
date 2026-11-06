@@ -151,7 +151,7 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
         page.screenshot(path=evidence / "restored-unfinished-settings.png")
         seeds.fill("4294967295, 2026")
         expect(seeds).to_have_attribute("aria-invalid", "false")
-        expect(seeds).not_to_have_attribute("aria-describedby")
+        assert seeds.get_attribute("aria-describedby") is None
         expect(next_step).to_be_enabled()
         save.click()
         expect(
