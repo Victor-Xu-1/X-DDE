@@ -39,6 +39,10 @@ on:
 permissions:
   contents: read
 jobs:
+  prediction-context:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   model-context:
     uses: ./.github/workflows/property-model-review-checks.yml
     with:
@@ -81,8 +85,8 @@ jobs:
           path: outputs/calculation-plan
           if-no-files-found: warn
   design-review:
-    needs: model-context
-    if: needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
+    needs: [model-context, prediction-context]
+    if: (github.event_name == 'workflow_dispatch' || needs.prediction-context.outputs.boltz_confidence != 'true') && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.check == 'questionnaire')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

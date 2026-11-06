@@ -11,6 +11,7 @@ from ..proximity.result_models import TernaryResult
 from ..scientific_objects import MoleculeRef
 from ..simulations.results import DynamicsResult, FreeEnergyResult, validate_simulation
 from .binder_result import BinderQuality
+from .boltz_result import BoltzEvidence, validate_boltz_result
 from .mol1_result import Mol1Evidence, validate_mol1_result
 from .sequence_design_result import SequenceDesignResult, validate_sequence_design
 
@@ -35,6 +36,7 @@ class NativeCandidate(BaseModel):
 
 
 class NativeResult(BaseModel):
+    boltz: BoltzEvidence | None = Field(default=None, exclude_if=lambda value: value is None)
     mol1: Mol1Evidence | None = Field(default=None, exclude_if=lambda value: value is None)
     model_config = ConfigDict(extra="forbid")
     operation: str
@@ -121,6 +123,7 @@ class ValidationPoint(BaseModel):
 
 def validate_result(value, request, output):
     result = NativeResult.model_validate(value)
+    validate_boltz_result(result, request)
     validate_sequence_design(result, request)
     from .protein_interface_result import validate_interface_result
 

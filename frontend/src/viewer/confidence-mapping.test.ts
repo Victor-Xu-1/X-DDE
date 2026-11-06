@@ -67,6 +67,66 @@ it("joins native token and atom order to exact renderer identities and preserves
   expect(mapped.atomTokens.get(3)).toBe(2);
   expect(JSON.stringify(displayed)).toBe(before);
 });
+
+it("binds Boltz writer label-atom identities, token scores and individual ligand atoms without an OpenDDE marker", async () => {
+  const text = cif
+    .replace("data_native_predicted_by_opendde", "data_boltz")
+    .replace("_atom_site.auth_atom_id\n", "")
+    .split("\n")
+    .map((line) => {
+      if (!/^\d+ /.test(line)) return line;
+      const row = line.split(" ");
+      row[6] = row[11];
+      if (row[0] === "2") row[13] = "86.53";
+      row.splice(12, 1);
+      return row.join(" ");
+    })
+    .join("\n")
+    .replace("#\n", "5 HETATM N N1 . LIG K . . 1 LIG K 31 1.4 3 0 1\n#\n");
+  const native: ConfidenceBinding = {
+    ...binding,
+    protocol: "boltz-2.2.1-cif-row-v1",
+    atom_plddt: [0.8653, 0.8653, 0.7, 0.5, 0.31],
+    atom_to_token_idx: [0, 0, 1, 2, 3],
+    token_asym_id: [7, 7, 9, 9],
+    native_atom_identity: [
+      ["Z", "ALA", 10, "N"],
+      ["Z", "ALA", 10, "CA"],
+      ["Z", "GLY", 12, "N"],
+      ["K", "LIG", 1, "C1"],
+      ["K", "LIG", 1, "N1"],
+    ],
+  };
+  const displayed = atoms(text);
+  const mapped = await mapNativeConfidence(
+    native,
+    { ...source, text },
+    displayed,
+  );
+  expect(mapped.atomScores.get(0)).toBeCloseTo(86.53);
+  expect(mapped.tokens[2].label).toContain("C1");
+  expect(mapped.tokens[3].label).toContain("N1");
+  expect(
+    [...mapped.atomTokens.values()].filter((index) => index === 2),
+  ).toHaveLength(1);
+  const wrong = {
+    ...native,
+    native_atom_identity: native.native_atom_identity!.map(
+      (row) => [...row] as typeof row,
+    ),
+  };
+  wrong.native_atom_identity[3][3] = "N1";
+  await expect(
+    mapNativeConfidence(wrong, { ...source, text }, displayed),
+  ).rejects.toThrow("does not match");
+  await expect(
+    mapNativeConfidence(
+      { ...native, atom_plddt: [0.87, 0.87, 0.7, 0.5, 0.31] },
+      { ...source, text },
+      displayed,
+    ),
+  ).rejects.toThrow("does not match");
+});
 it("keeps different samples distinct even when their coordinate bytes are identical", () => {
   expect(confidenceIdentity(binding)).not.toBe(
     confidenceIdentity({ ...binding, candidate: "sample-1" }),

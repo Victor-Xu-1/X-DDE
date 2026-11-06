@@ -72,6 +72,10 @@
 .prediction-confidence-body > p {
   color: var(--confidence-caption, var(--muted));
 }
+.prediction-confidence-body > .confidence-empty p {
+  color: var(--confidence-caption, var(--muted));
+  margin-top: 0;
+}
 .prediction-confidence-body > a {
   justify-self: start;
 }

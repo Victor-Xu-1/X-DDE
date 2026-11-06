@@ -99,6 +99,7 @@ export class MolecularScene {
   private measurement: mol.AtomSpec[] = [];
   private overlay = false;
   private confidence: MappedConfidence | null = null;
+  private preferredColor: ViewerOptions["color"] | null = null;
   get isOverlay() {
     return this.overlay;
   }
@@ -109,7 +110,9 @@ export class MolecularScene {
       this.emit("selected", null);
     }
     this.confidence = value;
-    this.options.color = value ? "confidence" : "chain";
+    this.options.color = value
+      ? (this.preferredColor ?? "confidence")
+      : "chain";
     const inspection: ConfidenceInspection | null = value
       ? {
           key: value.key,
@@ -141,6 +144,7 @@ export class MolecularScene {
     this.attachmentCount = 0;
     this.potential = undefined;
     this.confidence = null;
+    this.preferredColor = null;
     this.emit("confidence-inspection", null);
     this.revision++;
     this.selected = [];
@@ -238,8 +242,10 @@ export class MolecularScene {
     if (
       value.color === "chain" ||
       (value.color === "confidence" && this.confidence)
-    )
+    ) {
       this.options.color = value.color;
+      this.preferredColor = value.color;
+    }
     if (value.mode && ["cartoon", "pocket", "surface"].includes(value.mode))
       this.options.mode = value.mode;
     if (value.radius && [3, 4, 5, 6, 8].includes(value.radius))

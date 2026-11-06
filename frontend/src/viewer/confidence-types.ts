@@ -1,11 +1,12 @@
 /** Display-only annotations for one exact native prediction. No scientific atom edits. */
 export interface NativeConfidence {
-  protocol: "opendde-cif-row-v1";
+  protocol: "opendde-cif-row-v1" | "boltz-2.2.1-cif-row-v1";
   structure_sha256: string;
   confidence_sha256: string;
   atom_plddt: number[];
   atom_to_token_idx: number[];
   token_asym_id: number[];
+  native_atom_identity?: [string, string, number, string][];
 }
 export interface ConfidenceBinding extends NativeConfidence {
   job: string;
@@ -25,6 +26,7 @@ export interface ConfidenceInspection {
 }
 export const confidenceIdentity = (binding: ConfidenceBinding) =>
   JSON.stringify([
+    binding.protocol,
     binding.job,
     binding.candidate,
     binding.url,

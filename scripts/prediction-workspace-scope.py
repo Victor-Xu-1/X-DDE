@@ -663,7 +663,64 @@ CONFIDENCE_LAYOUT_FILES = (
 )
 
 
+BOLTZ_CONFIDENCE_FILES = (
+    "frontend/src/operations/ConfidenceDownload*",
+    "frontend/src/operations/ConfidencePlddt*",
+    "frontend/src/operations/confidence-data.ts",
+    "frontend/src/operations/confidence-request*",
+    "frontend/src/presentation/prediction-confidence-card.css",
+    "server_tests/test_prediction_sample_export_browser.py",
+    "src/opendde_workbench/native_arrays.py",
+    "src/opendde_workbench/boltz_confidence*.py",
+    "src/opendde_workbench/science_routes.py",
+    "src/opendde_workbench/prediction_archive.py",
+    "src/opendde_workbench/prediction_sample_export.py",
+    "src/opendde_workbench/integrations/boltz_result.py",
+    "src/opendde_workbench/integrations/native_boltz.py",
+    "src/opendde_workbench/integrations/result.py",
+    "frontend/src/presentation/usePredictionConfidence*",
+    "frontend/src/studio/PredictionInspection.tsx",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/integrations/types.ts",
+    "frontend/src/viewer/confidence-*",
+    "tests/confidence_array_fixture.py",
+    "frontend/src/viewer/scene.ts",
+    "frontend/src/viewer/style.test.ts",
+    "tests/test_native_arrays.py",
+    "tests/test_boltz_confidence*.py",
+    "server_tests/boltz_confidence_case.py",
+    "server_tests/test_boltz_confidence*.py",
+    ".github/workflows/scientific-upgrade-checks.yml",
+    ".github/workflows/molecule-design-review-checks.yml",
+    ".github/workflows/protein-interface-checks.yml",
+    "scripts/protein-interface-scope.py",
+    "tests/test_protein_interface_scope.py",
+)
+
+
+def boltz_confidence_only(changed):
+    patterns = CONFIDENCE_PATTERNS + BOLTZ_CONFIDENCE_FILES
+    return any(
+        name.startswith(
+            (
+                "src/opendde_workbench/boltz_confidence",
+                "tests/test_boltz_confidence",
+                "server_tests/test_boltz_confidence",
+                "frontend/src/operations/ConfidencePlddt",
+                "frontend/src/operations/ConfidenceDownload",
+            )
+        )
+        or name in {
+            "src/opendde_workbench/native_arrays.py",
+            "frontend/src/operations/confidence-data.ts",
+        }
+        for name in changed
+    ) and all(any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns) for name in changed)
+
+
 def native_confidence_only(changed):
+    if boltz_confidence_only(changed):
+        return True
     if any(name in CONFIDENCE_LAYOUT_SOURCES for name in changed):
         return all(
             any(fnmatch.fnmatchcase(name, pattern) for pattern in CONFIDENCE_LAYOUT_FILES)
@@ -680,6 +737,8 @@ def native_confidence_only(changed):
 
 
 def confidence_changed(changed):
+    if boltz_confidence_only(changed):
+        return True
     return any(
         name.startswith("frontend/src/operations/ConfidencePanel")
         or name in CONFIDENCE_LAYOUT_SOURCES
@@ -978,6 +1037,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "boltz_confidence": boltz_confidence_only(changed),
             "appearance_only": appearance,
             "boltz_inputs": boltz_inputs_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "computation_settings": computation_settings_only(

@@ -15,6 +15,8 @@ from fastapi.responses import HTMLResponse, Response, StreamingResponse
 
 from .analysis import AnalysisService
 from .backend_router import BackendRouter
+from .boltz_confidence import boltz_confidence_view
+from .boltz_confidence_sources import boltz_sources
 from .confidence import confidence_view
 from .engine import DockerEngine, Engine
 from .examples.pins import ExamplePins
@@ -64,6 +66,7 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         "mol1_predict": "mol1.predict",
     }
     archive_slot = BoundedSemaphore(1)
+    confidence_slot = BoundedSemaphore(1)
 
     async def result(job_id: UUID):
         job = store.get(str(job_id))
@@ -92,7 +95,77 @@ def register_science(app: FastAPI, store: Store, engine: Engine, settings: Setti
         job_id: UUID,
         candidate: str = Query(min_length=1, max_length=100),
         metric: Literal["pae", "pde", "contacts"] = "pae",
+        download: bool = False,
+        source_sha256: str | None = Query(default=None, pattern=r"^[a-f0-9]{64}$"),
     ):
+        job = store.get(str(job_id))
+        if job and job.request.operation == "boltz_predict":
+            if job.status != Status.SUCCEEDED:
+                raise HTTPException(409, "Choose a completed structure prediction.")
+
+            def read_native_confidence():
+                if not confidence_slot.acquire(blocking=False):
+                    raise HTTPException(
+                        429, "Another confidence view is being prepared. Try again."
+                    )
+                try:
+                    with store.connect() as db:
+                        authored = db.execute(
+                            "SELECT request FROM jobs WHERE id=?", (job.id,)
+                        ).fetchone()
+                    if authored is None:
+                        raise FileNotFoundError("The original task is unavailable.")
+                    pin = prediction_pins.for_job("boltz.predict", job_id)
+                    authored_sha = hashlib.sha256(authored["request"].encode()).hexdigest()
+                    if download:
+                        if source_sha256 is None or metric not in ("pae", "pde"):
+                            raise HTTPException(422, "Choose a displayed native confidence file.")
+                        source = boltz_sources(
+                            settings.state_dir / "jobs" / job.id,
+                            job.request,
+                            candidate,
+                            authored_sha,
+                            pin.artifact_sha256 if pin else {},
+                        )
+                        if metric not in source["bytes"]:
+                            raise FileNotFoundError("The native confidence file is unavailable.")
+                        if source["hashes"][metric] != source_sha256:
+                            raise HTTPException(
+                                409, "This confidence file changed. Reload its preview."
+                            )
+                        filename = source["names"][metric].rsplit("/", 1)[-1]
+                        return Response(
+                            source["bytes"][metric],
+                            media_type="application/octet-stream",
+                            headers={
+                                "Cache-Control": "no-store",
+                                "Content-Disposition": f'attachment; filename="{filename}"',
+                            },
+                        )
+                    return boltz_confidence_view(
+                        settings.state_dir / "jobs" / job.id,
+                        job.request,
+                        candidate,
+                        metric,
+                        authored_sha,
+                        pin.artifact_sha256 if pin else {},
+                    )
+                except FileNotFoundError as error:
+                    raise HTTPException(
+                        404, "This structure has no retained native matrix for the selected view."
+                    ) from error
+                except (OSError, ValueError, TypeError, KeyError) as error:
+                    raise HTTPException(
+                        422, "The selected structure's native confidence could not be verified."
+                    ) from error
+                finally:
+                    confidence_slot.release()
+
+            # Parsing retained arrays never calls AnalysisService or starts a container.
+            # The bounded worker keeps its own slot until it ends, including after disconnect.
+            return await asyncio.to_thread(read_native_confidence)
+        if download:
+            raise HTTPException(422, "Choose a displayed native confidence file.")
         _, data = await result(job_id)
         selected = next((c for c in data["candidates"] if c["id"] == candidate), None)
         if selected is None:

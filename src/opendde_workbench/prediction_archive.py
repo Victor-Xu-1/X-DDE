@@ -10,6 +10,7 @@ from tempfile import SpooledTemporaryFile
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from .artifacts import contained
+from .integrations.boltz_result import confidence_files, validate_boltz_result
 from .prediction_sample_export import (
     BOLTZ_OUTPUT,
     MAX_RESULT,
@@ -102,9 +103,7 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
                 "The archive does not establish a complete set of requested OpenDDE samples."
             )
     else:
-        result, report = retained_native_result(
-            root, job.request, request_sha256, sealed.get("result.json")
-        )
+        result, report = retained_native_result(root, job.request, request_sha256, sealed=sealed)
         validated_report_sha256 = hashlib.sha256(report).hexdigest()
         digests = set()
         for row in result.candidates:
@@ -131,7 +130,16 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
             elif summary.name in result.artifact_sha256:
                 add(summary.name, "confidence_summary", result.artifact_sha256[summary.name])
         if job.request.operation == "boltz_predict":
-            if add_boltz_native_files(output, digests, sealed, optional, checkpoint):
+            validate_boltz_result(result, job.request)
+            for role, name in confidence_files(result.boltz).items():
+                add(
+                    name,
+                    "confidence_mapping" if role == "confidence_mapping" else "confidence_full",
+                    result.artifact_sha256[name],
+                )
+            if result.boltz is None and add_boltz_native_files(
+                output, digests, sealed, optional, checkpoint
+            ):
                 limitations.append(
                     "Raw Boltz files without recorded model and confidence checksums are omitted."
                 )

@@ -97,6 +97,19 @@ on:
       - "frontend/src/studio/HomeWorkspace.test.tsx"
       - "frontend/src/studio/Header.tsx"
       - "frontend/src/operations/ConfidencePanel*"
+      - "frontend/src/operations/ConfidencePlddt*"
+      - "frontend/src/operations/ConfidenceDownload*"
+      - "frontend/src/operations/confidence-data.ts"
+      - "frontend/src/presentation/usePredictionConfidence*"
+      - "frontend/src/viewer/confidence-*"
+      - "src/opendde_workbench/boltz_confidence*.py"
+      - "src/opendde_workbench/native_arrays.py"
+      - "src/opendde_workbench/integrations/boltz_result.py"
+      - "tests/confidence_array_fixture.py"
+      - "tests/test_native_arrays.py"
+      - "tests/test_boltz_confidence*.py"
+      - "server_tests/boltz_confidence_case.py"
+      - "server_tests/test_boltz_confidence*.py"
       - "src/opendde_workbench/confidence.py"
       - "tests/test_import_confidence.py"
       - "server_tests/native_confidence_case.py"
@@ -140,6 +153,8 @@ on:
         value: ${{ jobs.scope.outputs.prediction_only }}
       shared_workbench_only:
         value: ${{ jobs.scope.outputs.shared_workbench_only }}
+      boltz_confidence:
+        value: ${{ jobs.scope.outputs.boltz_confidence }}
 permissions:
   contents: read
 jobs:
@@ -164,6 +179,7 @@ jobs:
       job_archive_only: ${{ steps.select.outputs.job_archive_only }}
       job_archive_changed: ${{ steps.select.outputs.job_archive_changed }}
       native_confidence: ${{ steps.select.outputs.native_confidence }}
+      boltz_confidence: ${{ steps.select.outputs.boltz_confidence }}
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
       input_preview: ${{ steps.select.outputs.input_preview }}
       preview_changed: ${{ steps.select.outputs.preview_changed }}
@@ -270,6 +286,11 @@ jobs:
         run: >-
           npx vitest run src/operations/ConfidencePanel.test.tsx src/studio/PredictionResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/viewer/StructureInspection.test.tsx
+          src/viewer/confidence-mapping.test.ts src/presentation/usePredictionConfidence.test.tsx
+          src/operations/ConfidenceDownload.test.tsx
+          src/operations/ConfidencePlddt.test.tsx
+          src/operations/confidence-request.test.ts
+          src/viewer/style.test.ts src/viewer/StructureViewer.test.tsx
       - name: Exact Boltz-2 submit payload, MSA and shared review consumers
         if: needs.scope.outputs.boltz_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
         working-directory: frontend
@@ -303,6 +324,11 @@ jobs:
         run: |
           uv run --locked python -m pytest -q tests/test_import_confidence.py tests/test_confidence_binding.py
           uv run --locked ruff check src/opendde_workbench/confidence.py src/opendde_workbench/confidence_binding.py tests/test_confidence_binding.py tests/test_import_confidence.py server_tests/native_confidence_case.py server_tests/test_native_confidence_browser.py
+      - name: Bounded native arrays, declared Boltz identities and retained raw exports
+        if: needs.scope.outputs.boltz_confidence == 'true'
+        run: |
+          uv run --locked python -m pytest -q tests/test_native_arrays.py tests/test_boltz_confidence.py tests/test_boltz_confidence_adapter.py
+          uv run --locked ruff check src/opendde_workbench/native_arrays.py src/opendde_workbench/boltz_confidence*.py src/opendde_workbench/integrations/boltz_result.py src/opendde_workbench/integrations/native_boltz.py tests/confidence_array_fixture.py tests/test_native_arrays.py tests/test_boltz_confidence*.py server_tests/boltz_confidence_case.py server_tests/test_boltz_confidence_format.py server_tests/test_boltz_confidence_browser.py
       - name: Obtain the existing sealed STAT6 output archive without running engines
         if: needs.scope.outputs.job_archive_changed == 'true' || needs.scope.outputs.confidence_changed == 'true' || needs.scope.outputs.sample_export_changed == 'true' || needs.scope.outputs.reference_review_changed == 'true' || needs.scope.outputs.history_input_changed == 'true'
         env:
@@ -340,6 +366,11 @@ jobs:
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
+      - name: NumPy native interchange and bilingual real Plotly/WebGL linkage without inference
+        if: needs.scope.outputs.boltz_confidence == 'true'
+        run: >-
+          uv run --locked --python 3.12 --with numpy==1.26.4 python -m pytest -q
+          server_tests/test_boltz_confidence_format.py server_tests/test_boltz_confidence_browser.py
       - name: Bilingual real saved-draft refresh, explicit resume and archive recovery without computation
         if: needs.scope.outputs.drafts_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_drafts_browser.py
@@ -417,6 +448,7 @@ jobs:
             outputs/prediction-job-archive/**
             outputs/opendde-final-review/**
             outputs/native-confidence/**
+            outputs/boltz-confidence/**
             outputs/prediction-input-preview/**
             outputs/prediction-entities/**
             outputs/prediction-feature-settings/**

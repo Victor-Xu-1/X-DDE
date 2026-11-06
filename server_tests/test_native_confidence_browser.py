@@ -128,6 +128,18 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         plot = panel.locator(".research-plot").filter(
             has=page.get_by_role("heading", name="Atom pLDDT", exact=True)
         )
+        page.screenshot(path=str(evidence / "atom-disclosure.png"), full_page=False)
+        (evidence / "atom-disclosure-state.json").write_text(
+            json.dumps(
+                {
+                    "disclosures": [
+                        item.get_attribute("open") for item in panel.locator("details").all()
+                    ],
+                    "plots": panel.locator(".research-plot").count(),
+                    "canvases": panel.locator(".research-plot-canvas").count(),
+                }
+            )
+        )
         expect(plot.get_by_role("application")).to_have_attribute(
             "aria-busy", "false", timeout=30000
         )

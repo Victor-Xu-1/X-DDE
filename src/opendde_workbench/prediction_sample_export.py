@@ -70,10 +70,16 @@ def open_dde_files(root, candidate, sealed):
     return structure, summary
 
 
-def retained_native_result(root, request, request_sha256=None, result_sha256=None):
+def retained_native_result(root, request, request_sha256=None, result_sha256=None, *, sealed=None):
     from .integrations.result import NativeResult
 
     output = root / "output"
+    sealed = sealed or {}
+    pinned_report = sealed.get("result.json")
+    if pinned_report is not None:
+        if result_sha256 is not None and result_sha256 != pinned_report:
+            raise ValueError("Scientific source identities disagree with the fixed example.")
+        result_sha256 = pinned_report
     _, source = (
         verified(output, "result.json", result_sha256, MAX_RESULT)
         if result_sha256 is not None
@@ -88,12 +94,16 @@ def retained_native_result(root, request, request_sha256=None, result_sha256=Non
         != (request_sha256 or hashlib.sha256(request.model_dump_json().encode()).hexdigest())
     ):
         raise ValueError("Native prediction differs from the retained task.")
+    if any(
+        name in sealed and sealed[name] != digest for name, digest in result.artifact_sha256.items()
+    ):
+        raise ValueError("Scientific source identities disagree with the fixed example.")
     return result, source
 
 
 def integrated_files(root, request, candidate, sealed):
     output = root / "output"
-    result, _ = retained_native_result(root, request)
+    result, _ = retained_native_result(root, request, sealed=sealed)
     row = one(result.candidates, candidate, lambda value: value.id)
     if not row.artifact or not row.artifact.endswith(".cif"):
         raise ValueError("Choose an original prediction CIF.")
@@ -120,7 +130,7 @@ def integrated_files(root, request, candidate, sealed):
             summary = historical_boltz_summary(
                 output, result.artifact_sha256[name], sealed, request.payload.samples
             )
-    return structure, summary
+    return structure, summary, result
 
 
 def historical_boltz_summary(output, structure_digest, sealed, sample_count):
@@ -154,10 +164,21 @@ def sample_zip(root, job, candidate, sealed=None):
     if job.request.operation == "predict":
         structure, summary = open_dde_files(root, candidate, sealed)
     else:
-        structure, summary = integrated_files(root, job.request, candidate, sealed)
+        structure, summary, result = integrated_files(root, job.request, candidate, sealed)
     files = {"structure": structure}
     if summary:
         files["confidence_summary"] = summary
+    if job.request.operation == "boltz_predict":
+        from .integrations.boltz_result import confidence_files, validate_boltz_result
+
+        validate_boltz_result(result, job.request)
+        for role, name in confidence_files(result.boltz, candidate).items():
+            remaining = 128 * 1024**2 - sum(len(body) for _, body in files.values())
+            if remaining <= 0:
+                raise ValueError("Selected prediction sources exceed their combined export limit.")
+            files[role] = verified(
+                root / "output", name, result.artifact_sha256[name], min(64 * 1024**2, remaining)
+            )
     manifest = {
         "schema_version": 1,
         "source_job": job.id,

@@ -25,7 +25,8 @@ import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
 import { Mol1Confidence } from "./Mol1Confidence";
-import { PredictionConfidenceCard } from "../presentation/PredictionConfidenceCard";
+import { ConfidencePanel } from "../operations/ConfidencePanel";
+import { usePredictionConfidence } from "../presentation/usePredictionConfidence";
 import { PredictionSamples } from "../presentation/PredictionSamples";
 import { usePredictionReferenceReview } from "../presentation/PredictionReferenceEvidence";
 import { PredictionReferenceReview } from "../presentation/PredictionReferenceReview";
@@ -60,6 +61,13 @@ export function ScientificResults({
     choice.job === job.id && choice.initial === initial ? choice.id : initial;
   const setSelected = (id: string) => setChoice({ job: job.id, initial, id });
   const active = rows.find((row) => row.id === selected) ?? rows[0];
+  const confidence = usePredictionConfidence(
+    job.id,
+    active?.id ?? "",
+    result.operation === "boltz_predict",
+  );
+  const confidenceViewer =
+    result.operation === "boltz_predict" ? confidence.viewer : {};
   const referenceReview = usePredictionReferenceReview(job.id, result, active);
   const referenceScene = referenceReview
     ? `${job.id}:${referenceReview.structureSha256}:${Boolean(referenceReview.contacts)}`
@@ -215,6 +223,7 @@ export function ScientificResults({
             label: zh ? "三维结构" : "3D structure",
             content: (
               <StructureViewer
+                {...confidenceViewer}
                 urls={[url]}
                 language={language}
                 sequenceHost={prediction ? sequenceHost : undefined}
@@ -230,6 +239,7 @@ export function ScientificResults({
       />
     ) : (
       <StructureViewer
+        {...confidenceViewer}
         key={referenceScene}
         sequenceHost={prediction ? sequenceHost : undefined}
         urls={[url]}
@@ -313,18 +323,13 @@ export function ScientificResults({
             sequenceHostRef={prediction ? setSequenceHost : undefined}
           >
             {result.operation === "boltz_predict" && active && (
-              <PredictionConfidenceCard
-                title={
-                  zh ? "预测对齐误差（PAE）" : "Predicted aligned error (PAE)"
-                }
-                unit={active.id}
-              >
-                <p>
-                  {zh
-                    ? "此构象没有可预览的 PAE 矩阵。构象下载包包含结构，以及可核验的置信度汇总（如有）。"
-                    : "No PAE matrix is available to preview for this conformer. The conformer download contains the structure and any verified confidence summary."}
-                </p>
-              </PredictionConfidenceCard>
+              <ConfidencePanel
+                jobId={job.id}
+                candidate={active.id}
+                language={language}
+                metrics={["pae", "pde"]}
+                {...confidence.panel}
+              />
             )}
             {displayedReview && (
               <PredictionReferenceReview
