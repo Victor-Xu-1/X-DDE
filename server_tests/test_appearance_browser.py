@@ -17,6 +17,13 @@ PALETTES = {
 }
 
 
+def canonical_hex(value):
+    value = value.strip().lower()
+    if len(value) == 4 and value.startswith("#"):
+        value = "#" + "".join(channel * 2 for channel in value[1:])
+    return value
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_three_themes_across_settings_tabs_and_preview(language, width):
     root = Path("outputs/appearance") / f"{language}-{width}"
@@ -66,18 +73,25 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
             for target in (page, other, preview):
                 expect(target.locator("html")).to_have_attribute("data-theme", theme)
                 assert (
-                    target.evaluate(
-                        "getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim()"
+                    canonical_hex(
+                        target.evaluate(
+                            "getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim()"
+                        )
                     )
                     == canvas
                 )
             assert (
-                preview.evaluate(
-                    "getComputedStyle(document.documentElement).getPropertyValue('--chart-bg').trim()"
+                canonical_hex(
+                    preview.evaluate(
+                        "getComputedStyle(document.documentElement).getPropertyValue('--chart-bg').trim()"
+                    )
                 )
                 == chart
             )
-            expect(page.locator('meta[name="theme-color"]')).to_have_attribute("content", canvas)
+            assert (
+                canonical_hex(page.locator('meta[name="theme-color"]').get_attribute("content"))
+                == canvas
+            )
             page.reload(wait_until="domcontentloaded")
             expect(page.locator("html")).to_have_attribute("data-theme", theme)
             settings(page, language)
