@@ -1,4 +1,5 @@
-.integer-list-field input[aria-invalid="true"] {
+/* Validation must take precedence over shared neutral control borders. */
+:root .studio-app .field.integer-list-field > input[aria-invalid="true"] {
   border-color: var(--danger);
 }
 .integer-list-field > small[role="alert"] {

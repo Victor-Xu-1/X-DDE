@@ -142,10 +142,16 @@ def test_opendde_draft_preserves_workflows_raw_text_and_native_review(language, 
                 has_text=label("Use up to 7 distinct integers", "请填写最多 7 个互不重复的整数")
             )
         ).to_be_visible()
+        assert seeds.evaluate(
+            """input => getComputedStyle(input).borderTopColor === getComputedStyle(
+              document.getElementById(input.getAttribute('aria-describedby'))).color"""
+        ), "Invalid inputs must show the same danger color as their visible explanation"
         expect(next_step).to_be_disabled()
         seeds.scroll_into_view_if_needed()
         page.screenshot(path=evidence / "restored-unfinished-settings.png")
         seeds.fill("4294967295, 2026")
+        expect(seeds).to_have_attribute("aria-invalid", "false")
+        expect(seeds).not_to_have_attribute("aria-describedby")
         expect(next_step).to_be_enabled()
         save.click()
         expect(
