@@ -67,15 +67,19 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The calculation-plan image below is an **actual English-language page from v0.7.93**, retained by an isolated CI browser run on that exact commit. Other result and template images retain their existing v0.4.53 attribution; they were not recaptured in this cycle and do not establish fresh acceptance of every module on the latest release. Structures, tables, molecules and values come directly from the application, without repainting or translating screenshot text. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
+The material-selection and antibody-sequence pages below are **actual English-language pages from v0.7.96**, retained by an isolated CI browser run on that exact commit. The calculation-plan image is explicitly retained as a **historical v0.7.93 screenshot**. Other result and template images keep their existing v0.4.53 attribution; fresh captures of every module on the latest release remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
 
 ### 1. Prepare tasks like a questionnaire
 
 Choose a purpose → provide materials → select settings → review and submit → inspect results. Only the current step is visible, with Next at the lower right. Guided mode offers recommended choices; expert mode exposes scientific settings. New tasks start with new materials, and **Historical files** is an explicit choice.
 
-![Actual v0.7.93 English calculation plan: Boltz-2 output count, model settings and compute resources](docs/images/calculation-plan-v0.7.93.png)
+![Actual v0.7.96 English material selection: receptor, historical molecule file and SDF record](docs/images/material-inputs-v0.7.96.png)
 
-The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
+Material cards keep the input name and source choices on the same line. This view explicitly selects a historical receptor and record 2 of an SDF. The two-record fixture repeats one verified input to test record selection and restoration; it does not represent two different candidates or a docking result.
+
+![Historical v0.7.93 English calculation plan: Boltz-2 output count, model settings and compute resources](docs/images/calculation-plan-v0.7.93.png)
+
+This historical v0.7.93 capture illustrates calculation planning, not the default v0.7.96 appearance. The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
@@ -115,7 +119,11 @@ DEL results retain member structures, target/control counts, enrichment interval
 
 Sequencing quality, count evidence, sample correlations, building-block series and model evaluation use the same interactive chart system as MD and FEP. Missing values remain unreported, and count evidence is kept distinct from binding affinity.
 
-![Actual English trastuzumab–HER2 design input template with variable-domain sequence and CDRs](docs/images/antibody-template.jpg)
+![Actual v0.7.96 English sequence input: 6WGL variable domains and three material sources](docs/images/sequence-input-v0.7.96.png)
+
+Sequence inputs switch between paste, FASTA upload and historical files while retaining each source’s draft and confirmed material. This image shows public 6WGL variable-domain input before confirmation, with Next disabled. Both v0.7.96 images come from real input-flow checks. The isolated checks uploaded and saved input assets, but submitted and ran no scientific job.
+
+![Historical English trastuzumab–HER2 input template with variable-domain sequence and CDRs](docs/images/antibody-template.jpg)
 
 The antibody image shows a validated **input template**, without a new design run. Experimental reference structures, supplied materials and newly generated model outputs retain distinct identities.
 
