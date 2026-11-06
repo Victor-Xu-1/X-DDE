@@ -285,6 +285,7 @@ function TaskFormEditor({
         onClear={() => {
           setExample(null);
           editor.clear();
+          request.current = { body: "", key: crypto.randomUUID() };
           setError("");
           automaticName.current = "";
         }}
@@ -292,6 +293,7 @@ function TaskFormEditor({
           setExample(prepared);
           const value = examplePrediction(prepared);
           editor.load(value);
+          request.current = { body: "", key: crypto.randomUUID() };
           automaticName.current = "";
           setError("");
         }}
@@ -307,9 +309,10 @@ function TaskFormEditor({
             valid={inputValid}
             draftControls={
               <SharedPredictionDraftControls
+                key={editor.revision}
                 adapter={openDdeDraftAdapter}
                 state={editor.snapshot}
-                initial={initialDraft}
+                initial={editor.revision === 0 ? initialDraft : null}
                 language={language}
                 busy={busy}
                 onName={(value) => editor.patch({ name: value })}

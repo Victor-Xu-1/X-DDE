@@ -20,6 +20,15 @@ vi.mock("./api", async (original) => {
     api: { ...real.api, authorized: vi.fn() },
   };
 });
+// Exercise the real form's explicit reset boundary; template metadata/loading has
+// its own compiled public-case checks, not a second fake template implementation.
+vi.mock("./examples/ExampleActions", () => ({
+  ExampleActions: ({ onClear }: { onClear(): void }) => (
+    <button type="button" onClick={onClear}>
+      New blank task
+    </button>
+  ),
+}));
 beforeEach(() => {
   Object.defineProperties(HTMLDialogElement.prototype, {
     showModal: {
@@ -35,23 +44,7 @@ beforeEach(() => {
       },
     },
   });
-  vi.mocked(request).mockImplementation(async (path) =>
-    path === "/examples/predict"
-      ? ({
-          module: { capability_id: "predict", case_id: "stat6", revision: 1 },
-          case: {
-            id: "stat6",
-            revision: 1,
-            label: ["STAT6", "STAT6"],
-            description: ["公开参考", "Public reference"],
-            sources: [],
-          },
-          files: [],
-          pin: null,
-          computed_result_available: false,
-        } as never)
-      : ([] as never),
-  );
+  vi.mocked(request).mockResolvedValue([] as never);
 });
 afterEach(() => {
   cleanup();
@@ -114,25 +107,7 @@ it("requires explicit resume, preserves unfinished text and blocks native review
         ? saved
         : path.startsWith("/prediction-drafts?")
           ? [saved]
-          : path === "/examples/predict"
-            ? {
-                module: {
-                  capability_id: "predict",
-                  case_id: "stat6",
-                  revision: 1,
-                },
-                case: {
-                  id: "stat6",
-                  revision: 1,
-                  label: ["STAT6", "STAT6"],
-                  description: ["公开参考", "Public reference"],
-                  sources: [],
-                },
-                files: [],
-                pin: null,
-                computed_result_available: false,
-              }
-            : []) as never,
+          : []) as never,
   );
   render(<TaskForm language="en" ready onSubmit={submit} />);
   expect(
@@ -165,5 +140,53 @@ it("requires explicit resume, preserves unfinished text and blocks native review
   await user.clear(seeds);
   await user.type(seeds, "2, 3");
   expect(next).toBeEnabled();
+  expect(submit).not.toHaveBeenCalled();
+});
+
+it("starts a separate draft when explicitly clearing an opened draft", async () => {
+  const saved = draft(),
+    user = userEvent.setup(),
+    submit = vi.fn();
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.includes("/prediction-drafts/")
+        ? saved
+        : path.startsWith("/prediction-drafts?")
+          ? [saved]
+          : []) as never,
+  );
+  vi.mocked(api.authorized).mockImplementation(async (path, options) => {
+    const body = JSON.parse(options!.body as string);
+    const id = path.split("/").at(-1)!.split("?")[0];
+    expect(id).not.toBe(saved.id);
+    expect(body.revision).toBe(0);
+    return {
+      ...saved,
+      id,
+      ...body,
+      revision: 1,
+      name: body.state.name,
+    } as never;
+  });
+  render(<TaskForm language="en" ready onSubmit={submit} />);
+  await user.click(screen.getByRole("button", { name: "Open drafts" }));
+  const dialog = within(await screen.findByRole("dialog", { name: "Drafts" }));
+  await user.click(await dialog.findByRole("button", { name: "Resume" }));
+  await user.click(dialog.getByRole("button", { name: "Resume this draft" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("textbox", { name: "Task name (optional)" }),
+    ).toHaveValue(saved.name),
+  );
+  await user.click(screen.getByRole("button", { name: "New blank task" }));
+  expect(
+    screen.getByRole("textbox", { name: "Task name (optional)" }),
+  ).toHaveValue("");
+  expect(
+    screen.queryByRole("button", { name: "Save a new copy" }),
+  ).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Save draft" }));
+  expect(await screen.findByText("Saved · Not submitted")).toBeVisible();
+  expect(api.authorized).toHaveBeenCalledTimes(1);
   expect(submit).not.toHaveBeenCalled();
 });
