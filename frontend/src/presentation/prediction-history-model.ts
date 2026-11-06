@@ -200,7 +200,9 @@ export function historicalStudies(value: unknown): HistoryStudy[] | null {
     if (
       Array.isArray(parameters.additional_seeds) &&
       parameters.additional_seeds.length <= 7 &&
-      parameters.additional_seeds.every((seed) => integer(seed, 0, 2147483647))
+      parameters.additional_seeds.every((seed) =>
+        integer(seed, 0, mol1 || boltz ? 2147483647 : 4294967295),
+      )
     )
       study.settings.push({
         label: ["其他随机种子", "Additional seeds"],

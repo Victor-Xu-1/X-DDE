@@ -22,7 +22,7 @@ function nativeFile(
 ): HistoryFile | null {
   if (!text(path, 1000) || !path) return null;
   const match =
-    /^\/job\/assets\/([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\.(?:a3m|csv|sdf|mol)$/.exec(
+    /^\/job\/assets\/([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\.(?:a3m|csv|sdf|mol|mol2|pdb|hhr|json)$/.exec(
       path,
     );
   return { label, ...(match ? { id: match[1] } : {}) };
@@ -117,7 +117,7 @@ export function nativeHistory(value: unknown): HistoryStudy[] | null {
       Array.isArray(data.modelSeeds) &&
       data.modelSeeds.length &&
       data.modelSeeds.length <= 8 &&
-      data.modelSeeds.every((seed) => integer(seed, 0, 2147483647))
+      data.modelSeeds.every((seed) => integer(seed, 0, 4294967295))
     )
       study.settings.push({
         label: ["随机种子", "Seeds"],

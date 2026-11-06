@@ -91,6 +91,53 @@ it("never turns arbitrary native URLs or paths into browser requests", () => {
     expect(data[0].entities[0].files[0].id).toBeUndefined();
   }
 });
+it.each(["hhr", "json", "mol2", "pdb"])(
+  "retains supported native .%s downloads without guessing molecular records",
+  (suffix) => {
+    const result = historicalStudies([
+      {
+        sequences: [
+          {
+            proteinChain: {
+              sequence,
+              count: 1,
+              templatesPath: `/job/assets/${id}.${suffix}`,
+            },
+          },
+          { ligand: { ligand: `FILE_/job/assets/${id}.${suffix}`, count: 1 } },
+        ],
+      },
+    ])![0];
+    expect(result.entities[0].files[0].id).toBe(id);
+    expect(result.entities[1].molecularFile?.id).toBe(id);
+    expect(result.entities[1].component.ligand_record).toBeUndefined();
+  },
+);
+it("preserves OpenDDE's complete unsigned seed range without changing Mol-1 bounds", () => {
+  const native = historicalStudies([
+    {
+      modelSeeds: [2147483648, 4294967295],
+      sequences: [{ proteinChain: { sequence, count: 1 } }],
+    },
+  ])![0];
+  expect(native.settings[0].value).toBe("2147483648, 4294967295");
+  const components = [{ kind: "protein", value: sequence, count: 1 }];
+  const result = historicalStudies({
+    operation: "predict",
+    components,
+    parameters: { seed: 4294967295, additional_seeds: [2147483648] },
+  })![0];
+  expect(
+    result.settings.find((s) => s.label[1] === "Additional seeds")?.value,
+  ).toBe("2147483648");
+  const mol1 = historicalStudies({
+    operation: "mol1_predict",
+    payload: { kind: "mol1", components, additional_seeds: [2147483648] },
+  })![0];
+  expect(mol1.settings.some((s) => s.label[1] === "Additional seeds")).toBe(
+    false,
+  );
+});
 it("joins Mol-1 file components only to their own exact recorded references", () => {
   const request = {
     operation: "mol1_predict",

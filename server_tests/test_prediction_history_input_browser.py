@@ -70,6 +70,9 @@ def test_historical_prediction_input_replays_and_downloads_the_exact_document(
         expect(dialog).to_contain_text(f"{len(protein['value'])} aa")
         ligand = next(row for row in rows if row["kind"] == "ligand")
         reference = ligand["source"]
+        # Native drawing is deliberately lazy: a narrow user scrolls past the
+        # recorded protein construct before the ligand canvas enters view.
+        dialog.locator(".molecule-image").scroll_into_view_if_needed()
         drawing = dialog.locator('.molecule-image[data-drawing-state="ready"]')
         expect(drawing).to_be_visible(timeout=90000)
         image = drawing.get_by_role("img")
