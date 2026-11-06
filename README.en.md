@@ -27,7 +27,7 @@ X-DDE brings these handoffs into the platform. Medicinal chemists and biologics 
 
 ## What you can do
 
-The current catalogue has **74 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
+The current catalogue has **76 task entries**, organized by research workflow. Drug-modality filters overlap: biologics, chemical drugs, antibodies, proteins, peptides, small molecules, RNA and DNA. Execution depends on the selected scientific environment, model resources, input and hardware.
 
 | Research area                   | Supported work                                                                                                                                  | Outputs or next steps                                                                                         |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -67,13 +67,15 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The images below are **actual English-language pages from the running v0.4.53 software**, using public research inputs and retained native results. Structures, tables, molecules and values come directly from the application. No screenshot text has been repainted or translated in the image. Architecture illustrations are separate explanatory visuals.
+The calculation-plan image below is an **actual English-language page from v0.7.93**, retained by an isolated CI browser run on that exact commit. Other result and template images retain their existing v0.4.53 attribution; they were not recaptured in this cycle and do not establish fresh acceptance of every module on the latest release. Structures, tables, molecules and values come directly from the application, without repainting or translating screenshot text. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
 
 ### 1. Prepare tasks like a questionnaire
 
 Choose a purpose → provide materials → select settings → review and submit → inspect results. Only the current step is visible, with Next at the lower right. Guided mode offers recommended choices; expert mode exposes scientific settings. New tasks start with new materials, and **Historical files** is an explicit choice.
 
-![Actual English questionnaire: research-purpose choices for the BRD4–JQ1 template](docs/images/guided-task.jpg)
+![Actual v0.7.93 English calculation plan: Boltz-2 output count, model settings and compute resources](docs/images/calculation-plan-v0.7.93.png)
+
+The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
@@ -184,7 +186,7 @@ The default Windows entry is `E:\WSL\apps\x-dde`. Linux environments, models and
 
 ## Current scope and scientific use
 
-- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 74 entries do not mean every machine already has all required resources.
+- **Implemented interfaces/adapters**, **machine installation**, **native execution checks** and **scientific conclusions** are distinct. The 76 entries do not mean every machine already has all required resources.
 - Public cases include BRD4–JQ1, trastuzumab–HER2, ABL inhibitors, MZ1 ternary assemblies, RNA–TPP and public DEL research. Calculated cases retain native outputs; input-only examples are explicitly templates. See [case provenance and identities](docs/design/research-examples.md).
 - Supplier access uses official public downloads and legitimately obtained files. Catalogue entries are not possession of every commercial library, live inventory or procurement authorization. See [verified resources and coverage](docs/design/supplier-structure-files.md).
 - Models, weights, third-party data and outputs can have independent restrictions, including noncommercial research terms. X-DDE's code license does not replace them.
