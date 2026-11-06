@@ -152,9 +152,7 @@ it("changing an imported source clears stale predictions and a reviewed batch re
     "config",
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
-  await user.click(
-    screen.getByText("Historical files", { selector: "summary" }),
-  );
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
   const input = screen.getByRole("combobox", {
     name: "Existing native OpenDDE JSON",
   });

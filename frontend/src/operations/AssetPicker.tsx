@@ -188,7 +188,14 @@ function AssetPickerBody({
           role={!showHistory ? "status" : undefined}
           aria-live="polite"
         >
-          {selected.asset?.name ?? (zh ? "正在核对文件…" : "Checking file…")}
+          {selected.asset?.name ??
+            (selected.error
+              ? zh
+                ? "所选文件尚未核验"
+                : "Selected file not verified"
+              : zh
+                ? "正在核对文件…"
+                : "Checking file…")}
         </p>
       )}
       {selected.error && (

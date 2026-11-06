@@ -103,6 +103,19 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Seal the exact compiled web preview for read-only inspection
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, shutil, subprocess
+          from pathlib import Path
+          root = Path("outputs/material-web-preview")
+          shutil.copytree("src/opendde_workbench/web", root / "web")
+          files = {str(p.relative_to(root / "web")): hashlib.sha256(p.read_bytes()).hexdigest()
+                   for p in sorted((root / "web").rglob("*")) if p.is_file()}
+          source = {"head": os.environ["GITHUB_SHA"], "version": json.loads(Path("frontend/package.json").read_text())["version"],
+                    "frontend_tree": subprocess.check_output(["git", "rev-parse", "HEAD:frontend"], text=True).strip(), "files": files}
+          (root / "source.json").write_text(json.dumps(source, indent=2))
+          PY
       - name: Source-change regression first; existing direct material contracts
         working-directory: frontend
         run: >-
@@ -132,7 +145,14 @@ jobs:
         if: always()
         with:
           name: compact-material-input-evidence
-          path: outputs/material-input
+          path: |
+            outputs/material-input
+            outputs/reference-input/generic
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: material-web-preview
+          path: outputs/material-web-preview
   refinement-scope:
     runs-on: ubuntu-24.04
     outputs:

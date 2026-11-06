@@ -50,7 +50,7 @@ def test_molecular_sources_do_not_replace_selected_inputs_or_dispatch_science(
         page.on("request", observe)
         page.goto(base + "/#view=new&tool=properties")
         panel = page.get_by_role(
-            "region", name="计算分子性质" if zh else "Calculate molecular properties", exact=True
+            "region", name="计算小分子性质" if zh else "Calculate molecular properties", exact=True
         )
         next_button = panel.get_by_role("button", name="下一步" if zh else "Next", exact=True)
         next_button.click()
@@ -67,6 +67,10 @@ def test_molecular_sources_do_not_replace_selected_inputs_or_dispatch_science(
         expect(fresh).to_be_checked()
         expect(next_button).to_be_disabled()
         expect(material.locator("details")).to_have_count(0)
+        assert (
+            material.bounding_box()["width"]
+            >= panel.locator(".asset-picker").bounding_box()["width"] - 1
+        )
         if width > 640:
             assert material.locator(".file-select").bounding_box()["height"] <= 76
         else:

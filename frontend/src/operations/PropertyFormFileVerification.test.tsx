@@ -85,6 +85,9 @@ it.each(["en", "zh"] as const)(
     await screen.findByRole("button", {
       name: zh ? "重新读取文件" : "Retry selected file",
     });
+    expect(
+      screen.getByText(zh ? "所选文件尚未核验" : "Selected file not verified"),
+    ).toBeVisible();
     expect(next(zh)).toBeDisabled();
     expect(api.submit).not.toHaveBeenCalled();
   },
