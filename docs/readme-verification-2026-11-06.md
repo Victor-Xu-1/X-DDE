@@ -4,8 +4,8 @@
 
 ## Revision and scope
 
-- Initial runtime verification: [v0.7.93](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.93), commit [`ac74b7fc078c146720355360ffd002fefdeef36f`](https://github.com/Victor-Xu-1/X-DDE/commit/ac74b7fc078c146720355360ffd002fefdeef36f). The release tag matched `main` when that initial check was performed. A later source and release check verified [v0.7.96](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.96) at [`920600cb20977865a14ea920efd71b82119e5a85`](https://github.com/Victor-Xu-1/X-DDE/commit/920600cb20977865a14ea920efd71b82119e5a85).
-- The v0.7.93 backend's `frontend_catalogue()` returned **76 entries**. The capability source is unchanged in v0.7.96, so the count remains 76. Both overviews use that count. Entries describe available task interfaces, not installed or scientifically accepted environments.
+- Initial runtime verification: [v0.7.93](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.93), commit [`ac74b7fc078c146720355360ffd002fefdeef36f`](https://github.com/Victor-Xu-1/X-DDE/commit/ac74b7fc078c146720355360ffd002fefdeef36f). The release tag matched `main` when that initial check was performed. A later source and release check verified [v0.7.96](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.96) at [`920600cb20977865a14ea920efd71b82119e5a85`](https://github.com/Victor-Xu-1/X-DDE/commit/920600cb20977865a14ea920efd71b82119e5a85). The latest check verified [v0.7.98](https://github.com/Victor-Xu-1/X-DDE/releases/tag/v0.7.98) at [`456531004b22d0cb3756ddbc7f223ebce0aa99a5`](https://github.com/Victor-Xu-1/X-DDE/commit/456531004b22d0cb3756ddbc7f223ebce0aa99a5), with the exact CI checkout relationship detailed below.
+- The v0.7.93 backend's `frontend_catalogue()` returned **76 entries**. The capability source is unchanged through v0.7.98, so the count remains 76 (directory tree `263a1f711fe2f0bed6e15a648558cd87e511f015`). Both overviews use that count. Entries describe available task interfaces, not installed or scientifically accepted environments.
 - This update changes documentation and screenshot assets only. It preserves the existing scientific caveats and old image files. The separate draft [PR #71](https://github.com/Victor-Xu-1/X-DDE/pull/71) is not overwritten.
 
 ## Retained v0.7.93 calculation-plan screenshot
@@ -31,7 +31,7 @@ With automatic component deployment disabled, the release served its packaged ho
 
 ## Remaining limits
 
-Fresh maintenance-session screenshots of the other core result modules were not completed: the isolated command session's loopback service was not reachable from the separate cloud browser session. The existing result and template images therefore retain their previous v0.4.53 attribution instead of being relabeled as current-version captures. The v0.7.96 input screenshots below are separately obtained CI evidence, not a claim that the blocked browser session was repaired or that the release was redeployed during this follow-up.
+Fresh maintenance-session screenshots of the other core result modules were not completed: the isolated command session's loopback service was not reachable from the separate cloud browser session. The existing result and template images therefore retain their previous v0.4.53 attribution instead of being relabeled as current-version captures. The v0.7.96 input and v0.7.98-source review screenshots below are separately obtained CI evidence, not a claim that the blocked browser session was repaired or that the release was redeployed during this follow-up.
 
 This maintenance check does not certify inference, molecular dynamics, FEP, all optional components or scientific validity. No global test suite or new scientific calculation was run. Main-branch integration and an installer publication remain separate steps under the repository's version policy.
 
@@ -51,6 +51,35 @@ The [sequence-input check](https://github.com/Victor-Xu-1/X-DDE/blob/920600cb209
 
 The scientific backends shown in both screenshots are unavailable. No newly designed antibody, docking pose, inferred activity or completed scientific computation is depicted. The 6WGL input does not establish a new STAT6-binding result.
 
+## v0.7.98-source task-review screenshots
+
+Three unchanged PNGs were obtained from successful [Prediction workspace presentation checks run 42168045701](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42168045701). This is a PR run, not a run on the release commit itself:
+
+- Run head: [`0ef9bb7b6425cec3c4d2697681ccc7c516f78315`](https://github.com/Victor-Xu-1/X-DDE/commit/0ef9bb7b6425cec3c4d2697681ccc7c516f78315).
+- Actual checkout, confirmed in [interface job 127729081330](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42168045701/job/127729081330) logs: PR merge ref [`ec8fc84111a875d137fc1aecb2da0ae43a4dcdda`](https://github.com/Victor-Xu-1/X-DDE/commit/ec8fc84111a875d137fc1aecb2da0ae43a4dcdda).
+- Release tag v0.7.98 and checked `main`: `456531004b22d0cb3756ddbc7f223ebce0aa99a5`.
+- All three commits have the same complete Git tree: `1c841a56ee767e8396981e279122e446a16c79fa`. This supports attribution to the v0.7.98 source tree, without claiming identical commit IDs or a new maintenance-session deployment.
+- Artifact: [`prediction-workspace-evidence`, ID 13480301812](https://github.com/Victor-Xu-1/X-DDE/actions/runs/42168045701/artifacts/13480301812), 5,707,454 bytes.
+- Archive SHA-256: `0ab6da65f1c986e0b45c1c658536a235ebe79ed1b7ad36c25e70b5366df332ee`, matching both GitHub metadata and the upload log.
+
+Selected English screenshots, copied byte for byte and visually inspected:
+
+| Published image | Original archive path | Pixels | SHA-256 |
+| --- | --- | --- | --- |
+| `images/job-review-v0.7.98.png` | `outputs/job-review-layout/en/sequence-overview.png` | 1280 × 720 | `653466baaa708fcbb95d0bfc525fb2f45f26df43bbc035978d63672bf5c4bd16` |
+| `images/docking-review-v0.7.98.png` | `outputs/docking-job-review/en/overview.png` | 1440 × 1000 | `3db873057ad166b666d777158704648e095fb3edd80e13a4509f9f352c4ad7d9` |
+| `images/ternary-review-v0.7.98.png` | `outputs/ternary-job-review/en/partner-a.png` | 1440 × 1000 | `9a58d7b1cf1159a91f0f4dc4704a80ce8430b3ebb4107ed517cf55ff457409a9` |
+
+### What these pictures establish
+
+- **Prediction input review:** the [shared review test](https://github.com/Victor-Xu-1/X-DDE/blob/456531004b22d0cb3756ddbc7f223ebce0aa99a5/server_tests/test_job_review_layout_browser.py) enters the repository's public STAT6 P42226 sequence (847 residues) and supplied small-molecule SMILES. The image shows Mol-1base, 5 requested structures, seed 101, no MSA and no network access. These are unsubmitted settings. The receipt records the exact sequence, retained expanded entity, no page errors and `api_writes: []`; the test also verifies an empty job list and disabled submission. Ketcher drawing later in the same test depicts the actual input, not a predicted structure.
+- **Docking input review:** the [docking review test](https://github.com/Victor-Xu-1/X-DDE/blob/456531004b22d0cb3756ddbc7f223ebce0aa99a5/server_tests/test_docking_job_review_browser.py) saves the observed 9BIG STAT6 receptor, retained native search poses and deposited AK1690 reference into temporary storage. Record 2 remains the exact selected pose, but the source pose file is repeated to exceed 500 records for selection testing; these repeats do not represent additional unique candidates. The shown box uses deposited AK1690 heavy-atom bounds with 4 Å padding per side. A preceding test intentionally corrupts a response to verify rejection; that interception is removed and the original file reverified before this screenshot. The captured review uses original data, GNINA is unavailable, API writes are empty during browser review, and the job list stays empty. The accompanying `acceptance.json` is the checked request payload, not a completed docking result.
+- **Ternary input review:** the [ternary review test](https://github.com/Victor-Xu-1/X-DDE/blob/456531004b22d0cb3756ddbc7f223ebce0aa99a5/server_tests/test_ternary_job_review_browser.py) saves real inputs in temporary storage and reviews two independent binary coordinate frames. Its [fixture provenance](https://github.com/Victor-Xu-1/X-DDE/blob/456531004b22d0cb3756ddbc7f223ebce0aa99a5/server_tests/fixtures/stat6-ternary-memory/provenance.json) identifies the engineered CRBN-midi 8RQA construct, observed 9BIG STAT6 chain A/alt A, and retained native GNINA arm-pose hypotheses. The arm poses are not experimental poses. S and R inputs are conditional hypotheses for an originally unassigned center; record 2 selects R without assigning the original compound's stereochemistry. Source hashes, selected records and atom mappings are checked, submission is disabled, no API write occurs during review, and the job list remains empty. There is no newly computed ternary assembly or evidence of degradation activity.
+
+The complete artifact contains additional tests with different contracts, including saved input assets and controlled readiness/rejected submission checks. The no-write statements above apply to their specified review flows, not the whole archive. No screenshot with synthesized prediction confidence or ranking metrics was selected. The selected captures establish input presentation, source identity and review behavior; they do not establish new scientific acceptance, binding affinity or a validated therapeutic effect. Geometric contacts in the ternary view remain distances, not interaction energies.
+
+The successful source CI covers the checked application tree. Documentation-only branch changes have separate local verification and are not claimed to have inherited a new CI run. This update does not merge application changes into the documentation branch or publish a release.
+
 ## 中文摘要
 
-初次核验保留 v0.7.93 的发行包与隔离启动证据，计算计划图现明确标为历史截图。后续核对主线与发行版 v0.7.96，确认能力目录未变化、仍为 76 项，并加入该精确提交真实 CI 保存的材料选择与序列输入图。新图的隔离流程上传并保存过输入材料，但科学任务为零。其余结果页仍保留历史说明，尚未完成逐模块重拍；本次后续核验没有重新部署应用或运行科学计算。
+初次核验保留 v0.7.93 的发行包与隔离启动证据，计算计划图明确标为历史截图；v0.7.96 材料选择和序列输入图保留原版本说明。最新补入三张与 v0.7.98 完整源码树一致的真实 PR CI 复核图，已核对实际检出的合并提交，区分序列输入、已有对接姿势和两端独立装配材料。对接文件的重复记录、S/R 条件假设及临时输入写入均明确说明，没有新运行科学任务。能力目录仍为 76 项。其余结果页保留历史说明，尚未完成逐模块重拍；本次后续核验没有重新部署应用、合并主线或发布安装包。

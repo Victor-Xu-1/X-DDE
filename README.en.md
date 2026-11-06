@@ -67,7 +67,7 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The material-selection and antibody-sequence pages below are **actual English-language pages from v0.7.96**, retained by an isolated CI browser run on that exact commit. The calculation-plan image is explicitly retained as a **historical v0.7.93 screenshot**. Other result and template images keep their existing v0.4.53 attribution; fresh captures of every module on the latest release remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
+The task, docking and ternary-input review pages below are **actual English-language captures from a PR CI checkout with the same complete source tree as v0.7.98**. They show inputs and plans, without new scientific calculations. Material-selection and antibody-sequence screenshots retain their **v0.7.96** attribution; the calculation-plan image is a **historical v0.7.93 capture**. Other result and template images keep their existing v0.4.53 attribution. Latest-release captures of every result module remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
 
 ### 1. Prepare tasks like a questionnaire
 
@@ -77,9 +77,13 @@ Choose a purpose → provide materials → select settings → review and submit
 
 Material cards keep the input name and source choices on the same line. This view explicitly selects a historical receptor and record 2 of an SDF. The two-record fixture repeats one verified input to test record selection and restoration; it does not represent two different candidates or a docking result.
 
+![Actual v0.7.98-source English task review: STAT6 sequence, Mol-1 settings and disabled submission](docs/images/job-review-v0.7.98.png)
+
+The review places the selected inputs beside the method settings and retains expanded entities when switching tabs. This check uses the public STAT6 P42226 sequence, 847 residues, and a supplied small-molecule input. The pictured 5 structures and seed 101 are a plan; the Mol-1 environment is unavailable and submission is disabled. The browser check made no API writes and created no scientific job.
+
 ![Historical v0.7.93 English calculation plan: Boltz-2 output count, model settings and compute resources](docs/images/calculation-plan-v0.7.93.png)
 
-This historical v0.7.93 capture illustrates calculation planning, not the default v0.7.96 appearance. The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
+This historical v0.7.93 capture illustrates calculation planning, not the default v0.7.98 appearance. The calculation plan exposes the requested output count directly and groups advanced settings into model parameters and compute resources. The side panel summarizes the selected method, inputs and random seed. The pictured request for 2 structures, 4 CPU cores and 9216 MiB is an editable plan. The selected scientific environment is explicitly unavailable; this browser check submitted no job and ran no prediction. It is not a computed result or scientific acceptance.
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
@@ -94,6 +98,10 @@ The STAT6 preparation example uses the explicitly identified AlphaFold v6 113–
 ### 2. Inspect structures alongside candidate tables
 
 Select a table row to inspect its actual structure, chains, ligand, pocket and confidence. Rotate, zoom, select atoms/residues, adjust display, inspect surfaces and download views. Original scientific files remain separately downloadable.
+
+![Actual v0.7.98-source English docking review: observed STAT6 receptor and planned search region](docs/images/docking-review-v0.7.98.png)
+
+Before docking, review the receptor coordinate frame, search box and selected molecule record. This view uses the observed 9BIG STAT6 receptor and record 2 from retained native search poses. The test repeats the pose file to exercise selection in a file larger than 500 records; those repetitions are not independent candidates. GNINA is unavailable, so this is an unsubmitted plan, with no new docking or affinity result.
 
 ![Actual English BRD4–JQ1 native structure result and ligand/pocket preview](docs/images/structure-and-pocket.jpg)
 
@@ -126,6 +134,12 @@ Sequence inputs switch between paste, FASTA upload and historical files while re
 ![Historical English trastuzumab–HER2 input template with variable-domain sequence and CDRs](docs/images/antibody-template.jpg)
 
 The antibody image shows a validated **input template**, without a new design run. Experimental reference structures, supplied materials and newly generated model outputs retain distinct identities.
+
+### 5. Review both partners before ternary assembly
+
+![Actual v0.7.98-source English ternary-input review: engineered CRBN-midi and supplied fragment pose](docs/images/ternary-review-v0.7.98.png)
+
+The review keeps the engineered 8RQA CRBN-midi and observed 9BIG STAT6 inputs in their separate coordinate frames, alongside the complete molecule and atom mappings. The shown fragment overlays are retained GNINA pose hypotheses, not experimental poses. Record 2 selects the R hypothesis from separate S/R inputs; the starting molecule has an unassigned center, so this does not assign its drug identity. No ternary assembly was computed here, and the preview does not establish binding or degradation. Docking and ternary checks save input assets in temporary storage before review, then create no scientific jobs.
 
 ### Interactive dynamics and binding free energy
 
