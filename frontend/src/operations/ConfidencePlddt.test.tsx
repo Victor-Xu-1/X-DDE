@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ConfidencePlddt } from "./ConfidencePlddt";
 import type { Confidence } from "./confidence-data";
@@ -86,4 +86,32 @@ it("rejects late point events after mapping becomes unavailable and never treats
     screen.getByRole("button", { name: "Select displayed endpoint" }),
   );
   expect(select).not.toHaveBeenCalled();
+});
+
+it("keeps an explicitly expanded atom-confidence curve open while linked parent state updates", async () => {
+  const atoms = {
+    ...native,
+    token_plddt: undefined,
+    atom_plddt: [{ index: 31, value: 0.9 }],
+    atom_plddt_unit: "0-1",
+  };
+  const view = render(
+    <ConfidencePlddt data={atoms} language="en" inspection={inspection} />,
+  );
+  const summary = screen.getByText("Atom confidence");
+  const details = summary.closest("details")!;
+  expect(details).not.toHaveAttribute("open");
+  fireEvent.click(summary);
+  await waitFor(() => expect(details).toHaveAttribute("open"));
+  view.rerender(
+    <ConfidencePlddt
+      data={atoms}
+      language="en"
+      inspection={{ ...inspection }}
+    />,
+  );
+  expect(details).toHaveAttribute("open");
+  expect(
+    screen.getByRole("button", { name: "Select displayed endpoint" }),
+  ).toBeVisible();
 });

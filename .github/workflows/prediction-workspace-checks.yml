@@ -153,6 +153,8 @@ on:
         value: ${{ jobs.scope.outputs.prediction_only }}
       shared_workbench_only:
         value: ${{ jobs.scope.outputs.shared_workbench_only }}
+      boltz_confidence:
+        value: ${{ jobs.scope.outputs.boltz_confidence }}
 permissions:
   contents: read
 jobs:

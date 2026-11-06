@@ -62,9 +62,12 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
         assert hit
         page.mouse.click(hit["x"] + hit["width"] / 12, hit["y"] + hit["height"] * 11 / 12)
         expect(first).to_have_attribute("aria-checked", "true")
+        color.select_option("chain")
         modes.select_option("pde")
         expect(panel.get_by_role("heading", name=re.compile("PDE"))).to_be_visible()
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
+        expect(color).to_have_value("chain")
+        color.select_option("confidence")
         with page.expect_download() as transfer:
             panel.get_by_role(
                 "link", name="下载完整原生置信度" if zh else "Download full native confidence"
@@ -87,13 +90,19 @@ def test_boltz_matrix_sequence_3d_download_and_retry(tmp_path, language, width, 
             )
         )
         native.write_bytes(b"invalid format contract fixture")
-        modes.select_option("pae")
-        expect(panel.get_by_role("heading", name=re.compile("PAE"))).to_be_visible()
-        expect(
-            panel.get_by_role(
-                "link", name="下载完整原生置信度" if zh else "Download full native confidence"
-            )
-        ).to_be_visible()
+        # A declared result binds all sidecars as one bundle; a historical task
+        # independently verifies only its requested matrix. Neither may display
+        # a corrupt PDE, and recovery must reread the same selected source.
+        if not declared:
+            modes.select_option("pae")
+            expect(panel.get_by_role("heading", name=re.compile("PAE"))).to_be_visible()
+            expect(
+                panel.get_by_role(
+                    "link", name="下载完整原生置信度" if zh else "Download full native confidence"
+                )
+            ).to_be_visible()
+        else:
+            page.reload()
         modes.select_option("pde")
         expect(panel.get_by_role("status")).to_contain_text(
             "无法核验" if zh else "could not be verified"

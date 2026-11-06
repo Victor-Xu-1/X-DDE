@@ -21,11 +21,7 @@ PROCESSED = "native/boltz_results_prediction/processed/structures/prediction.npz
 
 def boltz_sources(root, request, candidate, request_sha256, sealed=None):
     sealed = sealed or {}
-    result, _ = retained_native_result(root, request, request_sha256, sealed.get("result.json"))
-    if any(
-        name in sealed and sealed[name] != digest for name, digest in result.artifact_sha256.items()
-    ):
-        raise ValueError("Native confidence file identities conflict with the fixed example.")
+    result, _ = retained_native_result(root, request, request_sha256, sealed=sealed)
     validate_boltz_result(result, request)
     if result.program != "boltz" or result.version != "2.2.1":
         raise ValueError("Confidence inspection is unsupported for this native writer version.")

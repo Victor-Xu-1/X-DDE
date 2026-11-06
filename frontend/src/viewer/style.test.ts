@@ -184,6 +184,32 @@ it("confidence styling and linked token selection preserve geometry, native atom
     model.selectedAtoms({}).map((a) => ({ ...a.properties, b: a.b })),
   ).toEqual(properties);
 });
+it("preserves explicit chain or confidence coloring across annotation reloads and resets it only with a new scene", async () => {
+  const { model, scene } = fixture();
+  const original = source(model.selectedAtoms({}));
+  const residue = residueRef(model.selectedAtoms({})[0]).key;
+  const annotation = {
+    key: "same-source",
+    atomScores: new Map([[0, 90]]),
+    atomTokens: new Map([[0, 0]]),
+    residueScores: { [residue]: 90 },
+    tokens: [{ index: 0, chain: "", residue, label: "Ligand" }],
+  };
+  await scene.annotateConfidence(annotation);
+  expect(scene.options.color).toBe("confidence");
+  for (const color of ["chain", "confidence"] as const) {
+    await scene.configure({ color });
+    await scene.annotateConfidence(null);
+    expect(scene.options.color).toBe("chain");
+    await scene.annotateConfidence({ ...annotation });
+    expect(scene.options.color).toBe(color);
+    expect(source(model.selectedAtoms({}))).toEqual(original);
+  }
+  await scene.configure({ color: "chain" });
+  scene.resetState();
+  await scene.annotateConfidence({ ...annotation, key: "new-source" });
+  expect(scene.options.color).toBe("confidence");
+});
 it("chain display updates actual styles, clickability and contacts without altering native coordinates", async () => {
   const pdb =
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nHETATM    3  C1  LIG B   2       0.000   2.000   0.000  1.00 20.00           C  \nHETATM    4  O1  LIG B   2       1.200   2.000   0.000  1.00 20.00           O  \nCONECT    3    4\nCONECT    4    3\nEND\n";

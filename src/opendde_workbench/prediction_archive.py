@@ -103,9 +103,7 @@ def prediction_files(root, job, request_sha256, sealed, checkpoint):
                 "The archive does not establish a complete set of requested OpenDDE samples."
             )
     else:
-        result, report = retained_native_result(
-            root, job.request, request_sha256, sealed.get("result.json")
-        )
+        result, report = retained_native_result(root, job.request, request_sha256, sealed=sealed)
         validated_report_sha256 = hashlib.sha256(report).hexdigest()
         digests = set()
         for row in result.candidates:

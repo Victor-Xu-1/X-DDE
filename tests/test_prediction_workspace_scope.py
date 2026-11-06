@@ -17,6 +17,8 @@ def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
         "src/opendde_workbench/science_routes.py",
         "src/opendde_workbench/prediction_archive.py",
         "frontend/src/viewer/confidence-mapping.ts",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/viewer/style.test.ts",
         "frontend/src/presentation/usePredictionConfidence.ts",
         "frontend/src/integrations/ScientificResults.tsx",
         "server_tests/test_boltz_confidence_format.py",
@@ -31,11 +33,31 @@ def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     for name in (
         "src/opendde_workbench/api.py",
         "src/opendde_workbench/integrations/options.py",
-        "frontend/src/viewer/scene.ts",
+        "frontend/src/viewer/frame.ts",
         "frontend/src/App.tsx",
     ):
         assert not scope.boltz_confidence_only(changed + [name])
     assert not scope.boltz_confidence_only(["pyproject.toml"])
+
+
+def test_closed_confidence_delegation_keeps_mixed_molecular_design_checks_active():
+    changed = [
+        "frontend/src/integrations/ScientificResults.tsx",
+        "frontend/src/operations/ConfidencePlddt.tsx",
+        ".github/workflows/molecule-design-review-checks.yml",
+    ]
+    assert scope.boltz_confidence_only(changed)
+    for name in (
+        "frontend/src/integrations/ReinventForm.tsx",
+        "frontend/src/integrations/ScientificForm.tsx",
+        "frontend/src/integrations/ScientificChoices.tsx",
+    ):
+        assert not scope.boltz_confidence_only(changed + [name])
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "value: ${{ jobs.scope.outputs.boltz_confidence }}" in workflow
+    design = Path(".github/workflows/molecule-design-review-checks.yml").read_text()
+    assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in design
+    assert "needs.prediction-context.outputs.boltz_confidence != 'true'" in design
 
 
 def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof():

@@ -681,11 +681,14 @@ BOLTZ_CONFIDENCE_FILES = (
     "frontend/src/integrations/types.ts",
     "frontend/src/viewer/confidence-*",
     "tests/confidence_array_fixture.py",
+    "frontend/src/viewer/scene.ts",
+    "frontend/src/viewer/style.test.ts",
     "tests/test_native_arrays.py",
     "tests/test_boltz_confidence*.py",
     "server_tests/boltz_confidence_case.py",
     "server_tests/test_boltz_confidence*.py",
     ".github/workflows/scientific-upgrade-checks.yml",
+    ".github/workflows/molecule-design-review-checks.yml",
 )
 
 

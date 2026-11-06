@@ -90,10 +90,31 @@ def test_existing_pin_manifest_and_source_hashes_cannot_be_overridden(tmp_path):
     (output / "result.json").write_text(json.dumps(result))
     with pytest.raises(ValueError, match="changed after"):
         boltz_confidence_view(tmp_path, request, "structure-001", "pae", digest, seal)
-    with pytest.raises(ValueError, match="conflict"):
+    with pytest.raises(ValueError, match="disagree"):
         boltz_confidence_view(
             tmp_path, request, "structure-001", "pae", digest, {"structure-001-pae.npz": old_digest}
         )
+
+
+def test_sample_downloads_share_the_same_fixed_source_guard_as_the_preview(tmp_path):
+    from types import SimpleNamespace
+
+    from opendde_workbench.prediction_sample_export import sample_zip
+
+    request, _, output, result = native_task(tmp_path, declared=True)
+    job = SimpleNamespace(id="fixture", request=request)
+    original = (output / "result.json").read_bytes()
+    changed = npz(pae=floating((3, 3), [0] * 9))
+    (output / "structure-001-pae.npz").write_bytes(changed)
+    old_hash = result["artifact_sha256"]["structure-001-pae.npz"]
+    result["artifact_sha256"]["structure-001-pae.npz"] = hashlib.sha256(changed).hexdigest()
+    (output / "result.json").write_text(json.dumps(result))
+    with pytest.raises(ValueError, match="changed after"):
+        sample_zip(
+            tmp_path, job, "structure-001", {"result.json": hashlib.sha256(original).hexdigest()}
+        )
+    with pytest.raises(ValueError, match="disagree"):
+        sample_zip(tmp_path, job, "structure-001", {"structure-001-pae.npz": old_hash})
 
 
 @pytest.mark.parametrize("kind", ["wrong-shape", "nonfinite-hidden-cell", "wrong-plddt-units"])
