@@ -16,6 +16,7 @@ SOURCES = {
     "frontend/src/design/preferences.css",
     "frontend/src/design/theme-preferences.css",
     "server_tests/test_appearance_browser.py",
+    "server_tests/appearance_preview.py",
 }
 FILES = SOURCES | {
     "frontend/src/design/workspaces.css",

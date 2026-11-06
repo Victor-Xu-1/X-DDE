@@ -1,5 +1,6 @@
 """Three real rendered themes, pre-paint restore and same-origin preview sync."""
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.appearance_preview import load_reference, reference_asset, rendered_background
 from server_tests.browser_platform import platform
 from server_tests.test_navigation_shell_browser import settings
 
@@ -15,15 +17,6 @@ PALETTES = {
     "light": ("White", "白色", "#ffffff", "#ffffff"),
     "dark": ("Night black", "夜间黑色", "#0c0f14", "#151a21"),
 }
-
-
-RENDERER_BACKGROUND = """() => {
-    for (const canvas of document.querySelectorAll('canvas')) {
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-        if (gl) return Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE));
-    }
-    return null;
-}"""
 
 
 def canonical_hex(value):
@@ -40,6 +33,7 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
     state = Path(os.environ["WB_STATE_DIR"])
     assert state.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     writes, errors, measurements = [], [], []
+    asset, checksum = reference_asset(state)
     with platform(state, root / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch(
             args=["--enable-unsafe-swiftshader", "--use-angle=swiftshader"]
@@ -76,6 +70,7 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
         preview = context.new_page()
         preview.goto(base + "/viewer.html")
         expect(preview.locator("canvas").first).to_be_attached()
+        structure = load_reference(preview, base, asset, checksum)
 
         for theme, (en, cn, canvas, chart) in PALETTES.items():
             label = cn if language == "zh" else en
@@ -104,11 +99,11 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
                 canonical_hex(page.locator('meta[name="theme-color"]').get_attribute("content"))
                 == canvas
             )
-            renderer_color = [int(chart[index : index + 2], 16) / 255 for index in (1, 3, 5)]
-            preview.wait_for_function(
-                f"expected => {{ const read = {RENDERER_BACKGROUND}; const actual = read(); "
-                "return actual && expected.every((n, i) => Math.abs(n - actual[i]) < 0.00393); }",
-                arg=renderer_color,
+            rgba = rendered_background(preview, root / f"renderer-background-{theme}.png")
+            expected_rgb = [int(chart[index : index + 2], 16) for index in (1, 3, 5)]
+            assert all(abs(a - b) <= 1 for a, b in zip(rgba[:3], expected_rgb, strict=True)), (
+                theme,
+                rgba,
             )
             page.reload(wait_until="domcontentloaded")
             expect(page.locator("html")).to_have_attribute("data-theme", theme)
@@ -128,13 +123,14 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
             else:
                 assert boxes[0]["y"] + boxes[0]["height"] <= boxes[1]["y"]
             page.screenshot(path=root / f"settings-{theme}.png", full_page=True)
-            preview.screenshot(path=root / f"renderer-background-{theme}.png")
             measurements.append(
                 {
                     "theme": theme,
                     "canvas": canvas,
                     "preview_background": chart,
-                    "native_renderer_background_rgba": preview.evaluate(RENDERER_BACKGROUND),
+                    "native_renderer_background_rgba": rgba,
+                    "preview_verification": "Composited native STAT6 structure screenshot",
+                    "reference_structure_atoms": structure["atoms"],
                     "cross_tab_sync": True,
                     "refresh_persistence": True,
                     "width": width,
@@ -142,6 +138,10 @@ def test_three_themes_across_settings_tabs_and_preview(language, width):
             )
         assert not errors and not writes, (errors, writes)
         assert page.request.get(base + "/api/jobs").json() == []
+        assert (
+            hashlib.sha256(page.request.get(base + "/api/assets/" + asset.id).body()).hexdigest()
+            == checksum
+        )
         (root / "receipt.json").write_text(
             json.dumps(
                 {

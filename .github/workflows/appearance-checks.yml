@@ -12,6 +12,7 @@ on:
       - "scripts/appearance-scope.py"
       - "tests/test_appearance_scope.py"
       - "server_tests/test_appearance_browser.py"
+      - "server_tests/appearance_preview.py"
       - ".github/workflows/appearance-checks.yml"
   pull_request:
     paths: *appearance_paths
@@ -42,7 +43,7 @@ jobs:
       - name: Exact appearance delegation and existing scope consumers
         run: |
           uv run --locked pytest -q tests/test_appearance_scope.py tests/test_prediction_workspace_scope.py
-          uv run --locked ruff check scripts/appearance-scope.py scripts/prediction-workspace-scope.py tests/test_appearance_scope.py server_tests/test_appearance_browser.py
+          uv run --locked ruff check scripts/appearance-scope.py scripts/prediction-workspace-scope.py tests/test_appearance_scope.py server_tests/test_appearance_browser.py server_tests/appearance_preview.py
       - name: Isolated bilingual rendered appearance; no scientific tasks
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-appearance" >> "$GITHUB_ENV"
