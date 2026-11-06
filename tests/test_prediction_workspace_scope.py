@@ -10,6 +10,8 @@ spec.loader.exec_module(scope)
 
 def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():
     changed = {
+        "src/opendde_workbench/drafts/compatibility_process.py",
+        "tests/test_draft_compatibility_process.py",
         "src/opendde_workbench/drafts/compatibility.py",
         "src/opendde_workbench/drafts/compatibility_probe.py",
         "scripts/check-draft-compatibility.py",
@@ -37,6 +39,7 @@ def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_
     assert "gh release download v0.8.1" in workflow
     assert 'uv build --wheel --out-dir "$WB_DRAFT_CURRENT_WHEEL_DIR"' in workflow
     assert "python -m pytest -q tests/test_draft_compatibility.py" in workflow
+    assert "tests/test_draft_compatibility_process.py" in workflow
     assert workflow.count("if: needs.scope.outputs.draft_compatibility_only != 'true'") == 2
 
 

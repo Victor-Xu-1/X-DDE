@@ -2,6 +2,7 @@
 
 import json
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 
@@ -26,6 +27,29 @@ def preserved(original, decoded):
     return type(original) is type(decoded) and original == decoded
 
 
+def validate_row(row, validator):
+    body = json.loads(row["body"])
+    if set(body) != {"tool", "schema_version", "state"} or validator is None:
+        raise ValueError("No compatible target draft schema.")
+    # Target before-validators may mutate their input. Never compare against that
+    # same object after validation, or a lossy normalization could approve itself.
+    original = deepcopy(body["state"])
+    decoded = validator(
+        {
+            **body,
+            "id": row["id"],
+            "revision": row["revision"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "archived": bool(row["archived"]),
+            "name": original["name"],
+            "entities": len(original["components"]),
+        }
+    )
+    if not preserved(original, decoded.state.model_dump(mode="json")):
+        raise ValueError("The target changed stored research input values.")
+
+
 def main():
     target = Path(sys.argv[1]).resolve(strict=True)
     sys.path.insert(0, str(target))
@@ -42,24 +66,7 @@ def main():
         total += 1
         row = json.loads(line)
         try:
-            body = json.loads(row["body"])
-            if set(body) != {"tool", "schema_version", "state"} or validator is None:
-                raise ValueError("No compatible target draft schema.")
-            state = body["state"]
-            decoded = validator(
-                {
-                    **body,
-                    "id": row["id"],
-                    "revision": row["revision"],
-                    "created_at": row["created_at"],
-                    "updated_at": row["updated_at"],
-                    "archived": bool(row["archived"]),
-                    "name": state["name"],
-                    "entities": len(state["components"]),
-                }
-            )
-            if not preserved(state, decoded.state.model_dump(mode="json")):
-                raise ValueError("The target changed stored research input values.")
+            validate_row(row, validator)
         except (ValueError, TypeError, KeyError):
             rejected += 1
             if len(examples) < 32:

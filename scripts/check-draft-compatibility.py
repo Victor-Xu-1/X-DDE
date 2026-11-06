@@ -2,8 +2,10 @@
 
 import argparse
 import json
+import sqlite3
 import subprocess
 from pathlib import Path
+from zipfile import BadZipFile
 
 from opendde_workbench.drafts.compatibility import check_draft_compatibility
 
@@ -19,7 +21,14 @@ def main():
         result = check_draft_compatibility(
             args.database, args.wheel, args.sha256, args.temporary_directory
         )
-    except (OSError, TypeError, ValueError, subprocess.SubprocessError) as error:
+    except (
+        OSError,
+        TypeError,
+        ValueError,
+        sqlite3.Error,
+        BadZipFile,
+        subprocess.SubprocessError,
+    ) as error:
         # Exit nonzero on inability to prove compatibility, without printing source data.
         print(json.dumps({"compatible": False, "reason": type(error).__name__}))
         return 2

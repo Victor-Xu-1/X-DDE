@@ -311,6 +311,8 @@ BOLTZ_DRAFT_FILES = DRAFT_FILES | {
 }
 
 OPENDDE_DRAFT_FILES = {
+    "src/opendde_workbench/drafts/compatibility_process.py",
+    "tests/test_draft_compatibility_process.py",
     "src/opendde_workbench/drafts/compatibility.py",
     "src/opendde_workbench/drafts/compatibility_probe.py",
     "scripts/check-draft-compatibility.py",
@@ -356,6 +358,8 @@ OPENDDE_DRAFT_FILES = {
 
 
 DRAFT_COMPATIBILITY_SOURCES = {
+    "src/opendde_workbench/drafts/compatibility_process.py",
+    "tests/test_draft_compatibility_process.py",
     "src/opendde_workbench/drafts/compatibility.py",
     "src/opendde_workbench/drafts/compatibility_probe.py",
     "scripts/check-draft-compatibility.py",

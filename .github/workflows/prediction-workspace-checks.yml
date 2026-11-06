@@ -12,6 +12,7 @@ on:
       - "frontend/src/TaskFormDrafts.test.tsx"
       - "tests/test_opendde_drafts.py"
       - "tests/test_draft_compatibility.py"
+      - "tests/test_draft_compatibility_process.py"
       - "scripts/check-draft-compatibility.py"
       - "server_tests/test_opendde_drafts_browser.py"
       - "frontend/src/operations/operations.test.tsx"
@@ -354,8 +355,8 @@ jobs:
           mkdir -p "$RUNNER_TEMP/draft-compatibility"
           gh release download v0.8.1 --repo "$GITHUB_REPOSITORY" --pattern x_dde-0.8.1-py3-none-any.whl --dir "$RUNNER_TEMP/draft-compatibility"
           uv build --wheel --out-dir "$WB_DRAFT_CURRENT_WHEEL_DIR"
-          uv run --locked ruff check src/opendde_workbench/drafts/compatibility.py src/opendde_workbench/drafts/compatibility_probe.py scripts/check-draft-compatibility.py tests/test_draft_compatibility.py
-          uv run --locked python -m pytest -q tests/test_draft_compatibility.py
+          uv run --locked ruff check src/opendde_workbench/drafts/compatibility*.py scripts/check-draft-compatibility.py tests/test_draft_compatibility*.py
+          uv run --locked python -m pytest -q tests/test_draft_compatibility.py tests/test_draft_compatibility_process.py
       - if: needs.scope.outputs.draft_compatibility_only != 'true'
         run: uv sync --locked --group dev --group browser
       - name: Scope contract and changed browser fixture checks

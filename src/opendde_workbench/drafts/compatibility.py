@@ -4,7 +4,6 @@ import hashlib
 import json
 import re
 import sqlite3
-import subprocess
 import sys
 import tempfile
 from contextlib import closing
@@ -12,15 +11,21 @@ from email.parser import BytesParser
 from pathlib import Path
 from zipfile import ZipFile
 
+from .compatibility_process import run_probe
+
 MAX_SNAPSHOT_BYTES = 64 * 1024**2
+MAX_WHEEL_BYTES = 512 * 1024**2
 
 
 def _verified_wheel(source: Path, destination: Path, expected: str):
     if not re.fullmatch(r"[0-9a-f]{64}", expected):
         raise ValueError("An exact lowercase SHA-256 is required for the trusted target wheel.")
-    digest = hashlib.sha256()
+    digest, size = hashlib.sha256(), 0
     with source.open("rb") as incoming, destination.open("xb") as staged:
         while block := incoming.read(1024**2):
+            size += len(block)
+            if size > MAX_WHEEL_BYTES:
+                raise ValueError("The trusted target wheel exceeds the 512 MiB guard budget.")
             digest.update(block)
             staged.write(block)
     if digest.hexdigest() != expected:
@@ -82,7 +87,7 @@ def check_draft_compatibility(
             count, fingerprint = _snapshot(database, snapshot)
             result = {"drafts": 0, "rejected": 0, "examples": []}
             if count:
-                completed = subprocess.run(
+                report = run_probe(
                     [
                         sys.executable,
                         "-I",
@@ -91,13 +96,9 @@ def check_draft_compatibility(
                         str(target),
                     ],
                     stdin=snapshot,
-                    capture_output=True,
                     timeout=30,
-                    check=True,
                 )
-                if len(completed.stdout) > 65536:
-                    raise ValueError("The target draft validator returned an unbounded report.")
-                result = json.loads(completed.stdout)
+                result = json.loads(report)
                 if (
                     not isinstance(result, dict)
                     or set(result) != {"drafts", "rejected", "examples"}

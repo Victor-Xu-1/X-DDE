@@ -138,15 +138,15 @@ def test_child_reads_the_verified_private_copy_if_the_source_wheel_changes(
     drafts.save(str(uuid4()), mol1_snapshot())
     mutable = tmp_path / "mutable.whl"
     shutil.copyfile(legacy, mutable)
-    real_run = subprocess.run
+    from opendde_workbench.drafts.compatibility_process import run_probe
 
     def mutate_original(arguments, **kwargs):
         assert "-I" in arguments and "-B" in arguments
         assert Path(arguments[-1]).parent.is_relative_to(temporary)
         mutable.write_bytes(b"replaced after the verified private copy was created")
-        return real_run(arguments, **kwargs)
+        return run_probe(arguments, **kwargs)
 
-    monkeypatch.setattr("opendde_workbench.drafts.compatibility.subprocess.run", mutate_original)
+    monkeypatch.setattr("opendde_workbench.drafts.compatibility.run_probe", mutate_original)
     result = check_draft_compatibility(store.path, mutable, LEGACY_SHA256, temporary)
     assert result["compatible"] and result["target_sha256"] == LEGACY_SHA256
 
@@ -184,10 +184,8 @@ def test_incomplete_child_report_or_snapshot_budget_never_approves_partial_valid
     store, drafts, temporary = data
     drafts.save(str(uuid4()), mol1_snapshot())
     monkeypatch.setattr(
-        "opendde_workbench.drafts.compatibility.subprocess.run",
-        lambda arguments, **kwargs: subprocess.CompletedProcess(
-            arguments, 0, b'{"drafts":0,"rejected":0,"examples":[]}', b""
-        ),
+        "opendde_workbench.drafts.compatibility.run_probe",
+        lambda arguments, **kwargs: b'{"drafts":0,"rejected":0,"examples":[]}',
     )
     with pytest.raises(ValueError, match="complete snapshot"):
         check_draft_compatibility(store.path, legacy, LEGACY_SHA256, temporary)
@@ -196,6 +194,47 @@ def test_incomplete_child_report_or_snapshot_budget_never_approves_partial_valid
         check_draft_compatibility(store.path, legacy, LEGACY_SHA256, temporary)
     assert list(temporary.iterdir()) == []
     assert len(rows(store)) == 1
+
+
+@pytest.mark.parametrize("missing", [False, True])
+def test_cli_reports_incomplete_sqlite_inspection_as_exit_two(wheels, data, tmp_path, missing):
+    legacy, _ = wheels
+    _, _, temporary = data
+    database = tmp_path / "unreadable.sqlite3"
+    if not missing:
+        database.write_bytes(b"not a SQLite database")
+    command = [
+        sys.executable,
+        "-B",
+        "scripts/check-draft-compatibility.py",
+        "--database",
+        str(database),
+        "--wheel",
+        str(legacy),
+        "--sha256",
+        LEGACY_SHA256,
+        "--temporary-directory",
+        str(temporary),
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, timeout=40)
+    assert result.returncode == 2 and result.stderr == ""
+    assert json.loads(result.stdout) == {
+        "compatible": False,
+        "reason": "OperationalError" if missing else "DatabaseError",
+    }
+    assert database.exists() is not missing
+    if not missing:
+        assert database.read_bytes() == b"not a SQLite database"
+    assert list(temporary.iterdir()) == []
+
+
+def test_wheel_copy_cannot_exceed_its_private_storage_budget(wheels, data, monkeypatch):
+    legacy, _ = wheels
+    store, _, temporary = data
+    monkeypatch.setattr("opendde_workbench.drafts.compatibility.MAX_WHEEL_BYTES", 16)
+    with pytest.raises(ValueError, match="wheel exceeds"):
+        check_draft_compatibility(store.path, legacy, LEGACY_SHA256, temporary)
+    assert list(temporary.iterdir()) == []
 
 
 def test_archived_rows_are_all_checked_even_when_rejection_examples_are_bounded(wheels, data):
