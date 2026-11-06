@@ -1,0 +1,66 @@
+{
+  "wheel_version": "0.8.1",
+  "wheel_sha256": "5c6db303ebb584b62cfe20a945fac505de03ab72c3243fcf1d7d9f2e8977d66e",
+  "restored": {
+    "modules": 58,
+    "computed": 58,
+    "validated": 0
+  },
+  "job_count": 115,
+  "job_states": {
+    "succeeded": 111,
+    "failed": 4
+  },
+  "scientific_files_verified": 1098,
+  "jobs_unchanged": true,
+  "scientific_files_unchanged": true,
+  "catalogue_count": 76,
+  "homepage_status": 200,
+  "jobs_status": 200,
+  "retained_confidence": {
+    "source_job": "716024e7-0a4a-4b9f-8962-fae4257bba48",
+    "candidate": "seed-101-sample-0",
+    "token_count": 116,
+    "atom_count": 943,
+    "confidence_sha256": "bc1aec74789de9786f048eeb3f63f56fc0aa673d8ae43c42d2fa09b4d96d0e17",
+    "structure_sha256": "affc4ef88404951e0906c08674e1bac7bb2a8c2ca0b2530b8998ed82906d73f6"
+  },
+  "server_exit_code": -15,
+  "new_scientific_computations": 0,
+  "auto_deploy": false,
+  "screenshot_source": "separately obtained exact-main CI, not this loopback smoke run",
+  "cycle": "2026-11-06T20:03:00Z",
+  "receipt_written_utc": "2026-11-06T20:08:14.920211+00:00",
+  "release_commit": "80c7633fe79dad0909a282a4128cc3fb6e06ddaa",
+  "release_tree": "e58d226e0de8aade9903e5ddcd023dbdcf57154b",
+  "platform_ready": true,
+  "worker_ready": true,
+  "service": "isolated loopback port 4395; stopped after smoke check",
+  "shutdown_log": "Application shutdown complete.",
+  "public_bundle_sha256": "62e8d64dd4be5dca420f7f1ef659aae932345128c9306697d3d2cea9a99a9f48",
+  "screenshots": [
+    {
+      "file": "stat6-boltz-input-v0.8.1.png",
+      "source": "outputs/prediction-history-input/en/view-input.png",
+      "sha256": "2c1bb6aad501e1fb811bd7b137e9ddffda9d8fb5d6cae46c20b0b51d151381ae",
+      "dimensions": [
+        1440,
+        960
+      ],
+      "input_provenance": "original recorded Boltz submission, restored from public v35 database record"
+    },
+    {
+      "file": "stat6-opendde-input-v0.8.1.png",
+      "source": "outputs/prediction-history-input/en/view-native-input.png",
+      "sha256": "8b65c3d967efe326b2934bcc39d10eb50b5192c87cd055897e410c60b3981687",
+      "dimensions": [
+        1440,
+        960
+      ],
+      "input_provenance": "OpenDDE input document reconstructed and saved from archived request and restored assets; not an original runtime file"
+    }
+  ],
+  "ci_run_id": 42217220898,
+  "ci_artifact_id": 13502196537,
+  "ci_artifact_sha256": "3770a02cc1a88cc603c3684ee362c0c8d58ff538d97a075d8968330c57b32292"
+}

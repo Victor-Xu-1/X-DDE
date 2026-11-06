@@ -19,6 +19,8 @@
 | [pocket-result-v0.7.99.png](pocket-result-v0.7.99.png) | v0.7.99 | 公开 BRD4–JQ1 保留的原生 P2Rank 结果，未重新计算 |
 | [stat6-opendde-confidence-v0.7.100.png](stat6-opendde-confidence-v0.7.100.png) | v0.7.100 | 保留的 OpenDDE STAT6 SH2 置信度、结构及序列联动 |
 | [stat6-boltz-result-v0.7.100.png](stat6-boltz-result-v0.7.100.png) | v0.7.100 | 保留的 Boltz-2 STAT6 姿势，明确 PAE 缺失及受体碰撞 |
+| [stat6-boltz-input-v0.8.1.png](stat6-boltz-input-v0.8.1.png) | v0.8.1 | 公开 STAT6 Boltz-2 原始提交请求，原生配体绘图与记录身份 |
+| [stat6-opendde-input-v0.8.1.png](stat6-opendde-input-v0.8.1.png) | v0.8.1 | 由归档请求与资产重建并保存的 OpenDDE 输入，116 残基、种子与 MSA |
 
 ### 历史 v0.4.53 页面
 
@@ -46,7 +48,7 @@
 
 ## English
 
-The nine later CI images are listed separately above, with version-specific provenance and scientific limits in the [verification record](../readme-verification-2026-11-06.md). The v0.7.98-source images share the release's complete Git tree but were captured on its PR merge ref, not the release commit. The v0.7.99 pocket image displays an unchanged archived BRD4 P2Rank result; the two v0.7.100 images show retained STAT6 OpenDDE and Boltz-2 results with their original confidence and warning states. The remaining later images show inputs or plans. None records a new scientific calculation.
+The eleven later CI images are listed separately above, with version-specific provenance and scientific limits in the [verification record](../readme-verification-2026-11-06.md). The v0.7.98-source images share the release's complete Git tree but were captured on its PR merge ref, not the release commit. The v0.7.99 pocket image displays an unchanged archived BRD4 P2Rank result; the two v0.7.100 images show retained STAT6 OpenDDE and Boltz-2 results with their original confidence and warning states. The remaining later images show inputs or plans. None records a new scientific calculation.
 
 The seven original interface images in the historical table are direct captures of the running v0.4.53 application after selecting **English** in its language settings. Historical interface images referenced by either README use these English-language captures. Screenshot text and scientific content were not repainted or replaced. Native results, unbound conformers, input-only design examples and actual installation states remain distinct. Existing public cases were inspected without running new inference or installing components. Capture revision and prior automated validation are recorded separately in the provenance file.
 

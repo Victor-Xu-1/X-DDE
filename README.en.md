@@ -67,7 +67,7 @@ These are connected research paths. Each handoff selects actual materials and ve
 
 ## What the interface looks like
 
-The STAT6 OpenDDE confidence and Boltz-2 result images are **actual v0.7.100 English-language CI captures of retained native results**. The BRD4 pocket image retains its **v0.7.99** attribution. The task, docking and ternary-input review pages are **actual English-language captures from a PR CI checkout with the same complete source tree as v0.7.98**. Those review pages show inputs and plans. None of these browser checks reran scientific calculations. Material-selection and antibody-sequence screenshots retain their **v0.7.96** attribution; the calculation-plan image is a **historical v0.7.93 capture**. Other result and template images keep their existing v0.4.53 attribution. Latest-release captures of every result module remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
+The new historical-input views are **actual v0.8.1 English-language CI captures**, showing a Boltz-2 recorded submission and an OpenDDE stored input document separately. The STAT6 OpenDDE confidence and Boltz-2 result images are **actual v0.7.100 English-language CI captures of retained native results**. The BRD4 pocket image retains its **v0.7.99** attribution. The task, docking and ternary-input review pages are **actual English-language captures from a PR CI checkout with the same complete source tree as v0.7.98**. Those review pages show inputs and plans. None of these browser checks reran scientific calculations. Material-selection and antibody-sequence screenshots retain their **v0.7.96** attribution; the calculation-plan image is a **historical v0.7.93 capture**. Other result and template images keep their existing v0.4.53 attribution. Latest-release captures of every result module remain incomplete. Screenshot pixels and text have not been repainted. Architecture illustrations are explanatory visuals. See [screenshot provenance and verification scope](docs/readme-verification-2026-11-06.md).
 
 ### 1. Prepare tasks like a questionnaire
 
@@ -87,7 +87,7 @@ This historical v0.7.93 capture illustrates calculation planning, not a current-
 
 **Use this template** fills real research inputs; **Example results** displays retained outputs inside the module. Loading a template does not start computation or add demonstration jobs to personal task history.
 
-The [reviewed STAT6 v35 archive](https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v35.zip) restores 58 computed module examples and 115 retained task records, including 111 succeeded and four failed records. Restoration does not rerun those tasks. The v0.7.100 isolated smoke check preserved all 1,098 archived job and asset files byte for byte; these counts are provenance, not evidence that every method is scientifically validated.
+The [reviewed STAT6 v35 archive](https://github.com/Victor-Xu-1/X-DDE/releases/download/examples-v2/stat6-reviewed-results-v35.zip) restores 58 computed module examples and 115 retained task records, including 111 succeeded and four failed records. Restoration does not rerun those tasks. The v0.8.1 isolated smoke check preserved all 1,098 archived job and asset files byte for byte; these counts are provenance, not evidence that every method is scientifically validated.
 
 The earlier [STAT6 v22 case package](https://github.com/Victor-Xu-1/X-DDE/releases/download/v0.6.28/stat6-reviewed-results-v22.zip) contains 40 reviewed primary module examples and one nested follow-up: 39 native computational examples and one reported-data example. It retains original inputs, methods, result stages and downloads, including 38 cellular IC50 observations with unknown conditions kept explicit, pocket-conditioned screening, shortlisted docking, and disease-evidence queries. The property-focused generation example links conformer preparation, two receptor controls and four pose-quality checks; its improved QED does not establish activity or preservation of the starting scaffold. Scientific acceptance of the remaining modules continues; these examples do not establish experimental affinity, causal validity or prospective screening enrichment.
 
@@ -96,6 +96,16 @@ The diversification example connects three generated scaffold hypotheses to ten 
 The added STAT6 SPR training-workflow baseline retains 163 molecules, a 131/16/16 scaffold split, the complete model and molecule-level errors. Its test R² is −0.1937; the interface explicitly states that predictive utility is not established. Completing training is not presented as a reliable affinity model. The PROTAC-region example preserves the intact molecule and unspecified stereochemistry while displaying both arm hypotheses and the connector in 3D; region labels do not prove binding or degradation.
 
 The STAT6 preparation example uses the explicitly identified AlphaFold v6 113–658 predicted construct and retains native restrained-preparation results, interactive 3D and PDB downloads. Energies include backbone positional restraints; they are not binding energies or affinities. This example runs no dynamics or FEP.
+
+**Inspect the materials actually used by a past task.** “View input” shows the recorded sequence, molecule, MSA and available settings, with the corresponding JSON downloadable.
+
+![Actual v0.8.1 English Boltz-2 historical input: native molecular drawing and first file record](docs/images/stat6-boltz-input-v0.8.1.png)
+
+This is the public STAT6 SH2 517–632 and defined-molecule study's recorded submission, scrolled to its chain-B ligand. The native Ketcher drawing comes from the verified first SDF record. CUDA and seed 101 are historical settings, not evidence that this maintenance environment has a GPU or ran another prediction.
+
+![Actual v0.8.1 English OpenDDE historical input: 116-residue sequence, seed and MSA source](docs/images/stat6-opendde-input-v0.8.1.png)
+
+This separate OpenDDE task displays its stored input document: the 116-residue STAT6 SH2 construct, chain A, one copy, seed 101 and an unpaired-MSA link. The restore routine reconstructs and saves this document from the archived request and assets; it is not a byte-preserved original runtime file. Its source differs from the Boltz-2 original recorded submission above. Parameters absent from this document are not filled in by the view. Both images show real views of public archived inputs, with no new calculation or scientific validation implied.
 
 ### 2. Inspect structures alongside candidate tables
 
