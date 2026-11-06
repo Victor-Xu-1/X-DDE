@@ -95,6 +95,12 @@ export function ConfidencePanel({
     pde: zh ? "预测距离误差 PDE" : "Predicted distance error (PDE)",
     contacts: zh ? "预测接触概率" : "Predicted contact probability",
   };
+  const matrixName =
+    metric === "contacts"
+      ? zh
+        ? "接触概率"
+        : "contact-probability"
+      : metric.toUpperCase();
   return (
     <PredictionConfidenceCard
       className="confidence-panel"
@@ -136,12 +142,16 @@ export function ConfidencePanel({
       }
     >
       {error ? (
-        <div role="status" className="notice">
+        <div
+          role="status"
+          className={error === 404 ? "confidence-empty" : "notice"}
+        >
           <p>
+            <strong>{candidate}</strong> ·{" "}
             {error === 404
               ? zh
-                ? "此构象没有保留所选视图的原生置信度矩阵。"
-                : "No native confidence matrix was retained for this view of the selected structure."
+                ? `此构象没有可预览的 ${matrixName} 矩阵。原始结构和已保留的置信度汇总可通过“下载此构象”获取。`
+                : `No ${matrixName} matrix is available for this conformer. The model download contains its original structure and any retained confidence summary.`
               : error === 422
                 ? zh
                   ? "无法核验此构象的置信度数据。原始结构和文件保持不变。"
@@ -160,8 +170,8 @@ export function ConfidencePanel({
       ) : !data ? (
         <p role="status">
           {zh
-            ? "正在读取当前构象的置信度…"
-            : "Loading confidence for the selected structure…"}
+            ? `正在读取构象 ${candidate} 的置信度…`
+            : `Loading confidence for the selected structure ${candidate}…`}
         </p>
       ) : (
         <>
@@ -244,8 +254,8 @@ export function ConfidencePanel({
             }}
           />
           <p className="small">
-            {data.token_count} tokens · {zh ? "显示步长" : "Display stride"}{" "}
-            {data.stride}.
+            {candidate} · {data.token_count} tokens ·{" "}
+            {zh ? "显示步长" : "Display stride"} {data.stride}.
             {inspection
               ? zh
                 ? " 点击选择横轴对应的残基；切换到选择并拖动可选取双轴范围。"

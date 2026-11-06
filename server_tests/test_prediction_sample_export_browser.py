@@ -54,7 +54,7 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         expect(select).to_have_attribute("aria-pressed", "true")
         expect(bar).to_contain_text("0.80")
         panel = page.get_by_role(
-            "region", name="预测对齐误差（PAE）" if zh else "Predicted aligned error (PAE)"
+            "region", name="预测对齐误差 PAE" if zh else "Predicted aligned error (PAE)"
         )
         expect(panel).to_contain_text("structure-003")
         expect(panel).to_contain_text(
@@ -63,7 +63,7 @@ def test_native_stat6_sample_bar_selects_best_and_packages_exact_native_bytes(
         expect(panel.locator(".research-plot")).to_have_count(0)
         if theme == "dark":
             expect(panel.locator("p")).to_have_css("color", "rgb(178, 193, 191)")
-            expect(panel).to_have_css("background-color", "rgb(26, 36, 39)")
+            expect(panel).to_have_css("background-color", "rgb(21, 26, 33)")
         expect(page.locator(".prediction-conformer-table table")).to_be_visible()
         expect(
             page.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")

@@ -190,7 +190,9 @@ it("explains missing native files in Chinese, retries and clears an old binding 
     />,
   );
   await act(async () => pending.at(-1)!.reject({ status: 404 }));
-  expect(screen.getByRole("status")).toHaveTextContent("没有保留所选视图");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "one · 此构象没有可预览的 PAE 矩阵",
+  );
   fireEvent.click(screen.getByRole("button", { name: "重新读取置信度" }));
   expect(screen.getByRole("status")).toHaveTextContent("正在读取");
   await act(async () =>
@@ -229,21 +231,19 @@ it.each([undefined, "0-100", "unknown"])(
       />,
     );
     await act(async () =>
-      pending
-        .at(-1)!
-        .resolve({
-          metric: "pae",
-          token_count: 1,
-          indices: [0],
-          stride: 1,
-          matrix: [[0]],
-          atom_plddt: [],
-          atom_stride: 1,
-          atom_plddt_unit: "0-1",
-          token_plddt: [{ index: 0, value: 0.87 }],
-          token_plddt_unit: unit,
-          native_artifact: "native/pae.npz",
-        }),
+      pending.at(-1)!.resolve({
+        metric: "pae",
+        token_count: 1,
+        indices: [0],
+        stride: 1,
+        matrix: [[0]],
+        atom_plddt: [],
+        atom_stride: 1,
+        atom_plddt_unit: "0-1",
+        token_plddt: [{ index: 0, value: 0.87 }],
+        token_plddt_unit: unit,
+        native_artifact: "native/pae.npz",
+      }),
     );
     expect(
       screen.queryByRole("application", { name: "Token pLDDT" }),
