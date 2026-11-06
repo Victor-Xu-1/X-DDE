@@ -163,6 +163,7 @@ export function ConfidencePanel({
           </p>
           <button
             type="button"
+            className="text-button"
             onClick={() => setAttempt((value) => value + 1)}
           >
             {zh ? "重新读取置信度" : "Reload confidence"}
