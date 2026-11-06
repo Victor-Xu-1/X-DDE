@@ -24,7 +24,7 @@ def load_reference(page, base, asset, checksum):
         });
         window.postMessage({channel:'opendde-viewer', type:'ready-request'}, location.origin);
     }""")
-    page.wait_for_function("window.appearanceEvents.some(e => e.type === 'ready')")
+    wait_for_event(page, ["ready"])
     page.evaluate(
         """value => window.postMessage(
         {channel:'opendde-viewer', type:'load', value}, location.origin
@@ -36,12 +36,35 @@ def load_reference(page, base, asset, checksum):
             "initialMode": "cartoon",
         },
     )
-    page.wait_for_function("window.appearanceEvents.some(e => ['loaded','error'].includes(e.type))")
+    wait_for_event(page, ["loaded", "error"])
     events = page.evaluate("window.appearanceEvents")
     assert not [e for e in events if e["type"] == "error"], events
     info = next(e["detail"] for e in events if e["type"] == "loaded")
     assert info["hasPolymer"] and info["atoms"] > 0
     return info
+
+
+def wait_for_event(page, types):
+    # An asynchronous function works under the viewer's strict CSP; Playwright's
+    # string-predicate polling can invoke eval and is intentionally not enabled.
+    page.evaluate(
+        """types => new Promise((resolve, reject) => {
+        const matches = data => data?.channel === 'opendde-viewer' && types.includes(data.type);
+        if (window.appearanceEvents.some(matches)) { resolve(); return; }
+        const timeout = setTimeout(() => {
+            window.removeEventListener('message', receive);
+            reject(new Error('Native viewer event timed out: ' + types.join(',')));
+        }, 30000);
+        function receive(event) {
+            if (event.origin !== location.origin || !matches(event.data)) return;
+            clearTimeout(timeout);
+            window.removeEventListener('message', receive);
+            resolve();
+        }
+        window.addEventListener('message', receive);
+    })""",
+        types,
+    )
 
 
 def rendered_background(page, path):
