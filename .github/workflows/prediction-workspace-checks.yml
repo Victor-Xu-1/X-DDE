@@ -11,6 +11,8 @@ on:
       - "frontend/src/operations/useOpenDdeEditor.ts"
       - "frontend/src/TaskFormDrafts.test.tsx"
       - "tests/test_opendde_drafts.py"
+      - "tests/test_draft_compatibility.py"
+      - "scripts/check-draft-compatibility.py"
       - "server_tests/test_opendde_drafts_browser.py"
       - "frontend/src/operations/operations.test.tsx"
       - "server_tests/test_prediction_feature_settings_browser.py"
@@ -206,6 +208,8 @@ jobs:
       preview_changed: ${{ steps.select.outputs.preview_changed }}
       drafts_only: ${{ steps.select.outputs.drafts_only }}
       drafts_changed: ${{ steps.select.outputs.drafts_changed }}
+      draft_compatibility: ${{ steps.select.outputs.draft_compatibility }}
+      draft_compatibility_only: ${{ steps.select.outputs.draft_compatibility_only }}
       final_review_only: ${{ steps.select.outputs.final_review_only }}
       final_review_changed: ${{ steps.select.outputs.final_review_changed }}
       boltz_review_changed: ${{ steps.select.outputs.boltz_review_changed }}
@@ -339,7 +343,21 @@ jobs:
           uv sync --locked --group dev
           uv run --locked pytest -q tests/test_prediction_drafts.py tests/test_boltz_drafts.py tests/test_opendde_drafts.py tests/test_api_security.py
           uv run --locked ruff check src/opendde_workbench/drafts tests/test_prediction_drafts.py tests/test_boltz_drafts.py tests/test_opendde_drafts.py server_tests/test_prediction_drafts_browser.py server_tests/test_boltz_drafts_browser.py server_tests/test_opendde_drafts_browser.py
-      - run: uv sync --locked --group dev --group browser
+      - name: Real target-wheel schemas and read-only upgrade compatibility
+        if: needs.scope.outputs.draft_compatibility == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_DRAFT_LEGACY_WHEEL: ${{ runner.temp }}/draft-compatibility/x_dde-0.8.1-py3-none-any.whl
+          WB_DRAFT_CURRENT_WHEEL_DIR: ${{ runner.temp }}/draft-compatibility/current
+        run: |
+          uv sync --locked --group dev
+          mkdir -p "$RUNNER_TEMP/draft-compatibility"
+          gh release download v0.8.1 --repo "$GITHUB_REPOSITORY" --pattern x_dde-0.8.1-py3-none-any.whl --dir "$RUNNER_TEMP/draft-compatibility"
+          uv build --wheel --out-dir "$WB_DRAFT_CURRENT_WHEEL_DIR"
+          uv run --locked ruff check src/opendde_workbench/drafts/compatibility.py src/opendde_workbench/drafts/compatibility_probe.py scripts/check-draft-compatibility.py tests/test_draft_compatibility.py
+          uv run --locked python -m pytest -q tests/test_draft_compatibility.py
+      - if: needs.scope.outputs.draft_compatibility_only != 'true'
+        run: uv sync --locked --group dev --group browser
       - name: Scope contract and changed browser fixture checks
         run: |
           uv run --locked python -m pytest -q tests/test_prediction_workspace_scope.py
@@ -365,7 +383,8 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
-      - run: uv run --locked playwright install chromium --with-deps
+      - if: needs.scope.outputs.draft_compatibility_only != 'true'
+        run: uv run --locked playwright install chromium --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && (needs.scope.outputs.entity_inputs == 'true' || needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true' || needs.scope.outputs.boltz_review_changed == 'true' || needs.scope.outputs.opendde_review_changed == 'true')
         run: |

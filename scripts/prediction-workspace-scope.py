@@ -311,6 +311,10 @@ BOLTZ_DRAFT_FILES = DRAFT_FILES | {
 }
 
 OPENDDE_DRAFT_FILES = {
+    "src/opendde_workbench/drafts/compatibility.py",
+    "src/opendde_workbench/drafts/compatibility_probe.py",
+    "scripts/check-draft-compatibility.py",
+    "tests/test_draft_compatibility.py",
     "server_tests/test_mol1_final_review_browser.py",
     "server_tests/test_job_review_layout_browser.py",
     "server_tests/test_prediction_drafts_browser.py",
@@ -349,6 +353,39 @@ OPENDDE_DRAFT_FILES = {
     "install.sh",
     "install.ps1",
 }
+
+
+DRAFT_COMPATIBILITY_SOURCES = {
+    "src/opendde_workbench/drafts/compatibility.py",
+    "src/opendde_workbench/drafts/compatibility_probe.py",
+    "scripts/check-draft-compatibility.py",
+    "tests/test_draft_compatibility.py",
+}
+DRAFT_COMPATIBILITY_FILES = DRAFT_COMPATIBILITY_SOURCES | {
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/quality/frontend-coverage.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def draft_compatibility_only(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & DRAFT_COMPATIBILITY_SOURCES)
+        and changed <= DRAFT_COMPATIBILITY_FILES
+    )
+
+
+def draft_compatibility_changed(changed):
+    return bool(set(changed) & DRAFT_COMPATIBILITY_SOURCES)
 
 
 FINAL_REVIEW_FILES = {
@@ -639,7 +676,8 @@ def opendde_drafts_only(changed, event="push"):
 def drafts_only(changed, event="push"):
     changed = set(changed)
     return (
-        opendde_drafts_only(changed, event)
+        draft_compatibility_only(changed, event)
+        or opendde_drafts_only(changed, event)
         or boltz_drafts_only(changed, event)
         or (
             event in {"push", "pull_request"}
@@ -655,6 +693,8 @@ def drafts_only(changed, event="push"):
 
 
 def drafts_changed(changed, event="push"):
+    if draft_compatibility_only(changed, event):
+        return False
     return event == "workflow_dispatch" or any(
         name.startswith(
             ("src/opendde_workbench/drafts/", "frontend/src/presentation/PredictionDraft")
@@ -705,6 +745,8 @@ def input_preview_only(changed, event="push"):
 
 
 def preview_changed(changed, event="push"):
+    if draft_compatibility_only(changed, event):
+        return False
     return event == "workflow_dispatch" or any(
         name.startswith(
             (
@@ -1162,6 +1204,10 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "draft_compatibility": draft_compatibility_changed(changed),
+            "draft_compatibility_only": draft_compatibility_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "boltz_drafts": boltz_drafts_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "boltz_confidence": boltz_confidence_only(changed),
             "appearance_only": appearance,
