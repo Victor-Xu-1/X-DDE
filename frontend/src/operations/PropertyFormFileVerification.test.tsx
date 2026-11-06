@@ -111,7 +111,7 @@ it.each(["en", "zh"] as const)(
       />,
     );
     await user.click(next(zh));
-    await screen.findByText(asset.name);
+    await screen.findByText(asset.name, { selector: ".selected-file" });
     expect(next(zh)).toBeDisabled();
     expect(api.submit).not.toHaveBeenCalled();
   },
