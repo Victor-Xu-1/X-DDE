@@ -83,7 +83,9 @@ def test_molecular_sources_do_not_replace_selected_inputs_or_dispatch_science(
         capture_material(page, root / "properties-new.png")
 
         def hold_upload(route):
-            held.append((route, route.fetch()))
+            # Hold before forwarding. Recording after fetch lets nested browser
+            # events race with the response and falsely report no interception.
+            held.append(route)
 
         page.route("**/api/assets?*", hold_upload)
         material.locator('input[type="file"]').set_input_files(
@@ -98,7 +100,8 @@ def test_molecular_sources_do_not_replace_selected_inputs_or_dispatch_science(
         picker.select_option(original.id)
         expect(next_button).to_be_enabled()
         assert len(held) == 1
-        for route, response in held:
+        for route in held:
+            response = route.fetch()
             with page.expect_response(
                 lambda reply: reply.request.method == "POST" and "/api/assets?" in reply.url
             ):
