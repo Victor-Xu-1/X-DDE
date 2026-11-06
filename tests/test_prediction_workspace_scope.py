@@ -28,6 +28,8 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
         "frontend/src/operations/useTaskSubmit.ts",
         "frontend/src/viewer/scene.ts",
         "frontend/src/App.tsx",
+        "src/opendde_workbench/harness_msa.py",
+        "tests/fixtures/stat6/antibody_cdr/provenance.json",
     ):
         assert not scope.job_review_layout_only(changes + [unrelated])
     assert not scope.job_review_layout_only(["pyproject.toml"])
@@ -48,6 +50,13 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
         assert entry in native
     assert 'WB_DOCKING_VISUAL_STATE="$WB_STATE_DIR"' in native
     assert 'WB_TERNARY_VISUAL_STATE="$WB_STATE_DIR"' in native
+    assert "server_tests/job_review_scene_case.py" in native
+    antibody = (
+        Path(__file__).parents[1] / ".github/workflows/antibody-cdr-input-checks.yml"
+    ).read_text()
+    assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in antibody
+    assert "needs: [case-scope, prediction-scope]" in antibody
+    assert "needs.prediction-scope.outputs.job_review_layout != 'true'" in antibody
 
 
 def test_boltz_input_delegation_is_closed_to_chain_inputs_and_exact_review():

@@ -352,7 +352,7 @@ jobs:
         run: |
           export WB_DOCKING_VISUAL_STATE="$WB_STATE_DIR"
           export WB_TERNARY_VISUAL_STATE="$WB_STATE_DIR"
-          uv run --locked ruff check scripts/job-review-scope.py server_tests/test_job_review_layout_browser.py
+          uv run --locked ruff check scripts/job-review-scope.py server_tests/test_job_review_layout_browser.py server_tests/job_review_scene_case.py server_tests/test_fold_msa_sources_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_job_review_layout_browser.py server_tests/test_fold_msa_sources_browser.py server_tests/test_docking_job_review_browser.py server_tests/test_ternary_job_review_browser.py::test_ternary_review_uses_real_independent_binary_frames
       - name: Bilingual Boltz-2 review of an exact ligand record and chain MSA
         if: needs.scope.outputs.boltz_review_changed == 'true'

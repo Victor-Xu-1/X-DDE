@@ -156,3 +156,12 @@ def test_spatial_design_shared_review(language, width, tmp_path, monkeypatch):
     with platform(state, evidence / "service.log") as base:
         monkeypatch.setenv("WB_BROWSER_URL", base)
         test_diffsbdd_material_and_protocol_review(language, width)
+
+
+def test_retained_native_camera_and_downloads(tmp_path, monkeypatch):
+    from server_tests.job_review_scene_case import inspect_native_review_scene
+
+    state = isolated_state(tmp_path, monkeypatch)
+    evidence = Path("outputs/job-review-layout/native-scene")
+    evidence.mkdir(parents=True, exist_ok=True)
+    inspect_native_review_scene(state, evidence)

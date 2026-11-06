@@ -17,10 +17,13 @@ PRODUCTION = {
 FILES = PRODUCTION | {
     TEST,
     BROWSER,
+    "server_tests/job_review_scene_case.py",
+    "server_tests/test_fold_msa_sources_browser.py",
     "scripts/job-review-scope.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/antibody-cdr-input-checks.yml",
     "server_tests/test_mol1_final_review_browser.py",
     "server_tests/test_boltz_final_review_browser.py",
     "server_tests/test_opendde_final_review_browser.py",

@@ -30,6 +30,15 @@
   display: grid;
   gap: 12px;
 }
+.prediction-job-preview .viewer-original-downloads {
+  flex: 0 0 auto;
+}
+.prediction-job-preview .viewer-original-downloads > summary {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+}
 .job-review-primary {
   min-width: 0;
 }

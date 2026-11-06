@@ -37,6 +37,10 @@ on:
 permissions:
   contents: read
 jobs:
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   case-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -50,8 +54,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/antibody_template_scope.py
   cdr-inputs:
-    needs: case-scope
-    if: needs.case-scope.outputs.native_receptor_only != 'true'
+    needs: [case-scope, prediction-scope]
+    if: needs.case-scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.job_review_layout != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
