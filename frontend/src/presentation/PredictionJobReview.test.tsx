@@ -110,7 +110,6 @@ it.each(["en", "zh"] as const)(
     await user.click(
       dialog.getByRole("button", {
         name: language === "zh" ? "编辑设置" : "Edit setup",
-        exact: true,
       }),
     );
     expect(close).toHaveBeenCalledOnce();
@@ -131,13 +130,11 @@ it.each(["en", "zh"] as const)(
     await user.click(
       dialog.getByRole("button", {
         name: language === "zh" ? "提交内容" : "Request JSON",
-        exact: true,
       }),
     );
     await user.click(
       dialog.getByRole("button", {
         name: language === "zh" ? "概览" : "Overview",
-        exact: true,
       }),
     );
     expect(dialog.getByTestId("native-depiction")).toBeVisible();
