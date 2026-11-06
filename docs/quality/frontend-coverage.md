@@ -138,3 +138,17 @@ Source-bound confidence increment: targeted acceptance must include the retained
 Optional 3D instruction alignment: template guidance uses stable original question indices; a self-guided optional restraints page has no unrelated template note. Refinement plan/review and OpenMM/GROMACS final review retain their original guide indices. Permanent bilingual navigation cases check the actual note at each question and prohibit submission. The verified four-failure/two-unaffected-case baseline is retained from CI run41572911026; the one-off historical comparator is retired. A strict guidance-only predicate delegates this bounded form change to its exact questionnaire/help/scientific/simulation/Mol-1 consumers; unrelated files never receive that delegation. No global UI suite or scientific computation is authorized by this change.
 
 Boltz chain-input acceptance: the unchanged baseline e4626912 failed exactly the missing MSA-settings interaction (one failure, eighteen related passes; PR run42114022504). The changed scope checks transactional Save/Cancel, source/chain invalidation, late uploads, native MSA identity and the exact final-review SDF record in isolated CI. Actual compiled screenshots cover English1440/light+dark and Chinese390. Owner Codex-IAB checks and official4322 deployment/data identity must be recorded before this increment is accepted. No model inference, job submission, owner scientific install or global suite is part of this interface gate.
+
+Shared material continuation (Issue #206): baseline 6433153f / run42144282671
+reproduced six bilingual sequence-source failures with 55 related passes. Sequence
+draft text and each source's confirmed reference have separate ownership. Source
+switching restores only that source; editing invalidates the pasted reference.
+The existing explicit-save/idempotency and late-reply guards remain authoritative.
+Reference and sequence pickers share one presentation component and stylesheet;
+scientific validation and selection stay in their respective picker controllers.
+The focused input gate covers both real antibody forms, public 6WGL dupilumab
+variable-domain file/version journeys, uncertain-save retry, late replies, exact
+native hashes and English desktop/Chinese narrow layout. This is a STAT6-pathway
+input reference, not a demonstrated STAT6 binder or a new calculation. Candidate
+CI, owner visual review and original4322 deployment remain separate gates; no
+global suite or scientific work is authorized by this change.
