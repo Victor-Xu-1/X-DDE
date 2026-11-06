@@ -25,6 +25,15 @@
 .prediction-job-preview > footer {
   padding-block: 14px;
   margin: 0;
+  gap: 10px;
+}
+.prediction-job-preview > footer :is(.primary-button, .secondary-button) {
+  min-width: 114px;
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 .job-review-description {
   flex-basis: 100%;
@@ -331,5 +340,8 @@
   .prediction-job-preview > footer button {
     min-width: 0;
     white-space: nowrap;
+  }
+  .prediction-job-preview > footer :is(.primary-button, .secondary-button) {
+    min-width: 0;
   }
 }
