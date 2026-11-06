@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Language, Component } from "../types";
@@ -64,13 +64,20 @@ const task: ScientificTask = {
 };
 const prepare = async (input: ScientificTask) => ({ task: input, components });
 
-async function review(language: Language, busy = false) {
+async function review(
+  language: Language,
+  busy = false,
+  prepareInput: (
+    input: ScientificTask,
+    signal: AbortSignal,
+  ) => ReturnType<typeof prepare> = prepare,
+) {
   const close = vi.fn();
   const submit = vi.fn(async () => undefined);
   const props = {
     language,
     input: task,
-    prepare,
+    prepare: prepareInput,
     renderSettings: () => (
       <PredictionJobSettings
         language={language}
@@ -146,6 +153,41 @@ it("invalidates the old view and request when prepared input identity changes", 
   expect(dialog.queryByText(task.name, { exact: true })).toBeNull();
   expect(dialog.getByLabelText("X-DDE submission request")).not.toBeVisible();
   expect(dialog.getByText("847 aa", { exact: true })).toBeVisible();
+  expect(submit).not.toHaveBeenCalled();
+});
+
+it("ignores a late previous preparation after the next request is verified", async () => {
+  type Snapshot = Awaited<ReturnType<typeof prepare>>;
+  const pending = new Map<
+    string,
+    { resolve(value: Snapshot): void; signal: AbortSignal }
+  >();
+  const delayed = (input: ScientificTask, signal: AbortSignal) =>
+    input.name === task.name
+      ? prepare(input)
+      : new Promise<Snapshot>((resolve) => {
+          pending.set(input.name, { resolve, signal });
+        });
+  const { dialog, replace, submit } = await review("en", false, delayed);
+  const old = { ...task, name: "STAT6 · Old pending request" };
+  const next = { ...task, name: "STAT6 · New verified request" };
+  replace(old);
+  replace(next);
+  expect(pending.get(old.name)?.signal.aborted).toBe(true);
+  await act(async () => {
+    pending.get(next.name)!.resolve({ task: next, components });
+  });
+  await act(async () => {
+    pending.get(old.name)!.resolve({ task: old, components });
+  });
+  expect(dialog.getByText(next.name, { exact: true })).toBeVisible();
+  expect(dialog.queryByText(old.name, { exact: true })).toBeNull();
+  await userEvent
+    .setup()
+    .click(dialog.getByRole("button", { name: "Request JSON" }));
+  expect(
+    JSON.parse(dialog.getByLabelText("X-DDE submission request").textContent!),
+  ).toEqual(next);
   expect(submit).not.toHaveBeenCalled();
 });
 

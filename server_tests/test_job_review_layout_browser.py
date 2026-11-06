@@ -101,6 +101,7 @@ def test_shared_job_layout_and_retained_native_entity(
         entities.first.locator("summary").first.click()
         entities.nth(1).locator("summary").first.click()
         drawing = entities.nth(1).locator(".molecule-image")
+        drawing.scroll_into_view_if_needed()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         dialog.get_by_role("button", name=label("Request JSON", "提交内容"), exact=True).click()
         request = json.loads(
