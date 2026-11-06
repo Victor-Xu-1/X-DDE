@@ -19,6 +19,9 @@
 .prediction-job-preview > header > div {
   gap: 8px 12px;
 }
+.prediction-job-preview > header {
+  padding-block: 16px;
+}
 .job-review-description {
   flex-basis: 100%;
   margin: 0;
@@ -58,6 +61,7 @@
   gap: 16px;
   min-height: 80px;
   margin-bottom: 12px;
+  padding: 16px;
 }
 .job-review-identity > div {
   display: grid;

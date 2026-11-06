@@ -71,6 +71,7 @@ on:
       - "frontend/src/guided/Questionnaire.tsx"
       - "server_tests/test_mol1_final_review_browser.py"
       - "server_tests/test_job_review_layout_browser.py"
+      - "server_tests/job_review_scene_case.py"
       - "frontend/src/integrations/Mol1Settings.tsx"
       - "frontend/src/integrations/Mol1SeedEditor*"
       - "frontend/src/integrations/Mol1RuntimeSettings.tsx"
