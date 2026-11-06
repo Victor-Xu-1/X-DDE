@@ -104,6 +104,9 @@ jobs:
           src/pockets/PocketForm.test.tsx src/docking/DockingForm.test.tsx
           src/diffsbdd/DiffForm.test.tsx src/proximity/Form.test.tsx
           src/operations/AssetPicker.test.tsx
+          src/research/SequencePickerRetention.test.tsx
+          src/research/SequencePicker.test.tsx src/research/useSequenceSave.test.tsx
+          src/antibodies/AntibodyNumberForm.test.tsx src/humanization/HumanizationForm.test.tsx
       - run: uv sync --locked --group dev --group browser
       - run: uv run --locked pytest -q tests/test_material_input_scope.py
       - run: uv run --locked ruff check scripts/material-input-scope.py tests/test_material_input_scope.py server_tests/test_material_sources_browser.py

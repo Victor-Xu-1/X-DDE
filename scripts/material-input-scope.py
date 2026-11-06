@@ -4,6 +4,7 @@ import os
 import subprocess
 
 SOURCES = {
+    "frontend/src/research/SequencePickerRetention.test.tsx",
     "frontend/src/diffsbdd/ReferencePicker.tsx",
     "frontend/src/diffsbdd/ReferencePickerHeading.tsx",
     "frontend/src/diffsbdd/ReferencePicker.css",
