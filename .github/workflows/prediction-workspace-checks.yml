@@ -404,6 +404,11 @@ jobs:
         run: |
           uv run --locked ruff check server_tests/test_mol1_final_review_browser.py server_tests/test_mol1_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_mol1_final_review_browser.py
+      - name: Retained hidden editor and visible Mol-1 review layout
+        if: needs.scope.outputs.drafts_changed == 'true' && needs.scope.outputs.opendde_review_changed == 'true'
+        run: |
+          uv run --locked ruff check server_tests/test_job_review_layout_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_job_review_layout_browser.py -k shared_job_layout_and_retained_native_entity
       - name: Shared layout and all four remaining native overview consumers
         if: needs.scope.outputs.job_review_layout == 'true'
         env:
