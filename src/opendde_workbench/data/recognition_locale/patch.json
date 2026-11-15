@@ -250,7 +250,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "79bc25bf92cb9a3cf70e4a350937b9512f358c530a0500d2728acd930cad42bc",
+      "after_sha256": "c903b06960f36afaf1d6bdb389ca1087cbcdf66db287e6dc82cdd48661e1c91f",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -322,7 +322,7 @@
         },
         {
           "before": "      />\n    </div>",
-          "after": "      />\n      {(preparing || displayError) && <div className=\"recognition-editor-status\" role=\"status\">\n        <span>{text(preparing ? \"正在准备分子结构…\" : policy.current?.retainedDrawing()\n          ? \"绘图备份已保留。\" : \"请重新载入分子结构。\")}</span>\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          void policy.current?.recheck().then(applied => {\n            if (applied) { setDisplayError(false); callbacks.current.onError(\"\"); }\n          }).catch(() => callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\"));\n        }}>{text(\"核对保留的结构\")}</button>}\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          const retained = policy.current?.retainedDrawing();\n          if (!retained) return;\n          const url = URL.createObjectURL(new Blob([retained], {type:\"application/json\"}));\n          const link = document.createElement(\"a\");\n          link.href = url; link.download = \"retained-drawing.ket\"; link.click();\n          setTimeout(() => URL.revokeObjectURL(url), 1000);\n        }}>{text(\"下载绘图备份\")}</button>}\n      </div>}\n    </div>"
+          "after": "      />\n      {(preparing || displayError) && <div className=\"recognition-editor-status\" role=\"status\">\n        <span>{text(preparing ? \"正在准备分子结构…\" : policy.current?.retainedDrawing()\n          ? \"绘图备份已保留。\" : \"请重新载入分子结构。\")}</span>\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          void policy.current?.recheck().then(applied => {\n            if (applied) { setDisplayError(false); callbacks.current.onError(\"\"); }\n          }).catch(() => callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\"));\n        }}>{text(\"整理为二维结构\")}</button>}\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          const retained = policy.current?.retainedDrawing();\n          if (!retained) return;\n          const url = URL.createObjectURL(new Blob([retained], {type:\"application/json\"}));\n          const link = document.createElement(\"a\");\n          link.href = url; link.download = \"retained-drawing.ket\"; link.click();\n          setTimeout(() => URL.revokeObjectURL(url), 1000);\n        }}>{text(\"下载绘图备份\")}</button>}\n      </div>}\n    </div>"
         }
       ]
     },

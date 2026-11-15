@@ -10,7 +10,7 @@ const english: Record<string, string> = {
   "正在准备分子结构…": "Preparing structure…",
   "绘图备份已保留。": "A drawing backup was retained.",
   "请重新载入分子结构。": "Reload a molecular structure.",
-  核对保留的结构: "Review retained structure",
+  整理为二维结构: "Prepare 2D drawing",
   下载绘图备份: "Download drawing backup",
   "无法安全准备简洁视图，已保留原始结构。":
     "The simplified view could not be prepared safely. The original structure was retained.",

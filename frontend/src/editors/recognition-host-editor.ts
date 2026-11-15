@@ -22,6 +22,24 @@ export type RecognitionEditor = Pick<
   };
 };
 const EMPTY = "\n  X-DDE\n\n  0  0  0  0  0  0  0  0  0  0999 V2000\nM  END\n";
+// Native KET atom locations carry X/Y/Z. This editor owns derived 2D drawings,
+// not the original calculated pose. Spatial imports require explicit layout.
+const spatial = (ket: string) =>
+  Object.values(JSON.parse(ket)).some((node) => {
+    const molecule = node as {
+      type?: string;
+      atoms?: { location?: number[] }[];
+    };
+    return (
+      molecule?.type === "molecule" &&
+      molecule.atoms?.some(
+        (atom) =>
+          atom.location?.length === 3 &&
+          (!Number.isFinite(atom.location[2]) ||
+            Math.abs(atom.location[2]) > 1e-6),
+      )
+    );
+  });
 
 export function configureRecognitionEditor(
   native: RecognitionEditor,
@@ -84,6 +102,7 @@ export function configureRecognitionEditor(
       if (
         failures !== lifetime.failures ||
         hasNonDonorHydrogens(actual) ||
+        spatial(actual) ||
         (expectedKey === null ? present(actual) : actualKey !== expectedKey)
       )
         throw new Error("编辑器未能确认载入结果，请保留原始文件并重试。");
@@ -138,7 +157,7 @@ export function configureRecognitionEditor(
       eventFailures !== lifetime.failures
     )
       return;
-    if (!hasNonDonorHydrogens(observed)) {
+    if (!hasNonDonorHydrogens(observed) && !spatial(observed)) {
       // Do not suspend native drawing/dragging for an unchanged display policy.
       const empty = !present(observed);
       if (needsIdentityReview && !empty) await key(observed);
@@ -159,7 +178,7 @@ export function configureRecognitionEditor(
     }
     retained = observed;
     lifetime.fail();
-    onError(new Error("请核对绘图以隐藏非活泼氢，原始结构与撤销记录已保留。"));
+    onError(new Error("请整理为二维结构，原始结构与撤销记录已保留。"));
   };
   let checking = false,
     pending = false;
@@ -195,7 +214,7 @@ export function configureRecognitionEditor(
     once: true,
   });
   changed();
-  const load = (source: string, preserveLayout = false) => {
+  const load = (source: string) => {
     const intent = ++revision;
     return lifetime.run(async () => {
       if (source.length > 5 * 1024 ** 2) throw new Error("分子文件超过 5 MB。");
@@ -206,8 +225,10 @@ export function configureRecognitionEditor(
       retained ??= before;
       const expected = source.trim() ? await key(source) : null;
       const prepared = source.trim()
-        ? await foldDisplayHydrogens(display, source, preserveLayout)
+        ? await foldDisplayHydrogens(display, source)
         : EMPTY;
+      if (source.trim() && spatial(prepared))
+        throw new Error("绘图组件未能生成二维结构，已保留原始结构。");
       signal.throwIfAborted();
       if (intent !== revision || before !== (await native.getKet()))
         return false;
@@ -237,7 +258,7 @@ export function configureRecognitionEditor(
       return value && present(value) ? value : null;
     },
     async recheck() {
-      return load(retained ?? (await native.getKet()), true);
+      return load(retained ?? (await native.getKet()));
     },
   };
 }

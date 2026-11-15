@@ -184,7 +184,10 @@ it("validates explicit-H edits without rewriting Undo/Redo, then reviews on requ
   expect(f.policy.retainedDrawing()).toBe(explicit);
   expect(await f.policy.recheck()).toBe(true);
   expect(f.current()).toBe(carbon);
-  expect(f.native.structService.layout).not.toHaveBeenCalled();
+  expect(f.native.structService.layout).toHaveBeenCalledWith({
+    struct: explicit,
+    output_format: "chemical/x-indigo-ket",
+  });
   expect(f.native.structService.toggleExplicitHydrogens).toHaveBeenCalledWith({
     struct: explicit,
     mode: "fold",
@@ -371,5 +374,40 @@ it("does not restore approval when native failure arrives during recovery identi
   await vi.waitFor(() => expect(checked).toBe(true));
   expect(f.state.mock.calls.every(([state]) => !state.available)).toBe(true);
   expect(f.policy.retainedDrawing()).toBe(carbon);
+  f.controller.abort();
+});
+
+it("requires explicit 2D preparation for a hydrogen-free native 3D import", async () => {
+  const f = fixture();
+  await ready(f);
+  const spatial = JSON.stringify({
+    identity: "carbon",
+    mol0: { type: "molecule", atoms: [{ label: "C", location: [0, 0, 1] }] },
+  });
+  f.edit(spatial);
+  expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: false });
+  await vi.waitFor(() => expect(f.error).toHaveBeenCalled());
+  expect(f.current()).toBe(spatial);
+  expect(f.native.setMolecule).not.toHaveBeenCalled();
+  vi.mocked(f.native.structService.layout!).mockResolvedValueOnce({
+    struct: carbon,
+  });
+  expect(await f.policy.recheck()).toBe(true);
+  expect(f.current()).toBe(carbon);
+  f.controller.abort();
+});
+it("refuses native layout that still contains 3D coordinates before committing", async () => {
+  const f = fixture();
+  await ready(f);
+  const spatial = JSON.stringify({
+    identity: "carbon",
+    mol0: { type: "molecule", atoms: [{ label: "C", location: [0, 0, 1] }] },
+  });
+  vi.mocked(f.native.structService.layout!).mockResolvedValueOnce({
+    struct: spatial,
+  });
+  await expect(f.policy.load("source-A")).rejects.toThrow("二维结构");
+  expect(f.native.setMolecule).not.toHaveBeenCalled();
+  expect(f.current()).toBe("{}");
   f.controller.abort();
 });

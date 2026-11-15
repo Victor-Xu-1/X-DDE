@@ -62,9 +62,8 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
                 assert load_source(page, "")
                 wait_available(page)
                 page.evaluate("source => window.ketcher.setMolecule(source)", file.read_text())
-                if label == "explicit-H-native":
-                    page.wait_for_function("() => !window.nativePolicyState.available")
-                    assert page.evaluate("() => window.nativeDisplayPolicy.recheck()")
+                page.wait_for_function("() => !window.nativePolicyState.available")
+                assert page.evaluate("() => window.nativeDisplayPolicy.recheck()")
                 page.wait_for_function("""async () => {
                   const ket=JSON.parse(await window.ketcher.getKet());
                   const atoms=Object.values(ket).flatMap(node=>node?.type==='molecule'?node.atoms:[]);
@@ -141,4 +140,6 @@ def load_source(page, source):
 def verify_identity(value, identity):
     molecule = Chem.MolFromMolBlock(value["mol"], removeHs=False)
     assert molecule is not None
+    assert not molecule.GetConformer().Is3D()
+    assert all(abs(point[2]) < 1e-6 for point in molecule.GetConformer().GetPositions())
     assert Chem.MolToSmiles(Chem.RemoveHs(molecule), isomericSmiles=True) == identity
