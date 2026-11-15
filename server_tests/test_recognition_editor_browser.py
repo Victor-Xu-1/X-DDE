@@ -65,6 +65,9 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.wait_for_function("() => window.nativeResizeWidths.at(-1) === 1440")
             wait_available(page)
+            restored = snapshot(page)
+            assert abs(restored["zoom"] - first["zoom"]) < 1e-6
+            assert restored["key"] == first["key"]
             # Native replacements reach the same public observer as native file
             # tools. Stock UI import is a separate installed-host Chrome gate:
             # the standalone 3.18 shell's New Project action reloads its document.

@@ -78,6 +78,9 @@ export function configureRecognitionEditor(
     return value;
   };
   function fit() {
+    // Native zoomAccordingContent returns early when the current view fits;
+    // reset the legacy small-molecule zoom so a larger viewport can grow it too.
+    actions.resetZoom();
     needsFit = !actions.fit();
     return !needsFit;
   }

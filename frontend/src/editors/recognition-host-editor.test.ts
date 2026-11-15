@@ -90,9 +90,14 @@ it("loads a separate native layout and verifies the actual canvas before exposin
   const f = fixture();
   await ready(f);
   expect(f.resetZoom).toHaveBeenCalled();
+  f.resetZoom.mockClear();
   expect(await f.policy.load("source-A")).toBe(true);
   expect(f.current()).toBe(carbon);
   expect(f.fit).toHaveBeenCalled();
+  expect(f.resetZoom).toHaveBeenCalledOnce();
+  expect(f.resetZoom.mock.invocationCallOrder[0]).toBeLessThan(
+    f.fit.mock.invocationCallOrder[0],
+  );
   expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: true });
   f.controller.abort();
 });
