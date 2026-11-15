@@ -762,6 +762,18 @@ export class MolecularScene {
   }
 
   private emitChainDisplay() {
+    const visibleResidues = new Set(
+      this.viewer
+        .selectedAtoms({ model: 0 })
+        .filter((atom) => !this.hidden.has(atom.index!))
+        .map((atom) => ref(atom).key),
+    );
+    this.emit(
+      "residue-visibility",
+      this.info.residues
+        .filter((row) => !visibleResidues.has(row.key))
+        .map((row) => row.key),
+    );
     this.emit(
       "chain-display",
       hiddenChainIds(this.viewer.selectedAtoms({ model: 0 }), this.hidden),

@@ -117,6 +117,11 @@ remain display selections with no single scientific constraint atom. Advanced
 display editing stays collapsed until requested; direct atom picking no longer
 forces the full form open. Busy display actions wait for renderer acknowledgement,
 and changing the source clears the previous selection feedback.
+The renderer also reports individually hidden residues, independently of whole
+chain visibility. Those sequence positions become unavailable until the researcher
+restores the display; they cannot dispatch an invalid selection into the hidden
+geometry. Restoration uses the existing display authority and preserves source
+atoms, coordinates and files.
 
 Prediction-specific CI covers the changed controls and their direct questionnaire,
 navigation and result consumers. A bounded path classifier delegates this batch

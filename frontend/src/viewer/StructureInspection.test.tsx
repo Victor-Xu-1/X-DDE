@@ -175,6 +175,30 @@ it("uses exact observed identities, keyboard-accessible selection and modifiers;
   );
   expect(clear).toHaveBeenCalledOnce();
 });
+it("disables individually hidden residues and offers renderer-owned restoration", () => {
+  const restore = vi.fn();
+  render(
+    <StructureSequence
+      language="en"
+      residues={[
+        { key: "hidden", chain: "A", resn: "ASN", resi: 10, icode: "B" },
+        { key: "visible", chain: "A", resn: "GLY", resi: 11, icode: "" },
+      ]}
+      selected={[]}
+      hiddenChains={[]}
+      hiddenResidues={["hidden"]}
+      onSelect={vi.fn()}
+      onClear={vi.fn()}
+      onRestore={restore}
+    />,
+  );
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toBeDisabled();
+  expect(screen.getByRole("checkbox", { name: "A:GLY11" })).toBeEnabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Restore structure display" }),
+  );
+  expect(restore).toHaveBeenCalledOnce();
+});
 it("displays standard DNA nucleotide letters while retaining deposited residue labels", () => {
   const names = ["DA", "DC", "DG", "DT"];
   render(

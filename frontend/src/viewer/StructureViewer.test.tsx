@@ -240,6 +240,18 @@ it("shares native sequence and representation controls beyond predictions, waits
   expect(
     screen.queryByRole("group", { name: "Current structure selection" }),
   ).toBeNull();
+  emit("residue-visibility", [residue.key]);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Restore structure display" }),
+  );
+  expect(post.mock.calls.at(-1)?.[0]).toMatchObject({
+    type: "selection-action",
+    value: "restore",
+  });
+  emit("display-complete", post.mock.calls.at(-1)?.[0].requestId);
+  emit("residue-visibility", []);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   view.rerender(
     <StructureViewer urls={["/api/assets/another"]} language="en" />,

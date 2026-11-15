@@ -58,8 +58,10 @@ export function StructureSequence({
   residues,
   selected,
   hiddenChains,
+  hiddenResidues = [],
   onSelect,
   onClear,
+  onRestore,
   confidence,
   nativeSelectionCount = 0,
   compact = false,
@@ -68,8 +70,10 @@ export function StructureSequence({
   residues: Residue[];
   selected: string[];
   hiddenChains: string[];
+  hiddenResidues?: string[];
   onSelect(key: string, mode: ResidueSelectionMode): void;
   onClear(): void;
+  onRestore?(): void;
   confidence?: Record<string, number>;
   nativeSelectionCount?: number;
   compact?: boolean;
@@ -77,6 +81,7 @@ export function StructureSequence({
   const zh = language === "zh";
   const chains = [...new Set(residues.map((row) => row.chain))];
   const selectedKeys = new Set(selected);
+  const hiddenKeys = new Set(hiddenResidues);
   return (
     <section
       className={
@@ -108,6 +113,11 @@ export function StructureSequence({
                 ? "atom token selected"
                 : "atom tokens selected"}
         </span>
+        {onRestore && (hiddenChains.length > 0 || hiddenKeys.size > 0) && (
+          <button type="button" onClick={onRestore}>
+            {zh ? "恢复结构显示" : "Restore structure display"}
+          </button>
+        )}
         <button
           type="button"
           disabled={!selected.length && !nativeSelectionCount}
@@ -162,7 +172,9 @@ export function StructureSequence({
                         }
                       : undefined
                   }
-                  disabled={hiddenChains.includes(chain)}
+                  disabled={
+                    hiddenChains.includes(chain) || hiddenKeys.has(row.key)
+                  }
                   onClick={(event) =>
                     onSelect(
                       row.key,

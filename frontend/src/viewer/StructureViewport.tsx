@@ -179,6 +179,7 @@ export function StructureViewport({
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
+  const [hiddenResidues, setHiddenResidues] = useState<string[]>([]);
   const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
   const [confidenceView, setConfidenceView] =
     useState<ConfidenceInspection | null>(null);
@@ -274,6 +275,13 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "residue-visibility" &&
+        Array.isArray(detail) &&
+        detail.every((key) => typeof key === "string")
+      ) {
+        setHiddenResidues(detail);
+      }
+      if (
         type === "residue-selection" &&
         Array.isArray(detail) &&
         detail.every((key) => typeof key === "string")
@@ -338,6 +346,7 @@ export function StructureViewport({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setHiddenChains(detail.hiddenChains ?? []);
+        setHiddenResidues([]);
         displayWork.current.reset();
         setDisplayPending(false);
         setSelectedResidues([]);
@@ -375,6 +384,7 @@ export function StructureViewport({
     confidenceCallback.current?.(null);
     residueCallback.current?.([]);
     setHiddenChains([]);
+    setHiddenResidues([]);
     displayWork.current.reset();
     setDisplayPending(false);
     setDistance(null);
@@ -518,10 +528,12 @@ export function StructureViewport({
       residues={scene.residues}
       selected={selectedResidues}
       hiddenChains={hiddenChains}
+      hiddenResidues={hiddenResidues}
       confidence={currentConfidence?.residueScores}
       nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
       onSelect={(key, mode) => send("sequence-selection", { key, mode })}
       onClear={() => send("selection-action", "clear")}
+      onRestore={() => send("selection-action", "restore")}
     />
   );
   return (
