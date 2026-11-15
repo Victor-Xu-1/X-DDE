@@ -18,10 +18,12 @@ const molecule = {
 };
 function Harness({
   accept,
+  language = "en",
 }: {
   accept(value: ImageMolecule, source: File): void;
+  language?: "en" | "zh";
 }) {
-  const bridge = useRecognitionBridge(source, "en", accept);
+  const bridge = useRecognitionBridge(source, language, accept);
   return (
     <>
       <iframe title="Recognition" ref={bridge.frame} />
@@ -35,6 +37,33 @@ function Harness({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+it("keeps an in-flight molecule export live across language changes", async () => {
+  const accept = vi.fn();
+  const view = render(<Harness accept={accept} />);
+  const frame = screen.getByTitle("Recognition") as HTMLIFrameElement;
+  const post = vi.spyOn(frame.contentWindow!, "postMessage");
+  await userEvent.click(screen.getByText("Connect"));
+  const id = post.mock.calls[0][0].id;
+  const message = (data: object) =>
+    fireEvent(
+      window,
+      new MessageEvent("message", {
+        origin: recognitionOrigin(),
+        source: frame.contentWindow,
+        data,
+      }),
+    );
+  message({ type: "xdde-image:state", id, valid: true });
+  await userEvent.click(screen.getByText("Use molecule"));
+  const requestId = post.mock.calls.at(-1)![0].requestId;
+  view.rerender(<Harness accept={accept} language="zh" />);
+  expect(screen.getByTitle("Recognition")).toBe(frame);
+  await act(async () =>
+    message({ type: "xdde-image:result", id, requestId, molecule, source }),
+  );
+  expect(accept).toHaveBeenCalledExactlyOnceWith(molecule, source);
+  expect(screen.getByText("Use molecule")).toBeEnabled();
 });
 it("accepts only the current frame, exact local origin and current export request", async () => {
   const accept = vi.fn(),

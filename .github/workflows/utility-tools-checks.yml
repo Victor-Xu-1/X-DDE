@@ -7,11 +7,20 @@ on:
       - "src/opendde_workbench/runtime_controls.py"
       - "src/opendde_workbench/backend_router.py"
       - "tests/test_utility_tools.py"
+      - "tests/test_recognition_companion.py"
+      - "tests/test_recognition_companion_wheel.py"
+      - "src/opendde_workbench/recognition_companion.py"
+      - "src/opendde_workbench/data/recognition_locale/**"
+      - "tests/fixtures/recognition_locale/**"
+      - "server_tests/test_recognition_locale_browser.py"
       - ".github/workflows/utility-tools-checks.yml"
   pull_request:
     paths: *paths
 permissions:
   contents: read
+concurrency:
+  group: utility-tools-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   utilities:
     runs-on: ubuntu-24.04
@@ -25,7 +34,24 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Utility navigation, retained inputs and direct form consumers
         working-directory: frontend
-        run: npx vitest run src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/utilities/BackendControls.test.tsx src/utilities/ImageMoleculeInput.test.tsx src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts src/studio/Navigation.test.tsx src/studio/research-modules.test.ts src/App.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx src/operations/useAssetUpload.image.test.tsx src/integrations/BoltzInputs.test.tsx src/integrations/Mol1Form.test.tsx src/presentation/PredictionEntityEditing.test.tsx
+        run: npx vitest run src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/utilities/recognition-locale.test.tsx src/utilities/BackendControls.test.tsx src/utilities/ImageMoleculeInput.test.tsx src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts src/studio/Navigation.test.tsx src/studio/research-modules.test.ts src/App.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx src/operations/useAssetUpload.image.test.tsx src/integrations/BoltzInputs.test.tsx src/integrations/Mol1Form.test.tsx src/presentation/PredictionEntityEditing.test.tsx
       - run: uv sync --locked --group dev
+      - name: Native companion source and released-resource packaging
+        run: |
+          uv run --locked ruff check src/opendde_workbench/recognition_companion.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py
+          uv build --wheel
+          uv run --locked pytest -q tests/test_recognition_companion_wheel.py
       - name: Local discovery and no startup inference
-        run: uv run --locked pytest -q tests/test_utility_tools.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_harness_admission.py
+        run: uv run --locked pytest -q tests/test_recognition_companion.py tests/test_utility_tools.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_harness_admission.py
+      - name: Compiled bilingual locale protocol in two real browser frames
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked playwright install --with-deps chromium
+          uv run --locked pytest -q server_tests/test_recognition_locale_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recognition-locale-contract
+          path: outputs/recognition-locale

@@ -17,7 +17,9 @@ it("connects to the existing local editor without starting recognition", async (
   );
   expect(frame).toHaveAttribute(
     "src",
-    expect.stringMatching(/^http:\/\/(localhost|127\.0\.0\.1):8940\/$/),
+    expect.stringMatching(
+      /^http:\/\/(localhost|127\.0\.0\.1):8940\/\?xdde-locale=1&parent=.+&lang=en$/,
+    ),
   );
   expect(fetcher).toHaveBeenCalledTimes(1);
   expect(fetcher.mock.calls[0][0]).toBe("/api/utilities/recognition");
@@ -62,6 +64,7 @@ it("moves actions into the compact tab bar without reloading the editor on langu
     );
     view.rerender(<ImageRecognition language="zh" actionsTarget={target} />);
     expect(screen.getByTitle("图片识别与分子编辑")).toBe(frame);
+    expect(frame).toHaveAttribute("src", expect.stringContaining("lang=en"));
     expect(target).toContainElement(
       screen.getByRole("button", { name: "重新连接" }),
     );
