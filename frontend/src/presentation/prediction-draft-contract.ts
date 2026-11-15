@@ -1,5 +1,5 @@
 /** Editor persistence only; task validation and scientific readiness stay native. */
-export type DraftTool = "mol1.predict" | "boltz.predict";
+export type DraftTool = "mol1.predict" | "boltz.predict" | "predict";
 export interface DraftSummary<Tool extends DraftTool = DraftTool> {
   id: string;
   tool: Tool;

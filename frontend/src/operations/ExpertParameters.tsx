@@ -4,6 +4,7 @@ import { Hint } from "../guided/Hint";
 import { useEffect, useState } from "react";
 import { request } from "../api";
 import { IntegerListField } from "./IntegerListField";
+import type { IntegerField, IntegerText } from "./integer-list-model";
 
 export function ExpertParameters({
   value,
@@ -11,12 +12,16 @@ export function ExpertParameters({
   language,
   expert,
   contextKey = "",
+  integerText,
+  onIntegerTextChange,
 }: {
   value: Parameters;
   onChange(p: Parameters): void;
   language: Language;
   expert: boolean;
   contextKey?: string;
+  integerText?: IntegerText;
+  onIntegerTextChange?(field: IntegerField, value: string): void;
 }) {
   const zh = language === "zh";
   const [checkpoints, setCheckpoints] = useState<
@@ -150,6 +155,11 @@ export function ExpertParameters({
             </label>
             <IntegerListField
               value={value.additional_seeds ?? []}
+              text={integerText?.additional_seeds}
+              onTextChange={(raw) =>
+                onIntegerTextChange?.("additional_seeds", raw)
+              }
+              language={language}
               onChange={(additional_seeds) => update({ additional_seeds })}
               max={4294967295}
               count={7}
@@ -159,9 +169,14 @@ export function ExpertParameters({
                   : "Additional seeds (comma separated)"
               }
             />
-            {value.device !== "cpu" && (
+            {(value.device !== "cpu" ||
+              (value.gpu_ids?.length ?? 0) > 0 ||
+              Boolean(integerText?.gpu_ids?.trim())) && (
               <IntegerListField
                 value={value.gpu_ids ?? []}
+                text={integerText?.gpu_ids}
+                onTextChange={(raw) => onIntegerTextChange?.("gpu_ids", raw)}
+                language={language}
                 onChange={(gpu_ids) => update({ gpu_ids })}
                 max={63}
                 count={8}

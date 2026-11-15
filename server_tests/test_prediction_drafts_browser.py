@@ -50,7 +50,11 @@ def test_unfinished_mol1_draft_round_trip(language, width):
         )
         protein.fill(sequence)
         ligand.fill(warhead)
-        name = page.get_by_label(label("Task name (optional)", "任务名称（可选）"), exact=True)
+        # The workbench retains inactive forms; operate the one visible to the researcher.
+        name = page.get_by_role(
+            "textbox", name=label("Task name (optional)", "任务名称（可选）"), exact=True
+        )
+        expect(name).to_have_count(1)
         name.fill("STAT6 draft " + language)
         next_step = page.get_by_role("button", name=label("Next", "下一步"), exact=True)
         next_step.click()

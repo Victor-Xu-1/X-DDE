@@ -39,6 +39,27 @@ export function draftFingerprint(value: unknown): string {
           components: value.components.map((component) =>
             record(component) ? normalizedComponent(component) : component,
           ),
+          ...(record(value.workflows)
+            ? {
+                workflows: Object.fromEntries(
+                  Object.entries(value.workflows).map(([kind, rows]) => [
+                    kind,
+                    Array.isArray(rows)
+                      ? rows.map((row) =>
+                          record(row) ? normalizedComponent(row) : row,
+                        )
+                      : rows,
+                  ]),
+                ),
+              }
+            : {}),
+          ...(Array.isArray(value.input_references)
+            ? {
+                input_references: value.input_references.map((ref) =>
+                  record(ref) ? withoutNulls(ref) : ref,
+                ),
+              }
+            : {}),
         }
       : value;
   return JSON.stringify(normalized, (_, item) =>
@@ -81,7 +102,7 @@ const assetFields = [
 const only = (value: Record<string, unknown>, keys: string[]) =>
   Object.keys(value).every((key) => keys.includes(key));
 
-function entity(value: unknown): value is Component {
+export function draftEntity(value: unknown): value is Component {
   return (
     record(value) &&
     only(value, [
@@ -114,6 +135,19 @@ function entity(value: unknown): value is Component {
         value[key] == null ||
         (typeof value[key] === "string" && uuid.test(value[key] as string)),
     )
+  );
+}
+export function normalizeDraftEntity(component: Component): Component {
+  return withoutNulls(
+    component as unknown as Record<string, unknown>,
+  ) as unknown as Component;
+}
+export function draftBond(value: unknown): value is CovalentBond {
+  return (
+    record(value) &&
+    only(value, ["left", "right"]) &&
+    atom(value.left) &&
+    atom(value.right)
   );
 }
 function atom(value: unknown) {
@@ -164,17 +198,11 @@ export function readMol1Draft(value: unknown): Mol1DraftState {
     !text(value.name, 80) ||
     !Array.isArray(value.components) ||
     value.components.length > 32 ||
-    !value.components.every(entity) ||
+    !value.components.every(draftEntity) ||
     !settings(value.settings) ||
     !Array.isArray(value.bonds) ||
     value.bonds.length > 256 ||
-    !value.bonds.every(
-      (bond) =>
-        record(bond) &&
-        only(bond, ["left", "right"]) &&
-        atom(bond.left) &&
-        atom(bond.right),
-    ) ||
+    !value.bonds.every(draftBond) ||
     typeof value.advanced !== "boolean" ||
     !text(value.seed_text, 1000) ||
     !["cpu", "cuda"].includes(String(value.device)) ||
@@ -188,12 +216,7 @@ export function readMol1Draft(value: unknown): Mol1DraftState {
   return {
     ...result,
     // API models may express absent optional references as null. Keep the native editor shape.
-    components: result.components.map(
-      (component) =>
-        withoutNulls(
-          component as unknown as Record<string, unknown>,
-        ) as unknown as Component,
-    ),
+    components: result.components.map(normalizeDraftEntity),
   };
 }
 export function readPredictionDraft(value: PredictionDraft): PredictionDraft {

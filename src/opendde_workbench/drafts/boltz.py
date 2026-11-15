@@ -1,19 +1,11 @@
 """Boltz editor state keeps exact sources but never persists verified readiness."""
 
 from typing import Literal
-from uuid import UUID
 
 from pydantic import Field, model_validator
 
+from .entities import Reference
 from .snapshot import Number, SnapshotModel, bounded_state
-
-
-class Reference(SnapshotModel):
-    asset_id: UUID
-    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    record: Number
-    conformer: Number
-    version_id: UUID | None = None
 
 
 class BoltzEntity(SnapshotModel):

@@ -1,46 +1,17 @@
 """Versioned UI snapshots deliberately allow unfinished scientific inputs."""
 
-from typing import Annotated, Literal
-from uuid import UUID
+from typing import Literal
 
 from pydantic import Field, JsonValue, model_validator
 
 from .boltz import BoltzState
+from .entities import Bond, Entity, entity_asset_ids
+from .entities import BondAtom as BondAtom
+from .entities import Modification as Modification
+from .opendde import OpenDdeState
 from .snapshot import Number, SnapshotModel, bounded_state
 
-DraftTool = Literal["mol1.predict", "boltz.predict"]
-
-
-class Modification(SnapshotModel):
-    position: Number
-    ccd: str = Field(max_length=32)
-
-
-class Entity(SnapshotModel):
-    kind: Literal["protein", "ligand", "dna", "rna", "ion"]
-    value: str = Field(max_length=50000)
-    count: Number
-    chain_ids: list[Annotated[str, Field(max_length=32)]] | None = Field(
-        default=None, max_length=32
-    )
-    modifications: list[Modification] | None = Field(default=None, max_length=5000)
-    source_sequence: UUID | None = None
-    ligand_file: UUID | None = None
-    paired_msa: UUID | None = None
-    unpaired_msa: UUID | None = None
-    template_hits: UUID | None = None
-
-
-class BondAtom(SnapshotModel):
-    entity: Number
-    copy_index: Number | None
-    position: Number
-    atom: str = Field(max_length=80)
-
-
-class Bond(SnapshotModel):
-    left: BondAtom
-    right: BondAtom
+DraftTool = Literal["mol1.predict", "boltz.predict", "predict"]
 
 
 class Mol1State(SnapshotModel):
@@ -61,29 +32,21 @@ class Mol1State(SnapshotModel):
         return bounded_state(self)
 
     def asset_ids(self):
-        return {
-            str(identifier)
-            for entity in self.components
-            for field in (
-                "source_sequence",
-                "ligand_file",
-                "paired_msa",
-                "unpaired_msa",
-                "template_hits",
-            )
-            if (identifier := getattr(entity, field)) is not None
-        }
+        return entity_asset_ids(self.components)
+
+
+STATES = {"mol1.predict": Mol1State, "boltz.predict": BoltzState, "predict": OpenDdeState}
 
 
 class DraftInput(SnapshotModel):
     tool: DraftTool
     schema_version: Literal[1]
     revision: int = Field(ge=0)
-    state: Mol1State | BoltzState
+    state: Mol1State | BoltzState | OpenDdeState
 
     @model_validator(mode="after")
     def matching_editor(self):
-        expected = Mol1State if self.tool == "mol1.predict" else BoltzState
+        expected = STATES[self.tool]
         if not isinstance(self.state, expected):
             raise ValueError("Draft state does not match its prediction model.")
         return self
@@ -102,11 +65,11 @@ class DraftSummary(SnapshotModel):
 
 
 class Draft(DraftSummary):
-    state: Mol1State | BoltzState
+    state: Mol1State | BoltzState | OpenDdeState
 
     @model_validator(mode="after")
     def matching_editor(self):
-        expected = Mol1State if self.tool == "mol1.predict" else BoltzState
+        expected = STATES[self.tool]
         if not isinstance(self.state, expected):
             raise ValueError("Draft state does not match its prediction model.")
         return self
