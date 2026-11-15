@@ -41,7 +41,7 @@ function optIn() {
   history.replaceState(
     null,
     "",
-    `/?xdde-locale=1&parent=${encodeURIComponent(parentOrigin)}`,
+    `/?xdde-locale=1&parent=${encodeURIComponent(parentOrigin)}&lang=en`,
   );
   return parent;
 }
@@ -159,6 +159,19 @@ function Host() {
     </>
   );
 }
+it("preserves the original standalone language/title without an explicit locale request", () => {
+  history.replaceState(null, "", "/");
+  const title = document.title,
+    language = document.documentElement.lang;
+  const view = render(<Host />);
+  expect(screen.getByRole("button", { name: "开始识别" })).toBeVisible();
+  expect(document.title).toBe(title);
+  expect(document.documentElement.lang).toBe(language);
+  view.unmount();
+  history.replaceState(null, "", "/?lang=en");
+  render(<Host />);
+  expect(screen.getByRole("button", { name: "Recognize image" })).toBeVisible();
+});
 it("native React language updates preserve edits without any service requests", () => {
   const parent = optIn();
   const fetcher = vi.spyOn(window, "fetch");

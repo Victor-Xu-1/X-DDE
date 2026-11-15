@@ -58,7 +58,49 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
     return updates
 
 
-def apply(host: Path, backup_directory: Path, resources: Path = RESOURCES) -> dict:
+def _replace(path: Path, expected: bytes | None, payload: bytes, owner):
+    temporary = path.with_name(path.name + "." + str(uuid4()) + ".tmp")
+    try:
+        temporary.write_bytes(payload)
+        os.chmod(temporary, owner.st_mode & 0o777 if expected is not None else 0o644)
+        if hasattr(os, "chown"):
+            created = temporary.stat()
+            if (created.st_uid, created.st_gid) != (owner.st_uid, owner.st_gid):
+                os.chown(temporary, owner.st_uid, owner.st_gid)
+        # Staging is complete before the final observation. Sole-writer cutover is required.
+        if path.resolve() != path:
+            raise ValueError("Native source became a symlink during apply")
+        current = path.read_bytes() if path.exists() else None
+        if current != expected:
+            raise ValueError("Native source changed during apply")
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _recover(written, originals, updates, metadata, failure):
+    for path in reversed(written):
+        try:
+            if not path.exists() or path.resolve() != path or path.read_bytes() != updates[path]:
+                failure.add_note(f"Rollback retained an owner change: {path.name}")
+                continue
+            if originals[path] is None:
+                path.unlink()
+            else:
+                _replace(path, updates[path], originals[path], metadata[path])
+        except (OSError, ValueError) as error:
+            failure.add_note(f"Rollback incomplete for {path.name}: {type(error).__name__}")
+
+
+def apply(
+    host: Path,
+    backup_directory: Path,
+    resources: Path = RESOURCES,
+    *,
+    exclusive_source: bool = False,
+) -> dict:
+    if not exclusive_source:
+        raise ValueError("Apply requires an offline source copy with exclusive writer ownership")
     updates = prepare(host, resources)
     if not updates:
         return {"changed": 0, "already_applied": True}
@@ -90,34 +132,11 @@ def apply(host: Path, backup_directory: Path, resources: Path = RESOURCES) -> di
     written = []
     try:
         for path, payload in updates.items():
-            # Recheck at the write boundary; preserve edits made after planning.
-            if path.resolve() != path:
-                raise ValueError("Native source became a symlink during apply")
-            current = path.read_bytes() if path.exists() else None
-            if current != originals[path]:
-                raise ValueError("Native source changed during apply")
-            temporary = path.with_name(path.name + "." + str(uuid4()) + ".tmp")
-            try:
-                temporary.write_bytes(payload)
-                os.chmod(temporary, metadata[path].st_mode & 0o777 if current is not None else 0o644)
-                if hasattr(os, "chown"):
-                    owner = metadata[path]
-                    created = temporary.stat()
-                    if (created.st_uid, created.st_gid) != (owner.st_uid, owner.st_gid):
-                        os.chown(temporary, owner.st_uid, owner.st_gid)
-                os.replace(temporary, path)
-            finally:
-                temporary.unlink(missing_ok=True)
+            _replace(path, originals[path], payload, metadata[path])
             written.append(path)
-    except Exception:
-        for path in reversed(written):
-            if path.read_bytes() != updates[path]:
-                continue  # Do not overwrite a concurrent owner's edit.
-            original = originals[path]
-            if original is None:
-                path.unlink()
-            else:
-                path.write_bytes(original)
+    except Exception as failure:
+        _recover(written, originals, updates, metadata, failure)
+        failure.add_note(f"Original source backups: {backup}")
         raise
     return {"changed": len(updates), "backup": str(backup), "already_applied": False}
 
@@ -126,12 +145,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--exclusive-source", action="store_true", help="Confirm a private offline source copy with no other writers; not an automatic lock")
     parser.add_argument("--backup-directory", type=Path)
     args = parser.parse_args()
     if args.apply:
-        if not args.backup_directory:
-            parser.error("--apply requires --backup-directory")
-        result = apply(args.host, args.backup_directory)
+        if not args.backup_directory or not args.exclusive_source:
+            parser.error("--apply requires --backup-directory and --exclusive-source")
+        result = apply(args.host, args.backup_directory, exclusive_source=True)
     else:
         result = {"changed": len(prepare(args.host)), "check_only": True}
     print(json.dumps(result))

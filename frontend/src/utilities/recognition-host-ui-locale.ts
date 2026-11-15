@@ -104,16 +104,24 @@ export function recognitionHostText(value: string, language: "en" | "zh") {
 }
 
 export function useRecognitionHostLanguage() {
-  const [language, setLanguage] = useState(
+  const [{ language, requested }, setLocale] = useState(() => {
+    const explicit = recognitionLanguage(
+      new URLSearchParams(location.search).get("lang"),
+    );
+    return { language: explicit ?? "zh", requested: explicit !== null };
+  });
+  useEffect(
     () =>
-      recognitionLanguage(new URLSearchParams(location.search).get("lang")) ??
-      "en",
+      attachRecognitionLocaleHost((language) =>
+        setLocale({ language, requested: true }),
+      ),
+    [],
   );
-  useEffect(() => attachRecognitionLocaleHost(setLanguage), []);
   useEffect(() => {
+    if (!requested) return;
     document.documentElement.lang = language;
     document.title = recognitionHostText("图片识别", language) + " · DECIMER";
-  }, [language]);
+  }, [language, requested]);
   return {
     language,
     text: (value: string) => recognitionHostText(value, language),
