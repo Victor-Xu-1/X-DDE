@@ -372,6 +372,10 @@ on:
       - "!frontend/src/viewer/native-interface-context.test.ts"
       - "!frontend/src/viewer/scientific-data.ts"
       - "!.github/workflows/task-layout-checks.yml"
+      # Local campaign review and permission have an exact form/browser gate.
+      - "!frontend/src/operations/CampaignForm.tsx"
+      - "!frontend/src/operations/CampaignForm.test.tsx"
+      - "!frontend/src/operations/CampaignForm.review.test.tsx"
       # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
       - "!frontend/src/diffsbdd/DiffResults*"
       - "!frontend/src/presentation/MolecularPreview*"

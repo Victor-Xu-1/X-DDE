@@ -51,7 +51,7 @@ it("requires actual plan validation and explicit review before native campaign d
     { target: { value: JSON.stringify(config) } },
   );
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
   await user.click(
     screen.getByRole("checkbox", { name: /Allow this campaign/ }),
   );

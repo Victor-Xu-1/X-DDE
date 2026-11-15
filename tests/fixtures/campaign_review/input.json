@@ -1,0 +1,43 @@
+{
+  "seed": 42,
+  "target": {
+    "name": "STAT6 pathway · IL4Ralpha · 6WGL",
+    "chains": {
+      "C": "MKVLQEPTCVSDYMSISTCEWKMNGPTNCSTELRLLYQLVFLLSEAHTCIPENNGGAGCVCHLLMDDVVSADNYTLDLWAGQQLLWKGSFKPSEHVKPRAPGNLTVHTNVSDTLLLTWSNPYPPDNYLYNHLTYAVNIWSENDPADFRIYNVTYLEPSLRIAASTLKSGISYRARVRAWAQLYNTTWSEWSPSTKWHNSYREPFEQHGGGGSHHHHHH"
+    }
+  },
+  "initial_binders": [
+    {
+      "name": "6WGL-deposited-Fv-control",
+      "chains": {
+        "A": {
+          "sequence": "EVQLVESGGGLEQPGGSLRLSCAGSGFTFRDYAMTWVRQAPGKGLEWVSSISGSGGNTYYADSVKGRFTISRDNSKNTLYLQMNSLRAEDTAVYYCAKDRLSITIRPRYYGLDVWGQGTTVTVSS",
+          "chain_type": "VH",
+          "cdr_regions": [
+            25, 26, 27, 28, 29, 30, 31, 32, 50, 51, 52, 53, 54, 55, 56, 57, 96,
+            97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+            111, 112, 113
+          ],
+          "fixed_residues": []
+        },
+        "B": {
+          "sequence": "DIVMTQSPLSLPVTPGEPASISCRSSQSLLYSIGYNYLDWYLQKSGQSPQLLIYLGSNRASGVPDRFSGSGSGTDFTLKISRVEAEDVGFYYCMQALQTPYTFGQGTKLEIK",
+          "chain_type": "VL",
+          "cdr_regions": [
+            26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 54, 55, 56, 93, 94, 95,
+            96, 97, 98, 99, 100, 101
+          ],
+          "fixed_residues": []
+        }
+      }
+    }
+  ],
+  "design": {
+    "n_cycles": 1,
+    "num_sequences": 2,
+    "population_size": 4,
+    "optimization_metric": "loss",
+    "enable_quality_check": true,
+    "router_selection_strategy": "agent"
+  }
+}
