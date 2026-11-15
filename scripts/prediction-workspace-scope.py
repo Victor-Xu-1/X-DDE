@@ -34,6 +34,11 @@ PATTERNS = (
     "frontend/src/viewer/style.ts",
     "frontend/src/viewer/protocol.ts",
     "frontend/src/viewer/StructureInspection*",
+    "frontend/src/viewer/ViewerControls*",
+    # Their existing native pose/comparison gates own these direct-consumer fixtures.
+    "server_tests/comparison_api_harness.py",
+    "server_tests/test_pose_handoff_browser.py",
+    "server_tests/test_native_receptors.py",
     "frontend/src/viewer/structure-inspection.css",
     "frontend/src/viewer/polymer-detail.ts",
     "frontend/src/viewer/residue-selection*",
@@ -1046,7 +1051,11 @@ def selected(changed, event="push"):
         event in {"push", "pull_request"}
         and any(
             name.startswith(
-                ("frontend/src/presentation/Prediction", "frontend/src/viewer/StructureInspection")
+                (
+                    "frontend/src/presentation/Prediction",
+                    "frontend/src/viewer/StructureInspection",
+                    "frontend/src/viewer/ViewerControls",
+                )
             )
             for name in changed
         )

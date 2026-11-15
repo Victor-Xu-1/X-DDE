@@ -5,6 +5,40 @@
   gap: 6px;
   min-width: 0;
 }
+.structure-selection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-muted);
+  font-size: 12px;
+}
+.structure-selection-description,
+.structure-selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+}
+.structure-selection-description {
+  flex: 1 1 140px;
+  overflow-wrap: anywhere;
+}
+.structure-selection-description span {
+  color: var(--muted);
+}
+.structure-selection-actions {
+  gap: 6px;
+}
+.structure-selection-summary .structure-selection-actions .secondary-button {
+  padding: 5px 9px;
+  min-height: 32px;
+  font-size: 12px;
+}
 .structure-display-controls {
   display: flex;
   align-items: center;

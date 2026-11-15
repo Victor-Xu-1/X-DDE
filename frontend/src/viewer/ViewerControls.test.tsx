@@ -34,6 +34,9 @@ it("allows supported pocket and selection actions and explains display-only edit
     target: { value: "4" },
   });
   expect(options).toHaveBeenCalledWith({ radius: 4, mode: "pocket" });
+  const editor = screen.getByText("点选与显示编辑").closest("details");
+  expect(editor).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByText("点选与显示编辑"));
   fireEvent.click(screen.getByRole("button", { name: "隐藏选中" }));
   expect(send).toHaveBeenCalledWith("selection-action", "hide");
   fireEvent.click(screen.getByText("从列表选择残基"));
@@ -43,6 +46,55 @@ it("allows supported pocket and selection actions and explains display-only edit
   expect(screen.getByRole("tooltip")).toHaveTextContent(
     "原始结构和预测输入不变",
   );
+});
+it("allows display edits for a renderer-selected range without inventing a constraint atom", () => {
+  const send = vi.fn();
+  render(
+    <ViewerControls
+      language="en"
+      scene={scene}
+      options={defaultOptions}
+      selection={null}
+      hasDisplaySelection
+      distance={null}
+      disabled={false}
+      onOptions={vi.fn()}
+      send={send}
+    />,
+  );
+  const summary = screen.getByText("Selection and display editing");
+  expect(summary.closest("details")).not.toHaveAttribute("open");
+  fireEvent.click(summary);
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "A structure range is selected",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Hide selection" }));
+  expect(send).toHaveBeenLastCalledWith("selection-action", "hide");
+});
+it("retains requested editing when leaving measurement mode", () => {
+  const props = {
+    language: "en" as const,
+    scene,
+    selection: null,
+    distance: null,
+    disabled: false,
+    onOptions: vi.fn(),
+    send: vi.fn(),
+  };
+  const view = render(<ViewerControls {...props} options={defaultOptions} />);
+  const editor = screen
+    .getByText("Selection and display editing")
+    .closest("details");
+  expect(editor).not.toHaveAttribute("open");
+  view.rerender(
+    <ViewerControls
+      {...props}
+      options={{ ...defaultOptions, pick: "distance" }}
+    />,
+  );
+  expect(editor).toHaveAttribute("open");
+  view.rerender(<ViewerControls {...props} options={defaultOptions} />);
+  expect(editor).toHaveAttribute("open");
 });
 it("does not expose a pocket radius on a ligand-only structure", () => {
   render(

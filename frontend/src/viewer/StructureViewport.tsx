@@ -12,6 +12,7 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { ChainControls } from "./ChainControls";
+import { StructureSelectionSummary } from "./StructureInspectionSummary";
 import { DisplayReadiness, displayCommands } from "./display-readiness";
 import {
   StructureDisplayControls,
@@ -178,6 +179,7 @@ export function StructureViewport({
   const [scene, setScene] = useState<SceneInfo>(emptyScene),
     [options, setOptions] = useState<ViewerOptions>(defaultOptions);
   const [hiddenChains, setHiddenChains] = useState<string[]>([]);
+  const [hiddenResidues, setHiddenResidues] = useState<string[]>([]);
   const [selectedResidues, setSelectedResidues] = useState<string[]>([]);
   const [confidenceView, setConfidenceView] =
     useState<ConfidenceInspection | null>(null);
@@ -273,6 +275,13 @@ export function StructureViewport({
       }
       if (type === "contacts") setContacts(detail);
       if (
+        type === "residue-visibility" &&
+        Array.isArray(detail) &&
+        detail.every((key) => typeof key === "string")
+      ) {
+        setHiddenResidues(detail);
+      }
+      if (
         type === "residue-selection" &&
         Array.isArray(detail) &&
         detail.every((key) => typeof key === "string")
@@ -337,6 +346,7 @@ export function StructureViewport({
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
         setHiddenChains(detail.hiddenChains ?? []);
+        setHiddenResidues([]);
         displayWork.current.reset();
         setDisplayPending(false);
         setSelectedResidues([]);
@@ -374,6 +384,7 @@ export function StructureViewport({
     confidenceCallback.current?.(null);
     residueCallback.current?.([]);
     setHiddenChains([]);
+    setHiddenResidues([]);
     displayWork.current.reset();
     setDisplayPending(false);
     setDistance(null);
@@ -517,10 +528,13 @@ export function StructureViewport({
       residues={scene.residues}
       selected={selectedResidues}
       hiddenChains={hiddenChains}
+      hiddenResidues={hiddenResidues}
+      busy={displayPending}
       confidence={currentConfidence?.residueScores}
       nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
       onSelect={(key, mode) => send("sequence-selection", { key, mode })}
       onClear={() => send("selection-action", "clear")}
+      onRestore={() => send("selection-action", "restore")}
     />
   );
   return (
@@ -820,6 +834,19 @@ export function StructureViewport({
           </div>
         )}
       </div>
+      {loaded && !overlay && !comparison && (
+        <StructureSelectionSummary
+          language={language}
+          residues={scene.residues}
+          selected={selectedResidues}
+          selection={selection}
+          confidence={currentConfidence}
+          nativeTokens={currentConfidence ? nativeTokens : []}
+          busy={displayPending}
+          onFocus={() => send("selection-action", "focus")}
+          onClear={() => send("selection-action", "clear")}
+        />
+      )}
       {snapshot.failed && (
         <p role="status" className="field-help">
           {zh
@@ -991,6 +1018,10 @@ export function StructureViewport({
               scene={scene}
               options={options}
               selection={selection}
+              hasDisplaySelection={
+                selectedResidues.length > 0 ||
+                Boolean(currentConfidence && nativeTokens.length)
+              }
               distance={distance}
               disabled={comparison}
               onOptions={configure}

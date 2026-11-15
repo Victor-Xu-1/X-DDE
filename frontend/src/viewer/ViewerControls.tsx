@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Hint } from "../guided/Hint";
 import {
   residueLabel,
@@ -13,6 +13,7 @@ export function ViewerControls({
   scene,
   options,
   selection,
+  hasDisplaySelection = false,
   distance,
   disabled,
   onOptions,
@@ -23,6 +24,7 @@ export function ViewerControls({
   scene: SceneInfo;
   options: ViewerOptions;
   selection: SelectionInfo | null;
+  hasDisplaySelection?: boolean;
   distance: number | null;
   disabled: boolean;
   onOptions(value: Partial<ViewerOptions>): void;
@@ -30,6 +32,11 @@ export function ViewerControls({
 }) {
   const zh = language === "zh",
     [query, setQuery] = useState("");
+  const hasSelection = Boolean(selection) || hasDisplaySelection;
+  const [expanded, setExpanded] = useState(options.pick === "distance");
+  useEffect(() => {
+    if (options.pick === "distance") setExpanded(true);
+  }, [options.pick]);
   const residues = [...scene.ligands, ...scene.residues]
     .filter((r) =>
       residueLabel(r).toLowerCase().includes(query.trim().toLowerCase()),
@@ -96,7 +103,8 @@ export function ViewerControls({
       )}
       <details
         className="selection-editor"
-        open={Boolean(selection) || options.pick === "distance"}
+        open={expanded}
+        onToggle={(event) => setExpanded(event.currentTarget.open)}
       >
         <summary>
           {zh ? "点选与显示编辑" : "Selection and display editing"}
@@ -143,9 +151,13 @@ export function ViewerControls({
         <p className="selection-explanation" role="status">
           {selection
             ? `${zh ? "已选中" : "Selected"}：${selection.chain}:${selection.residue} · ${selection.atom} (${selection.element}) · ${selection.count} ${zh ? "个原子" : "atoms"}`
-            : zh
-              ? "在预览中点选原子或残基，相关操作会在这里启用。"
-              : "Select an atom or residue in the preview to enable its actions."}
+            : hasDisplaySelection
+              ? zh
+                ? "已选择结构范围；下列操作仅调整其显示。"
+                : "A structure range is selected; these actions change its display only."
+              : zh
+                ? "在预览中点选原子或残基，相关操作会在这里启用。"
+                : "Select an atom or residue in the preview to enable its actions."}
         </p>
         <div className="selection-actions">
           {(
@@ -161,7 +173,7 @@ export function ViewerControls({
             <button
               type="button"
               key={action}
-              disabled={!selection || disabled}
+              disabled={!hasSelection || disabled}
               onClick={() => send("selection-action", action)}
             >
               {zh ? cn : en}
