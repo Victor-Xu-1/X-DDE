@@ -19,8 +19,9 @@ def compiled(tmp_path_factory):
     assert root.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     code = """
       import {build} from 'vite';
+      import react from '@vitejs/plugin-react';
       import path from 'node:path';
-      await build({configFile:false,resolve:{alias:{
+      await build({configFile:false,plugins:[react()],define:{'process.env.NODE_ENV':'"production"'},resolve:{alias:{
         react:path.resolve('node_modules/react'),
         'react-dom':path.resolve('node_modules/react-dom')
       }},build:{outDir:process.argv[1],lib:{entry:path.resolve('../tests/fixtures/recognition_locale/browser.tsx'),formats:['es'],fileName:()=> 'contract.js',cssFileName:'contract'}}});
@@ -71,9 +72,15 @@ def test_language_switch_retains_source_and_edits_without_dispatch(compiled, wid
         mutations, errors = [], []
         page.on("request", lambda request: mutations.append(request.url) if request.method != "GET" else None)
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("pageerror", lambda _: (evidence / "page-errors.json").write_text(json.dumps(errors)))
         page.goto("http://127.0.0.1:4322/")
         frame = page.frame_locator("iframe")
-        expect(frame.get_by_role("heading", name="Image recognition")).to_be_visible()
+        try:
+            expect(frame.get_by_role("heading", name="Image recognition")).to_be_visible()
+        except AssertionError:
+            page.screenshot(path=evidence / "failed-contract.png")
+            (evidence / "failed-dom.html").write_text(page.content())
+            raise
         frame.get_by_label("Structure image").set_input_files({"name":"STAT6-structure.png","mimeType":"image/png","buffer":b'controlled transport fixture'})
         editor = frame.get_by_role("textbox", name="Molecular structure")
         editor.fill("edited graph identity")
