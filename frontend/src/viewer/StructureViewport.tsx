@@ -12,6 +12,7 @@ import {
 import { Hint } from "../guided/Hint";
 import { ViewerControls } from "./ViewerControls";
 import { ChainControls } from "./ChainControls";
+import { StructureSelectionSummary } from "./StructureInspectionSummary";
 import { DisplayReadiness, displayCommands } from "./display-readiness";
 import {
   StructureDisplayControls,
@@ -820,6 +821,19 @@ export function StructureViewport({
           </div>
         )}
       </div>
+      {loaded && !overlay && !comparison && (
+        <StructureSelectionSummary
+          language={language}
+          residues={scene.residues}
+          selected={selectedResidues}
+          selection={selection}
+          confidence={currentConfidence?.residueScores}
+          nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
+          busy={displayPending}
+          onFocus={() => send("selection-action", "focus")}
+          onClear={() => send("selection-action", "clear")}
+        />
+      )}
       {snapshot.failed && (
         <p role="status" className="field-help">
           {zh

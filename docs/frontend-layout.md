@@ -108,6 +108,16 @@ reset this display state; conformer overlays keep their existing controls. Figur
 previews invalidate when chain visibility changes. Other modules retain their
 existing chain-focus buttons.
 
+The shared viewer shows a compact current-selection strip below the live view.
+3D picking, observed-sequence selection and verified confidence-map selection use
+the same renderer-owned focus/clear actions. Residue feedback retains chain IDs
+and insertion codes; a single mapped residue may show its verified mean atom
+pLDDT. Atom picks never inherit a residue score as an atom score. Range selections
+remain display selections with no single scientific constraint atom. Advanced
+display editing stays collapsed until requested; direct atom picking no longer
+forces the full form open. Busy display actions wait for renderer acknowledgement,
+and changing the source clears the previous selection feedback.
+
 Prediction-specific CI covers the changed controls and their direct questionnaire,
 navigation and result consumers. A bounded path classifier delegates this batch
 from the historical whole-workbench layout sweeps to that exact gate; mixed or

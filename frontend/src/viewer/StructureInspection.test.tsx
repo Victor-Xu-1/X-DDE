@@ -5,6 +5,91 @@ import {
   StructureSequence,
 } from "./StructureInspection";
 import { defaultOptions } from "./protocol";
+import { StructureSelectionSummary } from "./StructureInspectionSummary";
+
+it("shows exact observed selection identity and zero confidence, with display-only actions", () => {
+  const residue = {
+    key: "observed",
+    chain: "AB",
+    resn: "ASN",
+    resi: 10,
+    icode: "B",
+  };
+  const focus = vi.fn(),
+    clear = vi.fn();
+  const props = {
+    language: "en" as const,
+    residues: [residue],
+    selected: [residue.key],
+    selection: null,
+    confidence: { observed: 0 },
+    onFocus: focus,
+    onClear: clear,
+  };
+  const view = render(<StructureSelectionSummary {...props} />);
+  expect(screen.getByText("AB:ASN10B")).toBeVisible();
+  expect(screen.getByText("pLDDT 0.0")).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Focus current selection" }),
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear current selection" }),
+  );
+  expect(focus).toHaveBeenCalledOnce();
+  expect(clear).toHaveBeenCalledOnce();
+  view.rerender(<StructureSelectionSummary {...props} busy language="zh" />);
+  expect(screen.getByRole("button", { name: "定位当前选择" })).toBeDisabled();
+  view.rerender(<StructureSelectionSummary {...props} residues={[]} />);
+  expect(
+    screen.queryByRole("group", { name: "Current structure selection" }),
+  ).toBeNull();
+});
+
+it("keeps atom selection distinct from residue scores and bounds unmapped confidence feedback", () => {
+  const residue = {
+    key: "A:ASN:10:",
+    chain: "A",
+    resn: "ASN",
+    resi: 10,
+    icode: "",
+  };
+  const props = {
+    language: "en" as const,
+    residues: [residue],
+    selected: [residue.key],
+    selection: {
+      chain: "A",
+      residue: "ASN10",
+      atom: "ND2",
+      element: "N",
+      count: 1,
+      pick_mode: "atom" as const,
+    },
+    confidence: { [residue.key]: 97 },
+    onFocus: vi.fn(),
+    onClear: vi.fn(),
+  };
+  const view = render(<StructureSelectionSummary {...props} />);
+  expect(screen.getByText("ND2 (N)")).toBeVisible();
+  expect(screen.queryByText(/pLDDT/)).toBeNull();
+  view.rerender(
+    <StructureSelectionSummary
+      {...props}
+      selection={null}
+      selected={[]}
+      nativeSelectionCount={2}
+    />,
+  );
+  expect(screen.getByText("2 confidence positions")).toBeVisible();
+  view.rerender(
+    <StructureSelectionSummary
+      {...props}
+      selection={null}
+      confidence={{ [residue.key]: NaN }}
+    />,
+  );
+  expect(screen.queryByText(/pLDDT/)).toBeNull();
+});
 it("exposes native representation switches without changing unrelated options", () => {
   const change = vi.fn();
   render(

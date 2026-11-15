@@ -205,8 +205,30 @@ it("shares native sequence and representation controls beyond predictions, waits
     "aria-checked",
     "true",
   );
+  expect(
+    screen.getByRole("group", { name: "Current structure selection" }),
+  ).toHaveTextContent("A:ASN10B");
+  expect(
+    screen.getByText("Selection and display editing").closest("details"),
+  ).not.toHaveAttribute("open");
   fireEvent.click(
-    screen.getByRole("button", { name: "Clear sequence selection" }),
+    screen.getByRole("button", { name: "Focus current selection" }),
+  );
+  expect(post.mock.calls.at(-1)?.[0]).toMatchObject({
+    type: "selection-action",
+    value: "focus",
+    requestId: expect.any(String),
+  });
+  expect(
+    screen.getByRole("button", { name: "Clear current selection" }),
+  ).toBeDisabled();
+  emit("display-complete", post.mock.calls.at(-1)?.[0].requestId);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear current selection" }),
   );
   const clearId = post.mock.calls.at(-1)?.[0].requestId;
   expect(
@@ -215,6 +237,9 @@ it("shares native sequence and representation controls beyond predictions, waits
   emit("rendering", false);
   emit("display-complete", clearId);
   emit("residue-selection", []);
+  expect(
+    screen.queryByRole("group", { name: "Current structure selection" }),
+  ).toBeNull();
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   view.rerender(
     <StructureViewer urls={["/api/assets/another"]} language="en" />,

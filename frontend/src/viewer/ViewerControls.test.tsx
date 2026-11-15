@@ -34,6 +34,9 @@ it("allows supported pocket and selection actions and explains display-only edit
     target: { value: "4" },
   });
   expect(options).toHaveBeenCalledWith({ radius: 4, mode: "pocket" });
+  const editor = screen.getByText("点选与显示编辑").closest("details");
+  expect(editor).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByText("点选与显示编辑"));
   fireEvent.click(screen.getByRole("button", { name: "隐藏选中" }));
   expect(send).toHaveBeenCalledWith("selection-action", "hide");
   fireEvent.click(screen.getByText("从列表选择残基"));
