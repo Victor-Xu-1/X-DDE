@@ -108,7 +108,11 @@ def test_disabled_queue_head_does_not_starve_enabled_engine(tmp_path):
     assert controls.next_queued() is None
     controls.change("chemistry", "start", True)
     assert controls.next_queued().id == next_job.id
+    assert store.claim(controls.next_queued().id).id == next_job.id
     assert store.get(first.id).status == "queued"
+    assert store.claim(next_job.id) is None
+    store.cancel(first.id)
+    assert store.claim(first.id) is None
 
 
 def test_switch_off_during_native_probe_leaves_task_queued(tmp_path):
@@ -147,3 +151,19 @@ def test_harness_direct_launch_obeys_switch_and_native_activity(tmp_path):
         assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 409
         service.runtime_busy.return_value = False
         assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 200
+
+
+def test_failed_native_probe_keeps_independent_controls_available(tmp_path):
+    app, store = FastAPI(), Store(tmp_path / "jobs.sqlite3")
+    engine, worker = object.__new__(BackendRouter), SimpleNamespace(gate=None)
+    harness = SimpleNamespace(runtime_busy=AsyncMock(side_effect=RuntimeError("offline")))
+    health = AsyncMock(return_value={"engine": {"backends": {"chemistry": {"ready": True}}}})
+    register_runtime_controls(app, store, engine, worker, health, lambda: None, harness)
+    with TestClient(app) as client:
+        reply = client.get("/api/runtime-controls")
+        assert reply.status_code == 200
+        rows = {item["id"]: item for item in reply.json()["engines"]}
+        assert rows["harness"]["activity_unknown"]
+        assert rows["chemistry"]["ready"] and not rows["chemistry"]["activity_unknown"]
+        assert client.post("/api/runtime-controls/chemistry/start", json={}).status_code == 200
+        assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 409

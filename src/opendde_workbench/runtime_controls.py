@@ -5,6 +5,8 @@ disabling prevents new work, and existing task cleanup releases native resources
 Permissions are deliberately not persisted across platform restarts.
 """
 
+import asyncio
+
 from fastapi import Depends, HTTPException
 
 from .engine_registry import ENGINES, engine_for, statuses
@@ -71,11 +73,20 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
 
         worker.gate = gate
 
+    async def native_activity():
+        if harness is None:
+            return False
+        try:
+            return await asyncio.wait_for(harness.runtime_busy(), timeout=16)
+        except (OSError, ValueError, RuntimeError, TimeoutError):
+            return None  # Unknown native activity must not disable independent engines.
+
     @app.get("/api/runtime-controls")
     async def snapshot():
         state = await health()
         active = controls.active_engines()
-        if harness is not None and await harness.runtime_busy():
+        native = await native_activity()
+        if native:
             active.add("harness")
         return {
             "engines": [
@@ -85,6 +96,7 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
                     "ready": managed and item["ready"],
                     "enabled": key in controls.enabled,
                     "active": key in active,
+                    "activity_unknown": key == "harness" and native is None,
                 }
                 for key, item in statuses(state["engine"]).items()
             ]
@@ -97,7 +109,10 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
         state = await health() if action == "start" else None
         ready = bool(state and statuses(state["engine"]).get(identifier, {}).get("ready"))
         if action == "stop" and identifier == "harness" and harness is not None:
-            if await harness.runtime_busy():
+            native = await native_activity()
+            if native is None:
+                raise HTTPException(409, "Cannot confirm native inactivity. Check the service.")
+            if native:
                 raise HTTPException(409, "Stop the active native design campaign first.")
         controls.change(identifier, action, ready)
         return {"enabled": identifier in controls.enabled}

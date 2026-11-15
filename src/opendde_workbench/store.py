@@ -267,11 +267,12 @@ class Store:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute(
-                "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
+                "SELECT * FROM jobs WHERE status='queued'"
+                + (" AND id=?" if expected_id is not None else "")
+                + " ORDER BY created_at LIMIT 1",
+                (expected_id,) if expected_id is not None else (),
             ).fetchone()
             if not row:
-                return None
-            if expected_id is not None and row["id"] != expected_id:
                 return None
             db.execute(
                 "UPDATE jobs SET status='running',started_at=? WHERE id=?", (now(), row["id"])

@@ -10,6 +10,7 @@ type Runtime = {
   ready: boolean;
   enabled: boolean;
   active: boolean;
+  activity_unknown?: boolean;
 };
 
 export function BackendControls({
@@ -112,21 +113,25 @@ export function BackendControls({
                 <span>
                   {item.name}
                   <small>
-                    {item.active
+                    {item.activity_unknown
                       ? zh
-                        ? "任务运行中"
-                        : "Task active"
-                      : !item.ready
+                        ? "状态待确认"
+                        : "State unavailable"
+                      : item.active
                         ? zh
-                          ? "未就绪"
-                          : "Not ready"
-                        : item.enabled
+                          ? "任务运行中"
+                          : "Task active"
+                        : !item.ready
                           ? zh
-                            ? "按需加载"
-                            : "On demand"
-                          : zh
-                            ? "已关闭"
-                            : "Off"}
+                            ? "未就绪"
+                            : "Not ready"
+                          : item.enabled
+                            ? zh
+                              ? "按需加载"
+                              : "On demand"
+                            : zh
+                              ? "已关闭"
+                              : "Off"}
                   </small>
                 </span>
                 <button
@@ -137,6 +142,7 @@ export function BackendControls({
                   disabled={
                     Boolean(busy) ||
                     Boolean(readError) ||
+                    Boolean(item.activity_unknown) ||
                     (!item.enabled && !item.ready) ||
                     item.active
                   }
