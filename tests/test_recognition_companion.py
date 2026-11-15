@@ -35,14 +35,14 @@ def source(tmp_path):
 def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     host, resources, backups = source
     before = {p.relative_to(host): p.read_bytes() for p in host.rglob("*.tsx")}
-    assert len(companion.prepare(host, resources)) == 5
+    assert len(companion.prepare(host, resources)) == 14
     assert not backups.exists()
     assert all((host / p).read_bytes() == data for p, data in before.items())
     result = companion.apply(host, backups, resources, exclusive_source=True)
-    assert result["changed"] == 5
+    assert result["changed"] == 14
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
-    assert len(json.loads((saved / "receipt.json").read_text())) == 5
+    assert len(json.loads((saved / "receipt.json").read_text())) == 14
     assert companion.apply(host, backups, resources, exclusive_source=True) == {
         "changed": 0, "already_applied": True,
     }
@@ -71,7 +71,7 @@ def test_native_file_permissions_survive_atomic_replacement(source):
 
 def test_existing_different_adapter_is_not_overwritten(source):
     host, resources, backups = source
-    adapter = host / "frontend/src" / companion.ADAPTERS[0]
+    adapter = host / "frontend/src" / next(iter(companion.ADAPTERS))
     adapter.write_text("owner adapter")
     with pytest.raises(ValueError, match="Existing adapter differs"):
         companion.apply(host, backups, resources, exclusive_source=True)
@@ -174,7 +174,7 @@ def test_published_manifest_is_bounded_and_wheel_ships_canonical_adapters():
     }
     config = tomllib.loads((root / "pyproject.toml").read_text())
     mapping = config["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
-    for name in companion.ADAPTERS:
-        assert mapping["frontend/src/utilities/" + name] == (
+    for name, source in companion.ADAPTERS.items():
+        assert mapping[source] == (
             "opendde_workbench/data/recognition_locale/" + name
         )

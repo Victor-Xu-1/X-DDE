@@ -6,6 +6,15 @@ import {
 } from "./recognition-locale";
 
 const english: Record<string, string> = {
+  "正在准备分子结构…": "Preparing structure…",
+  "绘图备份已保留。": "A drawing backup was retained.",
+  "请重新载入分子结构。": "Reload a molecular structure.",
+  核对保留的结构: "Review retained structure",
+  下载绘图备份: "Download drawing backup",
+  "无法安全准备简洁视图，已保留原始结构。":
+    "The simplified view could not be prepared safely. The original structure was retained.",
+  "无法应用分子显示规则，请更新绘图组件。":
+    "The molecular display could not be configured. Update the drawing component.",
   识别服务已关闭: "Recognition is off",
   正在启动: "Starting",
   模型加载中: "Loading model",

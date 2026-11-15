@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "bd8c27d87af5185378d5c7f7d2623aa761c58d591b7767968321f1d58fec4cb4",
+      "after_sha256": "90c69a32c4f3449401721ad95cf6652d7a616ee03eeddf5a772dcee0298575d8",
       "changes": [
         {
           "before": "const labels = {",
@@ -162,6 +162,34 @@
         {
           "before": "alt=\"待识别的化学结构图片\"",
           "after": "alt={text(\"待识别的化学结构图片\")}"
+        },
+        {
+          "before": "    editorReady,\n    setEditorReady,",
+          "after": "    editorReady,\n    setEditorReady,\n    structureReady,\n    setStructureReady,"
+        },
+        {
+          "before": "              <MoleculeEditor\n                molfile={molfile}",
+          "after": "              <MoleculeEditor\n                translate={text}\n                onAvailability={setStructureReady}\n                molfile={molfile}"
+        },
+        {
+          "before": "aria-label={text(\"复制当前 SMILES\")}\n              disabled={!smiles.trim()}",
+          "after": "aria-label={text(\"复制当前 SMILES\")}\n              disabled={!structureReady || !smiles.trim()}"
+        },
+        {
+          "before": "aria-label={text(\"复制 SMILES\")}\n                disabled={!smiles.trim()}",
+          "after": "aria-label={text(\"复制 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}"
+        },
+        {
+          "before": "aria-label={text(\"复制 MOL\")}\n                disabled={!smiles.trim()}",
+          "after": "aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady || !smiles.trim()}"
+        },
+        {
+          "before": "aria-label={text(\"下载 SMILES\")}\n                disabled={!smiles.trim()}",
+          "after": "aria-label={text(\"下载 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}"
+        },
+        {
+          "before": "aria-label={text(\"下载 SDF\")}\n                disabled={!smiles.trim()}",
+          "after": "aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}"
         }
       ]
     },
@@ -216,6 +244,135 @@
         {
           "before": "          关闭后端\n",
           "after": "          {translate(\"关闭后端\")}\n"
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/MoleculeEditor.tsx",
+      "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
+      "after_sha256": "22918f5d5016616f1fca71006069a1931a7bc5d021e5f5e5d49b45f8c514ead3",
+      "changes": [
+        {
+          "before": "import type { Ketcher } from \"ketcher-core\";",
+          "after": "import { ChemicalMimeType, type Ketcher } from \"ketcher-core\";"
+        },
+        {
+          "before": "import \"ketcher-react/dist/index.css\";",
+          "after": "import \"ketcher-react/dist/index.css\";\nimport { configureRecognitionEditor } from \"./recognition-host-editor\";\nimport \"./recognition-host-editor.css\";"
+        },
+        {
+          "before": "        disableMacromoleculesEditor",
+          "after": "        buttons={{miew:{hidden:true},recognize:{hidden:true}}}\n        disableMacromoleculesEditor"
+        },
+        {
+          "before": "const EMPTY =\n  \"\\n  DECIMER\\n\\n  0  0  0  0  0  0  0  0  0  0999 V2000\\nM  END\\n\";\n",
+          "after": ""
+        },
+        {
+          "before": "  onError: (message: string) => void;",
+          "after": "  onError: (message: string) => void;\n  onAvailability?: (ready: boolean) => void;\n  translate?: (value: string) => string;"
+        },
+        {
+          "before": "export function MoleculeEditor({ molfile, onReady, onSmiles, onError }: Props) {",
+          "after": "export function MoleculeEditor({ molfile, onReady, onSmiles, onError, onAvailability, translate }: Props) {\n  const text = translate ?? ((value: string) => value);"
+        },
+        {
+          "before": "  const generation = useRef(0);",
+          "after": "  const generation = useRef(0);\n  const loadRevision = useRef(0);\n  const policy = useRef<ReturnType<typeof configureRecognitionEditor> | null>(null);\n  const lifetime = useRef<AbortController | null>(null);\n  const canvas = useRef<HTMLDivElement>(null);\n  const [preparing, setPreparing] = useState(true);\n  const [available, setAvailable] = useState(false);\n  const [displayError, setDisplayError] = useState(false);\n  useEffect(() => () => { generation.current++; loadRevision.current++; lifetime.current?.abort(); }, []);\n  useEffect(() => { if (canvas.current) canvas.current.inert = preparing; }, [preparing]);"
+        },
+        {
+          "before": "useRef({ onSmiles, onError })",
+          "after": "useRef({ onSmiles, onError, onAvailability })"
+        },
+        {
+          "before": "callbacks.current = { onSmiles, onError };",
+          "after": "callbacks.current = { onSmiles, onError, onAvailability };"
+        },
+        {
+          "before": "    const current = ++generation.current;\n    editor.current\n      .setMolecule(molfile || EMPTY)\n      .then(async () => {",
+          "after": "    const load = ++loadRevision.current;\n    policy.current!\n      .load(molfile)\n      .then(async applied => {\n        if (!applied || load !== loadRevision.current) return;\n        const current = generation.current;"
+        },
+        {
+          "before": "      .catch(() => callbacks.current.onError(\"结构编辑器无法载入该分子。\"));",
+          "after": "      .catch(() => {\n        if (load === loadRevision.current && !lifetime.current?.signal.aborted) {\n          setDisplayError(true);\n          callbacks.current.onError(\"结构编辑器无法载入该分子。\");\n        }\n      });"
+        },
+        {
+          "before": "    <div className=\"editor-canvas\" data-testid=\"molecule-editor\">",
+          "after": "    <div ref={canvas} className=\"editor-canvas\" data-testid=\"molecule-editor\"\n      data-structure-valid={available} aria-busy={preparing} style={{position:\"relative\"}}>"
+        },
+        {
+          "before": "callbacks.current.onError(String(error))",
+          "after": "{ policy.current?.failed(); setDisplayError(true); callbacks.current.onError(String(error)); }"
+        },
+        {
+          "before": "          instance.editor.setOptions(\n            JSON.stringify({\n              hideTerminalLabels: true,\n              showHydrogenLabels: \"Hetero\",\n              aromaticCircle: false,\n            }),\n          );\n",
+          "after": "          lifetime.current?.abort();\n          const controller = new AbortController();\n          lifetime.current = controller;\n          try {\n            policy.current = configureRecognitionEditor({\n              editor: {setOptions: value => instance.editor.setOptions(value)},\n              changeEvent: instance.changeEvent,\n              eventBus: instance.eventBus,\n              getKet: () => instance.getKet(),\n              getMolfile: () => instance.getMolfile(\"v3000\"),\n              getSmiles: () => instance.getSmiles(),\n              setMolecule: value => instance.setMolecule(value),\n              structService: {\n                getInChIKey: value => instance.structService.getInChIKey(value),\n                layout: data => instance.structService.layout({\n                  struct:data.struct,\n                  output_format:data.output_format === \"chemical/x-indigo-ket\"\n                    ? ChemicalMimeType.KET : ChemicalMimeType.Mol,\n                }),\n                toggleExplicitHydrogens: data => instance.structService.toggleExplicitHydrogens({\n                  struct:data.struct, mode:data.mode, output_format:ChemicalMimeType.KET,\n                }),\n              },\n            }, controller.signal,\n              () => {\n                setDisplayError(true);\n                callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\");\n              }, {\n                fit: () => {\n                  const bounds = canvas.current?.getBoundingClientRect();\n                  if (!bounds || bounds.width < 1 || bounds.height < 1) return false;\n                  instance.editor.zoomAccordingContent(instance.editor.struct());\n                  instance.editor.centerStruct();\n                  return true;\n                },\n                resetZoom: () => { instance.editor.zoom(1); },\n                onState: state => {\n                  setPreparing(state.busy);\n                  setAvailable(state.available);\n                  if (state.available) setDisplayError(false);\n                  callbacks.current.onAvailability?.(state.available);\n                },\n              });\n          } catch {\n            setPreparing(false);\n            setDisplayError(true);\n            callbacks.current.onError(\"无法应用分子显示规则，请更新绘图组件。\");\n            return;\n          }\n          const observer = new ResizeObserver(() => policy.current?.fitWhenVisible());\n          if (canvas.current) observer.observe(canvas.current);\n          controller.signal.addEventListener(\"abort\", () => observer.disconnect(), {once:true});\n"
+        },
+        {
+          "before": "          instance.editor.subscribe(\"change\", () => {",
+          "after": "          const subscription = instance.editor.subscribe(\"change\", () => {\n            if (controller.signal.aborted) return;"
+        },
+        {
+          "before": "                  if (current === generation.current)\n                    callbacks.current.onSmiles(value);",
+          "after": "                  if (current === generation.current && !controller.signal.aborted)\n                    callbacks.current.onSmiles(value);"
+        },
+        {
+          "before": "            }, 160);\n          });",
+          "after": "            }, 160);\n          });\n          controller.signal.addEventListener(\"abort\", () => {\n            clearTimeout(timer);\n            instance.editor.unsubscribe(\"change\", subscription);\n          }, {once:true});"
+        },
+        {
+          "before": "      />\n    </div>",
+          "after": "      />\n      {(preparing || displayError) && <div className=\"recognition-editor-status\" role=\"status\">\n        <span>{text(preparing ? \"正在准备分子结构…\" : policy.current?.retainedDrawing()\n          ? \"绘图备份已保留。\" : \"请重新载入分子结构。\")}</span>\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          void policy.current?.recheck().then(applied => {\n            if (applied) { setDisplayError(false); callbacks.current.onError(\"\"); }\n          }).catch(() => callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\"));\n        }}>{text(\"核对保留的结构\")}</button>}\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          const retained = policy.current?.retainedDrawing();\n          if (!retained) return;\n          const url = URL.createObjectURL(new Blob([retained], {type:\"application/json\"}));\n          const link = document.createElement(\"a\");\n          link.href = url; link.download = \"retained-drawing.ket\"; link.click();\n          setTimeout(() => URL.revokeObjectURL(url), 1000);\n        }}>{text(\"下载绘图备份\")}</button>}\n      </div>}\n    </div>"
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/useWorkbench.ts",
+      "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
+      "after_sha256": "3c96f569ac6d65e2271d76f9b90794a6571c99b63660b0d93f72d941dc61484d",
+      "changes": [
+        {
+          "before": "await editor.current.getMolfile()",
+          "after": "await editor.current.getMolfile(\"v3000\")"
+        },
+        {
+          "before": "await editor.current.getSdf()",
+          "after": "await editor.current.getSdf(\"v3000\")"
+        },
+        {
+          "before": "  const [editorReady, setEditorReady] = useState(false);",
+          "after": "  const [editorReady, setEditorReady] = useState(false);\n  const [structureReady, setStructureReady] = useState(false);"
+        },
+        {
+          "before": "    editorReady,\n    setEditorReady,",
+          "after": "    editorReady,\n    setEditorReady,\n    structureReady,\n    setStructureReady,"
+        },
+        {
+          "before": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current) return;",
+          "after": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current || !structureReady) return;"
+        },
+        {
+          "before": "  const download = async (format: \"smiles\" | \"sdf\") => {\n    try {\n      if (!editor.current) return;",
+          "after": "  const download = async (format: \"smiles\" | \"sdf\") => {\n    try {\n      if (!editor.current || !structureReady) return;"
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/useXddeBridge.ts",
+      "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
+      "after_sha256": "2157f79f5e3df0aff46abe4a13ac8a0346eadbcc341570afea76b09fe27d7692",
+      "changes": [
+        {
+          "before": "await editor.getMolfile()",
+          "after": "await editor.getMolfile(\"v3000\")"
+        },
+        {
+          "before": "          latest.current.editorReady &&\n          !latest.current.busy &&",
+          "after": "          latest.current.editorReady &&\n          latest.current.structureReady &&\n          !latest.current.busy &&"
+        },
+        {
+          "before": "[origin, work.smiles, work.busy, work.editorReady, work.file]",
+          "after": "[origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]"
         }
       ]
     }

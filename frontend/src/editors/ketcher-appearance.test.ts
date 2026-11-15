@@ -10,6 +10,8 @@ it("uses native Kekulé loading and thin 3D bonds without replacing molecular da
   } as unknown as Ketcher);
   expect(JSON.parse(setOptions.mock.calls[0][0])).toEqual({
     "dearomatize-on-load": true,
+    hideTerminalLabels: true,
+    aromaticCircle: false,
     showHydrogenLabels: "Hetero",
     miewMode: "LN",
     miewAtomLabel: "no",
