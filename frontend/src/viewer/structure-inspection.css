@@ -31,7 +31,10 @@
 .structure-selection-description span {
   color: var(--muted);
 }
-.structure-selection-actions button {
+.structure-selection-actions {
+  gap: 6px;
+}
+.structure-selection-summary .structure-selection-actions .secondary-button {
   padding: 5px 9px;
   min-height: 32px;
   font-size: 12px;
