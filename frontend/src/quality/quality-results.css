@@ -118,7 +118,7 @@
 .studio-app
   .task-workspace.is-result
   .quality-results
-  .viewer-panel:not(:fullscreen)
+  .viewer-panel:not(:popover-open)
   .molecular-stage {
   height: 360px;
 }
@@ -126,7 +126,7 @@
   .studio-app
     .task-workspace.is-result
     .quality-results
-    .viewer-panel:not(:fullscreen)
+    .viewer-panel:not(:popover-open)
     .molecular-stage {
     height: 300px;
   }

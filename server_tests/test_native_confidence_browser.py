@@ -93,13 +93,15 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         viewer = page.locator(".viewer-panel")
         iframe = viewer.locator("iframe").element_handle()
         viewer.get_by_role(
-            "button", name="全屏研究工作区" if zh else "Fullscreen research workspace"
+            "button", name="展开研究工作区" if zh else "Expand research workspace"
         ).click()
-        expect(page.locator(".structure-workbench:fullscreen .structure-sequence")).to_be_visible()
+        expect(
+            page.locator(".structure-workbench[data-workspace-expanded] .structure-sequence")
+        ).to_be_visible()
         expect(first).to_have_attribute("aria-checked", "true")
         sequence.screenshot(path=evidence / "fullscreen-sequence.png")
         page.keyboard.press("Escape")
-        expect(page.locator(".structure-workbench:fullscreen")).to_have_count(0)
+        expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_have_count(0)
         assert viewer.locator("iframe").evaluate("(node, original) => node === original", iframe)
         expect(first).to_have_attribute("aria-checked", "true")
         page.locator(".viewer-panel").screenshot(path=str(evidence / "confidence-structure.png"))

@@ -535,7 +535,7 @@
 .studio-app
   .dataset-results
   .dataset-preview-pane
-  .viewer-panel:not(:fullscreen)
+  .viewer-panel:not(:popover-open)
   .molecular-stage {
   height: clamp(320px, 42vh, 480px);
   min-height: 0;

@@ -44,17 +44,20 @@ export function PredictionInspection(p: {
   }));
   return (
     <>
-      {p.job && p.candidate && (
-        <PredictionSamples
-          job={p.job.id}
-          rows={samples}
-          selected={p.candidate.id}
-          language={p.language}
-          onSelect={p.onCandidate}
-          overlayCount={p.overlayCount}
-        />
-      )}
       <StructureWorkbench
+        toolbar={
+          p.job &&
+          p.candidate && (
+            <PredictionSamples
+              job={p.job.id}
+              rows={samples}
+              selected={p.candidate.id}
+              language={p.language}
+              onSelect={p.onCandidate}
+              overlayCount={p.overlayCount}
+            />
+          )
+        }
         sequenceHostRef={setSequenceHost}
         preview={
           <div className="viewer-column">
