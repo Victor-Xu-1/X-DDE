@@ -37,6 +37,16 @@ def inspect_refinement(settings, image, receptor_raw, ligand_reference, evidence
 
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
+        permission = client.post("/api/runtime-controls/gnina/start", json={})
+        assert permission.status_code == 200, permission.text
+        assert {
+            row["id"]
+            for row in client.get("/api/runtime-controls").json()["engines"]
+            if row["enabled"]
+        } == {"gnina"}
         upload = client.post(
             "/api/assets?kind=structure&name=184l-heavy-receptor.pdb",
             content=heavy,
@@ -141,6 +151,10 @@ def inspect_refinement(settings, image, receptor_raw, ligand_reference, evidence
                 },
                 indent=2,
             )
+        )
+        assert client.post("/api/runtime-controls/gnina/stop", json={}).status_code == 200
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
         )
     from flexible_receptor_browser import inspect_refinement_browser
 
