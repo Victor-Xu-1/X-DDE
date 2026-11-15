@@ -52,7 +52,11 @@ export function ImageRecognition({ language }: { language: Language }) {
           </p>
         </div>
         <div className="utility-actions">
-          <button type="button" onClick={() => setAttempt((n) => n + 1)}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setAttempt((n) => n + 1)}
+          >
             {zh ? "重新连接" : "Reconnect"}
           </button>
           <a href={url} target="_blank" rel="noreferrer">

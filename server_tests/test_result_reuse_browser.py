@@ -105,10 +105,9 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
         expect(
             form.get_by_role("button", name="下一步" if zh else "Next", exact=True)
         ).to_be_enabled()
-        picker.locator("summary").click()
         picker.get_by_role(
-            "button", name="从已有任务结果中选择" if zh else "Choose from task results", exact=True
-        ).click()
+            "radio", name="任务结果文件" if zh else "Task result files", exact=True
+        ).check()
         result = picker.get_by_role(
             "region", name="选择任务结果" if zh else "Choose a task result", exact=True
         )

@@ -67,7 +67,12 @@ export function BackendControls({
   }, [open, revision, zh]);
   return (
     <div className="backend-controls">
-      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button
+        className="secondary-button"
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
         {zh ? "后端管理" : "Backend controls"}
       </button>
       {open && (
@@ -79,6 +84,7 @@ export function BackendControls({
             <strong>{zh ? "按需启用" : "Enable on demand"}</strong>
             <button
               type="button"
+              className="text-button"
               aria-label={zh ? "关闭后端面板" : "Close backend panel"}
               onClick={() => setOpen(false)}
             >
