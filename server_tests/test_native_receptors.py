@@ -42,6 +42,11 @@ def test_actual_receptor_environment_and_reusable_persistent_alignment_collectio
     fixture = Path("server_tests/evidence/core-fixture/receptor-inputs")
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
+        permission = client.post("/api/runtime-controls/biopython/start", json={})
+        assert permission.status_code == 200, permission.text
         versions = []
         for name in ("reference.pdb", "moving.pdb"):
             response = client.post(
@@ -172,5 +177,6 @@ def test_actual_receptor_environment_and_reusable_persistent_alignment_collectio
         (prepared_output / prepared["artifact"]).write_bytes(original_prepared)
         (output / result["members"][1]["artifact"]).write_text("changed")
         assert client.get(f"/api/jobs/{identifier}/result").status_code == 422
+        assert client.post("/api/runtime-controls/biopython/stop", json={}).status_code == 200
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         assert client.get(f"/api/research/receptor-ensembles/{record['id']}").json() == record

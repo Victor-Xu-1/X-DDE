@@ -38,6 +38,7 @@ PATTERNS = (
     # Their existing native pose/comparison gates own these direct-consumer fixtures.
     "server_tests/comparison_api_harness.py",
     "server_tests/test_pose_handoff_browser.py",
+    "server_tests/test_native_receptors.py",
     "frontend/src/viewer/structure-inspection.css",
     "frontend/src/viewer/polymer-detail.ts",
     "frontend/src/viewer/residue-selection*",

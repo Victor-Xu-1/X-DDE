@@ -18,6 +18,7 @@ def test_display_selection_scope_preserves_scientific_boundaries():
         "frontend/src/viewer/structure-inspection.css",
         "server_tests/comparison_api_harness.py",
         "server_tests/test_pose_handoff_browser.py",
+        "server_tests/test_native_receptors.py",
         "frontend/package.json",
         "frontend/package-lock.json",
         "pyproject.toml",
