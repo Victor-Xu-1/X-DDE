@@ -57,6 +57,11 @@ on:
       - "frontend/src/studio/HomeWorkspace*"
       - "frontend/src/deployment/**"
       - "!frontend/src/deployment/labels.ts"
+      # Directory/installation intent has Installation checks and its exact consumers.
+      - "!frontend/src/deployment/DeploymentPanel.tsx"
+      - "!frontend/src/deployment/installation.ts"
+      - "!frontend/src/deployment/deployment.test.tsx"
+      - "!frontend/src/deployment/installation.test.ts"
       # Installation-page presentation uses its own exact component/control gate.
       - "!frontend/src/deployment/ComponentLibrary*"
       - "!frontend/src/deployment/ComponentCard.tsx"
@@ -384,6 +389,11 @@ on:
       - "frontend/src/studio/HomeWorkspace*"
       - "frontend/src/deployment/**"
       - "!frontend/src/deployment/labels.ts"
+      # Directory/installation intent has Installation checks and its exact consumers.
+      - "!frontend/src/deployment/DeploymentPanel.tsx"
+      - "!frontend/src/deployment/installation.ts"
+      - "!frontend/src/deployment/deployment.test.tsx"
+      - "!frontend/src/deployment/installation.test.ts"
       # Installation-page presentation uses its own exact component/control gate.
       - "!frontend/src/deployment/ComponentLibrary*"
       - "!frontend/src/deployment/ComponentCard.tsx"
