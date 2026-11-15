@@ -241,6 +241,10 @@ The first navigation entry opens Utilities: image-to-SMILES recognition and edit
 
 小工具是首个入口，提供图片转 SMILES 与结构编辑、ADMET、分子性质、相似性与结构警报、质子化与互变异构。图片识别复用已安装的 DECIMER 工作台（本机 8940），支持粘贴、上传、拖入、编辑及 SMILES/MOL/SDF 复制导出。识别服务由内嵌工作台右上角开关启动；默认关闭，闲置后按原工作台策略释放模型。平台没有安装该工作台时会显示连接提示，不生成替代结果。
 
+The editor fills the available window height below the utility tabs. Help, reconnect and separate-window actions sit beside those tabs; input guidance opens on demand. At narrow widths the tabs scroll horizontally, while a short window or phone scrolls within the work area to reach the editor and export controls. Other research pages retain their normal document layout.
+
+编辑区填满工具标签下方的可用高度；帮助、重新连接和独立窗口入口集中在标签右侧。窄屏可横向浏览工具标签，矮屏和手机可在工作区滚动到编辑及导出操作。其他研究页面保持原有布局。
+
 To embed an existing DECIMER workbench, its HTTP host must explicitly permit only `http://127.0.0.1:4322` and `http://localhost:4322` in `frame-ancestors`; retain its host/origin/session checks. X-DDE permits only the two corresponding local 8940 frame origins. The read-only discovery route queries `/health`, never starts WSL/models and never accepts a caller-provided URL. No token or model is copied into X-DDE.
 
 Platform startup no longer automatically installs components or starts an automatic legacy compute connection. Backend controls at the top right lists the registered task engines. Each begins disabled after a platform restart. Enabling permits on-demand tasks without eagerly loading a model; switching off blocks new work. Queued tasks wait until their engine is enabled. Active or retained paused tasks must first be stopped using their task controls. Native task cleanup remains owned by BackendRouter. The existing managed OpenDDE persistent service has its own authenticated start/stop control in the same panel; it is never auto-started. Persistent integrations must provide explicit start/stop controls and a verified resource-release path before being enabled. Platform-only restoration installs neither scientific engines nor checkpoints.
