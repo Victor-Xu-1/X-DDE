@@ -5,6 +5,7 @@ on:
       - "frontend/src/utilities/**"
       - "frontend/src/editors/recognition-host-editor*"
       - "frontend/src/editors/editor-lifetime*"
+      - "frontend/src/editors/native-molecular-viewport*"
       - "frontend/src/editors/molecule-readiness*"
       - "frontend/src/editors/ketcher-contract.ts"
       - "src/opendde_workbench/utility_routes.py"
@@ -38,7 +39,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Utility navigation, retained inputs and direct form consumers
         working-directory: frontend
-        run: npx vitest run src/editors/molecule-readiness.test.ts src/editors/recognition-host-editor.test.ts src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/utilities/recognition-locale.test.tsx src/utilities/BackendControls.test.tsx src/utilities/ImageMoleculeInput.test.tsx src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts src/studio/Navigation.test.tsx src/studio/research-modules.test.ts src/App.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx src/operations/useAssetUpload.image.test.tsx src/integrations/BoltzInputs.test.tsx src/integrations/Mol1Form.test.tsx src/presentation/PredictionEntityEditing.test.tsx
+        run: npx vitest run src/editors/native-molecular-viewport.test.ts src/editors/molecule-readiness.test.ts src/editors/recognition-host-editor.test.ts src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/utilities/recognition-locale.test.tsx src/utilities/BackendControls.test.tsx src/utilities/ImageMoleculeInput.test.tsx src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts src/studio/Navigation.test.tsx src/studio/research-modules.test.ts src/App.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx src/operations/useAssetUpload.image.test.tsx src/integrations/BoltzInputs.test.tsx src/integrations/Mol1Form.test.tsx src/presentation/PredictionEntityEditing.test.tsx
       - run: uv sync --locked --group dev
       - name: Native companion source and released-resource packaging
         run: |

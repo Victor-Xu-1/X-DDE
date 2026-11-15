@@ -10,6 +10,7 @@ on:
       - 'frontend/src/editors/ketcher-contract.ts'
       - 'frontend/src/editors/recognition-host-editor*'
       - 'frontend/src/editors/editor-lifetime*'
+      - 'frontend/src/editors/native-molecular-viewport*'
       - 'server_tests/*recognition_editor*'
       - 'frontend/src/editors/retained-molecule.test.ts'
       - 'frontend/src/editors/Editors.load.test.tsx'

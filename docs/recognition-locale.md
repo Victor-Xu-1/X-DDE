@@ -8,7 +8,7 @@ Production embedding remains limited to the existing 4322 loopback origins. The 
 
 ## Existing host companion
 
-The installed X-DDE wheel includes canonical native locale/display modules and a bounded, hash-checked integration manifest for the known `decimer-workbench-ui-0.1.0` source. Its six native targets cover App, editor boundary, stop confirmation, molecule editor, readiness state and the existing image-export adapter. Nine flat companion resources share the platform's editor contract, native hydrogen/appearance policy and per-canvas lifecycle. The target manifest contains no private configuration, uploads, models or unrelated host source. The separate host repository is not published.
+The installed X-DDE wheel includes canonical native locale/display modules and a bounded, hash-checked integration manifest for the known `decimer-workbench-ui-0.1.0` source. Its six native targets cover App, editor boundary, stop confirmation, molecule editor, readiness state and the existing image-export adapter. Ten flat companion resources share the platform's editor contract, native hydrogen/appearance policy and per-canvas lifecycle. The target manifest contains no private configuration, uploads, models or unrelated host source. The separate host repository is not published.
 
 Check the exact installed artifact and source before applying:
 

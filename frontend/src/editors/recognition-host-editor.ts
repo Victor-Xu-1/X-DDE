@@ -6,6 +6,7 @@ import {
   hasNonDonorHydrogens,
 } from "./ketcher-hydrogens";
 import { editorLifetime, editorResize } from "./editor-lifetime";
+export { createMolecularViewport } from "./native-molecular-viewport";
 
 export type RecognitionEditor = Pick<
   Ketcher,

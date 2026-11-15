@@ -30,25 +30,15 @@ def prepare_policy(page, base, temporary):
     page.goto(base + "/tools/ketcher/index.html")
     page.wait_for_function("() => Boolean(window.ketcher)", timeout=45000)
     page.evaluate("""async () => {
-      const {configureRecognitionEditor} = await import('/tools/ketcher/recognition-native-policy.js');
+      const {configureRecognitionEditor,createMolecularViewport} = await import('/tools/ketcher/recognition-native-policy.js');
       const native=window.ketcher;
-      if (typeof native.editor.centerViewportAccordingToStruct !== 'function' ||
-          typeof native.editor.render?.resizeViewBox !== 'function' ||
-          typeof native.editor.event?.zoomChanged?.dispatch !== 'function')
-        throw new Error('The native drawing component needs viewport centering support.');
+      const viewport=createMolecularViewport(native.editor);
       window.nativePolicyState={busy:true,available:false};
       window.nativePolicyErrors=[]; window.nativePolicyStates=[];
       window.nativePolicyAbort=new AbortController();
       window.nativeDisplayPolicy=configureRecognitionEditor(native,window.nativePolicyAbort.signal,
         error=>window.nativePolicyErrors.push(String(error)), {
-          fit:()=>{
-            const bounds=native.editor.render.clientArea.getBoundingClientRect();
-            if (bounds.width<1 || bounds.height<1) return false;
-            native.editor.render.resizeViewBox(); native.editor.zoom(1);
-            native.editor.centerViewportAccordingToStruct(native.editor.struct());
-            native.editor.event.zoomChanged.dispatch(); return true;
-          },
-          resetZoom:()=>{native.editor.zoom(1); native.editor.event.zoomChanged.dispatch();},
+          fit:viewport.fit, resetZoom:viewport.resetZoom,
           onState:state=>{window.nativePolicyState=state;window.nativePolicyStates.push(state);}
         });
       window.nativeResizeWidths=[];
