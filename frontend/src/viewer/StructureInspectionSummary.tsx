@@ -1,5 +1,6 @@
 import type { Language } from "../types";
 import { residueLabel, type Residue, type SelectionInfo } from "./protocol";
+import type { ConfidenceInspection } from "./confidence-types";
 import "./structure-inspection.css";
 
 /** A projection of the renderer's display selection, never a constraint atom. */
@@ -9,7 +10,7 @@ export function StructureSelectionSummary({
   selected,
   selection,
   confidence,
-  nativeSelectionCount = 0,
+  nativeTokens = [],
   busy = false,
   onFocus,
   onClear,
@@ -18,8 +19,8 @@ export function StructureSelectionSummary({
   residues: Residue[];
   selected: string[];
   selection: SelectionInfo | null;
-  confidence?: Record<string, number>;
-  nativeSelectionCount?: number;
+  confidence?: ConfidenceInspection | null;
+  nativeTokens?: number[];
   busy?: boolean;
   onFocus(): void;
   onClear(): void;
@@ -27,20 +28,39 @@ export function StructureSelectionSummary({
   const zh = language === "zh";
   const keys = new Set(selected);
   const rows = residues.filter((row) => keys.has(row.key));
-  const positions = Number.isSafeInteger(nativeSelectionCount)
-    ? Math.max(0, nativeSelectionCount)
-    : 0;
-  if (!selection && !rows.length && !positions) return null;
+  const positions = new Set(nativeTokens);
+  const tokens =
+    confidence?.tokens.filter((token) => positions.has(token.index)) ?? [];
+  const polymerKeys = new Set(rows.map((row) => row.key));
+  const covered = new Set(
+    tokens
+      .filter((token) => polymerKeys.has(token.residue))
+      .map((token) => token.index),
+  );
+  const extraPositions = [...positions].filter(
+    (index) => !covered.has(index),
+  ).length;
+  const positionLabel = (n: number) =>
+    `${n} ${zh ? "个置信度位置" : n === 1 ? "confidence position" : "confidence positions"}`;
+  const labels = [
+    ...rows.map(residueLabel),
+    ...tokens
+      .filter((token) => !polymerKeys.has(token.residue))
+      .map((token) => token.label),
+  ];
+  if (!selection && !rows.length && !positions.size) return null;
   const identity = selection
     ? `${selection.chain || (zh ? "未命名链" : "Unnamed chain")}:${selection.residue}`
-    : rows.length === 1
+    : rows.length === 1 && !extraPositions
       ? residueLabel(rows[0])
       : rows.length
-        ? `${rows.length} ${zh ? "个残基" : "residues"}`
-        : `${positions} ${zh ? "个置信度位置" : positions === 1 ? "confidence position" : "confidence positions"}`;
+        ? `${rows.length} ${zh ? "个残基" : rows.length === 1 ? "residue" : "residues"}${extraPositions ? " · " + positionLabel(extraPositions) : ""}`
+        : positionLabel(positions.size);
   const atom = selection && selection.pick_mode !== "residue";
   const score =
-    rows.length === 1 && !atom ? confidence?.[rows[0].key] : undefined;
+    rows.length === 1 && !atom && !extraPositions
+      ? confidence?.residueScores[rows[0].key]
+      : undefined;
   return (
     <div
       className="structure-selection-summary"
@@ -54,12 +74,14 @@ export function StructureSelectionSummary({
             {selection.atom} ({selection.element})
           </span>
         )}
-        {rows.length > 1 && (
-          <span>
-            {rows.slice(0, 3).map(residueLabel).join(" · ")}
-            {rows.length > 3 ? " …" : ""}
-          </span>
-        )}
+        {!selection &&
+          (rows.length > 1 || extraPositions > 0) &&
+          labels.length > 0 && (
+            <span>
+              {labels.slice(0, 3).join(" · ")}
+              {labels.length > 3 ? " …" : ""}
+            </span>
+          )}
         {typeof score === "number" &&
           Number.isFinite(score) &&
           score >= 0 &&

@@ -827,8 +827,8 @@ export function StructureViewport({
           residues={scene.residues}
           selected={selectedResidues}
           selection={selection}
-          confidence={currentConfidence?.residueScores}
-          nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
+          confidence={currentConfidence}
+          nativeTokens={currentConfidence ? nativeTokens : []}
           busy={displayPending}
           onFocus={() => send("selection-action", "focus")}
           onClear={() => send("selection-action", "clear")}

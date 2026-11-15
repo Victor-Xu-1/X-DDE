@@ -8,7 +8,7 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
-def test_display_selection_controls_reuse_the_inspection_gate_without_owning_scientific_atom_changes():
+def test_display_selection_scope_preserves_scientific_boundaries():
     changed = [
         "frontend/src/viewer/StructureInspectionSummary.tsx",
         "frontend/src/viewer/StructureInspection.test.tsx",

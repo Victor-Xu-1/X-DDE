@@ -22,7 +22,7 @@ it("shows exact observed selection identity and zero confidence, with display-on
     residues: [residue],
     selected: [residue.key],
     selection: null,
-    confidence: { observed: 0 },
+    confidence: { key: "current", residueScores: { observed: 0 }, tokens: [] },
     onFocus: focus,
     onClear: clear,
   };
@@ -65,7 +65,11 @@ it("keeps atom selection distinct from residue scores and bounds unmapped confid
       count: 1,
       pick_mode: "atom" as const,
     },
-    confidence: { [residue.key]: 97 },
+    confidence: {
+      key: "current",
+      residueScores: { [residue.key]: 97 },
+      tokens: [],
+    },
     onFocus: vi.fn(),
     onClear: vi.fn(),
   };
@@ -77,7 +81,7 @@ it("keeps atom selection distinct from residue scores and bounds unmapped confid
       {...props}
       selection={null}
       selected={[]}
-      nativeSelectionCount={2}
+      nativeTokens={[1, 2]}
     />,
   );
   expect(screen.getByText("2 confidence positions")).toBeVisible();
@@ -85,10 +89,47 @@ it("keeps atom selection distinct from residue scores and bounds unmapped confid
     <StructureSelectionSummary
       {...props}
       selection={null}
-      confidence={{ [residue.key]: NaN }}
+      confidence={{
+        key: "current",
+        residueScores: { [residue.key]: NaN },
+        tokens: [],
+      }}
     />,
   );
   expect(screen.queryByText(/pLDDT/)).toBeNull();
+});
+it("represents mixed polymer and ligand confidence selections without assigning one residue's score to the selection", () => {
+  const residue = {
+    key: "polymer",
+    chain: "A",
+    resn: "ASN",
+    resi: 10,
+    icode: "",
+  };
+  const props = {
+    language: "en" as const,
+    residues: [residue],
+    selected: [residue.key],
+    selection: null,
+    confidence: {
+      key: "current",
+      residueScores: { polymer: 97 },
+      tokens: [
+        { index: 0, chain: "A", residue: "polymer", label: "A:ASN10" },
+        { index: 1, chain: "B", residue: "ligand", label: "B:LIG1 · C2" },
+      ],
+    },
+    onFocus: vi.fn(),
+    onClear: vi.fn(),
+  };
+  const view = render(
+    <StructureSelectionSummary {...props} nativeTokens={[0, 1]} />,
+  );
+  expect(screen.getByText("1 residue · 1 confidence position")).toBeVisible();
+  expect(screen.getByText(/B:LIG1 · C2/)).toBeVisible();
+  expect(screen.queryByText(/pLDDT/)).toBeNull();
+  view.rerender(<StructureSelectionSummary {...props} nativeTokens={[0]} />);
+  expect(screen.getByText("pLDDT 97.0")).toBeVisible();
 });
 it("exposes native representation switches without changing unrelated options", () => {
   const change = vi.fn();
