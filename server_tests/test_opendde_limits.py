@@ -83,6 +83,18 @@ async def test_actual_cgroup_limits_and_isolated_oom(tmp_path, mode):
         code, state = await command(
             "docker", "inspect", "--format", "{{json .State.OOMKilled}}", receipt["container_id"]
         )
+        # Attach completion can precede Docker's OOM event metadata update.
+        for _ in range(20):
+            if code or mode != "oom" or json.loads(state) is True:
+                break
+            await asyncio.sleep(0.1)
+            code, state = await command(
+                "docker",
+                "inspect",
+                "--format",
+                "{{json .State.OOMKilled}}",
+                receipt["container_id"],
+            )
         assert code == 0 and json.loads(state) is (mode == "oom")
         destination = Path("server_tests/evidence/opendde-limits") / mode
         destination.mkdir(parents=True, exist_ok=True)

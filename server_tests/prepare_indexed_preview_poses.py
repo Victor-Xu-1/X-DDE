@@ -188,6 +188,7 @@ def main():
             create_app(native_settings), base_url=os.environ["WB_BROWSER_URL"]
         ) as client:
             client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+            response_json(client.post("/api/runtime-controls/chemistry/start", json={}))
             rows = response_json(
                 client.get(f"/api/datasets/{INDEX_JOB}/members", params={"limit": 2})
             )["rows"]
@@ -197,6 +198,7 @@ def main():
                 proof["cases"].append(
                     prepare_member(client, store, assets, native_settings, evidence, member)
                 )
+            response_json(client.post("/api/runtime-controls/chemistry/stop", json={}))
         after = job_states(store)
         ids = {case["job"]["id"] for case in proof["cases"]}
         assert len(ids) == 2 and set(after) - set(before) == ids

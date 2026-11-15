@@ -139,7 +139,7 @@
 .utility-recognition-frame {
   display: block;
   width: 100%;
-  height: max(760px, calc(100dvh - 205px));
+  height: clamp(500px, calc(100dvh - 300px), 900px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -165,6 +165,6 @@
     flex-direction: column;
   }
   .utility-recognition-frame {
-    height: 1300px;
+    height: 1080px;
   }
 }

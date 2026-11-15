@@ -120,7 +120,7 @@ def test_screening_recovers_one_accepted_intent_after_a_lost_response(language, 
                 route.fulfill(json=value)
 
         page.route("**/api/workflows/**", workflow)
-        page.goto(base)
+        page.goto(base + "/#view=new")
         jobs_before = page.request.get(base + "/api/jobs").json()
         card = page.locator('button[data-capability="drugclip.screen"]').first
         expect(card).to_have_count(1, timeout=30000)

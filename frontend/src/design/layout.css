@@ -43,7 +43,7 @@ button:disabled {
   color: var(--ink);
 }
 .studio-app {
-  grid-template-columns: 208px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);
   background: var(--canvas);
   color: var(--ink);
 }
@@ -91,14 +91,15 @@ button:disabled {
   }
 }
 .studio-sidebar nav {
-  gap: 7px;
+  gap: 5px;
 }
 .studio-sidebar nav button {
   min-height: 42px;
   padding: 8px 12px;
-  gap: 12px;
+  gap: 9px;
   border-radius: 9px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.4;
   font-weight: 550;
 }
 .studio-sidebar nav button.active {

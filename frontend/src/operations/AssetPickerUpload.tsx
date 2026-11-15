@@ -3,6 +3,8 @@ import type { Asset, AssetKind } from "./types";
 import { FileSelect } from "../presentation/FileSelect";
 import { researchError } from "../presentation/research-content";
 import { useAssetUpload } from "./useAssetUpload";
+import { ImageMoleculeInput } from "../utilities/ImageMoleculeInput";
+import { imageMoleculeFile } from "../utilities/image-molecule";
 
 /** Unmounting this source invalidates its existing native upload lifecycle. */
 export function AssetPickerUpload({
@@ -43,7 +45,7 @@ export function AssetPickerUpload({
           ? "请选择本任务支持的文件格式。"
           : "Choose a supported format for this task."
         : researchError(upload.error, zh);
-  return (
+  const content = (
     <>
       <label className="file-upload">
         {upload.busy && (
@@ -78,5 +80,25 @@ export function AssetPickerUpload({
         </p>
       )}
     </>
+  );
+  return (
+    <ImageMoleculeInput
+      language={language}
+      disabled={upload.busy}
+      enabled={
+        kind === "ligand" &&
+        formats.some((format) => [".sdf", ".mol"].includes(format))
+      }
+      onMolecule={async (molecule, image) => {
+        const file = await imageMoleculeFile(
+          molecule,
+          image,
+          formats.includes(".sdf") ? ".sdf" : ".mol",
+        );
+        await upload.upload(file);
+      }}
+    >
+      {content}
+    </ImageMoleculeInput>
   );
 }
