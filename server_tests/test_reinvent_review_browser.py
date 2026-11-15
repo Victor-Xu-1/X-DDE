@@ -70,7 +70,7 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
         page.screenshot(path=evidence / f"scope-{language}-{width}.png", full_page=True)
         next_button.click()
         page.get_by_role("radio", name="20 个候选" if zh else "20 candidates", exact=True).check()
-        page.get_by_role("button", name="专家微调" if zh else "Expert tuning", exact=True).click()
+        page.get_by_role("button", name="高级设置" if zh else "Advanced settings", exact=True).click()
         page.get_by_role("spinbutton", name="随机种子" if zh else "Random seed", exact=True).fill(
             "2026"
         )
