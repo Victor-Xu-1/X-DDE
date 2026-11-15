@@ -1005,6 +1005,10 @@ export function StructureViewport({
               scene={scene}
               options={options}
               selection={selection}
+              hasDisplaySelection={
+                selectedResidues.length > 0 ||
+                Boolean(currentConfidence && nativeTokens.length)
+              }
               distance={distance}
               disabled={comparison}
               onOptions={configure}

@@ -47,6 +47,30 @@ it("allows supported pocket and selection actions and explains display-only edit
     "原始结构和预测输入不变",
   );
 });
+it("allows display edits for a renderer-selected range without inventing a constraint atom", () => {
+  const send = vi.fn();
+  render(
+    <ViewerControls
+      language="en"
+      scene={scene}
+      options={defaultOptions}
+      selection={null}
+      hasDisplaySelection
+      distance={null}
+      disabled={false}
+      onOptions={vi.fn()}
+      send={send}
+    />,
+  );
+  const summary = screen.getByText("Selection and display editing");
+  expect(summary.closest("details")).not.toHaveAttribute("open");
+  fireEvent.click(summary);
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "A structure range is selected",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Hide selection" }));
+  expect(send).toHaveBeenLastCalledWith("selection-action", "hide");
+});
 it("does not expose a pocket radius on a ligand-only structure", () => {
   render(
     <ViewerControls
