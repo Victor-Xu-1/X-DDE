@@ -597,6 +597,13 @@ export class MolecularScene {
     const visible = this.info.residues.filter((row) =>
       visibleKeys.has(row.key),
     );
+    // Validate source identity first. A delayed click on a now-hidden observed
+    // residue is a recoverable visibility update, not an invalid source model.
+    selectObservedResidues(value, this.info.residues, this.residueSelection);
+    if (!visibleKeys.has((value as { key: string }).key)) {
+      this.emitChainDisplay();
+      return;
+    }
     const next = selectObservedResidues(value, visible, this.residueSelection);
     this.residueSelection = next;
     const keys = new Set(next.keys);

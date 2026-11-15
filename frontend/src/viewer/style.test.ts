@@ -58,6 +58,39 @@ it("reports partially hidden residues independently of chains and restores exact
   expect(emit).toHaveBeenLastCalledWith("residue-selection", [key]);
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });
+it("treats an observed residue hidden during delayed paint as recoverable visibility, while rejecting invalid requests", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CA  GLY A   2       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
+  const { model, scene, emit } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  const key = scene.info.residues[0].key;
+  await scene.selectSequence({ key, mode: "replace" });
+  let finishPaint!: () => void;
+  vi.spyOn(scene, "paint").mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finishPaint = resolve;
+      }),
+  );
+  const hiding = scene.action("hide");
+  await expect(
+    scene.selectSequence({ key, mode: "replace" }),
+  ).resolves.toBeUndefined();
+  expect(emit).toHaveBeenCalledWith("residue-visibility", [key]);
+  await expect(
+    scene.selectSequence({ key, mode: "unsupported" }),
+  ).rejects.toThrow();
+  await expect(
+    scene.selectSequence({ key: "unknown", mode: "replace" }),
+  ).rejects.toThrow();
+  finishPaint();
+  await hiding;
+  await scene.action("restore");
+  await expect(
+    scene.selectSequence({ key, mode: "replace" }),
+  ).resolves.toBeUndefined();
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
 function source(atoms: AtomSpec[]) {
   return atoms.map((a) => ({
     index: a.index,

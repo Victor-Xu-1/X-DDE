@@ -64,6 +64,7 @@ export function StructureSequence({
   onRestore,
   confidence,
   nativeSelectionCount = 0,
+  busy = false,
   compact = false,
 }: {
   language: Language;
@@ -76,6 +77,7 @@ export function StructureSequence({
   onRestore?(): void;
   confidence?: Record<string, number>;
   nativeSelectionCount?: number;
+  busy?: boolean;
   compact?: boolean;
 }) {
   const zh = language === "zh";
@@ -88,6 +90,7 @@ export function StructureSequence({
         compact ? "structure-sequence is-compact" : "structure-sequence"
       }
       aria-label={zh ? "结构中的残基" : "Residues in structure"}
+      aria-busy={busy}
     >
       <header>
         <h3>
@@ -114,13 +117,13 @@ export function StructureSequence({
                 : "atom tokens selected"}
         </span>
         {onRestore && (hiddenChains.length > 0 || hiddenKeys.size > 0) && (
-          <button type="button" onClick={onRestore}>
+          <button type="button" disabled={busy} onClick={onRestore}>
             {zh ? "恢复结构显示" : "Restore structure display"}
           </button>
         )}
         <button
           type="button"
-          disabled={!selected.length && !nativeSelectionCount}
+          disabled={busy || (!selected.length && !nativeSelectionCount)}
           onClick={onClear}
         >
           {zh ? "清除选择" : "Clear sequence selection"}
@@ -173,7 +176,9 @@ export function StructureSequence({
                       : undefined
                   }
                   disabled={
-                    hiddenChains.includes(chain) || hiddenKeys.has(row.key)
+                    busy ||
+                    hiddenChains.includes(chain) ||
+                    hiddenKeys.has(row.key)
                   }
                   onClick={(event) =>
                     onSelect(

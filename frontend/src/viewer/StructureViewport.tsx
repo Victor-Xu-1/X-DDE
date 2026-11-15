@@ -529,6 +529,7 @@ export function StructureViewport({
       selected={selectedResidues}
       hiddenChains={hiddenChains}
       hiddenResidues={hiddenResidues}
+      busy={displayPending}
       confidence={currentConfidence?.residueScores}
       nativeSelectionCount={currentConfidence ? nativeTokens.length : 0}
       onSelect={(key, mode) => send("sequence-selection", { key, mode })}

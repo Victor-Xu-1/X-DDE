@@ -171,11 +171,19 @@ it("shares native sequence and representation controls beyond predictions, waits
     screen.getByRole("button", { name: "Capture 3D view" }),
   ).toBeDisabled();
   const optionsId = post.mock.calls.at(-1)?.[0].requestId;
+  const sequenceDuringUpdate = screen.getByRole("checkbox", {
+    name: "A:ASN10B",
+  });
+  expect(sequenceDuringUpdate).toBeDisabled();
+  const pendingCalls = post.mock.calls.length;
+  fireEvent.click(sequenceDuringUpdate);
+  expect(post.mock.calls).toHaveLength(pendingCalls);
   emit("rendering", false);
   expect(
     screen.getByRole("button", { name: "Capture 3D view" }),
   ).toBeDisabled();
   emit("display-complete", optionsId);
+  expect(sequenceDuringUpdate).toBeEnabled();
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   fireEvent.click(screen.getByRole("checkbox", { name: "A:ASN10B" }));
   expect(post).toHaveBeenLastCalledWith(
