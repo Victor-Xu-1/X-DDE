@@ -80,20 +80,6 @@ export function useRecognitionBridge(
         !(message.source instanceof File) ||
         !validImage(message.source)
       ) {
-        console.warn("Recognition export rejected", {
-          structure: Boolean(message.molecule),
-          schema: validImageMolecule(message.molecule),
-          sourceFile: message.source instanceof File,
-          image: message.source instanceof File && validImage(message.source),
-          smilesType: typeof message.molecule?.smiles,
-          molfileType: typeof message.molecule?.molfile,
-          molfileEnd:
-            typeof message.molecule?.molfile === "string" &&
-            /^M  END\s*$/m.test(message.molecule.molfile),
-          multipleRecords:
-            typeof message.molecule?.molfile === "string" &&
-            message.molecule.molfile.includes("$$$$"),
-        });
         setBusy(false);
         setError(
           zh
