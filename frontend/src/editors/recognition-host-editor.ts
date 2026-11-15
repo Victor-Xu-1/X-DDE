@@ -5,7 +5,7 @@ import {
   foldDisplayHydrogens,
   hasNonDonorHydrogens,
 } from "./ketcher-hydrogens";
-import { editorLifetime } from "./editor-lifetime";
+import { editorLifetime, editorResize } from "./editor-lifetime";
 
 export type RecognitionEditor = Pick<
   Ketcher,
@@ -79,6 +79,7 @@ export function configureRecognitionEditor(
   };
   function fit() {
     needsFit = !actions.fit();
+    return !needsFit;
   }
   async function commit(
     prepared: string,
@@ -175,7 +176,7 @@ export function configureRecognitionEditor(
         eventFailures !== lifetime.failures
       )
         return;
-      if (wasEmpty && !empty) fit();
+      if ((wasEmpty || needsFit) && !empty) fit();
       acceptedKet = observed;
       retained = null;
       wasEmpty = empty;
@@ -255,17 +256,16 @@ export function configureRecognitionEditor(
       return applied && !signal.aborted && intent === revision;
     });
   };
+  const fitWhenVisible = (resized = false) => {
+    if (signal.aborted) return false;
+    if (resized) needsFit = true;
+    if (needsFit && lifetime.valid && !wasEmpty) return fit();
+    return false;
+  };
   return {
     failed,
-    fitWhenVisible(resized = false) {
-      if (
-        (needsFit || resized) &&
-        lifetime.valid &&
-        !wasEmpty &&
-        !signal.aborted
-      )
-        fit();
-    },
+    fitWhenVisible,
+    resize: editorResize(fitWhenVisible),
     load,
     retainedDrawing() {
       const value = retained ?? acceptedKet;

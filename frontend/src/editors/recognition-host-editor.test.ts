@@ -433,3 +433,24 @@ it("never exposes export approval for an empty native history state with stale S
   );
   f.controller.abort();
 });
+
+it("fits cumulative small resizes and defers an unavailable canvas without rewriting it", async () => {
+  const f = fixture();
+  await ready(f);
+  await f.policy.load("source-A");
+  const originalFits = f.fit.mock.calls.length;
+  f.policy.resize(1000, 600);
+  for (let width = 950; width > 390; width = Math.floor(width * 0.95))
+    f.policy.resize(width, 600);
+  f.policy.resize(390, 600);
+  expect(f.fit.mock.calls.length).toBeGreaterThan(originalFits + 3);
+  const fits = f.fit.mock.calls.length;
+  f.fail();
+  f.policy.resize(1000, 600);
+  expect(f.fit).toHaveBeenCalledTimes(fits);
+  f.edit(carbon);
+  await vi.waitFor(() => expect(f.fit).toHaveBeenCalledTimes(fits + 1));
+  expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: true });
+  expect(f.native.setMolecule).toHaveBeenCalledExactlyOnceWith(carbon);
+  f.controller.abort();
+});

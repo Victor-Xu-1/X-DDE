@@ -39,6 +39,16 @@ def prepare_policy(page, base, temporary):
           resetZoom:()=>{native.editor.zoom(1);},
           onState:state=>{window.nativePolicyState=state;window.nativePolicyStates.push(state);}
         });
+      window.nativeResizeWidths=[];
+      const resize=new ResizeObserver(entries=>{
+        const size=entries[0]?.contentRect;
+        if (size) {
+          window.nativeResizeWidths.push(Math.round(size.width));
+          window.nativeDisplayPolicy.resize(size.width,size.height);
+        }
+      });
+      resize.observe(document.documentElement);
+      window.nativePolicyAbort.signal.addEventListener('abort',()=>resize.disconnect(),{once:true});
       await window.nativeDisplayPolicy.load('');
     }""")
     return target

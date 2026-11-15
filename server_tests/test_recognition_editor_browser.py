@@ -49,15 +49,22 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             assert first["zoom"] > 0.1
             save_snapshot(evidence, "owned-stat6-source", first)
             page.screenshot(path=evidence / "owned-stat6-display.png")
-            page.set_viewport_size({"width": 390, "height": 900})
-            page.evaluate("() => window.nativeDisplayPolicy.fitWhenVisible(true)")
+            width = 1440
+            while width > 390:
+                width = max(390, int(width * 0.95))
+                page.set_viewport_size({"width": width, "height": 1000})
+                page.wait_for_function(
+                    "width => window.nativeResizeWidths.at(-1) === width", arg=width
+                )
+            wait_available(page)
             narrow = snapshot(page)
             verify_identity(narrow, identity)
             assert narrow["key"] == first["key"]
             assert narrow["zoom"] < first["zoom"]
             page.screenshot(path=evidence / "owned-stat6-390-display.png")
             page.set_viewport_size({"width": 1440, "height": 1000})
-            page.evaluate("() => window.nativeDisplayPolicy.fitWhenVisible(true)")
+            page.wait_for_function("() => window.nativeResizeWidths.at(-1) === 1440")
+            wait_available(page)
             # Native replacements reach the same public observer as native file
             # tools. Stock UI import is a separate installed-host Chrome gate:
             # the standalone 3.18 shell's New Project action reloads its document.
