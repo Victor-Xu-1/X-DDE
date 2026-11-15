@@ -60,7 +60,8 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             writer.close()
             for label, file in (("explicit-H-native", source), ("no-H-3D-native", no_h)):
                 assert load_source(page, "")
-                wait_available(page)
+                wait_available(page, require_molecule=False)
+                assert not snapshot(page)["state"]["available"]
                 page.evaluate("source => window.ketcher.setMolecule(source)", file.read_text())
                 page.wait_for_function("() => !window.nativePolicyState.available")
                 assert page.evaluate("() => window.nativeDisplayPolicy.recheck()")

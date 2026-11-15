@@ -49,14 +49,20 @@ export function configureRecognitionEditor(
     fit(): boolean;
     resetZoom(): void;
     onState(state: { busy: boolean; available: boolean }): void;
+    onValidated?(): void;
   },
 ) {
-  const lifetime = editorLifetime(signal, actions.onState);
+  let wasEmpty = true;
+  const lifetime = editorLifetime(signal, (state) =>
+    actions.onState({
+      ...state,
+      available: state.available && !wasEmpty,
+    }),
+  );
   let revision = 0,
     canvasRevision = 0,
     needsIdentityReview = false,
     acceptedKet: string | null = null,
-    wasEmpty = true,
     needsFit = false,
     committing = false;
   let retained: string | null = null;
@@ -115,6 +121,7 @@ export function configureRecognitionEditor(
         needsFit = false;
       } else fit();
       lifetime.accept();
+      if (!signal.aborted) actions.onValidated?.();
       return true;
     } finally {
       committing = false;
@@ -174,6 +181,7 @@ export function configureRecognitionEditor(
       wasEmpty = empty;
       needsIdentityReview = false;
       lifetime.accept();
+      if (!signal.aborted) actions.onValidated?.();
       return;
     }
     retained = observed;

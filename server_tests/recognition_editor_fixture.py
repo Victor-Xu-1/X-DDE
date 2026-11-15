@@ -53,9 +53,10 @@ def snapshot(page):
     })""")
 
 
-def wait_available(page):
+def wait_available(page, require_molecule=True):
     page.wait_for_function(
-        "() => window.nativePolicyState.available && !window.nativePolicyState.busy",
+        "required => !window.nativePolicyState.busy && (!required || window.nativePolicyState.available)",
+        arg=require_molecule,
         timeout=45000,
     )
 

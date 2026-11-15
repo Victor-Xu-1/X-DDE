@@ -82,7 +82,7 @@ function fixture() {
 async function ready(f: ReturnType<typeof fixture>) {
   await f.policy.load("");
   await vi.waitFor(() =>
-    expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: true }),
+    expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: false }),
   );
   vi.mocked(f.native.setMolecule).mockClear();
 }
@@ -409,5 +409,22 @@ it("refuses native layout that still contains 3D coordinates before committing",
   await expect(f.policy.load("source-A")).rejects.toThrow("二维结构");
   expect(f.native.setMolecule).not.toHaveBeenCalled();
   expect(f.current()).toBe("{}");
+  f.controller.abort();
+});
+
+it("never exposes export approval for an empty native history state with stale SMILES", async () => {
+  const f = fixture();
+  await ready(f);
+  await f.policy.load("source-A");
+  f.state.mockClear();
+  f.edit("{}");
+  expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: false });
+  await vi.waitFor(() => expect(f.state.mock.calls.length).toBeGreaterThan(1));
+  expect(f.state.mock.calls.every(([state]) => !state.available)).toBe(true);
+  expect(f.policy.retainedDrawing()).toBeNull();
+  f.edit(carbon);
+  await vi.waitFor(() =>
+    expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: true }),
+  );
   f.controller.abort();
 });
