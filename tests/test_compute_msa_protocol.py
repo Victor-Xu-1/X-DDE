@@ -179,3 +179,4 @@ def test_native_factory_receives_the_operator_endpoint(configured, monkeypatch):
     assert environment["MMSEQS_SERVICE_HOST_URL"] == endpoint
     assert arguments[arguments.index("--env") + 1] == "MMSEQS_SERVICE_HOST_URL"
     assert "--restart" in arguments and "--user" in arguments
+    assert arguments[arguments.index("--restart") + 1] == "no"

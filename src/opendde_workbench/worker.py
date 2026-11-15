@@ -28,6 +28,7 @@ class Worker:
         self.error: str | None = None
         self.task: asyncio.Task | None = None
         self.gate = None
+        self.select_queued = store.next_queued
         self.before_claim = None
         self.on_progress = None
         self.waiting_reason: str | None = None
@@ -79,7 +80,7 @@ class Worker:
                     )
                     log.exception("workflow_orchestration_failed")
                     break
-            queued = self.store.next_queued()
+            queued = self.select_queued()
             self.waiting_reason = None
             if queued:
                 from .disk_space import require_space

@@ -3,6 +3,7 @@
 import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
+from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI, HTTPException
@@ -10,8 +11,10 @@ from fastapi.testclient import TestClient
 
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.deployment.compute_service import ComputeService
+from opendde_workbench.harness_service import HarnessService
+from opendde_workbench.requests import TASK_ADAPTER
 from opendde_workbench.runtime_controls import RuntimeControls, register_runtime_controls
-from opendde_workbench.store import Store
+from opendde_workbench.store import ConflictError, Store
 from opendde_workbench.utility_routes import recognition_available
 
 
@@ -74,3 +77,69 @@ def test_active_or_paused_lifetime_cannot_be_disabled(tmp_path):
             controls.change("chemistry", "stop", False)
     assert error.value.status_code == 409
     assert "chemistry" in controls.enabled
+
+
+def test_disabled_queue_head_does_not_starve_enabled_engine(tmp_path):
+    store = Store(tmp_path / "jobs.sqlite3")
+    first = store.create(
+        TASK_ADAPTER.validate_python(
+            {
+                "operation": "admet_predict",
+                "library": {"asset_id": str(uuid4()), "sha256": "a" * 64},
+            }
+        ),
+        str(uuid4()),
+        20,
+        100,
+    )
+    next_job = store.create(
+        TASK_ADAPTER.validate_python(
+            {"operation": "properties", "smiles": ["CC(=O)Oc1ccccc1C(=O)O"]}
+        ),
+        str(uuid4()),
+        20,
+        100,
+    )
+    controls = RuntimeControls(store)
+    assert controls.next_queued() is None
+    controls.change("chemistry", "start", True)
+    assert controls.next_queued().id == next_job.id
+    assert store.get(first.id).status == "queued"
+
+
+def test_switch_off_during_native_probe_leaves_task_queued(tmp_path):
+    store = Store(tmp_path / "jobs.sqlite3")
+    engine, worker = object.__new__(BackendRouter), SimpleNamespace(gate=None)
+    controls = None
+
+    async def probe(job):
+        controls.change("chemistry", "stop", False)
+        return None
+
+    worker.gate = probe
+    controls = register_runtime_controls(
+        FastAPI(), store, engine, worker, AsyncMock(), lambda: None
+    )
+    controls.change("chemistry", "start", True)
+    job = SimpleNamespace(request=SimpleNamespace(operation="properties"))
+    assert asyncio.run(worker.gate(job))
+
+
+def test_harness_direct_launch_obeys_switch_and_native_activity(tmp_path):
+    store = Store(tmp_path / "jobs.sqlite3")
+    service = object.__new__(HarnessService)
+    service.runtime_busy = AsyncMock(return_value=False)
+    service.invoke = AsyncMock(side_effect=AssertionError("Unexpected native launch"))
+    app, worker = FastAPI(), SimpleNamespace(gate=None)
+    engine = object.__new__(BackendRouter)
+    health = AsyncMock(return_value={"engine": {"backends": {"harness": {"ready": True}}}})
+    register_runtime_controls(app, store, engine, worker, health, lambda: None, service)
+    with pytest.raises(ConflictError, match="Enable OpenDDE Harness"):
+        asyncio.run(service.start(uuid4(), "digest"))
+    service.invoke.assert_not_called()
+    with TestClient(app) as client:
+        assert client.post("/api/runtime-controls/harness/start", json={}).status_code == 200
+        service.runtime_busy.return_value = True
+        assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 409
+        service.runtime_busy.return_value = False
+        assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 200

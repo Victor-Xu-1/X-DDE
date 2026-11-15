@@ -662,7 +662,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     worker.gate = harness_service.queue_gate
     from .runtime_controls import register_runtime_controls
 
-    register_runtime_controls(app, store, engine, worker, health, mutation)
+    register_runtime_controls(app, store, engine, worker, health, mutation, harness_service)
     from .discovery.routes import register_discovery
 
     register_discovery(app, mutation)

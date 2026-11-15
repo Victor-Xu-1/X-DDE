@@ -224,11 +224,23 @@ class Store:
             )
             return jobs
 
-    def next_queued(self) -> Job | None:
+    def next_queued(self, operations: tuple[str, ...] | None = None) -> Job | None:
+        if operations == ():
+            return None
+        eligible = (
+            " AND json_extract(request, '$.operation') IN ("
+            + ",".join("?" for _ in operations)
+            + ")"
+            if operations is not None
+            else ""
+        )
         with self.connect() as db:
             return self.decode(
                 db.execute(
-                    "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
+                    "SELECT * FROM jobs WHERE status='queued'"
+                    + eligible
+                    + " ORDER BY created_at LIMIT 1",
+                    operations or (),
                 ).fetchone()
             )
 

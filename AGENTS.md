@@ -60,6 +60,8 @@
 
 ## Component management
 
+- Scientific engines are off by default. Platform startup and page navigation must not load models or start compute services. Expose authenticated frontend enable/disable controls; enabling job-scoped engines permits on-demand execution without keeping models resident. Preserve active tasks until explicit cancellation completes, then release owned processes. Persistent services require a real stop path and must not auto-restart with Docker. Installation and execution permission are separate states.
+
 - Group components by research use without merging their isolated environments. Bundle actions request only missing, non-pending catalogue roots after a fresh snapshot; the existing server deployment queue owns dependency resolution and operation state. Explicit repair is separate from installed status.
 - Use available page width with adaptive compact cards. Keep all registered components reachable, including future catalogue entries. Show one unified installation directory selector directly. Do not display completed installation history, terminal commands, raw logs, JSON dumps, digests, software manifests or engineering attachments in the user interface. Keep active, paused and latest unresolved failures visible with existing controls; retain server-side diagnostics. Scientific methods, score units, uncertainty and research files remain available.
 - Installed status must not dispatch installation. Preserve optional model/database choices, individual third-party licenses, ownership and uninstall protection. Do not verify interface changes by reinstalling scientific components on the owner's shared workstation.

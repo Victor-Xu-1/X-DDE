@@ -21,6 +21,13 @@ class RuntimeControls:
             return f"Enable {owner.name} in Backend controls before running this task."
         return None
 
+    def next_queued(self):
+        operations = tuple(op for key in self.enabled for op in ENGINES[key].operations)
+        return self.store.next_queued(operations)
+
+    def native_reason(self):
+        return None if "harness" in self.enabled else "Enable OpenDDE Harness in Backend controls."
+
     def active_engines(self):
         with self.store.connect() as db:
             rows = db.execute(
@@ -41,7 +48,7 @@ class RuntimeControls:
             self.enabled.discard(identifier)
 
 
-def register_runtime_controls(app, store, engine, worker, health, mutation):
+def register_runtime_controls(app, store, engine, worker, health, mutation, harness=None):
     from .backend_router import BackendRouter
 
     # Explicitly injected engines retain their own lifecycle contract.
@@ -49,10 +56,18 @@ def register_runtime_controls(app, store, engine, worker, health, mutation):
     controls = RuntimeControls(store)
     if managed:
         engine.admission = controls.reason
+        worker.select_queued = controls.next_queued
+        if harness is not None:
+            harness.admission = controls.native_reason
         previous_gate = worker.gate
 
         async def gate(job):
-            return controls.reason(job) or (await previous_gate(job) if previous_gate else None)
+            reason = controls.reason(job)
+            if reason:
+                return reason
+            native = await previous_gate(job) if previous_gate else None
+            # An explicit switch-off can arrive during the native activity probe.
+            return controls.reason(job) or native
 
         worker.gate = gate
 
@@ -60,6 +75,8 @@ def register_runtime_controls(app, store, engine, worker, health, mutation):
     async def snapshot():
         state = await health()
         active = controls.active_engines()
+        if harness is not None and await harness.runtime_busy():
+            active.add("harness")
         return {
             "engines": [
                 {
@@ -79,5 +96,10 @@ def register_runtime_controls(app, store, engine, worker, health, mutation):
             raise HTTPException(409, "This runtime supplies its own controls.")
         state = await health() if action == "start" else None
         ready = bool(state and statuses(state["engine"]).get(identifier, {}).get("ready"))
+        if action == "stop" and identifier == "harness" and harness is not None:
+            if await harness.runtime_busy():
+                raise HTTPException(409, "Stop the active native design campaign first.")
         controls.change(identifier, action, ready)
         return {"enabled": identifier in controls.enabled}
+
+    return controls
