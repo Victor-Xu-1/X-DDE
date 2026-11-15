@@ -135,6 +135,16 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
     )
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
+        permission = client.post("/api/runtime-controls/gnina/start", json={})
+        assert permission.status_code == 200, permission.text
+        assert {
+            row["id"]
+            for row in client.get("/api/runtime-controls").json()["engines"]
+            if row["enabled"]
+        } == {"gnina"}
         refs = {}
         for role, name, kind in [
             ("receptor", "184l_rec.pdb", "structure"),
@@ -514,8 +524,15 @@ def test_real_gnina_three_modes_and_exact_pose_assets(tmp_path, monkeypatch):
         )
         assert not (settings.state_dir / "jobs" / cancelled_id / "process.json").exists()
         (evidence / "native-cancellation.json").write_text(json.dumps(cancelled, indent=2))
+        assert client.post("/api/runtime-controls/gnina/stop", json={}).status_code == 200
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
     # New server lifespan uses persisted jobs, versions and environment snapshots.
     with TestClient(create_app(replace(settings)), base_url="http://127.0.0.1:4320") as client:
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
         persisted_jobs = client.get("/api/jobs").json()
         expected_names = {"remote native " + stage for stage in stages} | {
             "Native output rejection",
