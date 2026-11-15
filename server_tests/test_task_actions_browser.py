@@ -229,7 +229,9 @@ def test_late_confirmed_retry_does_not_reclaim_navigation(language, destination)
                 page.wait_for_timeout(50)
             assert len(held) == len(observed) == 1
             if destination == "other_task":
-                page.locator(".task-picker summary").click()
+                page.get_by_role(
+                    "button", name="返回任务结果" if zh else "Back to task results", exact=True
+                ).click()
                 page.get_by_role("button", name=target["request"]["name"], exact=True).click()
                 expect(page.locator(".detail-panel h2")).to_have_text(target["request"]["name"])
             else:

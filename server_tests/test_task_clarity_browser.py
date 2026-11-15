@@ -37,7 +37,7 @@ def test_molecular_templates_have_relevant_steps_and_exact_file_review(capabilit
                 else None
             ),
         )
-        page.goto(base)
+        page.goto(base + "/#view=new")
         jobs = page.request.get(base + "/api/jobs").json()
         card = page.locator(f'button[data-capability="{capability}"]').first
         expect(card).to_have_count(1, timeout=30000)
