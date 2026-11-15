@@ -23,6 +23,11 @@ def verify_api(root, image, reference, moving, options, evidence):
     )
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         client.headers["X-Workbench-CSRF"] = client.get("/api/session").json()["csrf_token"]
+        assert not any(
+            row["enabled"] for row in client.get("/api/runtime-controls").json()["engines"]
+        )
+        permission = client.post("/api/runtime-controls/biopython/start", json={})
+        assert permission.status_code == 200, permission.text
         versions = []
         for label, source in (("reference", reference), ("moving", moving)):
             response = client.post(
@@ -93,6 +98,7 @@ def verify_api(root, image, reference, moving, options, evidence):
         assert client.get(f"/api/jobs/{identifier}/result").status_code == 422
         artifact.write_bytes(raw)
         (evidence / "api-result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+        assert client.post("/api/runtime-controls/biopython/stop", json={}).status_code == 200
     with TestClient(create_app(settings), base_url="http://127.0.0.1:4320") as client:
         response = client.get(f"/api/jobs/{identifier}/result")
         assert response.status_code == 200 and response.json() == result

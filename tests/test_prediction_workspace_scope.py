@@ -16,6 +16,8 @@ def test_display_selection_scope_preserves_scientific_boundaries():
         "frontend/src/viewer/ViewerControls.tsx",
         "frontend/src/viewer/ViewerControls.test.tsx",
         "frontend/src/viewer/structure-inspection.css",
+        "server_tests/comparison_api_harness.py",
+        "server_tests/test_pose_handoff_browser.py",
         "frontend/package.json",
         "frontend/package-lock.json",
         "pyproject.toml",
