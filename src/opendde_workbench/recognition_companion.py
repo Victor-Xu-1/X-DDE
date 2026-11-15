@@ -145,7 +145,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
-    parser.add_argument("--exclusive-source", action="store_true", help="Confirm a private offline source copy with no other writers; not an automatic lock")
+    parser.add_argument(
+        "--exclusive-source",
+        action="store_true",
+        help="Confirm a private offline source copy with no other writers; not an automatic lock",
+    )
     parser.add_argument("--backup-directory", type=Path)
     args = parser.parse_args()
     if args.apply:

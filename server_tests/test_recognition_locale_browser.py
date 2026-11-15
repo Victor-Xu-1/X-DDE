@@ -21,15 +21,21 @@ def compiled(tmp_path_factory):
       import {build} from 'vite';
       import react from '@vitejs/plugin-react';
       import path from 'node:path';
-      await build({configFile:false,plugins:[react()],define:{'process.env.NODE_ENV':'"production"'},resolve:{alias:{
+      await build({configFile:false,plugins:[react()],
+      define:{'process.env.NODE_ENV':'"production"'},resolve:{alias:{
         react:path.resolve('node_modules/react'),
         'react-dom':path.resolve('node_modules/react-dom')
-      }},build:{outDir:process.argv[1],lib:{entry:path.resolve('../tests/fixtures/recognition_locale/browser.tsx'),formats:['es'],fileName:()=> 'contract.js',cssFileName:'contract'}}});
+      }},build:{outDir:process.argv[1],lib:{
+        entry:path.resolve('../tests/fixtures/recognition_locale/browser.tsx'),
+        formats:['es'],fileName:()=> 'contract.js',cssFileName:'contract'}}});
     """
-    subprocess.run(["node", "--input-type=module", "-e", code, str(root)], cwd="frontend", check=True)
+    subprocess.run(
+        ["node", "--input-type=module", "-e", code, str(root)], cwd="frontend", check=True
+    )
     (root / "index.html").write_text(
         '<!doctype html><html><head><link rel="stylesheet" href="/contract.css"></head>'
-        '<body style="margin:0"><div id="root"></div><script type="module" src="/contract.js"></script></body></html>'
+        '<body style="margin:0"><div id="root"></div>'
+        '<script type="module" src="/contract.js"></script></body></html>'
     )
     return root
 
@@ -70,9 +76,14 @@ def test_language_switch_retains_source_and_edits_without_dispatch(compiled, wid
         browser = driver.chromium.launch()
         page = browser.new_page(viewport={"width": width, "height": 900})
         mutations, errors = [], []
-        page.on("request", lambda request: mutations.append(request.url) if request.method != "GET" else None)
+        page.on(
+            "request",
+            lambda request: mutations.append(request.url) if request.method != "GET" else None,
+        )
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.on("pageerror", lambda _: (evidence / "page-errors.json").write_text(json.dumps(errors)))
+        page.on(
+            "pageerror", lambda _: (evidence / "page-errors.json").write_text(json.dumps(errors))
+        )
         page.goto("http://127.0.0.1:4322/")
         frame = page.frame_locator("iframe")
         try:
@@ -81,7 +92,10 @@ def test_language_switch_retains_source_and_edits_without_dispatch(compiled, wid
             page.screenshot(path=evidence / "failed-contract.png")
             (evidence / "failed-dom.html").write_text(page.content())
             raise
-        frame.get_by_label("Structure image").set_input_files({"name":"STAT6-structure.png","mimeType":"image/png","buffer":b'controlled transport fixture'})
+        frame.get_by_label("Structure image").set_input_files(
+            {"name": "STAT6-structure.png", "mimeType": "image/png",
+             "buffer": b"controlled transport fixture"}
+        )
         editor = frame.get_by_role("textbox", name="Molecular structure")
         editor.fill("edited graph identity")
         for _ in range(2):
@@ -97,5 +111,11 @@ def test_language_switch_retains_source_and_edits_without_dispatch(compiled, wid
         expect(page.get_by_text("Update the local workbench", exact=False)).to_have_count(0)
         assert not mutations and not errors
         page.screenshot(path=evidence / "controlled-contract.png")
-        (evidence / "acceptance.json").write_text(json.dumps({"width":width,"languages":["en","zh"],"controlled_native_host":True,"native_ketcher":False,"model_execution":False,"new_jobs":0,"source_and_edits_retained":True},indent=2))
+        (evidence / "acceptance.json").write_text(
+            json.dumps(
+                {"width": width, "languages": ["en", "zh"], "controlled_native_host": True,
+                 "native_ketcher": False, "model_execution": False, "new_jobs": 0,
+                 "source_and_edits_retained": True}, indent=2
+            )
+        )
         browser.close()

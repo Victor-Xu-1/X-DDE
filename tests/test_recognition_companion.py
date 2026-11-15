@@ -43,7 +43,9 @@ def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
     assert len(json.loads((saved / "receipt.json").read_text())) == 5
-    assert companion.apply(host, backups, resources, exclusive_source=True) == {"changed": 0, "already_applied": True}
+    assert companion.apply(host, backups, resources, exclusive_source=True) == {
+        "changed": 0, "already_applied": True,
+    }
 
 
 def test_unknown_host_is_rejected_before_any_native_write(source):
@@ -120,7 +122,9 @@ def test_failed_cutover_restores_only_our_unchanged_writes(source, monkeypatch):
     assert list(backups.glob("*/receipt.json"))
     restored = native.stat()
     assert restored.st_mode & 0o777 == 0o440
-    assert (restored.st_uid, restored.st_gid) == (original_metadata.st_uid, original_metadata.st_gid)
+    assert (restored.st_uid, restored.st_gid) == (
+        original_metadata.st_uid, original_metadata.st_gid,
+    )
 
 
 def test_owner_deleted_file_does_not_abort_other_file_recovery(source, monkeypatch):
@@ -174,4 +178,3 @@ def test_published_manifest_is_bounded_and_wheel_ships_canonical_adapters():
         assert mapping["frontend/src/utilities/" + name] == (
             "opendde_workbench/data/recognition_locale/" + name
         )
-
