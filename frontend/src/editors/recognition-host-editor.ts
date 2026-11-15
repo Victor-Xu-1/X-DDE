@@ -257,8 +257,14 @@ export function configureRecognitionEditor(
   };
   return {
     failed,
-    fitWhenVisible() {
-      if (needsFit && !signal.aborted) fit();
+    fitWhenVisible(resized = false) {
+      if (
+        (needsFit || resized) &&
+        lifetime.valid &&
+        !wasEmpty &&
+        !signal.aborted
+      )
+        fit();
     },
     load,
     retainedDrawing() {

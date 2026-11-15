@@ -263,6 +263,8 @@ it("defers fitting a hidden canvas until visible and does not reload molecular d
   const fits = f.fit.mock.calls.length;
   f.policy.fitWhenVisible();
   expect(f.fit).toHaveBeenCalledTimes(fits);
+  f.policy.fitWhenVisible(true);
+  expect(f.fit).toHaveBeenCalledTimes(fits + 1);
   expect(f.native.setMolecule).toHaveBeenCalledTimes(calls);
   expect(f.current()).toBe(carbon);
   f.controller.abort();
@@ -388,6 +390,9 @@ it("requires explicit 2D preparation for a hydrogen-free native 3D import", asyn
   expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: false });
   await vi.waitFor(() => expect(f.error).toHaveBeenCalled());
   expect(f.current()).toBe(spatial);
+  const fits = f.fit.mock.calls.length;
+  f.policy.fitWhenVisible(true);
+  expect(f.fit).toHaveBeenCalledTimes(fits);
   expect(f.native.setMolecule).not.toHaveBeenCalled();
   vi.mocked(f.native.structService.layout!).mockResolvedValueOnce({
     struct: carbon,
