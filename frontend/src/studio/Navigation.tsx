@@ -7,6 +7,7 @@ import {
   QuestionCircleOutlined,
   SettingOutlined,
   MoreOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import type { Job, Language } from "../types";
 import { NavigationFrame } from "./NavigationFrame";
@@ -20,6 +21,7 @@ import {
 export { viewTitle } from "./navigation-model";
 export type { View } from "./navigation-model";
 const otherIcons = {
+  utilities: ToolOutlined,
   research: FolderOutlined,
   tasks: ProfileOutlined,
   tools: ExperimentOutlined,

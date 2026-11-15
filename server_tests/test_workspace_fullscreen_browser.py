@@ -76,9 +76,12 @@ def test_native_workspace_keeps_structure_controls_selection_and_downloads(
                         page.evaluate(
                             """({x,y}) => ({x,y,
                     hit:document.elementFromPoint(x,y)?.outerHTML.slice(0,600),
-                    frame:[...document.querySelectorAll('.molecular-stage')].map(el=>el.getBoundingClientRect().toJSON()),
-                    workspace:[...document.querySelectorAll('.structure-workbench:fullscreen')].map(el=>({
-                      bounds:el.getBoundingClientRect().toJSON(),rows:getComputedStyle(el).gridTemplateRows}))})""",
+                    frame:[...document.querySelectorAll('.molecular-stage')].map(
+                      el=>el.getBoundingClientRect().toJSON()),
+                    workspace:[...document.querySelectorAll(
+                      '.structure-workbench[data-workspace-expanded]')].map(el=>({
+                      bounds:el.getBoundingClientRect().toJSON(),
+                      rows:getComputedStyle(el).gridTemplateRows}))})""",
                             {
                                 "x": bounds["x"] + bounds["width"] / 2,
                                 "y": bounds["y"] + bounds["height"] / 2,

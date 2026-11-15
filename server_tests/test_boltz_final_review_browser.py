@@ -53,7 +53,7 @@ def test_boltz_final_review_preserves_exact_chain_msa_and_record(language, width
         expect(save_msa).to_be_enabled()
         save_msa.click()
         page.get_by_text(label("Or choose a molecular file", "或选择分子文件"), exact=True).click()
-        page.locator(".diff-reference input[type=file]").set_input_files(file)
+        page.locator(".diff-reference input.file-select-native[type=file]").set_input_files(file)
         expect(page.locator(".boltz-msa-input").get_by_role("status")).to_contain_text(
             label("1 sequence rows · 847 alignment columns", "1 条序列 · 847 个比对列"),
         )

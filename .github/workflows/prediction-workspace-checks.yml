@@ -52,6 +52,10 @@ on:
       - "frontend/src/viewer/StructureViewport.tsx"
       - "frontend/src/presentation/StructureWorkbench.tsx"
       - "frontend/src/presentation/structure-workbench.css"
+      - "frontend/src/presentation/WorkspaceFullscreenControl*"
+      - "frontend/src/presentation/useWorkspaceFullscreen.ts"
+      - "frontend/src/presentation/workspace-expansion.ts"
+      - "frontend/src/presentation/workspace-fullscreen.css"
       - "frontend/src/viewer/StructureViewer.test.tsx"
       - "frontend/src/viewer/scene.ts"
       - "frontend/src/viewer/frame.ts"
@@ -59,6 +63,7 @@ on:
       - "frontend/src/viewer/style.ts"
       - "frontend/src/viewer/protocol.ts"
       - "frontend/src/viewer/StructureInspection*"
+      - "frontend/src/viewer/ViewerControls*"
       - "frontend/src/viewer/structure-inspection.css"
       - "frontend/src/viewer/polymer-detail.ts"
       - "frontend/src/viewer/residue-selection*"
@@ -252,7 +257,7 @@ jobs:
           src/presentation/PredictionInputPreview.test.tsx
           src/presentation/prediction-heading-focus.test.tsx
           src/viewer/ChainControls.test.tsx src/viewer/chain-visibility.test.ts
-          src/viewer/StructureInspection.test.tsx src/viewer/residue-selection.test.ts
+          src/viewer/StructureInspection.test.tsx src/viewer/ViewerControls.test.tsx src/viewer/residue-selection.test.ts
           src/viewer/confidence-mapping.test.ts src/viewer/structure-bytes.test.ts src/operations/confidence-plot.test.ts
           src/presentation/plots/InteractivePlot.test.tsx
           src/viewer/display-readiness.test.ts

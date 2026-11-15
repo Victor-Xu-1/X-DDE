@@ -10,6 +10,7 @@ import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { MolecularReview } from "../guided/MolecularReview";
+import { ImageMoleculeInput } from "../utilities/ImageMoleculeInput";
 export function PropertyForm({
   language,
   onCreated,
@@ -61,31 +62,37 @@ export function PropertyForm({
   const objects = (
     <>
       {mode !== "file" && (
-        <div className="field">
-          <span>
-            <label htmlFor={id}>SMILES</label>{" "}
-            <Hint label={zh ? "SMILES说明" : "SMILES help"}>
-              {zh
-                ? "用文字表示分子结构。一行一个分子，不附名称或表头；如果不熟悉，可返回上一步选择分子文件。"
-                : "A text representation of molecular structure. One molecule per line without names/headers; choose a molecular file instead if unfamiliar."}
-            </Hint>
-          </span>
-          <textarea
-            id={id}
-            value={smiles}
-            onChange={(e) => setSmiles(e.target.value)}
-            rows={5}
-            spellCheck={false}
-            maxLength={200000}
-          />
-          {lines.length > 500 && (
-            <p role="alert">
-              {zh
-                ? "每次最多填写500个分子，请分批提交。"
-                : "Enter up to 500 molecules per task; split larger batches."}
-            </p>
-          )}
-        </div>
+        <ImageMoleculeInput
+          language={language}
+          disabled={run.busy}
+          onMolecule={(molecule) => setSmiles(molecule.smiles)}
+        >
+          <div className="field">
+            <span>
+              <label htmlFor={id}>SMILES</label>{" "}
+              <Hint label={zh ? "SMILES说明" : "SMILES help"}>
+                {zh
+                  ? "用文字表示分子结构。一行一个分子，不附名称或表头；如果不熟悉，可返回上一步选择分子文件。"
+                  : "A text representation of molecular structure. One molecule per line without names/headers; choose a molecular file instead if unfamiliar."}
+              </Hint>
+            </span>
+            <textarea
+              id={id}
+              value={smiles}
+              onChange={(e) => setSmiles(e.target.value)}
+              rows={5}
+              spellCheck={false}
+              maxLength={200000}
+            />
+            {lines.length > 500 && (
+              <p role="alert">
+                {zh
+                  ? "每次最多填写500个分子，请分批提交。"
+                  : "Enter up to 500 molecules per task; split larger batches."}
+              </p>
+            )}
+          </div>
+        </ImageMoleculeInput>
       )}
       {mode !== "smiles" && (
         <AssetPicker

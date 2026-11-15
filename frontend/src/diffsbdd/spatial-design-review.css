@@ -10,7 +10,7 @@
 
 .prediction-job-preview
   .spatial-design-geometry
-  .viewer-panel:not(:fullscreen)
+  .viewer-panel:not(:popover-open)
   .molecular-stage {
   height: clamp(340px, calc(100dvh - 625px), 580px);
   min-height: 340px;

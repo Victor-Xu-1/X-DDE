@@ -120,6 +120,18 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
             ),
         )
         page.goto(base)
+        # The isolated native gate opts into its one installed engine through
+        # the same default-off controls as a researcher; navigation cannot start it.
+        page.get_by_role("button", name="后端管理" if zh else "Backend controls", exact=True).click()
+        switch = page.get_by_role("switch", name="RDKit + Dimorphite-DL", exact=True)
+        expect(switch).to_be_enabled()
+        switch.click()
+        expect(switch).to_have_attribute("aria-checked", "true")
+        enabled = page.request.get(base + "/api/runtime-controls").json()["engines"]
+        assert [row["id"] for row in enabled if row["enabled"]] == ["chemistry"]
+        page.get_by_role(
+            "button", name="关闭后端面板" if zh else "Close backend panel", exact=True
+        ).click()
         open_navigation(page, language).get_by_role(
             "button", name="研究空间" if zh else "Research workspace", exact=True
         ).click()
@@ -214,6 +226,11 @@ def test_real_saved_current_pose_and_explicit_original_remain_exact_across_view_
         assert not submitted_jobs
         assert read(base, "/api/assets/" + source.id) == raw
         page.screenshot(path=str(evidence / "original-choice.png"))
+        page.get_by_role("button", name="后端管理" if zh else "Backend controls", exact=True).click()
+        page.get_by_role("switch", name="RDKit + Dimorphite-DL", exact=True).click()
+        expect(
+            page.get_by_role("switch", name="RDKit + Dimorphite-DL", exact=True)
+        ).to_have_attribute("aria-checked", "false")
         browser.close()
     assert assets.path(source).read_bytes() == raw
     (evidence / "receipt.json").write_text(

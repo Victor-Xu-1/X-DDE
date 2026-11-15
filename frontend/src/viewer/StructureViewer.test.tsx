@@ -86,6 +86,11 @@ it("acknowledges exact ligand token selections and hides prior sample confidence
       { index: 1, chain: "B", residue: "B:LIG:1:", label: "B:LIG1" },
     ],
   });
+  const annotation = post.mock.calls
+    .filter((call) => call[0].type === "confidence")
+    .at(-1)?.[0];
+  expect(annotation).toMatchObject({ requestId: expect.any(String) });
+  emit("display-complete", annotation.requestId);
   emit("confidence-selected", { key, tokens: [1] });
   expect(selected).toHaveBeenCalledWith({ key, tokens: [1] });
   expect(screen.getByText("1 atom token selected")).toBeVisible();
@@ -171,11 +176,19 @@ it("shares native sequence and representation controls beyond predictions, waits
     screen.getByRole("button", { name: "Capture 3D view" }),
   ).toBeDisabled();
   const optionsId = post.mock.calls.at(-1)?.[0].requestId;
+  const sequenceDuringUpdate = screen.getByRole("checkbox", {
+    name: "A:ASN10B",
+  });
+  expect(sequenceDuringUpdate).toBeDisabled();
+  const pendingCalls = post.mock.calls.length;
+  fireEvent.click(sequenceDuringUpdate);
+  expect(post.mock.calls).toHaveLength(pendingCalls);
   emit("rendering", false);
   expect(
     screen.getByRole("button", { name: "Capture 3D view" }),
   ).toBeDisabled();
   emit("display-complete", optionsId);
+  expect(sequenceDuringUpdate).toBeEnabled();
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   fireEvent.click(screen.getByRole("checkbox", { name: "A:ASN10B" }));
   expect(post).toHaveBeenLastCalledWith(
@@ -205,8 +218,30 @@ it("shares native sequence and representation controls beyond predictions, waits
     "aria-checked",
     "true",
   );
+  expect(
+    screen.getByRole("group", { name: "Current structure selection" }),
+  ).toHaveTextContent("A:ASN10B");
+  expect(
+    screen.getByText("Selection and display editing").closest("details"),
+  ).not.toHaveAttribute("open");
   fireEvent.click(
-    screen.getByRole("button", { name: "Clear sequence selection" }),
+    screen.getByRole("button", { name: "Focus current selection" }),
+  );
+  expect(post.mock.calls.at(-1)?.[0]).toMatchObject({
+    type: "selection-action",
+    value: "focus",
+    requestId: expect.any(String),
+  });
+  expect(
+    screen.getByRole("button", { name: "Clear current selection" }),
+  ).toBeDisabled();
+  emit("display-complete", post.mock.calls.at(-1)?.[0].requestId);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Clear current selection" }),
   );
   const clearId = post.mock.calls.at(-1)?.[0].requestId;
   expect(
@@ -215,6 +250,21 @@ it("shares native sequence and representation controls beyond predictions, waits
   emit("rendering", false);
   emit("display-complete", clearId);
   emit("residue-selection", []);
+  expect(
+    screen.queryByRole("group", { name: "Current structure selection" }),
+  ).toBeNull();
+  emit("residue-visibility", [residue.key]);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Restore structure display" }),
+  );
+  expect(post.mock.calls.at(-1)?.[0]).toMatchObject({
+    type: "selection-action",
+    value: "restore",
+  });
+  emit("display-complete", post.mock.calls.at(-1)?.[0].requestId);
+  emit("residue-visibility", []);
+  expect(screen.getByRole("checkbox", { name: "A:ASN10B" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Capture 3D view" })).toBeEnabled();
   view.rerender(
     <StructureViewer urls={["/api/assets/another"]} language="en" />,

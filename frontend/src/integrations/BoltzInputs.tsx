@@ -1,4 +1,5 @@
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
+import { ImageMoleculeInput } from "../utilities/ImageMoleculeInput";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import type { Language } from "../types";
 import { assetDownloadUrl } from "../research/asset-download";
@@ -159,28 +160,40 @@ export function BoltzInputs({
                   />
                 </details>
               )}
-            <label>
-              {component.kind === "ligand"
-                ? "SMILES"
-                : zh
-                  ? "序列"
-                  : "Sequence"}
-              <textarea
-                rows={component.kind === "ligand" ? 2 : 5}
-                value={component.value}
-                onChange={(e) =>
-                  change(
-                    row,
-                    {
-                      source: null,
-                      value: e.target.value.replace(/\s/g, ""),
-                      msa: null,
-                    },
-                    true,
-                  )
-                }
-              />
-            </label>
+            <ImageMoleculeInput
+              language={language}
+              enabled={component.kind === "ligand"}
+              onMolecule={(molecule) =>
+                change(
+                  row,
+                  { source: null, value: molecule.smiles, msa: null },
+                  true,
+                )
+              }
+            >
+              <label>
+                {component.kind === "ligand"
+                  ? "SMILES"
+                  : zh
+                    ? "序列"
+                    : "Sequence"}
+                <textarea
+                  rows={component.kind === "ligand" ? 2 : 5}
+                  value={component.value}
+                  onChange={(e) =>
+                    change(
+                      row,
+                      {
+                        source: null,
+                        value: e.target.value.replace(/\s/g, ""),
+                        msa: null,
+                      },
+                      true,
+                    )
+                  }
+                />
+              </label>
+            </ImageMoleculeInput>
             {component.kind === "protein" && (
               <BoltzMsaInput
                 key={row.revision}

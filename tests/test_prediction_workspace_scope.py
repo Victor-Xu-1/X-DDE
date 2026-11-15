@@ -77,6 +77,42 @@ def test_opendde_editor_drafts_delegate_only_with_their_closed_native_and_browse
     )
 
 
+def test_display_selection_scope_preserves_scientific_boundaries():
+    changed = [
+        "frontend/src/viewer/StructureInspectionSummary.tsx",
+        "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/viewer/ViewerControls.tsx",
+        "frontend/src/viewer/ViewerControls.test.tsx",
+        "frontend/src/viewer/structure-inspection.css",
+        "server_tests/comparison_api_harness.py",
+        "server_tests/test_pose_handoff_browser.py",
+        "server_tests/test_native_receptors.py",
+        "frontend/package.json",
+        "frontend/package-lock.json",
+        "pyproject.toml",
+        "uv.lock",
+        "install.sh",
+        "install.ps1",
+        "docs/frontend-layout.md",
+        "scripts/prediction-workspace-scope.py",
+        "tests/test_prediction_workspace_scope.py",
+        ".github/workflows/prediction-workspace-checks.yml",
+    ]
+    assert scope.prediction_only(changed, "push")
+    assert scope.prediction_only(changed, "pull_request")
+    assert scope.prediction_only(["frontend/src/viewer/ViewerControls.tsx"])
+    for scientific in (
+        "src/opendde_workbench/research/constraints.py",
+        "src/opendde_workbench/engine.py",
+        "frontend/src/regions/AtomSelection.tsx",
+    ):
+        assert not scope.prediction_only(changed + [scientific])
+    assert not scope.prediction_only(changed, "workflow_dispatch")
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "src/viewer/ViewerControls.test.tsx" in workflow
+
+
 def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     changed = [
         "src/opendde_workbench/boltz_confidence.py",
@@ -805,3 +841,23 @@ def test_shared_example_inspection_runs_its_own_browser_checks_for_stacked_candi
     assert not scope.prediction_only(changed, "workflow_dispatch")
     assert not scope.prediction_only(changed + ["src/opendde_workbench/__main__.py"])
     assert not scope.prediction_only(changed + ["frontend/src/App.tsx"])
+
+
+def test_workspace_expansion_uses_existing_native_gates_and_rejects_mixed_scientific_scope():
+    paths = sorted(scope.EXPANSION_FILES)
+    for event in ("push", "pull_request"):
+        assert scope.workspace_expansion_only(paths, event)
+        assert scope.shared_workbench_only(paths, event)
+        assert scope.prediction_only(paths, event)
+        assert scope.selected(paths, event)
+    assert not scope.workspace_expansion_only(paths, "workflow_dispatch")
+    assert not scope.workspace_expansion_only(["frontend/src/datasets/datasets.css"])
+    for unexpected in (
+        "src/opendde_workbench/backend.py",
+        "frontend/src/operations/AtomConstraintPicker.tsx",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/TaskForm.tsx",
+    ):
+        assert not scope.workspace_expansion_only(paths + [unexpected])
+        assert not scope.prediction_only(paths + [unexpected])
+        assert not scope.shared_workbench_only(paths + [unexpected])

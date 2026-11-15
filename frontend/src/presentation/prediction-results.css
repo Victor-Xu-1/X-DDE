@@ -167,8 +167,8 @@
 .studio-app
   .studio-content[data-prediction-layout="true"]
   .prediction-result
-  .structure-workbench:not(:fullscreen)
-  .viewer-panel:not(:fullscreen)
+  .structure-workbench:not(:popover-open)
+  .viewer-panel:not(:popover-open)
   .molecular-stage {
   height: var(--prediction-stage-height, clamp(360px, 46vh, 520px));
   min-height: 360px;

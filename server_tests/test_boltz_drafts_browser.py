@@ -56,7 +56,7 @@ def test_boltz_draft_recovers_exact_materials_and_review_without_admission(
         expect(save_msa).to_be_enabled()
         save_msa.click()
         page.get_by_text(label("Or choose a molecular file", "或选择分子文件"), exact=True).click()
-        page.locator(".diff-reference input[type=file]").set_input_files(ligand)
+        page.locator(".diff-reference input.file-select-native[type=file]").set_input_files(ligand)
         record = page.get_by_role(
             "spinbutton",
             name=label("Molecule record in SDF (starts at 1)", "SDF 中第几个分子（从 1 开始）"),

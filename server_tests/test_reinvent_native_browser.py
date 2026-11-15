@@ -64,7 +64,7 @@ def test_real_stat6_fixed_port_study():
         ).to_have_attribute("data-drawing-state", "ready", timeout=60000)
         next_button.click()
         expect(page.get_by_role("radio", name="20 candidates", exact=True)).to_be_checked()
-        page.get_by_role("button", name="Expert tuning", exact=True).click()
+        page.get_by_role("button", name="Advanced settings", exact=True).click()
         for label, value in (
             ("CPU cores", "2"),
             ("Memory budget (MiB)", "2048"),

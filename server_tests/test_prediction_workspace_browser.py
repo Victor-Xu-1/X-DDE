@@ -210,8 +210,16 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
 
             def check_expanded_height():
                 expanded = preview.locator(".molecular-stage").bounding_box()
-                height = page.evaluate("innerHeight")
-                assert expanded and expanded["height"] >= max(360, height - 220)
+                pane = preview.bounding_box()
+                dialog = page.locator("[data-workspace-expanded]").bounding_box()
+                assert expanded and pane and dialog
+                # The reference canvas is ~64% of its in-page dialog height.
+                # Keep a large, contained view alongside the sample/sequence controls,
+                # rather than testing the old native-fullscreen viewport minus 220px.
+                assert expanded["height"] >= dialog["height"] * 0.60
+                assert expanded["width"] >= pane["width"] * 0.90
+                assert expanded["y"] >= pane["y"]
+                assert expanded["y"] + expanded["height"] <= pane["y"] + pane["height"] + 2
 
             inspect_full_workspace(
                 page, preview, evidence, language, "wide-prediction", check_expanded_height

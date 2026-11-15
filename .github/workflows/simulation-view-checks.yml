@@ -24,6 +24,7 @@ on:
       - "frontend/src/simulations/MolecularViewport*"
       - "frontend/src/presentation/WorkspaceFullscreenControl*"
       - "frontend/src/presentation/useWorkspaceFullscreen.ts"
+      - "frontend/src/presentation/workspace-expansion.ts"
       - "frontend/src/presentation/workspace-fullscreen.css"
       - "frontend/src/simulations/molecular-surfaces*"
       - "frontend/src/simulations/molecular-update-queue*"

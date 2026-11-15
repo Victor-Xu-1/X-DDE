@@ -234,3 +234,27 @@ The existing Chemistry environment provides both methods; no additional model or
 ### Scientific environment availability
 
 Availability checks inspect the installed environment and its complete model-resource manifest without loading a scientific model. Large resource libraries are checked while the workbench remains available for editing and navigation. Readiness is published only after verification finishes; missing, redirected or changed resources remain unavailable. A timed-out or interrupted observation does not become a successful check later, and concurrent readers share the current observation. Installation readiness does not establish the scientific quality of a prediction.
+
+## Utilities / 小工具
+
+The first navigation entry opens Utilities: image-to-SMILES recognition and editing, ADMET prediction, molecular descriptors, similarity/structural-alert screening, and protonation/tautomer preparation. These entries reuse the existing task forms and result authorities. Switching utility tabs retains unfinished inputs. Accepted tasks stay in their form with an explicit result link; New task resets only that completed tool. Late responses never change the page you are using. ADMET and other scientific calculations require their separately installed environments; opening an input form does not install them.
+
+小工具是首个入口，提供图片转 SMILES 与结构编辑、ADMET、分子性质、相似性与结构警报、质子化与互变异构。图片识别复用已安装的 DECIMER 工作台（本机 8940），支持粘贴、上传、拖入、编辑及 SMILES/MOL/SDF 复制导出。识别服务由内嵌工作台右上角开关启动；默认关闭，闲置后按原工作台策略释放模型。平台没有安装该工作台时会显示连接提示，不生成替代结果。
+
+The editor fills the available window height below the utility tabs. Help, reconnect and separate-window actions sit beside those tabs; input guidance opens on demand. At narrow widths the tabs scroll horizontally, while a short window or phone scrolls within the work area to reach the editor and export controls. Other research pages retain their normal document layout.
+
+编辑区填满工具标签下方的可用高度；帮助、重新连接和独立窗口入口集中在标签右侧。窄屏可横向浏览工具标签，矮屏和手机可在工作区滚动到编辑及导出操作。其他研究页面保持原有布局。
+
+To embed an existing DECIMER workbench, its HTTP host must explicitly permit only `http://127.0.0.1:4322` and `http://localhost:4322` in `frame-ancestors`; retain its host/origin/session checks. X-DDE permits only the two corresponding local 8940 frame origins. The read-only discovery route queries `/health`, never starts WSL/models and never accepts a caller-provided URL. No token or model is copied into X-DDE.
+
+Platform startup no longer automatically installs components or starts an automatic legacy compute connection. Backend controls at the top right lists the registered task engines. Each begins disabled after a platform restart. Enabling permits on-demand tasks without eagerly loading a model; switching off blocks new work. Queued tasks wait until their engine is enabled. Active or retained paused tasks must first be stopped using their task controls. Native task cleanup remains owned by BackendRouter. The existing managed OpenDDE persistent service has its own authenticated start/stop control in the same panel; it is never auto-started. Persistent integrations must provide explicit start/stop controls and a verified resource-release path before being enabled. Platform-only restoration installs neither scientific engines nor checkpoints.
+
+### Images as task input / 结构图片直接输入任务
+
+Ligand file inputs and the shared small-molecule text fields offer **Input from structure image** and **Paste screenshot**. Paste with Ctrl+V in the input area, drop an image, or choose a PNG/JPEG/WebP/BMP file up to 10 MB. The installed local recognition workbench opens inside the task. Enable its model explicitly, recognize the image, review/edit the structure, and choose **Use this molecule**. This does not submit a research task automatically. Continue the task's existing review and submission steps.
+
+ADMET、分子性质及其他接受 SDF/MOL 的小分子任务共用这个入口；结构预测的 SMILES 输入也支持图片。识别后的结构经过确认才会替换当前输入；取消不改动原输入。SDF 通过现有资产上传和分子记录校验保存，附带原图 SHA-256。识别服务和具体研究模型分别启停，缺少 ADMET 等环境时仍不能执行其计算。
+
+The local host adapter is maintained in `frontend/src/utilities/recognition-host-bridge.ts`. A compatible DECIMER frontend supplies file selection, current-editor export and edit notifications; the adapter never installs or starts models. It accepts only the embedding parent with an exact allowed loopback origin and a current session UUID. Exports require a separate current request UUID, preserve the currently displayed source image, and reject edits made while serializing. The X-DDE consumer checks frame identity, origin, request identity, image bounds and molecule payload before importing. No model token crosses the frame boundary. Production host CSP permits only the 4322 X-DDE origins; 4330 is an isolated development candidate only.
+
+The recognition host exports a single immutable MOL snapshot, then converts that snapshot to SMILES through its existing Indigo service. Image transfer is cancellable: the original selected input remains unchanged until a validated upload receipt is accepted. Cancelling or leaving the input invalidates pending application; failed transfers retain the editor for retry. Image recognition supplies a chemical graph and a 2D drawing, not a calculated 3D pose. Tasks requiring 3D coordinates still require conformer preparation and validation through their scientific environment.

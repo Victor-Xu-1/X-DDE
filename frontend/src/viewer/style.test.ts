@@ -42,6 +42,55 @@ function fixture(data = sdf, format = "sdf") {
   scene.inspect(false, ["sdf", "mol", "mol2"].includes(format));
   return { model, scene, clicks, viewer, emit };
 }
+it("reports partially hidden residues independently of chains and restores exact source geometry", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY A   2       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
+  const { model, scene, emit } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  const key = scene.info.residues[0].key;
+  await scene.selectSequence({ key, mode: "replace" });
+  await scene.action("hide");
+  expect(emit).toHaveBeenCalledWith("residue-visibility", [key]);
+  expect(emit).toHaveBeenLastCalledWith("chain-display", []);
+  await scene.action("restore");
+  expect(emit).toHaveBeenCalledWith("residue-visibility", []);
+  await scene.selectSequence({ key, mode: "replace" });
+  expect(emit).toHaveBeenLastCalledWith("residue-selection", [key]);
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
+it("treats an observed residue hidden during delayed paint as recoverable visibility, while rejecting invalid requests", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  CA  GLY A   2       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";
+  const { model, scene, emit } = fixture(pdb, "pdb");
+  const before = source(model.selectedAtoms({}));
+  const key = scene.info.residues[0].key;
+  await scene.selectSequence({ key, mode: "replace" });
+  let finishPaint!: () => void;
+  vi.spyOn(scene, "paint").mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finishPaint = resolve;
+      }),
+  );
+  const hiding = scene.action("hide");
+  await expect(
+    scene.selectSequence({ key, mode: "replace" }),
+  ).resolves.toBeUndefined();
+  expect(emit).toHaveBeenCalledWith("residue-visibility", [key]);
+  await expect(
+    scene.selectSequence({ key, mode: "unsupported" }),
+  ).rejects.toThrow();
+  await expect(
+    scene.selectSequence({ key: "unknown", mode: "replace" }),
+  ).rejects.toThrow();
+  finishPaint();
+  await hiding;
+  await scene.action("restore");
+  await expect(
+    scene.selectSequence({ key, mode: "replace" }),
+  ).resolves.toBeUndefined();
+  expect(source(model.selectedAtoms({}))).toEqual(before);
+});
 function source(atoms: AtomSpec[]) {
   return atoms.map((a) => ({
     index: a.index,
@@ -286,7 +335,12 @@ it("sequence range and polymer detail operate on native residues, preserve carto
   await scene.displayChains({ action: "hide", chain: "A" });
   await expect(
     scene.selectSequence({ key: scene.info.residues[0].key, mode: "replace" }),
-  ).rejects.toThrow();
+  ).resolves.toBeUndefined();
+  expect(emit).toHaveBeenCalledWith(
+    "residue-visibility",
+    scene.info.residues.map((row) => row.key),
+  );
+  expect(emit).toHaveBeenLastCalledWith("chain-display", ["A"]);
   expect(emit).toHaveBeenCalledWith("residue-selection", []);
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });

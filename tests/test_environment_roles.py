@@ -76,6 +76,8 @@ def test_platform_and_prepared_science_do_not_depend_on_provisioner_readiness(
         assert health["environments"] == health["engines"]
         response = submit(client)
         assert response.status_code == 201
+        assert client.get(f"/api/jobs/{response.json()['id']}").json()["status"] == "queued"
+        assert client.post("/api/runtime-controls/opendde/start", json={}).status_code == 200
         job = wait_status(client, response.json()["id"], {"succeeded"})
         record = client.get(f"/api/jobs/{job['id']}/environment").json()
         assert record["specification"]["scientific_software"] == "opendde"

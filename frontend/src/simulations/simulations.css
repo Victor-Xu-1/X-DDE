@@ -422,11 +422,11 @@
   padding: 4px 6px;
   max-width: 90px;
 }
-.simulation-molecular-viewport:fullscreen {
+.simulation-molecular-viewport:popover-open {
   background: #fff;
   padding: 16px;
 }
-.simulation-molecular-viewport:fullscreen .simulation-webgl {
+.simulation-molecular-viewport:popover-open .simulation-webgl {
   height: calc(100vh - 90px);
 }
 @media (max-width: 600px) {

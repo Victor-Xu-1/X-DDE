@@ -90,7 +90,7 @@ def launch_arguments(connection, root, checkpoint, resource_limits=None):
     reviewed[index:index] = [
         *limit_flags,
         "--restart",
-        "unless-stopped",
+        "no",
         "--user",
         f"{os.getuid()}:{os.getgid()}",
         "--label",

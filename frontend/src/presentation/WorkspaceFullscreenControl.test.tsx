@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect, useState } from "react";
@@ -11,11 +12,13 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { StructureWorkbench } from "./StructureWorkbench";
 import { WorkspaceFullscreenControl } from "./WorkspaceFullscreenControl";
 
-let fullscreenElement: Element | null;
-let enter: ReturnType<typeof vi.fn>;
-let exit: ReturnType<typeof vi.fn>;
+let enter: ReturnType<typeof vi.fn>, exit: ReturnType<typeof vi.fn>;
 const mounts = vi.fn();
-
+function nativeClose(target: HTMLElement) {
+  target.style.display = "";
+  const event = Object.assign(new Event("toggle"), { newState: "closed" });
+  target.dispatchEvent(event);
+}
 function Preview({
   language = "en",
   surfaceClass = "viewer-panel",
@@ -29,7 +32,7 @@ function Preview({
   return (
     <section className={surfaceClass}>
       <WorkspaceFullscreenControl language={language} />
-      <div data-testid="native-canvas" />
+      <iframe title="Native scene" />
     </section>
   );
 }
@@ -47,161 +50,148 @@ function Workbench({ language = "en" }: { language?: "en" | "zh" }) {
     </StructureWorkbench>
   );
 }
-function changed(element: Element | null) {
-  fullscreenElement = element;
-  document.dispatchEvent(new Event("fullscreenchange"));
-}
+const openButton = () =>
+  screen.getByRole("button", { name: "Expand research workspace" });
+const closeButton = () =>
+  screen.getByRole("button", { name: "Close expanded view" });
 beforeEach(() => {
-  fullscreenElement = null;
   mounts.mockClear();
+  // JSDOM has the popover hidden UA style, but no working top-layer API.
   enter = vi.fn(function (this: HTMLElement) {
-    changed(this);
-    return Promise.resolve();
+    this.style.display = "block";
   });
-  exit = vi.fn(() => {
-    changed(null);
-    return Promise.resolve();
+  exit = vi.fn(function (this: HTMLElement) {
+    nativeClose(this);
   });
-  Object.defineProperty(document, "fullscreenElement", {
-    configurable: true,
-    get: () => fullscreenElement,
-  });
-  Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+  Object.defineProperty(HTMLElement.prototype, "showPopover", {
     configurable: true,
     value: enter,
   });
-  Object.defineProperty(document, "exitFullscreen", {
+  Object.defineProperty(HTMLElement.prototype, "hidePopover", {
     configurable: true,
     value: exit,
   });
 });
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await act(async () => {
+    await Promise.resolve();
+  });
   vi.restoreAllMocks();
-  delete (HTMLElement.prototype as { requestFullscreen?: unknown })
-    .requestFullscreen;
-  delete (document as { exitFullscreen?: unknown }).exitFullscreen;
-  delete (document as { fullscreenElement?: unknown }).fullscreenElement;
+  delete (HTMLElement.prototype as { showPopover?: unknown }).showPopover;
+  delete (HTMLElement.prototype as { hidePopover?: unknown }).hidePopover;
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
 });
 
 it.each(["en", "zh"] as const)(
-  "expands the whole workspace and keeps the selected pose and native view in %s",
+  "expands the same live workspace without native fullscreen in %s",
   async (language) => {
     const user = userEvent.setup();
+    const native = vi.fn(() => {
+      throw new Error("Denied fullscreen");
+    });
+    Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+      configurable: true,
+      value: native,
+    });
     const { container } = render(<Workbench language={language} />);
-    const workspace = container.querySelector(".structure-workbench");
-    const canvas = screen.getByTestId("native-canvas");
+    const scene = screen.getByTitle("Native scene");
     await user.selectOptions(screen.getByRole("combobox"), "Pose 2");
+    const button = screen.getByRole("button", {
+      name: language === "zh" ? "展开研究工作区" : "Expand research workspace",
+    });
+    await user.click(button);
+    const dialog = screen.getByRole("dialog", {
+      name:
+        language === "zh" ? "结构研究工作区" : "Structure research workspace",
+    });
+    expect(dialog).toBe(container.querySelector(".structure-workbench"));
+    expect(enter.mock.instances[0]).toBe(dialog);
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveAttribute("data-workspace-expanded", "true");
+    expect(document.body.style.overflow).toBe("hidden");
     await user.click(
       screen.getByRole("button", {
-        name:
-          language === "zh"
-            ? "全屏研究工作区"
-            : "Fullscreen research workspace",
+        name: language === "zh" ? "关闭展开视图" : "Close expanded view",
       }),
     );
-    expect(enter.mock.instances[0]).toBe(workspace);
-    expect(document.fullscreenElement).toBe(workspace);
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("combobox")).toHaveValue("Pose 2");
-    await user.click(
-      screen.getByRole("button", {
-        name: language === "zh" ? "退出全屏" : "Exit fullscreen",
-      }),
-    );
-    expect(exit).toHaveBeenCalledOnce();
-    expect(screen.getByRole("combobox")).toHaveValue("Pose 2");
-    expect(screen.getByTestId("native-canvas")).toBe(canvas);
+    expect(screen.getByTitle("Native scene")).toBe(scene);
     expect(mounts).toHaveBeenCalledOnce();
+    expect(button).toHaveFocus();
+    expect(native).not.toHaveBeenCalled();
+    delete (HTMLElement.prototype as { requestFullscreen?: unknown })
+      .requestFullscreen;
   },
 );
 
-it("can expand the workspace while its molecular iframe is still loading", async () => {
+it("expands a loading scene, contains focus and restores pre-existing inert/scroll state", async () => {
   const user = userEvent.setup();
+  document.body.style.overflow = "clip";
+  document.documentElement.style.overflow = "scroll";
   const { container } = render(
-    <StructureWorkbench
-      preview={
-        <section className="viewer-panel">
-          <WorkspaceFullscreenControl language="en" />
-          <p role="status">Loading native scene</p>
-        </section>
-      }
-    >
-      <p>Candidate controls</p>
-    </StructureWorkbench>,
+    <>
+      <button>Outside</button>
+      <Workbench />
+      <aside inert>Already unavailable</aside>
+    </>,
   );
-  await user.click(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
-  );
-  expect(document.fullscreenElement).toBe(
-    container.querySelector(".structure-workbench"),
-  );
-  expect(screen.getByRole("status")).toHaveTextContent("Loading native scene");
+  const outside = screen.getByRole("button", { name: "Outside" });
+  const previouslyInert = container.querySelector("aside")!;
+  const button = openButton();
+  await user.click(button);
+  expect(outside).toHaveAttribute("inert");
+  outside.focus();
+  expect(button).toHaveFocus();
+  const last = screen.getByRole("combobox");
+  last.focus();
+  await user.keyboard("{Tab}");
+  expect(closeButton()).toHaveFocus();
+  await user.keyboard("{Shift>}{Tab}{/Shift}");
+  expect(last).toHaveFocus();
+  await user.keyboard("{Escape}");
+  expect(outside).not.toHaveAttribute("inert");
+  expect(previouslyInert).toHaveAttribute("inert");
+  expect(document.body.style.overflow).toBe("clip");
+  expect(document.documentElement.style.overflow).toBe("scroll");
+  expect(button).toHaveFocus();
 });
 
-it("exits through the native API on Escape and leaves an open figure dialog to handle its own Escape", async () => {
+it("leaves a nested figure dialog to handle Escape, then closes from the native scene document", async () => {
   const user = userEvent.setup();
   render(<Workbench />);
-  await user.click(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
-  );
-  const dialog = document.createElement("dialog");
-  dialog.open = true;
-  document.body.append(dialog);
+  await user.click(openButton());
+  const nested = document.createElement("dialog");
+  nested.open = true;
+  document.body.append(nested);
   try {
     await user.keyboard("{Escape}");
-    expect(exit).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("dialog", { name: "Structure research workspace" }),
+    ).toBeVisible();
   } finally {
-    dialog.remove();
+    nested.remove();
   }
-  await user.keyboard("{Escape}");
-  expect(exit).toHaveBeenCalledOnce();
-  expect(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
-  ).toBeEnabled();
+  const frame = screen.getByTitle<HTMLIFrameElement>("Native scene");
+  fireEvent.keyDown(frame.contentDocument!, { key: "Escape" });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(openButton()).toHaveFocus();
 });
 
-it("follows native external exit events and restores the expand action", async () => {
-  const user = userEvent.setup();
-  render(<Workbench />);
-  await user.click(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
-  );
-  act(() => changed(null));
-  expect(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
-  ).toHaveAttribute("aria-pressed", "false");
-});
-
-it("sends one native exit request when paired views share a fullscreen workspace", async () => {
-  const user = userEvent.setup();
-  render(
-    <StructureWorkbench
-      preview={
-        <>
-          <Preview />
-          <Preview />
-        </>
-      }
-    >
-      <p>Paired pose controls</p>
-    </StructureWorkbench>,
-  );
-  await user.click(
-    screen.getAllByRole("button", { name: "Fullscreen research workspace" })[0],
-  );
-  await user.keyboard("{Escape}");
-  expect(exit).toHaveBeenCalledOnce();
-  expect(
-    screen.getAllByRole("button", { name: "Fullscreen research workspace" }),
-  ).toHaveLength(2);
-  expect(screen.queryByRole("alert")).toBeNull();
-});
-
-it("keeps fullscreen and its exit control when a newly selected source mounts its own scene", async () => {
-  function ChangingScene() {
+it("shares one expansion across paired controls and a replacement scene", async () => {
+  function Changing() {
     const [source, select] = useState("Source 1");
     return (
-      <StructureWorkbench preview={<Preview key={source} />}>
+      <StructureWorkbench
+        preview={
+          <>
+            <Preview key={source} />
+            <Preview />
+          </>
+        }
+      >
         <label>
           Source
           <select value={source} onChange={(e) => select(e.target.value)}>
@@ -213,102 +203,154 @@ it("keeps fullscreen and its exit control when a newly selected source mounts it
     );
   }
   const user = userEvent.setup();
-  const { container } = render(<ChangingScene />);
+  render(<Changing />);
   await user.click(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+    screen.getAllByRole("button", { name: "Expand research workspace" })[0],
   );
-  const original = screen.getByTestId("native-canvas");
+  const workspace = screen.getByRole("dialog");
+  expect(
+    screen.getAllByRole("button", { name: "Close expanded view" }),
+  ).toHaveLength(2);
   await user.selectOptions(screen.getByRole("combobox"), "Source 2");
-  expect(screen.getByTestId("native-canvas")).not.toBe(original);
-  expect(document.fullscreenElement).toBe(
-    container.querySelector(".structure-workbench"),
+  const selected = screen.getAllByTitle("Native scene")[0];
+  expect(screen.getByRole("dialog")).toBe(workspace);
+  await user.click(
+    screen.getAllByRole("button", { name: "Close expanded view" })[0],
   );
-  const selected = screen.getByTestId("native-canvas");
-  await user.click(screen.getByRole("button", { name: "Exit fullscreen" }));
+  expect(screen.getAllByTitle("Native scene")[0]).toBe(selected);
   expect(screen.getByRole("combobox")).toHaveValue("Source 2");
-  expect(screen.getByTestId("native-canvas")).toBe(selected);
+  expect(exit).toHaveBeenCalledOnce();
 });
 
 it.each(["viewer-panel", "simulation-molecular-viewport"])(
-  "keeps a standalone %s usable without a research workspace",
-  async (className) => {
+  "expands standalone %s and cleans up when navigation removes it",
+  async (surfaceClass) => {
     const user = userEvent.setup();
-    const { container } = render(<Preview surfaceClass={className} />);
+    const { unmount } = render(<Preview surfaceClass={surfaceClass} />);
     await user.click(
-      screen.getByRole("button", { name: "Fullscreen structure" }),
+      screen.getByRole("button", { name: "Expand structure view" }),
     );
-    expect(document.fullscreenElement).toBe(
-      container.querySelector("." + className),
-    );
+    expect(screen.getByRole("dialog")).toHaveClass(surfaceClass);
+    unmount();
+    await waitFor(() => expect(document.body.style.overflow).toBe(""));
+    expect(exit).toHaveBeenCalledOnce();
+    render(<Workbench />);
+    await user.click(openButton());
+    expect(closeButton()).toBeVisible();
   },
 );
 
-it.each(["en", "zh"] as const)(
-  "reports a denied native fullscreen request without hiding inputs in %s",
-  async (language) => {
-    const user = userEvent.setup();
-    enter.mockRejectedValueOnce(new Error("Internal browser policy detail"));
-    render(<Workbench language={language} />);
-    const button = screen.getByRole("button", {
-      name:
-        language === "zh" ? "全屏研究工作区" : "Fullscreen research workspace",
-    });
-    await user.click(button);
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      language === "zh"
-        ? "浏览器未允许全屏"
-        : "Fullscreen is unavailable in this browser",
-    );
-    expect(screen.queryByText(/Internal browser policy detail/)).toBeNull();
-    expect(screen.getByRole("combobox")).toBeEnabled();
-    expect(button).toBeEnabled();
-    await user.click(button);
-    expect(screen.queryByRole("alert")).toBeNull();
-    expect(
-      screen.getByRole("button", {
-        name: language === "zh" ? "退出全屏" : "Exit fullscreen",
-      }),
-    ).toBeVisible();
-  },
-);
-
-it("handles browsers without the native API without inventing a fullscreen overlay", async () => {
+it("recovers cleanly from denied or unavailable popover support without hiding inputs", async () => {
   const user = userEvent.setup();
-  delete (HTMLElement.prototype as { requestFullscreen?: unknown })
-    .requestFullscreen;
-  render(<Workbench />);
-  await user.click(
-    screen.getByRole("button", { name: "Fullscreen research workspace" }),
+  enter.mockImplementationOnce(() => {
+    throw new Error("Private browser detail");
+  });
+  const { container } = render(<Workbench />);
+  await user.click(openButton());
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Expanded view is unavailable",
   );
-  expect(screen.getByRole("alert")).toBeVisible();
-  expect(document.fullscreenElement).toBeNull();
+  expect(screen.queryByText(/Private browser detail/)).toBeNull();
+  expect(container.querySelector("[popover]")).toBeNull();
   expect(document.body.style.overflow).toBe("");
+  expect(screen.getByRole("combobox")).toBeEnabled();
+  Object.defineProperty(HTMLElement.prototype, "showPopover", {
+    configurable: true,
+    value: undefined,
+  });
+  await user.click(openButton());
+  expect(screen.queryByRole("dialog")).toBeNull();
+  Object.defineProperty(HTMLElement.prototype, "showPopover", {
+    configurable: true,
+    value: enter,
+  });
+  await user.click(openButton());
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(closeButton()).toBeVisible();
 });
 
-it("bounds repeated clicks while the native request is pending and cleans up its listener", async () => {
-  let reject: (error: Error) => void = () => {};
-  enter.mockImplementationOnce(
-    () =>
-      new Promise((_, failure) => {
-        reject = failure;
-      }),
+it("handles browser-initiated closure and immediate re-entry without remounting", async () => {
+  const user = userEvent.setup();
+  render(<Workbench />);
+  const scene = screen.getByTitle("Native scene");
+  await user.click(openButton());
+  act(() => nativeClose(screen.getByRole("dialog")));
+  expect(openButton()).toBeVisible();
+  await user.click(openButton());
+  await user.click(closeButton());
+  expect(screen.getByTitle("Native scene")).toBe(scene);
+  expect(mounts).toHaveBeenCalledOnce();
+});
+
+it("releases a retained workspace when its parent becomes hidden and can reopen it", async () => {
+  const user = userEvent.setup();
+  function Retained({ hidden }: { hidden: boolean }) {
+    return (
+      <>
+        <button>Module navigation</button>
+        <div hidden={hidden}>
+          <Workbench />
+        </div>
+      </>
+    );
+  }
+  const { rerender } = render(<Retained hidden={false} />);
+  const scene = screen.getByTitle("Native scene");
+  await user.click(openButton());
+  rerender(<Retained hidden />);
+  await waitFor(() => expect(document.body.style.overflow).toBe(""));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Module navigation" }),
+  ).toHaveFocus();
+  rerender(<Retained hidden={false} />);
+  expect(screen.getByTitle("Native scene")).toBe(scene);
+  await user.click(openButton());
+  expect(closeButton()).toBeVisible();
+});
+
+it("collapses before Escape reaches an enclosing review dialog", async () => {
+  const user = userEvent.setup();
+  const parentKey = vi.fn();
+  render(
+    <dialog open aria-label="Task review" onKeyDown={parentKey}>
+      <Preview />
+    </dialog>,
   );
-  const add = vi.spyOn(document, "addEventListener");
-  const remove = vi.spyOn(document, "removeEventListener");
-  const { unmount } = render(<Workbench />);
-  const button = screen.getByRole("button", {
-    name: "Fullscreen research workspace",
-  });
-  fireEvent.click(button);
-  fireEvent.click(button);
-  expect(enter).toHaveBeenCalledOnce();
-  expect(button).toBeDisabled();
-  const callback = add.mock.calls.find(
-    ([name]) => name === "fullscreenchange",
-  )?.[1];
-  unmount();
-  expect(remove).toHaveBeenCalledWith("fullscreenchange", callback);
-  await act(async () => {
-    reject(new Error("Late denied request"));
-  });
+  await user.click(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  );
+  await user.keyboard("{Escape}");
+  expect(screen.getByRole("dialog", { name: "Task review" })).toHaveAttribute(
+    "open",
+  );
+  expect(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  ).toHaveFocus();
+  expect(parentKey).not.toHaveBeenCalled();
+});
+
+it("includes a collapsed disclosure at the tab boundary without entering its hidden fields", async () => {
+  const user = userEvent.setup();
+  render(
+    <section className="viewer-panel">
+      <WorkspaceFullscreenControl language="en" />
+      <button>Before editing</button>
+      <details>
+        <summary>Selection and display editing</summary>
+        <input aria-label="Expert value" />
+      </details>
+    </section>,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  );
+  screen.getByRole("button", { name: "Before editing" }).focus();
+  await user.keyboard("{Tab}");
+  const summary = screen.getByText("Selection and display editing");
+  expect(summary).toHaveFocus();
+  await user.keyboard("{Tab}");
+  expect(closeButton()).toHaveFocus();
+  await user.keyboard("{Shift>}{Tab}{/Shift}");
+  expect(summary).toHaveFocus();
 });

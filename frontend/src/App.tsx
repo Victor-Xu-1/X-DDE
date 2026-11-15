@@ -42,6 +42,8 @@ import { ToolCenter } from "./operations/ToolCenter";
 import { isPrediction } from "./operations/types";
 import { useDeployment } from "./deployment/client";
 import { InterfaceSettings } from "./studio/InterfaceSettings";
+import { UtilityWorkspace } from "./utilities/UtilityWorkspace";
+import { BackendControls } from "./utilities/BackendControls";
 import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
@@ -59,6 +61,8 @@ export function App() {
     [storageWarning, setStorageWarning] = useState(false);
   const requestedTask = useRef(taskIdFromHash(location.hash));
   const [requestedView, setView] = useState<View>(() => {
+      if (location.hash === "#view=utilities" || !location.hash)
+        return "utilities";
       const entry = taskEntryRoute(location.hash);
       if (entry) return entry.tool ? viewForTool(entry.tool) : "tools";
       const history = taskHistoryRoute(location.hash);
@@ -76,6 +80,10 @@ export function App() {
     );
   useEffect(() => {
     function navigate() {
+      if (window.location.hash === "#view=utilities" || !window.location.hash) {
+        setView("utilities");
+        return;
+      }
       const entry = taskEntryRoute(window.location.hash);
       const route = taskHistoryRoute(window.location.hash);
       if (entry) {
@@ -248,6 +256,11 @@ export function App() {
     setView(tool ? viewForTool(tool) : "tools");
   }
   function navigate(next: View) {
+    if (next === "utilities") {
+      chooseJob("", { pushHash: "#view=utilities" });
+      setView("utilities");
+      return;
+    }
     const module = resultModule(next);
     if (module) {
       chooseJob("", {
@@ -305,8 +318,19 @@ export function App() {
           language={language}
           jobs={jobs}
         />
-        <div className="studio-main">
+        <div
+          className={
+            "studio-main" + (view === "utilities" ? " is-utilities" : "")
+          }
+        >
           <Header
+            runtime={
+              <BackendControls
+                data={deployment.data}
+                language={language}
+                refresh={deployment.refresh}
+              />
+            }
             view={view}
             language={language}
             jobs={jobs}
@@ -341,6 +365,15 @@ export function App() {
                 }}
               />
             )}
+            <div className="utility-view" hidden={view !== "utilities"}>
+              <UtilityWorkspace
+                language={language}
+                onCreated={(next) => {
+                  work.confirmJob(next);
+                  refresh();
+                }}
+              />
+            </div>
             <div hidden={view !== "research"}>
               {(researchOpened || view === "research") && (
                 <WorkspaceTabs

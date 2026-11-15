@@ -96,12 +96,12 @@
   border-radius: 0;
   box-shadow: none;
 }
-.viewer-panel:fullscreen {
+.viewer-panel:popover-open {
   overflow: auto;
   padding: 20px;
   background: var(--surface);
 }
-.viewer-panel:fullscreen .molecular-stage {
+.viewer-panel:popover-open .molecular-stage {
   min-height: 65vh;
 }
 .viewer-controls {

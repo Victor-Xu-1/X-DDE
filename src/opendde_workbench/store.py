@@ -224,11 +224,23 @@ class Store:
             )
             return jobs
 
-    def next_queued(self) -> Job | None:
+    def next_queued(self, operations: tuple[str, ...] | None = None) -> Job | None:
+        if operations == ():
+            return None
+        eligible = (
+            " AND json_extract(request, '$.operation') IN ("
+            + ",".join("?" for _ in operations)
+            + ")"
+            if operations is not None
+            else ""
+        )
         with self.connect() as db:
             return self.decode(
                 db.execute(
-                    "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
+                    "SELECT * FROM jobs WHERE status='queued'"
+                    + eligible
+                    + " ORDER BY created_at LIMIT 1",
+                    operations or (),
                 ).fetchone()
             )
 
@@ -255,11 +267,12 @@ class Store:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute(
-                "SELECT * FROM jobs WHERE status='queued' ORDER BY created_at LIMIT 1"
+                "SELECT * FROM jobs WHERE status='queued'"
+                + (" AND id=?" if expected_id is not None else "")
+                + " ORDER BY created_at LIMIT 1",
+                (expected_id,) if expected_id is not None else (),
             ).fetchone()
             if not row:
-                return None
-            if expected_id is not None and row["id"] != expected_id:
                 return None
             db.execute(
                 "UPDATE jobs SET status='running',started_at=? WHERE id=?", (now(), row["id"])

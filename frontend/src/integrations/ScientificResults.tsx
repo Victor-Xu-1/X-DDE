@@ -276,15 +276,6 @@ export function ScientificResults({
         "scientific-results" + (prediction ? " prediction-result" : "")
       }
     >
-      {prediction && active && (
-        <PredictionSamples
-          job={job.id}
-          rows={nativePredictionSamples(job, result)}
-          selected={active.id}
-          onSelect={setSelected}
-          language={language}
-        />
-      )}
       {displayedReview?.omittedDomainClash && (
         <p className="prediction-reference-mobile-status" role="status">
           {zh
@@ -320,6 +311,18 @@ export function ScientificResults({
           )}
           <StructureWorkbench
             preview={view}
+            toolbar={
+              prediction &&
+              active && (
+                <PredictionSamples
+                  job={job.id}
+                  rows={nativePredictionSamples(job, result)}
+                  selected={active.id}
+                  onSelect={setSelected}
+                  language={language}
+                />
+              )
+            }
             sequenceHostRef={prediction ? setSequenceHost : undefined}
           >
             {result.operation === "boltz_predict" && active && (

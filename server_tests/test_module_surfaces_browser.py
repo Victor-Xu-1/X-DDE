@@ -25,7 +25,7 @@ def test_all_module_backgrounds_and_questionnaire_surfaces():
         page = browser.new_page(viewport={"width": 1440, "height": 1100})
         initialize_layout_page(page)
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(os.environ["WB_BROWSER_URL"])
+        page.goto(os.environ["WB_BROWSER_URL"] + "/#view=new")
         groups = page.locator(".capability-group")
         expect_layout_identities(groups, RESEARCH_MODULE_LABELS)
         dimensions = groups.evaluate_all(

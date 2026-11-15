@@ -58,31 +58,39 @@ export function StructureSequence({
   residues,
   selected,
   hiddenChains,
+  hiddenResidues = [],
   onSelect,
   onClear,
+  onRestore,
   confidence,
   nativeSelectionCount = 0,
+  busy = false,
   compact = false,
 }: {
   language: Language;
   residues: Residue[];
   selected: string[];
   hiddenChains: string[];
+  hiddenResidues?: string[];
   onSelect(key: string, mode: ResidueSelectionMode): void;
   onClear(): void;
+  onRestore?(): void;
   confidence?: Record<string, number>;
   nativeSelectionCount?: number;
+  busy?: boolean;
   compact?: boolean;
 }) {
   const zh = language === "zh";
   const chains = [...new Set(residues.map((row) => row.chain))];
   const selectedKeys = new Set(selected);
+  const hiddenKeys = new Set(hiddenResidues);
   return (
     <section
       className={
         compact ? "structure-sequence is-compact" : "structure-sequence"
       }
       aria-label={zh ? "结构中的残基" : "Residues in structure"}
+      aria-busy={busy}
     >
       <header>
         <h3>
@@ -108,9 +116,14 @@ export function StructureSequence({
                 ? "atom token selected"
                 : "atom tokens selected"}
         </span>
+        {onRestore && (hiddenChains.length > 0 || hiddenKeys.size > 0) && (
+          <button type="button" disabled={busy} onClick={onRestore}>
+            {zh ? "恢复结构显示" : "Restore structure display"}
+          </button>
+        )}
         <button
           type="button"
-          disabled={!selected.length && !nativeSelectionCount}
+          disabled={busy || (!selected.length && !nativeSelectionCount)}
           onClick={onClear}
         >
           {zh ? "清除选择" : "Clear sequence selection"}
@@ -162,7 +175,11 @@ export function StructureSequence({
                         }
                       : undefined
                   }
-                  disabled={hiddenChains.includes(chain)}
+                  disabled={
+                    busy ||
+                    hiddenChains.includes(chain) ||
+                    hiddenKeys.has(row.key)
+                  }
                   onClick={(event) =>
                     onSelect(
                       row.key,

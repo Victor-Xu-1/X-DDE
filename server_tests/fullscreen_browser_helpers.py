@@ -1,4 +1,4 @@
-"""Exercise the real native fullscreen API while keeping the original molecular view."""
+"""Exercise in-page top-layer expansion while keeping the original molecular view."""
 
 from playwright.sync_api import expect
 
@@ -16,20 +16,27 @@ def inspect_full_workspace(
     expect(source).to_be_visible()
     original = source.element_handle()
     expand = viewer.get_by_role(
-        "button", name="全屏研究工作区" if zh else "Fullscreen research workspace", exact=True
+        "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
     )
     expect(expand).to_be_enabled()
     expand.click()
-    focused = page.locator(".structure-workbench:fullscreen")
+    focused = page.locator(".structure-workbench[data-workspace-expanded]")
     expect(focused).to_be_visible()
+    expect(focused).to_have_attribute("role", "dialog")
+    expect(focused).to_have_attribute("aria-modal", "true")
+    assert page.evaluate("document.fullscreenElement === null")
+    assert focused.evaluate("node => node.matches(':popover-open')")
     page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
     view = focused.locator(":scope > .structure-workbench-view").bounding_box()
     details = focused.locator(":scope > .structure-workbench-details").bounding_box()
     bounds = focused.bounding_box()
     viewport = page.evaluate("({width:innerWidth,height:innerHeight})")
     assert view and details and bounds
-    assert abs(bounds["width"] - viewport["width"]) <= 2
-    assert abs(bounds["height"] - viewport["height"]) <= 2
+    margin = 20 if viewport["width"] > 1000 else 8
+    assert abs(bounds["x"] - margin) <= 2
+    assert abs(bounds["y"] - margin) <= 2
+    assert abs(bounds["width"] - (viewport["width"] - margin * 2)) <= 3
+    assert abs(bounds["height"] - (viewport["height"] - margin * 2)) <= 3
     if viewport["width"] > 1000:
         assert view["x"] + view["width"] <= details["x"] + 2
         assert view["width"] > details["width"] * 1.7
@@ -43,18 +50,18 @@ def inspect_full_workspace(
         inspect()
     if not changes_source:
         assert source.evaluate("(node,original) => node === original", original)
-    # Choosing another candidate legitimately loads its own scene. Fullscreen
+    # Choosing another candidate legitimately loads its own scene. Expansion
     # exit must retain that selected scene rather than restoring the old one.
     selected_source = source.element_handle()
     page.screenshot(path=str(evidence / (name + "-full-workspace.png")), full_page=False)
-    viewer.get_by_role("button", name="退出全屏" if zh else "Exit fullscreen", exact=True).click()
+    viewer.get_by_role("button", name="关闭展开视图" if zh else "Close expanded view", exact=True).click()
     expect(focused).to_have_count(0)
     assert source.evaluate("(node,original) => node === original", selected_source)
     expect(expand).to_be_enabled()
     expand.click()
     expect(focused).to_be_visible()
     expect(
-        viewer.get_by_role("button", name="退出全屏" if zh else "Exit fullscreen", exact=True)
+        viewer.get_by_role("button", name="关闭展开视图" if zh else "Close expanded view", exact=True)
     ).to_be_enabled()
     page.keyboard.press("Escape")
     expect(focused).to_have_count(0)

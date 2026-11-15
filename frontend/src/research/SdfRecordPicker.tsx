@@ -20,7 +20,7 @@ export function SdfRecordPicker({
       number >= 1 &&
       number <= 500;
   return (
-    <label className="field">
+    <label className="field sdf-record-picker">
       {zh
         ? "SDF 中第几个分子（从 1 开始）"
         : "Molecule record in SDF (starts at 1)"}

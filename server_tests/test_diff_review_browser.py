@@ -50,7 +50,7 @@ def test_diffsbdd_material_and_protocol_review(language, width):
         if zh:
             page.get_by_role("combobox", name="如何指定口袋？").select_option("ligand")
             page.get_by_role("group", name="选择范围", exact=True).locator(
-                'input[type="file"]'
+                'input[type="file"][accept=".sdf"]'
             ).set_input_files(reference)
         else:
             page.get_by_role("textbox", name=re.compile("A:10")).fill(residue)

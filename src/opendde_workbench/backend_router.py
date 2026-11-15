@@ -37,6 +37,7 @@ from .store import Store
 class BackendRouter:
     def __init__(self, settings):
         self.settings = settings
+        self.admission = None
         self.store = Store(settings.state_dir / "jobs.sqlite3")
         self.opendde = DockerEngine(settings)
         self.pockets = PocketBackend(settings)
@@ -57,6 +58,8 @@ class BackendRouter:
         }
 
     async def start(self, job, directory):
+        if self.admission and (reason := self.admission(job)):
+            raise RuntimeError(reason)
         implementation = engine_for(job.request.operation).id
         if implementation not in self.scientific and implementation not in {
             "opendde",

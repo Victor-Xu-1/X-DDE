@@ -1,7 +1,12 @@
 import { tools, type ToolId } from "../operations/catalog";
-import { moduleForTool, researchModules, type ModuleId } from "./research-modules";
+import {
+  moduleForTool,
+  researchModules,
+  type ModuleId,
+} from "./research-modules";
 import type { Language } from "../types";
 export type View =
+  | "utilities"
   | Exclude<ToolId, "predict" | "resources">
   | "home"
   | "tools"
@@ -22,8 +27,19 @@ export function resultModule(view: View): ModuleId | "other" | null {
     ? (view.slice(8) as ModuleId | "other")
     : null;
 }
-export const viewForResults = (module: ModuleId | "other"): View => `results:${module}`;
+export const viewForResults = (module: ModuleId | "other"): View =>
+  `results:${module}`;
 export const navigationItems = [
+  {
+    id: "utilities" as const,
+    module: null,
+    label: ["小工具", "Utilities"] as const,
+    short: ["工具", "Tools"] as const,
+    help: [
+      "图片转 SMILES、分子结构编辑与导出",
+      "Image to SMILES, structure editing and export",
+    ] as const,
+  },
   ...researchModules.map((module) => ({
     id: viewForTool(module.defaultTool),
     module: module.id,
@@ -62,12 +78,14 @@ export function navigationActive(
   item: (typeof navigationItems)[number],
 ) {
   return item.module
-    ? (resultModule(view) ?? moduleForTool(toolForView(view))?.id) === item.module
+    ? (resultModule(view) ?? moduleForTool(toolForView(view))?.id) ===
+        item.module
     : view === item.id;
 }
 export function viewTitle(view: View, language: Language) {
-  const module = researchModules.find((module) => module.id === resultModule(view))
-    ?? moduleForTool(toolForView(view));
+  const module =
+    researchModules.find((module) => module.id === resultModule(view)) ??
+    moduleForTool(toolForView(view));
   const item =
     navigationItems.find((item) => item.id === view) ??
     managementItems.find((item) => item.id === view);

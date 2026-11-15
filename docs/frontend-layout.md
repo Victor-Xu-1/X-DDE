@@ -62,10 +62,10 @@ Input workspaces retain their reading width. Prediction results, including saved
 in-module examples, use the available workspace width; large displays also allow
 a taller live molecular canvas. Returning to a new task restores the input width.
 Hidden legacy workspaces do not determine the active page's width. Narrow-screen
-stacking and fullscreen height retain their shared sizing rules; compact result
-cards do not override fullscreen viewports.
+stacking and expanded height retain their shared sizing rules; compact result
+cards do not override expanded viewports.
 The wide-screen confidence inspector keeps a readable width in both normal and
-fullscreen views while the molecular view takes the remaining space.
+expanded views while the molecular view takes the remaining space.
 PAE/PDE/contact matrices retain equal pixel scales
 for their two native token axes when their container changes size.
 
@@ -107,6 +107,21 @@ The renderer acknowledges visibility before checkboxes change. Candidate changes
 reset this display state; conformer overlays keep their existing controls. Figure
 previews invalidate when chain visibility changes. Other modules retain their
 existing chain-focus buttons.
+
+The shared viewer shows a compact current-selection strip below the live view.
+3D picking, observed-sequence selection and verified confidence-map selection use
+the same renderer-owned focus/clear actions. Residue feedback retains chain IDs
+and insertion codes; a single mapped residue may show its verified mean atom
+pLDDT. Atom picks never inherit a residue score as an atom score. Range selections
+remain display selections with no single scientific constraint atom. Advanced
+display editing stays collapsed until requested; direct atom picking no longer
+forces the full form open. Busy display actions wait for renderer acknowledgement,
+and changing the source clears the previous selection feedback.
+The renderer also reports individually hidden residues, independently of whole
+chain visibility. Those sequence positions become unavailable until the researcher
+restores the display; they cannot dispatch an invalid selection into the hidden
+geometry. Restoration uses the existing display authority and preserves source
+atoms, coordinates and files.
 
 Prediction-specific CI covers the changed controls and their direct questionnaire,
 navigation and result consumers. A bounded path classifier delegates this batch
@@ -211,16 +226,23 @@ and Chromium checks. Native adapter, molecular-state and receptor calculations
 remain in the scientific workflow for backend changes or explicit dispatch;
 moving a choice panel does not justify unrelated native scientific runs.
 
-The structure fullscreen control expands the existing research workspace, including
+The structure expand control opens the existing research workspace in the page's
+top layer with 20 px desktop / 8 px narrow margins, including
 the large left view and the related candidate table, quality checks or trajectory
 controls on the right. Desktop columns scroll independently; narrow screens keep
 the same view before its controls. The original iframe or Mol* canvas stays mounted,
-so entering and leaving fullscreen does not reset the selected record, trajectory
+so entering and leaving expansion does not reset the selected record, trajectory
 frame or binding-pose display. Selecting another candidate uses that candidate's
-own scene and retains it when returning inline. Native Escape and the Exit fullscreen control restore
-the inline page. A standalone viewer expands its own panel. Browser refusal remains
-a visible, retryable presentation error; it never starts a calculation, creates a
-replacement overlay, or disables the scientific view. Figure export retains its
+own scene and retains it when returning inline. Escape (including inside the
+same-origin renderer) and Close expanded view restore the inline page, previous
+scroll positions and trigger focus. A standalone viewer expands its own panel.
+The manual popover promotes the same DOM without moving or cloning the iframe;
+native browser fullscreen is no longer requested. Background branches are inert
+and keyboard focus stays inside the workspace. An open figure dialog handles its
+own Escape first. Missing popover support remains a visible, retryable presentation
+error and leaves the original view usable. Navigation releases the presentation
+session and restores prior inert/scroll styles. No calculation is started.
+Figure export retains its
 existing source and physical-resolution controls inside the expanded workspace.
 
 Sequence scoring places its table and comparison plot in one column, with the

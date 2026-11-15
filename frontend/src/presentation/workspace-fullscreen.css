@@ -1,58 +1,232 @@
-.structure-workbench:fullscreen {
+/* A top-layer presentation of the same DOM: no native fullscreen permission. */
+[data-workspace-expanded="true"][popover] {
+  position: fixed;
+  inset: 20px;
   box-sizing: border-box;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
   margin: 0;
   padding: 20px;
-  grid-template-columns: minmax(0, 2fr) minmax(300px, 0.9fr);
-  gap: 24px;
-  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
   background: var(--surface);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
-.structure-workbench:fullscreen > .structure-workbench-view,
-.structure-workbench:fullscreen > .structure-workbench-details {
+[data-workspace-expanded="true"]::backdrop {
+  background: rgb(15 23 42 / 45%);
+  pointer-events: auto;
+}
+.studio-app .structure-workbench[data-workspace-expanded="true"] {
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 0.9fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 20px;
+  overflow: hidden;
+}
+.studio-app
+  .structure-workbench[data-workspace-expanded="true"]:has(
+    > .structure-workbench-toolbar
+  ) {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+@media (min-width: 1001px) {
+  .studio-app
+    .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-sequence:not(:empty)
+    ) {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .studio-app
+    .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-toolbar
+    ):has(> .structure-workbench-sequence:not(:empty)) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-sequence:not(:empty)
+    )
+    > .structure-workbench-view {
+    grid-row: 1 / span 2;
+  }
+  .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-sequence:not(:empty)
+    )
+    > .structure-workbench-details {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-toolbar
+    ):has(> .structure-workbench-sequence:not(:empty))
+    > .structure-workbench-view {
+    grid-row: 2 / span 2;
+  }
+  .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-toolbar
+    ):has(> .structure-workbench-sequence:not(:empty))
+    > .structure-workbench-details {
+    grid-row: 2;
+  }
+  .structure-workbench[data-workspace-expanded="true"]
+    > .structure-workbench-sequence {
+    grid-column: 2;
+  }
+}
+.structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-view,
+.structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-details {
   height: 100%;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  padding-inline-end: 4px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
-.structure-workbench:fullscreen .viewer-panel .molecular-stage,
-.structure-workbench:fullscreen .simulation-webgl {
-  height: max(360px, calc(100dvh - 200px));
+.structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-details {
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--line);
+}
+.structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-sequence {
+  max-height: 136px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+[data-workspace-expanded="true"] .structure-sequence {
+  margin-top: 0;
+  padding-top: 10px;
+}
+[data-workspace-expanded="true"] .structure-sequence > p {
+  display: none;
+}
+[data-workspace-expanded="true"] .structure-sequence-chain {
+  padding: 4px 0;
+}
+[data-workspace-expanded="true"] .structure-sequence-residues {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+[data-workspace-expanded="true"] .structure-sequence-residues > button {
+  flex-shrink: 0;
+}
+[data-workspace-expanded="true"] .prediction-sample-bar {
+  margin: 0;
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+html
+  body
+  .studio-app
+  .structure-workbench[data-workspace-expanded="true"]
+  .viewer-panel
+  .molecular-stage,
+html
+  body
+  .studio-app
+  .structure-workbench[data-workspace-expanded="true"]
+  .simulation-webgl {
+  height: clamp(360px, 60dvh, 760px);
   min-height: 360px;
 }
-.structure-workbench:fullscreen .paired-structure-views,
-.structure-workbench:fullscreen .pose-comparison-panels {
+.structure-workbench[data-workspace-expanded="true"] .paired-structure-views,
+.structure-workbench[data-workspace-expanded="true"] .pose-comparison-panels {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+[data-workspace-expanded="true"] .viewer-panel > .studio-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
 }
 .workspace-fullscreen-error {
   flex-basis: 100%;
   font-size: 12px;
   line-height: 1.5;
 }
+[data-workspace-expanded="true"] .structure-selection-summary {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface);
+}
 @media (max-width: 1000px) {
-  .structure-workbench:fullscreen {
+  [data-workspace-expanded="true"][popover] {
+    inset: 8px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .studio-app .structure-workbench[data-workspace-expanded="true"],
+  .studio-app
+    .structure-workbench[data-workspace-expanded="true"]:has(
+      > .structure-workbench-toolbar
+    ) {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
     grid-auto-rows: max-content;
     align-content: start;
-    padding: 12px;
     overflow: auto;
   }
-  .structure-workbench:fullscreen > .structure-workbench-view,
-  .structure-workbench:fullscreen > .structure-workbench-details {
+  .structure-workbench[data-workspace-expanded="true"]
+    > .structure-workbench-view,
+  .structure-workbench[data-workspace-expanded="true"]
+    > .structure-workbench-details {
     height: auto;
-    min-height: auto;
     overflow: visible;
-    padding-inline-end: 0;
   }
-  .structure-workbench:fullscreen .viewer-panel .molecular-stage,
-  .structure-workbench:fullscreen .simulation-webgl {
-    height: clamp(360px, 65dvh, 640px);
+  html
+    body
+    .studio-app
+    .structure-workbench[data-workspace-expanded="true"]
+    .viewer-panel
+    .molecular-stage,
+  html
+    body
+    .studio-app
+    .structure-workbench[data-workspace-expanded="true"]
+    .simulation-webgl {
+    height: clamp(300px, 45dvh, 520px);
+    min-height: 300px;
   }
-  .structure-workbench:fullscreen .paired-structure-views,
-  .structure-workbench:fullscreen .pose-comparison-panels {
+  .structure-workbench[data-workspace-expanded="true"] .paired-structure-views,
+  .structure-workbench[data-workspace-expanded="true"] .pose-comparison-panels {
     grid-template-columns: minmax(0, 1fr);
+  }
+  [data-workspace-expanded="true"] .prediction-sample-bar {
+    gap: 10px;
+    padding-inline-end: 32px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-basis: 100%;
+    gap: 4px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics > div {
+    padding: 6px;
+    border-radius: 6px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics dd {
+    font-size: 16px;
+  }
+  [data-workspace-expanded="true"]
+    .viewer-heading-actions
+    > button[aria-haspopup="dialog"] {
+    position: fixed;
+    top: 20px;
+    inset-inline-end: 20px;
+    z-index: 5;
+    background: var(--surface);
   }
 }

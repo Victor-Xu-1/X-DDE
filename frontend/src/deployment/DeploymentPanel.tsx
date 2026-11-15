@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../api";
 import type { Language } from "../types";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { InstallLocation } from "./InstallLocation";
 import { ComputeServicePanel } from "./ComputeServicePanel";
 import { DeploymentActivity } from "./DeploymentActivity";
-import { linuxLocation, type Deployment } from "./client";
-import { installComponents } from "./installation";
+import type { Deployment } from "./client";
+import { installComponents, saveInstallLocation } from "./installation";
 import "./deployment.css";
 import "./components.css";
 
@@ -53,10 +52,7 @@ export function DeploymentPanel({
     }
   }
   async function save() {
-    await api.post("/deployment/config", {
-      location: linuxLocation(location),
-      automatic: true,
-    });
+    await saveInstallLocation(location);
     setSaved(true);
   }
   return (

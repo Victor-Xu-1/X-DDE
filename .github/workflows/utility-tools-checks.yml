@@ -1,0 +1,31 @@
+name: Utility tools and manual compute checks
+on:
+  push:
+    paths: &paths
+      - "frontend/src/utilities/**"
+      - "src/opendde_workbench/utility_routes.py"
+      - "src/opendde_workbench/runtime_controls.py"
+      - "src/opendde_workbench/backend_router.py"
+      - "tests/test_utility_tools.py"
+      - ".github/workflows/utility-tools-checks.yml"
+  pull_request:
+    paths: *paths
+permissions:
+  contents: read
+jobs:
+  utilities:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Utility navigation, retained inputs and direct form consumers
+        working-directory: frontend
+        run: npx vitest run src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/utilities/BackendControls.test.tsx src/utilities/ImageMoleculeInput.test.tsx src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts src/studio/Navigation.test.tsx src/studio/research-modules.test.ts src/App.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx src/operations/AssetPicker.test.tsx src/operations/useAssetUpload.image.test.tsx src/integrations/BoltzInputs.test.tsx src/integrations/Mol1Form.test.tsx src/presentation/PredictionEntityEditing.test.tsx
+      - run: uv sync --locked --group dev
+      - name: Local discovery and no startup inference
+        run: uv run --locked pytest -q tests/test_utility_tools.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_harness_admission.py

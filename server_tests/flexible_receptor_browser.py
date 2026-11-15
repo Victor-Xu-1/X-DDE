@@ -14,6 +14,18 @@ CONFIRM = "I confirm the reference/existing pose is in the selected receptor coo
 
 
 def submit_score(page, base, pair, root, submissions, before):
+    assert not any(
+        row["enabled"]
+        for row in page.request.get(base + "/api/runtime-controls").json()["engines"]
+    )
+    page.get_by_role("button", name="Backend controls", exact=True).click()
+    switch = page.get_by_role("switch", name="GNINA", exact=True)
+    expect(switch).to_be_enabled()
+    switch.click()
+    expect(switch).to_have_attribute("aria-checked", "true")
+    enabled = page.request.get(base + "/api/runtime-controls").json()["engines"]
+    assert {row["id"] for row in enabled if row["enabled"]} == {"gnina"}
+    page.get_by_role("button", name="Close backend panel", exact=True).click()
     # The live result action must initialize the real questionnaire with
     # the updated receptor, not the original protein's coordinate version.
     page.get_by_role("button", name="Rescore", exact=True).click()
@@ -62,6 +74,16 @@ def submit_score(page, base, pair, root, submissions, before):
         json.dumps({"submitted": sent, "job": added[0]}, indent=2)
     )
     before.add(added[0]["id"])
+    page.get_by_role("button", name="Backend controls", exact=True).click()
+    page.get_by_role("switch", name="GNINA", exact=True).click()
+    expect(page.get_by_role("switch", name="GNINA", exact=True)).to_have_attribute(
+        "aria-checked", "false"
+    )
+    page.get_by_role("button", name="Close backend panel", exact=True).click()
+    assert not any(
+        row["enabled"]
+        for row in page.request.get(base + "/api/runtime-controls").json()["engines"]
+    )
 
 
 def inspect_refinement_browser(settings, image, identifier, source, pair, result, root):
