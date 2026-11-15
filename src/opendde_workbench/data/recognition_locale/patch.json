@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "90c69a32c4f3449401721ad95cf6652d7a616ee03eeddf5a772dcee0298575d8",
+      "after_sha256": "f66195fb9c0c5cf5cd71deb0beb0e31c90d7b9b530669c9de87bbde6bca2f5e2",
       "changes": [
         {
           "before": "const labels = {",
@@ -164,6 +164,14 @@
           "after": "alt={text(\"待识别的化学结构图片\")}"
         },
         {
+          "before": "    error,\n    setError,",
+          "after": "    error,\n    setError,\n    setEditorError,"
+        },
+        {
+          "before": "                onError={setError}",
+          "after": "                onError={setEditorError}"
+        },
+        {
           "before": "    editorReady,\n    setEditorReady,",
           "after": "    editorReady,\n    setEditorReady,\n    structureReady,\n    setStructureReady,"
         },
@@ -250,7 +258,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "12dbfab9302fc7333a6b4b726378149e0ee2050753e56969ecf94375199a30f2",
+      "after_sha256": "0bf379ea794d1c06512748c29b025ceae64d56ad75c2da348ffb47624a8c9692",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -306,7 +314,7 @@
         },
         {
           "before": "          instance.editor.setOptions(\n            JSON.stringify({\n              hideTerminalLabels: true,\n              showHydrogenLabels: \"Hetero\",\n              aromaticCircle: false,\n            }),\n          );\n",
-          "after": "          lifetime.current?.abort();\n          const controller = new AbortController();\n          lifetime.current = controller;\n          try {\n            policy.current = configureRecognitionEditor({\n              editor: {setOptions: value => instance.editor.setOptions(value)},\n              changeEvent: instance.changeEvent,\n              eventBus: instance.eventBus,\n              getKet: () => instance.getKet(),\n              getMolfile: () => instance.getMolfile(\"v3000\"),\n              getSmiles: () => instance.getSmiles(),\n              setMolecule: value => instance.setMolecule(value),\n              structService: {\n                getInChIKey: value => instance.structService.getInChIKey(value),\n                layout: data => instance.structService.layout({\n                  struct:data.struct,\n                  output_format:data.output_format === \"chemical/x-indigo-ket\"\n                    ? ChemicalMimeType.KET : ChemicalMimeType.Mol,\n                }),\n                toggleExplicitHydrogens: data => instance.structService.toggleExplicitHydrogens({\n                  struct:data.struct, mode:data.mode, output_format:ChemicalMimeType.KET,\n                }),\n              },\n            }, controller.signal,\n              () => {\n                setDisplayError(true);\n                callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\");\n              }, {\n                fit: () => {\n                  const bounds = canvas.current?.getBoundingClientRect();\n                  if (!bounds || bounds.width < 1 || bounds.height < 1) return false;\n                  instance.editor.zoomAccordingContent(instance.editor.struct());\n                  instance.editor.centerStruct();\n                  return true;\n                },\n                resetZoom: () => { instance.editor.zoom(1); },\n                onValidated: () => { setDisplayError(false); },\n                onState: state => {\n                  setPreparing(state.busy);\n                  callbacks.current.onAvailability?.(state.available);\n                },\n              });\n          } catch {\n            setPreparing(false);\n            setDisplayError(true);\n            callbacks.current.onError(\"无法应用分子显示规则，请更新绘图组件。\");\n            return;\n          }\n          const observer = new ResizeObserver(() => policy.current?.fitWhenVisible());\n          if (canvas.current) observer.observe(canvas.current);\n          controller.signal.addEventListener(\"abort\", () => observer.disconnect(), {once:true});\n"
+          "after": "          lifetime.current?.abort();\n          const controller = new AbortController();\n          lifetime.current = controller;\n          try {\n            policy.current = configureRecognitionEditor({\n              editor: {setOptions: value => instance.editor.setOptions(value)},\n              changeEvent: instance.changeEvent,\n              eventBus: instance.eventBus,\n              getKet: () => instance.getKet(),\n              getMolfile: () => instance.getMolfile(\"v3000\"),\n              getSmiles: () => instance.getSmiles(),\n              setMolecule: value => instance.setMolecule(value),\n              structService: {\n                getInChIKey: value => instance.structService.getInChIKey(value),\n                layout: data => instance.structService.layout({\n                  struct:data.struct,\n                  output_format:data.output_format === \"chemical/x-indigo-ket\"\n                    ? ChemicalMimeType.KET : ChemicalMimeType.Mol,\n                }),\n                toggleExplicitHydrogens: data => instance.structService.toggleExplicitHydrogens({\n                  struct:data.struct, mode:data.mode, output_format:ChemicalMimeType.KET,\n                }),\n              },\n            }, controller.signal,\n              () => {\n                setDisplayError(true);\n                callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\");\n              }, {\n                fit: () => {\n                  const bounds = canvas.current?.getBoundingClientRect();\n                  if (!bounds || bounds.width < 1 || bounds.height < 1) return false;\n                  instance.editor.zoomAccordingContent(instance.editor.struct());\n                  instance.editor.centerStruct();\n                  return true;\n                },\n                resetZoom: () => { instance.editor.zoom(1); },\n                onValidated: () => { setDisplayError(false); callbacks.current.onError(\"\"); },\n                onState: state => {\n                  setPreparing(state.busy);\n                  callbacks.current.onAvailability?.(state.available);\n                },\n              });\n          } catch {\n            setPreparing(false);\n            setDisplayError(true);\n            callbacks.current.onError(\"无法应用分子显示规则，请更新绘图组件。\");\n            return;\n          }\n          const observer = new ResizeObserver(() => policy.current?.fitWhenVisible());\n          if (canvas.current) observer.observe(canvas.current);\n          controller.signal.addEventListener(\"abort\", () => observer.disconnect(), {once:true});\n"
         },
         {
           "before": "          instance.editor.subscribe(\"change\", () => {",
@@ -329,11 +337,19 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "aa749cc04c576844e813219b2d9948a653e1fd2958494955f64a2359668dfe55",
+      "after_sha256": "f49af1be29a1efe1ef73c877b6d1c83c3ae2fb7915658d0eedfb8ad31d81f8d0",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
-          "after": "import { useCallback, useEffect, useRef, useState } from \"react\";\nimport { moleculeReadiness, MoleculeReadinessError } from \"./molecule-readiness\";"
+          "after": "import { useCallback, useEffect, useRef, useState } from \"react\";\nimport { moleculeReadiness, MoleculeReadinessError, drawingErrorOwner } from \"./molecule-readiness\";"
+        },
+        {
+          "before": "  const [error, setError] = useState(\"\");",
+          "after": "  const [error, setError] = useState(\"\");\n  const setEditorError = useRef(drawingErrorOwner(setError)).current;"
+        },
+        {
+          "before": "    error,\n    setError,",
+          "after": "    error,\n    setError,\n    setEditorError,"
         },
         {
           "before": "await editor.current.getMolfile()",

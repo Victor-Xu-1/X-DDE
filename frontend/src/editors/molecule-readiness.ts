@@ -27,3 +27,15 @@ export function moleculeReadiness() {
     },
   };
 }
+
+/** Clear a recovered drawing error without discarding a newer upload/model error. */
+export function drawingErrorOwner(
+  write: (update: (current: string) => string) => void,
+) {
+  let owned: string | null = null;
+  return (message: string) => {
+    const previous = owned;
+    owned = message || null;
+    write((current) => message || (current === previous ? "" : current));
+  };
+}
