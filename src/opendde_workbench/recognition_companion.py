@@ -68,6 +68,7 @@ def apply(host: Path, backup_directory: Path, resources: Path = RESOURCES) -> di
         raise ValueError("Backups must be outside the source tree")
     backup = backup_directory / ("recognition-locale-" + str(uuid4()))
     originals = {path: path.read_bytes() if path.exists() else None for path in updates}
+    metadata = {path: path.stat() if path.exists() else path.parent.stat() for path in updates}
     if prepare(host, resources) != updates:
         raise ValueError("Native source changed during planning")
     backup.mkdir(parents=True)
@@ -90,12 +91,20 @@ def apply(host: Path, backup_directory: Path, resources: Path = RESOURCES) -> di
     try:
         for path, payload in updates.items():
             # Recheck at the write boundary; preserve edits made after planning.
+            if path.resolve() != path:
+                raise ValueError("Native source became a symlink during apply")
             current = path.read_bytes() if path.exists() else None
             if current != originals[path]:
                 raise ValueError("Native source changed during apply")
             temporary = path.with_name(path.name + "." + str(uuid4()) + ".tmp")
             try:
                 temporary.write_bytes(payload)
+                os.chmod(temporary, metadata[path].st_mode & 0o777 if current is not None else 0o644)
+                if hasattr(os, "chown"):
+                    owner = metadata[path]
+                    created = temporary.stat()
+                    if (created.st_uid, created.st_gid) != (owner.st_uid, owner.st_gid):
+                        os.chown(temporary, owner.st_uid, owner.st_gid)
                 os.replace(temporary, path)
             finally:
                 temporary.unlink(missing_ok=True)

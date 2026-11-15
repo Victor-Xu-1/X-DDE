@@ -56,6 +56,17 @@ def test_unknown_host_is_rejected_before_any_native_write(source):
     assert not backups.exists()
 
 
+def test_native_file_permissions_survive_atomic_replacement(source):
+    host, resources, backups = source
+    native = host / "frontend/src/App.tsx"
+    native.chmod(0o640)
+    before = native.stat()
+    companion.apply(host, backups, resources)
+    after = native.stat()
+    assert after.st_mode & 0o777 == 0o640
+    assert (after.st_uid, after.st_gid) == (before.st_uid, before.st_gid)
+
+
 def test_existing_different_adapter_is_not_overwritten(source):
     host, resources, backups = source
     adapter = host / "frontend/src" / companion.ADAPTERS[0]
