@@ -273,7 +273,7 @@ it.each([undefined, false, true])(
     const post = vi.spyOn(api, "post").mockResolvedValue({});
     // Polling data may be older than another explicit settings change.
     panel({ ...data, config: { automatic: automatic !== true } }, "en");
-    fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save location" }));
     await waitFor(() => expect(post).toHaveBeenCalledOnce());
     expect(post.mock.calls[0]).toEqual([
       "/deployment/config",
@@ -285,7 +285,7 @@ it("does not save a directory when the current preference cannot be read", async
   fresh(data).mockRejectedValue(new Error("Connection unavailable"));
   const post = vi.spyOn(api, "post").mockResolvedValue({});
   panel(data, "en");
-  fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save location" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Connection unavailable",
   );
