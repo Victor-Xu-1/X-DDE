@@ -15,6 +15,7 @@ import { WorkspaceFullscreenControl } from "./WorkspaceFullscreenControl";
 let enter: ReturnType<typeof vi.fn>, exit: ReturnType<typeof vi.fn>;
 const mounts = vi.fn();
 function nativeClose(target: HTMLElement) {
+  target.style.display = "";
   const event = Object.assign(new Event("toggle"), { newState: "closed" });
   target.dispatchEvent(event);
 }
@@ -55,7 +56,10 @@ const closeButton = () =>
   screen.getByRole("button", { name: "Close expanded view" });
 beforeEach(() => {
   mounts.mockClear();
-  enter = vi.fn();
+  // JSDOM has the popover hidden UA style, but no working top-layer API.
+  enter = vi.fn(function (this: HTMLElement) {
+    this.style.display = "block";
+  });
   exit = vi.fn(function (this: HTMLElement) {
     nativeClose(this);
   });
@@ -162,11 +166,14 @@ it("leaves a nested figure dialog to handle Escape, then closes from the native 
   const nested = document.createElement("dialog");
   nested.open = true;
   document.body.append(nested);
-  await user.keyboard("{Escape}");
-  expect(
-    screen.getByRole("dialog", { name: "Structure research workspace" }),
-  ).toBeVisible();
-  nested.remove();
+  try {
+    await user.keyboard("{Escape}");
+    expect(
+      screen.getByRole("dialog", { name: "Structure research workspace" }),
+    ).toBeVisible();
+  } finally {
+    nested.remove();
+  }
   const frame = screen.getByTitle<HTMLIFrameElement>("Native scene");
   fireEvent.keyDown(frame.contentDocument!, { key: "Escape" });
   expect(screen.queryByRole("dialog")).toBeNull();
@@ -273,4 +280,77 @@ it("handles browser-initiated closure and immediate re-entry without remounting"
   await user.click(closeButton());
   expect(screen.getByTitle("Native scene")).toBe(scene);
   expect(mounts).toHaveBeenCalledOnce();
+});
+
+it("releases a retained workspace when its parent becomes hidden and can reopen it", async () => {
+  const user = userEvent.setup();
+  function Retained({ hidden }: { hidden: boolean }) {
+    return (
+      <>
+        <button>Module navigation</button>
+        <div hidden={hidden}>
+          <Workbench />
+        </div>
+      </>
+    );
+  }
+  const { rerender } = render(<Retained hidden={false} />);
+  const scene = screen.getByTitle("Native scene");
+  await user.click(openButton());
+  rerender(<Retained hidden />);
+  await waitFor(() => expect(document.body.style.overflow).toBe(""));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Module navigation" }),
+  ).toHaveFocus();
+  rerender(<Retained hidden={false} />);
+  expect(screen.getByTitle("Native scene")).toBe(scene);
+  await user.click(openButton());
+  expect(closeButton()).toBeVisible();
+});
+
+it("collapses before Escape reaches an enclosing review dialog", async () => {
+  const user = userEvent.setup();
+  const parentKey = vi.fn();
+  render(
+    <dialog open aria-label="Task review" onKeyDown={parentKey}>
+      <Preview />
+    </dialog>,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  );
+  await user.keyboard("{Escape}");
+  expect(screen.getByRole("dialog", { name: "Task review" })).toHaveAttribute(
+    "open",
+  );
+  expect(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  ).toHaveFocus();
+  expect(parentKey).not.toHaveBeenCalled();
+});
+
+it("includes a collapsed disclosure at the tab boundary without entering its hidden fields", async () => {
+  const user = userEvent.setup();
+  render(
+    <section className="viewer-panel">
+      <WorkspaceFullscreenControl language="en" />
+      <button>Before editing</button>
+      <details>
+        <summary>Selection and display editing</summary>
+        <input aria-label="Expert value" />
+      </details>
+    </section>,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Expand structure view" }),
+  );
+  screen.getByRole("button", { name: "Before editing" }).focus();
+  await user.keyboard("{Tab}");
+  const summary = screen.getByText("Selection and display editing");
+  expect(summary).toHaveFocus();
+  await user.keyboard("{Tab}");
+  expect(closeButton()).toHaveFocus();
+  await user.keyboard("{Shift>}{Tab}{/Shift}");
+  expect(summary).toHaveFocus();
 });

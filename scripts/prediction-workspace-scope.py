@@ -1091,6 +1091,7 @@ EXPANSION_FILES = EXPANSION_SOURCES | {
     "server_tests/test_workspace_fullscreen_browser.py",
     "server_tests/test_native_confidence_browser.py",
     "server_tests/test_target_selection_browser.py",
+    "server_tests/test_diff_review_browser.py",
     "scripts/prediction-workspace-scope.py",
     "tests/test_prediction_workspace_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",

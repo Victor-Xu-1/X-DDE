@@ -4,7 +4,30 @@ let current: ExpandedWorkspace | null = null;
 export const expansionChange = "workspace-expansion-change";
 
 const focusable =
-  'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[tabindex]:not([tabindex="-1"])';
+  'button:not([disabled]),a[href],summary,input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[tabindex]:not([tabindex="-1"])';
+
+function visible(node: HTMLElement) {
+  if (
+    !node.isConnected ||
+    node.closest('[hidden],[inert],[aria-hidden="true"]')
+  )
+    return false;
+  for (
+    let ancestor: HTMLElement | null = node;
+    ancestor;
+    ancestor = ancestor.parentElement
+  ) {
+    if (
+      ancestor instanceof HTMLDetailsElement &&
+      !ancestor.open &&
+      !ancestor.querySelector(":scope > summary")?.contains(node)
+    )
+      return false;
+    const style = getComputedStyle(ancestor);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+  }
+  return true;
+}
 
 export function expandedWorkspace() {
   return current?.target ?? null;
@@ -61,7 +84,7 @@ export function toggleWorkspace(
   const choices = () =>
     [...target.querySelectorAll<HTMLElement>(focusable)].filter(
       (node) =>
-        !node.closest("[hidden],[inert]") &&
+        visible(node) &&
         (typeof node.checkVisibility !== "function" || node.checkVisibility()),
     );
   const focus = () =>
@@ -73,12 +96,12 @@ export function toggleWorkspace(
     closed = true;
     current = null;
     observer.disconnect();
-    document.removeEventListener("keydown", keydown);
+    document.removeEventListener("keydown", keydown, true);
     document.removeEventListener("focusin", containFocus);
     target.removeEventListener("toggle", nativeToggle);
     for (const frame of frames) frame.removeEventListener("load", connectFrame);
     for (const doc of frameDocuments.values())
-      doc.removeEventListener("keydown", keydown);
+      doc.removeEventListener("keydown", keydown, true);
     try {
       target.hidePopover();
     } catch {
@@ -96,15 +119,30 @@ export function toggleWorkspace(
       node.scrollLeft = left;
     }
     document.dispatchEvent(new Event(expansionChange));
-    if (target.isConnected) focus();
+    if (visible(target)) focus();
+    else
+      [...document.querySelectorAll<HTMLElement>(focusable)]
+        .find(visible)
+        ?.focus({ preventScroll: true });
   }
   function nestedDialog() {
-    return Boolean(document.querySelector("dialog[open]"));
+    return [...document.querySelectorAll("dialog[open]")].some(
+      (dialog) => !dialog.contains(target),
+    );
   }
   function keydown(event: KeyboardEvent) {
-    if (event.defaultPrevented || event.isComposing || nestedDialog()) return;
+    if (
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      nestedDialog()
+    )
+      return;
     if (event.key === "Escape") {
       event.preventDefault();
+      event.stopPropagation();
       close();
     } else if (event.key === "Tab" && event.currentTarget !== document) {
       const doc = event.currentTarget as Document;
@@ -153,7 +191,9 @@ export function toggleWorkspace(
     for (const frame of frames)
       if (!target.contains(frame)) {
         frame.removeEventListener("load", connectFrame);
-        frameDocuments.get(frame)?.removeEventListener("keydown", keydown);
+        frameDocuments
+          .get(frame)
+          ?.removeEventListener("keydown", keydown, true);
         frameDocuments.delete(frame);
         frames.delete(frame);
       }
@@ -165,8 +205,10 @@ export function toggleWorkspace(
       try {
         const doc = frame.contentDocument;
         if (doc && doc !== frameDocuments.get(frame)) {
-          frameDocuments.get(frame)?.removeEventListener("keydown", keydown);
-          doc.addEventListener("keydown", keydown);
+          frameDocuments
+            .get(frame)
+            ?.removeEventListener("keydown", keydown, true);
+          doc.addEventListener("keydown", keydown, true);
           frameDocuments.set(frame, doc);
         }
       } catch {
@@ -175,7 +217,7 @@ export function toggleWorkspace(
     }
   }
   const observer = new MutationObserver(() => {
-    if (!target.isConnected) close();
+    if (!visible(target)) close();
     else connectFrame();
   });
   try {
@@ -190,10 +232,15 @@ export function toggleWorkspace(
     for (const [node] of inert) node.setAttribute("inert", "");
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
-    document.addEventListener("keydown", keydown);
+    document.addEventListener("keydown", keydown, true);
     document.addEventListener("focusin", containFocus);
     target.addEventListener("toggle", nativeToggle);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["hidden", "aria-hidden", "class", "style"],
+    });
     connectFrame();
     document.dispatchEvent(new Event(expansionChange));
     focus();

@@ -156,6 +156,12 @@ html
   font-size: 12px;
   line-height: 1.5;
 }
+[data-workspace-expanded="true"] .structure-selection-summary {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface);
+}
 @media (max-width: 1000px) {
   [data-workspace-expanded="true"][popover] {
     inset: 8px;
@@ -191,10 +197,36 @@ html
     .studio-app
     .structure-workbench[data-workspace-expanded="true"]
     .simulation-webgl {
-    height: clamp(360px, 56dvh, 640px);
+    height: clamp(300px, 45dvh, 520px);
+    min-height: 300px;
   }
   .structure-workbench[data-workspace-expanded="true"] .paired-structure-views,
   .structure-workbench[data-workspace-expanded="true"] .pose-comparison-panels {
     grid-template-columns: minmax(0, 1fr);
+  }
+  [data-workspace-expanded="true"] .prediction-sample-bar {
+    gap: 10px;
+    padding-inline-end: 32px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-basis: 100%;
+    gap: 4px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics > div {
+    padding: 6px;
+    border-radius: 6px;
+  }
+  [data-workspace-expanded="true"] .prediction-confidence-metrics dd {
+    font-size: 16px;
+  }
+  [data-workspace-expanded="true"]
+    .viewer-heading-actions
+    > button[aria-haspopup="dialog"] {
+    position: fixed;
+    top: 20px;
+    inset-inline-end: 20px;
+    z-index: 5;
+    background: var(--surface);
   }
 }
