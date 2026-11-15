@@ -94,7 +94,11 @@ def test_disabled_queue_head_does_not_starve_enabled_engine(tmp_path):
     )
     next_job = store.create(
         TASK_ADAPTER.validate_python(
-            {"operation": "properties", "smiles": ["CC(=O)Oc1ccccc1C(=O)O"]}
+            {
+                "operation": "properties",
+                "name": "Queue fairness",
+                "smiles": ["CC(=O)Oc1ccccc1C(=O)O"],
+            }
         ),
         str(uuid4()),
         20,
