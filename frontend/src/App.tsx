@@ -43,7 +43,7 @@ import { isPrediction } from "./operations/types";
 import { useDeployment } from "./deployment/client";
 import { InterfaceSettings } from "./studio/InterfaceSettings";
 import { UtilityWorkspace } from "./utilities/UtilityWorkspace";
-import { ComputeSwitch } from "./utilities/ComputeSwitch";
+import { BackendControls } from "./utilities/BackendControls";
 import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
@@ -321,7 +321,7 @@ export function App() {
         <div className="studio-main">
           <Header
             runtime={
-              <ComputeSwitch
+              <BackendControls
                 data={deployment.data}
                 language={language}
                 refresh={deployment.refresh}
@@ -362,7 +362,13 @@ export function App() {
               />
             )}
             <div hidden={view !== "utilities"}>
-              <UtilityWorkspace language={language} onCreated={changed} />
+              <UtilityWorkspace
+                language={language}
+                onCreated={(next) => {
+                  work.confirmJob(next);
+                  refresh();
+                }}
+              />
             </div>
             <div hidden={view !== "research"}>
               {(researchOpened || view === "research") && (

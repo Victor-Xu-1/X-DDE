@@ -17,7 +17,6 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import PRODUCT_NAME, __version__
-from .utility_routes import RECOGNITION_ORIGINS, register_utilities
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .asset_upload_routes import register_uploads
@@ -58,6 +57,7 @@ from .settings import Settings
 from .sites.routes import register_sites
 from .store import CapacityError, ConflictError, Store
 from .task_history.routes import register_task_history
+from .utility_routes import RECOGNITION_ORIGINS, register_utilities
 from .worker import Worker
 from .workflows import register_workflows
 from .wsl_storage import StorageUnavailable
@@ -184,7 +184,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; style-src 'self'; img-src 'self' data:; "
             "script-src 'self'; worker-src 'self' blob:; style-src-attr 'unsafe-inline'; "
-            f"frame-ancestors {frame_ancestors}; frame-src 'self' {RECOGNITION_ORIGINS}; base-uri 'none'"
+            f"frame-ancestors {frame_ancestors}; "
+            f"frame-src 'self' {RECOGNITION_ORIGINS}; base-uri 'none'"
         )
         if editor:
             response.headers["Content-Security-Policy"] = (
@@ -659,6 +660,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return {"busy": False}
 
     worker.gate = harness_service.queue_gate
+    from .runtime_controls import register_runtime_controls
+
+    register_runtime_controls(app, store, engine, worker, health, mutation)
     from .discovery.routes import register_discovery
 
     register_discovery(app, mutation)

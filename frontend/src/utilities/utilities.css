@@ -2,6 +2,51 @@
   width: 100%;
   min-width: 0;
 }
+.backend-controls {
+  position: relative;
+}
+.backend-controls-panel {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  z-index: 100;
+  width: min(420px, calc(100vw - 40px));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 12px 40px #0002;
+}
+.backend-controls-panel header,
+.backend-controls-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.backend-controls-panel p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.backend-controls-list {
+  max-height: min(430px, 55vh);
+  overflow: auto;
+}
+.backend-controls-list > div {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.backend-controls-list small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.backend-controls-panel footer {
+  padding-top: 14px;
+  font-size: 12px;
+}
 .utility-tabs {
   display: flex;
   flex-wrap: wrap;

@@ -24,6 +24,12 @@ export function UtilityWorkspace({
 }) {
   const [active, setActive] = useState<Utility>("image");
   const [visited, setVisited] = useState<Utility[]>(["image"]);
+  const [completed, setCompleted] = useState<Partial<Record<Utility, boolean>>>(
+    {},
+  );
+  const [revisions, setRevisions] = useState<Partial<Record<Utility, number>>>(
+    {},
+  );
   const forms = {
     admet: AdmetForm,
     properties: PropertyForm,
@@ -60,8 +66,34 @@ export function UtilityWorkspace({
           <section key={id} hidden={active !== id} aria-label={zh ? cn : en}>
             {Form ? (
               <>
-                <h1 className="utility-form-title">{zh ? cn : en}</h1>
-                <Form language={language} onCreated={onCreated} />
+                <div className="utility-toolbar">
+                  <h1 className="utility-form-title">{zh ? cn : en}</h1>
+                  {completed[id] && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevisions((current) => ({
+                          ...current,
+                          [id]: (current[id] ?? 0) + 1,
+                        }));
+                        setCompleted((current) => ({
+                          ...current,
+                          [id]: false,
+                        }));
+                      }}
+                    >
+                      {zh ? "新建任务" : "New task"}
+                    </button>
+                  )}
+                </div>
+                <Form
+                  key={revisions[id] ?? 0}
+                  language={language}
+                  onCreated={(job) => {
+                    setCompleted((current) => ({ ...current, [id]: true }));
+                    onCreated(job);
+                  }}
+                />
               </>
             ) : (
               <ImageRecognition language={language} />
