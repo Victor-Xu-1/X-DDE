@@ -87,7 +87,7 @@ it("saves location before scheduling the selected viewer bundle", async () => {
   ]);
   expect(post.mock.calls[0][1]).toEqual({
     location: "/mnt/e/OpenDDE",
-    automatic: true,
+    automatic: false,
   });
 });
 it("explains location failures without creating an installation", async () => {
@@ -252,14 +252,44 @@ it("installs DiffSBDD independently without an OpenDDE request", async () => {
   ]);
 });
 it("saves an existing managed location base without nesting it", async () => {
+  const snapshot = {
+    ...data,
+    config: { root: "/srv/components/x-dde-managed" },
+  };
+  fresh(snapshot);
   const post = vi.spyOn(api, "post").mockResolvedValue({});
-  panel({ ...data, config: { root: "/srv/components/x-dde-managed" } }, "en");
+  panel(snapshot, "en");
   expect(screen.getByLabelText("Choose install location")).toHaveValue(
     "/srv/components",
   );
   fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
   await waitFor(() => expect(post).toHaveBeenCalledOnce());
   expect(post.mock.calls[0][1]).toMatchObject({ location: "/srv/components" });
+});
+it.each([undefined, false, true])(
+  "preserves the latest automatic preference %s when saving a directory",
+  async (automatic) => {
+    fresh({ ...data, config: { automatic } });
+    const post = vi.spyOn(api, "post").mockResolvedValue({});
+    // Polling data may be older than another explicit settings change.
+    panel({ ...data, config: { automatic: automatic !== true } }, "en");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
+    await waitFor(() => expect(post).toHaveBeenCalledOnce());
+    expect(post.mock.calls[0]).toEqual([
+      "/deployment/config",
+      { location: data.default_location, automatic: automatic === true },
+    ]);
+  },
+);
+it("does not save a directory when the current preference cannot be read", async () => {
+  fresh(data).mockRejectedValue(new Error("Connection unavailable"));
+  const post = vi.spyOn(api, "post").mockResolvedValue({});
+  panel(data, "en");
+  fireEvent.click(screen.getByRole("button", { name: "Confirm location" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Connection unavailable",
+  );
+  expect(post).not.toHaveBeenCalled();
 });
 it("guards double clicks and refreshes partial failed bundles", async () => {
   fresh(data);

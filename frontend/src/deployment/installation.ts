@@ -2,6 +2,18 @@ import { api, request } from "../api";
 import { linuxLocation, type Deployment } from "./client";
 import { missingComponents } from "./component-groups";
 
+/** Saving a directory does not grant automatic installation permission. */
+export async function saveInstallLocation(
+  location: string,
+  current?: Deployment,
+) {
+  const snapshot = current ?? (await request<Deployment>("/deployment"));
+  return api.post("/deployment/config", {
+    location: linuxLocation(location),
+    automatic: snapshot.config.automatic === true,
+  });
+}
+
 /** Only request missing roots; the server remains the dependency/queue authority. */
 export async function installComponents(
   keys: string[],
@@ -12,10 +24,7 @@ export async function installComponents(
   const current = await request<Deployment>("/deployment");
   const missing = missingComponents(current, keys, repair);
   if (!missing.length) return;
-  await api.post("/deployment/config", {
-    location: linuxLocation(location),
-    automatic: true,
-  });
+  await saveInstallLocation(location, current);
   let queued = 0;
   try {
     for (const key of missing) {

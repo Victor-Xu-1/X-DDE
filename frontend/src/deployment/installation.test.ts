@@ -87,3 +87,43 @@ it("submits model roots through the backend dependency installer", async () => {
     "/deployment/packages/standard/install",
   ]);
 });
+
+it.each(
+  [undefined, false, true].flatMap((automatic) =>
+    ["single", "bundle", "repair"].map((action) => ({ automatic, action })),
+  ),
+)(
+  "preserves automatic=$automatic for $action installation",
+  async ({ automatic, action }) => {
+    const keys = action === "bundle" ? ["ketcher", "molstar"] : ["ketcher"];
+    const { get, post } = network(
+      deploymentFixture([packageOf("ketcher"), packageOf("molstar")], {
+        config: { automatic },
+        installed: action === "repair" ? { ketcher: { version: "1" } } : {},
+      }),
+    );
+    await installComponents(
+      keys,
+      "/data/components",
+      false,
+      action === "repair",
+    );
+    expect(get).toHaveBeenCalledOnce();
+    expect(post.mock.calls).toEqual([
+      [
+        "/deployment/config",
+        { location: "/data/components", automatic: automatic === true },
+      ],
+      ...keys.map((key) => [`/deployment/packages/${key}/install`, {}]),
+    ]);
+  },
+);
+
+it("never changes configuration or queues roots after a failed fresh read", async () => {
+  const { get, post } = network(deploymentFixture([packageOf("ketcher")]));
+  get.mockRejectedValue(new Error("Connection unavailable"));
+  await expect(installComponents(["ketcher"], "/data", false)).rejects.toThrow(
+    "Connection unavailable",
+  );
+  expect(post).not.toHaveBeenCalled();
+});
