@@ -1,0 +1,121 @@
+/** Native recognition UI companion. Translate React labels, never chemical data. */
+import { useEffect, useState } from "react";
+import {
+  attachRecognitionLocaleHost,
+  recognitionLanguage,
+} from "./recognition-locale";
+
+const english: Record<string, string> = {
+  识别服务已关闭: "Recognition is off",
+  正在启动: "Starting",
+  模型加载中: "Loading model",
+  识别服务就绪: "Recognition is ready",
+  识别中: "Recognizing",
+  正在关闭: "Stopping",
+  服务异常: "Service unavailable",
+  图片识别: "Image recognition",
+  识别后端: "Recognition service",
+  关闭识别后端: "Stop recognition service",
+  启动识别后端: "Start recognition service",
+  关闭提示: "Dismiss message",
+  结构图片: "Structure image",
+  粘贴: "Paste",
+  上传: "Upload",
+  清空图片: "Clear image",
+  待识别的化学结构图片: "Chemical structure image to recognize",
+  选择图片: "Choose image",
+  未选择图片: "No image selected",
+  缩小图片: "Zoom out",
+  放大图片: "Zoom in",
+  适应画布: "Fit image",
+  示例图片: "Example image",
+  阿司匹林示例: "Aspirin example",
+  咖啡因示例: "Caffeine example",
+  开始识别: "Recognize image",
+  分子结构: "Molecular structure",
+  结构编辑器加载中: "Loading structure editor",
+  "当前结构的 SMILES": "Current structure SMILES",
+  "复制当前 SMILES": "Copy current SMILES",
+  "复制 SMILES": "Copy SMILES",
+  "复制 MOL": "Copy MOL",
+  "下载 SMILES": "Download SMILES",
+  "下载 SDF": "Download SDF",
+  本地运行: "Runs locally",
+  "关闭识别后端？": "Stop recognition service?",
+  "正在运行的识别任务会被中断。":
+    "The current recognition task will be interrupted.",
+  返回: "Back",
+  关闭后端: "Stop service",
+  结构编辑器未能加载: "Structure editor could not load",
+  重新加载: "Reload",
+  "结构编辑器无法载入该分子。":
+    "The structure editor could not load this molecule.",
+  "未能识别该图片。": "This image could not be recognized.",
+  "与本地页面服务的连接已中断。": "Connection to the local workbench was lost.",
+  "无法连接本地页面服务。": "Cannot connect to the local workbench.",
+  "本地请求失败。": "The local request failed.",
+  "当前任务正在识别。": "An image is being recognized.",
+  "图片超过 10 MB。": "The image exceeds 10 MB.",
+  "请选择 PNG、JPEG、WebP 或 BMP 图片。":
+    "Choose a PNG, JPEG, WebP or BMP image.",
+  "图片超过 2000 万像素。": "The image exceeds 20 million pixels.",
+  "无法读取图片。": "The image could not be read.",
+  "示例图片暂不可用。": "The example image is unavailable.",
+  "剪贴板中没有图片。": "There is no image in the clipboard.",
+  "无法读取剪贴板，请使用粘贴操作或选择图片文件。":
+    "Paste an image or choose an image file.",
+  "当前结构为空。": "The structure is empty.",
+  "SMILES 已复制": "SMILES copied",
+  "MOL 已复制": "MOL copied",
+  "复制失败，请检查剪贴板权限。": "Copy failed. Check clipboard permission.",
+  "结构导出失败。": "The structure could not be exported.",
+  "图片为空。": "The image is empty.",
+  "任务不存在或已被清除。": "The task is unavailable.",
+  "识别服务启动失败，请查看本地日志。":
+    "Recognition could not start. Check the local service.",
+  "识别服务关闭失败，请查看本地日志。":
+    "Recognition could not stop. Check the local service.",
+  "模型加载失败。": "The recognition model could not load.",
+  "模型启动超时，识别服务已关闭。":
+    "Model startup timed out. Recognition was stopped.",
+  "识别超时，识别服务已关闭。":
+    "Recognition timed out. The service was stopped.",
+  "识别服务连接中断，已关闭后端。":
+    "Recognition lost its connection and was stopped.",
+  "DECIMER 模型加载失败，请查看本地服务日志。":
+    "The recognition model could not load. Check the local service.",
+  "识别服务尚未就绪。": "Recognition is not ready yet.",
+  "已有识别任务正在运行。": "A recognition task is already running.",
+  "识别失败，请重试或更换更清晰的结构图片。":
+    "Recognition failed. Retry or use a clearer structure image.",
+  "图片为空或超过 10 MB。": "The image is empty or exceeds 10 MB.",
+  "不支持该图片格式。": "This image format is unsupported.",
+  "图片尺寸过小。": "The image is too small.",
+  "图片为空白或没有可辨识内容。":
+    "The image is blank or has no recognizable content.",
+  "无法读取图片，或图片尺寸不安全。":
+    "The image cannot be read or its dimensions exceed safe limits.",
+  "识别结果不是有效的 SMILES，未生成分子结构。":
+    "The recognized SMILES is invalid. No molecular structure was created.",
+};
+
+export function recognitionHostText(value: string, language: "en" | "zh") {
+  return language === "zh" ? value : (english[value] ?? value);
+}
+
+export function useRecognitionHostLanguage() {
+  const [language, setLanguage] = useState(
+    () =>
+      recognitionLanguage(new URLSearchParams(location.search).get("lang")) ??
+      "en",
+  );
+  useEffect(() => attachRecognitionLocaleHost(setLanguage), []);
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = recognitionHostText("图片识别", language) + " · DECIMER";
+  }, [language]);
+  return {
+    language,
+    text: (value: string) => recognitionHostText(value, language),
+  };
+}

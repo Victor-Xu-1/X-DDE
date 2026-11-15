@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "host": "decimer-workbench-ui-0.1.0",
+  "files": [
+    {
+      "path": "frontend/src/App.tsx",
+      "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
+      "after_sha256": "bd8c27d87af5185378d5c7f7d2623aa761c58d591b7767968321f1d58fec4cb4",
+      "changes": [
+        {
+          "before": "const labels = {",
+          "after": "import { useRecognitionHostLanguage } from \"./recognition-host-ui-locale\";\nconst labels = {"
+        },
+        {
+          "before": "  const workbench = useWorkbench();",
+          "after": "  const { text } = useRecognitionHostLanguage();\n  const workbench = useWorkbench();"
+        },
+        {
+          "before": "{labels[state.phase]}",
+          "after": "{text(labels[state.phase])}"
+        },
+        {
+          "before": "{error || state.error}",
+          "after": "{text(error || state.error || \"\")}"
+        },
+        {
+          "before": "<h1>图片识别</h1>",
+          "after": "<h1>{text(\"图片识别\")}</h1>"
+        },
+        {
+          "before": "title={state.enabled ? \"关闭识别后端\" : \"启动识别后端\"}",
+          "after": "title={text(state.enabled ? \"关闭识别后端\" : \"启动识别后端\")}"
+        },
+        {
+          "before": "<span className=\"step-number\">01</span>结构图片",
+          "after": "<span className=\"step-number\">01</span>{text(\"结构图片\")}"
+        },
+        {
+          "before": "<span className=\"step-number\">02</span>分子结构",
+          "after": "<span className=\"step-number\">02</span>{text(\"分子结构\")}"
+        },
+        {
+          "before": "{file?.name || \"未选择图片\"}",
+          "after": "{file?.name || text(\"未选择图片\")}"
+        },
+        {
+          "before": "{busy ? \"识别中\" : \"开始识别\"}",
+          "after": "{text(busy ? \"识别中\" : \"开始识别\")}"
+        },
+        {
+          "before": "<EditorBoundary>",
+          "after": "<EditorBoundary translate={text}>"
+        },
+        {
+          "before": "<StopConfirmation\n",
+          "after": "<StopConfirmation\n        translate={text}\n"
+        },
+        {
+          "before": "{toast}\n",
+          "after": "{text(toast)}\n"
+        },
+        {
+          "before": "          本地运行\n",
+          "after": "          {text(\"本地运行\")}\n"
+        },
+        {
+          "before": "<span>粘贴</span>",
+          "after": "<span>{text(\"粘贴\")}</span>"
+        },
+        {
+          "before": "<span>上传</span>",
+          "after": "<span>{text(\"上传\")}</span>"
+        },
+        {
+          "before": "<span>选择图片</span>",
+          "after": "<span>{text(\"选择图片\")}</span>"
+        },
+        {
+          "before": "<span>结构编辑器加载中</span>",
+          "after": "<span>{text(\"结构编辑器加载中\")}</span>"
+        },
+        {
+          "before": ">阿司匹林示例</option>",
+          "after": ">{text(\"阿司匹林示例\")}</option>"
+        },
+        {
+          "before": ">咖啡因示例</option>",
+          "after": ">{text(\"咖啡因示例\")}</option>"
+        },
+        {
+          "before": "aria-label=\"识别后端\"",
+          "after": "aria-label={text(\"识别后端\")}"
+        },
+        {
+          "before": "aria-label=\"关闭提示\"",
+          "after": "aria-label={text(\"关闭提示\")}"
+        },
+        {
+          "before": "aria-label=\"清空图片\"",
+          "after": "aria-label={text(\"清空图片\")}"
+        },
+        {
+          "before": "aria-label=\"缩小图片\"",
+          "after": "aria-label={text(\"缩小图片\")}"
+        },
+        {
+          "before": "aria-label=\"放大图片\"",
+          "after": "aria-label={text(\"放大图片\")}"
+        },
+        {
+          "before": "aria-label=\"适应画布\"",
+          "after": "aria-label={text(\"适应画布\")}"
+        },
+        {
+          "before": "aria-label=\"示例图片\"",
+          "after": "aria-label={text(\"示例图片\")}"
+        },
+        {
+          "before": "aria-label=\"当前结构的 SMILES\"",
+          "after": "aria-label={text(\"当前结构的 SMILES\")}"
+        },
+        {
+          "before": "aria-label=\"复制当前 SMILES\"",
+          "after": "aria-label={text(\"复制当前 SMILES\")}"
+        },
+        {
+          "before": "aria-label=\"复制 SMILES\"",
+          "after": "aria-label={text(\"复制 SMILES\")}"
+        },
+        {
+          "before": "aria-label=\"复制 MOL\"",
+          "after": "aria-label={text(\"复制 MOL\")}"
+        },
+        {
+          "before": "aria-label=\"下载 SMILES\"",
+          "after": "aria-label={text(\"下载 SMILES\")}"
+        },
+        {
+          "before": "aria-label=\"下载 SDF\"",
+          "after": "aria-label={text(\"下载 SDF\")}"
+        },
+        {
+          "before": "title=\"清空图片\"",
+          "after": "title={text(\"清空图片\")}"
+        },
+        {
+          "before": "title=\"缩小图片\"",
+          "after": "title={text(\"缩小图片\")}"
+        },
+        {
+          "before": "title=\"放大图片\"",
+          "after": "title={text(\"放大图片\")}"
+        },
+        {
+          "before": "title=\"适应画布\"",
+          "after": "title={text(\"适应画布\")}"
+        },
+        {
+          "before": "title=\"复制当前 SMILES\"",
+          "after": "title={text(\"复制当前 SMILES\")}"
+        },
+        {
+          "before": "alt=\"待识别的化学结构图片\"",
+          "after": "alt={text(\"待识别的化学结构图片\")}"
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/EditorBoundary.tsx",
+      "before_sha256": "fc09e654071eb333a415fe1d7efc4ec020f79ba106ece7ebb9d92fb06e5e9529",
+      "after_sha256": "497f72df26bd4ac60eef39906f65539ed6cb19b85a877dd9fc70c9d3787127db",
+      "changes": [
+        {
+          "before": "{ children: ReactNode }",
+          "after": "{ children: ReactNode; translate?: (value: string) => string }"
+        },
+        {
+          "before": "  render() {",
+          "after": "  render() {\n    const text = this.props.translate ?? ((value: string) => value);"
+        },
+        {
+          "before": "<span>结构编辑器未能加载</span>",
+          "after": "<span>{text(\"结构编辑器未能加载\")}</span>"
+        },
+        {
+          "before": "            重新加载\n",
+          "after": "            {text(\"重新加载\")}\n"
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/StopConfirmation.tsx",
+      "before_sha256": "a0db57eea4bf7c0dc0c4240d7bf284b8c76a66e1a23f62040331619c6c76ce5d",
+      "after_sha256": "41f5b1cf56659423d5c23a32bf322983d0249d3a5d763285f3f194eab2be6e87",
+      "changes": [
+        {
+          "before": "  open,\n",
+          "after": "  open,\n  translate = (value) => value,\n"
+        },
+        {
+          "before": "  open: boolean;",
+          "after": "  open: boolean;\n  translate?: (value: string) => string;"
+        },
+        {
+          "before": "<h2 id=\"stop-title\">关闭识别后端？</h2>",
+          "after": "<h2 id=\"stop-title\">{translate(\"关闭识别后端？\")}</h2>"
+        },
+        {
+          "before": "<p>正在运行的识别任务会被中断。</p>",
+          "after": "<p>{translate(\"正在运行的识别任务会被中断。\")}</p>"
+        },
+        {
+          "before": "          返回\n",
+          "after": "          {translate(\"返回\")}\n"
+        },
+        {
+          "before": "          关闭后端\n",
+          "after": "          {translate(\"关闭后端\")}\n"
+        }
+      ]
+    }
+  ]
+}

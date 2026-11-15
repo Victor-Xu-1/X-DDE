@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import { Hint } from "../guided/Hint";
 import { createPortal } from "react-dom";
 import { ExportOutlined, ReloadOutlined } from "@ant-design/icons";
 import "./utilities.css";
+import { recognitionFrameUrl } from "./recognition-locale";
+import { useRecognitionLocale } from "./useRecognitionLocale";
 
 /** Reuse the installed editor and its own authenticated lifecycle authority. */
 export function ImageRecognition({
@@ -20,7 +22,15 @@ export function ImageRecognition({
   );
   const hostname =
     location.hostname === "localhost" ? "localhost" : "127.0.0.1";
-  const url = `http://${hostname}:8940/`;
+  const origin = `http://${hostname}:8940`;
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [url] = useState(() => recognitionFrameUrl(origin, language));
+  const locale = useRecognitionLocale(
+    frame,
+    origin,
+    language,
+    status === "ready",
+  );
   useEffect(() => {
     const controller = new AbortController();
     const deadline = window.setTimeout(() => controller.abort(), 5000);
@@ -64,7 +74,7 @@ export function ImageRecognition({
           <ReloadOutlined aria-hidden="true" />
         </button>
         <a
-          href={url}
+          href={`${origin}/?lang=${language}`}
           target="_blank"
           rel="noreferrer"
           aria-label={zh ? "独立窗口" : "Open separately"}
@@ -104,15 +114,28 @@ export function ImageRecognition({
         </div>
       )}
       {status === "ready" && (
-        <iframe
-          key={attempt}
-          className="utility-recognition-frame"
-          src={url}
-          title={
-            zh ? "图片识别与分子编辑" : "Image recognition and molecular editor"
-          }
-          allow="clipboard-read; clipboard-write"
-        />
+        <>
+          {locale.supported === false && (
+            <p role="status">
+              {zh
+                ? "本地工作台尚不支持语言同步，请更新后重新连接。"
+                : "Update the local workbench, then reconnect to enable language switching."}
+            </p>
+          )}
+          <iframe
+            ref={frame}
+            key={attempt}
+            className="utility-recognition-frame"
+            src={url}
+            title={
+              zh
+                ? "图片识别与分子编辑"
+                : "Image recognition and molecular editor"
+            }
+            allow="clipboard-read; clipboard-write"
+            onLoad={locale.connect}
+          />
+        </>
       )}
     </section>
   );

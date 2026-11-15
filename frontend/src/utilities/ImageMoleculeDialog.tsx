@@ -1,7 +1,9 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { ImageMolecule } from "./image-molecule";
 import { useRecognitionBridge } from "./useRecognitionBridge";
+import { recognitionFrameUrl } from "./recognition-locale";
+import { useRecognitionLocale } from "./useRecognitionLocale";
 
 export function ImageMoleculeDialog({
   file,
@@ -18,6 +20,10 @@ export function ImageMoleculeDialog({
     title = useId();
   const bridge = useRecognitionBridge(file, language, onAccept),
     zh = language === "zh";
+  const [url] = useState(() =>
+    recognitionFrameUrl(bridge.origin, language, true),
+  );
+  const locale = useRecognitionLocale(bridge.frame, bridge.origin, language);
   useEffect(() => {
     dialog.current?.showModal();
     const close = () => onClose();
@@ -63,14 +69,24 @@ export function ImageMoleculeDialog({
           {bridge.error}
         </p>
       )}
+      {locale.supported === false && (
+        <p role="status">
+          {zh
+            ? "本地工作台尚不支持语言同步，请更新后重新连接。"
+            : "Update the local workbench, then reconnect to enable language switching."}
+        </p>
+      )}
       <iframe
         ref={bridge.frame}
-        src={`${bridge.origin}/?xdde-input=1&parent=${encodeURIComponent(location.origin)}`}
+        src={url}
         title={
           zh ? "结构图片识别与编辑" : "Structure image recognition and editing"
         }
         allow="clipboard-read; clipboard-write"
-        onLoad={bridge.connect}
+        onLoad={() => {
+          locale.connect();
+          bridge.connect();
+        }}
       />
       <footer>
         <span>{bridge.filename}</span>
