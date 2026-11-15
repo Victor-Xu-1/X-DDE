@@ -250,7 +250,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "22918f5d5016616f1fca71006069a1931a7bc5d021e5f5e5d49b45f8c514ead3",
+      "after_sha256": "79bc25bf92cb9a3cf70e4a350937b9512f358c530a0500d2728acd930cad42bc",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -278,7 +278,7 @@
         },
         {
           "before": "  const generation = useRef(0);",
-          "after": "  const generation = useRef(0);\n  const loadRevision = useRef(0);\n  const policy = useRef<ReturnType<typeof configureRecognitionEditor> | null>(null);\n  const lifetime = useRef<AbortController | null>(null);\n  const canvas = useRef<HTMLDivElement>(null);\n  const [preparing, setPreparing] = useState(true);\n  const [available, setAvailable] = useState(false);\n  const [displayError, setDisplayError] = useState(false);\n  useEffect(() => () => { generation.current++; loadRevision.current++; lifetime.current?.abort(); }, []);\n  useEffect(() => { if (canvas.current) canvas.current.inert = preparing; }, [preparing]);"
+          "after": "  const generation = useRef(0);\n  const loadRevision = useRef(0);\n  const policy = useRef<ReturnType<typeof configureRecognitionEditor> | null>(null);\n  const lifetime = useRef<AbortController | null>(null);\n  const canvas = useRef<HTMLDivElement>(null);\n  const [preparing, setPreparing] = useState(true);\n  const [displayError, setDisplayError] = useState(false);\n  useEffect(() => () => { generation.current++; loadRevision.current++; lifetime.current?.abort(); }, []);\n  useEffect(() => { if (canvas.current) canvas.current.inert = preparing; }, [preparing]);"
         },
         {
           "before": "useRef({ onSmiles, onError })",
@@ -298,7 +298,7 @@
         },
         {
           "before": "    <div className=\"editor-canvas\" data-testid=\"molecule-editor\">",
-          "after": "    <div ref={canvas} className=\"editor-canvas\" data-testid=\"molecule-editor\"\n      data-structure-valid={available} aria-busy={preparing} style={{position:\"relative\"}}>"
+          "after": "    <div ref={canvas} className=\"editor-canvas\" data-testid=\"molecule-editor\"\n      data-structure-valid={!preparing && !displayError} aria-busy={preparing} style={{position:\"relative\"}}>"
         },
         {
           "before": "callbacks.current.onError(String(error))",
@@ -306,7 +306,7 @@
         },
         {
           "before": "          instance.editor.setOptions(\n            JSON.stringify({\n              hideTerminalLabels: true,\n              showHydrogenLabels: \"Hetero\",\n              aromaticCircle: false,\n            }),\n          );\n",
-          "after": "          lifetime.current?.abort();\n          const controller = new AbortController();\n          lifetime.current = controller;\n          try {\n            policy.current = configureRecognitionEditor({\n              editor: {setOptions: value => instance.editor.setOptions(value)},\n              changeEvent: instance.changeEvent,\n              eventBus: instance.eventBus,\n              getKet: () => instance.getKet(),\n              getMolfile: () => instance.getMolfile(\"v3000\"),\n              getSmiles: () => instance.getSmiles(),\n              setMolecule: value => instance.setMolecule(value),\n              structService: {\n                getInChIKey: value => instance.structService.getInChIKey(value),\n                layout: data => instance.structService.layout({\n                  struct:data.struct,\n                  output_format:data.output_format === \"chemical/x-indigo-ket\"\n                    ? ChemicalMimeType.KET : ChemicalMimeType.Mol,\n                }),\n                toggleExplicitHydrogens: data => instance.structService.toggleExplicitHydrogens({\n                  struct:data.struct, mode:data.mode, output_format:ChemicalMimeType.KET,\n                }),\n              },\n            }, controller.signal,\n              () => {\n                setDisplayError(true);\n                callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\");\n              }, {\n                fit: () => {\n                  const bounds = canvas.current?.getBoundingClientRect();\n                  if (!bounds || bounds.width < 1 || bounds.height < 1) return false;\n                  instance.editor.zoomAccordingContent(instance.editor.struct());\n                  instance.editor.centerStruct();\n                  return true;\n                },\n                resetZoom: () => { instance.editor.zoom(1); },\n                onState: state => {\n                  setPreparing(state.busy);\n                  setAvailable(state.available);\n                  if (state.available) setDisplayError(false);\n                  callbacks.current.onAvailability?.(state.available);\n                },\n              });\n          } catch {\n            setPreparing(false);\n            setDisplayError(true);\n            callbacks.current.onError(\"无法应用分子显示规则，请更新绘图组件。\");\n            return;\n          }\n          const observer = new ResizeObserver(() => policy.current?.fitWhenVisible());\n          if (canvas.current) observer.observe(canvas.current);\n          controller.signal.addEventListener(\"abort\", () => observer.disconnect(), {once:true});\n"
+          "after": "          lifetime.current?.abort();\n          const controller = new AbortController();\n          lifetime.current = controller;\n          try {\n            policy.current = configureRecognitionEditor({\n              editor: {setOptions: value => instance.editor.setOptions(value)},\n              changeEvent: instance.changeEvent,\n              eventBus: instance.eventBus,\n              getKet: () => instance.getKet(),\n              getMolfile: () => instance.getMolfile(\"v3000\"),\n              getSmiles: () => instance.getSmiles(),\n              setMolecule: value => instance.setMolecule(value),\n              structService: {\n                getInChIKey: value => instance.structService.getInChIKey(value),\n                layout: data => instance.structService.layout({\n                  struct:data.struct,\n                  output_format:data.output_format === \"chemical/x-indigo-ket\"\n                    ? ChemicalMimeType.KET : ChemicalMimeType.Mol,\n                }),\n                toggleExplicitHydrogens: data => instance.structService.toggleExplicitHydrogens({\n                  struct:data.struct, mode:data.mode, output_format:ChemicalMimeType.KET,\n                }),\n              },\n            }, controller.signal,\n              () => {\n                setDisplayError(true);\n                callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\");\n              }, {\n                fit: () => {\n                  const bounds = canvas.current?.getBoundingClientRect();\n                  if (!bounds || bounds.width < 1 || bounds.height < 1) return false;\n                  instance.editor.zoomAccordingContent(instance.editor.struct());\n                  instance.editor.centerStruct();\n                  return true;\n                },\n                resetZoom: () => { instance.editor.zoom(1); },\n                onState: state => {\n                  setPreparing(state.busy);\n                  if (state.available) setDisplayError(false);\n                  callbacks.current.onAvailability?.(state.available);\n                },\n              });\n          } catch {\n            setPreparing(false);\n            setDisplayError(true);\n            callbacks.current.onError(\"无法应用分子显示规则，请更新绘图组件。\");\n            return;\n          }\n          const observer = new ResizeObserver(() => policy.current?.fitWhenVisible());\n          if (canvas.current) observer.observe(canvas.current);\n          controller.signal.addEventListener(\"abort\", () => observer.disconnect(), {once:true});\n"
         },
         {
           "before": "          instance.editor.subscribe(\"change\", () => {",
@@ -329,8 +329,12 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "3c96f569ac6d65e2271d76f9b90794a6571c99b63660b0d93f72d941dc61484d",
+      "after_sha256": "aa749cc04c576844e813219b2d9948a653e1fd2958494955f64a2359668dfe55",
       "changes": [
+        {
+          "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
+          "after": "import { useCallback, useEffect, useRef, useState } from \"react\";\nimport { moleculeReadiness, MoleculeReadinessError } from \"./molecule-readiness\";"
+        },
         {
           "before": "await editor.current.getMolfile()",
           "after": "await editor.current.getMolfile(\"v3000\")"
@@ -341,34 +345,54 @@
         },
         {
           "before": "  const [editorReady, setEditorReady] = useState(false);",
-          "after": "  const [editorReady, setEditorReady] = useState(false);\n  const [structureReady, setStructureReady] = useState(false);"
+          "after": "  const [editorReady, setEditorReady] = useState(false);\n  const [structureReady, updateStructureReady] = useState(false);\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    updateStructureReady(ready);\n  };"
         },
         {
           "before": "    editorReady,\n    setEditorReady,",
-          "after": "    editorReady,\n    setEditorReady,\n    structureReady,\n    setStructureReady,"
+          "after": "    editorReady,\n    setEditorReady,\n    structureReady,\n    setStructureReady,\n    structureGate,"
         },
         {
           "before": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current) return;",
-          "after": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current || !structureReady) return;"
+          "after": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current || !structureGate.available) return;\n      const checkpoint = structureGate.checkpoint();"
         },
         {
           "before": "  const download = async (format: \"smiles\" | \"sdf\") => {\n    try {\n      if (!editor.current) return;",
-          "after": "  const download = async (format: \"smiles\" | \"sdf\") => {\n    try {\n      if (!editor.current || !structureReady) return;"
+          "after": "  const download = async (format: \"smiles\" | \"sdf\") => {\n    try {\n      if (!editor.current || !structureGate.available) return;\n      const checkpoint = structureGate.checkpoint();"
+        },
+        {
+          "before": "      await navigator.clipboard.writeText(text);",
+          "after": "      structureGate.verify(checkpoint);\n      await navigator.clipboard.writeText(text);"
+        },
+        {
+          "before": "      const url = URL.createObjectURL(",
+          "after": "      structureGate.verify(checkpoint);\n      const url = URL.createObjectURL("
+        },
+        {
+          "before": "    } catch {\n      setError(\"复制失败，请检查剪贴板权限。\");",
+          "after": "    } catch (error) {\n      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"复制失败，请检查剪贴板权限。\");"
+        },
+        {
+          "before": "    } catch {\n      setError(\"结构导出失败。\");",
+          "after": "    } catch (error) {\n      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");"
         }
       ]
     },
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "2157f79f5e3df0aff46abe4a13ac8a0346eadbcc341570afea76b09fe27d7692",
+      "after_sha256": "90e1ddc10b1732d905a226e3df0c51b61df641213f7bc4817dfb5539850b4e49",
       "changes": [
         {
-          "before": "await editor.getMolfile()",
-          "after": "await editor.getMolfile(\"v3000\")"
+          "before": "          const molfile = await editor.getMolfile();",
+          "after": "          const checkpoint = latest.current.structureGate.checkpoint();\n          const molfile = await editor.getMolfile(\"v3000\");"
+        },
+        {
+          "before": "          return { smiles: converted.struct, molfile };",
+          "after": "          latest.current.structureGate.verify(checkpoint);\n          return { smiles: converted.struct, molfile };"
         },
         {
           "before": "          latest.current.editorReady &&\n          !latest.current.busy &&",
-          "after": "          latest.current.editorReady &&\n          latest.current.structureReady &&\n          !latest.current.busy &&"
+          "after": "          latest.current.editorReady &&\n          latest.current.structureGate.available &&\n          !latest.current.busy &&"
         },
         {
           "before": "[origin, work.smiles, work.busy, work.editorReady, work.file]",

@@ -35,14 +35,14 @@ def source(tmp_path):
 def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     host, resources, backups = source
     before = {p.relative_to(host): p.read_bytes() for p in host.rglob("*.tsx")}
-    assert len(companion.prepare(host, resources)) == 14
+    assert len(companion.prepare(host, resources)) == 15
     assert not backups.exists()
     assert all((host / p).read_bytes() == data for p, data in before.items())
     result = companion.apply(host, backups, resources, exclusive_source=True)
-    assert result["changed"] == 14
+    assert result["changed"] == 15
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
-    assert len(json.loads((saved / "receipt.json").read_text())) == 14
+    assert len(json.loads((saved / "receipt.json").read_text())) == 15
     assert companion.apply(host, backups, resources, exclusive_source=True) == {
         "changed": 0, "already_applied": True,
     }

@@ -18,6 +18,10 @@ export function editorLifetime(
     get valid() {
       return valid;
     },
+    invalidate() {
+      valid = false;
+      notify();
+    },
     accept() {
       valid = true;
       notify();

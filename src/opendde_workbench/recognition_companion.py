@@ -20,6 +20,7 @@ ADAPTERS = {
     "ketcher-appearance.ts": "frontend/src/editors/ketcher-appearance.ts",
     "ketcher-hydrogens.ts": "frontend/src/editors/ketcher-hydrogens.ts",
     "editor-lifetime.ts": "frontend/src/editors/editor-lifetime.ts",
+    "molecule-readiness.ts": "frontend/src/editors/molecule-readiness.ts",
     "recognition-host-editor.css": "frontend/src/editors/recognition-host-editor.css",
 }
 

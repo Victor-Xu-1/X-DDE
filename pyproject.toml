@@ -38,6 +38,7 @@ packages = ["src/opendde_workbench"]
 "frontend/src/editors/ketcher-appearance.ts" = "opendde_workbench/data/recognition_locale/ketcher-appearance.ts"
 "frontend/src/editors/ketcher-hydrogens.ts" = "opendde_workbench/data/recognition_locale/ketcher-hydrogens.ts"
 "frontend/src/editors/editor-lifetime.ts" = "opendde_workbench/data/recognition_locale/editor-lifetime.ts"
+"frontend/src/editors/molecule-readiness.ts" = "opendde_workbench/data/recognition_locale/molecule-readiness.ts"
 "frontend/src/editors/recognition-host-editor.css" = "opendde_workbench/data/recognition_locale/recognition-host-editor.css"
 
 [tool.hatch.build.hooks.custom]

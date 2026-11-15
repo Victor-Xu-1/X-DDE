@@ -35,6 +35,8 @@ export function configureRecognitionEditor(
 ) {
   const lifetime = editorLifetime(signal, actions.onState);
   let revision = 0,
+    canvasRevision = 0,
+    needsIdentityReview = false,
     acceptedKet: string | null = null,
     wasEmpty = true,
     needsFit = false,
@@ -54,36 +56,55 @@ export function configureRecognitionEditor(
   function fit() {
     needsFit = !actions.fit();
   }
-  async function commit(prepared: string, expectedKey: string | null) {
-    const failures = lifetime.failures;
+  async function commit(
+    prepared: string,
+    expectedKey: string | null,
+    current: () => boolean,
+  ) {
+    const failures = lifetime.failures,
+      beforeRevision = canvasRevision;
     retained ??= await native.getKet();
+    signal.throwIfAborted();
+    if (!current() || beforeRevision !== canvasRevision) return false;
+    if (failures !== lifetime.failures)
+      throw new Error("编辑器未能确认载入结果，请保留原始文件并重试。");
     committing = true;
+    let revalidate = false;
     try {
       await native.setMolecule(prepared);
       signal.throwIfAborted();
+      const observedRevision = canvasRevision;
       const actual = await native.getKet();
+      const actualKey = expectedKey === null ? null : await key(actual);
+      signal.throwIfAborted();
+      if (!current() || observedRevision !== canvasRevision) {
+        revalidate = true;
+        return false;
+      }
       if (
         failures !== lifetime.failures ||
         hasNonDonorHydrogens(actual) ||
-        (expectedKey === null
-          ? present(actual)
-          : (await key(actual)) !== expectedKey)
+        (expectedKey === null ? present(actual) : actualKey !== expectedKey)
       )
         throw new Error("编辑器未能确认载入结果，请保留原始文件并重试。");
       acceptedKet = actual;
       retained = null;
+      needsIdentityReview = false;
       wasEmpty = !present(actual);
       if (wasEmpty) {
         actions.resetZoom();
         needsFit = false;
       } else fit();
       lifetime.accept();
+      return true;
     } finally {
       committing = false;
+      if (revalidate && !signal.aborted) changed();
     }
   }
   const failed = () => {
     retained ??= acceptedKet;
+    needsIdentityReview = true;
     lifetime.fail();
   };
   native.eventBus.addListener("FAILURE", failed);
@@ -99,15 +120,7 @@ export function configureRecognitionEditor(
     getKet: () => native.getKet(),
     getMolfile: () => native.getMolfile(),
     getSmiles: () => native.getSmiles(),
-    setMolecule: async (value) => {
-      const original = await native.getKet();
-      const expected = await key(original);
-      if ((await key(value)) !== expected)
-        throw new Error("显示转换不能保持分子身份，已保留原始结构。");
-      if (original !== (await native.getKet()))
-        throw new Error("编辑内容已更新，未覆盖新结构。");
-      await commit(value, expected);
-    },
+    setMolecule: (value) => native.setMolecule(value),
   };
   configureKetcherPreview(display);
   // The public native change event cannot distinguish edits from Undo/Redo.
@@ -115,10 +128,12 @@ export function configureRecognitionEditor(
   const validateDrawing = async () => {
     if (committing || signal.aborted) return;
     const eventFailures = lifetime.failures;
+    const observedRevision = canvasRevision;
     const observed = await native.getKet();
     if (
       committing ||
       signal.aborted ||
+      observedRevision !== canvasRevision ||
       (observed === acceptedKet && lifetime.valid) ||
       eventFailures !== lifetime.failures
     )
@@ -126,25 +141,20 @@ export function configureRecognitionEditor(
     if (!hasNonDonorHydrogens(observed)) {
       // Do not suspend native drawing/dragging for an unchanged display policy.
       const empty = !present(observed);
-      const accept = () => {
-        if (wasEmpty && !empty) fit();
-        acceptedKet = observed;
-        retained = null;
-        wasEmpty = empty;
-        lifetime.accept();
-      };
-      if (lifetime.valid) accept();
-      else
-        await lifetime.run(async () => {
-          if (
-            committing ||
-            observed !== (await native.getKet()) ||
-            eventFailures !== lifetime.failures
-          )
-            return;
-          if (!empty) await key(observed);
-          accept();
-        });
+      if (needsIdentityReview && !empty) await key(observed);
+      if (
+        signal.aborted ||
+        committing ||
+        observedRevision !== canvasRevision ||
+        eventFailures !== lifetime.failures
+      )
+        return;
+      if (wasEmpty && !empty) fit();
+      acceptedKet = observed;
+      retained = null;
+      wasEmpty = empty;
+      needsIdentityReview = false;
+      lifetime.accept();
       return;
     }
     retained = observed;
@@ -154,7 +164,10 @@ export function configureRecognitionEditor(
   let checking = false,
     pending = false;
   const changed = () => {
-    if (committing || signal.aborted) return;
+    if (signal.aborted) return;
+    canvasRevision++;
+    lifetime.invalidate();
+    if (committing) return;
     if (checking) {
       pending = true;
       return;
@@ -187,6 +200,8 @@ export function configureRecognitionEditor(
     return lifetime.run(async () => {
       if (source.length > 5 * 1024 ** 2) throw new Error("分子文件超过 5 MB。");
       if (intent !== revision) return false;
+      const observedRevision = canvasRevision,
+        failures = lifetime.failures;
       const before = await native.getKet();
       retained ??= before;
       const expected = source.trim() ? await key(source) : null;
@@ -198,8 +213,17 @@ export function configureRecognitionEditor(
         return false;
       if (expected !== null && (await key(prepared)) !== expected)
         throw new Error("显示转换不能保持分子身份，已保留原始结构。");
-      await commit(prepared, expected);
-      return !signal.aborted && intent === revision;
+      signal.throwIfAborted();
+      if (intent !== revision || observedRevision !== canvasRevision)
+        return false;
+      if (failures !== lifetime.failures)
+        throw new Error("编辑器未能确认载入结果，请保留原始文件并重试。");
+      const applied = await commit(
+        prepared,
+        expected,
+        () => intent === revision,
+      );
+      return applied && !signal.aborted && intent === revision;
     });
   };
   return {

@@ -6,6 +6,7 @@ import {
 } from "./recognition-locale";
 
 const english: Record<string, string> = {
+  "结构已更新，请核对后重试。": "Drawing changed. Review it and try again.",
   "正在准备分子结构…": "Preparing structure…",
   "绘图备份已保留。": "A drawing backup was retained.",
   "请重新载入分子结构。": "Reload a molecular structure.",

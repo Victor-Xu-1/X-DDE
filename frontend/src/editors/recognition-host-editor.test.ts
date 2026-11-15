@@ -264,3 +264,112 @@ it("defers fitting a hidden canvas until visible and does not reload molecular d
   expect(f.current()).toBe(carbon);
   f.controller.abort();
 });
+
+it("invalidates export approval synchronously while native serialization waits", async () => {
+  const f = fixture();
+  await ready(f);
+  await f.policy.load("source-A");
+  let finish!: (value: string) => void;
+  vi.mocked(f.native.getKet).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  f.edit(explicit);
+  expect(f.state).toHaveBeenLastCalledWith({ busy: false, available: false });
+  finish(explicit);
+  await vi.waitFor(() => expect(f.error).toHaveBeenCalled());
+  expect(f.native.setMolecule).toHaveBeenCalledTimes(1);
+  f.controller.abort();
+});
+
+it.each([2, 3])(
+  "rechecks abort/failure after identity await %s",
+  async (boundary) => {
+    for (const event of ["abort", "failure"]) {
+      const f = fixture();
+      await ready(f);
+      const original = vi
+        .mocked(f.native.structService.getInChIKey)
+        .getMockImplementation()!;
+      let count = 0,
+        finish!: (value: string) => void;
+      vi.mocked(f.native.structService.getInChIKey).mockImplementation(
+        (value) => {
+          if (++count === boundary)
+            return new Promise((resolve) => {
+              finish = resolve;
+            });
+          return original(value);
+        },
+      );
+      const loading = f.policy.load("source-A");
+      await vi.waitFor(() => expect(finish).toBeTypeOf("function"));
+      if (event === "abort") {
+        f.controller.abort();
+        f.state.mockClear();
+      } else f.fail();
+      finish("carbon");
+      await expect(loading).rejects.toThrow();
+      if (event === "abort") expect(f.state).not.toHaveBeenCalled();
+      else
+        expect(f.state).toHaveBeenLastCalledWith({
+          busy: false,
+          available: false,
+        });
+      if (boundary === 2) expect(f.native.setMolecule).not.toHaveBeenCalled();
+      f.controller.abort();
+    }
+  },
+);
+
+it("supersedes an intent during its final prepared-identity lookup", async () => {
+  const f = fixture();
+  await ready(f);
+  const original = vi
+    .mocked(f.native.structService.getInChIKey)
+    .getMockImplementation()!;
+  let count = 0,
+    finish!: (value: string) => void;
+  vi.mocked(f.native.structService.getInChIKey).mockImplementation((value) => {
+    if (++count === 2)
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    return original(value);
+  });
+  const first = f.policy.load("source-A");
+  await vi.waitFor(() => expect(finish).toBeTypeOf("function"));
+  const second = f.policy.load("source-B");
+  finish("carbon");
+  expect(await first).toBe(false);
+  expect(await second).toBe(true);
+  expect(f.native.setMolecule).toHaveBeenCalledExactlyOnceWith(nitrogen);
+  f.controller.abort();
+});
+
+it("does not restore approval when native failure arrives during recovery identity lookup", async () => {
+  const f = fixture();
+  await ready(f);
+  await f.policy.load("source-A");
+  f.fail();
+  f.state.mockClear();
+  const original = vi
+    .mocked(f.native.structService.getInChIKey)
+    .getMockImplementation()!;
+  let checked = false;
+  vi.mocked(f.native.structService.getInChIKey).mockImplementation(
+    async (value) => {
+      f.fail();
+      const result = await original(value);
+      checked = true;
+      return result;
+    },
+  );
+  f.edit(nitrogen);
+  await vi.waitFor(() => expect(checked).toBe(true));
+  expect(f.state.mock.calls.every(([state]) => !state.available)).toBe(true);
+  expect(f.policy.retainedDrawing()).toBe(carbon);
+  f.controller.abort();
+});
