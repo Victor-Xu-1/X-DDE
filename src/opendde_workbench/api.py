@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import PRODUCT_NAME, __version__
+from .utility_routes import RECOGNITION_ORIGINS, register_utilities
 from .artifacts import contained, list_artifacts, log_tail
 from .asset_routes import register_assets
 from .asset_upload_routes import register_uploads
@@ -114,6 +115,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await worker.close()
 
     app = FastAPI(title=PRODUCT_NAME, version=__version__, lifespan=lifespan)
+    register_utilities(app)
     app.state.quiescing = False
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
@@ -182,7 +184,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; style-src 'self'; img-src 'self' data:; "
             "script-src 'self'; worker-src 'self' blob:; style-src-attr 'unsafe-inline'; "
-            f"frame-ancestors {frame_ancestors}; base-uri 'none'"
+            f"frame-ancestors {frame_ancestors}; frame-src 'self' {RECOGNITION_ORIGINS}; base-uri 'none'"
         )
         if editor:
             response.headers["Content-Security-Policy"] = (

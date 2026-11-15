@@ -234,3 +234,13 @@ The existing Chemistry environment provides both methods; no additional model or
 ### Scientific environment availability
 
 Availability checks inspect the installed environment and its complete model-resource manifest without loading a scientific model. Large resource libraries are checked while the workbench remains available for editing and navigation. Readiness is published only after verification finishes; missing, redirected or changed resources remain unavailable. A timed-out or interrupted observation does not become a successful check later, and concurrent readers share the current observation. Installation readiness does not establish the scientific quality of a prediction.
+
+## Utilities / 小工具
+
+The first navigation entry opens Utilities: image-to-SMILES recognition and editing, ADMET prediction, molecular descriptors, similarity/structural-alert screening, and protonation/tautomer preparation. These entries reuse the existing task forms and result authorities. Switching utility tabs retains unfinished inputs. ADMET and other scientific calculations require their separately installed environments; opening an input form does not install them.
+
+小工具是首个入口，提供图片转 SMILES 与结构编辑、ADMET、分子性质、相似性与结构警报、质子化与互变异构。图片识别复用已安装的 DECIMER 工作台（本机 8940），支持粘贴、上传、拖入、编辑及 SMILES/MOL/SDF 复制导出。识别服务由内嵌工作台右上角开关启动；默认关闭，闲置后按原工作台策略释放模型。平台没有安装该工作台时会显示连接提示，不生成替代结果。
+
+To embed an existing DECIMER workbench, its HTTP host must explicitly permit only `http://127.0.0.1:4322` and `http://localhost:4322` in `frame-ancestors`; retain its host/origin/session checks. X-DDE permits only the two corresponding local 8940 frame origins. The read-only discovery route queries `/health`, never starts WSL/models and never accepts a caller-provided URL. No token or model is copied into X-DDE.
+
+Platform startup no longer automatically installs components or starts an automatic legacy compute connection. The top-right compute switch uses the existing authenticated start/stop authority; unavailable components remain disabled, and active scientific tasks prevent shutdown. Job-scoped adapters retain their existing process lifecycle. Persistent integrations must provide explicit start/stop controls and a verified resource-release path before being enabled. Platform-only restoration installs neither scientific engines nor checkpoints.

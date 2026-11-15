@@ -1,0 +1,29 @@
+name: Utility tools and manual compute checks
+on:
+  push:
+    paths: &paths
+      - "frontend/src/utilities/**"
+      - "src/opendde_workbench/utility_routes.py"
+      - "tests/test_utility_tools.py"
+      - ".github/workflows/utility-tools-checks.yml"
+  pull_request:
+    paths: *paths
+permissions:
+  contents: read
+jobs:
+  utilities:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Utility navigation, retained inputs and direct form consumers
+        working-directory: frontend
+        run: npx vitest run src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx src/studio/Navigation.test.tsx src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx
+      - run: uv sync --locked --group dev
+      - name: Local discovery and no startup inference
+        run: uv run --locked pytest -q tests/test_utility_tools.py

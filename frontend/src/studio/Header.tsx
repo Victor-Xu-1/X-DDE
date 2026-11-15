@@ -11,6 +11,7 @@ export function Header({
   onJob,
   storageWarning,
   workspace,
+  runtime,
 }: {
   view: View;
   language: Language;
@@ -18,6 +19,7 @@ export function Header({
   onJob(id: string): void;
   storageWarning: boolean;
   workspace?: ReactNode;
+  runtime?: ReactNode;
 }) {
   const zh = language === "zh";
   return (
@@ -30,6 +32,7 @@ export function Header({
       {workspace}
       <TaskSearch jobs={jobs} language={language} onJob={onJob} />
       <div className="top-actions">
+        {runtime}
         <TaskNotifications jobs={jobs} language={language} onJob={onJob} />
       </div>
       {storageWarning && (

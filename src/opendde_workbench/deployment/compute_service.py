@@ -153,7 +153,6 @@ class ComputeService:
             }
 
     def ensure(self):
-        connection = read_connection(self.state)
-        if connection is not None and connection.automatic:
-            return self.invoke("start")
+        # Opening the platform must never load a model, including legacy saved
+        # connections marked automatic. Only the authenticated Start action does.
         return self.snapshot()

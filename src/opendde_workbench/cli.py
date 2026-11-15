@@ -90,7 +90,7 @@ def main():
         else:
             if command == "restart":
                 stop()
-            url = start(args.port, not args.no_auto_deploy)
+            url = start(args.port, False)
             print(f"X-DDE {__version__}: {url}")
             print("Stop: xdde stop | Status: xdde status | Logs: xdde logs")
             if not args.no_browser:
