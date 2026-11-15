@@ -70,7 +70,9 @@ def test_reinvent_exact_chemical_scope_and_review(language, width):
         page.screenshot(path=evidence / f"scope-{language}-{width}.png", full_page=True)
         next_button.click()
         page.get_by_role("radio", name="20 个候选" if zh else "20 candidates", exact=True).check()
-        page.get_by_role("button", name="专家微调" if zh else "Expert tuning", exact=True).click()
+        page.get_by_role(
+            "button", name="高级设置" if zh else "Advanced settings", exact=True
+        ).click()
         page.get_by_role("spinbutton", name="随机种子" if zh else "Random seed", exact=True).fill(
             "2026"
         )
@@ -179,7 +181,7 @@ def test_explicit_stat6_template_source_survives_mode_changes_without_submitting
         page.screenshot(path=evidence / "explicit-stat6-scaffold-origin.png", full_page=True)
         next_button.click()
         expect(page.get_by_role("radio", name="20 candidates", exact=True)).to_be_checked()
-        page.get_by_role("button", name="Expert tuning", exact=True).click()
+        page.get_by_role("button", name="Advanced settings", exact=True).click()
         for label, value in (
             ("CPU cores", "2"),
             ("Memory budget (MiB)", "2048"),

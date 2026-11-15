@@ -772,3 +772,23 @@ def test_shared_example_inspection_runs_its_own_browser_checks_for_stacked_candi
     assert not scope.prediction_only(changed, "workflow_dispatch")
     assert not scope.prediction_only(changed + ["src/opendde_workbench/__main__.py"])
     assert not scope.prediction_only(changed + ["frontend/src/App.tsx"])
+
+
+def test_workspace_expansion_uses_existing_native_gates_and_rejects_mixed_scientific_scope():
+    paths = sorted(scope.EXPANSION_FILES)
+    for event in ("push", "pull_request"):
+        assert scope.workspace_expansion_only(paths, event)
+        assert scope.shared_workbench_only(paths, event)
+        assert scope.prediction_only(paths, event)
+        assert scope.selected(paths, event)
+    assert not scope.workspace_expansion_only(paths, "workflow_dispatch")
+    assert not scope.workspace_expansion_only(["frontend/src/datasets/datasets.css"])
+    for unexpected in (
+        "src/opendde_workbench/backend.py",
+        "frontend/src/operations/AtomConstraintPicker.tsx",
+        "frontend/src/viewer/scene.ts",
+        "frontend/src/TaskForm.tsx",
+    ):
+        assert not scope.workspace_expansion_only(paths + [unexpected])
+        assert not scope.prediction_only(paths + [unexpected])
+        assert not scope.shared_workbench_only(paths + [unexpected])

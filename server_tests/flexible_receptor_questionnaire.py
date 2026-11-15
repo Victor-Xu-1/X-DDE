@@ -68,12 +68,18 @@ def inspect_questionnaire(page, base, source, pair, zh, root, before, confirm):
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
     page.screenshot(path=root / (language + "-sidechain-selector.png"), full_page=True)
     next_button.click()
-    expect(page.get_by_text("A:111", exact=True)).to_be_visible()
     label = "预览任务" if zh else "Preview job"
     page.get_by_role("button", name=label, exact=True).click()
-    submit = page.get_by_role("dialog", name=label, exact=True).get_by_role(
-        "button", name="提交任务" if zh else "Submit job", exact=True
+    review = page.get_by_role("dialog", name=label, exact=True)
+    # The compact fourth step opens the actual review dialog; effective
+    # sidechain identity belongs to its calculation plan, not the step's hint.
+    treatment = review.get_by_role("row").filter(
+        has=page.get_by_role(
+            "rowheader", name="蛋白处理" if zh else "Receptor treatment", exact=True
+        )
     )
+    expect(treatment.get_by_role("cell", name="A:111", exact=True)).to_be_visible()
+    submit = review.get_by_role("button", name="提交任务" if zh else "Submit job", exact=True)
     expect(submit).to_be_visible()
 
     def appearance():

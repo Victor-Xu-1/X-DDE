@@ -12,19 +12,22 @@ export function WorkspaceFullscreenControl({
   compact?: boolean;
 }) {
   const anchor = useRef<HTMLButtonElement>(null);
-  const fullscreen = useWorkspaceFullscreen(anchor),
-    zh = language === "zh";
+  const zh = language === "zh";
+  const fullscreen = useWorkspaceFullscreen(
+    anchor,
+    zh ? "结构研究工作区" : "Structure research workspace",
+  );
   const label = fullscreen.active
     ? zh
-      ? "退出全屏"
-      : "Exit fullscreen"
+      ? "关闭展开视图"
+      : "Close expanded view"
     : fullscreen.workspace
       ? zh
-        ? "全屏研究工作区"
-        : "Fullscreen research workspace"
+        ? "展开研究工作区"
+        : "Expand research workspace"
       : zh
-        ? "全屏显示结构"
-        : "Fullscreen structure";
+        ? "展开结构视图"
+        : "Expand structure view";
   return (
     <>
       <button
@@ -34,8 +37,8 @@ export function WorkspaceFullscreenControl({
         aria-label={label}
         title={label}
         aria-pressed={fullscreen.active}
-        disabled={fullscreen.pending}
-        onClick={() => void fullscreen.toggle()}
+        aria-haspopup="dialog"
+        onClick={fullscreen.toggle}
       >
         {compact ? (
           fullscreen.active ? (
@@ -50,8 +53,8 @@ export function WorkspaceFullscreenControl({
       {fullscreen.error && (
         <span className="workspace-fullscreen-error" role="alert">
           {zh
-            ? "浏览器未允许全屏，仍可继续使用当前视图。"
-            : "Fullscreen is unavailable in this browser; the current view remains usable."}
+            ? "暂时无法展开，仍可继续使用当前视图。"
+            : "Expanded view is unavailable; the current view remains usable."}
         </span>
       )}
     </>

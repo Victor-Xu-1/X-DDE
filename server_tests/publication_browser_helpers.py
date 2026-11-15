@@ -12,7 +12,9 @@ def export_figure(
     page, trigger, evidence, filename, language, format="PNG", configure=None, inspect=None
 ):
     trigger.click()
-    dialog = page.get_by_role("dialog")
+    dialog = page.get_by_role(
+        "dialog", name="导出文献图" if language == "zh" else "Export research figure", exact=True
+    )
     expect(dialog).to_be_visible()
     if configure:
         configure(dialog)

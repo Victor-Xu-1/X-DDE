@@ -789,6 +789,8 @@ def native_confidence_only(changed):
 
 
 def confidence_changed(changed):
+    if workspace_expansion_only(changed):
+        return True
     if boltz_confidence_only(changed):
         return True
     return any(
@@ -1031,6 +1033,8 @@ def example_inspection_only(changed, event):
 
 
 def selected(changed, event="push"):
+    if workspace_expansion_only(changed, event):
+        return True
     if (
         boltz_inputs_only(changed, event)
         or computation_settings_only(changed, event)
@@ -1063,7 +1067,68 @@ def selected(changed, event="push"):
     )
 
 
+EXPANSION_SOURCES = {
+    "frontend/src/presentation/WorkspaceFullscreenControl.tsx",
+    "frontend/src/presentation/useWorkspaceFullscreen.ts",
+    "frontend/src/presentation/workspace-expansion.ts",
+    "frontend/src/presentation/workspace-fullscreen.css",
+}
+EXPANSION_FILES = EXPANSION_SOURCES | {
+    "frontend/src/studio/PredictionInspection.tsx",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/presentation/WorkspaceFullscreenControl.test.tsx",
+    "frontend/src/presentation/structure-workbench.css",
+    "frontend/src/presentation/prediction-results.css",
+    "frontend/src/design/module-surfaces.css",
+    "frontend/src/docking/docking-job-review.css",
+    "frontend/src/datasets/datasets.css",
+    "frontend/src/diffsbdd/spatial-design-review.css",
+    "frontend/src/quality/quality-results.css",
+    "frontend/src/proximity/FormReview.css",
+    "frontend/src/viewer/viewer.css",
+    "frontend/src/simulations/simulations.css",
+    "server_tests/fullscreen_browser_helpers.py",
+    "server_tests/publication_browser_helpers.py",
+    "server_tests/test_workspace_fullscreen_browser.py",
+    "server_tests/test_native_confidence_browser.py",
+    "server_tests/test_prediction_workspace_browser.py",
+    "server_tests/test_target_selection_browser.py",
+    "server_tests/test_diff_review_browser.py",
+    "server_tests/test_reinvent_review_browser.py",
+    "server_tests/test_reinvent_native_browser.py",
+    "server_tests/test_native_docking.py",
+    "server_tests/flexible_receptor_probe.py",
+    "server_tests/flexible_receptor_browser.py",
+    "server_tests/flexible_receptor_questionnaire.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/simulation-view-checks.yml",
+    "docs/frontend-layout.md",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def workspace_expansion_only(changed, event="push"):
+    paths = set(changed)
+    # The existing native figure, simulation and prediction gates own this shared
+    # presentation. A mixed backend, constraint, input or task edit is never delegated.
+    return (
+        event in {"push", "pull_request"}
+        and bool(paths & EXPANSION_SOURCES)
+        and paths <= EXPANSION_FILES
+    )
+
+
 def shared_workbench_only(changed, event="push"):
+    if workspace_expansion_only(changed, event):
+        return True
     return (
         event in {"push", "pull_request"}
         and native_confidence_only(changed)
@@ -1077,6 +1142,8 @@ def shared_workbench_only(changed, event="push"):
 
 
 def prediction_only(changed, event="push"):
+    if workspace_expansion_only(changed, event):
+        return True
     shared_workbench = {
         "frontend/src/presentation/StructureWorkbench.tsx",
         "frontend/src/presentation/structure-workbench.css",
