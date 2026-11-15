@@ -8,6 +8,39 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_display_selection_controls_reuse_the_inspection_gate_without_owning_scientific_atom_changes():
+    changed = [
+        "frontend/src/viewer/StructureInspectionSummary.tsx",
+        "frontend/src/viewer/StructureInspection.test.tsx",
+        "frontend/src/viewer/StructureViewport.tsx",
+        "frontend/src/viewer/ViewerControls.tsx",
+        "frontend/src/viewer/ViewerControls.test.tsx",
+        "frontend/src/viewer/structure-inspection.css",
+        "frontend/package.json",
+        "frontend/package-lock.json",
+        "pyproject.toml",
+        "uv.lock",
+        "install.sh",
+        "install.ps1",
+        "docs/frontend-layout.md",
+        "scripts/prediction-workspace-scope.py",
+        "tests/test_prediction_workspace_scope.py",
+        ".github/workflows/prediction-workspace-checks.yml",
+    ]
+    assert scope.prediction_only(changed, "push")
+    assert scope.prediction_only(changed, "pull_request")
+    assert scope.prediction_only(["frontend/src/viewer/ViewerControls.tsx"])
+    for scientific in (
+        "src/opendde_workbench/research/constraints.py",
+        "src/opendde_workbench/engine.py",
+        "frontend/src/regions/AtomSelection.tsx",
+    ):
+        assert not scope.prediction_only(changed + [scientific])
+    assert not scope.prediction_only(changed, "workflow_dispatch")
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "src/viewer/ViewerControls.test.tsx" in workflow
+
+
 def test_boltz_confidence_reader_and_shared_inspection_have_one_focused_gate():
     changed = [
         "src/opendde_workbench/boltz_confidence.py",

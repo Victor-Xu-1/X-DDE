@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Hint } from "../guided/Hint";
 import {
   residueLabel,
@@ -33,6 +33,10 @@ export function ViewerControls({
   const zh = language === "zh",
     [query, setQuery] = useState("");
   const hasSelection = Boolean(selection) || hasDisplaySelection;
+  const [expanded, setExpanded] = useState(options.pick === "distance");
+  useEffect(() => {
+    if (options.pick === "distance") setExpanded(true);
+  }, [options.pick]);
   const residues = [...scene.ligands, ...scene.residues]
     .filter((r) =>
       residueLabel(r).toLowerCase().includes(query.trim().toLowerCase()),
@@ -97,7 +101,11 @@ export function ViewerControls({
           )}
         </div>
       )}
-      <details className="selection-editor" open={options.pick === "distance"}>
+      <details
+        className="selection-editor"
+        open={expanded}
+        onToggle={(event) => setExpanded(event.currentTarget.open)}
+      >
         <summary>
           {zh ? "点选与显示编辑" : "Selection and display editing"}
         </summary>

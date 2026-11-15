@@ -71,6 +71,31 @@ it("allows display edits for a renderer-selected range without inventing a const
   fireEvent.click(screen.getByRole("button", { name: "Hide selection" }));
   expect(send).toHaveBeenLastCalledWith("selection-action", "hide");
 });
+it("retains requested editing when leaving measurement mode", () => {
+  const props = {
+    language: "en" as const,
+    scene,
+    selection: null,
+    distance: null,
+    disabled: false,
+    onOptions: vi.fn(),
+    send: vi.fn(),
+  };
+  const view = render(<ViewerControls {...props} options={defaultOptions} />);
+  const editor = screen
+    .getByText("Selection and display editing")
+    .closest("details");
+  expect(editor).not.toHaveAttribute("open");
+  view.rerender(
+    <ViewerControls
+      {...props}
+      options={{ ...defaultOptions, pick: "distance" }}
+    />,
+  );
+  expect(editor).toHaveAttribute("open");
+  view.rerender(<ViewerControls {...props} options={defaultOptions} />);
+  expect(editor).toHaveAttribute("open");
+});
 it("does not expose a pocket radius on a ligand-only structure", () => {
   render(
     <ViewerControls

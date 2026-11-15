@@ -34,6 +34,7 @@ PATTERNS = (
     "frontend/src/viewer/style.ts",
     "frontend/src/viewer/protocol.ts",
     "frontend/src/viewer/StructureInspection*",
+    "frontend/src/viewer/ViewerControls*",
     "frontend/src/viewer/structure-inspection.css",
     "frontend/src/viewer/polymer-detail.ts",
     "frontend/src/viewer/residue-selection*",
@@ -1046,7 +1047,11 @@ def selected(changed, event="push"):
         event in {"push", "pull_request"}
         and any(
             name.startswith(
-                ("frontend/src/presentation/Prediction", "frontend/src/viewer/StructureInspection")
+                (
+                    "frontend/src/presentation/Prediction",
+                    "frontend/src/viewer/StructureInspection",
+                    "frontend/src/viewer/ViewerControls",
+                )
             )
             for name in changed
         )
