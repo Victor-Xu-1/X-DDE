@@ -57,6 +57,7 @@ from .settings import Settings
 from .sites.routes import register_sites
 from .store import CapacityError, ConflictError, Store
 from .task_history.routes import register_task_history
+from .utility_routes import RECOGNITION_ORIGINS, register_utilities
 from .worker import Worker
 from .workflows import register_workflows
 from .wsl_storage import StorageUnavailable
@@ -114,6 +115,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
                 await worker.close()
 
     app = FastAPI(title=PRODUCT_NAME, version=__version__, lifespan=lifespan)
+    register_utilities(app)
     app.state.quiescing = False
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
@@ -182,7 +184,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; style-src 'self'; img-src 'self' data:; "
             "script-src 'self'; worker-src 'self' blob:; style-src-attr 'unsafe-inline'; "
-            f"frame-ancestors {frame_ancestors}; base-uri 'none'"
+            f"frame-ancestors {frame_ancestors}; "
+            f"frame-src 'self' {RECOGNITION_ORIGINS}; base-uri 'none'"
         )
         if editor:
             response.headers["Content-Security-Policy"] = (
@@ -657,6 +660,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return {"busy": False}
 
     worker.gate = harness_service.queue_gate
+    from .runtime_controls import register_runtime_controls
+
+    register_runtime_controls(app, store, engine, worker, health, mutation, harness_service)
     from .discovery.routes import register_discovery
 
     register_discovery(app, mutation)

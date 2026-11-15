@@ -1,3 +1,9 @@
+.sdf-record-picker {
+  max-width: 360px;
+}
+.sdf-record-picker input[type="number"] {
+  max-width: 160px;
+}
 .reference-material {
   min-width: 0;
   margin: 12px 0 18px;

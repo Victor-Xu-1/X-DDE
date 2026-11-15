@@ -459,7 +459,7 @@ def capture_utilities(page, evidence, width):
     # navigation-model.ts appends these two utilities to the research modules.
     expect_layout_identities(
         nav.get_by_role("button"),
-        (*RESEARCH_MODULE_LABELS, "研究空间", "全部能力"),
+        ("小工具", *RESEARCH_MODULE_LABELS, "研究空间", "全部能力"),
     )
     nav.get_by_role("button", name="研究空间", exact=True).click()
     for tab in ("项目", "研究文件", "结构编辑"):

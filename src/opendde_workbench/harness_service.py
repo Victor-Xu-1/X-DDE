@@ -22,6 +22,7 @@ class HarnessService:
         self.settings, self.store, self.assets = settings, store, assets
         self.limit = asyncio.Semaphore(2)
         self.active_cache = (0.0, False)
+        self.admission = None
         with store.connect() as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS design_plans(id TEXT PRIMARY KEY,"
@@ -215,6 +216,8 @@ class HarnessService:
     async def start(self, identifier, digest, reconcile=False):
         proof = None
         if not reconcile:
+            if self.admission and (reason := self.admission()):
+                raise ConflictError(reason)
             existing = self.plan(str(identifier))
             if (
                 existing["digest"] == digest
@@ -224,6 +227,8 @@ class HarnessService:
                 from .harness_admission import require_managed_compute
 
                 proof = await require_managed_compute(self.settings)
+        if not reconcile and self.admission and (reason := self.admission()):
+            raise ConflictError(reason)
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             plan = self.plan_in(db, str(identifier))
@@ -316,6 +321,17 @@ class HarnessService:
             )
         except FileNotFoundError:
             return False
+
+    async def runtime_busy(self):
+        with self.store.connect() as db:
+            pending = db.execute(
+                "SELECT 1 FROM design_plans WHERE state IN ('dispatching', 'uncertain') LIMIT 1"
+            ).fetchone()
+        if pending:
+            return True
+        if not self.settings.harness_python:
+            return False
+        return bool(await self.invoke({"operation": "active"}, timeout=15))
 
     async def queue_gate(self, job):
         if (

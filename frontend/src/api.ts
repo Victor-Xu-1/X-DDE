@@ -63,7 +63,11 @@ export const api = {
     });
   },
   assets: (signal?: AbortSignal) => request<Asset[]>("/assets", { signal }),
-  async upload(file: File, kind: AssetKind): Promise<Asset> {
+  async upload(
+    file: File,
+    kind: AssetKind,
+    signal?: AbortSignal,
+  ): Promise<Asset> {
     if (file.size > 25 * 1024 ** 2) throw new Error("25 MiB maximum");
     await api.initialize();
     return request<Asset>(
@@ -75,7 +79,9 @@ export const api = {
           "X-Workbench-CSRF": csrf,
         },
         body: file,
-        signal: AbortSignal.timeout(90000),
+        signal: signal
+          ? AbortSignal.any([signal, AbortSignal.timeout(90000)])
+          : AbortSignal.timeout(90000),
       },
     );
   },

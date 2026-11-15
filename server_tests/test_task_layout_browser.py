@@ -53,7 +53,7 @@ def test_every_task_page_and_native_case_layout():
             ),
         )
         try:
-            page.goto(os.environ["WB_BROWSER_URL"])
+            page.goto(os.environ["WB_BROWSER_URL"] + "/#view=new")
             examples = page.request.get(
                 archive_example_url(os.environ["WB_BROWSER_URL"] + "/api/examples")
             ).json()[
