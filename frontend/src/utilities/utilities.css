@@ -160,6 +160,23 @@
   line-height: 1.7;
 }
 @media (max-width: 760px) {
+  .utility-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .utility-tabs button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .backend-controls-panel {
+    position: fixed;
+    inset: 80px 12px auto;
+    width: auto;
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+  }
   .utility-toolbar {
     align-items: start;
     flex-direction: column;
