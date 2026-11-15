@@ -23,6 +23,7 @@ export function UtilityWorkspace({
   onCreated(job: Job): void;
 }) {
   const [active, setActive] = useState<Utility>("image");
+  const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
   const [visited, setVisited] = useState<Utility[]>(["image"]);
   const [completed, setCompleted] = useState<Partial<Record<Utility, boolean>>>(
     {},
@@ -39,38 +40,52 @@ export function UtilityWorkspace({
   const zh = language === "zh";
   return (
     <div className="utility-workspace">
-      <nav
-        className="utility-tabs"
-        aria-label={zh ? "小工具分类" : "Utility tools"}
-      >
-        {utilityTabs.map(([id, cn, en]) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={active === id}
-            onClick={() => {
-              setActive(id);
-              setVisited((previous) =>
-                previous.includes(id) ? previous : [...previous, id],
-              );
-            }}
-          >
-            {zh ? cn : en}
-          </button>
-        ))}
-      </nav>
+      <div className="utility-tabbar">
+        <nav
+          className="utility-tabs"
+          aria-label={zh ? "小工具分类" : "Utility tools"}
+        >
+          {utilityTabs.map(([id, cn, en]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={active === id}
+              onClick={() => {
+                setActive(id);
+                setVisited((previous) =>
+                  previous.includes(id) ? previous : [...previous, id],
+                );
+              }}
+            >
+              {zh ? cn : en}
+            </button>
+          ))}
+        </nav>
+        <div
+          className="utility-tab-actions"
+          ref={setImageActions}
+          hidden={active !== "image"}
+        />
+      </div>
       {utilityTabs.map(([id, cn, en]) => {
         if (!visited.includes(id)) return null;
         const Form = id === "image" ? null : forms[id];
         return (
-          <section key={id} hidden={active !== id} aria-label={zh ? cn : en}>
+          <section
+            className="utility-panel"
+            data-utility={id}
+            key={id}
+            hidden={active !== id}
+            aria-label={zh ? cn : en}
+          >
             {Form ? (
               <>
-                <div className="utility-toolbar">
-                  <h1 className="utility-form-title">{zh ? cn : en}</h1>
-                  {completed[id] && (
+                <h1 className="sr-only">{zh ? cn : en}</h1>
+                {completed[id] && (
+                  <div className="utility-toolbar">
                     <button
                       type="button"
+                      className="secondary-button"
                       onClick={() => {
                         setRevisions((current) => ({
                           ...current,
@@ -84,8 +99,8 @@ export function UtilityWorkspace({
                     >
                       {zh ? "新建任务" : "New task"}
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
                 <Form
                   key={revisions[id] ?? 0}
                   language={language}
@@ -96,7 +111,10 @@ export function UtilityWorkspace({
                 />
               </>
             ) : (
-              <ImageRecognition language={language} />
+              <ImageRecognition
+                language={language}
+                actionsTarget={imageActions}
+              />
             )}
           </section>
         );

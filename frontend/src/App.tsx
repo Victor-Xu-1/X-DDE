@@ -318,7 +318,11 @@ export function App() {
           language={language}
           jobs={jobs}
         />
-        <div className="studio-main">
+        <div
+          className={
+            "studio-main" + (view === "utilities" ? " is-utilities" : "")
+          }
+        >
           <Header
             runtime={
               <BackendControls
@@ -361,7 +365,7 @@ export function App() {
                 }}
               />
             )}
-            <div hidden={view !== "utilities"}>
+            <div className="utility-view" hidden={view !== "utilities"}>
               <UtilityWorkspace
                 language={language}
                 onCreated={(next) => {
