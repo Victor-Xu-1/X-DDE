@@ -181,7 +181,7 @@ def test_explicit_stat6_template_source_survives_mode_changes_without_submitting
         page.screenshot(path=evidence / "explicit-stat6-scaffold-origin.png", full_page=True)
         next_button.click()
         expect(page.get_by_role("radio", name="20 candidates", exact=True)).to_be_checked()
-        page.get_by_role("button", name="Expert tuning", exact=True).click()
+        page.get_by_role("button", name="Advanced settings", exact=True).click()
         for label, value in (
             ("CPU cores", "2"),
             ("Memory budget (MiB)", "2048"),

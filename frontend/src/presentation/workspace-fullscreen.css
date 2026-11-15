@@ -96,7 +96,7 @@
 }
 .structure-workbench[data-workspace-expanded="true"]
   > .structure-workbench-sequence {
-  max-height: 118px;
+  max-height: 136px;
   overflow: auto;
   overscroll-behavior: contain;
   border: 0;
@@ -108,7 +108,7 @@
   padding-top: 10px;
 }
 [data-workspace-expanded="true"] .structure-sequence > p {
-  margin: 4px 0;
+  display: none;
 }
 [data-workspace-expanded="true"] .structure-sequence-chain {
   padding: 4px 0;
