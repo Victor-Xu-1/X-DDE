@@ -60,6 +60,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             narrow = snapshot(page)
             verify_identity(narrow, identity)
             assert narrow["key"] == first["key"]
+            assert narrow["ket"] == first["ket"]
             assert narrow["zoom"] < first["zoom"]
             page.screenshot(path=evidence / "owned-stat6-390-display.png")
             page.set_viewport_size({"width": 1440, "height": 1000})
@@ -68,6 +69,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             restored = snapshot(page)
             assert abs(restored["zoom"] - first["zoom"]) < 1e-6
             assert restored["key"] == first["key"]
+            assert restored["ket"] == first["ket"]
             # Native replacements reach the same public observer as native file
             # tools. Stock UI import is a separate installed-host Chrome gate:
             # the standalone 3.18 shell's New Project action reloads its document.

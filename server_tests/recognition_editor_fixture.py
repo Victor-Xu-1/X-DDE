@@ -29,13 +29,14 @@ def prepare_policy(page, base, temporary):
     page.evaluate("""async () => {
       const {configureRecognitionEditor} = await import('/tools/ketcher/recognition-native-policy.js');
       const native=window.ketcher;
+      if (typeof native.editor.centerViewportAccordingToStruct !== 'function')
+        throw new Error('The native drawing component needs viewport centering support.');
       window.nativePolicyState={busy:true,available:false};
       window.nativePolicyErrors=[]; window.nativePolicyStates=[];
       window.nativePolicyAbort=new AbortController();
       window.nativeDisplayPolicy=configureRecognitionEditor(native,window.nativePolicyAbort.signal,
         error=>window.nativePolicyErrors.push(String(error)), {
-          fit:()=>{native.editor.zoomAccordingContent(native.editor.struct());
-            native.editor.centerStruct();return true;},
+          fit:()=>{native.editor.centerViewportAccordingToStruct(native.editor.struct());return true;},
           resetZoom:()=>{native.editor.zoom(1);},
           onState:state=>{window.nativePolicyState=state;window.nativePolicyStates.push(state);}
         });
