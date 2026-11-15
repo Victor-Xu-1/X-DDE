@@ -1,9 +1,9 @@
-"""Real native display/identity and stock import; zero scientific inference or jobs."""
+"""Native display/identity and history; zero scientific inference or jobs."""
 
 import hashlib
 import json
 import os
-import re
+from contextlib import suppress
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -32,7 +32,9 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
     identity = Chem.MolToSmiles(Chem.RemoveHs(expected), isomericSmiles=True)
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        context = browser.new_context(viewport={"width": 1440, "height": 1000})
+        context.tracing.start(screenshots=True, snapshots=True, sources=True)
+        page = context.new_page()
         errors, jobs = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("request", lambda request: jobs.append(request.url)
@@ -47,23 +49,20 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             assert first["zoom"] > 0.1
             save_snapshot(evidence, "owned-stat6-source", first)
             page.screenshot(path=evidence / "owned-stat6-display.png")
-            # An actual stock Open import reaches the same observer. This also
-            # covers H-free 3D coordinates without pretending import intent is known.
+            # Native replacements reach the same public observer as native file
+            # tools. Stock UI import is a separate installed-host Chrome gate:
+            # the standalone 3.18 shell's New Project action reloads its document.
             no_h = tmp_path / "STAT6-no-H-3D.sdf"
             molecule = Chem.RemoveHs(expected)
             assert molecule.GetConformer().Is3D()
             writer = Chem.SDWriter(str(no_h))
             writer.write(molecule)
             writer.close()
-            for label, file in (("explicit-H-stock", source), ("no-H-3D-stock", no_h)):
+            for label, file in (("explicit-H-native", source), ("no-H-3D-native", no_h)):
                 assert load_source(page, "")
                 wait_available(page)
-                page.get_by_role("button", name="Open... (Ctrl+O)", exact=True).click()
-                with page.expect_file_chooser() as chooser:
-                    page.get_by_role("button", name=re.compile("Open from file", re.I)).click()
-                chooser.value.set_files(str(file))
-                page.get_by_role("button", name="Open as New Project", exact=True).click()
-                if label == "explicit-H-stock":
+                page.evaluate("source => window.ketcher.setMolecule(source)", file.read_text())
+                if label == "explicit-H-native":
                     page.wait_for_function("() => !window.nativePolicyState.available")
                     assert page.evaluate("() => window.nativeDisplayPolicy.recheck()")
                 page.wait_for_function("""async () => {
@@ -77,7 +76,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
                 assert found["zoom"] > 0.1
                 verify_identity(found, identity)
                 save_snapshot(evidence, label, found)
-                if label == "explicit-H-stock":
+                if label == "explicit-H-native":
                     # Undo/Redo are the native history API. Validation must not
                     # append another fold and trap Undo or truncate Redo.
                     page.evaluate("() => window.ketcher.editor.undo()")
@@ -119,11 +118,18 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             assert hashlib.sha256(source.read_bytes()).hexdigest() == source_hash
             (evidence / "acceptance.json").write_text(json.dumps({
                 "source_sha256": source_hash, "model_execution": False, "new_jobs": 0,
-                "owned_import": True, "stock_imports": 2, "native_identity_cases": len(cases),
+                "owned_import": True, "native_replacements": 2,
+                "stock_ui_import": "requires installed-host Chrome acceptance",
+                "native_identity_cases": len(cases),
                 "owner_original_files_changed": False,
             }, indent=2))
         finally:
-            page.evaluate("() => window.nativePolicyAbort?.abort()")
+            with suppress(Exception):
+                page.screenshot(path=evidence / "last-native-state.png")
+                (evidence / "last-native-state.html").write_text(page.content())
+            with suppress(Exception):
+                page.evaluate("() => window.nativePolicyAbort?.abort()")
+            context.tracing.stop(path=evidence / "trace.zip")
             browser.close()
             policy_asset.unlink()
 
