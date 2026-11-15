@@ -2,9 +2,12 @@
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
+
+from playwright.sync_api import expect
 
 
 def prepare_policy(page, base, temporary):
@@ -29,15 +32,23 @@ def prepare_policy(page, base, temporary):
     page.evaluate("""async () => {
       const {configureRecognitionEditor} = await import('/tools/ketcher/recognition-native-policy.js');
       const native=window.ketcher;
-      if (typeof native.editor.centerViewportAccordingToStruct !== 'function')
+      if (typeof native.editor.centerViewportAccordingToStruct !== 'function' ||
+          typeof native.editor.render?.resizeViewBox !== 'function' ||
+          typeof native.editor.event?.zoomChanged?.dispatch !== 'function')
         throw new Error('The native drawing component needs viewport centering support.');
       window.nativePolicyState={busy:true,available:false};
       window.nativePolicyErrors=[]; window.nativePolicyStates=[];
       window.nativePolicyAbort=new AbortController();
       window.nativeDisplayPolicy=configureRecognitionEditor(native,window.nativePolicyAbort.signal,
         error=>window.nativePolicyErrors.push(String(error)), {
-          fit:()=>{native.editor.centerViewportAccordingToStruct(native.editor.struct());return true;},
-          resetZoom:()=>{native.editor.zoom(1);},
+          fit:()=>{
+            const bounds=native.editor.render.clientArea.getBoundingClientRect();
+            if (bounds.width<1 || bounds.height<1) return false;
+            native.editor.render.resizeViewBox(); native.editor.zoom(1);
+            native.editor.centerViewportAccordingToStruct(native.editor.struct());
+            native.editor.event.zoomChanged.dispatch(); return true;
+          },
+          resetZoom:()=>{native.editor.zoom(1); native.editor.event.zoomChanged.dispatch();},
           onState:state=>{window.nativePolicyState=state;window.nativePolicyStates.push(state);}
         });
       window.nativeResizeWidths=[];
@@ -62,6 +73,38 @@ def snapshot(page):
       zoom:window.ketcher.editor.zoom(),state:window.nativePolicyState,
       errors:window.nativePolicyErrors
     })""")
+
+
+def wait_view(page):
+    """Check visible native zoom and SVG containment, not only a hidden value."""
+    wait_available(page)
+    value = snapshot(page)
+    expect(page.get_by_role("button", name=re.compile(r"^\d+%$"))).to_have_text(
+        f"{round(value['zoom'] * 100)}%", timeout=5000
+    )
+    view = page.evaluate("""() => {
+      const area=window.ketcher.editor.render.clientArea;
+      const svg=area.matches('svg')?area:area.querySelector('svg');
+      const box=svg.getBoundingClientRect(), viewport=svg.viewBox.baseVal;
+      const bounds=element=>{const r=element.getBoundingClientRect();
+        return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
+      return {box:bounds(svg),effectiveZoom:box.width/viewport.width,
+        labels:[...svg.querySelectorAll('text')]
+          .filter(text=>{
+            const style=getComputedStyle(text), r=text.getBoundingClientRect();
+            return text.textContent.trim() && style.visibility!=='hidden' &&
+              style.display!=='none' && Number(style.opacity)!==0 && r.width>0 && r.height>0;
+          })
+          .map(bounds)};
+    }""")
+    assert abs(view["effectiveZoom"] - value["zoom"]) < 0.01
+    assert view["labels"]
+    for label in view["labels"]:
+        assert label["left"] >= view["box"]["left"] - 2, view
+        assert label["right"] <= view["box"]["right"] + 2, view
+        assert label["top"] >= view["box"]["top"] - 2, view
+        assert label["bottom"] <= view["box"]["bottom"] + 2, view
+    return {**value, "view": view}
 
 
 def wait_available(page, require_molecule=True):

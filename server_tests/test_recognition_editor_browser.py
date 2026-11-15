@@ -15,6 +15,7 @@ from server_tests.recognition_editor_fixture import (
     save_snapshot,
     snapshot,
     wait_available,
+    wait_view,
 )
 from server_tests.test_hydrogen_policy_browser import non_donor_hydrogens
 
@@ -43,7 +44,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
         try:
             assert load_source(page, raw)
             wait_available(page)
-            first = snapshot(page)
+            first = wait_view(page)
             assert not non_donor_hydrogens(first["ket"])
             verify_identity(first, identity)
             assert first["zoom"] > 0.1
@@ -57,7 +58,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
                     "width => window.nativeResizeWidths.at(-1) === width", arg=width
                 )
             wait_available(page)
-            narrow = snapshot(page)
+            narrow = wait_view(page)
             verify_identity(narrow, identity)
             assert narrow["key"] == first["key"]
             assert narrow["ket"] == first["ket"]
@@ -66,7 +67,7 @@ def test_native_recognition_display_and_import_preserve_identity(tmp_path):
             page.set_viewport_size({"width": 1440, "height": 1000})
             page.wait_for_function("() => window.nativeResizeWidths.at(-1) === 1440")
             wait_available(page)
-            restored = snapshot(page)
+            restored = wait_view(page)
             assert abs(restored["zoom"] - first["zoom"]) < 1e-6
             assert restored["key"] == first["key"]
             assert restored["ket"] == first["ket"]
