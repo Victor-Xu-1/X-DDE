@@ -84,8 +84,8 @@ def test_disabled_queue_head_does_not_starve_enabled_engine(tmp_path):
     first = store.create(
         TASK_ADAPTER.validate_python(
             {
-                "operation": "admet_predict",
-                "library": {"asset_id": str(uuid4()), "sha256": "a" * 64},
+                "operation": "doctor",
+                "name": "Disabled backend diagnostic",
             }
         ),
         str(uuid4()),
