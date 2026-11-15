@@ -116,7 +116,7 @@ def test_real_browser_readiness_deadline_preserves_input_without_claiming_missin
                 else None
             ),
         )
-        page.goto(base)
+        page.goto(base + "/#view=new")
         jobs = page.request.get(base + "/api/jobs").json()
         card = page.locator('button[data-capability="properties"]').first
         expect(card).to_be_visible(timeout=30000)
