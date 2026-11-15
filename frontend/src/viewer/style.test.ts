@@ -335,7 +335,12 @@ it("sequence range and polymer detail operate on native residues, preserve carto
   await scene.displayChains({ action: "hide", chain: "A" });
   await expect(
     scene.selectSequence({ key: scene.info.residues[0].key, mode: "replace" }),
-  ).rejects.toThrow();
+  ).resolves.toBeUndefined();
+  expect(emit).toHaveBeenCalledWith(
+    "residue-visibility",
+    scene.info.residues.map((row) => row.key),
+  );
+  expect(emit).toHaveBeenLastCalledWith("chain-display", ["A"]);
   expect(emit).toHaveBeenCalledWith("residue-selection", []);
   expect(source(model.selectedAtoms({}))).toEqual(before);
 });

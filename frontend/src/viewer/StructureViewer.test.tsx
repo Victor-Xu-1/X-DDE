@@ -86,6 +86,11 @@ it("acknowledges exact ligand token selections and hides prior sample confidence
       { index: 1, chain: "B", residue: "B:LIG:1:", label: "B:LIG1" },
     ],
   });
+  const annotation = post.mock.calls
+    .filter((call) => call[0].type === "confidence")
+    .at(-1)?.[0];
+  expect(annotation).toMatchObject({ requestId: expect.any(String) });
+  emit("display-complete", annotation.requestId);
   emit("confidence-selected", { key, tokens: [1] });
   expect(selected).toHaveBeenCalledWith({ key, tokens: [1] });
   expect(screen.getByText("1 atom token selected")).toBeVisible();
