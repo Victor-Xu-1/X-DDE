@@ -8,7 +8,7 @@ Production embedding remains limited to the existing 4322 loopback origins. The 
 
 ## Existing host companion
 
-The installed X-DDE wheel includes the canonical native locale modules and a bounded, hash-checked integration manifest for the known `decimer-workbench-ui-0.1.0` source. It modifies only the native App, editor error boundary and stop confirmation labels, and adds two locale modules. The target manifest contains no private configuration, uploads, models or unrelated host source. The separate host repository is not published.
+The installed X-DDE wheel includes canonical native locale/display modules and a bounded, hash-checked integration manifest for the known `decimer-workbench-ui-0.1.0` source. Its six native targets cover App, editor boundary, stop confirmation, molecule editor, readiness state and the existing image-export adapter. Ten flat companion resources share the platform's editor contract, native hydrogen/appearance policy and per-canvas lifecycle. The target manifest contains no private configuration, uploads, models or unrelated host source. The separate host repository is not published.
 
 Check the exact installed artifact and source before applying:
 
@@ -29,3 +29,13 @@ Build the host frontend using its existing environment and its normal deployment
 Native UI labels, accessibility text, stop confirmation and known interface errors follow English/Chinese. Standalone use without an explicit locale retains its original Chinese labels and document metadata; an explicit `?lang=en|zh` is supported. X-DDE supplies English by default and updates the native UI in place when its language changes. Chemical structures, filenames, SMILES, MOL/SDF, source API diagnostics and native Ketcher tools retain their original data/meaning. The native Ketcher editor's own toolbar language remains governed by its supported capabilities. This integration does not claim a new OCR result or scientific validation.
 
 Refs #231.
+
+## Native molecular display
+
+The recognition editor uses the same native Indigo layout/folding and appearance rules as X-DDE's drawings. Software-owned incoming structures receive a separate 2D display representation before one undoable canvas commit. Unclassified native draw/paste/undo events are validation-only: they never append automatic replacements to history. A drawing with explicit non-donor H or spatial coordinates is retained behind a preparation prompt; the user can continue Undo/Redo or explicitly choose Prepare 2D drawing. That action requests native 2D layout, verifies the identity and zero-Z result, and commits one derived drawing. Ordinary skeletal edits retain their layout. The original source bytes, 3D coordinates and SDF properties are not rewritten; edited MOL/SDF exports use V3000 and are derived representations, not byte-preserving source exports.
+
+Canvas operations have one in-memory lifetime, separate from scientific scheduling. A resolved native `setMolecule()` is not assumed successful: native failure events and resulting molecular identity are checked before the display is made usable. Older preparations cannot overwrite a newer intent, and closing the editor prevents stale publication. Host-owned exports and task transfer wait for an available display without reconnecting the image session. Ketcher's own native file/clipboard commands remain its source-data tools; this adapter does not claim to intercept their shortcuts. Unsupported identity-preserving display conversions retain the source and report a limitation. The recovery action explicitly reviews the current retained structure; a KET backup can be downloaded without discarding it.
+
+The native small-molecule zoom/centering API is supplied by the companion adapter; a hidden canvas is fitted once it becomes visible, and a material work-area resize refits the view without changing the drawing. Normal drawing and manual layout do not trigger whole-graph rearrangement. Ketcher's redundant image-recognition and unverified 3D-viewer buttons are hidden in this 2D input editor. X-DDE's existing managed 3D previews remain the authority for computed/minimized poses; a 2D drawing is not presented as a calculated 3D result.
+
+Refs #235. Candidate validation and installed-browser acceptance must be recorded separately.

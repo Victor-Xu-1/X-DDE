@@ -7,6 +7,11 @@ on:
       - 'frontend/src/editors/ketcher-appearance*'
       - 'frontend/src/editors/Editors.tsx'
       - 'frontend/src/editors/scientificEditor*'
+      - 'frontend/src/editors/ketcher-contract.ts'
+      - 'frontend/src/editors/recognition-host-editor*'
+      - 'frontend/src/editors/editor-lifetime*'
+      - 'frontend/src/editors/native-molecular-viewport*'
+      - 'server_tests/*recognition_editor*'
       - 'frontend/src/editors/retained-molecule.test.ts'
       - 'frontend/src/editors/Editors.load.test.tsx'
       - 'frontend/src/research/asset-file*'
@@ -100,6 +105,7 @@ jobs:
             .venv/bin/python -m pytest -q server_tests/test_ketcher_startup_browser.py
           else
             .venv/bin/python -m pytest -q server_tests/test_hydrogen_policy_browser.py server_tests/test_molecule_save_browser.py server_tests/test_molecule_open_browser.py
+            TMPDIR="$RUNNER_TEMP" uv run --locked --with rdkit==2026.3.6 python -m pytest -q server_tests/test_recognition_editor_browser.py
             uv run --locked --with rdkit==2026.3.6 python server_tests/hydrogen_chemistry_acceptance.py
           fi
       - uses: actions/upload-artifact@v4

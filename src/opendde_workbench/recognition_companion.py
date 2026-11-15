@@ -8,8 +8,22 @@ from pathlib import Path
 from uuid import uuid4
 
 RESOURCES = Path(__file__).parent / "data" / "recognition_locale"
-NATIVE_FILES = {"App.tsx", "EditorBoundary.tsx", "StopConfirmation.tsx"}
-ADAPTERS = ("recognition-locale.ts", "recognition-host-ui-locale.ts")
+NATIVE_FILES = {
+    "App.tsx", "EditorBoundary.tsx", "StopConfirmation.tsx", "MoleculeEditor.tsx",
+    "useWorkbench.ts", "useXddeBridge.ts",
+}
+ADAPTERS = {
+    "recognition-locale.ts": "frontend/src/utilities/recognition-locale.ts",
+    "recognition-host-ui-locale.ts": "frontend/src/utilities/recognition-host-ui-locale.ts",
+    "recognition-host-editor.ts": "frontend/src/editors/recognition-host-editor.ts",
+    "ketcher-contract.ts": "frontend/src/editors/ketcher-contract.ts",
+    "ketcher-appearance.ts": "frontend/src/editors/ketcher-appearance.ts",
+    "ketcher-hydrogens.ts": "frontend/src/editors/ketcher-hydrogens.ts",
+    "editor-lifetime.ts": "frontend/src/editors/editor-lifetime.ts",
+    "native-molecular-viewport.ts": "frontend/src/editors/native-molecular-viewport.ts",
+    "molecule-readiness.ts": "frontend/src/editors/molecule-readiness.ts",
+    "recognition-host-editor.css": "frontend/src/editors/recognition-host-editor.css",
+}
 
 
 def digest(value: bytes) -> str:
@@ -24,7 +38,7 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         raise ValueError("Unsupported companion manifest")
     records = manifest.get("files", [])
     expected = {"frontend/src/" + name for name in NATIVE_FILES}
-    if {record["path"] for record in records} != expected or len(records) != 3:
+    if {record["path"] for record in records} != expected or len(records) != len(NATIVE_FILES):
         raise ValueError("Unexpected native integration scope")
     updates = {}
     for record in records:

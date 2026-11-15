@@ -1,6 +1,6 @@
 [project]
 name = "x-dde"
-version = "0.8.9"
+version = "0.8.10"
 description = "Independent discovery platform integrating scientific software backends"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -33,6 +33,14 @@ packages = ["src/opendde_workbench"]
 [tool.hatch.build.targets.wheel.force-include]
 "frontend/src/utilities/recognition-locale.ts" = "opendde_workbench/data/recognition_locale/recognition-locale.ts"
 "frontend/src/utilities/recognition-host-ui-locale.ts" = "opendde_workbench/data/recognition_locale/recognition-host-ui-locale.ts"
+"frontend/src/editors/recognition-host-editor.ts" = "opendde_workbench/data/recognition_locale/recognition-host-editor.ts"
+"frontend/src/editors/ketcher-contract.ts" = "opendde_workbench/data/recognition_locale/ketcher-contract.ts"
+"frontend/src/editors/ketcher-appearance.ts" = "opendde_workbench/data/recognition_locale/ketcher-appearance.ts"
+"frontend/src/editors/ketcher-hydrogens.ts" = "opendde_workbench/data/recognition_locale/ketcher-hydrogens.ts"
+"frontend/src/editors/editor-lifetime.ts" = "opendde_workbench/data/recognition_locale/editor-lifetime.ts"
+"frontend/src/editors/native-molecular-viewport.ts" = "opendde_workbench/data/recognition_locale/native-molecular-viewport.ts"
+"frontend/src/editors/molecule-readiness.ts" = "opendde_workbench/data/recognition_locale/molecule-readiness.ts"
+"frontend/src/editors/recognition-host-editor.css" = "opendde_workbench/data/recognition_locale/recognition-host-editor.css"
 
 [tool.hatch.build.hooks.custom]
 

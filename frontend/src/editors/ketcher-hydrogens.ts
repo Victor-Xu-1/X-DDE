@@ -1,4 +1,4 @@
-import type { Ketcher } from "./scientificEditor";
+import type { Ketcher } from "./ketcher-contract";
 
 /** Native Indigo folding acts on a display copy; originals remain immutable assets. */
 export async function foldDisplayHydrogens(

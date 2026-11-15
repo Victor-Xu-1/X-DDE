@@ -1,0 +1,15 @@
+/* The native scene stays mounted; pending/unsafe views cannot appear accepted. */
+.editor-canvas[data-structure-valid="false"] [role="application"] {
+  visibility: hidden;
+}
+.recognition-editor-status {
+  position: absolute;
+  inset: 46px 42px 50px;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  text-align: center;
+  color: #687687;
+  background: #ffffffed;
+  z-index: 5;
+}
