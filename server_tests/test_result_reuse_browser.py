@@ -95,7 +95,7 @@ def test_old_native_result_becomes_exact_input_once_and_no_other_job_is_created(
         form = page.locator(".questionnaire:visible")
         form.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
         picker = form.locator(".asset-picker")
-        picker.locator("input[type=file]").set_input_files(
+        picker.locator("input.file-select-native[type=file]").set_input_files(
             {
                 "name": "STAT6-original-input.sdf",
                 "mimeType": "chemical/x-mdl-sdfile",

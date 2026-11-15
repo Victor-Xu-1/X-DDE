@@ -252,3 +252,6 @@ Ligand file inputs and the shared small-molecule text fields offer **Input from 
 ADMET、分子性质及其他接受 SDF/MOL 的小分子任务共用这个入口；结构预测的 SMILES 输入也支持图片。识别后的结构经过确认才会替换当前输入；取消不改动原输入。SDF 通过现有资产上传和分子记录校验保存，附带原图 SHA-256。识别服务和具体研究模型分别启停，缺少 ADMET 等环境时仍不能执行其计算。
 
 The local host adapter is maintained in `frontend/src/utilities/recognition-host-bridge.ts`. A compatible DECIMER frontend supplies file selection, current-editor export and edit notifications; the adapter never installs or starts models. It accepts only the embedding parent with an exact allowed loopback origin and a current session UUID. Exports require a separate current request UUID, preserve the currently displayed source image, and reject edits made while serializing. The X-DDE consumer checks frame identity, origin, request identity, image bounds and molecule payload before importing. No model token crosses the frame boundary. Production host CSP permits only the 4322 X-DDE origins; 4330 is an isolated development candidate only.
+
+The recognition host exports a single immutable MOL snapshot, then converts that snapshot to SMILES through its existing Indigo service. Image transfer is cancellable: the original selected input remains unchanged until a validated upload receipt is accepted. Cancelling or leaving the input invalidates pending application; failed transfers retain the editor for retry.
+

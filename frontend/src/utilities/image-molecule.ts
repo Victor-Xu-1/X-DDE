@@ -29,7 +29,9 @@ export async function imageMoleculeFile(
   value: ImageMolecule,
   image: File,
   suffix = ".sdf",
+  signal?: AbortSignal,
 ) {
+  signal?.throwIfAborted();
   const digest = await crypto.subtle.digest(
     "SHA-256",
     await image.arrayBuffer(),
@@ -37,6 +39,7 @@ export async function imageMoleculeFile(
   const hash = Array.from(new Uint8Array(digest), (byte) =>
     byte.toString(16).padStart(2, "0"),
   ).join("");
+  signal?.throwIfAborted();
   const content =
     suffix === ".mol"
       ? value.molfile

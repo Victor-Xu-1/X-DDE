@@ -14,19 +14,27 @@ export function ImageMoleculeInput({
   language: Language;
   enabled?: boolean;
   disabled?: boolean;
-  onMolecule(value: ImageMolecule, source: File): Promise<void> | void;
+  onMolecule(
+    value: ImageMolecule,
+    source: File,
+    signal: AbortSignal,
+  ): Promise<void> | void;
   children?: ReactNode;
 }) {
   const zh = language === "zh",
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const mounted = useRef(true);
+  const applying = useRef<AbortController | null>(null),
+    intent = useRef(0);
   const current = useRef({ enabled, disabled });
   current.current = { enabled, disabled };
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      intent.current++;
+      applying.current?.abort();
     };
   }, []);
   const [file, setFile] = useState<File | null>(null),
@@ -48,9 +56,13 @@ export function ImageMoleculeInput({
       return;
     }
     setError("");
+    intent.current++;
+    applying.current?.abort();
     setFile(image);
   }
   function close() {
+    intent.current++;
+    applying.current?.abort();
     setFile(null);
     trigger.current?.focus();
   }
@@ -161,8 +173,17 @@ export function ImageMoleculeInput({
           language={language}
           onClose={close}
           onAccept={async (molecule, source) => {
-            await onMolecule(molecule, source);
-            close();
+            const currentIntent = intent.current,
+              controller = new AbortController();
+            applying.current?.abort();
+            applying.current = controller;
+            await onMolecule(molecule, source, controller.signal);
+            if (
+              mounted.current &&
+              intent.current === currentIntent &&
+              !controller.signal.aborted
+            )
+              close();
           }}
         />
       )}

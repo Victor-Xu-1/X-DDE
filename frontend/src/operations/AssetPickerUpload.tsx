@@ -89,13 +89,17 @@ export function AssetPickerUpload({
         kind === "ligand" &&
         formats.some((format) => [".sdf", ".mol"].includes(format))
       }
-      onMolecule={async (molecule, image) => {
+      onMolecule={async (molecule, image, signal) => {
         const file = await imageMoleculeFile(
           molecule,
           image,
           formats.includes(".sdf") ? ".sdf" : ".mol",
+          signal,
         );
-        await upload.upload(file);
+        signal.throwIfAborted();
+        if (!(await upload.upload(file, { preserveSelection: true, signal }))) {
+          throw new Error("Structure upload was not accepted");
+        }
       }}
     >
       {content}
