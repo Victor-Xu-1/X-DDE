@@ -89,7 +89,9 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
                 return {actual:getComputedStyle(node).color, expected};
             }""")
             assert colors["actual"] == colors["expected"]
-            sequence = page.get_by_role("region", name="结构中的残基" if zh else "Residues in structure")
+            sequence = page.get_by_role(
+                "region", name="结构中的残基" if zh else "Residues in structure"
+            )
             observe_updates(plot)
             first = sequence.get_by_role("checkbox", name=re.compile(r"^A:TRP1 · pLDDT "))
             first.click()
@@ -101,23 +103,36 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
             middle.click()
             expect(middle).to_have_attribute("aria-checked", "true")
             expect(plot).to_have_attribute("aria-busy", "false")
-            assert plot.evaluate("node => ({x:node.layout.xaxis.range, y:node.layout.yaxis.range})") == bounds
-            matrix.get_by_role("combobox", name="图表操作" if zh else "Chart interaction").select_option("pan")
+            current_bounds = plot.evaluate(
+                "node => ({x:node.layout.xaxis.range, y:node.layout.yaxis.range})"
+            )
+            assert current_bounds == bounds
+            matrix.get_by_role(
+                "combobox", name="图表操作" if zh else "Chart interaction"
+            ).select_option("pan")
             expect(plot).to_have_attribute("aria-busy", "false")
             updates = page.evaluate("window.confidenceFrameUpdates")
             assert updates and all(row["current"] == "true" and row["visibility"] == "visible"
                                    for row in updates), updates
             page.evaluate("window.confidenceFrameObserver.disconnect()")
-            expect(matrix.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")).to_be_enabled()
+            expect(matrix.get_by_role(
+                "button", name="文献图导出 ↓" if zh else "Export figure ↓"
+            )).to_be_enabled()
             matrix.scroll_into_view_if_needed()
             page.mouse.move(1, 1)
             page.screenshot(path=evidence / "selected-native-workspace.png")
-            native_url = page.get_by_role("link", name="下载完整原生置信度" if zh else "Download full native confidence").get_attribute("href")
-            response = page.request.get(base + native_url if native_url.startswith("/") else native_url)
+            native_url = page.get_by_role(
+                "link", name="下载完整原生置信度" if zh else "Download full native confidence"
+            ).get_attribute("href")
+            assert native_url
+            response = page.request.get(
+                base + native_url if native_url.startswith("/") else native_url
+            )
             assert response.ok and response.body() == original == native.read_bytes()
             assert structure == (output / selected["artifact"]).read_bytes()
             assert len(Store(state / "jobs.sqlite3").list_jobs(10)) == 1
-            assert not any(row["enabled"] for row in page.request.get(base + "/api/runtime-controls").json()["engines"])
+            engines = page.request.get(base + "/api/runtime-controls").json()["engines"]
+            assert not any(row["enabled"] for row in engines)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             assert not errors and not writes, (errors, writes)
             (evidence / "receipt.json").write_text(json.dumps({
