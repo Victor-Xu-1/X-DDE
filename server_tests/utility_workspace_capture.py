@@ -43,7 +43,9 @@ def load_utility_template(page, utility, capability, language, evidence):
         status = utility.locator('.example-loading[role="status"]')
         expect(status).to_have_text("Preparing template…")
         expect(utility.get_by_role("button", name="Preparing template…")).to_be_disabled()
-        expect(utility.locator(".utility-task-fields")).to_be_disabled()
+        fields = utility.locator(".utility-task-fields")
+        expect(fields).to_have_attribute("disabled", "")
+        expect(fields.locator('input[type="radio"]').first).to_be_disabled()
         current = heading.bounding_box()
         assert current and previous and abs(current["y"] - previous["y"]) <= 1
         # The button carries visible feedback; the live status remains accessible.
@@ -62,7 +64,9 @@ def load_utility_template(page, utility, capability, language, evidence):
         ) as response:
             utility.get_by_role("button", name=label, exact=True).click()
         assert response.value.ok
-        expect(utility.locator(".utility-task-fields")).to_be_enabled()
+        fields = utility.locator(".utility-task-fields")
+        expect(fields).not_to_have_attribute("disabled", "")
+        expect(fields.locator('input[type="radio"]').first).to_be_enabled()
         return response.value.json()
     finally:
         if inspect_pending:
