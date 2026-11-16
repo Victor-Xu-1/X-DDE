@@ -8,19 +8,21 @@ from playwright.sync_api import expect
 
 def verify_review_fonts():
     """Reject a browser environment that cannot draw the actual Chinese UI."""
-    query = ["fc-match", "-f"]
-    family = subprocess.check_output([*query, "%{family}", "sans:lang=zh"], text=True)
-    charset = subprocess.check_output([*query, "%{charset}", "sans:lang=zh"], text=True)
-    ranges = []
-    for entry in charset.split():
-        values = entry.split("-")
-        low, high = int(values[0], 16), int(values[-1], 16)
-        ranges.append((low, high))
     characters = "药物结构"
-    supported = all(any(low <= ord(char) <= high for low, high in ranges) for char in characters)
-    if not supported:
-        raise RuntimeError("The review browser lacks the required Chinese glyphs.")
-    return {"family": family, "verified_characters": characters}
+    fonts = subprocess.check_output(
+        ["fc-match", "-s", "-f", "%{family}\t%{charset}\n", "sans:lang=zh"], text=True
+    )
+    # Chrome can use a CJK fallback even when its preferred Latin font lacks CJK.
+    # Still require an actual installed font covering every reviewed character.
+    for font in fonts.splitlines():
+        family, charset = font.split("\t", 1)
+        ranges = []
+        for entry in charset.split():
+            values = entry.split("-")
+            ranges.append((int(values[0], 16), int(values[-1], 16)))
+        if all(any(low <= ord(char) <= high for low, high in ranges) for char in characters):
+            return {"family": family, "verified_characters": characters}
+    raise RuntimeError("The review browser lacks the required Chinese glyphs.")
 
 
 def launch_review_browser(driver):
