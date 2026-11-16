@@ -4,10 +4,10 @@ import base64
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
+from pathlib import Path
 from urllib.parse import quote
 
 import pytest
@@ -78,7 +78,9 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     form = page.locator(".questionnaire:visible")
                     form.get_by_role("radio", name="已知化合物" if zh else "Known compound",
                                      exact=True).check()
-                    forward = form.get_by_role("button", name="下一步" if zh else "Next", exact=True)
+                    forward = form.get_by_role(
+                        "button", name="下一步" if zh else "Next", exact=True
+                    )
                     forward.click()
                     form.get_by_role("textbox", name=(
                         "ChEMBL 化合物编号" if zh else "ChEMBL molecule accession"
