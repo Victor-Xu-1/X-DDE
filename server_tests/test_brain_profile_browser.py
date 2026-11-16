@@ -68,6 +68,18 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
                 "button", name="开始透脑评估" if zh else "Assess brain penetration", exact=True
             )).to_be_disabled()
             expect(utility).to_contain_text("ADMET-AI")
+            review = utility.locator(".molecular-input-review")
+            drawing = review.locator(".molecule-image")
+            expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+            structure = drawing.bounding_box()
+            summary = review.locator(".admet-brain-review-summary").bounding_box()
+            assert structure and summary
+            if width > 700:
+                assert structure["x"] + structure["width"] <= summary["x"]
+                assert structure["width"] > summary["width"]
+            else:
+                assert structure["y"] + structure["height"] <= summary["y"]
+            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             page.screenshot(path=evidence / "input-review.png", full_page=True)
 
             # A BBB view of a real ADMET result is not a newly computed brain task.

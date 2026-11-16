@@ -1,6 +1,8 @@
 """Keep scientific execution and shared-viewer changes in their original gates."""
 
+import re
 import runpy
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import pytest
@@ -80,6 +82,17 @@ def test_exact_profile_paths_and_version_mirrors():
     assert not scope["selected"]([])
     assert not scope["selected"](["pyproject.toml"])
     assert not scope["selected"](scope["FILES"], "workflow_dispatch")
+
+
+def test_every_independently_delegated_source_starts_the_replacement_gate():
+    workflow = Path(".github/workflows/brain-profile-checks.yml").read_text()
+    push = workflow.split("  push:\n", 1)[1].split("  pull_request:\n", 1)[0]
+    patterns = re.findall(r'^      - "([^"]+)"$', push, re.MULTILINE)
+    assert patterns
+    assert "  pull_request:\n    paths: *brain_paths" in workflow
+    for path in scope["SOURCES"]:
+        assert scope["selected"]([path])
+        assert any(fnmatchcase(path, pattern) for pattern in patterns), path
 
 
 @pytest.mark.parametrize("path", [

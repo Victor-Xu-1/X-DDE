@@ -6,6 +6,7 @@ import subprocess
 SOURCES = {
     "src/opendde_workbench/examples/pin_validation.py",
     "frontend/src/admet/AdmetForm.tsx",
+    "frontend/src/admet/brain.css",
     "frontend/src/admet/AdmetResults.tsx",
     "frontend/src/admet/AdmetSettings.tsx",
     "frontend/src/admet/BrainForm.test.tsx",
