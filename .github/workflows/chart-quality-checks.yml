@@ -2,7 +2,7 @@ name: Interactive statistical preview checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &chart_paths
       - "frontend/src/presentation/plots/**"
       - "frontend/src/datasets/CountBars*"
       - "frontend/src/datasets/CountEvidencePlot*"
@@ -45,6 +45,8 @@ on:
       - "!frontend/src/viewer/style.ts"
       # Library/index result routing is covered by the native member gate.
       - "!frontend/src/datasets/DatasetResults.tsx"
+  pull_request:
+    paths: *chart_paths
 permissions:
   contents: read
 jobs:

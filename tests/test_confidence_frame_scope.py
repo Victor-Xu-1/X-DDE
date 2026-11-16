@@ -40,3 +40,7 @@ def test_unrelated_suites_delegate_only_to_the_exact_frame_scope():
         body = Path(f".github/workflows/{name}-checks.yml").read_text()
         assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in body
         assert "needs.prediction-scope.outputs.confidence_frame != 'true'" in body
+    for name, anchor in (("chart-quality", "chart_paths"), ("landscape", "landscape_paths")):
+        body = Path(f".github/workflows/{name}-checks.yml").read_text()
+        assert f"paths: &{anchor}" in body
+        assert f"pull_request:\n    paths: *{anchor}" in body

@@ -30,11 +30,35 @@ def observe_updates(plot):
     }""")
 
 
-def zoom_matrix(page, matrix):
+def zoom_matrix(page, matrix, evidence):
     hit = matrix.locator(".nsewdrag")
     hit.scroll_into_view_if_needed()
+    plot = matrix.locator(".research-plot-canvas")
+    before = hit.bounding_box()
+    assert before
+    original_hit = plot.evaluate("""(node, box) => {
+        const target=document.elementFromPoint(box.x+box.width*.2, box.y+box.height*.2);
+        return {className:target?.getAttribute('class'),
+            correct:target?.closest('.research-plot-canvas') === node};
+    }""", before)
+    # Native scrollIntoView does not reserve space for the application's sticky bar.
+    plot.evaluate("""node => {
+        const header=document.querySelector('.studio-topbar');
+        const top=header?.getBoundingClientRect().bottom || 0;
+        window.scrollBy({top:node.getBoundingClientRect().top-top-24, behavior:'instant'});
+    }""")
     box = hit.bounding_box()
     assert box and box["width"] > 80 and box["height"] > 80
+    actual_hits = plot.evaluate("""(node, box) => [.2,.8].map(fraction => {
+        const target=document.elementFromPoint(box.x+box.width*fraction,
+            box.y+box.height*fraction);
+        return {className:target?.getAttribute('class'),
+            correct:target?.closest('.research-plot-canvas') === node};
+    })""", box)
+    (evidence / "zoom-pointer.json").write_text(json.dumps({
+        "before": before, "original_hit": original_hit, "after": box, "hits": actual_hits,
+    }))
+    assert all(row["correct"] for row in actual_hits), actual_hits
     page.mouse.move(box["x"] + box["width"] * .2, box["y"] + box["height"] * .2)
     page.mouse.down()
     page.mouse.move(box["x"] + box["width"] * .8,
@@ -98,7 +122,7 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
             expect(first).to_have_attribute("aria-checked", "true")
             expect(plot).to_have_attribute("aria-busy", "false")
             expect(matrix.locator(".shapelayer path")).to_have_count(2)
-            bounds = zoom_matrix(page, matrix)
+            bounds = zoom_matrix(page, matrix, evidence)
             middle = sequence.get_by_role("checkbox", name=re.compile(r"^A:ALA58 · pLDDT "))
             middle.click()
             expect(middle).to_have_attribute("aria-checked", "true")
@@ -143,5 +167,13 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
                 "legend": colors, "zoom": bounds, "updates": updates,
                 "scientific_calculations": 0, "writes": writes,
             }, indent=2))
+        except Exception as error:
+            failure = {"error": str(error)}
+            try:
+                page.screenshot(path=evidence / "failure.png")
+            except Exception as capture:
+                failure["capture_error"] = str(capture)
+            (evidence / "failure.json").write_text(json.dumps(failure))
+            raise
         finally:
             browser.close()

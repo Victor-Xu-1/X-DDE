@@ -18,6 +18,7 @@ FILES = SOURCES | {
     ".github/workflows/simulation-view-checks.yml",
     ".github/workflows/appearance-checks.yml",
     ".github/workflows/viewer-checks.yml",
+    ".github/workflows/landscape-checks.yml",
     "docs/frontend-layout.md", "pyproject.toml", "uv.lock",
     "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1",
 }
