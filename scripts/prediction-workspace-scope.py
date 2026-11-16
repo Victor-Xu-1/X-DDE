@@ -9,6 +9,7 @@ import subprocess
 def confidence_frame_only(changed, event="push"):
     return runpy.run_path("scripts/confidence-frame-scope.py")["selected"](changed, event)
 
+
 PATTERNS = (
     "frontend/public/fonts/jetbrains-mono/*",
     "frontend/public/fonts/plus-jakarta/*",
@@ -910,6 +911,8 @@ def native_confidence_only(changed):
 
 
 def confidence_changed(changed):
+    if confidence_frame_only(changed):
+        return True
     if workspace_expansion_only(changed):
         return True
     if boltz_confidence_only(changed):

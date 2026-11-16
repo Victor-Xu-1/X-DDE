@@ -66,7 +66,7 @@ jobs:
         run: python3 scripts/appearance-scope.py
   statistical-previews:
     needs: [appearance-scope, prediction-scope]
-    # Only the exact neutral-canvas CSS transition delegates to appearance checks.
+    # Exact canvas appearance or verified confidence-frame changes have focused owners.
     if: needs.appearance-scope.outputs.appearance_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25

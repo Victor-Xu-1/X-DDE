@@ -22,6 +22,10 @@ def test_frame_scope_reuses_prediction_owner_and_preserves_mixed_changes():
     assert owner["prediction_only"](scope["FILES"])
     assert owner["native_confidence_only"](scope["FILES"])
     assert owner["confidence_changed"](scope["FILES"])
+    for name in scope["SOURCES"]:
+        assert owner["prediction_only"]([name])
+        assert owner["native_confidence_only"]([name])
+        assert owner["confidence_changed"]([name])
     assert not owner["prediction_only"]([*scope["FILES"], "src/opendde_workbench/api.py"])
     body = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
     for name in ("InteractivePlot.frame.test.tsx", "ConfidencePanel.test.tsx",
@@ -32,7 +36,7 @@ def test_frame_scope_reuses_prediction_owner_and_preserves_mixed_changes():
 
 
 def test_unrelated_suites_delegate_only_to_the_exact_frame_scope():
-    for name in ("chart-quality", "appearance", "simulation-view"):
+    for name in ("chart-quality", "appearance", "simulation-view", "viewer"):
         body = Path(f".github/workflows/{name}-checks.yml").read_text()
         assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in body
         assert "needs.prediction-scope.outputs.confidence_frame != 'true'" in body

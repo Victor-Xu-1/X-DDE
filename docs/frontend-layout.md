@@ -823,6 +823,23 @@ the brain group as the same original ADMET result. Models remain off on navigati
 Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
 this baseline is not an accuracy-superiority claim.
 
+## Verified native confidence frames
+
+The native confidence matrix retains its verified frame while selection overlays,
+zoom/pan controls or panel size update. This is an explicit opt-in from the
+confidence owner using its job/candidate/metric/request identity; the renderer also
+compares the original trace values and labels. Other chart consumers keep their
+conservative hide-until-current behavior. Source/value changes, invalid frames and
+render errors never reuse an old scientific view.
+
+One queued-render frame owner records actual native redraws, including superseded
+ones. A rapid A-B-A transition cannot revive an old ready flag while another native
+frame is drawing. Events remain bound to the current render signature, and reset
+and figure export stay disabled until that exact render completes. Original
+matrices, indices, units, source bytes and figure-export authority are unchanged.
+The confidence legend uses the shared muted text token in all three themes;
+scientific colors and neutral paper canvases remain unchanged.
+
 ## Molecular input confirmation
 
 Molecular confirmation uses one shared workspace for properties, ADMET, brain
