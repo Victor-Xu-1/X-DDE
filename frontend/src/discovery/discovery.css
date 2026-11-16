@@ -116,7 +116,7 @@
   max-width: none;
 }
 .target-evidence-results .activity-molecule-preview .figure-preview-sheet {
-  height: clamp(300px, 48svh, 560px);
+  height: clamp(260px, min(48svh, 65vw), 560px);
 }
 .target-evidence-results .target-activity-workspace table {
   min-width: 320px;
