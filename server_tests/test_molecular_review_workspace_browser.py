@@ -3,8 +3,8 @@
 import base64
 import hashlib
 import re
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -91,14 +91,18 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             drawing.get_by_role("button", name="放大预览" if zh else "Zoom in preview",
                                 exact=True).click()
             expect(drawing.locator(".figure-preview-sheet")).to_have_attribute("data-zoom", "2")
-            drawing.get_by_role("button", name="适应窗口" if zh else "Fit preview", exact=True).click()
+            drawing.get_by_role(
+                "button", name="适应窗口" if zh else "Fit preview", exact=True
+            ).click()
             expect(drawing.locator(".figure-preview-sheet")).to_have_attribute("data-zoom", "1")
 
             if capability == "properties" and language == "en":
                 # Transport failure must not turn into loss of the selected molecule or summary.
                 page.route(source_url, lambda route: route.fulfill(status=503, body="Unavailable"))
                 drawing.get_by_role("combobox", name="2D drawing line weight").select_option("2.2")
-                expect(drawing).to_have_attribute("data-drawing-state", "unavailable", timeout=45000)
+                expect(drawing).to_have_attribute(
+                    "data-drawing-state", "unavailable", timeout=45000
+                )
                 expect(review.locator(".molecular-input-summary")).to_contain_text("STAT6")
                 page.unroute(source_url)
                 drawing.get_by_role("button", name=re.compile(r"^Retry drawing · ")).click()

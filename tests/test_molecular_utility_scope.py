@@ -122,5 +122,7 @@ def test_heavy_jobs_delegate_to_the_exact_utility_consumers():
 
 def test_retired_gate_paths_cannot_return_as_a_competing_implementation(monkeypatch):
     existing = Path.exists
-    monkeypatch.setattr(Path, "exists", lambda path: str(path) in scope["RETIRED"] or existing(path))
+    monkeypatch.setattr(
+        Path, "exists", lambda path: str(path) in scope["RETIRED"] or existing(path)
+    )
     assert not scope["selected"](scope["FILES"])
