@@ -861,3 +861,10 @@ selection and error/retry. A utility without a computed example labels its view
 as study inputs; a brain-profile input is not presented as a new computed result.
 No template, navigation or preview action enables a scientific engine or submits
 a computation. The shared lifecycle replaces the former brain-only wrapper.
+
+Utility forms use the full available width and remaining page height. Short steps
+keep the next action at the lower right; long steps and molecular reviews scroll
+in document flow, without a footer covering their inputs. Drawing line controls
+remain readable in both input reviews and saved utility results. Preparation uses
+the existing action button for visible progress while retaining its live status;
+metadata failures and retry remain visible without discarding personal inputs.

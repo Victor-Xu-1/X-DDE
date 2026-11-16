@@ -15,6 +15,9 @@ from server_tests.molecular_review_capture import capture_input_review, launch_r
 from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_admet_workspace_browser import saved_workspace  # noqa: F401
 from server_tests.test_navigation_shell_browser import open_navigation
+from server_tests.utility_workspace_capture import (
+    capture_utility_result, capture_utility_space, load_utility_template,
+)
 
 UTILITIES = {
     "properties": ("properties", "分子性质", "Molecular properties", ".properties-results"),
@@ -68,14 +71,11 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             page.get_by_role("button", name=cn if zh else en, exact=True).click()
             utility = page.locator(f'[data-utility="{identifier}"]')
             expect(utility.locator(".molecular-input-review")).to_have_count(0)
-            with page.expect_response(
-                lambda response: response.url.split("?")[0].endswith(
-                    f"/api/examples/{capability}/prepare"
-                )
-            ) as prepared_response:
-                page.get_by_role("button", name="使用此模板" if zh else "Use this template",
-                                 exact=True).click()
-            prepared = prepared_response.value.json()
+            expect(utility.get_by_role(
+                "button", name="使用此模板" if zh else "Use this template", exact=True
+            )).to_be_enabled()
+            capture_utility_space(page, utility, evidence)
+            prepared = load_utility_template(page, utility, capability, language, evidence)
             request = prepared["request"]
             identifier, digest = source_for(request)
             source_url = base + "/api/assets/" + identifier
@@ -150,14 +150,7 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             assert saved_response.value.ok
             result = utility.locator(".module-example-result")
             expect(result.locator(result_selector)).to_be_visible(timeout=45000)
-            expect(result.locator(
-                '.molecule-image:not([data-drawing-state="ready"])'
-            )).to_have_count(0, timeout=60000)
-            if saved_response.value.json().get("conformers"):
-                expect(result.locator(".molecular-stage .viewer-tools")).to_be_visible(
-                    timeout=60000
-                )
-            page.screenshot(path=evidence / "in-utility-example.png", full_page=True)
+            capture_utility_result(page, result, saved_response.value.json(), language, evidence)
             utility.get_by_role(
                 "button", name="返回任务填写" if zh else "Return to task form", exact=True
             ).click()

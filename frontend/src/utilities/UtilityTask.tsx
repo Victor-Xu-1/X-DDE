@@ -7,6 +7,7 @@ import { AdmetForm } from "../admet/AdmetForm";
 import { PropertyForm } from "../operations/PropertyForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { StateForm } from "../chemistry/StateForm";
+import "./utility-task.css";
 
 const utilities = {
   admet: { capability: "admet.predict", Form: AdmetForm },
@@ -59,7 +60,7 @@ function UtilityTaskSession({
         onClear={() => replace(null)}
         onPreviewChange={setPreviewing}
       />
-      <div hidden={previewing}>
+      <div className="utility-task-form" hidden={previewing}>
         {completed && !example && (
           <div className="utility-toolbar">
             <button
