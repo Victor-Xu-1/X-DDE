@@ -6,10 +6,14 @@ import subprocess
 SOURCES = {
     "frontend/src/integrations/InteractionResults.tsx",
     "frontend/src/integrations/InteractionResults.test.tsx",
+    "frontend/src/integrations/ProteinInterfaceResults.tsx",
+    "frontend/src/integrations/ProteinInterfaceResults.test.tsx",
+    "frontend/src/integrations/ProteinInterfaceContacts.tsx",
     "frontend/src/integrations/interaction-residue.ts",
     "frontend/src/integrations/interaction-residue.test.ts",
     "frontend/src/integrations/interaction-workspace.css",
     "server_tests/test_interaction_workspace_browser.py",
+    "server_tests/test_protein_interface_workspace_browser.py",
     "server_tests/interaction_workspace_case.py",
 }
 FILES = SOURCES | {

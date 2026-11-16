@@ -22,6 +22,7 @@ def test_exact_result_paths_and_publication_companions():
     "frontend/src/viewer/StructureViewport.tsx", "frontend/src/presentation/ResearchTable.tsx",
     "frontend/src/integrations/ScientificResults.tsx", "src/opendde_workbench/integrations/plip.py",
     "frontend/src/integrations/InteractionResultsBackup.tsx",
+    "frontend/src/integrations/ProteinInterfaceForm.tsx",
 ])
 def test_shared_and_scientific_changes_keep_their_own_checks(path):
     assert not scope["selected"]([*scope["SOURCES"], path])

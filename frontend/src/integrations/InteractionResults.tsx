@@ -71,7 +71,7 @@ function InteractionWorkspace({
     }));
   return (
     <section
-      className="interaction-results"
+      className="interaction-results contact-workspace"
       aria-label={zh ? "配体相互作用结果" : "Ligand interaction results"}
     >
       <p className="interaction-result-method">

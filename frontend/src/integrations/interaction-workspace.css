@@ -1,4 +1,4 @@
-.interaction-results {
+.contact-workspace {
   min-width: 0;
 }
 .interaction-result-method {
@@ -18,31 +18,31 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.interaction-results .research-table td {
+.contact-workspace .research-table td {
   overflow-wrap: normal;
 }
-.interaction-results .research-table :is(th, td) {
+.contact-workspace .research-table :is(th, td) {
   padding: 10px 8px;
 }
-.interaction-results .research-table .mark-cell {
+.contact-workspace .research-table .mark-cell {
   width: 26px;
   padding-inline-end: 0;
 }
-.studio-app .interaction-results :is(.research-table, .viewer-panel) {
+.studio-app .contact-workspace :is(.research-table, .viewer-panel) {
   padding: 0;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   background: transparent;
 }
-.interaction-results .structure-workbench:not([data-workspace-expanded]) {
+.contact-workspace .structure-workbench:not([data-workspace-expanded]) {
   grid-template-columns: minmax(0, 1.8fr) minmax(350px, 1fr);
   grid-template-rows: minmax(0, 1fr) 112px;
   height: max(560px, calc(100dvh - 240px));
   align-items: stretch;
   gap: 20px;
 }
-.interaction-results
+.contact-workspace
   .structure-workbench:not([data-workspace-expanded])
   > .structure-workbench-view {
   grid-column: 1;
@@ -50,20 +50,20 @@
   display: block;
   min-height: 0;
 }
-.interaction-results
+.contact-workspace
   .structure-workbench:not([data-workspace-expanded])
   .viewer-panel {
   height: 100%;
 }
 .studio-app
-  .interaction-results
+  .contact-workspace
   .structure-workbench:not([data-workspace-expanded])
   .molecular-stage {
   flex: 1 1 auto;
   min-height: 260px;
   height: auto;
 }
-.interaction-results
+.contact-workspace
   .structure-workbench:not([data-workspace-expanded])
   > .structure-workbench-details {
   grid-column: 2;
@@ -72,7 +72,7 @@
   flex-direction: column;
   min-height: 0;
 }
-.interaction-results
+.contact-workspace
   .structure-workbench:not([data-workspace-expanded])
   > .structure-workbench-sequence {
   grid-column: 2;
@@ -81,36 +81,80 @@
   max-height: 112px;
   overflow: auto;
 }
-.interaction-results .structure-workbench-sequence .structure-sequence {
+.contact-workspace .structure-workbench-sequence .structure-sequence {
   margin: 0;
   padding: 0;
   border: 0;
 }
-.interaction-results .research-table {
+.contact-workspace .research-table {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
 }
-.interaction-results .research-table-scroll {
+.contact-workspace .research-table-scroll {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
 }
+.interface-contact-context h3,
+.interface-contact-context p {
+  margin: 0;
+}
+.interface-contact-context p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.interface-complex-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.interface-complex-choice select {
+  min-width: 0;
+  max-width: 100%;
+}
+.studio-app .contact-workspace .interface-residue-button {
+  padding: 3px 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+.studio-app .contact-workspace .interface-residue-button[aria-pressed="true"] {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.studio-app .contact-workspace .interface-residue-button:disabled {
+  color: var(--muted);
+}
+.interface-source-reports > .inline-fields {
+  margin-top: 10px;
+}
+@media (min-width: 1001px) {
+  .protein-interface-results
+    .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1.65fr) minmax(410px, 1fr);
+  }
+}
 html
   body
   .studio-app
-  .studio-content:has(> .tool-center.is-result .interaction-results)
+  .studio-content:has(> .tool-center.is-result .contact-workspace)
   > .module-task-picker {
   display: none;
 }
 @media (max-width: 1000px) {
-  .interaction-results .structure-workbench:not([data-workspace-expanded]) {
+  .contact-workspace .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
     height: auto;
   }
-  .interaction-results
+  .contact-workspace
     .structure-workbench:not([data-workspace-expanded])
     > :is(
       .structure-workbench-view,
@@ -121,13 +165,13 @@ html
     grid-row: auto;
   }
   .studio-app
-    .interaction-results
+    .contact-workspace
     .structure-workbench:not([data-workspace-expanded])
     .molecular-stage {
     flex: none;
     height: clamp(360px, 55dvh, 520px);
   }
-  .interaction-results .research-table-scroll {
+  .contact-workspace .research-table-scroll {
     max-height: 520px;
   }
 }

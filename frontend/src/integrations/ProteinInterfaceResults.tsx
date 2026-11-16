@@ -1,131 +1,128 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { ResearchTable } from "../presentation/ResearchTable";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Job, Language } from "../types";
+import type { SceneInfo } from "../viewer/protocol";
 import type { ProteinInterfaceResult } from "./types";
-import { interactionNames } from "./InteractionResults";
+import { ProteinInterfaceContacts } from "./ProteinInterfaceContacts";
+import "./interaction-workspace.css";
 
-export function ProteinInterfaceResults({
-  job,
-  interfaces,
-  language,
-}: {
+type Props = {
   job: Job;
   interfaces: ProteinInterfaceResult[];
   language: Language;
-}) {
-  const zh = language === "zh",
-    [selected, setSelected] = useState(0);
+};
+
+export function ProteinInterfaceResults(props: Props) {
+  const identity = JSON.stringify([
+    props.job.id,
+    props.interfaces.map((item) => [item.structure_artifact, item.source]),
+  ]);
+  return <InterfaceSelector key={identity} {...props} />;
+}
+
+function InterfaceSelector({ job, interfaces, language }: Props) {
+  const [selected, setSelected] = useState(0);
+  const zh = language === "zh";
   const active = interfaces[selected] ?? interfaces[0];
-  const [focus, setFocus] = useState<{ residue: string; nonce: number } | null>(
-    null,
-  );
-  const rows = active.interactions.map((row, index) => ({
-    ...row,
-    id: String(index),
-  }));
+  if (!active) return null;
   return (
-    <>
-      {interfaces.length > 1 && (
-        <label>
-          {zh ? "复合物" : "Complex"}
-          <select
-            value={selected}
-            onChange={(e) => {
-              setSelected(Number(e.target.value));
+    <section
+      className="protein-interface-results contact-workspace"
+      aria-label={zh ? "蛋白界面结果" : "Protein interface results"}
+    >
+      <div className="interaction-result-method">
+        <span>{zh ? "分析方法" : "Analysis method"}</span>
+        <strong>PLIP</strong>
+        {interfaces.length > 1 && (
+          <label className="interface-complex-choice">
+            {zh ? "复合物" : "Complex"}
+            <select
+              value={selected}
+              onChange={(e) => setSelected(Number(e.target.value))}
+            >
+              {interfaces.map((value, index) => (
+                <option key={index} value={index}>
+                  {value.name} · {value.interactions.length}{" "}
+                  {zh ? "接触" : "contacts"}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+      <InterfaceWorkspace
+        key={selected}
+        job={job}
+        active={active}
+        language={language}
+      />
+    </section>
+  );
+}
+
+function InterfaceWorkspace({
+  job,
+  active,
+  language,
+}: {
+  job: Job;
+  active: ProteinInterfaceResult;
+  language: Language;
+}) {
+  const zh = language === "zh";
+  const [scene, setScene] = useState<SceneInfo | null>(null);
+  const [sequenceHost, setSequenceHost] = useState<HTMLDivElement | null>(null);
+  const [focus, setFocus] = useState<{
+    id: string;
+    residue: string;
+    nonce: number;
+  } | null>(null);
+  return (
+    <StructureWorkbench
+      sequenceHostRef={setSequenceHost}
+      preview={
+        <StructureViewer
+          sourceSnapshot
+          urls={[artifactUrl(job.id, active.structure_artifact)]}
+          expectedStructureSha256={active.source.sha256}
+          language={language}
+          nativeInteractions={active.interactions}
+          focusResidue={focus}
+          onSceneLoaded={setScene}
+          sequenceHost={sequenceHost}
+          onStructureVerification={(verified) => {
+            if (!verified) {
+              setScene(null);
               setFocus(null);
-            }}
-          >
-            {interfaces.map((value, index) => (
-              <option key={index} value={index}>
-                {value.name} · {value.interactions.length}{" "}
-                {zh ? "接触" : "contacts"}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <StructureWorkbench
-        preview={
-          <StructureViewer
-            key={active.structure_artifact}
-            sourceSnapshot
-            urls={[artifactUrl(job.id, active.structure_artifact)]}
-            language={language}
-            nativeInteractions={active.interactions}
-            focusResidue={focus}
-          />
-        }
-      >
+            }
+          }}
+        />
+      }
+    >
+      <div className="interface-contact-context">
         <h3>{active.name}</h3>
         <p>
           {active.interactions.length} {zh ? "个原生接触" : "native contacts"} ·{" "}
           {active.polymer_residues}{" "}
           {zh ? "个已核对的聚合物残基" : "verified polymer residues"}
         </p>
-        <ResearchTable
-          language={language}
-          title={zh ? "完整界面接触" : "Complete interface contacts"}
-          rows={rows}
-          rowId={(row) => row.id}
-          onSelect={(row) =>
-            setFocus({
-              residue: `${row.chain}:${row.residue}:${row.number}:${row.insertion_code}`,
-              nonce: Date.now(),
-            })
-          }
-          columns={[
-            {
-              key: "target",
-              label: zh ? "靶蛋白" : "Target",
-              value: (r) =>
-                `${r.chain}:${r.residue}${r.number}${r.insertion_code}`,
-            },
-            {
-              key: "partner",
-              label: zh ? "伙伴" : "Partner",
-              value: (r) =>
-                `${r.partner.chain}:${r.partner.residue}${r.partner.number}${r.partner.insertion_code}`,
-            },
-            {
-              key: "type",
-              label: zh ? "作用类型" : "Interaction",
-              value: (r) => interactionNames[r.kind]?.[zh ? 0 : 1] ?? r.kind,
-            },
-            {
-              key: "distance",
-              label: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
-              numeric: true,
-              value: (r) => r.distance,
-              render: (r) => r.distance.toFixed(2),
-            },
-          ]}
-        />
-        <div className="inline-fields">
-          {[
-            [active.table_artifact, zh ? "接触表 CSV" : "Contacts CSV"],
-            [active.text_artifact, zh ? "原生报告 TXT" : "Native report TXT"],
-            [active.xml_artifact, zh ? "原生报告 XML" : "Native report XML"],
-            [active.structure_artifact, zh ? "原始结构" : "Source structure"],
-          ].map(([file, label]) => (
-            <a
-              key={file}
-              className="secondary-button"
-              href={artifactUrl(job.id, file)}
-              download
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-        <p className="field-help">
-          {zh
-            ? "原生化学分类，不是结合能或亲和力；水桥距离表示两侧端点的距离。"
-            : "Native chemical classifications, not binding energy or affinity. Water-bridge distances refer to the two endpoint atoms."}
-        </p>
-      </StructureWorkbench>
-    </>
+      </div>
+      <ProteinInterfaceContacts
+        job={job}
+        active={active}
+        language={language}
+        scene={scene}
+        focus={focus}
+        onSelect={(id, residue) =>
+          setFocus((previous) => ({
+            id,
+            residue,
+            nonce: (previous?.nonce ?? 0) + 1,
+          }))
+        }
+      />
+    </StructureWorkbench>
   );
 }

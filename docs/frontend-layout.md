@@ -774,3 +774,16 @@ remain unselectable; changing task, artifact or fingerprint clears previous
 selection. Native coordinates, contact classification, distances in angstroms and
 source CSV files are unchanged. Short windows scroll without shrinking the
 scientific view below its minimum, and narrow screens stack the view and table.
+
+### Two-sided protein-interface inspection
+
+Protein-interface results share the ligand-contact work area's large left native view,
+compact right table/sequence, and saved-result context. Each target and partner residue
+has its own accessible focus button; the row background and Enter/Space select the target.
+Only a unique observed source identity enables focus, including modified residues and
+insertion codes. The source reference fingerprint is verified before enabling selection;
+source/job/complex changes or failed verification clear it. These are display selections,
+not restraints or new calculations. Native CSV/TXT/XML/CIF remain under Source reports
+and structure, and filtered CSV retains full-precision native distances in angstroms.
+The shared viewer, sequence portal, comparison policy and expanded-workspace authority
+remain unchanged. Narrow views stack naturally and keep wide tables inside their own scroller.
