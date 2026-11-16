@@ -236,13 +236,19 @@ def inspect_activity(page, workspace, result, evidence, language, width):
         ("化合物", "实测端点", "结果与单位", "实验") if zh
         else ("Compound", "Measured endpoint", "Result and unit", "Assay")
     )
-    assert [tuple(record[label] for label in labels) for record in records] == [
-        (item["molecule_chembl_id"], item["standard_type"],
-         f"{item.get('standard_relation') or ''} "
-         f"{item['standard_value'] if item['standard_value'] is not None else '—'} "
-         f"{item.get('standard_units') or ''}", item["assay_chembl_id"])
-        for item in activities
-    ]
+    expected_records = []
+    for item in activities:
+        measurement = (
+            f"{item.get('standard_relation') or ''} "
+            f"{item['standard_value'] if item['standard_value'] is not None else '—'} "
+            f"{item.get('standard_units') or ''}"
+        )
+        # Retain the existing spreadsheet formula protection on leading '='.
+        if item.get("standard_relation") == "=":
+            measurement = "'" + measurement
+        expected_records.append((item["molecule_chembl_id"], item["standard_type"],
+                                 measurement, item["assay_chembl_id"]))
+    assert [tuple(record[label] for label in labels) for record in records] == expected_records
     preview.scroll_into_view_if_needed()
     stage = panel.locator(".structure-workbench-view").bounding_box()
     details = panel.locator(".structure-workbench-details").bounding_box()
