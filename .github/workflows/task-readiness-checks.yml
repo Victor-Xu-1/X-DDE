@@ -32,6 +32,8 @@ on:
       - "frontend/src/discovery/TargetResearchForm.tsx"
       - "frontend/src/docking/DockingForm.tsx"
       - "frontend/src/editors/AlignedEditAction.tsx"
+      - "scripts/editor-layout-scope.py"
+      - "tests/test_editor_layout_scope.py"
       - "frontend/src/humanization/HumanizationForm.tsx"
       - "frontend/src/integrations/ScientificForm.tsx"
       # Its collection-validation change is exercised in reference-input-checks.yml.
@@ -71,6 +73,7 @@ jobs:
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       managed_compute_only: ${{ steps.managed.outputs.managed_compute_only }}
+      editor_layout_only: ${{ steps.editor.outputs.editor_layout_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -83,10 +86,16 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
+      - id: editor
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/editor-layout-scope.py
 
   task-inputs:
     needs: managed-compute-scope
-    if: needs.managed-compute-scope.outputs.managed_compute_only != 'true' && needs.managed-compute-scope.outputs.refinement_only != 'true'
+    # Editor-only presentation and capture still run the required native editor
+    # gate; changes to shared forms, admission or backend files do not delegate.
+    if: needs.managed-compute-scope.outputs.managed_compute_only != 'true' && needs.managed-compute-scope.outputs.refinement_only != 'true' && needs.managed-compute-scope.outputs.editor_layout_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:

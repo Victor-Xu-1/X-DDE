@@ -509,6 +509,18 @@ on:
 permissions:
   contents: read
 jobs:
+  editor-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      editor_layout_only: ${{ steps.scope.outputs.editor_layout_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/editor-layout-scope.py
   guidance-scope:
     uses: ./.github/workflows/restraint-guidance-checks.yml
     with:
@@ -535,8 +547,8 @@ jobs:
     with:
       scope_only: true
   scoped-layout:
-    needs: [model-context, antibody-scope, prediction-scope, guidance-scope]
-    if: needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.prediction-scope.outputs.shared_workbench_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
+    needs: [model-context, antibody-scope, prediction-scope, guidance-scope, editor-scope]
+    if: needs.editor-scope.outputs.editor_layout_only != 'true' && needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.prediction-scope.outputs.shared_workbench_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:

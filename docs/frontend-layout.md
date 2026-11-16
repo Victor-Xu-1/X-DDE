@@ -69,6 +69,16 @@ expanded views while the molecular view takes the remaining space.
 PAE/PDE/contact matrices retain equal pixel scales
 for their two native token axes when their container changes size.
 
+The workbench structure editor uses one compact command ribbon and the remaining
+viewport for its native canvas. Mode changes and adjacent task panels retain the
+same iframe, molecular graph and Undo history. Help is optional rather than a
+permanent introductory row. Aligned-edit and property questionnaires sit beside
+the canvas on desktop and stack on narrow displays; the platform's existing task,
+save and readiness authorities still own their actions. The native Miew shortcut
+is hidden because it displays the drawing's current CML coordinates rather than
+the platform's calculated conformer. Existing structures and explicit calculated
+or aligned-edit results retain their proper inspection paths.
+
 Molecular entity groups retain the selected reference's numbered, tinted headers
 and rounded input containers. They group one actual molecular input with its
 editable fields; general forms and nested result panels stay flat. Focused
