@@ -842,3 +842,6 @@ viewport states separately instead of freezing a sticky header mid-page.
 The focused utility gate runs Playwright against the hosted runner's installed
 Google Chrome channel and records the browser build and CSS viewport in its
 geometry receipts. It does not install or control the owner's desktop browser.
+The isolated runner receives the standard browser system dependencies, including
+CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
+text assertions alone do not qualify an unreadable Chinese screenshot.

@@ -126,7 +126,9 @@ jobs:
           PY
       - name: Native retained-output browser acceptance with prediction disabled
         run: |
+          uv run --locked playwright install-deps chromium
           google-chrome --version
+          uv run --locked python -c 'from server_tests.molecular_review_capture import verify_review_fonts; print(verify_review_fonts())'
           uv run --locked python -m pytest -q server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py --basetemp "$RUNNER_TEMP/brain-profile-browser"
       - uses: actions/upload-artifact@v4
         if: always()

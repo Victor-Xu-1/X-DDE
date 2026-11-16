@@ -1,8 +1,26 @@
 """Record real input views at explicit scroll positions, without changing their layout."""
 
 import json
+import subprocess
 
 from playwright.sync_api import expect
+
+
+def verify_review_fonts():
+    """Reject a browser environment that cannot draw the actual Chinese UI."""
+    query = ["fc-match", "-f"]
+    family = subprocess.check_output([*query, "%{family}", "sans:lang=zh"], text=True)
+    charset = subprocess.check_output([*query, "%{charset}", "sans:lang=zh"], text=True)
+    ranges = []
+    for entry in charset.split():
+        values = entry.split("-")
+        low, high = int(values[0], 16), int(values[-1], 16)
+        ranges.append((low, high))
+    characters = "药物结构"
+    supported = all(any(low <= ord(char) <= high for low, high in ranges) for char in characters)
+    if not supported:
+        raise RuntimeError("The review browser lacks the required Chinese glyphs.")
+    return {"family": family, "verified_characters": characters}
 
 
 def launch_review_browser(driver):
@@ -58,6 +76,7 @@ def capture_input_review(page, review, evidence):
         "version": page.context.browser.version,
         "user_agent": page.evaluate("navigator.userAgent"),
     }
+    geometry["font"] = verify_review_fonts()
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     (evidence / "input-review-geometry.json").write_text(json.dumps(geometry, indent=2))
     page.screenshot(path=evidence / "molecular-input-workspace.png", full_page=True)
