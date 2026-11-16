@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       guidance_only: ${{ steps.select.outputs.guidance_only }}
+      interaction_only: ${{ steps.interaction.outputs.interaction_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,9 +40,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/restraint-guidance-scope.py
+      - id: interaction
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/interaction-workspace-scope.py
   frontend-guidance:
     needs: scope
-    if: ${{ !inputs.scope_only }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.interaction_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:

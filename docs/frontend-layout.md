@@ -762,3 +762,15 @@ Source task and recorded prediction method remain visible. New-task model choice
 return when the user leaves an example result for its form. Expanding and closing
 the workspace retains the iframe, selected sample and residue selection; styling
 does not recalculate, modify or reclassify the scientific source files.
+
+## Ligand interaction inspection
+
+The contact result records its actual PLIP version beside the retained source;
+new-task model choices return when leaving the result for its questionnaire.
+The existing large left molecular view and right native-contact table share row
+selection. A residue identifier stays intact, including its insertion code.
+Rows focus only a unique observed source residue. Missing or ambiguous identities
+remain unselectable; changing task, artifact or fingerprint clears previous
+selection. Native coordinates, contact classification, distances in angstroms and
+source CSV files are unchanged. Short windows scroll without shrinking the
+scientific view below its minimum, and narrow screens stack the view and table.
