@@ -110,25 +110,29 @@ def test_real_sdf_preview_and_editor_follow_the_shared_hydrogen_rule():
         assert not non_donor_hydrogens(edited["ket"])
         (EVIDENCE / "native-folded-editor.mol").write_text(edited["mol"])
         page.screenshot(path=EVIDENCE / "explicit-hydrogen-editor.png")
-        identities = page.evaluate("""async () => {
-          const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
-          const cases=['[13CH3][C@@H]([NH3+])c1ccccc1.[Cl-]',
-            '[13CH3][C@H]([NH3+])c1ccccc1.[Cl-]', 'c1ccc2[nH]ccc2c1'];
-          const rows=[];
-          for (const source of cases) {
-            await editor.setMolecule(source);
-            const before=await editor.getInChIKey();
-            const layout=await editor.structService.layout({
-              struct:source,output_format:'chemical/x-indigo-ket'});
-            const copy=await editor.structService.toggleExplicitHydrogens({
-              struct:layout.struct,mode:'fold',output_format:'chemical/x-indigo-ket'});
-            await editor.setMolecule(copy.struct);
-            await editor.layout(); await editor.dearomatize();
-            rows.push({source,before,after:await editor.getInChIKey(),
-              ket:JSON.parse(await editor.getKet())});
-          }
-          return rows;
-        }""")
+        identities = []
+        native = page.frame_locator('iframe[title="Ketcher molecular editor"]')
+        owner = page.locator(".editor-workspace")
+        for source in ["[13CH3][C@@H]([NH3+])c1ccccc1.[Cl-]",
+                       "[13CH3][C@H]([NH3+])c1ccccc1.[Cl-]", "c1ccc2[nH]ccc2c1"]:
+            before = page.evaluate("""async source => {
+              const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
+              await editor.setMolecule(source);
+              return await editor.getInChIKey();
+            }""", source)
+            # Native hydrogen insertion is an edit. Only the user's explicit
+            # preparation may create a derived display/history entry.
+            native.get_by_role("button", name="Add/Remove explicit hydrogens", exact=True).click()
+            prepare = owner.get_by_role("button", name="Prepare 2D drawing", exact=True)
+            expect(prepare).to_be_enabled()
+            expect(owner.get_by_role("button", name="Save to Workbench", exact=True)).to_be_disabled()
+            prepare.click()
+            expect(owner.get_by_role("button", name="Save to Workbench", exact=True)).to_be_enabled()
+            after = page.evaluate("""async () => {
+              const editor=document.querySelector('.editor-workspace iframe').contentWindow.ketcher;
+              return {after:await editor.getInChIKey(), ket:JSON.parse(await editor.getKet())};
+            }""")
+            identities.append({"source": source, "before": before, **after})
         (EVIDENCE / "native-stereo-charge-isotope-identity.json").write_text(
             json.dumps(identities, indent=2)
         )

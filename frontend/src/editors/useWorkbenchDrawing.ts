@@ -6,6 +6,7 @@ import {
   type RecognitionEditor,
 } from "./recognition-host-editor";
 import { moleculeReadiness } from "./molecule-readiness";
+import { drawingVisibility } from "./drawing-visibility";
 
 type WorkbenchEditor = RecognitionEditor & {
   getMolfile(format: "v3000"): Promise<string>;
@@ -21,6 +22,7 @@ export function useWorkbenchDrawing(
   const current = useRef<{
     native: WorkbenchEditor;
     policy: ReturnType<typeof configureDrawing>;
+    reject(): void;
   } | null>(null);
   const [state, setState] = useState({
     ready: false,
@@ -47,27 +49,58 @@ export function useWorkbenchDrawing(
           throw new Error(
             "Update the drawing component to validate molecular identity.",
           );
+        const document = frame.current?.contentDocument;
+        if (!document)
+          throw new Error("The native drawing document is unavailable.");
+        const visibility = drawingVisibility(document);
+        controller.signal.addEventListener(
+          "abort",
+          () => visibility.dispose(),
+          { once: true },
+        );
+        let unsafe = true;
+        visibility.show(false);
         const viewport = createMolecularViewport(native.editor);
         const policy = configureDrawing(
           native,
           controller.signal,
           () => {
-            if (!controller.signal.aborted) setNeedsPreparation(true);
+            if (!controller.signal.aborted) {
+              unsafe = true;
+              visibility.show(false);
+              setNeedsPreparation(true);
+            }
           },
           {
             fit: viewport.fit,
             resetZoom: viewport.resetZoom,
             onState: (next) => {
               if (controller.signal.aborted) return;
+              visibility.show(!next.busy && !unsafe);
               approval.current.update(next.available);
               setState({ ready: true, ...next });
             },
             onValidated: () => {
-              if (!controller.signal.aborted) setNeedsPreparation(false);
+              if (!controller.signal.aborted) {
+                unsafe = false;
+                visibility.show(true);
+                setNeedsPreparation(false);
+              }
             },
           },
         );
-        current.current = { native, policy };
+        current.current = {
+          native,
+          policy,
+          reject: () => {
+            if (controller.signal.aborted) return;
+            unsafe = true;
+            visibility.show(false);
+            approval.current.update(false);
+            setNeedsPreparation(true);
+            setState({ ready: true, busy: false, available: false });
+          },
+        };
         const observer = new ResizeObserver((entries) => {
           const size = entries[0]?.contentRect;
           if (size) policy.resize(size.width, size.height);
@@ -96,20 +129,28 @@ export function useWorkbenchDrawing(
     if (visible) current.current?.policy.fitWhenVisible();
   }, [visible, state.ready]);
 
+  function activeEditor() {
+    try {
+      return (
+        frame.current?.contentWindow as (Window & { ketcher?: Ketcher }) | null
+      )?.ketcher;
+    } catch {
+      return undefined;
+    }
+  }
   function connected() {
     const value = current.current;
-    const active = (
-      frame.current?.contentWindow as (Window & { ketcher?: Ketcher }) | null
-    )?.ketcher;
-    if (!value || active !== value.native)
+    if (!value || activeEditor() !== value.native)
       throw new Error(
         "The editor changed. Wait for it to reconnect and retry.",
       );
     return value;
   }
-  async function read(method: "getSmiles" | "getMolfile") {
-    const value = connected(),
-      checkpoint = approval.current.checkpoint();
+  type Connection = NonNullable<typeof current.current>;
+  async function read(method: "getSmiles" | "getMolfile", value: Connection) {
+    if (connected() !== value)
+      throw new Error("The editor changed during export. Retry.");
+    const checkpoint = approval.current.checkpoint();
     const result =
       method === "getMolfile"
         ? await value.native.getMolfile("v3000")
@@ -119,16 +160,26 @@ export function useWorkbenchDrawing(
       throw new Error("The editor changed during export. Retry.");
     return result;
   }
-  return {
-    ...state,
-    needsPreparation,
-    async open(source: string) {
-      const value = connected();
+  async function open(source: string, value = connected()) {
+    if (connected() !== value)
+      throw new Error("The editor changed while opening. Retry.");
+    try {
       if (!(await value.policy.load(source)) || connected() !== value)
         throw new Error(
           "The drawing changed while opening. Reopen the file to retry.",
         );
-    },
+    } catch (error) {
+      // A rejected current import retains a drawing even without a native
+      // change event. Expose explicit recovery; never mark a newer frame bad.
+      if (current.current === value && activeEditor() === value.native)
+        value.reject();
+      throw error;
+    }
+  }
+  return {
+    ...state,
+    needsPreparation,
+    open,
     async prepare() {
       const value = connected();
       if (!(await value.policy.recheck()) || connected() !== value)
@@ -139,14 +190,9 @@ export function useWorkbenchDrawing(
     editor(): Ketcher {
       const value = connected();
       return {
-        getSmiles: () => read("getSmiles"),
-        getMolfile: () => read("getMolfile"),
-        setMolecule: async (source) => {
-          if (!(await value.policy.load(source)) || connected() !== value)
-            throw new Error(
-              "The drawing changed while opening. Reopen the file to retry.",
-            );
-        },
+        getSmiles: () => read("getSmiles", value),
+        getMolfile: () => read("getMolfile", value),
+        setMolecule: (source) => open(source, value),
       };
     },
   };

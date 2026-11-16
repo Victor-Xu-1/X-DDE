@@ -36,6 +36,7 @@ async function mount() {
   const frame = {
     current: {
       contentWindow: { ketcher: native },
+      contentDocument: document.implementation.createHTMLDocument(),
     } as unknown as HTMLIFrameElement,
   };
   const policy = {
@@ -112,6 +113,7 @@ it("rebinds a new document and ignores old generation callbacks after cleanup", 
   const hook = await mount();
   const previous = hook.callbacks;
   const oldSignal = vi.mocked(configureRecognitionEditor).mock.calls[0][1];
+  const oldEditor = hook.result.current.editor();
   hook.rerender({ generation: 2 });
   await waitFor(() =>
     expect(configureRecognitionEditor).toHaveBeenCalledTimes(2),
@@ -121,10 +123,35 @@ it("rebinds a new document and ignores old generation callbacks after cleanup", 
   act(() => previous.onState({ busy: false, available: true }));
   expect(hook.result.current.available).toBe(false);
   await expect(hook.result.current.editor().getMolfile()).rejects.toThrow();
+  await expect(oldEditor.getMolfile()).rejects.toThrow("editor changed");
+  await expect(oldEditor.setMolecule("old request")).rejects.toThrow(
+    "editor changed",
+  );
   hook.unmount();
   expect(vi.mocked(configureRecognitionEditor).mock.calls[1][1].aborted).toBe(
     true,
   );
+});
+
+it("exposes explicit retained-drawing recovery after a rejected owned import", async () => {
+  const hook = await mount();
+  act(() => hook.callbacks.onState({ busy: false, available: true }));
+  hook.policy.load.mockRejectedValueOnce(new Error("Native layout rejected"));
+  await act(async () => {
+    await expect(hook.result.current.open("malformed MOL")).rejects.toThrow(
+      "Native layout rejected",
+    );
+  });
+  expect(hook.result.current.needsPreparation).toBe(true);
+  expect(hook.result.current.available).toBe(false);
+  hook.policy.recheck.mockImplementation(async () => {
+    hook.callbacks.onState({ busy: false, available: true });
+    hook.callbacks.onValidated?.();
+    return true;
+  });
+  await act(async () => hook.result.current.prepare());
+  expect(hook.result.current.needsPreparation).toBe(false);
+  expect(await hook.result.current.editor().getMolfile()).toBe("V3000 drawing");
 });
 
 it("routes explicit preparation to the shared controller without automatic history writes", async () => {

@@ -55,11 +55,19 @@ export function Editors({
   );
   const openedSource = useRef("");
   const unavailable = busy || drawing.busy || !drawing.ready;
+  const contextKey = `${frameGeneration}:${initialObject?.id}:${loadAttempt}`;
+  const currentContext = useRef(contextKey);
+  currentContext.current = contextKey;
 
   useEffect(() => {
-    const request = `${initialObject?.id}:${loadAttempt}`;
-    if (!initialObject || !drawing.ready || openedSource.current === request)
+    if (!initialObject) {
+      openedSource.current = "";
+      setBusy(false);
       return;
+    }
+    if (!drawing.ready || openedSource.current === contextKey) return;
+    openedSource.current = "";
+    const request = contextKey;
     const controller = new AbortController();
     setMode("ketcher");
     setBusy(true);
@@ -113,6 +121,7 @@ export function Editors({
     }
   }
   async function saveMolecule(editor: Ketcher) {
+    const context = currentContext.current;
     if (!(await editor.getSmiles()).trim())
       throw new Error(zh ? "请先画一个分子。" : "Draw a molecule first.");
     const mol = await editor.getMolfile();
@@ -132,6 +141,7 @@ export function Editors({
         );
       throw error;
     }
+    if (currentContext.current !== context) return null;
     setOrigin(version);
     return version;
   }
@@ -246,7 +256,7 @@ export function Editors({
                 }
                 onClick={() =>
                   void action(async (editor) => {
-                    await saveMolecule(editor);
+                    if (!(await saveMolecule(editor))) return;
                     setMessage(
                       zh
                         ? "已保存，可在研究文件中继续使用。二维编辑不代表已预测三维姿势。"
@@ -268,7 +278,8 @@ export function Editors({
                 disabled={unavailable || !drawing.available}
                 onClick={() =>
                   void action(async (editor) => {
-                    setPropertyObject(await saveMolecule(editor));
+                    const saved = await saveMolecule(editor);
+                    if (saved) setPropertyObject(saved);
                   })
                 }
               >
@@ -337,6 +348,7 @@ export function Editors({
           onLoad={() => {
             setFrameGeneration((value) => value + 1);
             setOrigin(null);
+            setMessage("");
           }}
           hidden={mode !== "ketcher"}
           className="molecular-editor"

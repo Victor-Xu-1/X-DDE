@@ -41,9 +41,11 @@ def test_native_undo_and_redo_survive_explicit_2d_preparation(language, width):
         native.get_by_role("button", name="Open as New Project", exact=True).click()
         expect(prepare).to_be_enabled(timeout=30000)
         expect(save).to_be_disabled()
+        expect(native.locator('[role="application"]')).to_be_hidden()
         prepare.click()
         expect(save).to_be_enabled(timeout=30000)
         expect(prepare).to_have_count(0)
+        expect(native.locator('[role="application"]')).to_be_visible()
         prepared = page.evaluate("""async () => JSON.parse(await
           document.querySelector('.editor-workspace iframe').contentWindow.ketcher.getKet())""")
         for _ in range(2):

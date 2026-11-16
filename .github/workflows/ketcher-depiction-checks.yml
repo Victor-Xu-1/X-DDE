@@ -7,6 +7,7 @@ on:
       - 'frontend/src/editors/ketcher-appearance*'
       - 'frontend/src/editors/Editors.tsx'
       - 'frontend/src/editors/useWorkbenchDrawing*'
+      - 'frontend/src/editors/drawing-visibility*'
       - 'frontend/src/editors/scientificEditor*'
       - 'frontend/src/editors/ketcher-contract.ts'
       - 'frontend/src/editors/recognition-host-editor*'
@@ -77,7 +78,7 @@ jobs:
           npm run build --prefix frontend
           cd frontend
           npx vitest run src/editors/ketcher-hydrogens.test.ts src/editors/ketcher-appearance.test.ts src/editors/molstar-appearance.test.ts src/editors/scientificEditor.test.ts src/presentation/depiction-renderer.test.ts src/presentation/molecular-record.test.ts src/viewer/donor-hydrogens.test.ts src/viewer/style.test.ts src/viewer/source-layout.test.ts src/simulations/molstar-figure.test.ts
-          npx vitest run src/editors/molecule-save-intent.test.ts src/editors/retained-molecule.test.ts src/editors/Editors.load.test.tsx src/editors/useWorkbenchDrawing.test.tsx src/editors/recognition-host-editor.test.ts src/editors/molecule-readiness.test.ts src/editors/native-molecular-viewport.test.ts src/editors/AlignedEditAction.test.tsx src/research/fasta-file.test.ts src/simulations/fep-series.test.ts
+          npx vitest run src/editors/molecule-save-intent.test.ts src/editors/retained-molecule.test.ts src/editors/Editors.load.test.tsx src/editors/useWorkbenchDrawing.test.tsx src/editors/drawing-visibility.test.ts src/editors/recognition-host-editor.test.ts src/editors/molecule-readiness.test.ts src/editors/native-molecular-viewport.test.ts src/editors/AlignedEditAction.test.tsx src/research/fasta-file.test.ts src/simulations/fep-series.test.ts
           cd ..
           uv sync --locked --group dev --group browser
       - name: Exact embedded startup, image identity and export consumers
