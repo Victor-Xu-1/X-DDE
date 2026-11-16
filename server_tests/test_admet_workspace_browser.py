@@ -156,7 +156,7 @@ def test_saved_stat6_endpoints_structures_and_native_exports(
             page.screenshot(path=evidence / "workspace.png", full_page=True)
             page.screenshot(path=evidence / "viewport.png")
             page.get_by_role(
-                "button", name="返回任务表单" if zh else "Return to task form", exact=True
+                "button", name="返回任务填写" if zh else "Return to task form", exact=True
             ).click()
             expect(picker).to_be_visible()
             assert not writes and not errors, {"writes": writes, "errors": errors}
