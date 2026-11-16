@@ -5,6 +5,9 @@ on:
     paths: &structure_paths
       - "frontend/src/operations/NativeReport.tsx"
       - "frontend/src/operations/EpitopeResults.tsx"
+      - "frontend/src/operations/EpitopeResults.test.tsx"
+      - "frontend/src/operations/EpitopeWorkspace.test.tsx"
+      - "frontend/src/operations/EpitopeContactList.tsx"
       - "frontend/src/operations/epitope.css"
       - "frontend/src/operations/StructureComparisonResults.tsx"
       - "frontend/src/admet/AdmetResults.tsx"
@@ -38,6 +41,7 @@ on:
       - "tests/test_interaction_workspace_scope.py"
       - "server_tests/test_interaction_workspace_browser.py"
       - "server_tests/test_protein_interface_workspace_browser.py"
+      - "server_tests/test_epitope_workspace_browser.py"
       - "server_tests/interaction_workspace_case.py"
       - "frontend/src/integrations/PotentialResults.tsx"
       - "frontend/src/integrations/ScaffoldSelection.tsx"
@@ -129,6 +133,8 @@ jobs:
       del_only: ${{ steps.change.outputs.del_only }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
       interaction_only: ${{ steps.interaction.outputs.interaction_only }}
+      epitope_only: ${{ steps.interaction.outputs.epitope_only }}
+      epitope_changed: ${{ steps.interaction.outputs.epitope_changed }}
       admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
     steps:
       - uses: actions/checkout@v4
@@ -165,17 +171,25 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Native contact identity, repeated selection and exact table consumers
+        if: needs.scope.outputs.epitope_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/InteractionResults.test.tsx
           src/integrations/interaction-residue.test.ts
           src/integrations/ProteinInterfaceResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/presentation/ResearchTable.test.tsx
+      - name: Exact epitope source, unique loaded residue focus and docked sequence controls
+        if: needs.scope.outputs.epitope_changed == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/EpitopeResults.test.tsx
+          src/operations/EpitopeWorkspace.test.tsx src/integrations/interaction-residue.test.ts
       - run: uv sync --locked --group dev --group browser
       - name: Closed result scope and native-browser source contracts
         run: |
           uv run --locked pytest -q tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py
           uv run --locked ruff check scripts/interaction-workspace-scope.py scripts/protein-interface-scope.py tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py server_tests/interaction_workspace_case.py
+          uv run --locked ruff check server_tests/test_epitope_workspace_browser.py
       - name: Obtain sealed STAT6 outputs; do not execute scientific engines
         env:
           GH_TOKEN: ${{ github.token }}
@@ -186,9 +200,18 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
-          uv run --locked playwright install chromium --with-deps
+      - name: Browser dependencies for focused epitope preview checks
+        if: needs.scope.outputs.epitope_only == 'true'
+        run: uv run --locked playwright install-deps chromium
+      - name: Browser for other affected contact result views
+        if: needs.scope.outputs.epitope_only != 'true'
+        run: uv run --locked playwright install chromium --with-deps
       - name: Actual bilingual saved contact rows, native 3D focus and source downloads
+        if: needs.scope.outputs.epitope_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py
+      - name: Actual bilingual epitope preview integrity, docked sequence and native downloads
+        if: needs.scope.outputs.epitope_changed == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_epitope_workspace_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -196,8 +219,10 @@ jobs:
           path: |
             outputs/interaction-workspace
             outputs/protein-interface-workspace
+            outputs/epitope-workspace
   view-alignment:
-    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope]
+    needs:
+      [scope, model-context, prediction-scope, guidance-scope, utility-scope]
     if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18

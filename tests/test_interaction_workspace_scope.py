@@ -39,3 +39,16 @@ def test_both_unrelated_layout_jobs_delegate_to_the_contact_gate():
     native = Path(".github/workflows/protein-interface-checks.yml").read_text()
     body = native.split("  contracts-and-preview:", 1)[1].split("    steps:", 1)[0]
     assert "needs.native-scope.outputs.interaction_only != 'true'" in body
+
+
+def test_epitope_only_changes_keep_the_native_gate_focused():
+    sources = scope["EPITOPE_SOURCES"]
+    assert scope["epitope_only"]([*sources, "pyproject.toml"])
+    assert not scope["epitope_only"]([*sources, "frontend/src/viewer/StructureViewport.tsx"])
+    assert not scope["epitope_only"]([*sources, "frontend/src/integrations/InteractionResults.tsx"])
+    assert not scope["epitope_only"]([*sources], "workflow_dispatch")
+    workflow = Path(".github/workflows/structure-layout-checks.yml").read_text()
+    contact = workflow.split("  interaction-workspace:", 1)[1].split("  view-alignment:", 1)[0]
+    assert "needs.scope.outputs.epitope_only != 'true'" in contact
+    assert "needs.scope.outputs.epitope_changed == 'true'" in contact
+    assert "server_tests/test_epitope_workspace_browser.py" in contact

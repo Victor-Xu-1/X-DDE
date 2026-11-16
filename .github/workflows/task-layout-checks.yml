@@ -392,6 +392,9 @@ on:
       # Molecular view alignment has structure-layout-checks.yml.
       - "!frontend/src/operations/NativeReport.tsx"
       - "!frontend/src/operations/EpitopeResults.tsx"
+      - "!frontend/src/operations/EpitopeResults.test.tsx"
+      - "!frontend/src/operations/EpitopeWorkspace.test.tsx"
+      - "!frontend/src/operations/EpitopeContactList.tsx"
       - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
