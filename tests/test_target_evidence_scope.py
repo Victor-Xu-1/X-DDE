@@ -50,7 +50,8 @@ def test_unrelated_dataset_and_native_del_jobs_are_delegated():
         assert "needs.target-ui-scope.outputs.target_evidence_only != 'true'" in body
     body = workflow.split("  discovery-evidence:", 1)[1].split("  source-inputs:", 1)[0]
     assert "server_tests/test_target_evidence_browser.py" in body
-    assert "launch_review_browser" in Path("server_tests/test_target_evidence_browser.py").read_text()
+    native = Path("server_tests/test_target_evidence_browser.py").read_text()
+    assert "launch_review_browser" in native
     guidance = Path(".github/workflows/restraint-guidance-checks.yml").read_text()
     body = guidance.split("  frontend-guidance:", 1)[1].split("    steps:", 1)[0]
     assert "needs.scope.outputs.target_evidence_only != 'true'" in body

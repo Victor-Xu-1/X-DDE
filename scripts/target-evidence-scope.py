@@ -69,7 +69,10 @@ def main():
     event = os.environ.get("GITHUB_EVENT_NAME", "push")
     if event in {"push", "pull_request"} and os.environ.get("GITHUB_REF_NAME") != "main":
         base = git("merge-base", "origin/main", "HEAD")
-    paths = git("diff", "--name-only", base, "HEAD").splitlines() if base and set(base) != {"0"} else []
+    paths = (
+        git("diff", "--name-only", base, "HEAD").splitlines()
+        if base and set(base) != {"0"} else []
+    )
     safe = CSS not in paths or unrelated_css(git("show", f"{base}:{CSS}")) == unrelated_css(
         Path(CSS).read_text()
     )

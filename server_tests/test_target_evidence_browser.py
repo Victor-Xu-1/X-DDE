@@ -39,7 +39,10 @@ def test_saved_target_evidence(interaction_workspace, entity, language, width):
             native_url = base + f"/api/jobs/{identifier}/result"
             original = page.request.get(native_url).body()
             result = json.loads(original)
-            association = result["entity"].get("associatedTargets") or result["entity"]["associatedDiseases"]
+            association = (
+                result["entity"].get("associatedTargets")
+                or result["entity"]["associatedDiseases"]
+            )
             rows = association["rows"]
             assert rows and result["request"]["entity"] == entity
             if entity == "disease":
@@ -67,7 +70,9 @@ def test_saved_target_evidence(interaction_workspace, entity, language, width):
             )
             expect(table).to_be_visible()
             expect(workspace.locator(".discovery-sources")).to_contain_text("Open Targets")
-            expect(workspace.locator(".result-summary-grid dd").first).to_have_text(str(association["count"]))
+            expect(workspace.locator(".result-summary-grid dd").first).to_have_text(
+                str(association["count"])
+            )
             workspace.evaluate("""node => {
               for (let parent = node.parentElement; parent; parent = parent.parentElement)
                 parent.scrollTo({top: 0, left: 0, behavior: 'instant'});
@@ -106,23 +111,32 @@ def test_saved_target_evidence(interaction_workspace, entity, language, width):
                 if "target" in row else (row["disease"]["id"], row["disease"]["name"], row["score"])
                 for row in rows
             )
-            assert sorted((row[record_id], row[identity], float(row[metric])) for row in exported_rows) == expected
+            assert sorted(
+                (row[record_id], row[identity], float(row[metric])) for row in exported_rows
+            ) == expected
             score_sort = table.get_by_role(
                 "button", name="关联分数" if zh else "Association score", exact=True
             )
             score_sort.click()
-            expect(table.get_by_role("columnheader", name="关联分数" if zh else "Association score")).to_have_attribute(
-                "aria-sort", "ascending"
+            column = table.get_by_role(
+                "columnheader", name="关联分数" if zh else "Association score"
             )
+            expect(column).to_have_attribute("aria-sort", "ascending")
             score_sort.click()
             first = table.locator("tbody tr").first
-            source_link = first.get_by_role("link", name="查看来源" if zh else "View source", exact=True)
+            source_link = first.get_by_role(
+                "link", name="查看来源" if zh else "View source", exact=True
+            )
             highest = max(rows, key=lambda row: row["score"])
             source_id = highest["target"]["id"] if entity == "disease" else highest["disease"]["id"]
             expect(source_link).to_have_attribute(
-                "href", "https://platform.opentargets.org/" + ("target/" if entity == "disease" else "disease/") + source_id
+                "href", "https://platform.opentargets.org/"
+                + ("target/" if entity == "disease" else "disease/") + source_id
             )
-            label = highest["target"]["approvedSymbol"] if entity == "disease" else highest["disease"]["name"]
+            label = (
+                highest["target"]["approvedSymbol"] if entity == "disease"
+                else highest["disease"]["name"]
+            )
             search = workspace.get_by_role("searchbox")
             search.fill(label)
             expect(table.get_by_text(label, exact=True)).to_be_visible()
