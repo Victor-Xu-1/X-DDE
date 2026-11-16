@@ -43,6 +43,10 @@
   line-height: 1.5;
   text-align: center;
 }
+.questionnaire:has(> fieldset:not([hidden]) .molecular-input-review)
+  .questionnaire-actions {
+  position: static;
+}
 @media (max-width: 700px) {
   .molecular-input-review {
     grid-template-columns: minmax(0, 1fr);

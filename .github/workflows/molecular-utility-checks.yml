@@ -33,6 +33,7 @@ on:
       - "tests/test_molecular_utility_scope.py"
       - "server_tests/test_brain_profile_browser.py"
       - "server_tests/test_molecular_review_workspace_browser.py"
+      - "server_tests/molecular_review_capture.py"
       - ".github/workflows/molecular-utility-checks.yml"
   pull_request:
     paths: *utility_paths
@@ -109,7 +110,7 @@ jobs:
             src/viewer/pose-plan.test.ts
           cd ..
           uv run --locked pytest -q tests/test_admet.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py tests/test_capabilities.py tests/test_example_pins.py tests/test_library_screen.py tests/test_library_evidence.py
-          uv run --locked ruff check scripts/record-study-catalogue.py scripts/molecular-utility-scope.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py src/opendde_workbench/admet/contract.py src/opendde_workbench/admet/presentation.py src/opendde_workbench/capabilities/definitions.py src/opendde_workbench/capabilities/modalities.py src/opendde_workbench/task_history/kinds.py src/opendde_workbench/examples/stat6/task_requests.py src/opendde_workbench/examples/stat6/guidance.py src/opendde_workbench/examples/pin_validation.py
+          uv run --locked ruff check scripts/record-study-catalogue.py scripts/molecular-utility-scope.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py server_tests/molecular_review_capture.py src/opendde_workbench/admet/contract.py src/opendde_workbench/admet/presentation.py src/opendde_workbench/capabilities/definitions.py src/opendde_workbench/capabilities/modalities.py src/opendde_workbench/task_history/kinds.py src/opendde_workbench/examples/stat6/task_requests.py src/opendde_workbench/examples/stat6/guidance.py src/opendde_workbench/examples/pin_validation.py
       - name: Retrieve sealed native outputs without starting a prediction engine
         env:
           GH_TOKEN: ${{ github.token }}

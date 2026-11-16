@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 
 SOURCES = {
+    "server_tests/molecular_review_capture.py",
     "frontend/src/guided/MolecularReview.tsx",
     "frontend/src/guided/molecular-review.css",
     "frontend/src/operations/PropertyForm.tsx",

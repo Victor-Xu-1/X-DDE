@@ -11,6 +11,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
+from server_tests.molecular_review_capture import capture_input_review
 from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_admet_workspace_browser import saved_workspace  # noqa: F401
 
@@ -114,7 +115,9 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
                 assert ET.fromstring(exported.read_bytes()).findall(
                     ".//{http://www.w3.org/2000/svg}path"
                 )
-            page.screenshot(path=evidence / "molecular-input-workspace.png", full_page=True)
+                drawing.get_by_role("combobox", name="2D drawing line weight").select_option("1.6")
+                expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+            capture_input_review(page, review, evidence)
             page.get_by_role("button", name="上一步" if zh else "Back", exact=True).click()
             page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)

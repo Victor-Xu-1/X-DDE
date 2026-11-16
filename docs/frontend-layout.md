@@ -835,3 +835,7 @@ Library selection distinguishes its exact query record from a first-library-reco
 preview of a whole-file selection. Drawing failure retains the input and summary
 with explicit retry. The shared component replaces the previous brain-only CSS;
 it never changes task parameters, scientific assets or computation permissions.
+On the active molecular review step, the final actions follow the content so that
+availability notices and recheck controls remain unobscured. Earlier steps retain
+the existing action placement. Browser evidence records initial and scrolled
+viewport states separately instead of freezing a sticky header mid-page.
