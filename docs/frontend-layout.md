@@ -787,3 +787,18 @@ not restraints or new calculations. Native CSV/TXT/XML/CIF remain under Source r
 and structure, and filtered CSV retains full-precision native distances in angstroms.
 The shared viewer, sequence portal, comparison policy and expanded-workspace authority
 remain unchanged. Narrow views stack naturally and keep wide tables inside their own scroller.
+
+## ADMET inspection
+
+A retained ADMET result keeps its native molecular structure in the large left
+work area. The right pane exposes every endpoint with search, grouping, species
+and native units alongside either the 2D or 3D view. Single-record results do not
+repeat a candidate table. Batch results retain candidate selection and property
+landscapes without duplicating endpoint inspection below the structure.
+
+Only finite classification values with explicit native 0–1 bounds receive a
+neutral score track. These are model scores, not calibrated risk percentages;
+regressions retain their own units and have no normalized track. Validation
+provenance stays available under one disclosure. CSV and source SDF downloads
+remain unchanged, and structure verification uses the retained artifact hash.
+New-task model selection returns when leaving the saved example for its form.

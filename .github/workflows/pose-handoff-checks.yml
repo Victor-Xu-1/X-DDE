@@ -51,6 +51,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
+      admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,9 +60,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
+      - id: admet
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/admet-workspace-scope.py
   pose-continuity:
     needs: refinement-scope
-    if: needs.refinement-scope.outputs.refinement_only != 'true'
+    if: needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

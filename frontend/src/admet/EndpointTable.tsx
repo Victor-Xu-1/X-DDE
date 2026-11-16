@@ -2,12 +2,12 @@ import { useState } from "react";
 import type { Language } from "../types";
 import { Hint } from "../guided/Hint";
 import type { AdmetResult, AdmetRow } from "./types";
+import { EndpointValue } from "./EndpointValue";
 import {
   categoryLabels,
   commonEndpoints,
   endpointHint,
   endpointName,
-  endpointUnit,
   speciesName,
 } from "./labels";
 
@@ -29,15 +29,24 @@ export function EndpointTable({
         : "all",
   );
   const available = result.endpoints;
-  const visible = available.filter(
-    (e) =>
-      category === "all" ||
-      (category === "common"
-        ? commonEndpoints.has(e.id)
-        : category === "adme"
-          ? e.category !== "Toxicity"
-          : e.category === category),
-  );
+  const [query, setQuery] = useState("");
+  const visible = available
+    .filter(
+      (e) =>
+        category === "all" ||
+        (category === "common"
+          ? commonEndpoints.has(e.id)
+          : category === "adme"
+            ? e.category !== "Toxicity"
+            : e.category === category),
+    )
+    .filter(
+      (e) =>
+        !query.trim() ||
+        [e.id, e.name, endpointName(e, zh)].some((name) =>
+          name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+        ),
+    );
   return (
     <section
       className="admet-endpoints"
@@ -64,11 +73,18 @@ export function EndpointTable({
             ))}
           </select>
         </label>
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          aria-label={zh ? "搜索预测终点" : "Search predicted endpoints"}
+          placeholder={zh ? "搜索终点…" : "Find endpoint…"}
+        />
         <span className="field-help" aria-live="polite">
           {visible.length} / {available.length}
         </span>
       </div>
-      <div className="table-scroll">
+      <div className="table-scroll admet-endpoint-scroll">
         <table
           aria-label={
             zh ? "所选分子的预测性质" : "Selected molecule predictions"
@@ -78,8 +94,6 @@ export function EndpointTable({
             <tr>
               <th>{zh ? "预测终点" : "Endpoint"}</th>
               <th>{zh ? "模型预测" : "Model prediction"}</th>
-              <th>{zh ? "单位" : "Unit"}</th>
-              <th>{zh ? "物种" : "Species"}</th>
             </tr>
           </thead>
           <tbody>
@@ -95,15 +109,37 @@ export function EndpointTable({
                       {zh ? "原始数据集说明" : "Source dataset definition"}
                     </a>
                   </Hint>
+                  <small className="admet-endpoint-species">
+                    {speciesName(e.species, zh)}
+                  </small>
                 </td>
-                <td>{row.predictions[e.id]?.toPrecision(4) ?? "—"}</td>
-                <td>{endpointUnit(e, zh)}</td>
-                <td>{speciesName(e.species, zh)}</td>
+                <td>
+                  <EndpointValue
+                    endpoint={e}
+                    value={row.predictions[e.id]}
+                    zh={zh}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {!visible.length && (
+        <p className="admet-endpoint-empty" role="status">
+          {zh ? "没有匹配的终点" : "No matching endpoints"}{" "}
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              setCategory("all");
+              setQuery("");
+            }}
+          >
+            {zh ? "显示全部终点" : "Show all endpoints"}
+          </button>
+        </p>
+      )}
       <details>
         <summary>
           {zh ? "验证范围与来源" : "Validation scope and provenance"}

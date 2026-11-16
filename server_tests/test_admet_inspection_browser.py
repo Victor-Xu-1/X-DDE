@@ -62,7 +62,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
         "region", name="所选分子" if zh else "Selected molecule", exact=True
     )
     expect(
-        selected.get_by_role("tab", name="预测性质" if zh else "Predictions", exact=True)
+        selected.get_by_role("tab", name="二维结构" if zh else "2D structure", exact=True)
     ).to_have_attribute("aria-selected", "true")
     selected.locator(".molecule-image").scroll_into_view_if_needed()
     expect(selected.locator(".molecule-image")).to_have_attribute(
@@ -72,6 +72,7 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     bounds = drawing.bounding_box()
     parent = selected.locator(".admet-molecule-drawing").bounding_box()
     assert bounds and parent and bounds["width"] <= parent["width"] + 1
+    result.get_by_role("tab", name=re.compile("^(候选分子|Candidate molecules)")).click()
     result.locator(".molecule-image.is-thumbnail").first.scroll_into_view_if_needed()
     expect(result.locator(".molecule-image.is-thumbnail").first).to_have_attribute(
         "data-drawing-state", "ready", timeout=45000
@@ -83,23 +84,24 @@ def test_native_units_selection_all_endpoints_and_view_exports(case_page):
     expect(units).to_contain_text("log(mol/L)")
     expect(units).to_contain_text("log-ratio")
     capture(page, f"{language}-{width}-predictions")
-    grouping = selected.get_by_role(
+    result.get_by_role("tab", name="预测性质" if zh else "Predictions", exact=True).click()
+    grouping = result.get_by_role(
         "combobox", name="结果分组" if zh else "Result group", exact=True
     )
     grouping.select_option("all")
-    table = selected.locator(".admet-endpoints table").first
+    table = result.locator(".admet-endpoint-scroll table")
     expect(table.locator("tbody tr")).to_have_count(41)
     for endpoint in report["endpoints"]:
         entry = table.locator('[data-endpoint-id="' + endpoint["id"] + '"]')
         value = report["rows"][0]["predictions"][endpoint["id"]]
-        displayed = entry.locator("td").nth(1).inner_text()
+        displayed = entry.locator(".admet-endpoint-value strong").inner_text()
         assert abs(float(displayed) - value) <= max(0.00005, abs(value) * 0.0006)
         unit = (
             ("分数 0–1" if zh else "Score 0–1")
             if endpoint["task_type"] == "classification"
             else endpoint["unit"]
         )
-        expect(entry.locator("td").nth(2)).to_have_text(unit)
+        expect(entry.locator(".admet-endpoint-value small")).to_have_text(unit)
     grouping.select_option("Toxicity")
     expect(table.locator("tbody tr")).to_have_count(
         sum(e["category"] == "Toxicity" for e in report["endpoints"])

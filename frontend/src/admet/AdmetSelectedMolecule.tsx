@@ -4,7 +4,6 @@ import type { MoleculeRef } from "../research/types";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { StructureViewer } from "../viewer/StructureViewer";
-import { EndpointTable } from "./EndpointTable";
 import { failureReason } from "./labels";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
 import { usePoseSession } from "../viewer/PoseSession";
@@ -25,6 +24,10 @@ export function AdmetSelectedMolecule({
 }) {
   const zh = language === "zh";
   const poseSession = usePoseSession();
+  // Calculated versions have their own verified identity; undo restores the artifact.
+  const structureSha256 =
+    poseSession?.controller.pose.object?.reference.sha256 ??
+    (row.preview ? result.previews_sha256[row.preview] : undefined);
   const url = row.preview ? artifactUrl(job.id, row.preview) : null;
   const source = row.smiles
     ? { smiles: row.smiles }
@@ -33,14 +36,11 @@ export function AdmetSelectedMolecule({
       : null;
   const predictions = {
     id: "predictions",
-    label: zh ? "预测性质" : "Predictions",
+    label: zh ? "二维结构" : "2D structure",
     content: (
-      <>
-        <div className="admet-molecule-drawing">
-          <MoleculeImage source={source} label={row.name} language={language} />
-        </div>
-        <EndpointTable language={language} result={result} row={row} />
-      </>
+      <div className="admet-molecule-drawing">
+        <MoleculeImage source={source} label={row.name} language={language} />
+      </div>
     ),
   };
   const structure = {
@@ -52,6 +52,7 @@ export function AdmetSelectedMolecule({
         language={language}
         comparison={false}
         molecularSource={url ? { url, record: 0 } : undefined}
+        expectedStructureSha256={structureSha256}
       />
     ),
   };
@@ -61,13 +62,36 @@ export function AdmetSelectedMolecule({
       aria-label={zh ? "所选分子" : "Selected molecule"}
     >
       <header className="admet-molecule-header">
-        <h3>
-          #{row.record + 1} · {row.name}
-        </h3>
+        <div className="admet-molecule-title">
+          <h3>
+            #{row.record + 1} · {row.name}
+          </h3>
+          <p role="status">
+            <strong>ADMET-AI</strong> {result.versions["admet-ai"]}
+            {" · "}
+            {zh ? "已预测" : "Predicted"} {result.predicted_count} /{" "}
+            {result.rows.length}
+          </p>
+        </div>
         <div className="admet-molecule-actions">
+          <a
+            className="secondary-button"
+            href={artifactUrl(job.id, "predictions.csv")}
+            download
+            aria-label={zh ? "下载预测表" : "Download prediction table"}
+            title={zh ? "下载预测表" : "Download prediction table"}
+          >
+            CSV ↓
+          </a>
           {url && (
-            <a className="secondary-button" href={url} download>
-              {zh ? "下载原始分子" : "Download original molecule"}
+            <a
+              className="secondary-button"
+              href={url}
+              download
+              aria-label={zh ? "下载原始分子" : "Download original molecule"}
+              title={zh ? "下载原始分子" : "Download original molecule"}
+            >
+              SDF ↓
             </a>
           )}
           {row.status === "predicted" && row.reference && onPrepare && (

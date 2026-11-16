@@ -64,19 +64,23 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
       className="admet-results"
       aria-label={zh ? "性质与早期安全性预测结果" : "ADMET prediction results"}
     >
-      <div className="admet-result-toolbar">
-        <p role="status">
-          {zh ? "已预测" : "Predicted"} {result.predicted_count} /{" "}
-          {result.rows.length}
-        </p>
-        <a
-          className="secondary-button"
-          href={artifactUrl(job.id, "predictions.csv")}
-          download
-        >
-          {zh ? "下载预测表" : "Download prediction table"}
-        </a>
-      </div>
+      {!current && (
+        <div className="admet-result-toolbar">
+          <p role="status">
+            <strong>ADMET-AI</strong> {result.versions["admet-ai"]}
+            {" · "}
+            {zh ? "已预测" : "Predicted"} {result.predicted_count} /{" "}
+            {result.rows.length}
+          </p>
+          <a
+            className="secondary-button"
+            href={artifactUrl(job.id, "predictions.csv")}
+            download
+          >
+            {zh ? "下载预测表" : "Download prediction table"}
+          </a>
+        </div>
+      )}
       {current ? (
         <StructureWorkbench
           preview={
@@ -100,7 +104,7 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
           <AdmetCandidateViews
             result={result}
             language={language}
-            selected={current.record}
+            row={current}
             onSelect={(row) => setSelected(row.record)}
           />
         </StructureWorkbench>

@@ -3,19 +3,57 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
 import type { MoleculeRef } from "../research/types";
+import type { ScientificObject } from "../research/types";
+import type { SavedPose } from "../viewer/pose-types";
 import { AdmetResults } from "./AdmetResults";
 import type { AdmetResult, AdmetRow, Endpoint } from "./types";
+const native = vi.hoisted(() => ({ post: vi.fn(), request: vi.fn() }));
+vi.mock("../api", async (original) => {
+  const actual = await original<typeof import("../api")>();
+  return {
+    ...actual,
+    api: { ...actual.api, post: native.post },
+    request: native.request,
+  };
+});
 vi.mock("../presentation/plots/InteractivePlot", () => ({
   InteractivePlot: ({ title }: { title: string }) => (
     <div role="application" aria-label={title} />
   ),
 }));
 
-vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <span aria-label="Selected structure">{urls.join("|")}</span>
-  ),
-}));
+vi.mock("../viewer/StructureViewer", async () => {
+  const { usePoseSession } = await import("../viewer/PoseSession");
+  return {
+    StructureViewer: ({
+      urls,
+      expectedStructureSha256,
+    }: {
+      urls: string[];
+      expectedStructureSha256?: string;
+    }) => {
+      const controller = usePoseSession()?.controller;
+      return (
+        <>
+          <span
+            aria-label="Selected structure"
+            data-source-sha256={expectedStructureSha256}
+          >
+            {(controller?.pose.urls ?? urls).join("|")}
+          </span>
+          <button onClick={() => void controller?.prepareInitial()}>
+            Prepare computed pose
+          </button>
+          <button onClick={() => void controller?.minimize("MMFF94s", 100)}>
+            Minimize test pose
+          </button>
+          <button onClick={() => controller?.previous()}>Undo test pose</button>
+          <button onClick={() => controller?.next()}>Redo test pose</button>
+        </>
+      );
+    },
+  };
+});
 vi.mock("../chemistry/StateForm", () => ({
   StateForm: ({ initialMolecule }: { initialMolecule: MoleculeRef }) => (
     <output aria-label="Reused source">
@@ -23,7 +61,11 @@ vi.mock("../chemistry/StateForm", () => ({
     </output>
   ),
 }));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  native.post.mockReset();
+  native.request.mockReset();
+});
 // UI state fixtures only. Actual predictions are verified independently by the native CI gate.
 const source = { asset_id: "original-file", sha256: "a".repeat(64) };
 function row(record: number, failed = false): AdmetRow {
@@ -49,6 +91,8 @@ const endpoints: Endpoint[] = [
     name: "hERG",
     category: "Toxicity",
     task_type: "classification",
+    minimum: 0,
+    maximum: 1,
     unit: "-",
     species: "human",
     source_url: "https://tdcommons.ai/single_pred_tasks/tox/",
@@ -100,6 +144,11 @@ const result = {
   applicability_domain: "not_established",
   uncertainty: "not_provided_by_native_api",
 } as AdmetResult;
+
+async function showCandidates(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("tab", { name: /^Candidate molecules/ }));
+}
+
 it("retains invalid/duplicate original indices and switches exact previews and reusable inputs", async () => {
   const user = userEvent.setup();
   render(
@@ -116,6 +165,7 @@ it("retains invalid/duplicate original indices and switches exact previews and r
   expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
     "source-record-2.sdf",
   );
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
   expect(screen.queryByLabelText("Selected structure")).toBeNull();
   expect(
@@ -152,10 +202,19 @@ it("honors the requested full panel and offers a compact common-endpoint view", 
   expect(screen.getByRole("tooltip")).toHaveTextContent(
     "Native label1 means hERG blockade.",
   );
-  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue("all");
-  expect(screen.getByRole("button", { name: "Half life meaning" })).toBeVisible();
-  await user.selectOptions(screen.getByRole("combobox", { name: "Result group" }), "common");
-  expect(screen.queryByRole("button", { name: "Half life meaning" })).toBeNull();
+  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue(
+    "all",
+  );
+  expect(
+    screen.getByRole("button", { name: "Half life meaning" }),
+  ).toBeVisible();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Result group" }),
+    "common",
+  );
+  expect(
+    screen.queryByRole("button", { name: "Half life meaning" }),
+  ).toBeNull();
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Result group" }),
     "all",
@@ -206,6 +265,7 @@ it("keeps all endpoints reachable when early safety was chosen as the initial vi
   expect(
     screen.getByRole("button", { name: "Half life meaning" }),
   ).toBeVisible();
+  await showCandidates(user);
   await user.click(screen.getByText("Columns", { selector: "summary" }));
   await user.click(
     screen.getByRole("checkbox", { name: /Solubility.*log mol\/L/ }),
@@ -223,6 +283,7 @@ it("links the property landscape to exact record selection and preserves the tab
   render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
   );
+  await showCandidates(user);
   await user.type(screen.getByRole("searchbox"), "Candidate 3");
   await user.click(screen.getByRole("tab", { name: "Property landscape" }));
   await user.selectOptions(
@@ -246,6 +307,7 @@ it("resets record selection for another result and makes empty and rejected outp
   const view = render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
   );
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#3 · Candidate 3/ }));
   view.rerender(
     <AdmetResults
@@ -257,7 +319,9 @@ it("resets record selection for another result and makes empty and rejected outp
   expect(
     screen.getByRole("heading", { name: "#2 · Candidate 2" }),
   ).toBeVisible();
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
+  await user.click(screen.getByRole("tab", { name: "Predictions" }));
   expect(screen.queryByRole("tab", { name: "3D structure" })).toBeNull();
   expect(
     screen.queryByRole("region", { name: "Predicted properties" }),
@@ -277,3 +341,156 @@ it("resets record selection for another result and makes empty and rejected outp
   expect(screen.getByText("No molecule results")).toBeVisible();
   expect(screen.queryByRole("tablist")).toBeNull();
 });
+
+it("keeps complete endpoint inspection next to either molecule view without a duplicate single-record table", async () => {
+  const user = userEvent.setup();
+  const single = {
+    ...result,
+    rows: [row(1)],
+    predicted_count: 1,
+    previews_sha256: { "source-record-2.sdf": "f".repeat(64) },
+  };
+  const original = JSON.stringify(single);
+  render(
+    <AdmetResults
+      job={{ id: "single" } as Job}
+      result={single}
+      language="en"
+    />,
+  );
+  expect(
+    screen.queryByRole("tab", { name: /^Candidate molecules/ }),
+  ).toBeNull();
+  const predictions = screen.getByRole("region", {
+    name: "Predicted properties",
+  });
+  expect(
+    within(predictions).getByRole("table", {
+      name: "Selected molecule predictions",
+    }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("tab", { name: "3D structure" }));
+  expect(screen.getByLabelText("Selected structure")).toHaveAttribute(
+    "data-source-sha256",
+    "f".repeat(64),
+  );
+  expect(predictions).toBeVisible();
+  const search = screen.getByRole("searchbox", {
+    name: "Search predicted endpoints",
+  });
+  await user.type(search, "hERG");
+  expect(
+    within(predictions)
+      .getByRole("table", { name: "Selected molecule predictions" })
+      .querySelectorAll("tbody tr"),
+  ).toHaveLength(1);
+  await user.click(screen.getByRole("tab", { name: "2D structure" }));
+  expect(search).toHaveValue("hERG");
+  await user.clear(search);
+  await user.type(search, "no-match");
+  expect(screen.getByText("No matching endpoints")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Show all endpoints" }));
+  expect(search).toHaveValue("");
+  expect(
+    within(predictions)
+      .getByRole("table", { name: "Selected molecule predictions" })
+      .querySelectorAll("tbody tr"),
+  ).toHaveLength(3);
+  expect(JSON.stringify(single)).toBe(original);
+});
+
+it.each([false, true])(
+  "verifies pose hashes through minimization, undo and redo (prepared: %s)",
+  async (prepare) => {
+    const user = userEvent.setup();
+    const id = (n: number) =>
+      `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+    const prepared = {
+      id: id(2),
+      kind: "molecule",
+      relation: "prepared_from",
+      reference: {
+        asset_id: id(3),
+        version_id: id(2),
+        sha256: "b".repeat(64),
+        record: 0,
+        conformer: 0,
+      },
+    } as ScientificObject;
+    const saved: SavedPose = {
+      job_id: id(4),
+      pose: {
+        ...prepared,
+        id: id(5),
+        source_job: id(4),
+        relation: "edited_from",
+        reference: {
+          ...prepared.reference,
+          asset_id: id(6),
+          version_id: id(5),
+          sha256: "c".repeat(64),
+        },
+      },
+      energy: {
+        before: 20,
+        after: 10,
+        method: "MMFF94s",
+        unit: "kcal/mol",
+        converged: true,
+      },
+      native_score: null,
+      receptor: null,
+    };
+    native.post.mockImplementation(async (path: string) =>
+      path.endsWith("/initial")
+        ? { state: "ready", pose: prepared }
+        : path.endsWith("/save")
+          ? saved
+          : { id: saved.job_id },
+    );
+    native.request.mockResolvedValue({ id: saved.job_id, status: "succeeded" });
+    const single = {
+      ...result,
+      rows: [row(1)],
+      predicted_count: 1,
+      previews_sha256: { "source-record-2.sdf": "f".repeat(64) },
+    };
+    render(
+      <AdmetResults job={{ id: id(1) } as Job} result={single} language="en" />,
+    );
+    await user.click(screen.getByRole("tab", { name: "3D structure" }));
+    const structure = screen.getByLabelText("Selected structure");
+    expect(structure).toHaveAttribute("data-source-sha256", "f".repeat(64));
+    if (prepare) {
+      await user.click(
+        screen.getByRole("button", { name: "Prepare computed pose" }),
+      );
+      expect(structure).toHaveTextContent(`/api/assets/${id(3)}`);
+      expect(structure).toHaveAttribute(
+        "data-source-sha256",
+        prepared.reference.sha256,
+      );
+    }
+    await user.click(
+      screen.getByRole("button", { name: "Minimize test pose" }),
+    );
+    expect(await screen.findByText(`/api/assets/${id(6)}`)).toBeVisible();
+    expect(structure).toHaveAttribute(
+      "data-source-sha256",
+      saved.pose.reference.sha256,
+    );
+    await user.click(screen.getByRole("button", { name: "Undo test pose" }));
+    expect(structure).toHaveTextContent(
+      prepare ? `/api/assets/${id(3)}` : "source-record-2.sdf",
+    );
+    expect(structure).toHaveAttribute(
+      "data-source-sha256",
+      prepare ? prepared.reference.sha256 : "f".repeat(64),
+    );
+    await user.click(screen.getByRole("button", { name: "Redo test pose" }));
+    expect(structure).toHaveAttribute(
+      "data-source-sha256",
+      saved.pose.reference.sha256,
+    );
+  },
+);

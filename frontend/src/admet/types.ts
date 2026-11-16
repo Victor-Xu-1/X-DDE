@@ -20,6 +20,8 @@ export interface Endpoint {
   name: string;
   category: string;
   task_type: "classification" | "regression";
+  minimum?: number | null;
+  maximum?: number | null;
   unit: string;
   species: string;
   source_url: string;
