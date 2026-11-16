@@ -11,9 +11,12 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.confidence import confidence_view
+from opendde_workbench.examples.bundle import restore_bundle
+from opendde_workbench.examples.stat6_bundle_release import SHA256
+from opendde_workbench.settings import Settings
+from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 from server_tests.native_confidence_case import native_case
-from server_tests.test_workspace_fullscreen_browser import restored_workspace as restored_workspace
 
 
 @pytest.mark.parametrize("language,theme,width,height", [
@@ -220,11 +223,25 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         browser.close()
 
 
+@pytest.fixture(scope="module")
+def prediction_example_workspace(tmp_path_factory):
+    root = tmp_path_factory.mktemp("prediction-example-workspace")
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setenv("WB_HOME", str(root))
+        patch.setenv("WB_STATE_DIR", str(root / "state"))
+        settings = Settings.from_env()
+        restored = restore_bundle(
+            Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, SHA256
+        )
+        assert restored["computed"] > 0
+        yield settings, Store(settings.state_dir / "jobs.sqlite3")
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup(
-    restored_workspace, language, width
+    prediction_example_workspace, language, width
 ):
-    settings, store, _pins = restored_workspace
+    settings, store = prediction_example_workspace
     evidence = Path("outputs/native-confidence") / f"example-{language}"
     before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
     zh = language == "zh"
