@@ -131,7 +131,10 @@ def test_both_native_interface_endpoints(interaction_workspace, language, width)
                 saved = evidence / active[key]
                 transfer.value.save_as(saved)
                 assert saved.read_bytes() == files[key][1]
-            figure = export_figure(page, panel, evidence, "native-interface", language)
+            trigger = panel.get_by_role(
+                "button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True
+            )
+            figure = export_figure(page, trigger, evidence, "native-interface", language)
             inspect_png(figure, 600)
             stage = panel.locator(".molecular-stage iframe").bounding_box()
             details = workspace.locator(".structure-workbench-details").bounding_box()

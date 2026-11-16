@@ -135,6 +135,12 @@
 .interface-source-reports > .inline-fields {
   margin-top: 10px;
 }
+.protein-interface-results .research-table :is(th, td) {
+  padding-inline: 5px;
+}
+.protein-interface-results .research-table .mark-cell {
+  padding-inline: 5px 0;
+}
 @media (min-width: 1001px) {
   .protein-interface-results
     .structure-workbench:not([data-workspace-expanded]) {
