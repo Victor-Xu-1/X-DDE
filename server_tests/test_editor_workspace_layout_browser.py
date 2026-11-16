@@ -71,6 +71,9 @@ def test_editor_canvas_and_adjacent_actions_preserve_the_native_drawing(language
         expect(pane).to_be_hidden()
         owner.get_by_role("button", name="用这个分子计算性质" if zh else "Calculate properties", exact=True).click()
         expect(pane.get_by_role("heading", name="检查分子并计算性质" if zh else "Review molecule and calculate properties", exact=True)).to_be_visible()
+        if width > 960:
+            heading_box = pane.get_by_role("heading", name="检查分子并计算性质" if zh else "Review molecule and calculate properties", exact=True).bounding_box()
+            assert 0 <= heading_box["y"] - frame.bounding_box()["y"] <= 24
         assert pane.evaluate("node => node.scrollWidth <= node.clientWidth")
         pane.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
         expect(pane.get_by_role("heading", name="2. 提供分子" if zh else "2. Provide molecules", exact=True)).to_be_visible()
