@@ -9,7 +9,10 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
-from server_tests.appearance_preview import load_reference, reference_asset, rendered_background
+from opendde_workbench.assets import AssetStore
+from opendde_workbench.examples.stat6.catalogue import verified_input
+from opendde_workbench.store import Store
+from server_tests.appearance_preview import load_reference, rendered_background
 from server_tests.browser_platform import platform
 from server_tests.native_confidence_case import native_case
 from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
@@ -46,7 +49,11 @@ def test_native_scientific_surface_and_export_survive_theme_changes(tmp_path, la
     identifier, candidate = native_case(state, os.environ["WB_REVIEWED_STAT6_ARCHIVE"])
     source_root = state / "jobs" / identifier / "output"
     originals = {path: path.read_bytes() for path in source_root.rglob("*") if path.is_file()}
-    asset, reference_sha = reference_asset(state)
+    complex_bytes = verified_input("stat6_structure")
+    asset = AssetStore(Store(state / "jobs.sqlite3"), state / "assets").save(
+        "STAT6-9BIG-experimental-complex.cif", "structure", complex_bytes
+    )
+    reference_sha = hashlib.sha256(complex_bytes).hexdigest()
     zh = language == "zh"
     errors, writes, measurements = [], [], []
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
