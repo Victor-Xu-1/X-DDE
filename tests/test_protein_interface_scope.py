@@ -27,3 +27,14 @@ def test_actual_native_interface_changes_still_require_their_native_check():
         "server_tests/test_native_protein_interface.py",
     ):
         assert scope["native_changed"](["frontend/src/viewer/scene.ts", name])
+
+
+def test_first_branch_push_selects_actual_scientific_changes_not_branch_creation():
+    first_push = {"before": "0" * 40}
+    presentation = ["frontend/src/integrations/ProteinInterfaceResults.tsx"]
+    assert not scope["native_mode"]("push", first_push, presentation)
+    assert scope["native_mode"]("push", first_push, [
+        *presentation, "src/opendde_workbench/integrations/protein_interface_result.py",
+    ])
+    assert not scope["native_mode"]("workflow_dispatch", {}, presentation)
+    assert scope["native_mode"]("workflow_dispatch", {"inputs": {"native": True}}, [])

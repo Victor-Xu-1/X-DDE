@@ -30,11 +30,14 @@ on:
       - "frontend/src/examples/StudyInputPreview.tsx"
       - "frontend/src/examples/examples.css"
       - "frontend/src/integrations/InteractionResults*"
+      - "frontend/src/integrations/ProteinInterfaceResults*"
+      - "frontend/src/integrations/ProteinInterfaceContacts.tsx"
       - "frontend/src/integrations/interaction-residue*"
       - "frontend/src/integrations/interaction-workspace.css"
       - "scripts/interaction-workspace-scope.py"
       - "tests/test_interaction_workspace_scope.py"
       - "server_tests/test_interaction_workspace_browser.py"
+      - "server_tests/test_protein_interface_workspace_browser.py"
       - "server_tests/interaction_workspace_case.py"
       - "frontend/src/integrations/PotentialResults.tsx"
       - "frontend/src/integrations/ScaffoldSelection.tsx"
@@ -162,8 +165,8 @@ jobs:
       - run: uv sync --locked --group dev --group browser
       - name: Closed result scope and native-browser source contracts
         run: |
-          uv run --locked pytest -q tests/test_interaction_workspace_scope.py
-          uv run --locked ruff check scripts/interaction-workspace-scope.py tests/test_interaction_workspace_scope.py server_tests/test_interaction_workspace_browser.py server_tests/interaction_workspace_case.py
+          uv run --locked pytest -q tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py
+          uv run --locked ruff check scripts/interaction-workspace-scope.py scripts/protein-interface-scope.py tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py server_tests/interaction_workspace_case.py
       - name: Obtain sealed STAT6 outputs; do not execute scientific engines
         env:
           GH_TOKEN: ${{ github.token }}
@@ -176,12 +179,14 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
           uv run --locked playwright install chromium --with-deps
       - name: Actual bilingual saved contact rows, native 3D focus and source downloads
-        run: uv run --locked python -m pytest -x -q server_tests/test_interaction_workspace_browser.py
+        run: uv run --locked python -m pytest -x -q server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: interaction-workspace-evidence
-          path: outputs/interaction-workspace
+          path: |
+            outputs/interaction-workspace
+            outputs/protein-interface-workspace
   view-alignment:
     needs: [scope, model-context, prediction-scope, guidance-scope]
     if: needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'

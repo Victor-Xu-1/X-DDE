@@ -22,6 +22,7 @@ def test_exact_result_paths_and_publication_companions():
     "frontend/src/viewer/StructureViewport.tsx", "frontend/src/presentation/ResearchTable.tsx",
     "frontend/src/integrations/ScientificResults.tsx", "src/opendde_workbench/integrations/plip.py",
     "frontend/src/integrations/InteractionResultsBackup.tsx",
+    "frontend/src/integrations/ProteinInterfaceForm.tsx",
 ])
 def test_shared_and_scientific_changes_keep_their_own_checks(path):
     assert not scope["selected"]([*scope["SOURCES"], path])
@@ -35,3 +36,6 @@ def test_both_unrelated_layout_jobs_delegate_to_the_contact_gate():
     guidance = Path(".github/workflows/restraint-guidance-checks.yml").read_text()
     body = guidance.split("  frontend-guidance:", 1)[1].split("    steps:", 1)[0]
     assert "needs.scope.outputs.interaction_only != 'true'" in body
+    native = Path(".github/workflows/protein-interface-checks.yml").read_text()
+    body = native.split("  contracts-and-preview:", 1)[1].split("    steps:", 1)[0]
+    assert "needs.native-scope.outputs.interaction_only != 'true'" in body

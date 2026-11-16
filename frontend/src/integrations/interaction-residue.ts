@@ -1,13 +1,18 @@
 import type { Residue } from "../viewer/protocol";
 import type { NativeInteraction } from "./types";
 
-export function interactionResidueLabel(row: NativeInteraction) {
+export type ContactResidue = Pick<
+  NativeInteraction,
+  "chain" | "residue" | "number" | "insertion_code"
+>;
+
+export function interactionResidueLabel(row: ContactResidue) {
   return `${row.chain}:${row.residue}${row.number}${row.insertion_code ?? ""}`;
 }
 
 /** Older native reports may omit insertion codes. Resolve only a unique source residue. */
 export function interactionResidueKey(
-  row: NativeInteraction,
+  row: ContactResidue,
   residues: readonly Residue[],
 ): string | null {
   const matches = residues.filter(
