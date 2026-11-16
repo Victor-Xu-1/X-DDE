@@ -12,9 +12,22 @@ import { api } from "../api";
 import { deploymentFixture } from "../deployment/fixtures";
 import type { ScientificObject } from "../research/types";
 
-vi.mock("./ketcher-hydrogens", () => ({
-  observeHydrogenDisplay: vi.fn(),
-  foldDisplayHydrogens: async (_editor: unknown, text: string) => text,
+// These cases isolate retained-source validation/provenance. Native drawing
+// lifecycle and export approval are exercised by the hook and browser cases.
+vi.mock("./useWorkbenchDrawing", () => ({
+  useWorkbenchDrawing: (
+    frame: { current: HTMLIFrameElement | null },
+    generation: number,
+  ) => ({
+    ready: generation > 0,
+    busy: false,
+    available: true,
+    needsPreparation: false,
+    open: async (text: string) => {
+      await (frame.current!.contentWindow as any).ketcher.setMolecule(text);
+    },
+    editor: () => (frame.current!.contentWindow as any).ketcher,
+  }),
 }));
 vi.mock("./AlignedEditAction", () => ({ AlignedEditAction: () => null }));
 const source =
