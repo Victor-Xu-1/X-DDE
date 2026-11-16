@@ -250,7 +250,10 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
         Path(__file__).parents[1] / ".github/workflows/antibody-cdr-input-checks.yml"
     ).read_text()
     assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in antibody
-    assert "needs: [case-scope, prediction-scope]" in antibody
+    cdr = antibody.split("  cdr-inputs:", 1)[1].split("    runs-on:", 1)[0]
+    needs = next(line for line in cdr.splitlines() if line.strip().startswith("needs:"))
+    dependencies = {entry.strip() for entry in needs.split("[", 1)[1].split("]", 1)[0].split(",")}
+    assert {"case-scope", "prediction-scope", "utility-scope"} <= dependencies
     assert "needs.prediction-scope.outputs.job_review_layout != 'true'" in antibody
 
 
@@ -523,7 +526,6 @@ def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
 
 def test_preview_regressions_are_detected_independently_of_batch_delegation():
     for path in [
-        "frontend/src/presentation/PredictionSetup.tsx",
         "frontend/src/presentation/PredictionInputPreview.test.tsx",
         "frontend/src/presentation/prediction-input-preview.css",
         "frontend/src/integrations/ScientificForm.tsx",
@@ -532,6 +534,11 @@ def test_preview_regressions_are_detected_independently_of_batch_delegation():
         assert scope.preview_changed([path])
         assert not scope.input_preview_only([path])
         assert scope.preview_changed([path, "frontend/src/viewer/style.ts"])
+    setup = "frontend/src/presentation/PredictionSetup.tsx"
+    assert scope.preview_changed([setup])
+    assert scope.input_preview_only([setup])
+    assert scope.preview_changed([setup, "frontend/src/viewer/style.ts"])
+    assert not scope.input_preview_only([setup, "frontend/src/viewer/style.ts"])
     assert scope.preview_changed([], "workflow_dispatch")
     assert not scope.preview_changed([])
     assert not scope.preview_changed(["frontend/src/viewer/confidence-mapping.ts"])
