@@ -97,6 +97,10 @@ def test_both_native_interface_endpoints(interaction_workspace, language, width)
             panel.get_by_role(
                 "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
             ).click()
+            if width > 1000:
+                assert workspace.locator(".research-table-scroll").evaluate(
+                    "node => node.scrollWidth <= node.clientWidth + 1"
+                )
             page.keyboard.press("Escape")
             expect(selection.get_by_text("A:PTR641", exact=True)).to_be_visible()
             partner.focus()

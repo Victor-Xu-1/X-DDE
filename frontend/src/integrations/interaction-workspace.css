@@ -146,6 +146,11 @@
     .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1.65fr) minmax(410px, 1fr);
   }
+  .studio-app
+    .protein-interface-results
+    .structure-workbench[data-workspace-expanded] {
+    grid-template-columns: minmax(0, 1.8fr) minmax(430px, 1fr);
+  }
 }
 html
   body
