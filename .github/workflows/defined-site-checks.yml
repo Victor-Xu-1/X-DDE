@@ -2,7 +2,7 @@ name: Defined pocket exploration checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &molecular_review_paths
       - "src/opendde_workbench/sites/**"
       - "src/opendde_workbench/examples/stat6_bundle_release.py"
       - "src/opendde_workbench/examples/bundle_states.py"
@@ -36,6 +36,8 @@ on:
       - "tests/fixtures/stat6/retained-alignment.source.json"
       - "server_tests/test_defined_region_browser.py"
       - ".github/workflows/defined-site-checks.yml"
+  pull_request:
+    paths: *molecular_review_paths
 permissions:
   contents: read
 jobs:

@@ -86,6 +86,16 @@ def test_exact_profile_paths_and_version_mirrors():
     assert not scope["selected"](scope["FILES"], "workflow_dispatch")
 
 
+@pytest.mark.parametrize("name", [
+    "reference-input-checks.yml", "defined-site-checks.yml",
+    "pocket-result-checks.yml", "research-material-checks.yml",
+])
+def test_consumer_gates_cover_the_final_pull_request_head(name):
+    text = (Path(".github/workflows") / name).read_text()
+    assert "  push:\n    paths: &molecular_review_paths" in text
+    assert "  pull_request:\n    paths: *molecular_review_paths" in text
+
+
 def test_every_independently_delegated_source_starts_the_replacement_gate():
     workflow = Path(".github/workflows/molecular-utility-checks.yml").read_text()
     push = workflow.split("  push:\n", 1)[1].split("  pull_request:\n", 1)[0]

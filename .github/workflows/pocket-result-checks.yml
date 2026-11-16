@@ -2,7 +2,7 @@ name: Research result selection checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &molecular_review_paths
       - 'frontend/src/pockets/ReferenceComparison*'
       - 'frontend/src/pockets/reference-comparison*'
       - 'frontend/src/docking/DockingForm.tsx'
@@ -39,6 +39,8 @@ on:
       - '!frontend/src/diffsbdd/GeneratedCandidates.tsx'
       # Dataset member labels/exports use library-member-checks.yml.
       - '!frontend/src/datasets/ResearchTable.tsx'
+  pull_request:
+    paths: *molecular_review_paths
 permissions:
   contents: read
 jobs:
