@@ -67,6 +67,8 @@ FILES = SOURCES | {
     "scripts/record-study-catalogue.py",
     "tests/test_brain_profile.py",
     "tests/test_brain_profile_scope.py",
+    "tests/test_stat6_predicted_references.py",
+    "tests/test_study_module_revisions.py",
     "uv.lock"
 }
 

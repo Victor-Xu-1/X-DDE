@@ -25,7 +25,7 @@ RGROUP_PREDECESSOR = "3982c2a0e56e6eaf5c3b72f77415ada12c2eb192bdb1ae2871e9c6ddee
 def test_only_the_authored_module_identities_advance():
     old = historical_study_catalogue(PREVIOUS)
     current = bundle_catalogue("stat6")
-    assert set(current.modules) - set(old.modules) == {"mol1.predict"}
+    assert set(current.modules) - set(old.modules) == {"mol1.predict", "admet.brain"}
     assert set(old.modules) <= set(current.modules)
     for key, previous in old.modules.items():
         revisions = {
@@ -59,7 +59,7 @@ def test_only_the_authored_module_identities_advance():
 def test_quality_successor_preserves_every_other_authored_module():
     previous = historical_study_catalogue(QUALITY_PREDECESSOR)
     current = bundle_catalogue("stat6")
-    assert set(current.modules) - set(previous.modules) == {"mol1.predict"}
+    assert set(current.modules) - set(previous.modules) == {"mol1.predict", "admet.brain"}
     assert set(previous.modules) <= set(current.modules)
     for key, module in previous.modules.items():
         expected = (
@@ -77,12 +77,23 @@ def test_quality_successor_preserves_every_other_authored_module():
 def test_rgroup_successor_preserves_all_prior_module_identities():
     previous = historical_study_catalogue(RGROUP_PREDECESSOR)
     current = bundle_catalogue("stat6")
-    assert set(current.modules) - set(previous.modules) == {"mol1.predict"}
+    assert set(current.modules) - set(previous.modules) == {"mol1.predict", "admet.brain"}
     assert set(previous.modules) <= set(current.modules)
     for key, module in previous.modules.items():
         expected = module.model_copy(update={"revision": 5}) if key == "reinvent.design" else module
         assert current.modules[key] == expected
     assert previous.modules["reinvent.design"].revision == 4
+
+
+def test_brain_profile_addition_preserves_the_entire_previous_catalogue():
+    previous = historical_study_catalogue(
+        "6ccbe8ade5537c77e1102cda16f8b2ebdb8a78ed31e9705247113c32f66be857"
+    )
+    current = bundle_catalogue("stat6")
+    assert set(current.modules) - set(previous.modules) == {"admet.brain"}
+    assert {key: current.modules[key] for key in previous.modules} == previous.modules
+    assert current.files == previous.files
+    assert current.modules["admet.brain"].revision == 3
 
 
 @pytest.mark.parametrize("mutation", ["revision", "capability_id", "unknown_override"])

@@ -88,7 +88,7 @@ jobs:
               output.write(f"WB_REVIEWED_STAT6_ARCHIVE={target}\n")
           PY
           uv run --locked playwright install --with-deps chromium
-          uv run --locked pytest -q server_tests/test_brain_profile_browser.py --basetemp "$RUNNER_TEMP/brain-profile-browser"
+          uv run --locked python -m pytest -q server_tests/test_brain_profile_browser.py --basetemp "$RUNNER_TEMP/brain-profile-browser"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
