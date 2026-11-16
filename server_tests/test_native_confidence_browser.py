@@ -139,15 +139,29 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         expect(first).to_have_attribute("aria-checked", "false")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
         matrix.scroll_into_view_if_needed()
-        hit = matrix.locator(".nsewdrag").bounding_box()
+        # Aspect-ratio letterboxing belongs to the axes, not to the native matrix.
+        hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
-        page.mouse.click(hit["x"] + hit["width"] / 232, hit["y"] + hit["height"] * 231 / 232)
-        expect(first).to_have_attribute("aria-checked", "true")
+        column = 0 if height >= 800 else 57
+        clicked = first if column == 0 else sequence.get_by_role(
+            "checkbox", name=re.compile(r"^A:ALA58 · pLDDT ")
+        )
+        (evidence / "matrix-hit.json").write_text(json.dumps({
+            "data_image": hit,
+            "drag_area": matrix.locator(".nsewdrag").bounding_box(),
+            "native_column": column,
+            "expected_residue": clicked.get_attribute("aria-label"),
+        }))
+        page.mouse.click(
+            hit["x"] + hit["width"] * (column + .5) / len(data["indices"]),
+            hit["y"] + hit["height"] * .5,
+        )
+        expect(clicked).to_have_attribute("aria-checked", "true")
         matrix.get_by_role(
             "combobox", name="图表操作" if zh else "Chart interaction"
         ).select_option("select")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
-        hit = matrix.locator(".nsewdrag").bounding_box()
+        hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
         page.mouse.move(hit["x"] + hit["width"] * 0.08, hit["y"] + hit["height"] * 0.7)
         page.mouse.down()
