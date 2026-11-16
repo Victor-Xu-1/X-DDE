@@ -21,6 +21,13 @@
 .interaction-results .research-table td {
   overflow-wrap: normal;
 }
+.interaction-results .research-table :is(th, td) {
+  padding: 10px 8px;
+}
+.interaction-results .research-table .mark-cell {
+  width: 26px;
+  padding-inline-end: 0;
+}
 .studio-app .interaction-results :is(.research-table, .viewer-panel) {
   padding: 0;
   border: 0;
