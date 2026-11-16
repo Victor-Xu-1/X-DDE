@@ -163,15 +163,27 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         matrix.get_by_role(
             "combobox", name="图表操作" if zh else "Chart interaction"
         ).select_option("select")
+        page.wait_for_function("""() => {
+            const plot = document.querySelector('.confidence-panel .research-plot-canvas');
+            return plot?.layout?.dragmode === 'select';
+        }""")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
+        matrix.get_by_role("application").scroll_into_view_if_needed()
         hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
+        start = {"x": hit["x"] + hit["width"] * .15, "y": hit["y"] + hit["height"] * .25}
+        end = {"x": hit["x"] + hit["width"] * .55, "y": hit["y"] + hit["height"] * .65}
+        drag_state = page.evaluate("""({start, end}) => {
+            const plot = document.querySelector('.confidence-panel .research-plot-canvas');
+            const hit = p => document.elementFromPoint(p.x, p.y)?.getAttribute('class');
+            return {mode: plot?.layout?.dragmode, start, end,
+                start_hit: hit(start), end_hit: hit(end), viewport: [innerWidth, innerHeight]};
+        }""", {"start": start, "end": end})
+        (evidence / "matrix-drag-state.json").write_text(json.dumps(drag_state))
         # Keep the gesture above the native drag threshold even in a short pane.
-        page.mouse.move(hit["x"] + hit["width"] * 0.15, hit["y"] + hit["height"] * 0.25)
+        page.mouse.move(**start)
         page.mouse.down()
-        page.mouse.move(
-            hit["x"] + hit["width"] * 0.55, hit["y"] + hit["height"] * 0.65, steps=10
-        )
+        page.mouse.move(**end, steps=10)
         page.wait_for_function("""() => [...document.querySelectorAll('.select-outline')]
             .some(node => { const box = node.getBoundingClientRect();
                 return box.width >= 20 && box.height >= 20; })""", timeout=5000)
