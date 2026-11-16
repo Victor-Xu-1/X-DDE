@@ -1,8 +1,12 @@
 """Saved public evidence, compact real Chrome layout and unchanged native exports."""
 
+import base64
 import csv
 import hashlib
 import json
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -11,17 +15,27 @@ from playwright.sync_api import expect, sync_playwright
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 from server_tests.molecular_review_capture import launch_review_browser, verify_review_fonts
+from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_navigation_shell_browser import open_navigation
+
+
+@pytest.fixture(name="target_graphical_workspace", scope="module")
+def graphical_workspace(interaction_workspace):
+    subprocess.run(
+        [sys.executable, "server_tests/prepare_visual_components.py", "--components", "ketcher"],
+        check=True,
+    )
+    return interaction_workspace
 
 
 @pytest.mark.parametrize("entity", ["disease", "target"])
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_saved_target_evidence(interaction_workspace, entity, language, width):
+def test_saved_target_evidence(target_graphical_workspace, entity, language, width):
     evidence = Path("outputs/target-evidence") / f"{entity}-{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     errors, writes = [], []
-    with platform(interaction_workspace.state_dir, evidence / "service.log") as base:
+    with platform(target_graphical_workspace.state_dir, evidence / "service.log") as base:
         with sync_playwright() as driver:
             browser = launch_review_browser(driver)
             page = browser.new_page(viewport={"width": width, "height": 1000})
@@ -147,6 +161,10 @@ def test_saved_target_evidence(interaction_workspace, entity, language, width):
             )).to_be_disabled()
             search.fill("")
             expect(table.locator("tbody tr")).to_have_count(min(20, len(rows)))
+            activity_preview = (
+                inspect_activity(page, workspace, result, evidence, language, width)
+                if entity == "target" else None
+            )
             page.get_by_role(
                 "button", name="返回任务填写" if zh else "Return to task form", exact=True
             ).click()
@@ -159,7 +177,64 @@ def test_saved_target_evidence(interaction_workspace, entity, language, width):
                 "source_total": association["count"], "retrieved": len(rows),
                 "result_sha256": hashlib.sha256(original).hexdigest(),
                 "exported_rows": len(exported_rows), "geometry": geometry,
+                "activity_preview": activity_preview,
                 "browser": browser.version, "font": verify_review_fonts(),
                 "errors": errors, "writes": writes, "scientific_tasks": 0,
             }, indent=2))
             browser.close()
+
+
+def inspect_activity(page, workspace, result, evidence, language, width):
+    zh = language == "zh"
+    workspace.get_by_role(
+        "tab", name="已有实测活性 20" if zh else "Reported activities 20", exact=True
+    ).click()
+    panel = workspace.locator(".target-activity-workspace")
+    preview = panel.get_by_role(
+        "region", name="选中记录的分子结构" if zh else "Selected reported molecule"
+    )
+    drawing = preview.locator(".molecule-image")
+    expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+    activities = result["activities"]["rows"]
+    first = activities[0]
+    expect(preview.get_by_role("heading")).to_have_text(first["molecule_chembl_id"])
+    index = next(i for i, row in enumerate(activities)
+                 if row.get("canonical_smiles")
+                 and row["canonical_smiles"] != first.get("canonical_smiles"))
+    expected = activities[index]
+    table = panel.get_by_role(
+        "table", name="已有实测活性" if zh else "Reported activities", exact=True
+    )
+    row = table.locator("tbody tr").nth(index)
+    row.focus()
+    row.press("Enter")
+    expect(row).to_have_attribute("aria-selected", "true")
+    expect(preview.get_by_role("heading")).to_have_text(expected["molecule_chembl_id"])
+    expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+    expect(preview).to_contain_text(expected["assay_chembl_id"])
+    encoded = drawing.get_by_role("img").get_attribute("src")
+    vector = base64.b64decode(encoded.split(",", 1)[1])
+    svg = ET.fromstring(vector)
+    assert svg.findall(".//{http://www.w3.org/2000/svg}path")
+    assert "CH3" not in "".join(svg.itertext())
+    (evidence / "selected-activity-structure.svg").write_bytes(vector)
+    figure = export_figure(
+        page, drawing.get_by_role(
+            "button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True
+        ), evidence, "reported-activity", language, "SVG",
+    )
+    assert b"<svg" in figure.read_bytes() and figure.stat().st_size > 1000
+    stage = panel.locator(".structure-workbench-view").bounding_box()
+    details = panel.locator(".structure-workbench-details").bounding_box()
+    assert stage and details and stage["height"] >= 300
+    if width > 1000:
+        assert stage["x"] + stage["width"] <= details["x"]
+        assert stage["width"] > details["width"]
+    else:
+        assert stage["y"] + stage["height"] <= details["y"]
+    assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+    panel.scroll_into_view_if_needed()
+    page.screenshot(path=evidence / "activity-workspace.png")
+    return {"activity_id": expected["activity_id"], "molecule": expected["molecule_chembl_id"],
+            "stage": stage, "details": details, "native_vector": figure.name,
+            "new_3d_conformers": 0}

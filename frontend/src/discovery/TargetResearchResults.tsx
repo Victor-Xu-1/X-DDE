@@ -115,6 +115,7 @@ export function TargetResearchResults({
             count: result.activities?.rows.length ?? 0,
             content: (
               <ActivityResults
+                key={job.id}
                 result={result}
                 language={language}
                 onImport={onCreated ? setMaterial : undefined}

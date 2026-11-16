@@ -275,6 +275,7 @@ on:
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
       # Native target evidence is checked by dataset-discovery-checks.yml.
       - "!frontend/src/discovery/TargetResearchResults*"
+      - "!frontend/src/discovery/ActivityResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"
@@ -596,6 +597,7 @@ on:
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
       # Native target evidence is checked by dataset-discovery-checks.yml.
       - "!frontend/src/discovery/TargetResearchResults*"
+      - "!frontend/src/discovery/ActivityResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"

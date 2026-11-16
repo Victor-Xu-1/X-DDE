@@ -64,6 +64,8 @@ on:
       - '.github/workflows/dataset-discovery-checks.yml'
       # Saved target evidence has a closed presentation-only gate below.
       - 'frontend/src/discovery/TargetResearchResults*'
+      - 'frontend/src/discovery/ActivityResults*'
+      - 'frontend/src/discovery/ActivityMoleculePreview.tsx'
       - 'frontend/src/discovery/discovery.css'
       - 'scripts/target-evidence-scope.py'
       - 'tests/test_target_evidence_scope.py'
@@ -127,6 +129,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/discovery/TargetResearchResults.test.tsx
+          src/discovery/ActivityResults.test.tsx
           src/discovery/TargetResearchForm.test.tsx src/presentation/ResearchTable.test.tsx
           src/presentation/ResearchTabs.test.tsx
       - name: Closed target presentation scope and shared CSS exclusions
@@ -147,7 +150,9 @@ jobs:
           uv run --locked playwright install-deps chromium
       - name: Actual bilingual Chrome evidence density, native CSV and return to form
         if: needs.target-ui-scope.outputs.target_evidence_only == 'true'
-        run: uv run --locked python -m pytest -x -q server_tests/test_target_evidence_browser.py
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_target_evidence_browser.py
+          --basetemp "$RUNNER_TEMP/target-evidence-browser"
       - uses: actions/upload-artifact@v4
         if: always() && needs.target-ui-scope.outputs.target_evidence_only == 'true'
         with:

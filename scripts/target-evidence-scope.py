@@ -10,6 +10,9 @@ SOURCES = {
     CSS,
     "frontend/src/discovery/TargetResearchResults.tsx",
     "frontend/src/discovery/TargetResearchResults.test.tsx",
+    "frontend/src/discovery/ActivityResults.tsx",
+    "frontend/src/discovery/ActivityResults.test.tsx",
+    "frontend/src/discovery/ActivityMoleculePreview.tsx",
     "server_tests/test_target_evidence_browser.py",
     "scripts/target-evidence-scope.py",
     "tests/test_target_evidence_scope.py",
@@ -36,6 +39,8 @@ SELECTORS = {
     ".target-evidence-results > .result-summary-grid > div",
     ".target-evidence-results > .result-summary-grid dt",
     ".target-evidence-results > .result-summary-grid dd",
+    ".target-evidence-results .activity-molecule-preview .molecule-drawing-style select",
+    ".target-evidence-results .activity-molecule-preview .figure-preview-sheet",
     HIDE_PICKER,
 }
 

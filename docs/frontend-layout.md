@@ -814,6 +814,14 @@ existing shared styles. The focused discovery gate checks retained disease and
 STAT6 target results in English desktop and Chinese narrow Google Chrome without
 new database queries, scientific tasks or native DEL execution.
 
+The reported-activities tab links exact activity-row selection to a large left
+Ketcher 2D canvas and keeps the source assay table on the right. Selection uses
+the activity ID, preserving separate records for repeated compound identifiers.
+Native units, relation signs and assays remain distinct. Missing structures are
+explicit, and an empty result removes the prior preview. The shared drawing
+canvas supplies zoom, line weight and vector export; a source SMILES depiction
+does not create a 3D conformer or dispatch scientific work.
+
 ## Brain-penetration utility
 
 The brain utility is an ADMET-AI task profile using the same molecular input,

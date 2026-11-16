@@ -108,6 +108,16 @@
   margin: 0;
   font-size: 16px;
 }
+.target-evidence-results
+  .activity-molecule-preview
+  .molecule-drawing-style
+  select {
+  width: 180px;
+  max-width: none;
+}
+.target-evidence-results .activity-molecule-preview .figure-preview-sheet {
+  height: clamp(300px, 48svh, 560px);
+}
 html
   body
   .studio-app
