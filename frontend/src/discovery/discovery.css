@@ -118,6 +118,9 @@
 .target-evidence-results .activity-molecule-preview .figure-preview-sheet {
   height: clamp(300px, 48svh, 560px);
 }
+.target-evidence-results .target-activity-workspace table {
+  min-width: 320px;
+}
 html
   body
   .studio-app

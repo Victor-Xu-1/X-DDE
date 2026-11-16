@@ -821,6 +821,9 @@ Native units, relation signs and assays remain distinct. Missing structures are
 explicit, and an empty result removes the prior preview. The shared drawing
 canvas supplies zoom, line weight and vector export; a source SMILES depiction
 does not create a 3D conformer or dispatch scientific work.
+The narrow right-hand table initially combines the endpoint, relation, value and
+unit in one result cell beside the compound, with optional fields available from
+the column selector. CSV still contains all original columns and rows.
 
 ## Brain-penetration utility
 

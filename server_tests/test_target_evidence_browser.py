@@ -224,6 +224,26 @@ def inspect_activity(page, workspace, result, evidence, language, width):
         ), evidence, "reported-activity", language, "SVG",
     )
     assert b"<svg" in figure.read_bytes() and figure.stat().st_size > 1000
+    with page.expect_download() as transfer:
+        panel.get_by_role(
+            "button", name="导出筛选结果" if zh else "Export filtered rows", exact=True
+        ).click()
+    exported = evidence / "native-activities.csv"
+    transfer.value.save_as(exported)
+    with exported.open(encoding="utf-8-sig", newline="") as stream:
+        records = list(csv.DictReader(stream))
+    labels = (
+        ("化合物", "实测端点", "结果与单位", "实验") if zh
+        else ("Compound", "Measured endpoint", "Result and unit", "Assay")
+    )
+    assert [tuple(record[label] for label in labels) for record in records] == [
+        (item["molecule_chembl_id"], item["standard_type"],
+         f"{item.get('standard_relation') or ''} "
+         f"{item['standard_value'] if item['standard_value'] is not None else '—'} "
+         f"{item.get('standard_units') or ''}", item["assay_chembl_id"])
+        for item in activities
+    ]
+    preview.scroll_into_view_if_needed()
     stage = panel.locator(".structure-workbench-view").bounding_box()
     details = panel.locator(".structure-workbench-details").bounding_box()
     assert stage and details and stage["height"] >= 300
@@ -232,9 +252,15 @@ def inspect_activity(page, workspace, result, evidence, language, width):
         assert stage["width"] > details["width"]
     else:
         assert stage["y"] + stage["height"] <= details["y"]
+    assert stage["y"] >= 0 and stage["y"] + stage["height"] <= 1000
+    assert panel.locator(".research-table-scroll").evaluate(
+        "node => node.scrollWidth <= node.clientWidth + 1"
+    )
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-    panel.scroll_into_view_if_needed()
     page.screenshot(path=evidence / "activity-workspace.png")
+    if width < 1000:
+        table.scroll_into_view_if_needed()
+        page.screenshot(path=evidence / "activity-records.png")
     return {"activity_id": expected["activity_id"], "molecule": expected["molecule_chembl_id"],
             "stage": stage, "details": details, "native_vector": figure.name,
-            "new_3d_conformers": 0}
+            "exported_activity_rows": len(records), "new_3d_conformers": 0}

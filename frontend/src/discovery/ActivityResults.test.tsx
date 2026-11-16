@@ -76,7 +76,7 @@ it.each(["en", "zh"] as const)(
     expect(within(preview).getByTestId("selected-drawing")).toHaveTextContent(
       "Nc1ccccc1",
     );
-    const second = screen.getByText("ASSAY-2").closest("tr")!;
+    const second = screen.getByText("Ki").closest("tr")!;
     fireEvent.keyDown(second, { key: "Enter" });
     expect(second).toHaveAttribute("aria-selected", "true");
     expect(within(preview).getByTestId("selected-drawing")).toHaveTextContent(
@@ -84,7 +84,7 @@ it.each(["en", "zh"] as const)(
     );
     expect(preview).toHaveTextContent("Ki < 35.0 uM");
     expect(preview).not.toHaveTextContent("IC50");
-    const missing = screen.getByText("ASSAY-3").closest("tr")!;
+    const missing = screen.getByText("Kd").closest("tr")!;
     fireEvent.click(missing);
     expect(
       within(preview).queryByTestId("selected-drawing"),

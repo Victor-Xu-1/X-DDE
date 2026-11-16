@@ -41,6 +41,7 @@ SELECTORS = {
     ".target-evidence-results > .result-summary-grid dd",
     ".target-evidence-results .activity-molecule-preview .molecule-drawing-style select",
     ".target-evidence-results .activity-molecule-preview .figure-preview-sheet",
+    ".target-evidence-results .target-activity-workspace table",
     HIDE_PICKER,
 }
 

@@ -48,6 +48,7 @@ export function ActivityResults({
           rowId={(row) => String(row.activity_id)}
           language={language}
           compare={false}
+          initialVisibleColumns={["molecule", "measurement"]}
           selected={selected ? String(selected.activity_id) : null}
           onSelect={(row) => setSelectedId(row.activity_id)}
           title={zh ? "已有实测活性" : "Reported activities"}
@@ -95,6 +96,14 @@ export function ActivityResults({
                 (row.standard_value ?? "—") +
                 " " +
                 (row.standard_units ?? ""),
+              render: (row) => (
+                <span>
+                  <strong>{row.standard_type}</strong>
+                  <br />
+                  {row.standard_relation ?? ""} {row.standard_value ?? "—"}{" "}
+                  {row.standard_units ?? ""}
+                </span>
+              ),
             },
             {
               key: "assay",
