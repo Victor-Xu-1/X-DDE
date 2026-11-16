@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../api";
@@ -67,4 +67,47 @@ it("submits a real edit envelope with the original version rather than overwriti
       rating: 4,
     },
   });
+});
+
+it("opens in the adjacent pane and closes without a molecular read or task submission", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(
+      JSON.stringify({ availability: { configuration_present: true } }),
+      { headers: { "Content-Type": "application/json" } },
+    ),
+  );
+  const target = document.createElement("div");
+  document.body.append(target);
+  const changed = vi.fn(),
+    execute = vi.fn(),
+    submit = vi.spyOn(api, "submit");
+  const view = render(
+    <AlignedEditAction
+      origin={origin}
+      language="en"
+      busy={false}
+      execute={execute}
+      onCreated={vi.fn()}
+      panelTarget={target}
+      onOpenChange={changed}
+    />,
+  );
+  const user = userEvent.setup();
+  await user.click(
+    screen.getByRole("button", { name: "Create an aligned 3D edit" }),
+  );
+  expect(changed).toHaveBeenLastCalledWith(true);
+  expect(
+    within(target).getByRole("region", { name: "3D edit task" }),
+  ).toBeVisible();
+  expect(view.container.querySelector(".aligned-edit-task")).toBeNull();
+  await user.click(
+    within(target).getByRole("button", { name: "Return to editor" }),
+  );
+  expect(changed).toHaveBeenLastCalledWith(false);
+  expect(target).toBeEmptyDOMElement();
+  expect(execute).not.toHaveBeenCalled();
+  expect(submit).not.toHaveBeenCalled();
+  view.unmount();
+  target.remove();
 });

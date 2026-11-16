@@ -6,7 +6,7 @@ import type { Deployment } from "../deployment/client";
 import { PropertyForm } from "../operations/PropertyForm";
 import "./editors.css";
 import { AlignedEditAction } from "./AlignedEditAction";
-import { FileSelect } from "../presentation/FileSelect";
+import { EditorCommands } from "./EditorCommands";
 import {
   molecularRecord,
   MoleculeSaveIntent,
@@ -39,6 +39,8 @@ export function Editors({
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
+  const [alignedOpen, setAlignedOpen] = useState(false);
+  const [alignedTarget, setAlignedTarget] = useState<HTMLElement | null>(null);
   const [message, setMessage] = useState(""),
     [error, setError] = useState("");
   const [propertyObject, setPropertyObject] = useState<ScientificObject | null>(
@@ -145,41 +147,76 @@ export function Editors({
     setOrigin(version);
     return version;
   }
+  function openFile(file: File) {
+    void action(async (editor) => {
+      if (file.size > 5 * 1024 ** 2) throw new Error("5 MiB maximum");
+      try {
+        await editor.setMolecule(await file.text());
+      } catch (cause) {
+        throw new Error(
+          zh
+            ? "无法打开此分子文件。请检查文件格式，或整理并恢复之前的绘图。"
+            : "Unable to open this molecule. Check the file format or prepare and restore the previous drawing.",
+          { cause },
+        );
+      }
+      setOrigin(null);
+    });
+  }
   return (
     <section className="editor-workspace">
-      <header className="research-heading">
-        <h1 className="sr-only">
-          {zh ? "从一个分子开始" : "Begin with a molecule"}
-        </h1>
-      </header>
-      <div
-        className="editor-tabs"
-        role="group"
-        aria-label={zh ? "编辑器选择" : "Choose editor"}
-      >
-        <button
-          aria-pressed={mode === "ketcher"}
-          onClick={() => {
-            setMode("ketcher");
-            setError("");
-          }}
-        >
-          {zh ? "分子绘图" : "Molecule sketch"} · Ketcher
-        </button>
-        <button
-          aria-pressed={mode === "molstar"}
-          onClick={() => {
-            setMode("molstar");
-            setProteinOpened(true);
-            setError("");
-          }}
-        >
-          {zh ? "蛋白与复合物" : "Proteins & complexes"} · Mol*
-        </button>
-        <button onClick={onSetup}>
-          {zh ? "管理编辑器" : "Manage editors"}
-        </button>
-      </div>
+      <h1 className="sr-only">
+        {zh ? "从一个分子开始" : "Begin with a molecule"}
+      </h1>
+      <EditorCommands
+        language={language}
+        mode={mode}
+        installed={Boolean(deployment?.installed[mode])}
+        unavailable={unavailable}
+        available={drawing.available}
+        needsPreparation={drawing.needsPreparation}
+        propertiesOpen={Boolean(propertyObject)}
+        alignedOpen={alignedOpen}
+        onMode={(value) => {
+          setMode(value);
+          if (value === "molstar") setProteinOpened(true);
+          setError("");
+        }}
+        onSetup={onSetup}
+        onOpen={openFile}
+        onSave={() =>
+          void action(async (editor) => {
+            if (!(await saveMolecule(editor))) return;
+            setMessage(
+              zh
+                ? "已保存，可在研究文件中继续使用。二维编辑不代表已预测三维姿势。"
+                : "Saved. Continue using this molecule in Research files. A 2D edit is not a predicted 3D pose.",
+            );
+          })
+        }
+        onProperties={() =>
+          void action(async (editor) => {
+            const saved = await saveMolecule(editor);
+            if (saved) setPropertyObject(saved);
+          })
+        }
+        onPrepare={() => void action(async () => drawing.prepare())}
+        alignedAction={
+          origin && (
+            <AlignedEditAction
+              origin={origin}
+              language={language}
+              busy={
+                unavailable || !drawing.available || Boolean(propertyObject)
+              }
+              execute={action}
+              onCreated={onCreated}
+              panelTarget={alignedTarget}
+              onOpenChange={setAlignedOpen}
+            />
+          )
+        }
+      />
       {!deployment ? (
         <div
           className="empty-state"
@@ -222,88 +259,6 @@ export function Editors({
         </div>
       ) : (
         <>
-          {mode === "ketcher" && (
-            <div className="editor-toolbar">
-              <label className="file-choice">
-                {zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"}
-                <FileSelect
-                  language={language}
-                  variant="compact"
-                  aria-label={
-                    zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"
-                  }
-                  accept=".mol,.sdf,.smi,.smiles"
-                  disabled={unavailable}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file)
-                      void action(async (editor) => {
-                        if (file.size > 5 * 1024 ** 2)
-                          throw new Error("5 MiB maximum");
-                        try {
-                          await editor.setMolecule(await file.text());
-                        } catch (cause) {
-                          throw new Error(
-                            zh
-                              ? "无法打开此分子文件。请检查文件格式，或整理并恢复之前的绘图。"
-                              : "Unable to open this molecule. Check the file format or prepare and restore the previous drawing.",
-                            { cause },
-                          );
-                        }
-                        setOrigin(null);
-                      });
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              <button
-                disabled={unavailable || !drawing.available}
-                title={
-                  zh
-                    ? "保存到工作台的分子文件库，后续任务可以直接选择。"
-                    : "Save to the Workbench asset library for subsequent tasks."
-                }
-                onClick={() =>
-                  void action(async (editor) => {
-                    if (!(await saveMolecule(editor))) return;
-                    setMessage(
-                      zh
-                        ? "已保存，可在研究文件中继续使用。二维编辑不代表已预测三维姿势。"
-                        : "Saved. Continue using this molecule in Research files. A 2D edit is not a predicted 3D pose.",
-                    );
-                  })
-                }
-              >
-                {zh ? "保存到工作台" : "Save to Workbench"}
-              </button>
-              <AlignedEditAction
-                origin={origin}
-                language={language}
-                busy={unavailable || !drawing.available}
-                execute={action}
-                onCreated={onCreated}
-              />
-              <button
-                disabled={unavailable || !drawing.available}
-                onClick={() =>
-                  void action(async (editor) => {
-                    const saved = await saveMolecule(editor);
-                    if (saved) setPropertyObject(saved);
-                  })
-                }
-              >
-                {zh ? "用这个分子计算性质" : "Calculate properties"}
-              </button>
-              {drawing.needsPreparation && (
-                <button
-                  disabled={unavailable}
-                  onClick={() => void action(async () => drawing.prepare())}
-                >
-                  {zh ? "整理为二维结构" : "Prepare 2D drawing"}
-                </button>
-              )}
-            </div>
-          )}
           {drawing.needsPreparation && mode === "ketcher" && !error && (
             <p className="error" role="alert">
               {drawing.ready
@@ -336,64 +291,67 @@ export function Editors({
             </button>
           )}
           {message && (
-            <p role="status" className="notice">
+            <p role="status" className="notice editor-status">
               {message}
             </p>
           )}
-          <p className="field-help">
-            {mode === "ketcher"
-              ? zh
-                ? "左侧选择原子或键，直接在画布中绘制；编辑器工具栏支持撤销、清理结构和导出。"
-                : "Choose atoms and bonds, then draw on the canvas. Use the editor toolbar to undo, clean and export."
-              : zh
-                ? "打开本地 PDB / mmCIF 文件；在 Mol* 中选择残基、查看序列、改变表示方式和保存视图。这是结构检查与显示编辑，不会替代蛋白序列设计或能量优化。"
-                : "Open local PDB / mmCIF files. Select residues, inspect sequences, change representations and save views. These are inspection and display edits, not protein sequence design or energy optimization."}
-          </p>
         </>
       )}
-      {deployment?.installed.ketcher && (
-        <iframe
-          ref={frame}
-          onLoad={() => {
-            setFrameGeneration((value) => value + 1);
-            setOrigin(null);
-            setMessage("");
-          }}
-          hidden={mode !== "ketcher"}
-          className="molecular-editor"
-          title="Ketcher molecular editor"
-          src="/tools/ketcher/index.html"
-        />
-      )}
-      {deployment?.installed.molstar && proteinOpened && (
-        <iframe
-          hidden={mode !== "molstar"}
-          className="molecular-editor"
-          title="Molstar protein structure viewer"
-          src="/molecular.html"
-        />
-      )}
-      {propertyObject && (
-        <section className="setup-card">
-          <div className="section-heading">
-            <h2>
-              {zh
-                ? "检查分子并计算性质"
-                : "Review molecule and calculate properties"}
-            </h2>
-            <button onClick={() => setPropertyObject(null)}>
-              {zh ? "关闭" : "Close"}
-            </button>
-          </div>
-          <PropertyForm
-            key={propertyObject.id}
-            initialFile={propertyObject.reference.asset_id}
-            scientificInput={propertyObject.reference}
-            language={language}
-            onCreated={onCreated}
-          />
-        </section>
-      )}
+      <div className="editor-stage" hidden={!deployment?.installed[mode]}>
+        <div className="editor-frames">
+          {deployment?.installed.ketcher && (
+            <iframe
+              ref={frame}
+              onLoad={() => {
+                setFrameGeneration((value) => value + 1);
+                setOrigin(null);
+                setMessage("");
+              }}
+              hidden={mode !== "ketcher"}
+              inert={!drawing.ready}
+              className="molecular-editor"
+              title="Ketcher molecular editor"
+              src="/tools/ketcher/index.html"
+            />
+          )}
+          {deployment?.installed.molstar && proteinOpened && (
+            <iframe
+              hidden={mode !== "molstar"}
+              className="molecular-editor"
+              title="Molstar protein structure viewer"
+              src="/molecular.html"
+            />
+          )}
+        </div>
+        <aside
+          className="editor-details"
+          aria-label={zh ? "分子研究操作" : "Molecule research actions"}
+          hidden={mode !== "ketcher" || !(alignedOpen || propertyObject)}
+        >
+          <div className="editor-aligned-target" ref={setAlignedTarget} />
+          {propertyObject && (
+            <section className="setup-card">
+              <div className="section-heading">
+                <h2>
+                  {zh
+                    ? "检查分子并计算性质"
+                    : "Review molecule and calculate properties"}
+                </h2>
+                <button onClick={() => setPropertyObject(null)}>
+                  {zh ? "关闭" : "Close"}
+                </button>
+              </div>
+              <PropertyForm
+                key={propertyObject.id}
+                initialFile={propertyObject.reference.asset_id}
+                scientificInput={propertyObject.reference}
+                language={language}
+                onCreated={onCreated}
+              />
+            </section>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }

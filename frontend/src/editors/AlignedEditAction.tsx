@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
 import type { Ketcher } from "./scientificEditor";
@@ -11,12 +12,16 @@ export function AlignedEditAction({
   busy,
   execute,
   onCreated,
+  panelTarget,
+  onOpenChange,
 }: {
   origin: ScientificObject | null;
   language: Language;
   busy: boolean;
   execute(fn: (editor: Ketcher) => Promise<void>): Promise<void>;
   onCreated(job: Job): void;
+  panelTarget?: HTMLElement | null;
+  onOpenChange?(open: boolean): void;
 }) {
   const zh = language === "zh",
     run = useTaskSubmit(onCreated);
@@ -34,7 +39,9 @@ export function AlignedEditAction({
     setOpen(false);
     setOriginal(null);
     setMolblock("");
+    onOpenChange?.(false);
   }, [origin?.id]);
+  useEffect(() => () => onOpenChange?.(false), [onOpenChange]);
   async function capture() {
     setReading(true);
     setError("");
@@ -66,12 +73,13 @@ export function AlignedEditAction({
           setMolblock("");
           setError("");
           setOpen(true);
+          onOpenChange?.(true);
         }}
       >
         {zh ? "生成对齐的三维编辑版本" : "Create an aligned 3D edit"}
       </button>
     );
-  return (
+  const panel = (
     <section
       className="aligned-edit-task"
       aria-label={zh ? "三维编辑任务" : "3D edit task"}
@@ -80,7 +88,10 @@ export function AlignedEditAction({
         type="button"
         className="secondary-button"
         disabled={busy || reading || run.busy}
-        onClick={() => setOpen(false)}
+        onClick={() => {
+          setOpen(false);
+          onOpenChange?.(false);
+        }}
       >
         {zh ? "返回编辑器" : "Return to editor"}
       </button>
@@ -180,4 +191,5 @@ export function AlignedEditAction({
       />
     </section>
   );
+  return panelTarget ? createPortal(panel, panelTarget) : panel;
 }

@@ -1,42 +1,241 @@
-.editor-tabs,
-.editor-toolbar {
+/* One active editor fills the available shell; hidden research tabs stay inert. */
+.studio-main:has(
+  > .studio-content
+    > :not([hidden])
+    > .combined-workspace
+    > :not([hidden])
+    > .editor-workspace
+) {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+  min-height: 0;
+}
+.studio-app
+  .studio-main:has(
+    > .studio-content
+      > :not([hidden])
+      > .combined-workspace
+      > :not([hidden])
+      > .editor-workspace
+  )
+  > .studio-content {
   display: flex;
-  gap: 10px;
+  min-height: 0;
+  max-width: none;
+  padding: 8px 20px 12px;
+  overflow: auto;
+}
+.studio-main
+  > .studio-content
+  > :not([hidden]):has(
+    > .combined-workspace > :not([hidden]) > .editor-workspace
+  ),
+.combined-workspace:has(> :not([hidden]) > .editor-workspace),
+.combined-workspace > :not([hidden]):has(> .editor-workspace) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+.studio-app
+  .combined-workspace:has(> :not([hidden]) > .editor-workspace)
+  > .workspace-tabs {
+  flex: 0 0 auto;
+  min-height: 36px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+.studio-app .editor-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+.studio-app .editor-command-bar {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  flex: 0 0 auto;
+  gap: 6px 12px;
+  padding: 0 0 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
 }
-.editor-tabs button[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--accent-contrast);
-  border-color: var(--ink);
+.studio-app .editor-workspace .editor-tabs,
+.studio-app .editor-workspace .editor-toolbar,
+.editor-command-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
-.editor-tabs button:last-child {
+.studio-app .editor-workspace .editor-tabs button:last-child {
+  margin-left: 0;
+}
+.studio-app .editor-workspace .editor-tabs button[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.editor-command-tools {
   margin-left: auto;
 }
-.editor-empty {
-  min-height: 380px;
+.studio-app .editor-command-bar button,
+.editor-command-bar .file-select.is-compact,
+.editor-help > summary {
+  min-height: 32px;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.editor-help {
+  position: relative;
+}
+.editor-help > summary {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  padding: 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--muted);
+}
+.editor-help > summary::-webkit-details-marker {
+  display: none;
+}
+.editor-help > p {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 30;
+  width: min(340px, calc(100vw - 40px));
+  margin: 6px 0 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+}
+.editor-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 320px;
+}
+.editor-stage:has(> .editor-details:not([hidden])) {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+}
+.editor-frames {
   display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+.studio-app .editor-workspace .molecular-editor {
+  display: block;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--chart-bg);
+}
+.editor-stage[hidden],
+.editor-details[hidden],
+.studio-app .editor-workspace .molecular-editor[hidden] {
+  display: none;
+}
+.editor-details {
+  min-width: 0;
+  min-height: 0;
+  padding: 0 0 0 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.editor-details .setup-card {
+  padding: 12px;
+  border: 0;
+  background: transparent;
+}
+.editor-details h2 {
+  font-size: 15px;
+}
+.editor-details .aligned-edit-task {
+  padding: 0 4px;
+}
+.studio-app .editor-details .questionnaire-steps {
+  grid-template-columns: repeat(5, 32px);
+  justify-content: start;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.editor-details .questionnaire-steps button {
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  gap: 0;
+  border: 0;
+}
+/* Titles remain in each button's accessible name and native tooltip; the
+   current step is written in full immediately beneath this compact track. */
+.editor-details .questionnaire-steps button > span:last-child {
+  display: none;
+}
+.editor-details .questionnaire-steps button > span:first-child {
+  flex-basis: 28px;
+  width: 28px;
+  height: 28px;
+}
+.editor-details :is(fieldset, .questionnaire) {
+  min-width: 0;
+}
+.editor-details :is(p, dd, strong) {
+  overflow-wrap: anywhere;
+}
+.editor-details .questionnaire-heading {
+  font-size: 16px;
+}
+.editor-workspace > .error,
+.editor-workspace > .notice {
+  margin: 0 0 8px;
+}
+.studio-app .editor-workspace > .editor-status {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.studio-app .editor-workspace .editor-empty {
+  display: flex;
+  flex: 1;
+  min-height: 200px;
+  padding: 20px;
+  gap: 12px;
+  text-align: center;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  background: var(--surface);
 }
 .editor-empty .step-number {
-  font-size: 70px;
+  font-size: 36px;
 }
-.editor-empty p {
-  color: var(--muted);
-}
-.molecular-editor {
-  width: 100%;
-  height: max(600px, 75vh);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-}
+/* The retained research-file picker also uses this shared label. */
 .file-choice {
   cursor: pointer;
   display: flex;
@@ -44,4 +243,33 @@
   align-items: center;
   font-size: var(--text-small, 13px);
   padding: 6px 0;
+}
+@media (max-width: 960px) {
+  .editor-stage:has(> .editor-details:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(320px, 1fr) minmax(260px, auto);
+    min-height: 580px;
+    gap: 12px;
+  }
+  .editor-details {
+    padding: 12px 0 0;
+    border-top: 1px solid var(--line);
+  }
+}
+@media (max-width: 640px) {
+  .studio-app .editor-command-bar {
+    gap: 6px 8px;
+  }
+  .editor-command-tools {
+    order: 1;
+    margin-left: auto;
+  }
+  .studio-app .editor-workspace .editor-toolbar {
+    order: 2;
+    width: 100%;
+  }
+  .editor-help > p {
+    right: auto;
+    left: 0;
+  }
 }
