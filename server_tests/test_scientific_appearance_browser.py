@@ -71,8 +71,9 @@ def test_native_scientific_surface_and_export_survive_theme_changes(tmp_path, la
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
         context = browser.new_context(viewport={"width": width, "height": 1000})
         context.add_init_script(
+            f"if (location.origin === {json.dumps(base)}) {{"
             f"localStorage.setItem('opendde-workbench.language','{language}');"
-            "localStorage.setItem('x-dde-theme','light')"
+            "localStorage.setItem('x-dde-theme','light');}"
         )
         context.on(
             "page", lambda page: page.on("pageerror", lambda error: errors.append(str(error)))
