@@ -1,5 +1,6 @@
 """Native scientific paper contrast, retained view and real figures; no inference."""
 
+import base64
 import hashlib
 import json
 import os
@@ -38,7 +39,17 @@ def settled_frame(frame, iframe, path):
     frame.evaluate(
         "() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))"
     )
-    return hashlib.sha256(iframe.screenshot(path=path)).hexdigest()
+    iframe.screenshot(path=path)
+    # Composited screenshots can include the parent's sticky header/zoom buttons.
+    # The native canvas preserves its drawing buffer for the SDK's own PNG export.
+    encoded = frame.locator("#molecule canvas").first.evaluate(
+        "canvas => canvas.toDataURL('image/png')"
+    )
+    assert encoded.startswith("data:image/png;base64,")
+    native = base64.b64decode(encoded.split(",", 1)[1], validate=True)
+    assert len(native) > 10000, "An empty native canvas cannot establish view preservation"
+    path.with_stem(path.stem + "-native").write_bytes(native)
+    return hashlib.sha256(native).hexdigest()
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
