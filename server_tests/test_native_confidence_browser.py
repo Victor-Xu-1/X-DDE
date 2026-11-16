@@ -224,17 +224,23 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         writes = []
         page.on("request", lambda r: writes.append(r.url) if r.method == "POST" else None)
         page.goto(base + "/#view=new&tool=fold")
-        picker = page.get_by_role("combobox", name="研究任务" if zh else "Research task", exact=True)
+        picker = page.get_by_role(
+            "combobox", name="研究任务" if zh else "Research task", exact=True
+        )
         expect(picker).to_be_visible()
         page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
-        result = page.get_by_role("region", name="模板的真实结果" if zh else "Actual template result")
+        result = page.get_by_role(
+            "region", name="模板的真实结果" if zh else "Actual template result"
+        )
         expect(result.locator('.prediction-example-source')).to_contain_text("OpenDDE")
         expect(picker).to_be_hidden()
         export = result.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")
         expect(export).to_be_enabled(timeout=30000)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         iframe = result.locator(".molecular-stage iframe").element_handle()
-        result.get_by_role("button", name="展开研究工作区" if zh else "Expand research workspace").click()
+        result.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace"
+        ).click()
         page.get_by_role("button", name="关闭展开视图" if zh else "Close expanded view").click()
         assert result.locator(".molecular-stage iframe").evaluate(
             "(node, original) => node === original", iframe
@@ -244,7 +250,9 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
             "button", name="返回任务填写" if zh else "Return to task form", exact=True
         ).click()
         expect(picker).to_be_visible()
-        expect(page.get_by_role("group", name="后端模型" if zh else "Backend method")).to_be_visible()
+        expect(page.get_by_role(
+            "group", name="后端模型" if zh else "Backend method"
+        )).to_be_visible()
         assert not writes
         assert before == {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
         browser.close()
