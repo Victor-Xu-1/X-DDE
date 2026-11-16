@@ -16,7 +16,9 @@ from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_admet_workspace_browser import saved_workspace  # noqa: F401
 from server_tests.test_navigation_shell_browser import open_navigation
 from server_tests.utility_workspace_capture import (
-    capture_utility_result, capture_utility_space, load_utility_template,
+    capture_utility_result,
+    capture_utility_space,
+    load_utility_template,
 )
 
 UTILITIES = {
