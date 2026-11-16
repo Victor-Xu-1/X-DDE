@@ -1,0 +1,98 @@
+.interaction-results {
+  min-width: 0;
+}
+.interaction-result-method {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.interaction-result-method strong {
+  color: var(--ink);
+}
+.interaction-residue {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.interaction-results .research-table td {
+  overflow-wrap: normal;
+}
+.studio-app .interaction-results :is(.research-table, .viewer-panel) {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.interaction-results .structure-workbench:not([data-workspace-expanded]) {
+  grid-template-columns: minmax(0, 1.8fr) minmax(350px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: max(560px, calc(100dvh - 240px));
+  align-items: stretch;
+  gap: 20px;
+}
+.interaction-results
+  .structure-workbench:not([data-workspace-expanded])
+  > .structure-workbench-view {
+  display: block;
+  min-height: 0;
+}
+.interaction-results
+  .structure-workbench:not([data-workspace-expanded])
+  .viewer-panel {
+  height: 100%;
+}
+.studio-app
+  .interaction-results
+  .structure-workbench:not([data-workspace-expanded])
+  .molecular-stage {
+  flex: 1 1 auto;
+  min-height: 260px;
+  height: auto;
+}
+.interaction-results
+  .structure-workbench:not([data-workspace-expanded])
+  > .structure-workbench-details {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.interaction-results .research-table {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.interaction-results .research-table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+html
+  body
+  .studio-app
+  .studio-content:has(> .tool-center.is-result .interaction-results)
+  > .module-task-picker {
+  display: none;
+}
+@media (max-width: 1000px) {
+  .interaction-results .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    height: auto;
+  }
+  .studio-app
+    .interaction-results
+    .structure-workbench:not([data-workspace-expanded])
+    .molecular-stage {
+    flex: none;
+    height: clamp(360px, 55dvh, 520px);
+  }
+  .interaction-results .research-table-scroll {
+    max-height: 520px;
+  }
+}
