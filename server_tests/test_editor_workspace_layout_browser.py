@@ -52,6 +52,9 @@ def test_editor_canvas_and_adjacent_actions_preserve_the_native_drawing(language
         assert page.evaluate("document.documentElement.scrollHeight <= innerHeight + 1")
         owner.locator(".editor-help > summary").click()
         expect(owner.locator(".editor-help > p")).to_be_visible()
+        help_box = owner.locator(".editor-help > p").bounding_box()
+        assert help_box["x"] >= 0 and help_box["x"] + help_box["width"] <= width + 1
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         assert abs(frame.bounding_box()["height"] - box["height"]) < 1
         owner.locator(".editor-help > summary").click()
         owner.get_by_role("button", name="生成对齐的三维编辑版本" if zh else "Create an aligned 3D edit", exact=True).click()

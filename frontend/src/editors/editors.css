@@ -55,6 +55,7 @@
   min-height: 0;
 }
 .studio-app .editor-command-bar {
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -271,5 +272,8 @@
   .editor-help > p {
     right: auto;
     left: 0;
+  }
+  .editor-help {
+    position: static;
   }
 }
