@@ -172,6 +172,9 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         page.mouse.move(
             hit["x"] + hit["width"] * 0.55, hit["y"] + hit["height"] * 0.65, steps=10
         )
+        page.wait_for_function("""() => [...document.querySelectorAll('.select-outline')]
+            .some(node => { const box = node.getBoundingClientRect();
+                return box.width >= 20 && box.height >= 20; })""", timeout=5000)
         page.mouse.up()
         expect(sequence.get_by_role("checkbox", checked=True)).not_to_have_count(1)
         assert sequence.get_by_role("checkbox", checked=True).count() >= 40
