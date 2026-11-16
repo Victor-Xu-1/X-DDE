@@ -243,6 +243,7 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
 ):
     settings, store = prediction_example_workspace
     evidence = Path("outputs/native-confidence") / f"example-{language}"
+    evidence.mkdir(parents=True, exist_ok=True)
     before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
     zh = language == "zh"
     with (
@@ -254,7 +255,7 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         writes = []
         page.on("request", lambda r: writes.append(r.url) if r.method == "POST" else None)
-        page.goto(base + "/#view=new&tool=fold")
+        page.goto(base + "/#view=new&tool=predict")
         picker = page.get_by_role(
             "combobox", name="研究任务" if zh else "Research task", exact=True
         )
@@ -265,7 +266,9 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         )
         expect(result.locator('.prediction-example-source')).to_contain_text("OpenDDE")
         expect(picker).to_be_hidden()
-        export = result.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")
+        export = result.locator(".viewer-panel").get_by_role(
+            "button", name="文献图导出 ↓" if zh else "Export figure ↓"
+        )
         expect(export).to_be_enabled(timeout=30000)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         iframe = result.locator(".molecular-stage iframe").element_handle()
