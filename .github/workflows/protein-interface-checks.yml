@@ -26,32 +26,21 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       native: ${{ steps.files.outputs.native }}
+      interaction_only: ${{ steps.contact.outputs.interaction_only }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - id: files
-        name: Select native execution only for changed scientific code or an explicit request
-        run: |
-          python - <<'PY'
-          import json, os, runpy, subprocess
-          event = json.load(open(os.environ['GITHUB_EVENT_PATH']))
-          if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
-              native = str(event.get('inputs', {}).get('native', 'false')).lower() == 'true'
-          elif not event.get('before') or set(event['before']) == {'0'}:
-              print('First branch push: verify the native interface once.')
-              native = True
-          else:
-              present = subprocess.run(['git', 'cat-file', '-e', event['before'] + '^{commit}'], capture_output=True).returncode == 0
-              if not present:
-                  subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', event['before']], check=True)
-              files = subprocess.check_output(['git', 'diff', '--name-only', event['before'], 'HEAD'], text=True).splitlines()
-              select = runpy.run_path('scripts/protein-interface-scope.py')['native_changed']
-              native = select(files)
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write('native=' + str(native).lower() + '\n')
-          PY
+        name: Select native execution from actual scientific changes or an explicit request
+        run: python scripts/protein-interface-scope.py
+      - id: contact
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python scripts/interaction-workspace-scope.py
   contracts-and-preview:
+    needs: native-scope
+    if: needs.native-scope.outputs.interaction_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:

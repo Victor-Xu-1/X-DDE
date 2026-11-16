@@ -19,6 +19,9 @@ SOURCES = {
 FILES = SOURCES | {
     "scripts/interaction-workspace-scope.py",
     "tests/test_interaction_workspace_scope.py",
+    "scripts/protein-interface-scope.py",
+    "tests/test_protein_interface_scope.py",
+    ".github/workflows/protein-interface-checks.yml",
     ".github/workflows/structure-layout-checks.yml",
     ".github/workflows/restraint-guidance-checks.yml",
     ".github/workflows/user-interface-checks.yml",
