@@ -225,6 +225,31 @@ it("preserves input after failed preparation, then replaces only on successful r
   );
 });
 
+it("prevents submitting the old form while replacement template inputs are pending", async () => {
+  let finish!: (value: PreparedExample) => void;
+  transport.post.mockReturnValueOnce(
+    new Promise<PreparedExample>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const user = userEvent.setup(),
+    accepted = vi.fn();
+  render(<UtilityTask tool="properties" language="en" onCreated={accepted} />);
+  await user.type(screen.getByLabelText("Molecule input"), "manual molecule");
+  await user.click(
+    await screen.findByRole("button", { name: "Use this template" }),
+  );
+  expect(screen.getByRole("button", { name: "Accept task" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Accept task" }));
+  expect(accepted).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("Molecule input")).toHaveValue("manual molecule");
+  await act(async () => {
+    finish(prepared("properties"));
+  });
+  expect(screen.getByRole("button", { name: "Accept task" })).toBeEnabled();
+  expect(screen.getByLabelText("Molecule input")).toHaveValue("STAT6 properties");
+});
+
 it.each(["admet", "brain"] satisfies MolecularUtility[])(
   "starts a blank %s task only after explicit reset of an accepted manual task",
   async (tool) => {
