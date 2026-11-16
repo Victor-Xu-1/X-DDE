@@ -23,18 +23,15 @@ def calculation_values(aside, zh):
 
 
 def fill_current_materials(page, sequence, zh):
-    protein = page.get_by_role("textbox", name=(
-        "单字母氨基酸序列" if zh else "One-letter amino-acid sequence"
-    ), exact=True)
+    form = page.locator(".prediction-form-body:visible")
+    protein = form.locator('[data-entity-kind="protein"] textarea').first
     if not protein.is_visible():
         page.locator(".questionnaire:visible").get_by_role(
             "button", name="下一步" if zh else "Next", exact=True
         ).click()
     expect(protein).to_have_value("")
     protein.fill(sequence)
-    ligand = page.get_by_role("textbox", name=(
-        "SMILES 或 CCD_ 编号" if zh else "SMILES or CCD_ identifier"
-    ), exact=True)
+    ligand = form.locator('[data-entity-kind="ligand"] textarea').first
     has_ligand = ligand.is_visible()
     if has_ligand:
         expect(ligand).to_have_value("")
