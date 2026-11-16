@@ -16,6 +16,7 @@ FILES = SOURCES | {
     "scripts/interaction-workspace-scope.py",
     "tests/test_interaction_workspace_scope.py",
     ".github/workflows/structure-layout-checks.yml",
+    ".github/workflows/restraint-guidance-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/task-layout-checks.yml",
     "docs/frontend-layout.md",

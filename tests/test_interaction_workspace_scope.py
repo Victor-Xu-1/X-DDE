@@ -32,3 +32,6 @@ def test_both_unrelated_layout_jobs_delegate_to_the_contact_gate():
     for job in ("view-alignment", "adjacent-result-consumers"):
         body = workflow.split("  " + job + ":", 1)[1].split("    steps:", 1)[0]
         assert "needs.scope.outputs.interaction_only != 'true'" in body
+    guidance = Path(".github/workflows/restraint-guidance-checks.yml").read_text()
+    body = guidance.split("  frontend-guidance:", 1)[1].split("    steps:", 1)[0]
+    assert "needs.scope.outputs.interaction_only != 'true'" in body
