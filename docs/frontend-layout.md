@@ -856,6 +856,8 @@ Both preview paths verify the complete source bytes against the recorded digest
 before enabling preparation; the registered asset must identify the same source.
 Missing or changed source bytes cannot leave an older preview or action enabled.
 The unmodified source download remains available during a preview failure.
+Desktop reference views use approximately three quarters of the working width,
+with a compact preparation/download column; narrow screens retain a single column.
 The molecular reader reuses the shared streamed byte limiter with a tighter
 5 MiB cap, while existing 3D consumers retain their original 10 MB cap.
 Only active reference results hide the new-task method picker; returning to the

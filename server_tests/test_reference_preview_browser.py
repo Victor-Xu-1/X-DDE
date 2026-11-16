@@ -138,7 +138,7 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 next_step = workspace.get_by_role("button", name=(
                     "准备研究结构" if zh else "Prepare research structure"
                 ) if kind == "structure" else (
-                    "准备分子与构象" if zh else "Prepare molecular states/conformers"
+                    "准备分子" if zh else "Prepare molecule"
                 ), exact=True)
                 expect(next_step).to_be_disabled()
                 page.screenshot(path=evidence / "source-mismatch.png")
@@ -176,6 +176,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 assert bounds and details and bounds["height"] >= 250
                 if width > 1000:
                     assert bounds["x"] < details["x"] and bounds["width"] > details["width"]
+                    working = workspace.locator(".structure-workbench").bounding_box()
+                    assert working and bounds["width"] >= working["width"] * 0.67
                 else:
                     assert details["y"] >= bounds["y"] + bounds["height"]
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")

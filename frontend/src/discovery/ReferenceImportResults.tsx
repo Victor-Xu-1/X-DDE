@@ -100,8 +100,8 @@ export function ReferenceImportResults({
         <h3>{result.identifier}</h3>
         <p className="field-help">
           {zh
-            ? "已保存原始参考材料。用于计算前，请按需要完成结构或分子准备。"
-            : "Original reference saved. Prepare the structure or molecule when you are ready to start a study."}
+            ? "原始参考材料，计算前请先准备。"
+            : "Original reference; prepare before computation."}
         </p>
         <div className="reference-import-actions">
           {result.reference && onCreated && result.kind === "structure" && (
@@ -122,7 +122,7 @@ export function ReferenceImportResults({
               disabled={!ready}
               onClick={() => openNext("states")}
             >
-              {zh ? "准备分子与构象" : "Prepare molecular states/conformers"}
+              {zh ? "准备分子" : "Prepare molecule"}
             </button>
           )}
           {result.reference &&
