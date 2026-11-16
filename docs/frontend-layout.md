@@ -803,6 +803,17 @@ provenance stays available under one disclosure. CSV and source SDF downloads
 remain unchanged, and structure verification uses the retained artifact hash.
 New-task model selection returns when leaving the saved example for its form.
 
+## Target evidence results
+
+Saved disease and target evidence uses a compact header, source states and inline
+counts above the evidence table. The input-only task/backend selector is hidden
+only while this result is present; returning to the questionnaire restores it.
+Source totals, retrieved subsets, unavailable-source notices, score meanings and
+native CSV precision are preserved. Other import and library views keep their
+existing shared styles. The focused discovery gate checks retained disease and
+STAT6 target results in English desktop and Chinese narrow Google Chrome without
+new database queries, scientific tasks or native DEL execution.
+
 ## Brain-penetration utility
 
 The brain utility is an ADMET-AI task profile using the same molecular input,

@@ -273,6 +273,8 @@ on:
       - "!frontend/src/diffsbdd/ReferencePocketResults.tsx"
       - "!frontend/src/diffsbdd/interaction-results.css"
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
+      # Native target evidence is checked by dataset-discovery-checks.yml.
+      - "!frontend/src/discovery/TargetResearchResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"
@@ -592,6 +594,8 @@ on:
       - "!frontend/src/diffsbdd/ReferencePocketResults.tsx"
       - "!frontend/src/diffsbdd/interaction-results.css"
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
+      # Native target evidence is checked by dataset-discovery-checks.yml.
+      - "!frontend/src/discovery/TargetResearchResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"

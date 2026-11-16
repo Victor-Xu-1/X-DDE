@@ -161,7 +161,7 @@ export function TargetResearchResults({
         ]),
   ];
   return (
-    <div className="discovery-results">
+    <div className="discovery-results target-evidence-results">
       <EvidenceSummary result={result} language={language} />
       {tabs.length <= 1 ? (
         tabs[0]?.content
