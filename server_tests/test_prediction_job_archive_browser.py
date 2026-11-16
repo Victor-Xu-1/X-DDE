@@ -49,7 +49,22 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             task_hash = (
                 "#view=results&module=structures&status=succeeded&task=" if scoped else "#task="
             )
-            page.goto(base + "/" + task_hash + job_id)
+            # Titles deliberately stay neutral until the retained origin is verified.
+            # Wait for that authoritative response, not a shorter generic UI timeout.
+            with page.expect_response(
+                lambda response, expected=job_id: response.request.method == "GET"
+                and response.url.endswith(f"/api/task-history/{expected}/identity"),
+                timeout=15000,
+            ) as source_response:
+                page.goto(base + "/" + task_hash + job_id)
+            response = source_response.value
+            assert response.ok
+            identity = response.json()
+            assert identity["job_id"] == job_id and identity["origin"] == "fixed_example"
+            assert any(
+                "STAT6" in text for case in identity["example_cases"] for text in case["label"]
+            )
+            (evidence / f"{capability}-identity.json").write_text(json.dumps(identity))
             heading = page.locator(".prediction-result-heading")
             expect(heading.get_by_role("heading")).to_contain_text("STAT6")
             expect(heading.locator("time")).to_have_attribute("datetime", job.created_at)
