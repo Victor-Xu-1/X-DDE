@@ -166,12 +166,15 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
         hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
-        page.mouse.move(hit["x"] + hit["width"] * 0.08, hit["y"] + hit["height"] * 0.7)
+        # Keep the gesture above the native drag threshold even in a short pane.
+        page.mouse.move(hit["x"] + hit["width"] * 0.15, hit["y"] + hit["height"] * 0.25)
         page.mouse.down()
-        page.mouse.move(hit["x"] + hit["width"] * 0.15, hit["y"] + hit["height"] * 0.8, steps=10)
+        page.mouse.move(
+            hit["x"] + hit["width"] * 0.55, hit["y"] + hit["height"] * 0.65, steps=10
+        )
         page.mouse.up()
         expect(sequence.get_by_role("checkbox", checked=True)).not_to_have_count(1)
-        assert sequence.get_by_role("checkbox", checked=True).count() >= 10
+        assert sequence.get_by_role("checkbox", checked=True).count() >= 40
         matrix.screenshot(path=str(evidence / "linked-pae.png"))
         panel.get_by_text("逐原子置信度" if zh else "Atom confidence", exact=True).click()
         plot = panel.locator(".research-plot").filter(
