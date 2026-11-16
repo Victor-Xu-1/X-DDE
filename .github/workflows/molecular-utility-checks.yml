@@ -11,6 +11,8 @@ on:
       - "frontend/src/chemistry/LibraryScreenQuestions.tsx"
       - "frontend/src/chemistry/MolecularToolReview.test.tsx"
       - "frontend/src/utilities/UtilityWorkspace*"
+      - "frontend/src/utilities/UtilityTask*"
+      - "frontend/src/utilities/UtilityBrainSubmission.test.tsx"
       - "frontend/src/operations/ToolCenter.tsx"
       - "frontend/src/operations/catalog.ts"
       - "frontend/src/studio/research-modules.ts"
@@ -99,7 +101,8 @@ jobs:
             src/admet/AdmetForm.test.tsx \
             src/admet/AdmetResults.test.tsx \
             src/admet/EndpointValue.test.tsx \
-            src/admet/BrainForm.test.tsx \
+            src/utilities/UtilityBrainSubmission.test.tsx \
+            src/utilities/UtilityTask.test.tsx \
             src/admet/BrainScope.test.tsx \
             src/utilities/UtilityWorkspace.test.tsx \
             src/studio/MethodSwitch.test.tsx \

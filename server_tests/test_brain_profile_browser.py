@@ -84,7 +84,9 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
             capture_input_review(page, review, evidence)
 
             # A BBB view of a real ADMET result is not a newly computed brain task.
-            page.goto(base + "/#view=new&tool=admet.predict")
+            page.get_by_role(
+                "button", name="ADMET 预测" if zh else "ADMET prediction", exact=True
+            ).click()
             page.get_by_role(
                 "button", name="示例结果" if zh else "Example results", exact=True
             ).click()
@@ -121,6 +123,13 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
             assert hashlib.sha256(path.read_bytes()).hexdigest() == native["csv_sha256"]
             page.screenshot(path=evidence / "native-bbb-workspace.png", full_page=True)
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            page.get_by_role(
+                "button", name="返回任务填写" if zh else "Return to task form", exact=True
+            ).click()
+            page.get_by_role(
+                "button", name="透脑评估" if zh else "Brain penetration", exact=True
+            ).click()
+            expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             assert page.request.get(base + "/api/jobs").json() == before
             assert not calculations and not errors, {"calculations": calculations, "errors": errors}
             browser.close()

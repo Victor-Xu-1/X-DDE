@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
 import { api } from "../api";
-import { BrainForm } from "./BrainForm";
+import { UtilityTask } from "./UtilityTask";
 
 vi.mock("../examples/ExampleActions", () => ({ ExampleActions: () => null }));
 const reference = {
@@ -48,7 +48,9 @@ it.each(["en", "zh"] as const)(
     const submit = vi
       .spyOn(api, "submit")
       .mockRejectedValue(new Error("Engine remains off"));
-    render(<BrainForm language={language} onCreated={vi.fn()} />);
+    render(
+      <UtilityTask tool="brain" language={language} onCreated={vi.fn()} />,
+    );
     const next = () =>
       user.click(screen.getByRole("button", { name: zh ? "下一步" : "Next" }));
     await next();

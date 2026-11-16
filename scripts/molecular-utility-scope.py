@@ -16,8 +16,9 @@ SOURCES = {
     "frontend/src/admet/AdmetForm.tsx",
     "frontend/src/admet/AdmetResults.tsx",
     "frontend/src/admet/AdmetSettings.tsx",
-    "frontend/src/admet/BrainForm.test.tsx",
-    "frontend/src/admet/BrainForm.tsx",
+    "frontend/src/utilities/UtilityTask.tsx",
+    "frontend/src/utilities/UtilityTask.test.tsx",
+    "frontend/src/utilities/UtilityBrainSubmission.test.tsx",
     "frontend/src/admet/BrainScope.test.tsx",
     "frontend/src/admet/BrainScope.tsx",
     "frontend/src/admet/EndpointTable.tsx",
@@ -47,6 +48,8 @@ RETIRED = {
     "scripts/brain-profile-scope.py",
     "tests/test_brain_profile_scope.py",
     "frontend/src/admet/brain.css",
+    "frontend/src/admet/BrainForm.tsx",
+    "frontend/src/admet/BrainForm.test.tsx",
 }
 FILES = SOURCES | RETIRED | {
     ".github/workflows/library-screen-checks.yml",

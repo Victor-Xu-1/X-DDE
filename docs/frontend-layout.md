@@ -845,3 +845,19 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+## Utility templates and saved examples
+
+Each molecule utility offers the existing reviewed template and saved-example
+controls directly beside its form. General ADMET, brain assessment, properties,
+library selection and state preparation share one template/form lifecycle. New
+tools start blank; loading a template is explicit and affects only that tool.
+Switching visited tabs retains their unfinished inputs. Opening an example hides
+the current form, and returning preserves it. Clearing a loaded template or
+starting another accepted manual task creates a fresh form for that utility.
+
+The existing example service owns preparation, source identity, saved result
+selection and error/retry. A utility without a computed example labels its view
+as study inputs; a brain-profile input is not presented as a new computed result.
+No template, navigation or preview action enables a scientific engine or submits
+a computation. The shared lifecycle replaces the former brain-only wrapper.
