@@ -11,7 +11,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
-from server_tests.molecular_review_capture import capture_input_review
+from server_tests.molecular_review_capture import capture_input_review, launch_review_browser
 from server_tests.publication_browser_helpers import export_figure
 from server_tests.test_admet_workspace_browser import saved_workspace  # noqa: F401
 
@@ -37,7 +37,7 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
     errors, computations = [], []
     with platform(admet_saved_workspace.state_dir, evidence / "service.log") as base:
         with sync_playwright() as driver:
-            browser = driver.chromium.launch()
+            browser = launch_review_browser(driver)
             page = browser.new_page(viewport={"width": width, "height": 1000})
             page.add_init_script(
                 f"localStorage.setItem('opendde-workbench.language', '{language}');"

@@ -839,3 +839,6 @@ On the active molecular review step, the final actions follow the content so tha
 availability notices and recheck controls remain unobscured. Earlier steps retain
 the existing action placement. Browser evidence records initial and scrolled
 viewport states separately instead of freezing a sticky header mid-page.
+The focused utility gate runs Playwright against the hosted runner's installed
+Google Chrome channel and records the browser build and CSS viewport in its
+geometry receipts. It does not install or control the owner's desktop browser.

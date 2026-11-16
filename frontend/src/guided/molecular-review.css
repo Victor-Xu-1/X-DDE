@@ -25,6 +25,12 @@
   min-height: 0;
   padding: 0;
 }
+.molecular-input-review .molecule-drawing-style {
+  align-self: flex-end;
+}
+.molecular-input-review .molecule-drawing-style select {
+  max-width: 220px;
+}
 .molecular-input-review .molecule-inspection-view {
   display: flex;
   flex: 1 1 auto;

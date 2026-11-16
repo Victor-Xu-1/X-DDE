@@ -5,6 +5,13 @@ import json
 from playwright.sync_api import expect
 
 
+def launch_review_browser(driver):
+    """Use the hosted runner's installed Google Chrome, with no browser fallback."""
+    return driver.chromium.launch(
+        channel="chrome", args=["--enable-unsafe-swiftshader"]
+    )
+
+
 def capture_input_review(page, review, evidence):
     recheck = page.get_by_role(
         "button", name="Check environment again", exact=True
@@ -19,8 +26,8 @@ def capture_input_review(page, review, evidence):
         }""")
         assert unobscured, "The review actions or header obscure the environment recheck"
         page.screenshot(path=evidence / "input-review-controls-viewport.png")
-    page.evaluate("""() => {
-      const form = document.querySelector('.questionnaire');
+    review.evaluate("""review => {
+      const form = review.closest('.questionnaire');
       for (let node = form?.parentElement; node; node = node.parentElement)
         node.scrollTo({top: 0, left: 0, behavior: 'instant'});
       window.scrollTo({top: 0, left: 0, behavior: 'instant'});
@@ -32,12 +39,25 @@ def capture_input_review(page, review, evidence):
       };
       const form = node.closest('.questionnaire');
       const actions = form.querySelector('.questionnaire-actions');
+      const select = node.querySelector('.molecule-drawing-style select');
+      const style = getComputedStyle(select);
+      const context = document.createElement('canvas').getContext('2d');
+      context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      const label = select.selectedOptions[0].textContent.trim();
+      const labelWidth = context.measureText(label).width;
       return {scrollY, viewport: {width: innerWidth, height: innerHeight},
         drawing: rect(node.querySelector('.molecule-image')),
         summary: rect(node.querySelector('.molecular-input-summary')),
-        actions: rect(actions), actionsPosition: getComputedStyle(actions).position};
+        actions: rect(actions), actionsPosition: getComputedStyle(actions).position,
+        lineControl: {label, labelWidth, width: select.clientWidth,
+          fits: labelWidth + 32 <= select.clientWidth}};
     }""")
     assert geometry["actionsPosition"] == "static"
+    assert geometry["lineControl"]["fits"], geometry["lineControl"]
+    geometry["browser"] = {
+        "version": page.context.browser.version,
+        "user_agent": page.evaluate("navigator.userAgent"),
+    }
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     (evidence / "input-review-geometry.json").write_text(json.dumps(geometry, indent=2))
     page.screenshot(path=evidence / "molecular-input-workspace.png", full_page=True)
