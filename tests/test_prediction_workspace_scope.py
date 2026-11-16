@@ -252,7 +252,8 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
     assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in antibody
     cdr = antibody.split("  cdr-inputs:", 1)[1].split("    runs-on:", 1)[0]
     needs = next(line for line in cdr.splitlines() if line.strip().startswith("needs:"))
-    dependencies = {entry.strip() for entry in needs.split("[", 1)[1].split("]", 1)[0].split(",")}
+    entries = needs.split("[", 1)[1].split("]", 1)[0].split(",")
+    dependencies = {entry.strip() for entry in entries}
     assert {"case-scope", "prediction-scope", "utility-scope"} <= dependencies
     assert "needs.prediction-scope.outputs.job_review_layout != 'true'" in antibody
 
