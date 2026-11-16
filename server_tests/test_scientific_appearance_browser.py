@@ -16,7 +16,7 @@ from server_tests.appearance_preview import load_reference, rendered_background
 from server_tests.browser_platform import platform
 from server_tests.native_confidence_case import native_case
 from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
-from server_tests.test_appearance_browser import PALETTES
+from server_tests.test_appearance_browser import PALETTES, canonical_hex
 from server_tests.test_navigation_shell_browser import settings
 
 
@@ -97,9 +97,9 @@ def test_native_scientific_surface_and_export_survive_theme_changes(tmp_path, la
             group.get_by_role("radio", name=cn if zh else en, exact=True).check()
             for target in (control, page, preview, frame):
                 expect(target.locator("html")).to_have_attribute("data-theme", theme)
-            assert page.evaluate(
+            assert canonical_hex(page.evaluate(
                 "getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim()"
-            ) == canvas
+            )) == canvas
             expect(plot.get_by_role("application")).to_have_attribute("aria-busy", "false")
             assert plot.get_by_role("application").evaluate(
                 "node => getComputedStyle(node).backgroundColor"
