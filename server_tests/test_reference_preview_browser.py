@@ -170,6 +170,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                                                          "Export figure ↓"), evidence,
                                   "native-molecule-print", language, format="SVG")
                     assert b"  2D" in original and b"CHEMBL376085" in original
+                page.mouse.move(1, 1)
+                expect(page.get_by_role("tooltip")).to_have_count(0)
                 page.evaluate("window.scrollTo(0,0)")
                 page.screenshot(path=evidence / "overview.png")
                 frame_below_header(page, frame)
