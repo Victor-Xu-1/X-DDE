@@ -11,12 +11,20 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.confidence import confidence_view
+from opendde_workbench.examples.bundle import restore_bundle
+from opendde_workbench.examples.stat6_bundle_release import SHA256
+from opendde_workbench.settings import Settings
+from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 from server_tests.native_confidence_case import native_case
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language, width):
+@pytest.mark.parametrize("language,theme,width,height", [
+    ("en", "warm", 1440, 900), ("en", "light", 1280, 650), ("zh", "dark", 390, 900),
+])
+def test_retained_atom_confidence_uses_native_fraction_scale(
+    tmp_path, language, theme, width, height
+):
     evidence = Path("outputs/native-confidence") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     state = tmp_path / "state"
@@ -38,8 +46,11 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
     errors, submissions = [], []
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
-        page = browser.new_page(viewport={"width": width, "height": 1000})
-        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        page = browser.new_page(viewport={"width": width, "height": height})
+        page.add_init_script(
+            f"localStorage.setItem('opendde-workbench.language','{language}');"
+            f"localStorage.setItem('x-dde-theme','{theme}')"
+        )
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -63,11 +74,33 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         preview_bounds = workspace.locator(".structure-workbench-view").bounding_box()
         details_bounds = workspace.locator(".structure-workbench-details").bounding_box()
         assert sequence_bounds and workspace_bounds and preview_bounds and details_bounds
-        assert abs(sequence_bounds["width"] - workspace_bounds["width"]) < 2
-        assert sequence_bounds["y"] >= max(
-            preview_bounds["y"] + preview_bounds["height"],
-            details_bounds["y"] + details_bounds["height"],
-        )
+        stage = page.locator('.molecular-stage iframe').bounding_box()
+        assert stage and stage["height"] >= min(300, height * .4)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        if width > 1000:
+            page.wait_for_function("""() => {
+                const p=document.querySelector('.structure-workbench-details');
+                const c=p?.querySelector('.research-plot-canvas');
+                return c && c.getAttribute('aria-busy') === 'false' &&
+                    c.getBoundingClientRect().bottom <= p.getBoundingClientRect().bottom + 2;
+            }""")
+            assert abs(sequence_bounds["width"] - details_bounds["width"]) < 2
+            assert abs(sequence_bounds["x"] - details_bounds["x"]) < 2
+            assert sequence_bounds["y"] >= details_bounds["y"] + details_bounds["height"] - 2
+            assert preview_bounds["width"] > details_bounds["width"]
+            if height >= 800:
+                assert stage["y"] < height * .5
+                assert stage["y"] + stage["height"] <= height + 32
+            else:
+                # Short windows scroll the document instead of clipping a legible matrix.
+                assert preview_bounds["height"] >= 400
+            assert page.locator('.prediction-sample-bar').bounding_box()["height"] <= 80
+        else:
+            assert abs(sequence_bounds["width"] - workspace_bounds["width"]) < 2
+            assert sequence_bounds["y"] >= max(
+                preview_bounds["y"] + preview_bounds["height"],
+                details_bounds["y"] + details_bounds["height"],
+            )
         expected_first = statistics.mean(
             value * 100
             for i, value in enumerate(raw["atom_plddt"])
@@ -109,24 +142,56 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
         expect(first).to_have_attribute("aria-checked", "false")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
         matrix.scroll_into_view_if_needed()
-        hit = matrix.locator(".nsewdrag").bounding_box()
+        # Aspect-ratio letterboxing belongs to the axes, not to the native matrix.
+        hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
-        page.mouse.click(hit["x"] + hit["width"] / 232, hit["y"] + hit["height"] * 231 / 232)
-        expect(first).to_have_attribute("aria-checked", "true")
+        column = 0 if height >= 800 else 57
+        clicked = first if column == 0 else sequence.get_by_role(
+            "checkbox", name=re.compile(r"^A:ALA58 · pLDDT ")
+        )
+        (evidence / "matrix-hit.json").write_text(json.dumps({
+            "data_image": hit,
+            "drag_area": matrix.locator(".nsewdrag").bounding_box(),
+            "native_column": column,
+            "expected_residue": clicked.get_attribute("aria-label"),
+        }))
+        page.mouse.click(
+            hit["x"] + hit["width"] * (column + .5) / len(data["indices"]),
+            hit["y"] + hit["height"] * .5,
+        )
+        expect(clicked).to_have_attribute("aria-checked", "true")
         matrix.get_by_role(
             "combobox", name="图表操作" if zh else "Chart interaction"
         ).select_option("select")
+        page.wait_for_function("""() => {
+            const plot = document.querySelector('.confidence-panel .research-plot-canvas');
+            return plot?.layout?.dragmode === 'select';
+        }""")
         expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
-        hit = matrix.locator(".nsewdrag").bounding_box()
+        matrix.get_by_role("application").scroll_into_view_if_needed()
+        hit = matrix.locator(".heatmaplayer image").bounding_box()
         assert hit
-        page.mouse.move(hit["x"] + hit["width"] * 0.08, hit["y"] + hit["height"] * 0.7)
+        start = {"x": hit["x"] + hit["width"] * .15, "y": hit["y"] + hit["height"] * .25}
+        end = {"x": hit["x"] + hit["width"] * .55, "y": hit["y"] + hit["height"] * .65}
+        drag_state = page.evaluate("""({start, end}) => {
+            const plot = document.querySelector('.confidence-panel .research-plot-canvas');
+            const hit = p => document.elementFromPoint(p.x, p.y)?.getAttribute('class');
+            return {mode: plot?.layout?.dragmode, start, end,
+                start_hit: hit(start), end_hit: hit(end), viewport: [innerWidth, innerHeight]};
+        }""", {"start": start, "end": end})
+        (evidence / "matrix-drag-state.json").write_text(json.dumps(drag_state))
+        # Keep the gesture above the native drag threshold even in a short pane.
+        page.mouse.move(**start)
         page.mouse.down()
-        page.mouse.move(hit["x"] + hit["width"] * 0.15, hit["y"] + hit["height"] * 0.8, steps=10)
+        page.mouse.move(**end, steps=10)
+        page.wait_for_function("""() => [...document.querySelectorAll('.select-outline')]
+            .some(node => { const box = node.getBoundingClientRect();
+                return box.width >= 20 && box.height >= 20; })""", timeout=5000)
         page.mouse.up()
         expect(sequence.get_by_role("checkbox", checked=True)).not_to_have_count(1)
-        assert sequence.get_by_role("checkbox", checked=True).count() >= 10
+        assert sequence.get_by_role("checkbox", checked=True).count() >= 40
         matrix.screenshot(path=str(evidence / "linked-pae.png"))
-        panel.locator("details > summary").click()
+        panel.get_by_text("逐原子置信度" if zh else "Atom confidence", exact=True).click()
         plot = panel.locator(".research-plot").filter(
             has=page.get_by_role("heading", name="Atom pLDDT", exact=True)
         )
@@ -173,4 +238,73 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
             )
         )
         assert not errors and not submissions, (errors, submissions)
+        browser.close()
+
+
+@pytest.fixture(scope="module")
+def prediction_example_workspace(tmp_path_factory):
+    root = tmp_path_factory.mktemp("prediction-example-workspace")
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setenv("WB_HOME", str(root))
+        patch.setenv("WB_STATE_DIR", str(root / "state"))
+        settings = Settings.from_env()
+        restored = restore_bundle(
+            Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, SHA256
+        )
+        assert restored["computed"] > 0
+        yield settings, Store(settings.state_dir / "jobs.sqlite3")
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
+def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup(
+    prediction_example_workspace, language, width
+):
+    settings, store = prediction_example_workspace
+    evidence = Path("outputs/native-confidence") / f"example-{language}"
+    evidence.mkdir(parents=True, exist_ok=True)
+    before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
+    zh = language == "zh"
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
+        page = browser.new_page(viewport={"width": width, "height": 900})
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        writes = []
+        page.on("request", lambda r: writes.append(r.url) if r.method == "POST" else None)
+        page.goto(base + "/#view=new&tool=predict")
+        picker = page.get_by_role(
+            "combobox", name="研究任务" if zh else "Research task", exact=True
+        )
+        expect(picker).to_be_visible()
+        page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
+        result = page.get_by_role(
+            "region", name="模板的真实结果" if zh else "Actual template result"
+        )
+        expect(result.locator('.prediction-example-source')).to_contain_text("OpenDDE")
+        expect(picker).to_be_hidden()
+        export = result.locator(".viewer-panel").get_by_role(
+            "button", name="文献图导出 ↓" if zh else "Export figure ↓"
+        )
+        expect(export).to_be_enabled(timeout=30000)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        iframe = result.locator(".molecular-stage iframe").element_handle()
+        result.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace"
+        ).click()
+        page.get_by_role("button", name="关闭展开视图" if zh else "Close expanded view").click()
+        assert result.locator(".molecular-stage iframe").evaluate(
+            "(node, original) => node === original", iframe
+        )
+        page.screenshot(path=evidence / "example-result.png")
+        page.get_by_role(
+            "button", name="返回任务填写" if zh else "Return to task form", exact=True
+        ).click()
+        expect(picker).to_be_visible()
+        expect(page.get_by_role(
+            "group", name="后端模型" if zh else "Backend method"
+        )).to_be_visible()
+        assert not writes
+        assert before == {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
         browser.close()

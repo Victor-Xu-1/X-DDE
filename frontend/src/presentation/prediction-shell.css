@@ -12,9 +12,3 @@
   ) {
   max-width: 1376px;
 }
-
-@media (min-width: 1800px) {
-  .studio-app .studio-content[data-prediction-layout="true"] {
-    --prediction-stage-height: clamp(520px, 64vh, 860px);
-  }
-}

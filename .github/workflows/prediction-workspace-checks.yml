@@ -220,6 +220,7 @@ jobs:
       final_review_changed: ${{ steps.select.outputs.final_review_changed }}
       boltz_review_changed: ${{ steps.select.outputs.boltz_review_changed }}
       opendde_review_changed: ${{ steps.select.outputs.opendde_review_changed }}
+      result_layout_only: ${{ steps.select.outputs.result_layout_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -248,8 +249,19 @@ jobs:
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx src/studio/PredictionResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/integrations/prediction-presentation.test.ts
+      - name: Compact result workspace, source method and retained scene consumers
+        if: needs.scope.outputs.result_layout_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/PredictionSamples.test.tsx
+          src/studio/PredictionResults.test.tsx src/examples/ExampleJobResult.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx
+          src/operations/ConfidencePanel.test.tsx src/presentation/usePredictionConfidence.test.tsx
+          src/viewer/StructureInspection.test.tsx src/viewer/StructureViewer.test.tsx
+          src/integrations/ScientificResults.test.tsx src/presentation/PredictionReferenceEvidence.test.tsx
+          src/TaskDetail.actions.test.tsx src/studio/CandidatePanel.test.tsx
       - name: Prediction presentation, selection identity and direct form/navigation consumers
-        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
+        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.result_layout_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/PredictionSamples.test.tsx
@@ -408,10 +420,10 @@ jobs:
           uv run --locked ruff check server_tests/test_prediction_feature_settings_browser.py
           uv run --locked python -m pytest -x -q server_tests/test_prediction_feature_settings_browser.py
       - name: Bilingual desktop and narrow compiled UI, source-bound downloads, actual WebGL and Plotly; no inference
-        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true'
+        if: needs.scope.outputs.entity_inputs != 'true' && needs.scope.outputs.job_archive_only != 'true' && needs.scope.outputs.history_input_only != 'true' && needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.native_confidence != 'true' && needs.scope.outputs.input_preview != 'true' && needs.scope.outputs.drafts_only != 'true' && needs.scope.outputs.final_review_only != 'true' && needs.scope.outputs.result_layout_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
-        if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.preview_changed == 'true'
+        if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.preview_changed == 'true' && needs.scope.outputs.result_layout_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'

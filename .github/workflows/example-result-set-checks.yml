@@ -73,10 +73,15 @@ jobs:
       review_only: ${{ steps.review_scope.outputs.review_only }}
       loader_changed: ${{ steps.review_scope.outputs.loader_changed }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
+      prediction_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - id: prediction_scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/prediction-workspace-scope.py
       - id: change
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
@@ -160,7 +165,7 @@ jobs:
           path: outputs/receptor-case-comparison
   immutable-stages:
     needs: scope
-    if: needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
+    if: needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -209,7 +214,7 @@ jobs:
         run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
     needs: scope
-    if: needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
+    if: needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     env:

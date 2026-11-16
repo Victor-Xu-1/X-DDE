@@ -6,6 +6,7 @@ import { CandidatePanel } from "../studio/CandidatePanel";
 import { PredictionInspection } from "../studio/PredictionInspection";
 import { OperationResults } from "../operations/OperationResults";
 import { TemplatePreviewContext } from "./context";
+import { predictionMethodLabel } from "../presentation/PredictionResultHeader";
 
 export function ExampleJobResult({
   job,
@@ -54,9 +55,19 @@ export function ExampleJobResult({
         }
       >
         {job.request.name && (
-          <p className="field-help">
-            {language === "zh" ? "结果对应任务：" : "Source task: "}
-            {job.request.name}
+          <p
+            className={prediction ? "prediction-example-source" : "field-help"}
+          >
+            <span title={job.request.name}>
+              {language === "zh" ? "结果对应任务：" : "Source task: "}
+              {job.request.name}
+            </span>
+            {prediction && predictionMethodLabel(job.request) && (
+              <span>
+                {language === "zh" ? "模型：" : "Model: "}
+                {predictionMethodLabel(job.request)}
+              </span>
+            )}
           </p>
         )}
         {prediction ? (

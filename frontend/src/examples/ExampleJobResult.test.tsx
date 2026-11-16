@@ -115,6 +115,7 @@ it("keeps a fixed prediction sample, its structure and its confidence in sync", 
     />,
   );
   expect(await screen.findByText("PAE for seed-101-sample-1")).toBeVisible();
+  expect(screen.getByText("Model: OpenDDE")).toBeVisible();
   expect(screen.getByRole("button", { name: "Sample 1" })).toHaveAttribute(
     "aria-pressed",
     "true",
