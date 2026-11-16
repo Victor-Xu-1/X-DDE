@@ -94,11 +94,11 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width):
             expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_have_count(0)
             expect(row).to_have_attribute("aria-selected", "true")
             expect(selection.get_by_text("A:ARG562", exact=True)).to_be_visible()
-            other = workspace.get_by_role("row", name=re.compile("A:LYS544"))
+            other = workspace.get_by_role("row", name=re.compile("A:PHE592"))
             other.focus()
             other.press("Enter")
             expect(other).to_have_attribute("aria-selected", "true")
-            expect(selection.get_by_text("A:LYS544", exact=True)).to_be_visible()
+            expect(selection.get_by_text("A:PHE592", exact=True)).to_be_visible()
             search = workspace.get_by_role("searchbox")
             search.fill("ARG562")
             expect(workspace.locator("tbody tr")).to_have_count(1)
@@ -163,7 +163,7 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width):
                 "structure_sha256": hashlib.sha256(original_structure).hexdigest(),
                 "csv_sha256": hashlib.sha256(original_csv).hexdigest(), "width": width,
                 "source_failure_recovered": True,
-                "row_to_native_selection": ["A:ARG562", "A:LYS544"],
+                "row_to_native_selection": ["A:ARG562", "A:PHE592"],
                 "same_iframe": True, "errors": errors, "writes": writes, "scientific_tasks": 0,
             }, indent=2))
             browser.close()
