@@ -66,11 +66,43 @@ it.each(["en", "zh"] as const)(
     expect(aside).toHaveTextContent(
       language === "zh" ? "检查种子数值" : "Check seed values",
     );
+    expect(within(aside).getByRole("status")).toBeVisible();
+    expect(
+      within(aside).getByText(
+        language === "zh" ? "检查种子数值" : "Check seed values",
+      ),
+    ).toBeVisible();
     expect(aside).not.toHaveTextContent(/NaN|Infinity/);
     expect(within(aside).getByText("—")).toBeVisible();
     view.unmount();
   },
 );
+
+it("keeps unfinished sample settings visible without changing the questionnaire or inventing a count", () => {
+  const view = render(
+    <PredictionSetup
+      language="en"
+      components={[]}
+      model="Boltz-2"
+      seeds={[101]}
+      samples={NaN}
+      valid={false}
+    >
+      <input aria-label="Actual sample setting" value="" readOnly />
+    </PredictionSetup>,
+  );
+  const aside = within(view.container).getByRole("complementary");
+  expect(within(aside).getByRole("status")).toHaveTextContent(
+    "Check calculation settings.",
+  );
+  expect(within(aside).getByText("Seeds")).toBeVisible();
+  expect(within(aside).getByText("—")).toBeVisible();
+  expect(aside).not.toHaveTextContent(/NaN|Infinity/);
+  expect(
+    within(view.container).getByLabelText("Actual sample setting"),
+  ).toHaveValue("");
+  view.unmount();
+});
 
 it("reflects edited components, uploaded ligands and all requested seeds without claiming a computation", () => {
   const p = {

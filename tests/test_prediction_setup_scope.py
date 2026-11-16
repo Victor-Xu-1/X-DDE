@@ -23,7 +23,8 @@ def test_mixed_form_viewer_or_backend_edits_keep_their_original_checks():
     for path in (
         "frontend/src/TaskForm.tsx", "frontend/src/integrations/Mol1Form.tsx",
         "frontend/src/integrations/ScientificForm.tsx", "frontend/src/viewer/scene.ts",
-        "src/opendde_workbench/drafts/models.py", "frontend/src/presentation/PredictionInputPreview.tsx",
+        "src/opendde_workbench/drafts/models.py",
+        "frontend/src/presentation/PredictionInputPreview.tsx",
         "frontend/src/presentation/PredictionSetupBackup.tsx",
     ):
         assert not scope["selected"]([*scope["SOURCES"], path])
@@ -31,7 +32,8 @@ def test_mixed_form_viewer_or_backend_edits_keep_their_original_checks():
 
 def test_gate_keeps_three_form_consumers_and_actual_preview_checks():
     workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
-    body = workflow.split("name: Current prediction input review", 1)[1].split("      - name:", 1)[0]
+    body = workflow.split("name: Current prediction input review", 1)[1]
+    body = body.split("      - name:", 1)[0]
     for check in ("PredictionSetup.test.tsx", "PredictionInputPreview.test.tsx",
                   "src/TaskForm.test.tsx", "src/integrations/Mol1Form.test.tsx",
                   "src/integrations/ScientificForm.test.tsx"):
