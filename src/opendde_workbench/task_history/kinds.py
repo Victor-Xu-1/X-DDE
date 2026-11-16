@@ -7,6 +7,7 @@ DISCRIMINATORS = {
     "diffsbdd": "payload.mode",
     "docking": "mode",
     "target_research": "entity",
+    "admet_predict": "focus",
 }
 
 
@@ -15,6 +16,8 @@ def task_kind_rules() -> list[dict]:
     for spec in CAPABILITIES.values():
         for operation in spec.operations:
             field = DISCRIMINATORS.get(operation)
+            if operation == "admet_predict" and spec.native_mode is None:
+                field = None  # Historical requests without focus retain their general ADMET type.
             value = spec.native_tool if operation == "harness" else spec.native_mode
             rules.append({"id": spec.id, "operation": operation, "field": field, "value": value})
     # Saved-pose optimization is a typed task created inside the molecular viewer,

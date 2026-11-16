@@ -520,6 +520,10 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   editor-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -558,8 +562,8 @@ jobs:
     with:
       scope_only: true
   scoped-layout:
-    needs: [model-context, antibody-scope, prediction-scope, guidance-scope, editor-scope]
-    if: needs.editor-scope.outputs.editor_layout_only != 'true' && needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.prediction-scope.outputs.shared_workbench_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
+    needs: [model-context, antibody-scope, prediction-scope, guidance-scope, editor-scope, brain-scope]
+    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.editor-scope.outputs.editor_layout_only != 'true' && needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.prediction-scope.outputs.shared_workbench_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:

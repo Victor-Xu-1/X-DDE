@@ -133,6 +133,7 @@ _MEMBERSHIP = {
     "chemistry.screen": _SMALL,
     "posebusters.check": _SMALL,
     "admet.predict": _SMALL,
+    "admet.brain": _SMALL,
     "antibody.number": ("biologic", "antibody", "protein"),
     "antibody.humanize": _ANTIBODY,
     "pose_exploration": _CONTEXT,

@@ -102,8 +102,10 @@ def study_task(capability, objects, sequences):
             value["options"] = {"context_chains": ["A"], "alternate": "A", "cpu": 1}
     elif capability == "chemistry.states":
         value.update(molecule=ligand, scientific_inputs=[ligand])
-    elif capability == "admet.predict":
+    elif capability in {"admet.predict", "admet.brain"}:
         value.update(molecule=ligand, scientific_inputs=[ligand])
+        if capability == "admet.brain":
+            value["focus"] = "brain"
     elif capability == "chemistry.screen":
         value.update(
             library={"asset_id": ref("library")["asset_id"], "sha256": ref("library")["sha256"]}

@@ -27,7 +27,13 @@ concurrency:
   group: utility-tools-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   utilities:
+    if: needs.brain-scope.outputs.brain_only != 'true'
+    needs: brain-scope
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:

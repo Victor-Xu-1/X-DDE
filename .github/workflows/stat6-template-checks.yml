@@ -77,6 +77,10 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   antibody-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -146,8 +150,8 @@ jobs:
           tests/test_receptor_case_aliases.py tests/test_study_module_revisions.py
           scripts/case-data-scope.py scripts/antibody_template_scope.py tests/ci/test_case_data_scope.py
   templates:
-    needs: [workflow-scope, antibody-scope]
-    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training')
+    needs: [workflow-scope, antibody-scope, brain-scope]
+    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

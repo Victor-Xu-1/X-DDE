@@ -389,6 +389,22 @@ _HUMANIZATION = (
 )
 _ADMET = (
     CapabilitySpec(
+        id="admet.brain",
+        **modality_metadata("admet.brain"),
+        group="evaluate",
+        environment="admet",
+        operations=("admet_predict",),
+        native_mode="brain",
+        label=("透脑评估", "Brain penetration"),
+        note=(
+            "查看 BBB 与相关 ADME 终点；区分 P-gp 抑制与外排，保留原始预测。",
+            "Inspect BBB and related ADME endpoints; distinguish P-gp inhibition "
+            "from efflux and retain native predictions.",
+        ),
+        source="ADMET-AI / Chemprop",
+        frontend_form="admet_brain",
+    ),
+    CapabilitySpec(
         id="admet.predict",
         **modality_metadata("admet.predict"),
         group="evaluate",

@@ -304,6 +304,28 @@ def steps(capability):
                 "identities, selection reasons and downloadable structures.",
             ),
         ]
+    if capability == "admet.brain":
+        return [
+            (
+                "选择一个分子或候选集合；模板提供指定的 STAT6 研究分子。",
+                "Choose one molecule or a candidate set; "
+                "the template supplies the STAT6 study molecule.",
+            ),
+            (
+                "粘贴截图、拖入结构图片，或提供 SMILES/SDF，并核对结构。",
+                "Paste a screenshot, drop a structure image or provide SMILES/SDF; "
+                "confirm the structure.",
+            ),
+            (
+                "使用已选中的 ADMET-AI 基线模型，按需展开资源设置。",
+                "Use the selected ADMET-AI baseline; open resource settings when needed.",
+            ),
+            (
+                "确认后提交；查看 BBB 与辅助 ADME 输出，分数不是 Kpuu 或外排比。",
+                "Confirm submission, then inspect BBB and related ADME outputs; "
+                "scores are not Kpuu or efflux ratios.",
+            ),
+        ]
     if capability in {"properties", "admet.predict"}:
         molecular_steps = {
             "properties": [

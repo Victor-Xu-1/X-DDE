@@ -197,9 +197,15 @@ export const researchModules: readonly ResearchModule[] = [
       "Predict early safety endpoints, calculate descriptors and select library molecules",
     ],
     defaultTool: "admet.predict",
-    recommended: ["admet.predict", "properties", "chemistry.screen"],
+    recommended: [
+      "admet.predict",
+      "admet.brain",
+      "properties",
+      "chemistry.screen",
+    ],
     tools: [
       "admet.predict",
+      "admet.brain",
       "properties",
       "chemistry.screen",
       "diffsbdd.properties",

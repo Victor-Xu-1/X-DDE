@@ -24,6 +24,7 @@ class AdmetTask(TaskMetadata):
     molecule: MoleculeRef | None = None
     library: LibraryRef | None = None
     options: AdmetOptions = Field(default_factory=AdmetOptions)
+    focus: Literal["brain"] | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @field_validator("name")
     @classmethod

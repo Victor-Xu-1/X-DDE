@@ -19,19 +19,23 @@ export function AdmetForm({
   language,
   onCreated,
   initialMolecule = null,
+  focus,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
+  focus?: "brain";
 }) {
   const recordedLibrary = useExampleReference("library");
   const recordedMolecule = useExampleReference("ligand");
   const preset = useExampleTask("admet_predict");
-  initialMolecule ??= preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
+  const brain = focus === "brain" || preset?.focus === "brain";
+  initialMolecule ??=
+    preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
   const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
     run = useTaskSubmit(onCreated),
-    availability = useTaskReadiness("admet.predict");
+    availability = useTaskReadiness(brain ? "admet.brain" : "admet.predict");
   const single = useSdfAsset(language, admetLimits.maxInputBytes),
     library = useSdfAsset(language, admetLimits.maxInputBytes);
   const [sourceKind, setSourceKind] = useState<SourceKind>(
@@ -83,15 +87,28 @@ export function AdmetForm({
           ? "请在安装与组件中部署独立 ADMET-AI 模型。"
           : "Install the independent ADMET-AI model in Installation & components."
       }
-      submitLabel={zh ? "开始性质预测" : "Predict properties"}
+      submitLabel={
+        brain
+          ? zh
+            ? "开始透脑评估"
+            : "Assess brain penetration"
+          : zh
+            ? "开始性质预测"
+            : "Predict properties"
+      }
       onSubmit={() =>
         run.submit({
           operation: "admet_predict",
+          ...(brain ? { focus: "brain" as const } : {}),
           name:
             name.trim() ||
-            (zh
-              ? "性质与早期安全性预测"
-              : "ADMET and early safety predictions"),
+            (brain
+              ? zh
+                ? "透脑评估"
+                : "Brain-penetration assessment"
+              : zh
+                ? "性质与早期安全性预测"
+                : "ADMET and early safety predictions"),
           molecule: sourceKind === "molecule" ? molecule : null,
           library:
             sourceKind === "library" && library.asset
@@ -183,6 +200,7 @@ export function AdmetForm({
           content: (
             <AdmetSettings
               language={language}
+              focus={brain ? "brain" : undefined}
               options={options}
               configure={configure}
               name={name}
@@ -235,9 +253,13 @@ export function AdmetForm({
                     </dd>
                     <dt>{zh ? "输出" : "Output"}</dt>
                     <dd>
-                      {zh
-                        ? "41 个原始预测终点"
-                        : "41 native prediction endpoints"}
+                      {brain
+                        ? zh
+                          ? "BBB 与辅助 ADME 评估；保留全部 41 个原始终点"
+                          : "BBB and related ADME inspection; all 41 native endpoints retained"
+                        : zh
+                          ? "41 个原始预测终点"
+                          : "41 native prediction endpoints"}
                     </dd>
                     <dt>{zh ? "原始分子" : "Original molecules"}</dt>
                     <dd>

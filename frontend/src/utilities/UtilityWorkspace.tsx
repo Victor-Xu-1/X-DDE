@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Job, Language } from "../types";
 import { AdmetForm } from "../admet/AdmetForm";
+import { BrainForm } from "../admet/BrainForm";
 import { PropertyForm } from "../operations/PropertyForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { StateForm } from "../chemistry/StateForm";
@@ -9,6 +10,7 @@ import { ImageRecognition } from "./ImageRecognition";
 const utilityTabs = [
   ["image", "图片识别与编辑", "Image recognition & editor"],
   ["admet", "ADMET 预测", "ADMET prediction"],
+  ["brain", "透脑评估", "Brain penetration"],
   ["properties", "分子性质", "Molecular properties"],
   ["screen", "相似性与结构筛查", "Similarity & structural alerts"],
   ["states", "质子化与互变异构", "Protonation & tautomers"],
@@ -33,6 +35,7 @@ export function UtilityWorkspace({
   );
   const forms = {
     admet: AdmetForm,
+    brain: BrainForm,
     properties: PropertyForm,
     screen: LibraryScreenForm,
     states: StateForm,

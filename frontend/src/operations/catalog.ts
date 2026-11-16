@@ -466,6 +466,18 @@ export const tools = [
     modality_role: "research_object",
   },
   {
+    id: "admet.brain",
+    group: "evaluate",
+    label: ["透脑评估", "Brain penetration"],
+    note: [
+      "查看 BBB 与相关 ADME 终点；区分 P-gp 抑制与外排，保留原始预测。",
+      "Inspect BBB and related ADME endpoints; distinguish P-gp inhibition from efflux and retain native predictions.",
+    ],
+    source: "ADMET-AI / Chemprop",
+    modalities: ["chemical", "small_molecule"],
+    modality_role: "research_object",
+  },
+  {
     id: "admet.predict",
     group: "evaluate",
     label: ["性质与早期安全性预测", "ADMET and early safety predictions"],

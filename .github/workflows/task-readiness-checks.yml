@@ -68,6 +68,10 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   managed-compute-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -92,10 +96,10 @@ jobs:
         run: python scripts/editor-layout-scope.py
 
   task-inputs:
-    needs: managed-compute-scope
+    needs: [managed-compute-scope, brain-scope]
     # Editor-only presentation and capture still run the required native editor
     # gate; changes to shared forms, admission or backend files do not delegate.
-    if: needs.managed-compute-scope.outputs.managed_compute_only != 'true' && needs.managed-compute-scope.outputs.refinement_only != 'true' && needs.managed-compute-scope.outputs.editor_layout_only != 'true'
+    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.managed-compute-scope.outputs.managed_compute_only != 'true' && needs.managed-compute-scope.outputs.refinement_only != 'true' && needs.managed-compute-scope.outputs.editor_layout_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
