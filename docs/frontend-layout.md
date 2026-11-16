@@ -868,6 +868,8 @@ in document flow, without a footer covering their inputs. Drawing line controls
 remain readable in both input reviews and saved utility results. Preparation uses
 the existing action button for visible progress while retaining its live status;
 metadata failures and retry remain visible without discarding personal inputs.
+The library-selection utility keeps readable column widths and single-line table
+headers; narrow screens scroll inside the result table to reach every column.
 
 Within one utility, template/result loading and task submission are serialized.
 An input-replacement action disables the current form; a pending submission

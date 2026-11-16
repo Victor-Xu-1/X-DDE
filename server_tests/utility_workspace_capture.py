@@ -110,6 +110,35 @@ def settle_result_capture(result):
     }""")
 
 
+def capture_library_columns(page, result, evidence):
+    """Keep native library headers readable and every column reachable on narrow screens."""
+    container = result.locator(".discovery-results > .table-scroll")
+    if not container.count():
+        return
+    container.locator("thead").scroll_into_view_if_needed()
+    geometry = container.evaluate("""root => {
+      const context = document.createElement('canvas').getContext('2d');
+      const headers = [...root.querySelectorAll('th')].map(cell => {
+        const style = getComputedStyle(cell);
+        context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const text = cell.textContent.trim();
+        const needed = context.measureText(text).width +
+          parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+        return {text, needed, width: cell.clientWidth, fits: needed <= cell.clientWidth + 1};
+      });
+      root.scrollLeft = root.scrollWidth;
+      return {headers, width: root.clientWidth, scrollWidth: root.scrollWidth,
+        reachedEnd: root.scrollLeft + root.clientWidth >= root.scrollWidth - 1,
+        pageOverflow: document.documentElement.scrollWidth > innerWidth + 1};
+    }""")
+    assert geometry["headers"], geometry
+    assert all(header["fits"] for header in geometry["headers"]), geometry
+    assert geometry["reachedEnd"] and not geometry["pageOverflow"], geometry
+    (evidence / "library-column-geometry.json").write_text(json.dumps(geometry, indent=2))
+    page.screenshot(path=evidence / "library-rightmost-columns-viewport.png")
+    settle_result_capture(result)
+
+
 def capture_utility_result(page, result, native, language, evidence):
     """Inspect native 2D depictions and export a real 3D render when one exists."""
     zh = language == "zh"
@@ -124,6 +153,7 @@ def capture_utility_result(page, result, native, language, evidence):
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
     settle_result_capture(result)
     capture_result_line_controls(result, evidence)
+    capture_library_columns(page, result, evidence)
     page.screenshot(path=evidence / "in-utility-example-2d.png", full_page=True)
     page.screenshot(path=evidence / "in-utility-example-2d-viewport.png")
     structure_tab = preview.get_by_role(

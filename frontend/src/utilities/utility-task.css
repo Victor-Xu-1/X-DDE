@@ -44,6 +44,12 @@
   min-width: 0;
   max-width: min(220px, 100%);
 }
+.utility-panel[data-utility="screen"] .discovery-results table {
+  min-width: 960px;
+}
+.utility-panel[data-utility="screen"] .discovery-results th {
+  white-space: nowrap;
+}
 /* The action button shows progress; preserve its live status without a second row. */
 .molecular-utility .module-template:has(> .example-toolbar) > .example-loading {
   position: absolute;
