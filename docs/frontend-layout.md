@@ -822,3 +822,16 @@ or repinned as a new calculation. Retained ADMET results can be inspected throug
 the brain group as the same original ADMET result. Models remain off on navigation.
 Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
 this baseline is not an accuracy-superiority claim.
+
+## Molecular input confirmation
+
+Molecular confirmation uses one shared workspace for properties, ADMET, brain
+assessment, state preparation and library selection. The actual input structure
+appears first in a large left Ketcher view, with the concise submission summary
+on the right; compact layouts show the structure above the summary. The full
+read-only depiction supports zoom, pan, line weight and native vector export.
+Preparation shows the original selected record, not an uncomputed prepared state.
+Library selection distinguishes its exact query record from a first-library-record
+preview of a whole-file selection. Drawing failure retains the input and summary
+with explicit retry. The shared component replaces the previous brain-only CSS;
+it never changes task parameters, scientific assets or computation permissions.

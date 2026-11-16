@@ -28,7 +28,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   library-inspections:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.utility_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:

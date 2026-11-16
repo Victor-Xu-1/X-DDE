@@ -106,8 +106,8 @@ on:
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   guidance-scope:
@@ -197,8 +197,8 @@ jobs:
             outputs/interaction-workspace
             outputs/protein-interface-workspace
   view-alignment:
-    needs: [scope, model-context, prediction-scope, guidance-scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
@@ -265,8 +265,8 @@ jobs:
           name: structure-workbench-evidence
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
-    needs: [scope, model-context, guidance-scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    needs: [scope, model-context, guidance-scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

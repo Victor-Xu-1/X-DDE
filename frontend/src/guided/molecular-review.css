@@ -1,8 +1,8 @@
 .molecular-input-review {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(250px, 1fr);
+  align-items: center;
+  gap: 24px;
 }
 .molecular-input-review > div,
 .molecular-input-review figure {
@@ -17,13 +17,24 @@
 .molecular-input-review .questionnaire-review dd {
   color: var(--ink);
 }
-.molecular-input-review .molecule-image.is-thumbnail {
+.molecular-input-review .molecule-image {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 260px;
-  padding: 12px;
+  height: clamp(320px, 45dvh, 500px);
+  min-height: 0;
+  padding: 0;
 }
-.molecular-input-review .molecule-image.is-thumbnail > img {
-  height: 236px;
+.molecular-input-review .molecule-inspection-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.molecular-input-review .figure-preview-sheet {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 220px;
 }
 .molecular-input-review figcaption {
   padding-top: 12px;

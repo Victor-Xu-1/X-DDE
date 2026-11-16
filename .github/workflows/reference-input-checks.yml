@@ -77,6 +77,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   material-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -90,8 +94,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/material-input-scope.py
   material-inputs:
-    needs: material-scope
-    if: needs.material-scope.outputs.material_only == 'true'
+    needs: [material-scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && needs.material-scope.outputs.material_only == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -190,8 +194,8 @@ jobs:
           name: coordinate-confirmation-evidence
           path: outputs/coordinate-confirmation
   inputs:
-    needs: [refinement-scope, material-scope]
-    if: ${{ !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' && needs.material-scope.outputs.material_only != 'true' }}
+    needs: [refinement-scope, material-scope, utility-scope]
+    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' && needs.material-scope.outputs.material_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

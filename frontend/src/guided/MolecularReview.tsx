@@ -22,17 +22,16 @@ export function MolecularReview({
       className="molecular-input-review"
       aria-label={language === "zh" ? "分子输入核对" : "Molecular input review"}
     >
-      <div>{summary}</div>
       <figure>
         <MoleculeImage
           key={JSON.stringify(source)}
           source={source}
           language={language}
           label={caption}
-          compact
         />
         <figcaption>{caption}</figcaption>
       </figure>
+      <div className="molecular-input-summary">{summary}</div>
     </section>
   );
 }

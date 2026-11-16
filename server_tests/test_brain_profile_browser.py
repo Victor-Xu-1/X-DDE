@@ -72,7 +72,7 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
             drawing = review.locator(".molecule-image")
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             structure = drawing.bounding_box()
-            summary = review.locator(".admet-brain-review-summary").bounding_box()
+            summary = review.locator(".molecular-input-summary").bounding_box()
             assert structure and summary
             if width > 700:
                 assert structure["x"] + structure["width"] <= summary["x"]

@@ -150,8 +150,8 @@ on:
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   antibody-scope:
@@ -180,8 +180,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
   example-contracts:
-    needs: [workflow-scope, antibody-scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
+    needs: [workflow-scope, antibody-scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
