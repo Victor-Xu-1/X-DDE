@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
@@ -152,8 +152,11 @@ it.each(
           ? "示例结果"
           : "Example results";
     await user.click(screen.getByRole("button", { name: preview }));
+    const output = await screen.findByRole("region", {
+      name: zh ? "模块内示例结果" : "In-module example results",
+    });
     expect(
-      await screen.findByText(
+      within(output).getByText(
         capability === "admet.brain"
           ? "Reference input preview"
           : "Saved output saved-" + capability,
