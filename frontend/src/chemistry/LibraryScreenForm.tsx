@@ -120,8 +120,8 @@ export function LibraryScreenForm({
                 }
               >
                 {zh
-                  ? "处理所选文件的全部记录，最多500条；保留失败和原始编号。参照步骤选择单个分子的确切版本。"
-                  : "Reads every record in the selected file, at most500. Failures and original indices remain. Choose an exact query molecular version in the relevant step."}
+                  ? "读取分子库全部记录（最多 500 条），结果保留原始编号。"
+                  : "Read all library records (up to 500); results retain original record numbers."}
               </Hint>
             </>
           ),

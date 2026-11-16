@@ -98,8 +98,11 @@ def capture_utility_result(page, result, native, language, evidence):
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
     capture_result_line_controls(result, evidence)
     page.screenshot(path=evidence / "in-utility-example-2d.png", full_page=True)
-    if native.get("conformers"):
-        preview.get_by_role("tab", name="三维结构" if zh else "3D structure", exact=True).click()
+    structure_tab = preview.get_by_role(
+        "tab", name="三维结构" if zh else "3D structure", exact=True
+    )
+    if native.get("conformers") or structure_tab.count():
+        structure_tab.click()
         panel = preview.locator(".viewer-panel")
         expect(panel.locator(".viewer-tools")).to_be_visible(timeout=60000)
         figure = export_figure(

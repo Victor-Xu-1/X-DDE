@@ -48,7 +48,7 @@ export function StateForm({
       const selected = expert ? JSON.parse(raw) : options;
       if (!molecule)
         throw new Error(
-          zh ? "请选择分子版本。" : "Choose a molecular version.",
+          zh ? "请选择研究分子。" : "Choose a research molecule.",
         );
       return await run.submit({
         operation: "molecular_states",
@@ -69,7 +69,7 @@ export function StateForm({
         value={molecule}
         onChange={setMolecule}
         language={language}
-        label={zh ? "选择 SDF 分子版本" : "Choose an SDF molecular version"}
+        label={zh ? "研究分子" : "Research molecule"}
       />
     </>
   );
