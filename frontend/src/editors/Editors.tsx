@@ -240,7 +240,16 @@ export function Editors({
                       void action(async (editor) => {
                         if (file.size > 5 * 1024 ** 2)
                           throw new Error("5 MiB maximum");
-                        await editor.setMolecule(await file.text());
+                        try {
+                          await editor.setMolecule(await file.text());
+                        } catch (cause) {
+                          throw new Error(
+                            zh
+                              ? "无法打开此分子文件。请检查文件格式，或整理并恢复之前的绘图。"
+                              : "Unable to open this molecule. Check the file format or prepare and restore the previous drawing.",
+                            { cause },
+                          );
+                        }
                         setOrigin(null);
                       });
                     e.target.value = "";

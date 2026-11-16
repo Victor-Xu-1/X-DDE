@@ -66,6 +66,18 @@ def test_native_undo_and_redo_survive_explicit_2d_preparation(language, width):
         restored = page.evaluate("""async () => JSON.parse(await
           document.querySelector('.editor-workspace iframe').contentWindow.ketcher.getKet())""")
         assert prepared == restored
+        # Reject an owned import without discarding the valid retained drawing
+        # or exposing native parser traces to the research user.
+        owner.locator('input[type="file"]').set_input_files({
+            "name": "invalid-recovery-qa.mol", "mimeType": "chemical/x-mdl-molfile",
+            "buffer": b"Invalid MOL for bounded editor recovery QA",
+        })
+        expect(owner.get_by_role("alert")).to_contain_text("无法打开此分子文件" if zh else "Unable to open this molecule")
+        expect(prepare).to_be_enabled()
+        expect(save).to_be_disabled()
+        prepare.click()
+        expect(save).to_be_enabled()
+        expect(owner.get_by_role("alert")).to_have_count(0)
         assert hashlib.sha256(source.read_bytes()).hexdigest() == digest
         assert page.request.get(base + "/api/jobs").json() == jobs
         page.screenshot(path=evidence / "native-history-restored.png", full_page=True)
