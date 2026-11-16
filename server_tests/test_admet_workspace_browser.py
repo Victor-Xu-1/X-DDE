@@ -61,7 +61,9 @@ def test_saved_stat6_endpoints_structures_and_native_exports(
             ).click()
             picker = page.get_by_role("combobox", name="研究任务" if zh else "Research task")
             picker.select_option("admet.predict")
-            page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
+            page.get_by_role(
+                "button", name="示例结果" if zh else "Example results", exact=True
+            ).click()
             result = page.locator(".admet-results")
             expect(result).to_be_visible()
             expect(picker).to_be_hidden()
@@ -103,7 +105,9 @@ def test_saved_stat6_endpoints_structures_and_native_exports(
             expect(result.get_by_text(
                 "没有匹配的终点" if zh else "No matching endpoints", exact=False
             )).to_be_visible()
-            result.get_by_role("button", name="显示全部终点" if zh else "Show all endpoints").click()
+            result.get_by_role(
+                "button", name="显示全部终点" if zh else "Show all endpoints"
+            ).click()
             expect(table.locator("tbody tr")).to_have_count(41)
             failure = re.compile(re.escape(source_url) + "$")
             page.route(failure, lambda route: route.fulfill(status=503, body="Unavailable"))
