@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
+from server_tests.molecular_review_capture import capture_input_review, launch_review_browser
 from server_tests.test_admet_workspace_browser import saved_workspace  # noqa: F401
 from server_tests.test_navigation_shell_browser import open_navigation
 
@@ -26,7 +27,7 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
     errors, calculations = [], []
     with platform(admet_saved_workspace.state_dir, evidence / "service.log") as base:
         with sync_playwright() as driver:
-            browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
+            browser = launch_review_browser(driver)
             page = browser.new_page(viewport={"width": width, "height": 1000})
             page.add_init_script(
                 f"if (location.origin === {json.dumps(base)}) {{"
@@ -72,7 +73,7 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
             drawing = review.locator(".molecule-image")
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             structure = drawing.bounding_box()
-            summary = review.locator(".admet-brain-review-summary").bounding_box()
+            summary = review.locator(".molecular-input-summary").bounding_box()
             assert structure and summary
             if width > 700:
                 assert structure["x"] + structure["width"] <= summary["x"]
@@ -80,7 +81,7 @@ def test_brain_input_and_native_bbb_inspection(admet_saved_workspace, language, 
             else:
                 assert structure["y"] + structure["height"] <= summary["y"]
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-            page.screenshot(path=evidence / "input-review.png", full_page=True)
+            capture_input_review(page, review, evidence)
 
             # A BBB view of a real ADMET result is not a newly computed brain task.
             page.goto(base + "/#view=new&tool=admet.predict")

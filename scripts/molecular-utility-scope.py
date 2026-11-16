@@ -1,12 +1,19 @@
-"""Delegate only a closed brain-profile batch; preserve all mixed scientific gates."""
+"""Delegate closed molecular-utility changes; preserve mixed scientific gates."""
 
 import os
 import subprocess
+from pathlib import Path
 
 SOURCES = {
+    "server_tests/molecular_review_capture.py",
+    "frontend/src/guided/MolecularReview.tsx",
+    "frontend/src/guided/molecular-review.css",
+    "frontend/src/operations/PropertyForm.tsx",
+    "frontend/src/chemistry/StateForm.tsx",
+    "frontend/src/chemistry/LibraryScreenForm.tsx",
+    "frontend/src/chemistry/LibraryScreenQuestions.tsx",
     "src/opendde_workbench/examples/pin_validation.py",
     "frontend/src/admet/AdmetForm.tsx",
-    "frontend/src/admet/brain.css",
     "frontend/src/admet/AdmetResults.tsx",
     "frontend/src/admet/AdmetSettings.tsx",
     "frontend/src/admet/BrainForm.test.tsx",
@@ -34,11 +41,23 @@ SOURCES = {
     "src/opendde_workbench/examples/stat6/task_requests.py",
     "src/opendde_workbench/task_history/kinds.py"
 }
-FILES = SOURCES | {
+# These paths are accepted only as removals during the canonical gate migration.
+RETIRED = {
+    ".github/workflows/brain-profile-checks.yml",
+    "scripts/brain-profile-scope.py",
+    "tests/test_brain_profile_scope.py",
+    "frontend/src/admet/brain.css",
+}
+FILES = SOURCES | RETIRED | {
+    ".github/workflows/library-screen-checks.yml",
+    ".github/workflows/reference-input-checks.yml",
+    "frontend/src/guided/MolecularReview.test.tsx",
+    "frontend/src/chemistry/MolecularToolReview.test.tsx",
+    "server_tests/test_molecular_review_workspace_browser.py",
     ".github/workflows/example-result-set-checks.yml",
     ".github/workflows/admet-inspection-checks.yml",
     ".github/workflows/antibody-cdr-input-checks.yml",
-    ".github/workflows/brain-profile-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/defined-site-checks.yml",
     ".github/workflows/examples-checks.yml",
     ".github/workflows/module-example-checks.yml",
@@ -64,10 +83,10 @@ FILES = SOURCES | {
     "install.ps1",
     "install.sh",
     "pyproject.toml",
-    "scripts/brain-profile-scope.py",
+    "scripts/molecular-utility-scope.py",
     "scripts/record-study-catalogue.py",
     "tests/test_brain_profile.py",
-    "tests/test_brain_profile_scope.py",
+    "tests/test_molecular_utility_scope.py",
     "tests/test_stat6_predicted_references.py",
     "tests/test_study_module_revisions.py",
     "uv.lock"
@@ -76,6 +95,8 @@ FILES = SOURCES | {
 
 def selected(changed, event="push"):
     paths = set(changed)
+    if any(Path(path).exists() for path in paths & RETIRED):
+        return False
     return event in {"push", "pull_request"} and bool(paths & SOURCES) and paths <= FILES
 
 
@@ -89,7 +110,7 @@ def main():
         ["git", "diff", "--name-only", base, "HEAD"], text=True
     ).splitlines() if base and set(base) != {"0"} else []
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-        output.write("brain_only=" + str(selected(
+        output.write("utility_only=" + str(selected(
             changed, os.environ.get("GITHUB_EVENT_NAME", "push")
         )).lower() + "\n")
 

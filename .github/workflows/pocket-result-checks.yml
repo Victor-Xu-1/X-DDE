@@ -2,7 +2,7 @@ name: Research result selection checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &molecular_review_paths
       - 'frontend/src/pockets/ReferenceComparison*'
       - 'frontend/src/pockets/reference-comparison*'
       - 'frontend/src/docking/DockingForm.tsx'
@@ -39,11 +39,13 @@ on:
       - '!frontend/src/diffsbdd/GeneratedCandidates.tsx'
       # Dataset member labels/exports use library-member-checks.yml.
       - '!frontend/src/datasets/ResearchTable.tsx'
+  pull_request:
+    paths: *molecular_review_paths
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   scope:
@@ -112,8 +114,8 @@ jobs:
           src/pockets/PocketResults.return.test.tsx
           src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
-    needs: [scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true')
+    needs: [scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

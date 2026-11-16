@@ -4,6 +4,7 @@ import { AssetPicker } from "../operations/AssetPicker";
 import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
 import { Hint } from "../guided/Hint";
+import { MolecularReview } from "../guided/MolecularReview";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
@@ -166,11 +167,38 @@ export function LibraryScreenForm({
             (!requiresQuery || Boolean(query)) &&
             settingsValid,
           content: (
-            <ScreenReview
+            <MolecularReview
               language={language}
-              libraryName={libraryName}
-              query={selectedQuery}
-              options={options}
+              source={
+                selectedQuery
+                  ? {
+                      url: `/api/assets/${encodeURIComponent(selectedQuery.asset_id)}`,
+                      record: selectedQuery.record,
+                    }
+                  : library
+                    ? {
+                        url: `/api/assets/${encodeURIComponent(library.asset_id)}`,
+                        record: 0,
+                      }
+                    : null
+              }
+              caption={
+                selectedQuery
+                  ? zh
+                    ? `参照分子 · 第 ${selectedQuery.record + 1} 条记录`
+                    : `Query molecule · Record ${selectedQuery.record + 1}`
+                  : zh
+                    ? "分子库首条记录预览；筛选范围为整个文件"
+                    : "First library record preview; selection covers the whole file"
+              }
+              summary={
+                <ScreenReview
+                  language={language}
+                  libraryName={libraryName}
+                  query={selectedQuery}
+                  options={options}
+                />
+              }
             />
           ),
         },

@@ -822,3 +822,26 @@ or repinned as a new calculation. Retained ADMET results can be inspected throug
 the brain group as the same original ADMET result. Models remain off on navigation.
 Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
 this baseline is not an accuracy-superiority claim.
+
+## Molecular input confirmation
+
+Molecular confirmation uses one shared workspace for properties, ADMET, brain
+assessment, state preparation and library selection. The actual input structure
+appears first in a large left Ketcher view, with the concise submission summary
+on the right; compact layouts show the structure above the summary. The full
+read-only depiction supports zoom, pan, line weight and native vector export.
+Preparation shows the original selected record, not an uncomputed prepared state.
+Library selection distinguishes its exact query record from a first-library-record
+preview of a whole-file selection. Drawing failure retains the input and summary
+with explicit retry. The shared component replaces the previous brain-only CSS;
+it never changes task parameters, scientific assets or computation permissions.
+On the active molecular review step, the final actions follow the content so that
+availability notices and recheck controls remain unobscured. Earlier steps retain
+the existing action placement. Browser evidence records initial and scrolled
+viewport states separately instead of freezing a sticky header mid-page.
+The focused utility gate runs Playwright against the hosted runner's installed
+Google Chrome channel and records the browser build and CSS viewport in its
+geometry receipts. It does not install or control the owner's desktop browser.
+The isolated runner receives the standard browser system dependencies, including
+CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
+text assertions alone do not qualify an unreadable Chinese screenshot.

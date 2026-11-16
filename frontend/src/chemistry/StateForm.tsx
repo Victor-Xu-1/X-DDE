@@ -8,6 +8,7 @@ import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { Hint } from "../guided/Hint";
+import { MolecularReview } from "../guided/MolecularReview";
 import { optionsFor, type PreparationChoice } from "./model";
 import type { StateOptions } from "./types";
 
@@ -174,8 +175,8 @@ export function StateForm({
       <dd>
         {molecule
           ? zh
-            ? `已选择具体版本，记录 ${molecule.record + 1}`
-            : `Exact version selected, record ${molecule.record + 1}`
+            ? `已选择分子，第 ${molecule.record + 1} 条记录`
+            : `Selected molecule, record ${molecule.record + 1}`
           : "—"}
       </dd>
       <dt>{zh ? "准备方案" : "Preparation plan"}</dt>
@@ -238,7 +239,25 @@ export function StateForm({
         },
         {
           title: zh ? "确认启动" : "Review & start",
-          content: summary,
+          content: (
+            <MolecularReview
+              language={language}
+              source={
+                molecule
+                  ? {
+                      url: `/api/assets/${encodeURIComponent(molecule.asset_id)}`,
+                      record: molecule.record,
+                    }
+                  : null
+              }
+              caption={
+                zh
+                  ? `待准备的原始分子 · 第 ${(molecule?.record ?? 0) + 1} 条记录`
+                  : `Original molecule to prepare · Record ${(molecule?.record ?? 0) + 1}`
+              }
+              summary={summary}
+            />
+          ),
           valid: Boolean(molecule),
         },
       ]}

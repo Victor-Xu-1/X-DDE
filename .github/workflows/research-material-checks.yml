@@ -2,7 +2,7 @@ name: Research method names and DEL materials
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &molecular_review_paths
       - "src/opendde_workbench/capabilities/method_choices.py"
       - "src/opendde_workbench/capabilities/__init__.py"
       - "tests/test_method_choices.py"
@@ -17,16 +17,18 @@ on:
       - "frontend/src/datasets/DatasetPicker*"
       - "server_tests/test_del_material_browser.py"
       - ".github/workflows/research-material-checks.yml"
+  pull_request:
+    paths: *molecular_review_paths
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   materials:
-    if: needs.brain-scope.outputs.brain_only != 'true'
-    needs: brain-scope
+    if: needs.utility-scope.outputs.utility_only != 'true'
+    needs: utility-scope
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

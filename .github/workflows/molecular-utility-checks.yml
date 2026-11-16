@@ -1,0 +1,140 @@
+name: Molecular utility input and BBB checks
+on:
+  push:
+    paths: &utility_paths
+      - "frontend/src/admet/**"
+      - "frontend/src/guided/MolecularReview*"
+      - "frontend/src/guided/molecular-review.css"
+      - "frontend/src/operations/PropertyForm.tsx"
+      - "frontend/src/chemistry/StateForm.tsx"
+      - "frontend/src/chemistry/LibraryScreenForm.tsx"
+      - "frontend/src/chemistry/LibraryScreenQuestions.tsx"
+      - "frontend/src/chemistry/MolecularToolReview.test.tsx"
+      - "frontend/src/utilities/UtilityWorkspace*"
+      - "frontend/src/operations/ToolCenter.tsx"
+      - "frontend/src/operations/catalog.ts"
+      - "frontend/src/studio/research-modules.ts"
+      - "frontend/src/studio/method-choices.ts"
+      - "frontend/src/studio/task-kind-rules.ts"
+      - "src/opendde_workbench/admet/contract.py"
+      - "src/opendde_workbench/admet/presentation.py"
+      - "src/opendde_workbench/capabilities/definitions.py"
+      - "src/opendde_workbench/capabilities/modalities.py"
+      - "src/opendde_workbench/task_history/kinds.py"
+      - "src/opendde_workbench/examples/catalogue.json"
+      - "src/opendde_workbench/examples/preparation.py"
+      - "src/opendde_workbench/examples/pin_validation.py"
+      - "src/opendde_workbench/examples/stat6/guidance.py"
+      - "src/opendde_workbench/examples/stat6/task_requests.py"
+      - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
+      - "scripts/molecular-utility-scope.py"
+      - "scripts/record-study-catalogue.py"
+      - "tests/test_brain_profile*.py"
+      - "tests/test_molecular_utility_scope.py"
+      - "server_tests/test_brain_profile_browser.py"
+      - "server_tests/test_molecular_review_workspace_browser.py"
+      - "server_tests/molecular_review_capture.py"
+      - ".github/workflows/molecular-utility-checks.yml"
+  pull_request:
+    paths: *utility_paths
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      scope_only:
+        type: boolean
+        default: false
+    outputs:
+      utility_only:
+        value: ${{ jobs.scope.outputs.utility_only }}
+permissions:
+  contents: read
+jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      utility_only: ${{ steps.select.outputs.utility_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/molecular-utility-scope.py
+  utility-inputs:
+    needs: scope
+    if: ${{ !inputs.scope_only }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Exact committed catalogue, frontend and direct native ADMET contracts
+        run: |
+          uv run --locked python scripts/record-study-catalogue.py --check
+          uv run --locked python scripts/generate-capability-catalog.py --check
+          cd frontend
+          npx vitest run \
+            src/guided/MolecularReview.test.tsx \
+            src/operations/PropertyForm.test.tsx \
+            src/operations/PropertyFormFileVerification.test.tsx \
+            src/chemistry/StateForm.test.tsx \
+            src/chemistry/LibraryScreenForm.test.tsx \
+            src/chemistry/LibraryScreenTemplate.test.tsx \
+            src/chemistry/MolecularToolReview.test.tsx \
+            src/utilities/ImageMoleculeInput.test.tsx \
+            src/research/SdfRecordPicker.test.tsx \
+            src/presentation/MoleculeImage.test.tsx \
+            src/presentation/depiction-renderer.test.ts \
+            src/publication/FigureExport.test.tsx \
+            src/admet/AdmetForm.test.tsx \
+            src/admet/AdmetResults.test.tsx \
+            src/admet/EndpointValue.test.tsx \
+            src/admet/BrainForm.test.tsx \
+            src/admet/BrainScope.test.tsx \
+            src/utilities/UtilityWorkspace.test.tsx \
+            src/studio/MethodSwitch.test.tsx \
+            src/studio/research-modules.test.ts \
+            src/presentation/ResearchTable.test.tsx \
+            src/presentation/MetricScatter.test.tsx \
+            src/viewer/PoseSession.test.tsx \
+            src/viewer/pose-plan.test.ts
+          cd ..
+          uv run --locked pytest -q tests/test_admet.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py tests/test_capabilities.py tests/test_example_pins.py tests/test_library_screen.py tests/test_library_evidence.py
+          uv run --locked ruff check scripts/record-study-catalogue.py scripts/molecular-utility-scope.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py server_tests/molecular_review_capture.py src/opendde_workbench/admet/contract.py src/opendde_workbench/admet/presentation.py src/opendde_workbench/capabilities/definitions.py src/opendde_workbench/capabilities/modalities.py src/opendde_workbench/task_history/kinds.py src/opendde_workbench/examples/stat6/task_requests.py src/opendde_workbench/examples/stat6/guidance.py src/opendde_workbench/examples/pin_validation.py
+      - name: Retrieve sealed native outputs without starting a prediction engine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --locked python - <<'PY'
+          import os, urllib.request
+          from pathlib import Path
+          from opendde_workbench.examples.stat6_bundle_release import URL
+          target = Path(os.environ["RUNNER_TEMP"]) / "stat6-reviewed-results.zip"
+          urllib.request.urlretrieve(URL, target)
+          with open(os.environ["GITHUB_ENV"], "a") as output:
+              output.write(f"WB_REVIEWED_STAT6_ARCHIVE={target}\n")
+          PY
+      - name: Native retained-output browser acceptance with prediction disabled
+        run: |
+          uv run --locked playwright install-deps chromium
+          google-chrome --version
+          uv run --locked python -c 'from server_tests.molecular_review_capture import verify_review_fonts; print(verify_review_fonts())'
+          uv run --locked python -m pytest -q server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py --basetemp "$RUNNER_TEMP/brain-profile-browser"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: molecular-utility-native-evidence
+          path: |
+            outputs/brain-profile
+            outputs/molecular-review-workspace
+          if-no-files-found: warn

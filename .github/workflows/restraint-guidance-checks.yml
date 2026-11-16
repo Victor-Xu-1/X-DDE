@@ -27,8 +27,8 @@ on:
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   scope:
@@ -54,8 +54,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/admet-workspace-scope.py
   frontend-guidance:
-    needs: [scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && (!inputs.scope_only && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.admet_result_only != 'true')
+    needs: [scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && (!inputs.scope_only && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.admet_result_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:

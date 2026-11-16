@@ -65,8 +65,8 @@ on:
 permissions:
   contents: read
 jobs:
-  brain-scope:
-    uses: ./.github/workflows/brain-profile-checks.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
   scope:
@@ -168,8 +168,8 @@ jobs:
           name: reviewed-receptor-comparison
           path: outputs/receptor-case-comparison
   immutable-stages:
-    needs: [scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
+    needs: [scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -217,8 +217,8 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
-    needs: [scope, brain-scope]
-    if: needs.brain-scope.outputs.brain_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
+    needs: [scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     env:

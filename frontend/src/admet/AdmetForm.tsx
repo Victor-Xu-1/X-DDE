@@ -14,7 +14,6 @@ import type { Job, Language } from "../types";
 import { AdmetSettings } from "./AdmetSettings";
 import { admetDefaults, admetLimits, admetVersions } from "./generated";
 import type { AdmetOptions, SourceKind } from "./types";
-import "./brain.css";
 
 export function AdmetForm({
   language,
@@ -237,12 +236,7 @@ export function AdmetForm({
                       : "First molecule preview; all records in the file will be predicted"
                 }
                 summary={
-                  <dl
-                    className={
-                      "questionnaire-review" +
-                      (brain ? " admet-brain-review-summary" : "")
-                    }
-                  >
+                  <dl className="questionnaire-review">
                     <dt>{zh ? "输入" : "Input"}</dt>
                     <dd>
                       {selected.asset?.name}

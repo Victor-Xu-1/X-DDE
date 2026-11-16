@@ -107,9 +107,11 @@ export function ScreenReview({
         )}
         {query && (
           <>
-            <dt>{zh ? "参照版本" : "Query version"}</dt>
+            <dt>{zh ? "参照分子记录" : "Query record"}</dt>
             <dd>
-              {query.version_id ?? query.asset_id} · #{query.record + 1}
+              {zh
+                ? `第 ${query.record + 1} 条记录`
+                : `Record ${query.record + 1}`}
             </dd>
           </>
         )}

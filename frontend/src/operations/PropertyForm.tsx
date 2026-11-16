@@ -251,7 +251,7 @@ export function PropertyForm({
                     ? `待计算分子 · 第 ${scientificInput!.record + 1} 条记录`
                     : `Molecule to calculate · Record ${scientificInput!.record + 1}`
                   : zh
-                    ? "首个分子预览；计算范围以左侧摘要为准"
+                    ? "首个分子预览；计算范围以摘要为准"
                     : "First molecule preview; calculation scope is listed in the summary"
               }
               summary={
