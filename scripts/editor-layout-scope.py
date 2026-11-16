@@ -16,6 +16,7 @@ FILES = SOURCES | {
     "scripts/editor-layout-scope.py", "tests/test_editor_layout_scope.py",
     ".github/workflows/ketcher-depiction-checks.yml",
     ".github/workflows/task-readiness-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
     "docs/frontend-layout.md", "pyproject.toml", "uv.lock",
     "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1",
 }

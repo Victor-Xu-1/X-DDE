@@ -27,6 +27,9 @@ def test_delegation_keeps_native_editor_and_aligned_action_checks_required():
     workflow = Path(".github/workflows/task-readiness-checks.yml").read_text()
     assert "editor_layout_only: ${{ steps.editor.outputs.editor_layout_only }}" in workflow
     assert "needs.managed-compute-scope.outputs.editor_layout_only != 'true'" in workflow
+    matrix = Path(".github/workflows/task-layout-checks.yml").read_text()
+    assert "editor_layout_only: ${{ steps.scope.outputs.editor_layout_only }}" in matrix
+    assert "needs.editor-scope.outputs.editor_layout_only != 'true'" in matrix
     display = Path(".github/workflows/ketcher-depiction-checks.yml").read_text()
     for name in ("AlignedEditAction*", "EditorCommands*", "editors.css", "test_editor_workspace_layout_browser.py"):
         assert name in display
