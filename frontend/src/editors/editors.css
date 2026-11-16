@@ -170,8 +170,31 @@
   border: 0;
   background: transparent;
 }
-.editor-details h2 {
-  font-size: 15px;
+.studio-app .editor-workspace .editor-details h2 {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.studio-app .editor-workspace .editor-details .tool-form {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  max-width: none;
+}
+.studio-app .editor-workspace .editor-details .questionnaire-choices label,
+.studio-app
+  .editor-workspace
+  .editor-details
+  .questionnaire-choices
+  label:has(small) {
+  min-height: 0;
+  padding: 10px;
+  gap: 8px;
+  line-height: 1.4;
+}
+.editor-details .questionnaire-page-heading {
+  margin-bottom: 10px;
 }
 .editor-details .aligned-edit-task {
   padding: 0 4px;

@@ -332,10 +332,14 @@ export function Editors({
           {propertyObject && (
             <section className="setup-card">
               <div className="section-heading">
-                <h2>
-                  {zh
-                    ? "检查分子并计算性质"
-                    : "Review molecule and calculate properties"}
+                <h2
+                  aria-label={
+                    zh
+                      ? "检查分子并计算性质"
+                      : "Review molecule and calculate properties"
+                  }
+                >
+                  {zh ? "分子性质" : "Molecular properties"}
                 </h2>
                 <button onClick={() => setPropertyObject(null)}>
                   {zh ? "关闭" : "Close"}
