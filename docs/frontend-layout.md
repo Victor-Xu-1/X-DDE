@@ -802,3 +802,23 @@ regressions retain their own units and have no normalized track. Validation
 provenance stays available under one disclosure. CSV and source SDF downloads
 remain unchanged, and structure verification uses the retained artifact hash.
 New-task model selection returns when leaving the saved example for its form.
+
+## Brain-penetration utility
+
+The brain utility is an ADMET-AI task profile using the same molecular input,
+recognition, queue, runtime controls and native calculator. Its optional intent is
+persisted without adding fields to serialized historical requests. History
+classifies the profile separately; all41 predictions, source records, units,
+versions and native CSV/SDF files retain their original meaning.
+
+The initial result group puts BBB first, followed by six supporting ADME endpoints.
+P-gp is explicitly inhibition, not substrate status or efflux ratio. No logBB,
+Kpuu, calibrated reliability or structural explanation is fabricated. All native
+endpoints remain accessible beside the large left 2D/3D workspace.
+
+The utility includes an explicitly loaded STAT6 input template. A new computed
+brain-profile example requires actual execution and review; no old task is renamed
+or repinned as a new calculation. Retained ADMET results can be inspected through
+the brain group as the same original ADMET result. Models remain off on navigation.
+Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
+this baseline is not an accuracy-superiority claim.

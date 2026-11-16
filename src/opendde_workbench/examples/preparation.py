@@ -193,6 +193,15 @@ def prepare_example(capability_id, scientific, cache, *, records=None):
         experimental, asset = prepare_experimental(scientific, cache, objects["egfr_library"])
         data_assets["experimental_observations"] = asset
     request = ExamplePins(scientific.store, cache.parent).request(capability_id)
+    if capability_id == "admet.brain" and request is None:
+        from ..admet.contract import AdmetTask
+
+        source = objects["library"].reference
+        request = AdmetTask(
+            name="Brain-penetration assessment",
+            focus="brain",
+            library={"asset_id": source.asset_id, "sha256": source.sha256},
+        ).model_dump(mode="json")
     if capability_id == "deepternary.model" and request is None:
         from .proximity_inputs import proximity_template
 

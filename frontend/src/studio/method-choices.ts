@@ -568,6 +568,25 @@ export const methodChoices = [
     ],
   },
   {
+    id: "method.admet.brain",
+    label: ["透脑评估", "Brain penetration"],
+    default: "admet.brain",
+    default_basis: [
+      "当前唯一接入的方法，已默认选中。",
+      "The only integrated method is selected by default.",
+    ],
+    options: [
+      {
+        id: "admet.brain",
+        label: "ADMET-AI / Chemprop",
+        note: [
+          "查看 BBB 与相关 ADME 终点；区分 P-gp 抑制与外排，保留原始预测。",
+          "Inspect BBB and related ADME endpoints; distinguish P-gp inhibition from efflux and retain native predictions.",
+        ],
+      },
+    ],
+  },
+  {
     id: "method.admet.predict",
     label: ["性质与早期安全性预测", "ADMET and early safety predictions"],
     default: "admet.predict",

@@ -162,6 +162,12 @@ export function ToolCenter({
                 />
               ) : selected === "antibody.humanize" ? (
                 <HumanizationForm language={language} onCreated={onCreated} />
+              ) : selected === "admet.brain" ? (
+                <AdmetForm
+                  language={language}
+                  onCreated={onCreated}
+                  focus="brain"
+                />
               ) : selected === "admet.predict" ? (
                 <AdmetForm language={language} onCreated={onCreated} />
               ) : selected === "posebusters.check" ? (

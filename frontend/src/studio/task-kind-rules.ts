@@ -181,6 +181,12 @@ export const taskKindRules = [
     value: null,
   },
   {
+    id: "admet.brain",
+    operation: "admet_predict",
+    field: "focus",
+    value: "brain",
+  },
+  {
     id: "admet.predict",
     operation: "admet_predict",
     field: null,

@@ -12,6 +12,8 @@ def present_admet(value, job, output, assets):
     value["source_name"] = assets.get(source.asset_id).name
     value["endpoints"] = METADATA["endpoints"]
     value["upstream_commit"] = METADATA["upstream_commit"]
+    if getattr(job.request, "focus", None) is not None:
+        value["focus"] = job.request.focus
     for row in value["rows"]:
         if row["status"] == "predicted":
             ref = (

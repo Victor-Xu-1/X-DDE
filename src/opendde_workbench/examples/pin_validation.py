@@ -18,6 +18,8 @@ def validate_case_job(capability_id, job, prepared, store):
     )
     if job.request.operation == "target_research":
         mode = job.request.entity
+    if job.request.operation == "admet_predict":
+        mode = getattr(job.request, "focus", None)
     if specification.native_mode and mode != specification.native_mode:
         raise ValueError("The native mode does not match this example.")
     if prepared.module.parent_capability:

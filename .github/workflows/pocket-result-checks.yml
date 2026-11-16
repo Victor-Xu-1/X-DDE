@@ -42,6 +42,10 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -108,8 +112,8 @@ jobs:
           src/pockets/PocketResults.return.test.tsx
           src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
-    needs: scope
-    if: needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true'
+    needs: [scope, brain-scope]
+    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

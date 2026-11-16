@@ -3,6 +3,7 @@ import type { Language } from "../types";
 import { Hint } from "../guided/Hint";
 import type { AdmetResult, AdmetRow } from "./types";
 import { EndpointValue } from "./EndpointValue";
+import { BrainScope, brainEndpointIds, brainEndpoints } from "./BrainScope";
 import {
   categoryLabels,
   commonEndpoints,
@@ -22,18 +23,28 @@ export function EndpointTable({
 }) {
   const zh = language === "zh";
   const [category, setCategory] = useState(
-    result.options.view === "safety"
-      ? "Toxicity"
-      : result.options.view === "adme"
-        ? "adme"
-        : "all",
+    result.focus === "brain"
+      ? "brain"
+      : result.options.view === "safety"
+        ? "Toxicity"
+        : result.options.view === "adme"
+          ? "adme"
+          : "all",
   );
   const available = result.endpoints;
   const [query, setQuery] = useState("");
-  const visible = available
+  const ordered =
+    category === "brain"
+      ? brainEndpointIds.flatMap((id) => {
+          const endpoint = available.find((item) => item.id === id);
+          return endpoint ? [endpoint] : [];
+        })
+      : available;
+  const visible = ordered
     .filter(
       (e) =>
         category === "all" ||
+        (category === "brain" && brainEndpoints.has(e.id)) ||
         (category === "common"
           ? commonEndpoints.has(e.id)
           : category === "adme"
@@ -52,6 +63,7 @@ export function EndpointTable({
       className="admet-endpoints"
       aria-label={zh ? "性质预测" : "Predicted properties"}
     >
+      {category === "brain" && <BrainScope language={language} />}
       <div className="admet-result-toolbar">
         <label className="field">
           {zh ? "结果分组" : "Result group"}
@@ -63,6 +75,9 @@ export function EndpointTable({
               {zh ? "常用结果" : "Common endpoints"}
             </option>
             <option value="all">{zh ? "全部结果" : "All endpoints"}</option>
+            <option value="brain">
+              {zh ? "透脑相关结果" : "Brain-penetration endpoints"}
+            </option>
             <option value="adme">
               {zh ? "吸收与体内过程" : "ADME endpoints"}
             </option>

@@ -20,7 +20,13 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   task-status:
+    if: needs.brain-scope.outputs.brain_only != 'true'
+    needs: brain-scope
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

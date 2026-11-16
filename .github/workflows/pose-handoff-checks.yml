@@ -47,6 +47,10 @@ on:
 permissions:
   contents: read
 jobs:
+  brain-scope:
+    uses: ./.github/workflows/brain-profile-checks.yml
+    with:
+      scope_only: true
   refinement-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -65,8 +69,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/admet-workspace-scope.py
   pose-continuity:
-    needs: refinement-scope
-    if: needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true'
+    needs: [refinement-scope, brain-scope]
+    if: needs.brain-scope.outputs.brain_only != 'true' && (needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -21,6 +21,9 @@ vi.mock("../admet/AdmetForm", () => ({
 vi.mock("../operations/PropertyForm", () => ({
   PropertyForm: () => <input aria-label="Properties input" />,
 }));
+vi.mock("../admet/BrainForm", () => ({
+  BrainForm: () => <input aria-label="Brain input" />,
+}));
 vi.mock("../chemistry/LibraryScreenForm", () => ({
   LibraryScreenForm: () => <input aria-label="Screen input" />,
 }));
@@ -28,6 +31,23 @@ vi.mock("../chemistry/StateForm", () => ({
   StateForm: () => <input aria-label="States input" />,
 }));
 afterEach(cleanup);
+
+it("keeps brain input separate from an unfinished ADMET input", async () => {
+  const user = userEvent.setup();
+  render(<UtilityWorkspace language="en" onCreated={vi.fn()} />);
+  await user.click(screen.getByRole("button", { name: "ADMET prediction" }));
+  await user.type(screen.getByLabelText("ADMET input"), "retain general input");
+  await user.click(screen.getByRole("button", { name: "Brain penetration" }));
+  await user.type(screen.getByLabelText("Brain input"), "retain brain input");
+  await user.click(screen.getByRole("button", { name: "ADMET prediction" }));
+  expect(screen.getByLabelText("ADMET input")).toHaveValue(
+    "retain general input",
+  );
+  await user.click(screen.getByRole("button", { name: "Brain penetration" }));
+  expect(screen.getByLabelText("Brain input")).toHaveValue(
+    "retain brain input",
+  );
+});
 
 it("places utilities first and preserves inputs while switching tools", async () => {
   expect(navigationItems[0].id).toBe("utilities");

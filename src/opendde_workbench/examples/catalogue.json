@@ -522,6 +522,12 @@
       "revision": 1,
       "pinned_run_required": true
     },
+    "admet.brain": {
+      "case_id": "abl-inhibitors",
+      "capability_id": "admet.brain",
+      "revision": 1,
+      "pinned_run_required": true
+    },
     "admet.predict": {
       "case_id": "abl-inhibitors",
       "capability_id": "admet.predict",

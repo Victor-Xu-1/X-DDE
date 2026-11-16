@@ -11,6 +11,7 @@ export interface AdmetOptions {
 }
 export interface AdmetTask extends BaseTask {
   operation: "admet_predict";
+  focus?: "brain";
   molecule: MoleculeRef | null;
   library: LibraryRef | null;
   options: AdmetOptions;
@@ -41,6 +42,7 @@ export interface AdmetRow {
 }
 export interface AdmetResult {
   operation: "admet_predict";
+  focus?: "brain";
   complete: true;
   schema_version: 1;
   source: MoleculeRef | LibraryRef;

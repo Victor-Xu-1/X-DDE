@@ -62,7 +62,15 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
   return wrap(
     <section
       className="admet-results"
-      aria-label={zh ? "性质与早期安全性预测结果" : "ADMET prediction results"}
+      aria-label={
+        result.focus === "brain"
+          ? zh
+            ? "透脑评估结果"
+            : "Brain-penetration assessment results"
+          : zh
+            ? "性质与早期安全性预测结果"
+            : "ADMET prediction results"
+      }
     >
       {!current && (
         <div className="admet-result-toolbar">

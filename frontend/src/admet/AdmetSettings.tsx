@@ -9,44 +9,63 @@ export function AdmetSettings({
   configure,
   name,
   onName,
+  focus,
 }: {
   language: Language;
   options: AdmetOptions;
   configure(value: Partial<AdmetOptions>): void;
   name: string;
   onName(value: string): void;
+  focus?: "brain";
 }) {
   const zh = language === "zh";
   return (
     <>
-      <ChoiceCards<AdmetView>
-        label={zh ? "先看哪些结果？" : "Which results should appear first?"}
-        value={options.view}
-        onChange={(view) => configure({ view })}
-        options={[
-          {
-            value: "all",
-            title: zh ? "全部性质（推荐）" : "All properties (recommended)",
-            note: zh
-              ? "吸收、分布、代谢、排泄与早期安全性。"
-              : "Absorption, distribution, metabolism, excretion and early safety.",
-          },
-          {
-            value: "adme",
-            title: zh ? "吸收与体内过程" : "ADME properties",
-            note: zh
-              ? "先看溶解度、通透性、代谢与清除等性质。"
-              : "Focus on solubility, permeability, metabolism and clearance.",
-          },
-          {
-            value: "safety",
-            title: zh ? "早期安全性" : "Early safety",
-            note: zh
-              ? "先看毒性相关模型终点。"
-              : "Focus on toxicity-related model endpoints.",
-          },
-        ]}
-      />
+      {focus === "brain" ? (
+        <ChoiceCards<"all">
+          label={zh ? "预测模型" : "Prediction model"}
+          value="all"
+          onChange={() => configure({ view: "all" })}
+          options={[
+            {
+              value: "all",
+              title: "ADMET-AI · " + (zh ? "基线模型" : "Baseline"),
+              note: zh
+                ? "重点查看 BBB 与辅助 ADME 数据，同时保存全部原始预测。"
+                : "Inspect BBB and supporting ADME data while retaining all native predictions.",
+            },
+          ]}
+        />
+      ) : (
+        <ChoiceCards<AdmetView>
+          label={zh ? "先看哪些结果？" : "Which results should appear first?"}
+          value={options.view}
+          onChange={(view) => configure({ view })}
+          options={[
+            {
+              value: "all",
+              title: zh ? "全部性质（推荐）" : "All properties (recommended)",
+              note: zh
+                ? "吸收、分布、代谢、排泄与早期安全性。"
+                : "Absorption, distribution, metabolism, excretion and early safety.",
+            },
+            {
+              value: "adme",
+              title: zh ? "吸收与体内过程" : "ADME properties",
+              note: zh
+                ? "先看溶解度、通透性、代谢与清除等性质。"
+                : "Focus on solubility, permeability, metabolism and clearance.",
+            },
+            {
+              value: "safety",
+              title: zh ? "早期安全性" : "Early safety",
+              note: zh
+                ? "先看毒性相关模型终点。"
+                : "Focus on toxicity-related model endpoints.",
+            },
+          ]}
+        />
+      )}
       <Hint
         label={
           zh

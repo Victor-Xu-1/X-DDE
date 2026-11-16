@@ -1,0 +1,31 @@
+.molecular-input-review:has(.admet-brain-review-summary) {
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  align-items: center;
+  gap: 24px;
+}
+.molecular-input-review:has(.admet-brain-review-summary) > figure {
+  grid-column: 1;
+  grid-row: 1;
+}
+.molecular-input-review:has(.admet-brain-review-summary) > div {
+  grid-column: 2;
+  grid-row: 1;
+}
+.molecular-input-review:has(.admet-brain-review-summary)
+  .molecule-image.is-thumbnail {
+  height: clamp(280px, 42dvh, 440px);
+}
+@media (max-width: 700px) {
+  .molecular-input-review:has(.admet-brain-review-summary) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .molecular-input-review:has(.admet-brain-review-summary) > div {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .molecular-input-review:has(.admet-brain-review-summary)
+    .molecule-image.is-thumbnail {
+    height: 280px;
+  }
+}
