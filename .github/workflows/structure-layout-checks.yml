@@ -125,6 +125,7 @@ jobs:
       del_only: ${{ steps.change.outputs.del_only }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
       interaction_only: ${{ steps.interaction.outputs.interaction_only }}
+      admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -141,6 +142,10 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/interaction-workspace-scope.py
+      - id: admet
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/admet-workspace-scope.py
   interaction-workspace:
     needs: scope
     if: needs.scope.outputs.interaction_only == 'true'
@@ -189,7 +194,7 @@ jobs:
             outputs/protein-interface-workspace
   view-alignment:
     needs: [scope, model-context, prediction-scope, guidance-scope]
-    if: needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
+    if: needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
@@ -257,7 +262,7 @@ jobs:
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
     needs: [scope, model-context, guidance-scope]
-    if: needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
+    if: needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

@@ -4,19 +4,35 @@ import { MetricScatter } from "../presentation/MetricScatter";
 import { AdmetRecordTable } from "./AdmetRecordTable";
 import { commonEndpoints, endpointName, endpointUnit } from "./labels";
 import type { AdmetResult, AdmetRow } from "./types";
+import { EndpointTable } from "./EndpointTable";
 
 export function AdmetCandidateViews({
   result,
   language,
-  selected,
+  row,
   onSelect,
 }: {
   result: AdmetResult;
   language: Language;
-  selected: number;
+  row: AdmetRow;
   onSelect(row: AdmetRow): void;
 }) {
   const zh = language === "zh";
+  const selected = row.record;
+  const predictions = {
+    id: "predictions",
+    label: zh ? "预测性质" : "Predictions",
+    content:
+      row.status === "predicted" ? (
+        <EndpointTable result={result} row={row} language={language} />
+      ) : (
+        <p className="field-help">
+          {zh
+            ? "选择已有有效预测的分子后查看各项终点。"
+            : "Choose a molecule with valid predictions to inspect its endpoints."}
+        </p>
+      ),
+  };
   const metrics = result.endpoints
     .filter((endpoint) => commonEndpoints.has(endpoint.id))
     .map((endpoint) => ({
@@ -58,16 +74,22 @@ export function AdmetCandidateViews({
   return (
     <section
       className="admet-candidates"
-      aria-label={zh ? "候选比较" : "Candidate comparison"}
+      aria-label={
+        zh ? "预测与候选比较" : "Predictions and candidate comparison"
+      }
     >
-      <ResearchTabs
-        label={zh ? "候选视图" : "Candidate views"}
-        tabs={
-          result.rows.length > 1 && metrics.length > 1
-            ? [table, landscape]
-            : [table]
-        }
-      />
+      {result.rows.length === 1 ? (
+        predictions.content
+      ) : (
+        <ResearchTabs
+          label={zh ? "候选视图" : "Candidate views"}
+          tabs={
+            metrics.length > 1
+              ? [predictions, table, landscape]
+              : [predictions, table]
+          }
+        />
+      )}
     </section>
   );
 }

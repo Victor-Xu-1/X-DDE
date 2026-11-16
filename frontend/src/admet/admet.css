@@ -4,12 +4,238 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin: 12px 0;
+  margin: 0 0 10px;
+}
+.admet-result-toolbar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.admet-result-toolbar strong {
+  color: var(--ink);
 }
 .admet-result-toolbar .field {
   margin: 0;
 }
+.admet-results .structure-workbench:not([data-workspace-expanded]) {
+  grid-template-columns: minmax(0, 1.7fr) minmax(380px, 1fr);
+  height: max(560px, calc(100dvh - 230px));
+  gap: 20px;
+  align-items: stretch;
+}
+.admet-results
+  .structure-workbench:not([data-workspace-expanded])
+  > .structure-workbench-view {
+  display: block;
+  min-height: 0;
+}
+.admet-results
+  .structure-workbench:not([data-workspace-expanded])
+  > .structure-workbench-details {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.admet-selected-molecule,
+.admet-candidates {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.admet-selected-molecule > .research-tabs,
+.admet-candidates > .research-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.admet-selected-molecule .research-tab-list,
+.admet-candidates .research-tab-list {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+.admet-selected-molecule > .research-tabs > [role="tabpanel"]:not([hidden]),
+.admet-candidates > .research-tabs > [role="tabpanel"]:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.admet-molecule-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+.admet-molecule-header h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+.admet-molecule-title p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.admet-molecule-title strong {
+  font-weight: 500;
+}
+.tool-center.is-result:has(.admet-results) .example-preview-toolbar {
+  min-height: 32px;
+  padding: 0 0 6px;
+}
+.tool-center.is-result:has(.admet-results) .example-case-title h2 {
+  font-size: 16px;
+}
+.tool-center.is-result:has(.admet-results)
+  p.field-help:has(+ * .admet-results) {
+  margin-block: 6px;
+}
+.admet-molecule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admet-molecule-actions .secondary-button {
+  font-size: 12px;
+  min-height: 34px;
+}
+.admet-molecule-drawing {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.admet-molecule-drawing .molecule-image {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+}
+.admet-molecule-drawing .molecule-drawing-style {
+  align-self: end;
+  margin-bottom: 6px;
+}
+.admet-molecule-drawing .molecule-inspection-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.admet-molecule-drawing .figure-preview-sheet {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 260px;
+}
+.studio-app .admet-selected-molecule .viewer-panel {
+  padding: 0;
+  border: 0;
+  height: 100%;
+}
+html body .studio-app .admet-results .molecular-stage {
+  flex: 1 1 auto;
+  min-height: 260px;
+  height: auto;
+}
+.admet-endpoints {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+.admet-endpoints .admet-result-toolbar {
+  display: grid;
+  grid-template-columns: minmax(125px, 1fr) minmax(105px, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.admet-endpoints .admet-result-toolbar input {
+  min-width: 0;
+  width: 100%;
+}
+.admet-endpoint-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.admet-endpoints table {
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+}
+.admet-endpoints .table-scroll > table {
+  min-width: 0;
+}
+.admet-endpoint-scroll thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+.admet-endpoint-scroll th,
+.admet-endpoint-scroll td {
+  padding: 10px 8px;
+}
+.admet-endpoint-scroll td:last-child {
+  text-align: right;
+  width: 112px;
+}
+.admet-endpoint-species,
+.admet-endpoint-value small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.admet-endpoint-value {
+  min-width: 88px;
+}
+.admet-endpoint-value strong {
+  font-weight: 600;
+}
+.admet-score-track {
+  display: block;
+  height: 4px;
+  width: 96px;
+  max-width: 100%;
+  margin: 6px 0 0 auto;
+  background: var(--line);
+  border-radius: 2px;
+}
+.admet-score-track > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+.admet-endpoints > details {
+  flex-shrink: 0;
+  max-height: 35%;
+  overflow: auto;
+  margin-top: 10px;
+}
+.admet-endpoints > details > summary {
+  font-size: 12px;
+}
+.admet-endpoint-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+.admet-candidates .research-table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .admet-candidates .research-table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 480px;
 }
 .admet-endpoint-label {
@@ -21,58 +247,6 @@
   font-size: 11px;
   font-weight: 400;
 }
-.admet-molecule-header {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 46px;
-  margin-bottom: 8px;
-}
-.admet-molecule-header h3 {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: 16px;
-}
-.admet-molecule-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.admet-molecule-actions .secondary-button {
-  font-size: 12px;
-  min-height: 34px;
-}
-.admet-molecule-drawing .molecule-image {
-  grid-template-columns: minmax(0, 1fr);
-  width: 100%;
-  min-width: 0;
-  min-height: 220px;
-  padding: 12px 0;
-}
-.admet-molecule-drawing .molecule-image img {
-  min-width: 0;
-  max-width: 100%;
-  height: 160px;
-}
-.admet-molecule-drawing .molecule-drawing-style {
-  margin-bottom: 6px;
-}
-.admet-selected-molecule .viewer-panel {
-  padding: 0;
-  border: 0;
-}
-.studio-app .admet-selected-molecule .viewer-panel .molecular-stage {
-  height: 350px;
-  min-height: 280px;
-}
-.admet-endpoints table {
-  font-variant-numeric: tabular-nums;
-}
-.admet-endpoints .table-scroll > table {
-  min-width: 470px;
-}
 .admet-empty {
   padding: 24px 0;
   color: var(--muted);
@@ -82,14 +256,29 @@
   margin: 0 0 12px;
   color: var(--ink);
 }
-@media (max-width: 640px) {
-  .admet-candidates .research-table-scroll {
-    max-height: 370px;
+html
+  body
+  .studio-app
+  .studio-content:has(> .tool-center.is-result .admet-results)
+  > .module-task-picker {
+  display: none;
+}
+@media (max-width: 1000px) {
+  .admet-results .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
   }
-  .admet-molecule-actions {
-    width: 100%;
+  .admet-selected-molecule {
+    min-height: 510px;
   }
-  .admet-endpoints .admet-result-toolbar {
-    align-items: end;
+  .admet-molecule-drawing .figure-preview-sheet {
+    height: clamp(320px, 50dvh, 480px);
+  }
+  html body .studio-app .admet-results .molecular-stage {
+    flex: none;
+    height: clamp(360px, 55dvh, 520px);
+  }
+  .admet-endpoint-scroll {
+    max-height: 560px;
   }
 }

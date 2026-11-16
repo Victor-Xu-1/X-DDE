@@ -12,8 +12,19 @@ vi.mock("../presentation/plots/InteractivePlot", () => ({
 }));
 
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <span aria-label="Selected structure">{urls.join("|")}</span>
+  StructureViewer: ({
+    urls,
+    expectedStructureSha256,
+  }: {
+    urls: string[];
+    expectedStructureSha256?: string;
+  }) => (
+    <span
+      aria-label="Selected structure"
+      data-source-sha256={expectedStructureSha256}
+    >
+      {urls.join("|")}
+    </span>
   ),
 }));
 vi.mock("../chemistry/StateForm", () => ({
@@ -49,6 +60,8 @@ const endpoints: Endpoint[] = [
     name: "hERG",
     category: "Toxicity",
     task_type: "classification",
+    minimum: 0,
+    maximum: 1,
     unit: "-",
     species: "human",
     source_url: "https://tdcommons.ai/single_pred_tasks/tox/",
@@ -100,6 +113,11 @@ const result = {
   applicability_domain: "not_established",
   uncertainty: "not_provided_by_native_api",
 } as AdmetResult;
+
+async function showCandidates(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("tab", { name: /^Candidate molecules/ }));
+}
+
 it("retains invalid/duplicate original indices and switches exact previews and reusable inputs", async () => {
   const user = userEvent.setup();
   render(
@@ -116,6 +134,7 @@ it("retains invalid/duplicate original indices and switches exact previews and r
   expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
     "source-record-2.sdf",
   );
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
   expect(screen.queryByLabelText("Selected structure")).toBeNull();
   expect(
@@ -152,10 +171,19 @@ it("honors the requested full panel and offers a compact common-endpoint view", 
   expect(screen.getByRole("tooltip")).toHaveTextContent(
     "Native label1 means hERG blockade.",
   );
-  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue("all");
-  expect(screen.getByRole("button", { name: "Half life meaning" })).toBeVisible();
-  await user.selectOptions(screen.getByRole("combobox", { name: "Result group" }), "common");
-  expect(screen.queryByRole("button", { name: "Half life meaning" })).toBeNull();
+  expect(screen.getByRole("combobox", { name: "Result group" })).toHaveValue(
+    "all",
+  );
+  expect(
+    screen.getByRole("button", { name: "Half life meaning" }),
+  ).toBeVisible();
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Result group" }),
+    "common",
+  );
+  expect(
+    screen.queryByRole("button", { name: "Half life meaning" }),
+  ).toBeNull();
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Result group" }),
     "all",
@@ -206,6 +234,7 @@ it("keeps all endpoints reachable when early safety was chosen as the initial vi
   expect(
     screen.getByRole("button", { name: "Half life meaning" }),
   ).toBeVisible();
+  await showCandidates(user);
   await user.click(screen.getByText("Columns", { selector: "summary" }));
   await user.click(
     screen.getByRole("checkbox", { name: /Solubility.*log mol\/L/ }),
@@ -223,6 +252,7 @@ it("links the property landscape to exact record selection and preserves the tab
   render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
   );
+  await showCandidates(user);
   await user.type(screen.getByRole("searchbox"), "Candidate 3");
   await user.click(screen.getByRole("tab", { name: "Property landscape" }));
   await user.selectOptions(
@@ -246,6 +276,7 @@ it("resets record selection for another result and makes empty and rejected outp
   const view = render(
     <AdmetResults job={{ id: "job" } as Job} result={result} language="en" />,
   );
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#3 · Candidate 3/ }));
   view.rerender(
     <AdmetResults
@@ -257,7 +288,9 @@ it("resets record selection for another result and makes empty and rejected outp
   expect(
     screen.getByRole("heading", { name: "#2 · Candidate 2" }),
   ).toBeVisible();
+  await showCandidates(user);
   await user.click(screen.getByRole("button", { name: /#1 · Candidate 1/ }));
+  await user.click(screen.getByRole("tab", { name: "Predictions" }));
   expect(screen.queryByRole("tab", { name: "3D structure" })).toBeNull();
   expect(
     screen.queryByRole("region", { name: "Predicted properties" }),
@@ -276,4 +309,61 @@ it("resets record selection for another result and makes empty and rejected outp
   );
   expect(screen.getByText("No molecule results")).toBeVisible();
   expect(screen.queryByRole("tablist")).toBeNull();
+});
+
+it("keeps complete endpoint inspection next to either molecule view without a duplicate single-record table", async () => {
+  const user = userEvent.setup();
+  const single = {
+    ...result,
+    rows: [row(1)],
+    predicted_count: 1,
+    previews_sha256: { "source-record-2.sdf": "f".repeat(64) },
+  };
+  const original = JSON.stringify(single);
+  render(
+    <AdmetResults
+      job={{ id: "single" } as Job}
+      result={single}
+      language="en"
+    />,
+  );
+  expect(
+    screen.queryByRole("tab", { name: /^Candidate molecules/ }),
+  ).toBeNull();
+  const predictions = screen.getByRole("region", {
+    name: "Predicted properties",
+  });
+  expect(
+    within(predictions).getByRole("table", {
+      name: "Selected molecule predictions",
+    }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("tab", { name: "3D structure" }));
+  expect(screen.getByLabelText("Selected structure")).toHaveAttribute(
+    "data-source-sha256",
+    "f".repeat(64),
+  );
+  expect(predictions).toBeVisible();
+  const search = screen.getByRole("searchbox", {
+    name: "Search predicted endpoints",
+  });
+  await user.type(search, "hERG");
+  expect(
+    within(predictions)
+      .getByRole("table", { name: "Selected molecule predictions" })
+      .querySelectorAll("tbody tr"),
+  ).toHaveLength(1);
+  await user.click(screen.getByRole("tab", { name: "2D structure" }));
+  expect(search).toHaveValue("hERG");
+  await user.clear(search);
+  await user.type(search, "no-match");
+  expect(screen.getByText("No matching endpoints")).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Show all endpoints" }));
+  expect(search).toHaveValue("");
+  expect(
+    within(predictions)
+      .getByRole("table", { name: "Selected molecule predictions" })
+      .querySelectorAll("tbody tr"),
+  ).toHaveLength(3);
+  expect(JSON.stringify(single)).toBe(original);
 });
