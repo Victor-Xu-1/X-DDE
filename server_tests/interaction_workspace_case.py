@@ -10,8 +10,8 @@ from opendde_workbench.examples.stat6_bundle_release import SHA256
 from opendde_workbench.settings import Settings
 
 
-@pytest.fixture(scope="module")
-def interaction_workspace(tmp_path_factory):
+@pytest.fixture(name="interaction_workspace", scope="module")
+def retained_contact_workspace(tmp_path_factory):
     root = tmp_path_factory.mktemp("interaction-workspace")
     with pytest.MonkeyPatch.context() as patch:
         patch.setenv("WB_HOME", str(root))

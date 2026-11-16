@@ -11,7 +11,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
-from server_tests.interaction_workspace_case import interaction_workspace  # noqa: F401
+from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_navigation_shell_browser import open_navigation
 
