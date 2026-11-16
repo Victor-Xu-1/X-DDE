@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DepictionRenderer, depictionDataUrl } from "./depiction-renderer";
 import type { Ketcher } from "../editors/scientificEditor";
+import { webcrypto } from "node:crypto";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -73,6 +74,66 @@ function nativeRenderer() {
   } as unknown as HTMLIFrameElement;
   return { renderer: new DepictionRenderer(() => frame), editor, calls };
 }
+
+it.each([false, true])(
+  "checks native file bytes before drawing (recorded source=%s)",
+  async (verified) => {
+    const { renderer, editor } = nativeRenderer();
+    const molecule =
+      "Reference\r\n  native\r\n\r\n  0  0  0  0  0  0            999 V2000\r\nM  END\r\n";
+    const sha256 = Buffer.from(
+      await webcrypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(molecule),
+      ),
+    ).toString("hex");
+    vi.stubGlobal("crypto", webcrypto);
+    const deployment = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (...args) =>
+      args[0] === "/api/deployment"
+        ? deployment(...args)
+        : new Response(molecule),
+    );
+    const source = {
+      url: "/api/jobs/source/download?name=reference.sdf",
+      record: 0,
+      ...(verified ? { sha256 } : {}),
+    };
+    try {
+      await renderer.render(source, new AbortController().signal);
+      expect(editor.structService.dearomatize).toHaveBeenCalledWith(
+        { struct: molecule, output_format: "chemical/x-mdl-molfile" },
+        { "aromaticity-model": "generic" },
+      );
+      expect(editor.generateImage).toHaveBeenCalledOnce();
+      await expect(
+        renderer.render(
+          { ...source, sha256: "0".repeat(64) },
+          new AbortController().signal,
+        ),
+      ).rejects.toThrow(/checksum mismatch/);
+      expect(editor.generateImage).toHaveBeenCalledOnce();
+    } finally {
+      renderer.close();
+    }
+  },
+);
+
+it("rejects an invalid recorded digest before requesting a source file", async () => {
+  const { renderer, editor } = nativeRenderer();
+  try {
+    await expect(
+      renderer.render(
+        { url: "/api/jobs/source/download?name=a.sdf", sha256: "unverified" },
+        new AbortController().signal,
+      ),
+    ).rejects.toThrow(/recorded molecular source/);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(editor.generateImage).not.toHaveBeenCalled();
+  } finally {
+    renderer.close();
+  }
+});
 
 describe("Native aromatic depiction", () => {
   it("lays out and assigns native alternating bonds on a display copy before exporting", async () => {

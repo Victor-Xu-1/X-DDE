@@ -1,0 +1,21 @@
+.reference-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-block: 16px;
+}
+
+.reference-import-results .molecule-image .figure-preview-sheet {
+  height: clamp(300px, 57svh, 680px);
+}
+
+.studio-content:has(.reference-import-results) .module-task-picker {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .reference-import-results .molecule-image .figure-preview-sheet {
+    height: clamp(260px, min(48svh, 65vw), 560px);
+  }
+}

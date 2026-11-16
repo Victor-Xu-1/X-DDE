@@ -127,3 +127,37 @@ it("does not apply a late drawing from a previously selected molecule", async ()
     }),
   ).toHaveAttribute("src", url!);
 });
+
+it("reports readiness for the current drawing and clears it while the source changes", async () => {
+  const onDrawingReady = vi.fn();
+  const content = (source: typeof sourceA) => (
+    <MoleculeDrawingProvider>
+      <MoleculeImage
+        source={source}
+        label="Selected molecule"
+        language="en"
+        onDrawingReady={onDrawingReady}
+      />
+    </MoleculeDrawingProvider>
+  );
+  drawing.mockResolvedValueOnce(svg("source-A"));
+  const page = render(content(sourceA));
+  await screen.findByRole("img", {
+    name: "2D molecular structure · Selected molecule",
+  });
+  await waitFor(() => expect(onDrawingReady).toHaveBeenLastCalledWith(true));
+  let finish!: (value: Blob) => void;
+  drawing.mockImplementationOnce(
+    () =>
+      new Promise<Blob>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  page.rerender(content(sourceB));
+  expect(onDrawingReady).toHaveBeenLastCalledWith(false);
+  await waitFor(() => expect(drawing).toHaveBeenCalledTimes(2));
+  await act(async () => finish(svg("source-B")));
+  await waitFor(() => expect(onDrawingReady).toHaveBeenLastCalledWith(true));
+  page.unmount();
+  expect(onDrawingReady).toHaveBeenLastCalledWith(false);
+});

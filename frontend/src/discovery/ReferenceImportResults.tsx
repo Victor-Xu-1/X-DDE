@@ -1,13 +1,14 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { artifactUrl } from "../api";
-import { StructureViewer } from "../viewer/StructureViewer";
+import { ReferenceArchivePreview } from "./ReferenceArchivePreview";
 import { StructurePrepareForm } from "../receptors/StructurePrepareForm";
 import { PocketForm } from "../pockets/PocketForm";
 import { StateForm } from "../chemistry/StateForm";
 import { Hint } from "../guided/Hint";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
+import "./reference-import.css";
 export interface ReferenceImportResult {
   operation: "reference_import";
   source: "pdb" | "chembl";
@@ -30,20 +31,44 @@ export function ReferenceImportResults({
   onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
-    [next, setNext] = useState<"pocket" | "states" | "prepare" | null>(null);
-  if (next && result.reference && onCreated)
+    [next, setNext] = useState<{
+      source: string;
+      step: "pocket" | "states" | "prepare";
+    } | null>(null);
+  const sourceKey = JSON.stringify([
+    job.id,
+    result.artifact,
+    result.sha256,
+    result.kind,
+  ]);
+  const currentSource = useRef(sourceKey);
+  currentSource.current = sourceKey;
+  const [verifiedSource, setVerifiedSource] = useState<string | null>(null);
+  const onVerified = useCallback(
+    (ready: boolean) => {
+      if (currentSource.current === sourceKey)
+        setVerifiedSource(ready ? sourceKey : null);
+    },
+    [sourceKey],
+  );
+  const ready =
+    verifiedSource === sourceKey &&
+    result.reference?.sha256.toLowerCase() === result.sha256.toLowerCase();
+  const openNext = (step: "pocket" | "states" | "prepare") =>
+    setNext({ source: sourceKey, step });
+  if (next?.source === sourceKey && result.reference && onCreated)
     return (
       <section>
         <button type="button" onClick={() => setNext(null)}>
           {zh ? "返回参考材料" : "Back to reference material"}
         </button>
-        {next === "prepare" ? (
+        {next.step === "prepare" ? (
           <StructurePrepareForm
             language={language}
             onCreated={onCreated}
             initialStructure={result.reference}
           />
-        ) : next === "states" ? (
+        ) : next.step === "states" ? (
           <StateForm
             language={language}
             onCreated={onCreated}
@@ -60,12 +85,15 @@ export function ReferenceImportResults({
       </section>
     );
   return (
-    <div className="discovery-results">
+    <div className="discovery-results reference-import-results">
       <StructureWorkbench
         preview={
-          <StructureViewer
-            urls={[artifactUrl(job.id, result.artifact)]}
+          <ReferenceArchivePreview
+            key={sourceKey}
+            result={result}
+            url={artifactUrl(job.id, result.artifact)}
             language={language}
+            onVerified={onVerified}
           />
         }
       >
@@ -73,19 +101,27 @@ export function ReferenceImportResults({
         <p className="field-help">
           {zh
             ? "已保存原始参考材料。用于计算前，请按需要完成结构或分子准备。"
-            : "Original reference saved with provenance/digest; subsequent structure or molecule preparation is separate."}
+            : "Original reference saved. Prepare the structure or molecule when you are ready to start a study."}
         </p>
-        <div>
+        <div className="reference-import-actions">
           {result.reference && onCreated && result.kind === "structure" && (
-            <button type="button" onClick={() => setNext("prepare")}>
+            <button
+              type="button"
+              disabled={!ready}
+              onClick={() => openNext("prepare")}
+            >
               {zh ? "准备研究结构" : "Prepare research structure"}
             </button>
           )}
           <a href={artifactUrl(job.id, result.artifact)} download>
-            {zh ? "下载原始材料" : "Download original material"}
+            {zh ? "下载源文件" : "Download source file"}
           </a>
           {result.reference && onCreated && result.kind === "molecule" && (
-            <button type="button" onClick={() => setNext("states")}>
+            <button
+              type="button"
+              disabled={!ready}
+              onClick={() => openNext("states")}
+            >
               {zh ? "准备分子与构象" : "Prepare molecular states/conformers"}
             </button>
           )}
@@ -93,7 +129,11 @@ export function ReferenceImportResults({
             onCreated &&
             result.kind === "structure" &&
             result.request.format === "pdb" && (
-              <button type="button" onClick={() => setNext("pocket")}>
+              <button
+                type="button"
+                disabled={!ready}
+                onClick={() => openNext("pocket")}
+              >
                 {zh ? "寻找候选口袋" : "Find candidate pockets"}
               </button>
             )}

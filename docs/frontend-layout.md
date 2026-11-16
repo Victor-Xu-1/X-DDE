@@ -845,3 +845,22 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+## Original reference preview
+
+Imported structures display their archived coordinates in the shared large left
+3D workspace. Original molecular records use the existing Ketcher 2D renderer;
+opening an archive never starts conformer generation or minimization. Preparing
+the selected structure or molecule remains an explicit next action on the right.
+Both preview paths verify the complete source bytes against the recorded digest
+before enabling preparation; the registered asset must identify the same source.
+Missing or changed source bytes cannot leave an older preview or action enabled.
+The unmodified source download remains available during a preview failure.
+The molecular reader reuses the shared streamed byte limiter with a tighter
+5 MiB cap, while existing 3D consumers retain their original 10 MB cap.
+Only active reference results hide the new-task method picker; returning to the
+questionnaire restores it. Source digests and internal receipts stay off the page.
+The focused result gate checks both archive kinds in English and Chinese Chrome,
+including source mismatch/retry, native downloads, print export and original
+depiction defaults. Public-record retrieval in isolated CI is recorded separately
+from scientific computation; it does not create a computed template example.

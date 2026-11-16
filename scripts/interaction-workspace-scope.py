@@ -1,4 +1,4 @@
-"""Keep contact-row presentation on its exact saved-result and native-view checks."""
+"""Route exact saved-reference or contact changes to their native-view checks."""
 
 import os
 import subprocess
@@ -31,6 +31,45 @@ FILES = SOURCES | {
     "install.sh", "install.ps1",
 }
 
+REFERENCE_SOURCES = {
+    "frontend/src/discovery/ReferenceImportResults.tsx",
+    "frontend/src/discovery/ReferenceImportResults.test.tsx",
+    "frontend/src/discovery/ReferenceArchivePreview.tsx",
+    "frontend/src/discovery/reference-import.css",
+    "frontend/src/presentation/MoleculeImage.tsx",
+    "frontend/src/presentation/MoleculeImage.test.tsx",
+    "frontend/src/presentation/depiction-renderer.ts",
+    "frontend/src/presentation/depiction-renderer.test.ts",
+    "frontend/src/viewer/structure-bytes.ts",
+    "frontend/src/viewer/structure-bytes.test.ts",
+    "server_tests/test_reference_preview_browser.py",
+}
+REFERENCE_FILES = REFERENCE_SOURCES | {
+    "scripts/interaction-workspace-scope.py",
+    "tests/test_interaction_workspace_scope.py",
+    ".github/workflows/structure-layout-checks.yml",
+    ".github/workflows/restraint-guidance-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/ketcher-depiction-checks.yml",
+    ".github/workflows/workspace-preview-checks.yml",
+    ".github/workflows/molecular-preview-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/viewer-checks.yml",
+    "docs/frontend-layout.md",
+    "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
+    "install.sh", "install.ps1",
+}
+
+
+def reference_selected(changed, event="push"):
+    changed = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(changed & REFERENCE_SOURCES)
+        and changed <= REFERENCE_FILES
+    )
+
 
 def selected(changed, event="push"):
     changed = set(changed)
@@ -49,9 +88,12 @@ def main():
         ).splitlines()
         if base and set(base) != {"0"} else []
     )
-    value = selected(changed, os.environ.get("GITHUB_EVENT_NAME", "push"))
+    event = os.environ.get("GITHUB_EVENT_NAME", "push")
+    reference = reference_selected(changed, event)
+    value = selected(changed, event) or reference
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("interaction_only=" + str(value).lower() + "\n")
+        output.write("reference_only=" + str(reference).lower() + "\n")
 
 
 if __name__ == "__main__":

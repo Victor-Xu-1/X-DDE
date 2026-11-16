@@ -2,12 +2,13 @@ import { editorReady, type Ketcher } from "../editors/scientificEditor";
 import { configureKetcherPreview } from "../editors/ketcher-appearance";
 import { foldDisplayHydrogens } from "../editors/ketcher-hydrogens";
 import { molecularRecordText } from "./molecular-record";
+import { structureBytes } from "../viewer/structure-bytes";
 import {
   molecularImageOptions,
   type MolecularPrint,
 } from "../publication/molecular-vector";
 export type DepictionSource =
-  { smiles: string } | { url: string; record?: number };
+  { smiles: string } | { url: string; record?: number; sha256?: string };
 
 async function readStructure(source: DepictionSource, signal: AbortSignal) {
   if ("smiles" in source) {
@@ -26,6 +27,8 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
     )
   )
     throw new Error("Select an exact local molecular record.");
+  if (source.sha256 !== undefined && !/^[a-f0-9]{64}$/i.test(source.sha256))
+    throw new Error("The recorded molecular source is unavailable.");
   const response = await fetch(source.url, { signal });
   if (
     !response.ok ||
@@ -40,8 +43,9 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
       .at(-1);
   if (format !== "sdf" && format !== "mol")
     throw new Error("2D drawing needs an exact MOL or SDF molecular record.");
-  const text = await response.text();
-  if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum.");
+  const { text, sha256 } = await structureBytes(response, 5 * 1024 ** 2);
+  if (source.sha256 !== undefined && source.sha256.toLowerCase() !== sha256)
+    throw new Error("Reviewed molecular source checksum mismatch.");
   return molecularRecordText(text, record, format);
 }
 

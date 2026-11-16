@@ -167,6 +167,8 @@ on:
         type: boolean
         default: false
     outputs:
+      reference_only:
+        value: ${{ jobs.scope.outputs.reference_only }}
       appearance_only:
         value: ${{ jobs.scope.outputs.appearance_only }}
       computation_settings:
@@ -221,6 +223,7 @@ jobs:
       boltz_review_changed: ${{ steps.select.outputs.boltz_review_changed }}
       opendde_review_changed: ${{ steps.select.outputs.opendde_review_changed }}
       result_layout_only: ${{ steps.select.outputs.result_layout_only }}
+      reference_only: ${{ steps.reference.outputs.reference_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -229,9 +232,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/prediction-workspace-scope.py
+      - id: reference
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/interaction-workspace-scope.py
   interface:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.reference_only != 'true' && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
