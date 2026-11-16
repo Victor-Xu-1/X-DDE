@@ -2,22 +2,23 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: 16px 24px;
-  margin: 0 0 18px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  gap: 8px 20px;
+  margin: 0 0 10px;
+  padding: 8px 0 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
   background: var(--surface);
 }
 .prediction-result-summary {
   display: grid;
   justify-items: start;
   min-width: 0;
-  gap: 8px;
+  gap: 4px;
 }
 .prediction-result-heading .result-task-name {
   margin: 0;
-  font-size: clamp(21px, 2.4vw, 27px);
+  font-size: 18px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -63,7 +64,7 @@
 @media (max-width: 840px) {
   .prediction-result-heading {
     grid-template-columns: minmax(0, 1fr);
-    padding: 16px;
+    padding: 8px 0;
   }
   .prediction-result-actions {
     justify-content: flex-start;

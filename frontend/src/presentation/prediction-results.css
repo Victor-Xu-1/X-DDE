@@ -1,3 +1,5 @@
+@import url("./prediction-inspection.css");
+
 .prediction-result {
   min-width: 0;
 }
@@ -8,16 +10,18 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 18px;
-  padding: 18px;
-  margin-bottom: 18px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  gap: 8px 14px;
+  padding: 6px 0 10px;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
   background: var(--surface);
 }
 .prediction-seed-picker label,
 .prediction-sample-picker {
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: 6px;
   min-width: 0;
 }
@@ -45,7 +49,10 @@
 }
 .prediction-seed-picker select {
   width: 134px;
-  min-height: 34px;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 7px;
+  font-size: 12px;
   border-radius: 8px;
 }
 .prediction-sample-picker nav {
@@ -62,9 +69,10 @@
 }
 .prediction-sample-picker button {
   flex-shrink: 0;
-  min-width: 34px;
-  min-height: 34px;
-  padding: 5px 9px;
+  min-width: 32px;
+  min-height: 32px;
+  height: 32px;
+  padding: 4px 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -102,8 +110,12 @@
   min-width: 0;
 }
 .prediction-confidence-metrics > div {
-  padding: 9px 12px;
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
   background: #edf3f1;
 }
 .prediction-confidence-metrics > div:nth-child(2) {
@@ -125,8 +137,8 @@
   font-size: 9px;
 }
 .prediction-confidence-metrics dd {
-  margin: 2px 0 0;
-  font-size: 22px;
+  margin: 0;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
@@ -147,42 +159,17 @@
   max-width: 220px;
   font-size: 12px;
 }
-.prediction-result .structure-workbench {
-  grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr);
-  align-items: stretch;
-  gap: 16px;
-}
-.prediction-result .structure-workbench-view,
-.prediction-result .structure-workbench-details {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  padding: 16px;
-}
-.prediction-result .viewer-panel {
+.studio-app .prediction-result .structure-workbench .viewer-panel {
   border: 0;
   padding: 0;
   background: transparent;
 }
-.studio-app
-  .studio-content[data-prediction-layout="true"]
-  .prediction-result
-  .structure-workbench:not(:popover-open)
-  .viewer-panel:not(:popover-open)
-  .molecular-stage {
-  height: var(--prediction-stage-height, clamp(360px, 46vh, 520px));
-  min-height: 360px;
-}
-@media (min-width: 1800px) {
-  .prediction-result .structure-workbench {
-    grid-template-columns: minmax(0, 1fr) minmax(340px, 640px);
-  }
-}
 .prediction-conformer-table {
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  margin-top: 20px;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  margin-top: 16px;
   background: var(--surface);
 }
 .prediction-conformer-table .candidate-panel {

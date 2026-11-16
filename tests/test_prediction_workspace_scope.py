@@ -8,6 +8,22 @@ scope = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scope)
 
 
+def test_prediction_result_layout_delegates_only_its_native_result_consumers():
+    changed = scope.RESULT_LAYOUT_FILES
+    for event in ("push", "pull_request"):
+        assert scope.result_layout_only(changed, event)
+        assert scope.prediction_only(changed, event)
+    assert not scope.result_layout_only(changed, "workflow_dispatch")
+    assert not scope.result_layout_only({"pyproject.toml"})
+    for unrelated in ("frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts",
+                      "src/opendde_workbench/confidence.py", "frontend/src/App.tsx"):
+        assert not scope.result_layout_only(changed | {unrelated})
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "outputs.result_layout_only == 'true'" in workflow
+    assert "src/examples/ExampleJobResult.test.tsx" in workflow
+    assert "server_tests/test_native_confidence_browser.py" in workflow
+
+
 def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():
     changed = {
         "src/opendde_workbench/drafts/compatibility_process.py",

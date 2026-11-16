@@ -15,6 +15,16 @@ export function predictionMethodId(request: TaskRequest) {
   return undefined;
 }
 
+/** Describe the recorded method, independent of the new-task model selection. */
+export function predictionMethodLabel(request: TaskRequest) {
+  if (isPrediction(request) && request.parameters.model === "abag")
+    return "OpenDDE ABAG";
+  return methodChoices
+    .find((choice) => choice.id === "complex_structure")
+    ?.options.find((option) => option.id === predictionMethodId(request))
+    ?.label;
+}
+
 export function PredictionResultHeader({
   job,
   title,
@@ -32,13 +42,7 @@ export function PredictionResultHeader({
   const t = translator(language);
   const date = new Date(job.created_at);
   const request = job.request;
-  const model =
-    isPrediction(request) && request.parameters.model === "abag"
-      ? "OpenDDE ABAG"
-      : methodChoices
-          .find((choice) => choice.id === "complex_structure")
-          ?.options.find((option) => option.id === predictionMethodId(request))
-          ?.label;
+  const model = predictionMethodLabel(request);
   return (
     <header className="prediction-result-heading">
       <div className="prediction-result-summary">

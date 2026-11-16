@@ -11,6 +11,7 @@ import { ConfidencePlddt } from "./ConfidencePlddt";
 import { ConfidenceDownload } from "./ConfidenceDownload";
 import type { Confidence } from "./confidence-data";
 import { confidencePlotLayout } from "./confidence-plot";
+import { usePredictionPlotSize } from "../presentation/PredictionPlotSize";
 import { requestConfidence } from "./confidence-request";
 
 type ConfidenceMetric = "pae" | "pde" | "contacts";
@@ -37,6 +38,7 @@ export function ConfidencePanel({
   metrics?: readonly [ConfidenceMetric, ...ConfidenceMetric[]];
 }) {
   const zh = language === "zh";
+  const plotSize = usePredictionPlotSize();
   const [choice, setMetric] = useState<ConfidenceMetric>("pae");
   const metric = !metrics || metrics.includes(choice) ? choice : metrics[0];
   const [attempt, setAttempt] = useState(0);
@@ -104,6 +106,7 @@ export function ConfidencePanel({
       : metric.toUpperCase();
   return (
     <PredictionConfidenceCard
+      elementRef={plotSize.elementRef}
       className="confidence-panel"
       title={labels[metric]}
       unit={metric === "contacts" ? "0–1" : "Å"}
@@ -180,7 +183,7 @@ export function ConfidencePanel({
           <InteractivePlot
             title={labels[metric]}
             language={language}
-            height={420}
+            height={plotSize.height}
             selectable={Boolean(inspection && onTokens)}
             onPoint={(point) => {
               if (inspection && Number.isInteger(point.x))
@@ -255,17 +258,21 @@ export function ConfidencePanel({
               },
             }}
           />
-          <p className="small">
-            {candidate} · {data.token_count} tokens ·{" "}
-            {zh ? "显示步长" : "Display stride"} {data.stride}.
-            {inspection
-              ? zh
-                ? " 点击选择横轴对应的残基；切换到选择并拖动可选取双轴范围。"
-                : "Click to inspect the X-axis residue; choose Select and drag to select both axis ranges."
-              : zh
-                ? " 原始 token 索引不等同于残基编号。"
-                : " Native token indices are not residue numbers."}
-          </p>
+          <details className="confidence-chart-notes">
+            <summary title={candidate}>
+              {candidate} · {data.token_count} tokens ·{" "}
+              {zh ? "显示步长" : "Display stride"} {data.stride}
+            </summary>
+            <p>
+              {inspection
+                ? zh
+                  ? " 点击选择横轴对应的残基；切换到选择并拖动可选取双轴范围。"
+                  : "Click to inspect the X-axis residue; choose Select and drag to select both axis ranges."
+                : zh
+                  ? " 原始 token 索引不等同于残基编号。"
+                  : " Native token indices are not residue numbers."}
+            </p>
+          </details>
           <ConfidencePlddt
             data={data}
             language={language}
@@ -279,11 +286,14 @@ export function ConfidencePanel({
             language={language}
           />
           {data.source_integrity === "current_files" && (
-            <p className="small">
-              {zh
-                ? "对应关系已按此任务保留的文件核对；原始置信度文件未记录完成时的校验信息。"
-                : "Correspondence checked against retained task files; original confidence-file integrity was not recorded at completion."}
-            </p>
+            <details className="confidence-source-notes">
+              <summary>{zh ? "来源说明" : "Source notes"}</summary>
+              <p>
+                {zh
+                  ? "对应关系已按此任务保留的文件核对；原始置信度文件未记录完成时的校验信息。"
+                  : "Correspondence checked against retained task files; original confidence-file integrity was not recorded at completion."}
+              </p>
+            </details>
           )}
           {data.mapping_status === "unsupported" && (
             <p role="status" className="small">

@@ -1147,7 +1147,39 @@ def example_inspection_only(changed, event):
     return paths <= EXAMPLE_INSPECTION_FILES
 
 
+RESULT_LAYOUT_SOURCES = {
+    "frontend/src/presentation/PredictionPlotSize.ts",
+    "frontend/src/presentation/PredictionConfidenceCard.tsx",
+    "frontend/src/operations/ConfidencePanel.tsx",
+    "frontend/src/presentation/prediction-inspection.css",
+    "frontend/src/presentation/prediction-results.css",
+    "frontend/src/presentation/prediction-workspace.css",
+    "frontend/src/presentation/prediction-shell.css",
+    "frontend/src/presentation/prediction-result-header.css",
+    "frontend/src/presentation/PredictionResultHeader.tsx",
+    "frontend/src/examples/ExampleJobResult.tsx",
+}
+RESULT_LAYOUT_FILES = RESULT_LAYOUT_SOURCES | {
+    "frontend/src/operations/ConfidencePanel.test.tsx",
+    "frontend/src/examples/ExampleJobResult.test.tsx",
+    "server_tests/test_native_confidence_browser.py",
+    "scripts/prediction-workspace-scope.py",
+    "tests/test_prediction_workspace_scope.py",
+    ".github/workflows/prediction-workspace-checks.yml",
+    "docs/frontend-layout.md",
+    "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json",
+    "install.sh", "install.ps1",
+}
+
+
+def result_layout_only(changed, event="push"):
+    return (event in {"push", "pull_request"} and bool(RESULT_LAYOUT_SOURCES.intersection(changed))
+            and set(changed).issubset(RESULT_LAYOUT_FILES))
+
+
 def selected(changed, event="push"):
+    if result_layout_only(changed, event):
+        return True
     if workspace_expansion_only(changed, event):
         return True
     if (
@@ -1284,6 +1316,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "result_layout_only": result_layout_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
             "draft_compatibility": draft_compatibility_changed(changed),
             "draft_compatibility_only": draft_compatibility_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

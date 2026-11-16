@@ -168,6 +168,11 @@ it("shows Boltz token pLDDT with explicit provenance and only supported matrix c
     screen.getByRole("application", { name: "Token pLDDT" }).textContent!,
   )[0];
   expect(plot.y).toEqual([0, 87]);
+  expect(screen.getByText("Source notes")).toBeVisible();
+  expect(
+    screen.getByText(/original confidence-file integrity was not recorded/),
+  ).not.toBeVisible();
+  fireEvent.click(screen.getByText("Source notes"));
   expect(
     screen.getByText(/original confidence-file integrity was not recorded/),
   ).toBeVisible();

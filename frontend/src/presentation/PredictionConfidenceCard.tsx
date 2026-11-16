@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { useId, type ReactNode, type Ref } from "react";
 import "./prediction-confidence-card.css";
 
 export function PredictionConfidenceCard({
@@ -7,16 +7,19 @@ export function PredictionConfidenceCard({
   controls,
   className,
   children,
+  elementRef,
 }: {
   title: string;
   unit?: string;
   controls?: ReactNode;
   className?: string;
   children: ReactNode;
+  elementRef?: Ref<HTMLElement>;
 }) {
   const titleId = useId();
   return (
     <section
+      ref={elementRef}
       className={["prediction-confidence-card", className]
         .filter(Boolean)
         .join(" ")}
