@@ -250,6 +250,11 @@ def inspect_activity(page, workspace, result, evidence, language, width):
                                  measurement, item["assay_chembl_id"]))
     assert [tuple(record[label] for label in labels) for record in records] == expected_records
     preview.scroll_into_view_if_needed()
+    preview.evaluate("""node => {
+      const header = document.querySelector('.studio-topbar').getBoundingClientRect();
+      window.scrollBy({top: node.getBoundingClientRect().top - header.bottom - 24,
+        behavior: 'instant'});
+    }""")
     stage = panel.locator(".structure-workbench-view").bounding_box()
     details = panel.locator(".structure-workbench-details").bounding_box()
     assert stage and details and stage["height"] >= 300
@@ -259,6 +264,8 @@ def inspect_activity(page, workspace, result, evidence, language, width):
     else:
         assert stage["y"] + stage["height"] <= details["y"]
     assert stage["y"] >= 0 and stage["y"] + stage["height"] <= 1000
+    header = page.locator(".studio-topbar").bounding_box()
+    assert header and stage["y"] >= header["y"] + header["height"]
     assert panel.locator(".research-table-scroll").evaluate(
         "node => node.scrollWidth <= node.clientWidth + 1"
     )
