@@ -77,7 +77,7 @@ def test_live_setup_summary_and_native_input_preview(language, width, tool, mode
             seeds = aside.get_by_text("随机种子" if zh else "Seeds", exact=True)
             expect(seeds).not_to_be_visible()
             details = aside.locator(".prediction-calculation-details")
-            expect(details).not_to_have_attribute("open")
+            expect(aside.locator(".prediction-calculation-details[open]")).to_have_count(0)
             page.screenshot(path=evidence / "blank-form.png")
             capture_setup(page, aside, evidence, "closed-summary")
             details.locator("summary").click()
