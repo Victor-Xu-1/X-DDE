@@ -30,7 +30,7 @@
 }
 .interaction-results .structure-workbench:not([data-workspace-expanded]) {
   grid-template-columns: minmax(0, 1.8fr) minmax(350px, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 112px;
   height: max(560px, calc(100dvh - 240px));
   align-items: stretch;
   gap: 20px;
@@ -38,6 +38,8 @@
 .interaction-results
   .structure-workbench:not([data-workspace-expanded])
   > .structure-workbench-view {
+  grid-column: 1;
+  grid-row: 1 / span 2;
   display: block;
   min-height: 0;
 }
@@ -57,9 +59,25 @@
 .interaction-results
   .structure-workbench:not([data-workspace-expanded])
   > .structure-workbench-details {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+.interaction-results
+  .structure-workbench:not([data-workspace-expanded])
+  > .structure-workbench-sequence {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+  max-height: 112px;
+  overflow: auto;
+}
+.interaction-results .structure-workbench-sequence .structure-sequence {
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 .interaction-results .research-table {
   display: flex;
@@ -84,6 +102,16 @@ html
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
     height: auto;
+  }
+  .interaction-results
+    .structure-workbench:not([data-workspace-expanded])
+    > :is(
+      .structure-workbench-view,
+      .structure-workbench-details,
+      .structure-workbench-sequence
+    ) {
+    grid-column: 1;
+    grid-row: auto;
   }
   .studio-app
     .interaction-results

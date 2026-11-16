@@ -58,6 +58,7 @@ function InteractionWorkspace({
   language: Language;
 }) {
   const [scene, setScene] = useState<SceneInfo | null>(null);
+  const [sequenceHost, setSequenceHost] = useState<HTMLDivElement | null>(null);
   const [focus, setFocus] = useState<{
     id: string;
     residue: string;
@@ -79,6 +80,7 @@ function InteractionWorkspace({
         <span>{result.version}</span>
       </p>
       <StructureWorkbench
+        sequenceHostRef={setSequenceHost}
         preview={
           result.structure_artifact && (
             <StructureViewer
@@ -91,6 +93,7 @@ function InteractionWorkspace({
               nativeInteractions={result.interactions}
               focusResidue={focus}
               onSceneLoaded={setScene}
+              sequenceHost={sequenceHost}
               onStructureVerification={(verified) => {
                 if (!verified) {
                   setScene(null);

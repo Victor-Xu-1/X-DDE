@@ -144,6 +144,9 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width):
             assert bounds and stage and details and stage["height"] >= 300
             if width > 1000:
                 assert stage["x"] < details["x"] and stage["width"] > details["width"]
+                sequence_bounds = workspace.locator(".structure-workbench-sequence").bounding_box()
+                assert sequence_bounds and abs(sequence_bounds["x"] - details["x"]) < 2
+                assert sequence_bounds["height"] <= 113
             else:
                 assert details["y"] >= stage["y"] + stage["height"]
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
