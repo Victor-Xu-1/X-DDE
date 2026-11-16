@@ -84,6 +84,26 @@ def capture_result_line_controls(result, evidence):
     (evidence / "result-line-controls.json").write_text(json.dumps(controls, indent=2))
 
 
+def settle_result_capture(result):
+    """Wait for the real view to settle; never freeze or restyle it for evidence."""
+    result.evaluate("""async root => {
+      await document.fonts.ready;
+      const images = [...root.querySelectorAll('.molecule-image img')]
+        .filter(image => image.getClientRects().length);
+      await Promise.all(images.map(image => image.decode()));
+      const animations = document.getAnimations().filter(animation =>
+        animation.playState === 'running' &&
+        Number.isFinite(animation.effect?.getComputedTiming().endTime));
+      await Promise.all(animations.map(animation => animation.finished));
+      for (const table of root.querySelectorAll('.table-scroll, .admet-endpoint-scroll'))
+        table.scrollTo({top: 0, left: 0, behavior: 'instant'});
+      for (let node = root.parentElement; node; node = node.parentElement)
+        node.scrollTo({top: 0, left: 0, behavior: 'instant'});
+      window.scrollTo({top: 0, left: 0, behavior: 'instant'});
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }""")
+
+
 def capture_utility_result(page, result, native, language, evidence):
     """Inspect native 2D depictions and export a real 3D render when one exists."""
     zh = language == "zh"
@@ -96,6 +116,7 @@ def capture_utility_result(page, result, native, language, evidence):
     for drawing in drawings.all():
         drawing.scroll_into_view_if_needed()
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+    settle_result_capture(result)
     capture_result_line_controls(result, evidence)
     page.screenshot(path=evidence / "in-utility-example-2d.png", full_page=True)
     structure_tab = preview.get_by_role(
@@ -111,4 +132,5 @@ def capture_utility_result(page, result, native, language, evidence):
             ), evidence, "in-utility-native-3d", language,
         )
         inspect_png(figure, 600)
+        settle_result_capture(result)
         page.screenshot(path=evidence / "in-utility-example-3d.png", full_page=True)
