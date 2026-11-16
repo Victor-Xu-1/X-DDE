@@ -86,6 +86,14 @@ def test_exact_profile_paths_and_version_mirrors():
     assert not scope["selected"](scope["FILES"], "workflow_dispatch")
 
 
+def test_shared_example_changes_alone_keep_the_original_consumer_gates():
+    assert not scope["selected"]([
+        "frontend/src/examples/ExampleActions.tsx",
+        "frontend/src/examples/ExampleActions.test.tsx",
+        "pyproject.toml",
+    ])
+
+
 @pytest.mark.parametrize("name", [
     "reference-input-checks.yml", "defined-site-checks.yml",
     "pocket-result-checks.yml", "research-material-checks.yml",

@@ -868,3 +868,10 @@ in document flow, without a footer covering their inputs. Drawing line controls
 remain readable in both input reviews and saved utility results. Preparation uses
 the existing action button for visible progress while retaining its live status;
 metadata failures and retry remain visible without discarding personal inputs.
+
+Within one utility, template/result loading and task submission are serialized.
+An input-replacement action disables the current form; a pending submission
+disables template replacement until its response is accepted or rejected. Failures
+release the controls and retain the input. Other utilities keep their own state.
+The shared submission hook still owns request snapshots, idempotency and accepted
+task recovery; the input scope only controls these foreground interactions.

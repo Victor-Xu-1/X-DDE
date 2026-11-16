@@ -9,7 +9,19 @@
   flex-direction: column;
   min-width: 0;
 }
-.utility-task-form > .questionnaire {
+.utility-template-controls,
+.utility-task-fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.utility-task-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.utility-task-fields > .questionnaire {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -17,7 +29,7 @@
   max-width: none;
   padding: 16px 0 0;
 }
-.utility-task-form > .questionnaire > fieldset:not([hidden]) {
+.utility-task-fields > .questionnaire > fieldset:not([hidden]) {
   flex: 1 0 auto;
 }
 .utility-task-form .questionnaire-actions {

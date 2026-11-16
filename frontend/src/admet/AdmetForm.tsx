@@ -7,7 +7,7 @@ import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { MolecularReview } from "../guided/MolecularReview";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { useSdfAsset } from "../research/useSdfAsset";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
@@ -34,7 +34,7 @@ export function AdmetForm({
     preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
   const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated),
+    run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness(brain ? "admet.brain" : "admet.predict");
   const single = useSdfAsset(language, admetLimits.maxInputBytes),
     library = useSdfAsset(language, admetLimits.maxInputBytes);

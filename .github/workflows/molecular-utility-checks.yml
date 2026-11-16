@@ -4,6 +4,9 @@ on:
     paths: &utility_paths
       - "frontend/src/admet/**"
       - "frontend/src/guided/MolecularReview*"
+      - "frontend/src/guided/InputActionScope*"
+      - "frontend/src/guided/useInputTaskSubmit*"
+      - "frontend/src/examples/ExampleActions*"
       - "frontend/src/guided/molecular-review.css"
       - "frontend/src/operations/PropertyForm.tsx"
       - "frontend/src/chemistry/StateForm.tsx"
@@ -88,6 +91,7 @@ jobs:
           uv run --locked python scripts/generate-capability-catalog.py --check
           cd frontend
           npx vitest run \
+            src/examples/ExampleActions.test.tsx \
             src/guided/MolecularReview.test.tsx \
             src/operations/PropertyForm.test.tsx \
             src/operations/PropertyFormFileVerification.test.tsx \

@@ -5,7 +5,7 @@ import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
 import { Hint } from "../guided/Hint";
 import { MolecularReview } from "../guided/MolecularReview";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -29,7 +29,7 @@ export function LibraryScreenForm({
   const exampleLibrary = useExampleReference("library");
   const preset = useExampleTask("library_screen");
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated),
+    run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
   useEffect(() => {

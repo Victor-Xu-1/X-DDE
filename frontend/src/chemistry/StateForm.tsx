@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { Hint } from "../guided/Hint";
@@ -25,7 +25,7 @@ export function StateForm({
   const example = useExampleReference("ligand", "imatinib", "jq1");
   initialMolecule ??= preset?.molecule ?? example;
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated);
+    run = useInputTaskSubmit(onCreated);
   const [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule),
     [choice, setChoice] = useState<PreparationChoice>(
       preset ? "physiological" : "supplied",

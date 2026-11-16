@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import { ExampleActions } from "../examples/ExampleActions";
 import { ExampleContext } from "../examples/context";
@@ -7,6 +7,10 @@ import { AdmetForm } from "../admet/AdmetForm";
 import { PropertyForm } from "../operations/PropertyForm";
 import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
 import { StateForm } from "../chemistry/StateForm";
+import {
+  InputActionScope,
+  useInputActionScope,
+} from "../guided/InputActionScope";
 import "./utility-task.css";
 
 const utilities = {
@@ -27,11 +31,12 @@ type UtilityTaskProps = {
 export function UtilityTask(props: UtilityTaskProps) {
   const [generation, setGeneration] = useState(0);
   return (
-    <UtilityTaskSession
-      key={props.tool + ":" + generation}
-      {...props}
-      onReset={() => setGeneration((current) => current + 1)}
-    />
+    <InputActionScope key={props.tool + ":" + generation}>
+      <UtilityTaskSession
+        {...props}
+        onReset={() => setGeneration((current) => current + 1)}
+      />
+    </InputActionScope>
   );
 }
 
@@ -46,6 +51,18 @@ function UtilityTaskSession({
   const [revision, setRevision] = useState(0);
   const [previewing, setPreviewing] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const actions = useInputActionScope()!;
+  const finishExample = useRef<(() => void) | null>(null);
+  const exampleBusy = useCallback(
+    (pending: boolean) => {
+      if (pending) finishExample.current ??= actions.begin("example");
+      else {
+        finishExample.current?.();
+        finishExample.current = null;
+      }
+    },
+    [actions.begin],
+  );
   function replace(value: PreparedExample | null) {
     setExample(value);
     setRevision((current) => current + 1);
@@ -53,13 +70,22 @@ function UtilityTaskSession({
   }
   return (
     <section className="molecular-utility">
-      <ExampleActions
-        capability={capability}
-        language={language}
-        onLoad={replace}
-        onClear={() => replace(null)}
-        onPreviewChange={setPreviewing}
-      />
+      <fieldset
+        className="utility-template-controls"
+        disabled={actions.action === "submission"}
+      >
+        <legend className="sr-only">
+          {language === "zh" ? "模板与示例" : "Templates and examples"}
+        </legend>
+        <ExampleActions
+          capability={capability}
+          language={language}
+          onLoad={replace}
+          onClear={() => replace(null)}
+          onPreviewChange={setPreviewing}
+          onBusyChange={exampleBusy}
+        />
+      </fieldset>
       <div className="utility-task-form" hidden={previewing}>
         {completed && !example && (
           <div className="utility-toolbar">
@@ -72,19 +98,29 @@ function UtilityTaskSession({
             </button>
           </div>
         )}
-        <ExampleContext.Provider
-          key={revision}
-          value={example?.module.capability_id === capability ? example : null}
+        <fieldset
+          className="utility-task-fields"
+          disabled={actions.action === "example"}
         >
-          <Form
-            language={language}
-            {...(tool === "brain" ? { focus: "brain" as const } : {})}
-            onCreated={(job) => {
-              setCompleted(true);
-              onCreated(job);
-            }}
-          />
-        </ExampleContext.Provider>
+          <legend className="sr-only">
+            {language === "zh" ? "任务材料与设置" : "Task inputs and settings"}
+          </legend>
+          <ExampleContext.Provider
+            key={revision}
+            value={
+              example?.module.capability_id === capability ? example : null
+            }
+          >
+            <Form
+              language={language}
+              {...(tool === "brain" ? { focus: "brain" as const } : {})}
+              onCreated={(job) => {
+                setCompleted(true);
+                onCreated(job);
+              }}
+            />
+          </ExampleContext.Provider>
+        </fieldset>
       </div>
     </section>
   );

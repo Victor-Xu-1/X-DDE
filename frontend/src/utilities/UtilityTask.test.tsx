@@ -5,12 +5,17 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Job } from "../types";
 import type { ExampleInfo, PreparedExample } from "../examples/types";
 import { useExample } from "../examples/context";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { UtilityTask, type MolecularUtility } from "./UtilityTask";
 
-const transport = vi.hoisted(() => ({ request: vi.fn(), post: vi.fn() }));
+const transport = vi.hoisted(() => ({
+  request: vi.fn(),
+  post: vi.fn(),
+  submit: vi.fn(),
+}));
 vi.mock("../api", () => ({
   request: transport.request,
-  api: { post: transport.post },
+  api: { post: transport.post, submit: transport.submit },
 }));
 vi.mock("../examples/ExampleResultSet", () => ({
   ExampleResultSet: ({ job, primary }: { job?: Job; primary?: ReactNode }) =>
@@ -21,6 +26,7 @@ vi.mock("../examples/ExampleRecordResult", () => ({
 }));
 function MoleculeForm({ onCreated }: { onCreated(job: Job): void }) {
   const example = useExample();
+  const task = useInputTaskSubmit(onCreated);
   const [value, setValue] = useState(example?.case.label[1] ?? "");
   return (
     <>
@@ -32,7 +38,17 @@ function MoleculeForm({ onCreated }: { onCreated(job: Job): void }) {
       <output aria-label="Template capability">
         {example?.module.capability_id ?? "blank"}
       </output>
-      <button onClick={() => onCreated({ id: "accepted" } as Job)}>
+      <button
+        disabled={task.busy}
+        onClick={() =>
+          void task.submit({
+            operation: "properties",
+            name: value,
+            smiles: [],
+            ligand_files: [],
+          })
+        }
+      >
         Accept task
       </button>
     </>
@@ -107,6 +123,7 @@ beforeEach(() => {
   transport.post
     .mockReset()
     .mockImplementation(async (path: string) => prepared(path.split("/")[2]));
+  transport.submit.mockReset().mockResolvedValue({ id: "accepted" });
 });
 afterEach(cleanup);
 
@@ -242,12 +259,16 @@ it("prevents submitting the old form while replacement template inputs are pendi
   expect(screen.getByRole("button", { name: "Accept task" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Accept task" }));
   expect(accepted).not.toHaveBeenCalled();
-  expect(screen.getByLabelText("Molecule input")).toHaveValue("manual molecule");
+  expect(screen.getByLabelText("Molecule input")).toHaveValue(
+    "manual molecule",
+  );
   await act(async () => {
     finish(prepared("properties"));
   });
   expect(screen.getByRole("button", { name: "Accept task" })).toBeEnabled();
-  expect(screen.getByLabelText("Molecule input")).toHaveValue("STAT6 properties");
+  expect(screen.getByLabelText("Molecule input")).toHaveValue(
+    "STAT6 properties",
+  );
 });
 
 it.each(["admet", "brain"] satisfies MolecularUtility[])(
@@ -267,6 +288,62 @@ it.each(["admet", "brain"] satisfies MolecularUtility[])(
     expect(transport.post).not.toHaveBeenCalled();
   },
 );
+
+it("retains the submitting form and disables template replacement until acceptance", async () => {
+  let finish!: (value: Job) => void;
+  transport.submit.mockReturnValueOnce(
+    new Promise<Job>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const user = userEvent.setup(),
+    accepted = vi.fn();
+  render(<UtilityTask tool="admet" language="en" onCreated={accepted} />);
+  await user.type(
+    screen.getByLabelText("Molecule input"),
+    "submitted molecule",
+  );
+  await user.click(screen.getByRole("button", { name: "Accept task" }));
+  const template = await screen.findByRole("button", {
+    name: "Use this template",
+  });
+  expect(template).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Example results" }),
+  ).toBeDisabled();
+  await user.click(template);
+  expect(transport.post).not.toHaveBeenCalled();
+  expect(transport.submit).toHaveBeenCalledTimes(1);
+  expect(transport.submit.mock.calls[0][0].name).toBe("submitted molecule");
+  await act(async () => {
+    finish({ id: "accepted" } as Job);
+  });
+  expect(accepted).toHaveBeenCalledWith({ id: "accepted" });
+  expect(template).toBeEnabled();
+  expect(screen.getByLabelText("Molecule input")).toHaveValue(
+    "submitted molecule",
+  );
+});
+
+it("releases template controls after a rejected submission without discarding input", async () => {
+  transport.submit.mockRejectedValueOnce(new Error("Invalid input"));
+  const user = userEvent.setup(),
+    accepted = vi.fn();
+  render(<UtilityTask tool="properties" language="en" onCreated={accepted} />);
+  await user.type(
+    screen.getByLabelText("Molecule input"),
+    "keep this molecule",
+  );
+  await user.click(screen.getByRole("button", { name: "Accept task" }));
+  expect(
+    await screen.findByRole("button", { name: "Use this template" }),
+  ).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Accept task" })).toBeEnabled();
+  expect(screen.getByLabelText("Molecule input")).toHaveValue(
+    "keep this molecule",
+  );
+  expect(accepted).not.toHaveBeenCalled();
+});
 
 it("ignores an old template response after starting a new manual task", async () => {
   let finish!: (value: PreparedExample) => void;

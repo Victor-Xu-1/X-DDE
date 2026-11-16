@@ -7,6 +7,8 @@ from pathlib import Path
 SOURCES = {
     "server_tests/molecular_review_capture.py",
     "frontend/src/guided/MolecularReview.tsx",
+    "frontend/src/guided/InputActionScope.tsx",
+    "frontend/src/guided/useInputTaskSubmit.ts",
     "frontend/src/guided/molecular-review.css",
     "frontend/src/operations/PropertyForm.tsx",
     "frontend/src/chemistry/StateForm.tsx",
@@ -54,6 +56,8 @@ RETIRED = {
     "frontend/src/admet/BrainForm.test.tsx",
 }
 FILES = SOURCES | RETIRED | {
+    "frontend/src/examples/ExampleActions.tsx",
+    "frontend/src/examples/ExampleActions.test.tsx",
     ".github/workflows/library-screen-checks.yml",
     ".github/workflows/reference-input-checks.yml",
     "frontend/src/guided/MolecularReview.test.tsx",
