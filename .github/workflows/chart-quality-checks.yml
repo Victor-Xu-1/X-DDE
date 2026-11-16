@@ -48,7 +48,22 @@ on:
 permissions:
   contents: read
 jobs:
+  appearance-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      appearance_only: ${{ steps.select.outputs.appearance_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/appearance-scope.py
   statistical-previews:
+    needs: appearance-scope
+    # Only the exact neutral-canvas CSS transition delegates to appearance checks.
+    if: needs.appearance-scope.outputs.appearance_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

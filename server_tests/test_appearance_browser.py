@@ -15,7 +15,7 @@ from server_tests.test_navigation_shell_browser import settings
 PALETTES = {
     "warm": ("Warm", "暖色", "#faf8f3", "#ffffff"),
     "light": ("White", "白色", "#ffffff", "#ffffff"),
-    "dark": ("Night black", "夜间黑色", "#0c0f14", "#151a21"),
+    "dark": ("Night black", "夜间黑色", "#0c0f14", "#ffffff"),
 }
 
 
