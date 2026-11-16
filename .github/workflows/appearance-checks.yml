@@ -22,7 +22,13 @@ on:
 permissions:
   contents: read
 jobs:
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   appearance:
+    needs: prediction-scope
+    if: needs.prediction-scope.outputs.confidence_frame != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:

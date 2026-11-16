@@ -48,6 +48,10 @@ on:
 permissions:
   contents: read
 jobs:
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   appearance-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -61,9 +65,9 @@ jobs:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/appearance-scope.py
   statistical-previews:
-    needs: appearance-scope
+    needs: [appearance-scope, prediction-scope]
     # Only the exact neutral-canvas CSS transition delegates to appearance checks.
-    if: needs.appearance-scope.outputs.appearance_only != 'true'
+    if: needs.appearance-scope.outputs.appearance_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

@@ -250,7 +250,10 @@ def test_job_review_layout_delegation_requires_its_unit_and_real_browser_proof()
         Path(__file__).parents[1] / ".github/workflows/antibody-cdr-input-checks.yml"
     ).read_text()
     assert "uses: ./.github/workflows/prediction-workspace-checks.yml" in antibody
-    assert "needs: [case-scope, prediction-scope]" in antibody
+    dependencies = antibody.split("needs: [", 1)[1].split("]", 1)[0]
+    assert {name.strip() for name in dependencies.split(",")} == {
+        "case-scope", "prediction-scope", "utility-scope",
+    }
     assert "needs.prediction-scope.outputs.job_review_layout != 'true'" in antibody
 
 
