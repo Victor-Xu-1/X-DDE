@@ -3,6 +3,51 @@ import { expect, it } from "vitest";
 import { PredictionSetup } from "./PredictionSetup";
 
 it.each(["en", "zh"] as const)(
+  "keeps reproducibility details collapsed while preserving current values in %s",
+  (language) => {
+    const zh = language === "zh";
+    const view = render(
+      <PredictionSetup
+        language={language}
+        components={[
+          { kind: "protein", value: "MKT", count: 2 },
+          { kind: "ligand", value: "O=C(N)c1ccccc1", count: 1 },
+        ]}
+        model="Mol-1"
+        seeds={[101, 202]}
+        samples={5}
+        valid
+      >
+        <p>Current form</p>
+      </PredictionSetup>,
+    );
+    const aside = within(view.container).getByRole("complementary");
+    const seeds = within(aside).getByText(zh ? "随机种子" : "Seeds");
+    expect(seeds).not.toBeVisible();
+    expect(
+      within(aside).getByText(zh ? "总拷贝数" : "Total copies"),
+    ).not.toBeVisible();
+    expect(
+      within(aside).getByText(zh ? "请求构象" : "Requested structures"),
+    ).toBeVisible();
+    expect(within(aside).getByText("Mol-1")).toBeVisible();
+    fireEvent.click(
+      within(aside).getByText(zh ? "计算详情" : "Calculation details"),
+    );
+    expect(seeds).toBeVisible();
+    expect(seeds.nextSibling).toHaveTextContent("101, 202");
+    expect(
+      within(aside).getByText(zh ? "总拷贝数" : "Total copies").nextSibling,
+    ).toHaveTextContent("3");
+    expect(
+      within(aside).getByText(zh ? "请求构象" : "Requested structures")
+        .nextSibling,
+    ).toHaveTextContent("10");
+    view.unmount();
+  },
+);
+
+it.each(["en", "zh"] as const)(
   "guides unfinished seed values without rendering internal numbers in %s",
   (language) => {
     const view = render(
