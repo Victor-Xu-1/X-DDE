@@ -1,4 +1,5 @@
 import runpy
+from pathlib import Path
 
 import pytest
 
@@ -24,3 +25,10 @@ def test_exact_result_paths_and_publication_companions():
 ])
 def test_shared_and_scientific_changes_keep_their_own_checks(path):
     assert not scope["selected"]([*scope["SOURCES"], path])
+
+
+def test_both_unrelated_layout_jobs_delegate_to_the_contact_gate():
+    workflow = Path(".github/workflows/structure-layout-checks.yml").read_text()
+    for job in ("view-alignment", "adjacent-result-consumers"):
+        body = workflow.split("  " + job + ":", 1)[1].split("    steps:", 1)[0]
+        assert "needs.scope.outputs.interaction_only != 'true'" in body
