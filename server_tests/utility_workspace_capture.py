@@ -107,7 +107,7 @@ def settle_result_capture(result):
 def capture_utility_result(page, result, native, language, evidence):
     """Inspect native 2D depictions and export a real 3D render when one exists."""
     zh = language == "zh"
-    preview = result.locator(".molecular-preview").first
+    preview = result.locator(".molecular-preview, .admet-selected-molecule").first
     drawing_tab = preview.get_by_role("tab", name="二维结构" if zh else "2D structure", exact=True)
     if drawing_tab.count():
         drawing_tab.click()
@@ -119,6 +119,7 @@ def capture_utility_result(page, result, native, language, evidence):
     settle_result_capture(result)
     capture_result_line_controls(result, evidence)
     page.screenshot(path=evidence / "in-utility-example-2d.png", full_page=True)
+    page.screenshot(path=evidence / "in-utility-example-2d-viewport.png")
     structure_tab = preview.get_by_role(
         "tab", name="三维结构" if zh else "3D structure", exact=True
     )
@@ -134,3 +135,4 @@ def capture_utility_result(page, result, native, language, evidence):
         inspect_png(figure, 600)
         settle_result_capture(result)
         page.screenshot(path=evidence / "in-utility-example-3d.png", full_page=True)
+        page.screenshot(path=evidence / "in-utility-example-3d-viewport.png")
