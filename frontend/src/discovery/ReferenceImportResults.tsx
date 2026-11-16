@@ -59,7 +59,11 @@ export function ReferenceImportResults({
   if (next?.source === sourceKey && result.reference && onCreated)
     return (
       <section>
-        <button type="button" onClick={() => setNext(null)}>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setNext(null)}
+        >
           {zh ? "返回参考材料" : "Back to reference material"}
         </button>
         {next.step === "prepare" ? (
@@ -104,33 +108,38 @@ export function ReferenceImportResults({
             : "Original reference; prepare before computation."}
         </p>
         <div className="reference-import-actions">
-          {result.reference && onCreated && result.kind === "structure" && (
+          {result.reference && onCreated && (
             <button
               type="button"
+              className="primary-button"
               disabled={!ready}
-              onClick={() => openNext("prepare")}
+              onClick={() =>
+                openNext(result.kind === "structure" ? "prepare" : "states")
+              }
             >
-              {zh ? "准备研究结构" : "Prepare research structure"}
+              {result.kind === "structure"
+                ? zh
+                  ? "准备研究结构"
+                  : "Prepare research structure"
+                : zh
+                  ? "准备分子"
+                  : "Prepare molecule"}
             </button>
           )}
-          <a href={artifactUrl(job.id, result.artifact)} download>
+          <a
+            className="secondary-button"
+            href={artifactUrl(job.id, result.artifact)}
+            download
+          >
             {zh ? "下载源文件" : "Download source file"}
           </a>
-          {result.reference && onCreated && result.kind === "molecule" && (
-            <button
-              type="button"
-              disabled={!ready}
-              onClick={() => openNext("states")}
-            >
-              {zh ? "准备分子" : "Prepare molecule"}
-            </button>
-          )}
           {result.reference &&
             onCreated &&
             result.kind === "structure" &&
             result.request.format === "pdb" && (
               <button
                 type="button"
+                className="secondary-button"
                 disabled={!ready}
                 onClick={() => openNext("pocket")}
               >

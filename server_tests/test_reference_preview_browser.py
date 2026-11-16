@@ -170,6 +170,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                                                          "Export figure ↓"), evidence,
                                   "native-molecule-print", language, format="SVG")
                     assert b"  2D" in original and b"CHEMBL376085" in original
+                page.evaluate("window.scrollTo(0,0)")
+                page.screenshot(path=evidence / "overview.png")
                 frame_below_header(page, frame)
                 bounds = frame.bounding_box()
                 details = workspace.locator(".structure-workbench-details").bounding_box()
@@ -217,6 +219,7 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "archive_retrieval_jobs": int(kind == "molecule"),
                     "scientific_calculations": 0, "preview_writes": writes,
                     "source_mismatch_recovered": True, "source_bytes_unchanged": True,
+                    "canvas_bounds": bounds, "details_bounds": details,
                 }, indent=2))
             finally:
                 page.screenshot(path=evidence / "last-state.png")
