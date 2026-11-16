@@ -24,6 +24,10 @@ export function AdmetSelectedMolecule({
 }) {
   const zh = language === "zh";
   const poseSession = usePoseSession();
+  // Calculated versions have their own verified identity; undo restores the artifact.
+  const structureSha256 =
+    poseSession?.controller.pose.object?.reference.sha256 ??
+    (row.preview ? result.previews_sha256[row.preview] : undefined);
   const url = row.preview ? artifactUrl(job.id, row.preview) : null;
   const source = row.smiles
     ? { smiles: row.smiles }
@@ -48,9 +52,7 @@ export function AdmetSelectedMolecule({
         language={language}
         comparison={false}
         molecularSource={url ? { url, record: 0 } : undefined}
-        expectedStructureSha256={
-          row.preview ? result.previews_sha256[row.preview] : undefined
-        }
+        expectedStructureSha256={structureSha256}
       />
     ),
   };
