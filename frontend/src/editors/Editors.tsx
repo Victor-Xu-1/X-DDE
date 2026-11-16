@@ -1,8 +1,4 @@
-import { configureKetcherPreview } from "./ketcher-appearance";
-import {
-  foldDisplayHydrogens,
-  observeHydrogenDisplay,
-} from "./ketcher-hydrogens";
+import { useWorkbenchDrawing } from "./useWorkbenchDrawing";
 import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import type { ScientificObject } from "../research/types";
@@ -12,7 +8,6 @@ import "./editors.css";
 import { AlignedEditAction } from "./AlignedEditAction";
 import { FileSelect } from "../presentation/FileSelect";
 import {
-  editorReady,
   molecularRecord,
   MoleculeSaveIntent,
   type Ketcher,
@@ -36,12 +31,11 @@ export function Editors({
 }) {
   const zh = language === "zh";
   const [origin, setOrigin] = useState<ScientificObject | null>(initialObject);
-  const [loaded, setLoaded] = useState(false);
+  const [frameGeneration, setFrameGeneration] = useState(0);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [loadFailure, setLoadFailure] = useState<{ sourceId: string } | null>(
     null,
   );
-  const [ketcherReady, setKetcherReady] = useState(false);
   const [mode, setMode] = useState<"ketcher" | "molstar">("ketcher");
   const [proteinOpened, setProteinOpened] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -54,27 +48,26 @@ export function Editors({
   const saveIntent = useRef(new MoleculeSaveIntent());
   const loadQueue = useRef<Promise<void>>(Promise.resolve());
   const actionRunning = useRef(false);
-  useEffect(() => {
-    if (!loaded) return;
-    const controller = new AbortController();
-    void editorReady(frame.current, controller.signal)
-      .then((editor) => {
-        if (!controller.signal.aborted) {
-          configureKetcherPreview(editor);
-          observeHydrogenDisplay(editor, controller.signal, (failure) =>
-            setError(String(failure)),
-          );
-          setKetcherReady(true);
-        }
-      })
-      .catch((failure) => {
-        if (!controller.signal.aborted) setError(String(failure));
-      });
-    return () => controller.abort();
-  }, [loaded]);
+  const drawing = useWorkbenchDrawing(
+    frame,
+    frameGeneration,
+    mode === "ketcher",
+  );
+  const openedSource = useRef("");
+  const unavailable = busy || drawing.busy || !drawing.ready;
+  const contextKey = `${frameGeneration}:${initialObject?.id}:${loadAttempt}`;
+  const currentContext = useRef(contextKey);
+  currentContext.current = contextKey;
 
   useEffect(() => {
-    if (!initialObject || !loaded) return;
+    if (!initialObject) {
+      openedSource.current = "";
+      setBusy(false);
+      return;
+    }
+    if (!drawing.ready || openedSource.current === contextKey) return;
+    openedSource.current = "";
+    const request = contextKey;
     const controller = new AbortController();
     setMode("ketcher");
     setBusy(true);
@@ -86,10 +79,10 @@ export function Editors({
       .then(async () => {
         controller.signal.throwIfAborted();
         const record = await molecularRecord(initialObject, controller.signal);
-        const editor = await editorReady(frame.current, controller.signal);
         controller.signal.throwIfAborted();
-        await editor.setMolecule(await foldDisplayHydrogens(editor, record));
+        await drawing.open(record);
         if (controller.signal.aborted) return;
+        openedSource.current = request;
         setOrigin(initialObject);
         setMessage(
           zh
@@ -108,24 +101,16 @@ export function Editors({
       });
     loadQueue.current = loading;
     return () => controller.abort();
-  }, [initialObject?.id, loaded, loadAttempt]);
+  }, [initialObject?.id, drawing.ready, frameGeneration, loadAttempt]);
   async function action(fn: (editor: Ketcher) => Promise<void>) {
-    if (actionRunning.current || busy) return;
+    if (actionRunning.current || unavailable) return;
     actionRunning.current = true;
     const failedLoad = loadFailure;
     setError("");
     setMessage("");
     setBusy(true);
     try {
-      const editor = (
-        frame.current?.contentWindow as (Window & { ketcher?: Ketcher }) | null
-      )?.ketcher;
-      if (!editor)
-        throw new Error(
-          zh
-            ? "编辑器正在加载，请稍后再试。"
-            : "Editor is loading; try again shortly.",
-        );
+      const editor = drawing.editor();
       await fn(editor);
       setLoadFailure((current) => (current === failedLoad ? null : current));
     } catch (e) {
@@ -136,6 +121,7 @@ export function Editors({
     }
   }
   async function saveMolecule(editor: Ketcher) {
+    const context = currentContext.current;
     if (!(await editor.getSmiles()).trim())
       throw new Error(zh ? "请先画一个分子。" : "Draw a molecule first.");
     const mol = await editor.getMolfile();
@@ -155,6 +141,7 @@ export function Editors({
         );
       throw error;
     }
+    if (currentContext.current !== context) return null;
     setOrigin(version);
     return version;
   }
@@ -246,16 +233,23 @@ export function Editors({
                     zh ? "打开 MOL / SDF / SMILES" : "Open MOL / SDF / SMILES"
                   }
                   accept=".mol,.sdf,.smi,.smiles"
-                  disabled={busy || !ketcherReady}
+                  disabled={unavailable}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file)
                       void action(async (editor) => {
                         if (file.size > 5 * 1024 ** 2)
                           throw new Error("5 MiB maximum");
-                        await editor.setMolecule(
-                          await foldDisplayHydrogens(editor, await file.text()),
-                        );
+                        try {
+                          await editor.setMolecule(await file.text());
+                        } catch (cause) {
+                          throw new Error(
+                            zh
+                              ? "无法打开此分子文件。请检查文件格式，或整理并恢复之前的绘图。"
+                              : "Unable to open this molecule. Check the file format or prepare and restore the previous drawing.",
+                            { cause },
+                          );
+                        }
                         setOrigin(null);
                       });
                     e.target.value = "";
@@ -263,7 +257,7 @@ export function Editors({
                 />
               </label>
               <button
-                disabled={busy || !ketcherReady}
+                disabled={unavailable || !drawing.available}
                 title={
                   zh
                     ? "保存到工作台的分子文件库，后续任务可以直接选择。"
@@ -271,7 +265,7 @@ export function Editors({
                 }
                 onClick={() =>
                   void action(async (editor) => {
-                    await saveMolecule(editor);
+                    if (!(await saveMolecule(editor))) return;
                     setMessage(
                       zh
                         ? "已保存，可在研究文件中继续使用。二维编辑不代表已预测三维姿势。"
@@ -285,21 +279,48 @@ export function Editors({
               <AlignedEditAction
                 origin={origin}
                 language={language}
-                busy={busy || !ketcherReady}
+                busy={unavailable || !drawing.available}
                 execute={action}
                 onCreated={onCreated}
               />
               <button
-                disabled={busy || !ketcherReady}
+                disabled={unavailable || !drawing.available}
                 onClick={() =>
                   void action(async (editor) => {
-                    setPropertyObject(await saveMolecule(editor));
+                    const saved = await saveMolecule(editor);
+                    if (saved) setPropertyObject(saved);
                   })
                 }
               >
                 {zh ? "用这个分子计算性质" : "Calculate properties"}
               </button>
+              {drawing.needsPreparation && (
+                <button
+                  disabled={unavailable}
+                  onClick={() => void action(async () => drawing.prepare())}
+                >
+                  {zh ? "整理为二维结构" : "Prepare 2D drawing"}
+                </button>
+              )}
             </div>
+          )}
+          {drawing.needsPreparation && mode === "ketcher" && !error && (
+            <p className="error" role="alert">
+              {drawing.ready
+                ? zh
+                  ? "请先整理为二维结构；原始结构与撤销记录已保留。"
+                  : "Prepare a 2D drawing before using this molecule. The original and Undo history are retained."
+                : zh
+                  ? "绘图组件未能连接，请重新打开编辑器。"
+                  : "The drawing component could not connect. Reopen the editor."}
+            </p>
+          )}
+          {drawing.needsPreparation && !drawing.ready && (
+            <button
+              onClick={() => frame.current?.contentWindow?.location.reload()}
+            >
+              {zh ? "重新连接编辑器" : "Reconnect editor"}
+            </button>
           )}
           {error && (
             <p className="error" role="alert">
@@ -333,7 +354,11 @@ export function Editors({
       {deployment?.installed.ketcher && (
         <iframe
           ref={frame}
-          onLoad={() => setLoaded(true)}
+          onLoad={() => {
+            setFrameGeneration((value) => value + 1);
+            setOrigin(null);
+            setMessage("");
+          }}
           hidden={mode !== "ketcher"}
           className="molecular-editor"
           title="Ketcher molecular editor"

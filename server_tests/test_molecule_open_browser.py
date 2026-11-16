@@ -100,12 +100,12 @@ def test_retained_source_failure_can_be_reopened_without_new_versions(failure, l
         expect(
             editor.get_by_text("已打开所选版本" if zh else "Selected version opened", exact=False)
         ).to_have_count(0)
-        expect(save).to_be_enabled(timeout=45000)
+        expect(save).to_be_disabled(timeout=45000)
         expect(
             editor.get_by_role(
                 "button", name="用这个分子计算性质" if zh else "Calculate properties", exact=True
             )
-        ).to_be_enabled()
+        ).to_be_disabled()
         assert (
             page.evaluate("""async () => {
             const editor = document.querySelector('.editor-workspace iframe').contentWindow.ketcher;

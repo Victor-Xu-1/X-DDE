@@ -12,9 +12,22 @@ import { api } from "../api";
 import { deploymentFixture } from "../deployment/fixtures";
 import type { ScientificObject } from "../research/types";
 
-vi.mock("./ketcher-hydrogens", () => ({
-  observeHydrogenDisplay: vi.fn(),
-  foldDisplayHydrogens: async (_editor: unknown, text: string) => text,
+// These cases isolate retained-source validation/provenance. Native drawing
+// lifecycle and export approval are exercised by the hook and browser cases.
+vi.mock("./useWorkbenchDrawing", () => ({
+  useWorkbenchDrawing: (
+    frame: { current: HTMLIFrameElement | null },
+    generation: number,
+  ) => ({
+    ready: generation > 0,
+    busy: false,
+    available: true,
+    needsPreparation: false,
+    open: async (text: string) => {
+      await (frame.current!.contentWindow as any).ketcher.setMolecule(text);
+    },
+    editor: () => (frame.current!.contentWindow as any).ketcher,
+  }),
 }));
 vi.mock("./AlignedEditAction", () => ({ AlignedEditAction: () => null }));
 const source =
@@ -131,6 +144,65 @@ it("opens a verified source and retains its exact version as normal save parent"
   const { editor } = mount();
   await screen.findByText(/Selected version opened/);
   expect(editor.setMolecule).toHaveBeenCalledWith(source.replace("$$$$\n", ""));
+  fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
+  await waitFor(() => expect(post).toHaveBeenCalledOnce());
+  expect(post.mock.calls[0][1]).toMatchObject({ parent_id: original.id });
+});
+it("reopens A after a failed B request and retains A as the save parent", async () => {
+  const selected = {
+    ...original,
+    id: "version-B",
+    reference: {
+      ...original.reference,
+      asset_id: "asset-B",
+      version_id: "version-B",
+    },
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      const b = url.includes("asset-B");
+      return url.endsWith("/metadata")
+        ? new Response(
+            JSON.stringify({ ...metadata, id: b ? "asset-B" : "asset" }),
+          )
+        : new Response(b ? source.replace(" C   ", " N   ") : source);
+    }),
+  );
+  const post = vi
+    .spyOn(api, "post")
+    .mockResolvedValue({ ...original, id: "saved-A" });
+  vi.spyOn(api, "upload").mockResolvedValue({ id: "saved-asset" } as never);
+  const { view, props, editor } = mount();
+  await screen.findByText(/Selected version opened/);
+  view.rerender(<Editors {...props} initialObject={selected} />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("does not match");
+  view.rerender(<Editors {...props} initialObject={original} />);
+  await waitFor(() => expect(editor.setMolecule).toHaveBeenCalledTimes(2));
+  await screen.findByText(/Selected version opened/);
+  fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
+  await waitFor(() => expect(post).toHaveBeenCalledOnce());
+  expect(post.mock.calls[0][1]).toMatchObject({ parent_id: original.id });
+});
+it("reloads the selected source and provenance after the native document reloads", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async (url: string) =>
+        new Response(
+          url.endsWith("/metadata") ? JSON.stringify(metadata) : source,
+        ),
+    ),
+  );
+  const post = vi
+    .spyOn(api, "post")
+    .mockResolvedValue({ ...original, id: "saved-A" });
+  vi.spyOn(api, "upload").mockResolvedValue({ id: "saved-asset" } as never);
+  const { editor } = mount();
+  await screen.findByText(/Selected version opened/);
+  fireEvent.load(screen.getByTitle("Ketcher molecular editor"));
+  await waitFor(() => expect(editor.setMolecule).toHaveBeenCalledTimes(2));
+  await screen.findByText(/Selected version opened/);
   fireEvent.click(screen.getByRole("button", { name: "Save to Workbench" }));
   await waitFor(() => expect(post).toHaveBeenCalledOnce());
   expect(post.mock.calls[0][1]).toMatchObject({ parent_id: original.id });
