@@ -1317,7 +1317,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
-            "result_layout_only": result_layout_only(changed, os.environ.get("GITHUB_EVENT_NAME", "push")),
+            "result_layout_only": result_layout_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "draft_compatibility": draft_compatibility_changed(changed),
             "draft_compatibility_only": draft_compatibility_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")

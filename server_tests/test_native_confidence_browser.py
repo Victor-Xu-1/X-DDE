@@ -19,7 +19,9 @@ from server_tests.test_workspace_fullscreen_browser import restored_workspace as
 @pytest.mark.parametrize("language,theme,width,height", [
     ("en", "warm", 1440, 900), ("en", "light", 1280, 650), ("zh", "dark", 390, 900),
 ])
-def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language, theme, width, height):
+def test_retained_atom_confidence_uses_native_fraction_scale(
+    tmp_path, language, theme, width, height
+):
     evidence = Path("outputs/native-confidence") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     state = tmp_path / "state"
@@ -42,7 +44,10 @@ def test_retained_atom_confidence_uses_native_fraction_scale(tmp_path, language,
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
         page = browser.new_page(viewport={"width": width, "height": height})
-        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}');localStorage.setItem('x-dde-theme','{theme}')")
+        page.add_init_script(
+            f"localStorage.setItem('opendde-workbench.language','{language}');"
+            f"localStorage.setItem('x-dde-theme','{theme}')"
+        )
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on(
             "request",
@@ -209,7 +214,10 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
     evidence = Path("outputs/native-confidence") / f"example-{language}"
     before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
     zh = language == "zh"
-    with platform(settings.state_dir, evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
         page = browser.new_page(viewport={"width": width, "height": 900})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
@@ -222,14 +230,19 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         result = page.get_by_role("region", name="模板的真实结果" if zh else "Actual template result")
         expect(result.locator('.prediction-example-source')).to_contain_text("OpenDDE")
         expect(picker).to_be_hidden()
-        expect(result.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")).to_be_enabled(timeout=30000)
+        export = result.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓")
+        expect(export).to_be_enabled(timeout=30000)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         iframe = result.locator(".molecular-stage iframe").element_handle()
         result.get_by_role("button", name="展开研究工作区" if zh else "Expand research workspace").click()
         page.get_by_role("button", name="关闭展开视图" if zh else "Close expanded view").click()
-        assert result.locator(".molecular-stage iframe").evaluate("(node, original) => node === original", iframe)
+        assert result.locator(".molecular-stage iframe").evaluate(
+            "(node, original) => node === original", iframe
+        )
         page.screenshot(path=evidence / "example-result.png")
-        page.get_by_role("button", name="返回任务填写" if zh else "Return to task form", exact=True).click()
+        page.get_by_role(
+            "button", name="返回任务填写" if zh else "Return to task form", exact=True
+        ).click()
         expect(picker).to_be_visible()
         expect(page.get_by_role("group", name="后端模型" if zh else "Backend method")).to_be_visible()
         assert not writes

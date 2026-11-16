@@ -15,8 +15,11 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
         assert scope.prediction_only(changed, event)
     assert not scope.result_layout_only(changed, "workflow_dispatch")
     assert not scope.result_layout_only({"pyproject.toml"})
-    for unrelated in ("frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts", "frontend/src/examples/ExampleActions.tsx",
-                      "src/opendde_workbench/confidence.py", "frontend/src/App.tsx"):
+    for unrelated in (
+        "frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts",
+        "frontend/src/examples/ExampleActions.tsx",
+        "src/opendde_workbench/confidence.py", "frontend/src/App.tsx",
+    ):
         assert not scope.result_layout_only(changed | {unrelated})
     workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
     assert "outputs.result_layout_only == 'true'" in workflow
