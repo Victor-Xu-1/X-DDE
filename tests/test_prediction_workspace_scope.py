@@ -15,13 +15,16 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
         assert scope.prediction_only(changed, event)
     assert not scope.result_layout_only(changed, "workflow_dispatch")
     assert not scope.result_layout_only({"pyproject.toml"})
-    for unrelated in ("frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts",
+    for unrelated in ("frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts", "frontend/src/examples/ExampleActions.tsx",
                       "src/opendde_workbench/confidence.py", "frontend/src/App.tsx"):
         assert not scope.result_layout_only(changed | {unrelated})
     workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
     assert "outputs.result_layout_only == 'true'" in workflow
     assert "src/examples/ExampleJobResult.test.tsx" in workflow
     assert "server_tests/test_native_confidence_browser.py" in workflow
+    examples = Path(".github/workflows/example-result-set-checks.yml").read_text()
+    assert "prediction_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}" in examples
+    assert examples.count("needs.scope.outputs.prediction_layout != 'true'") == 2
 
 
 def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():

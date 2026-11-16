@@ -57,6 +57,8 @@ it("drops late confidence from the previous sample and never labels token indice
     old.resolve({ ...value, native_artifact: "first.npz" }),
   );
   expect(screen.getByRole("link")).toHaveAttribute("href", "job/second.npz");
+  expect(screen.getByText(/Native token indices are not residue numbers/)).not.toBeVisible();
+  fireEvent.click(screen.getByText(/Display stride/));
   expect(
     screen.getByText(/Native token indices are not residue numbers/),
   ).toBeVisible();
