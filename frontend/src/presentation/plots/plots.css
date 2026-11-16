@@ -27,6 +27,7 @@
 .research-plot-canvas {
   width: 100%;
   min-width: 0;
+  background: var(--chart-bg);
 }
 .research-plot-canvas[aria-busy="true"] {
   visibility: hidden;

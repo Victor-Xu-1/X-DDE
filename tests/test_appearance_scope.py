@@ -9,7 +9,9 @@ M = runpy.run_path("scripts/appearance-scope.py")
 
 
 def test_palette_and_publication_only():
-    assert M["selected"](M["FILES"] - {M["WORKSPACES"], M["PREFERENCES"], M["NAVIGATION"]})
+    assert M["selected"](
+        M["FILES"] - {M["WORKSPACES"], M["PREFERENCES"], M["NAVIGATION"], M["PLOT_STYLES"]}
+    )
     assert M["selected"](["frontend/src/theme.warm.test.ts"])
     assert M["selected"](["server_tests/test_appearance_browser.py"])
 
@@ -44,6 +46,17 @@ def test_shared_workspace_requires_exact_theme_cleanup():
 def test_no_source_or_explicit_dispatch_does_not_delegate():
     assert not M["selected"](["pyproject.toml"])
     assert not M["selected"](M["SOURCES"], "workflow_dispatch")
+
+
+def test_scientific_canvas_delegation_rejects_unrelated_chart_changes():
+    old = ".research-plot-canvas {\n  width: 100%;\n  min-width: 0;\n}\n.other { color: red; }"
+    new = old.replace("min-width: 0;", "min-width: 0;\n  background: var(--chart-bg);")
+    changed = ["frontend/src/tokens.css", M["PLOT_STYLES"]]
+    assert M["selected"](changed, plot_before=old, plot_after=new)
+    assert not M["selected"](changed)
+    assert not M["selected"](changed, plot_before=old, plot_after=new.replace("100%", "50%"))
+    assert not M["selected"](changed, plot_before=old, plot_after=new.replace("red", "blue"))
+    assert not M["selected"](changed, "workflow_dispatch", plot_before=old, plot_after=new)
 
 
 def test_shared_preference_cleanup_preserves_other_controls():

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import bootstrapScript from "../public/theme-init.js?raw";
 import appHtml from "../index.html?raw";
 import tokenStyles from "./tokens.css?raw";
+import { confidenceColors } from "./viewer/confidence-types";
 
 let stopSync: (() => void) | undefined;
 
@@ -228,6 +229,22 @@ function luminance(hex: string) {
     );
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
 }
+
+it.each(["warm", "light", "dark"])(
+  "%s keeps native scientific blue and plot captions legible on paper",
+  (theme) => {
+    document.documentElement.dataset.theme = theme;
+    const surface = getComputedStyle(document.documentElement)
+      .getPropertyValue("--chart-bg")
+      .trim();
+    for (const ink of [confidenceColors[3], "#526079"]) {
+      const levels = [ink, surface].map(luminance);
+      expect(
+        (Math.max(...levels) + 0.05) / (Math.min(...levels) + 0.05),
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  },
+);
 
 it.each(["warm", "light", "dark"])(
   "%s text, actions and status colors meet normal-text contrast",

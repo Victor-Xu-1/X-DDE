@@ -5,6 +5,7 @@ on:
       - "frontend/src/theme*"
       - "frontend/public/theme-init.js"
       - "frontend/src/tokens.css"
+      - "frontend/src/presentation/plots/plots.css"
       - "frontend/src/studio/InterfaceSettings*"
       - "frontend/src/design/preferences.css"
       - "frontend/src/design/theme-preferences.css"
@@ -13,6 +14,7 @@ on:
       - "tests/test_appearance_scope.py"
       - "server_tests/test_appearance_browser.py"
       - "server_tests/appearance_preview.py"
+      - "server_tests/test_scientific_appearance_browser.py"
       - ".github/workflows/appearance-checks.yml"
   pull_request:
     paths: *appearance_paths
@@ -39,17 +41,29 @@ jobs:
         run: >-
           npx vitest run src/theme.warm.test.ts src/theme.test.ts
           src/studio/InterfaceSettings.test.tsx src/studio/Navigation.test.tsx
+          src/presentation/plots/InteractivePlot.test.tsx
+          src/publication/plotly.test.ts src/viewer/capture.test.ts
       - run: uv sync --locked --group dev --group browser
       - name: Exact appearance delegation and existing scope consumers
         run: |
           uv run --locked pytest -q tests/test_appearance_scope.py tests/test_prediction_workspace_scope.py
-          uv run --locked ruff check scripts/appearance-scope.py scripts/prediction-workspace-scope.py tests/test_appearance_scope.py server_tests/test_appearance_browser.py server_tests/appearance_preview.py
+          uv run --locked ruff check scripts/appearance-scope.py scripts/prediction-workspace-scope.py tests/test_appearance_scope.py server_tests/test_appearance_browser.py server_tests/appearance_preview.py server_tests/test_scientific_appearance_browser.py
+      - name: Retained native STAT6 source only; no inference or scientific installations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - name: Isolated bilingual rendered appearance; no scientific tasks
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-appearance" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-appearance/state" >> "$GITHUB_ENV"
           uv run --locked playwright install chromium --with-deps
-      - run: uv run --locked python -m pytest -x -q server_tests/test_appearance_browser.py
+      - run: uv run --locked python -m pytest -x -q server_tests/test_appearance_browser.py server_tests/test_scientific_appearance_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

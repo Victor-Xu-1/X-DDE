@@ -744,6 +744,13 @@ explicit stored light/dark choices retain their identifiers. Storage failures do
 not prevent applying a requested palette. Theme swatches and responsive settings
 layout have one stylesheet, theme-preferences.css; legacy copies are removed.
 
+Scientific molecular viewports and native Plotly canvases retain a neutral white
+paper surface in all three application themes. This preserves native confidence,
+elemental and charge palettes and their existing dark axis captions; Night keeps
+its dark navigation, controls and surrounding panels. The shared `--chart-bg`
+token also governs native capture restoration. Theme changes never remount the
+structure or rewrite coordinates, scores, source files or scientific colors.
+
 ## Prediction result work area
 
 The ordinary prediction result uses the same live structure, sample controls,

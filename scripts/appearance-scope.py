@@ -17,11 +17,14 @@ SOURCES = {
     "frontend/src/design/theme-preferences.css",
     "server_tests/test_appearance_browser.py",
     "server_tests/appearance_preview.py",
+    "server_tests/test_scientific_appearance_browser.py",
 }
 FILES = SOURCES | {
+    "frontend/src/presentation/plots/plots.css",
     "frontend/src/design/workspaces.css",
     "server_tests/test_navigation_shell_browser.py",
     ".github/workflows/appearance-checks.yml",
+    ".github/workflows/chart-quality-checks.yml",
     ".github/workflows/navigation-shell-checks.yml",
     ".github/workflows/prediction-workspace-checks.yml",
     ".github/workflows/user-interface-checks.yml",
@@ -41,6 +44,7 @@ FILES = SOURCES | {
 WORKSPACES = "frontend/src/design/workspaces.css"
 PREFERENCES = "frontend/src/design/preferences.css"
 NAVIGATION = "server_tests/test_navigation_shell_browser.py"
+PLOT_STYLES = "frontend/src/presentation/plots/plots.css"
 CLEANUPS = {
     (
         "@media (max-width: 640px) {\n  .theme-option > small {\n    grid-column: 2;\n  }\n"
@@ -97,6 +101,18 @@ def navigation_theme_labels_only(before, after):
     return ast.dump(ThemeLabels().visit(previous)) == ast.dump(current)
 
 
+def scientific_plot_surface_only(before, after):
+    """Delegate only the neutral native canvas, never unrelated chart layout."""
+    if not isinstance(before, str) or not isinstance(after, str):
+        return False
+    original = ".research-plot-canvas {\n  width: 100%;\n  min-width: 0;\n}"
+    replacement = original[:-1] + "  background: var(--chart-bg);\n}"
+    if before.count(original) != 1:
+        return False
+    expected = before.replace(original, replacement)
+    return re.sub(r"\s+", " ", expected).strip() == re.sub(r"\s+", " ", after).strip()
+
+
 def selected(
     changed,
     event="push",
@@ -106,6 +122,8 @@ def selected(
     pref_after=None,
     nav_before=None,
     nav_after=None,
+    plot_before=None,
+    plot_after=None,
 ):
     changed = set(changed)
     return (
@@ -115,6 +133,7 @@ def selected(
         and (WORKSPACES not in changed or workspace_cleanup_only(before, after))
         and (PREFERENCES not in changed or preferences_cleanup_only(pref_before, pref_after))
         and (NAVIGATION not in changed or navigation_theme_labels_only(nav_before, nav_after))
+        and (PLOT_STYLES not in changed or scientific_plot_surface_only(plot_before, plot_after))
     )
 
 
@@ -122,6 +141,7 @@ def from_git(changed, base, event="push"):
     before = after = None
     pref_before = pref_after = None
     nav_before = nav_after = None
+    plot_before = plot_after = None
     try:
         if WORKSPACES in changed:
             before = subprocess.check_output(["git", "show", f"{base}:{WORKSPACES}"], text=True)
@@ -134,9 +154,17 @@ def from_git(changed, base, event="push"):
         if NAVIGATION in changed:
             nav_before = subprocess.check_output(["git", "show", f"{base}:{NAVIGATION}"], text=True)
             nav_after = subprocess.check_output(["git", "show", f"HEAD:{NAVIGATION}"], text=True)
+        if PLOT_STYLES in changed:
+            plot_before = subprocess.check_output(
+                ["git", "show", f"{base}:{PLOT_STYLES}"], text=True
+            )
+            plot_after = subprocess.check_output(["git", "show", f"HEAD:{PLOT_STYLES}"], text=True)
     except subprocess.CalledProcessError:
         return False
-    return selected(changed, event, before, after, pref_before, pref_after, nav_before, nav_after)
+    return selected(
+        changed, event, before, after, pref_before, pref_after, nav_before, nav_after,
+        plot_before, plot_after,
+    )
 
 
 def main():
