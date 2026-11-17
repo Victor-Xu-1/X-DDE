@@ -16,8 +16,8 @@ from playwright.sync_api import expect, sync_playwright
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 from server_tests.publication_browser_helpers import export_figure, inspect_png
-from server_tests.test_ketcher_depiction_browser import assert_native_bonds
 from server_tests.test_frontend_browser import contrast_ratio
+from server_tests.test_ketcher_depiction_browser import assert_native_bonds
 from server_tests.test_ketcher_startup_browser import (
     test_cold_embedded_ketcher_can_initialize_without_taking_user_focus as cold_depiction,
 )
