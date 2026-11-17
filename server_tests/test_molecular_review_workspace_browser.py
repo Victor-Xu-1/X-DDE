@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import json
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -57,7 +58,8 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             browser = launch_review_browser(driver)
             page = browser.new_page(viewport={"width": width, "height": 1000})
             page.add_init_script(
-                f"localStorage.setItem('opendde-workbench.language', '{language}');"
+                f"if (location.origin === {json.dumps(base)}) {{"
+                f"localStorage.setItem('opendde-workbench.language', '{language}');}}"
             )
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.on("request", lambda request: computations.append(request.url)
