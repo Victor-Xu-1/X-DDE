@@ -72,6 +72,62 @@
   font-size: 12px;
   color: var(--muted);
 }
+.target-evidence-results {
+  gap: 8px;
+}
+.target-evidence-results .evidence-header {
+  align-items: baseline;
+  gap: 12px;
+}
+.target-evidence-results .evidence-header h3 {
+  font-size: 20px;
+  margin: 2px 0 0;
+}
+.target-evidence-results .evidence-header .field-help {
+  margin: 4px 0 0;
+}
+.target-evidence-results > .result-summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+}
+.target-evidence-results > .result-summary-grid > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.target-evidence-results > .result-summary-grid dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.target-evidence-results > .result-summary-grid dd {
+  margin: 0;
+  font-size: 16px;
+}
+.target-evidence-results
+  .activity-molecule-preview
+  .molecule-drawing-style
+  select {
+  width: 180px;
+  max-width: none;
+}
+.target-evidence-results .activity-molecule-preview .figure-preview-sheet {
+  height: clamp(260px, min(48svh, 65vw), 560px);
+}
+.target-evidence-results .target-activity-workspace table {
+  min-width: 320px;
+}
+html
+  body
+  .studio-app
+  .studio-content:has(> .tool-center.is-result .target-evidence-results)
+  > .module-task-picker {
+  display: none;
+}
 .evidence-description {
   display: block;
   color: var(--muted);

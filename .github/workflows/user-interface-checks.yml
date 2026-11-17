@@ -273,6 +273,9 @@ on:
       - "!frontend/src/diffsbdd/ReferencePocketResults.tsx"
       - "!frontend/src/diffsbdd/interaction-results.css"
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
+      # Native target evidence is checked by dataset-discovery-checks.yml.
+      - "!frontend/src/discovery/TargetResearchResults*"
+      - "!frontend/src/discovery/ActivityResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"
@@ -592,6 +595,9 @@ on:
       - "!frontend/src/diffsbdd/ReferencePocketResults.tsx"
       - "!frontend/src/diffsbdd/interaction-results.css"
       - "!frontend/src/discovery/ReferenceImportResults.tsx"
+      # Native target evidence is checked by dataset-discovery-checks.yml.
+      - "!frontend/src/discovery/TargetResearchResults*"
+      - "!frontend/src/discovery/ActivityResults*"
       - "!frontend/src/docking/DockingResults.tsx"
       - "!frontend/src/examples/ExampleJobResult.tsx"
       - "!frontend/src/examples/StudyInputPreview.tsx"
@@ -697,7 +703,7 @@ jobs:
       scope_only: true
   presentation:
     needs: [model-context, prediction-scope, guidance-scope, utility-scope]
-    if: needs.prediction-scope.outputs.interaction_only != 'true' && needs.prediction-scope.outputs.reference_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.model-context.outputs.managed_compute_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    if: needs.prediction-scope.outputs.target_evidence_only != 'true' && needs.prediction-scope.outputs.interaction_only != 'true' && needs.prediction-scope.outputs.reference_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.model-context.outputs.managed_compute_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

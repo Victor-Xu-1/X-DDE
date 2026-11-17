@@ -822,6 +822,31 @@ provenance stays available under one disclosure. CSV and source SDF downloads
 remain unchanged, and structure verification uses the retained artifact hash.
 New-task model selection returns when leaving the saved example for its form.
 
+## Target evidence results
+
+Saved disease and target evidence uses a compact header, source states and inline
+counts above the evidence table. The input-only task/backend selector is hidden
+only while this result is present; returning to the questionnaire restores it.
+Source totals, retrieved subsets, unavailable-source notices, score meanings and
+native CSV precision are preserved. Other import and library views keep their
+existing shared styles. The focused discovery gate checks retained disease and
+STAT6 target results in English desktop and Chinese narrow Google Chrome without
+new database queries, scientific tasks or native DEL execution.
+
+The reported-activities tab links exact activity-row selection to a large left
+Ketcher 2D canvas and keeps the source assay table on the right. Selection uses
+the activity ID, preserving separate records for repeated compound identifiers.
+Native units, relation signs and assays remain distinct. Missing structures are
+explicit, and an empty result removes the prior preview. The shared drawing
+canvas supplies zoom, line weight and vector export; a source SMILES depiction
+does not create a 3D conformer or dispatch scientific work.
+The narrow right-hand table initially combines the endpoint, relation, value and
+unit in one result cell beside the compound, with optional fields available from
+the column selector. CSV still contains all original columns and rows.
+Nonempty source validity comments stay visible in the default measurement cell
+and selected molecular preview, even when the optional assay column is hidden.
+The original comment is preserved; changing selection clears any previous note.
+
 ## Brain-penetration utility
 
 The brain utility is an ADMET-AI task profile using the same molecular input,
@@ -892,6 +917,13 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+Target-evidence branch synchronization reuses the existing closed target selector
+in prediction and layout callers. A push that merely adopts reviewed main must
+not turn unchanged prediction inputs into an all-page layout run. The dedicated
+target-evidence gate still owns real native selection, source notes and export;
+its exact file/CSS boundary is unchanged. Mixed shared or backend changes fail
+closed and require an explicit scoped plan instead of being silently delegated.
 
 Contact-result synchronization reuses the closed interaction workspace selector
 in prediction and layout callers. Already reviewed prediction setup files adopted

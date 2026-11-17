@@ -61,7 +61,15 @@ on:
       - "!frontend/src/datasets/DatasetSubmission*"
       - "!frontend/src/datasets/ScreeningForm.tsx"
       - "!frontend/src/datasets/screening-readiness*"
-      - "!.github/workflows/dataset-discovery-checks.yml"
+      - '.github/workflows/dataset-discovery-checks.yml'
+      # Saved target evidence has a closed presentation-only gate below.
+      - 'frontend/src/discovery/TargetResearchResults*'
+      - 'frontend/src/discovery/ActivityResults*'
+      - 'frontend/src/discovery/ActivityMoleculePreview.tsx'
+      - 'frontend/src/discovery/discovery.css'
+      - 'scripts/target-evidence-scope.py'
+      - 'tests/test_target_evidence_scope.py'
+      - 'server_tests/test_target_evidence_browser.py'
       # Native member inspection and its library adapter have their exact gate.
       - "!src/opendde_workbench/datasets/member_structure.py"
       - "!src/opendde_workbench/datasets/member_inspection.py"
@@ -84,10 +92,26 @@ on:
 permissions:
   contents: read
 jobs:
-  discovery-evidence:
-    if: github.event_name == 'workflow_dispatch' && inputs.engine == 'discovery'
+  target-ui-scope:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 3
+    outputs:
+      target_evidence_only: ${{ steps.scope.outputs.target_evidence_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/target-evidence-scope.py
+  discovery-evidence:
+    needs: target-ui-scope
+    if: needs.target-ui-scope.outputs.target_evidence_only == 'true' || (github.event_name == 'workflow_dispatch' && inputs.engine == 'discovery')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -95,8 +119,9 @@ jobs:
           node-version: '22'
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - run: uv sync --locked --group dev
+      - run: uv sync --locked --group dev --group browser
       - name: Exact target and disease identity, without molecular calculation
+        if: github.event_name == 'workflow_dispatch'
         run: >-
           uv run --locked pytest -q tests/test_discovery.py tests/test_stat6_disease_example.py
           tests/test_stat6_source_revisions.py tests/test_stat6_predicted_references.py
@@ -104,8 +129,37 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/discovery/TargetResearchResults.test.tsx
+          src/discovery/ActivityResults.test.tsx
           src/discovery/TargetResearchForm.test.tsx src/presentation/ResearchTable.test.tsx
           src/presentation/ResearchTabs.test.tsx
+      - name: Closed target presentation scope and shared CSS exclusions
+        if: needs.target-ui-scope.outputs.target_evidence_only == 'true'
+        run: |
+          uv run --locked pytest -q tests/test_target_evidence_scope.py
+          uv run --locked ruff check scripts/target-evidence-scope.py tests/test_target_evidence_scope.py server_tests/test_target_evidence_browser.py
+      - name: Restore sealed public target outputs, without new queries or calculations
+        if: needs.target-ui-scope.outputs.target_evidence_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
+          uv run --locked playwright install-deps chromium
+      - name: Actual bilingual Chrome evidence density, native CSV and return to form
+        if: needs.target-ui-scope.outputs.target_evidence_only == 'true'
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_target_evidence_browser.py
+          --basetemp "$RUNNER_TEMP/target-evidence-browser"
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.target-ui-scope.outputs.target_evidence_only == 'true'
+        with:
+          name: target-evidence-browser
+          path: outputs/target-evidence/**
+          if-no-files-found: error
+          retention-days: 7
   source-inputs:
     if: github.event_name == 'workflow_dispatch' && inputs.engine == 'inputs'
     runs-on: ubuntu-24.04
@@ -156,7 +210,8 @@ jobs:
           python -m pytest -q server_tests/test_docking_candidate_inputs.py
           server_tests/test_docking_receptor_handoff.py
   contracts:
-    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
+    needs: target-ui-scope
+    if: needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -224,7 +279,8 @@ jobs:
           src/datasets/DELReviewQuestion.test.tsx src/datasets/CandidateView.test.tsx
           src/datasets/DELTemplateReplay.test.tsx
   native-del-data:
-    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts'
+    needs: target-ui-scope
+    if: needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

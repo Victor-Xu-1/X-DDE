@@ -115,6 +115,7 @@ export function TargetResearchResults({
             count: result.activities?.rows.length ?? 0,
             content: (
               <ActivityResults
+                key={job.id}
                 result={result}
                 language={language}
                 onImport={onCreated ? setMaterial : undefined}
@@ -161,7 +162,7 @@ export function TargetResearchResults({
         ]),
   ];
   return (
-    <div className="discovery-results">
+    <div className="discovery-results target-evidence-results">
       <EvidenceSummary result={result} language={language} />
       {tabs.length <= 1 ? (
         tabs[0]?.content
