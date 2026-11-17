@@ -212,6 +212,15 @@ it.each(["en", "zh"] as const)(
         name: language === "zh" ? "项目筛选" : "Project filter",
       }),
     ).toHaveTextContent("STAT6 study");
+    const navigation = screen.getByRole("navigation", {
+      name: language === "zh" ? "任务结果导航" : "Task result navigation",
+    });
+    expect(navigation.closest(".task-detail-header")).not.toBeNull();
+    expect(
+      screen.getAllByRole("button", {
+        name: language === "zh" ? "返回任务结果" : "Back to task results",
+      }),
+    ).toHaveLength(1);
     fireEvent.click(
       screen.getByRole("button", {
         name: language === "zh" ? "返回任务结果" : "Back to task results",

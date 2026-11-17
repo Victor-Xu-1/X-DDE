@@ -232,6 +232,23 @@ export function TaskWorkspace(p: Props) {
       : terminal(currentJob.status) && predictionMethodId(currentJob.request)
         ? "prediction"
         : "detail";
+  const inlineHeader =
+    resultView === "detail" &&
+    currentJob &&
+    !predictionMethodId(currentJob.request);
+  const historyToolbar = (
+    <TaskHistoryToolbar
+      language={p.language}
+      module={module}
+      projectName={projectName}
+      hasProject={Boolean(p.projectId)}
+      view={resultView}
+      onHistory={returnToHistory}
+      onRefresh={refresh}
+      onStart={p.onStart}
+      onClearProject={() => p.onProject(null)}
+    />
+  );
   const filtered =
     type !== "all" ||
     status !== "all" ||
@@ -253,17 +270,7 @@ export function TaskWorkspace(p: Props) {
         {historyModuleLabel(module, p.language)} ·{" "}
         {zh ? "任务结果" : "Task results"}
       </h1>
-      <TaskHistoryToolbar
-        language={p.language}
-        module={module}
-        projectName={projectName}
-        hasProject={Boolean(p.projectId)}
-        view={resultView}
-        onHistory={returnToHistory}
-        onRefresh={refresh}
-        onStart={p.onStart}
-        onClearProject={() => p.onProject(null)}
-      />
+      {!inlineHeader && historyToolbar}
       {history.error && (
         <div className="error-box" role="alert">
           {zh
@@ -384,6 +391,7 @@ export function TaskWorkspace(p: Props) {
                   failed={p.detailError}
                   retryAvailable={p.retryAvailable}
                   onPredictionHistory={returnToHistory}
+                  headerNavigation={inlineHeader ? historyToolbar : undefined}
                   onChange={p.onChanged}
                   onDraft={p.onDraft}
                 />
