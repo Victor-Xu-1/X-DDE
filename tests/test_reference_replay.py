@@ -7,7 +7,13 @@ import sys
 
 import pytest
 
-from server_tests.reference_archive_replay import CAPTURE, LOG, PREFIX, ArchiveReplay, configure_replay
+from server_tests.reference_archive_replay import (
+    CAPTURE,
+    LOG,
+    PREFIX,
+    ArchiveReplay,
+    configure_replay,
+)
 
 
 def test_exact_capture_metadata_and_sdf_are_replayed_without_network(tmp_path):
