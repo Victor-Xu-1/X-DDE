@@ -4,6 +4,8 @@ on:
     paths: &molecular_preview_paths
       - 'frontend/src/viewer/PoseSession*'
       - 'frontend/src/presentation/ResearchTabs*'
+      - 'scripts/research-tabs-scope.py'
+      - 'tests/test_research_tabs_scope.py'
       - 'frontend/src/presentation/MolecularPreview.tsx'
       - 'frontend/src/chemistry/StateCollectionPreview*'
       - 'frontend/src/presentation/depiction-renderer*'

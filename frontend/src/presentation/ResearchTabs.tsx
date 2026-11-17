@@ -1,5 +1,5 @@
 import "./research-tabs.css";
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useReveal } from "./useReveal";
 import { ActiveIndicator } from "./ActiveIndicator";
 export function ResearchTabs({
@@ -34,6 +34,60 @@ export function ResearchTabs({
   }
   const panel = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
+  const geometry = JSON.stringify(
+    tabs.map(({ id, label, count }) => [id, label, count]),
+  );
+  useEffect(() => {
+    if (current)
+      setVisited((previous) =>
+        previous.has(current) ? previous : new Set([...previous, current]),
+      );
+  }, [current]);
+  useEffect(() => {
+    const node = track.current;
+    if (!node) return;
+    const selected = node.querySelector<HTMLButtonElement>(
+      '[role="tab"][aria-selected="true"]',
+    );
+    if (!selected) return;
+    // Scroll this track only. Native panels, focus and the page position stay intact.
+    const reveal = () => {
+      const outer = node.getBoundingClientRect(),
+        inner = selected.getBoundingClientRect();
+      if (!(node.clientWidth > 0 && outer.width > 0 && inner.width > 0)) return;
+      const left = outer.left + node.clientLeft,
+        right = left + node.clientWidth;
+      const rtl = getComputedStyle(node).direction === "rtl";
+      const delta =
+        inner.width > node.clientWidth
+          ? rtl
+            ? inner.right - right
+            : inner.left - left
+          : inner.left < left
+            ? inner.left - left
+            : inner.right > right
+              ? inner.right - right
+              : 0;
+      if (Math.abs(delta) < 0.5) return;
+      const maximum = Math.max(0, node.scrollWidth - node.clientWidth);
+      node.scrollLeft = Math.max(
+        rtl ? -maximum : 0,
+        Math.min(rtl ? 0 : maximum, node.scrollLeft + delta),
+      );
+    };
+    reveal();
+    const observer =
+      typeof ResizeObserver === "function" ? new ResizeObserver(reveal) : null;
+    observer?.observe(node);
+    node
+      .querySelectorAll(':scope > [role="tab"]')
+      .forEach((button) => observer?.observe(button));
+    if (!observer) window.addEventListener("resize", reveal);
+    return () => {
+      observer?.disconnect();
+      if (!observer) window.removeEventListener("resize", reveal);
+    };
+  }, [current, geometry]);
   useReveal(panel, current ?? "");
   return (
     <div className="research-tabs">
@@ -82,7 +136,7 @@ export function ResearchTabs({
         ))}
         <ActiveIndicator
           container={track}
-          selection={current + ":" + tabs.map((tab) => tab.label).join("|")}
+          selection={current + ":" + geometry}
         />
       </div>
       {tabs.map((tab) => (
