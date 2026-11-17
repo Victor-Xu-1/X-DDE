@@ -34,6 +34,7 @@ def capture_utility_space(page, utility, evidence):
 
 def verify_image_cancel(page, fields, evidence):
     """Tiny transport fixture checks controls, never scientific recognition."""
+    expect(fields.get_by_role("button", name="Input from structure image", exact=True)).to_be_visible()
     fields.get_by_label("Choose structure image", exact=True).set_input_files({
         "name": "image-control.png", "mimeType": "image/png",
         "buffer": base64.b64decode(
@@ -56,7 +57,8 @@ def load_utility_template(page, utility, capability, language, evidence):
     label = "使用此模板" if language == "zh" else "Use this template"
     inspect_pending = capability == "properties" and language == "en"
     if inspect_pending:
-        # The blank upload form owns image entry. A loaded template uses history.
+        # Follow the questionnaire into its visible input page before exercising images.
+        utility.get_by_role("button", name="Next", exact=True).click()
         verify_image_cancel(page, utility.locator(".utility-task-fields"), evidence)
     heading = utility.locator(".questionnaire-page-heading")
     previous = heading.bounding_box()
@@ -74,7 +76,7 @@ def load_utility_template(page, utility, capability, language, evidence):
         bounds = status.bounding_box()
         assert bounds and bounds["width"] <= 1 and bounds["height"] <= 1, bounds
         # Disabled fieldsets do not suppress div events. No image session may open.
-        fields.locator(".image-molecule-input").first.evaluate("""node => {
+        fields.locator(".image-molecule-input:visible").first.evaluate("""node => {
           const data = new DataTransfer();
           data.items.add(new File(['pending-input-control'], 'pending.png',
             {type: 'image/png'}));
