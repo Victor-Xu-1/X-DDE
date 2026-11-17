@@ -112,7 +112,9 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
             "name": "STAT6-transport.png", "mimeType": "image/png", "buffer": png,
         })
         try:
-            expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-1")
+            expect(page.get_by_label("Primary input", exact=True)).to_have_text(
+                "controlled-image-1",
+            )
         except AssertionError:
             page.screenshot(path=evidence / "failed-import.png", full_page=True)
             (evidence / "failed-dom.html").write_text(page.content())
