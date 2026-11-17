@@ -37,7 +37,8 @@ export function SinglePageFields({
           id={id + "-panel-" + index}
           tabIndex={-1}
           disabled={busy}
-          className={"single-page-field single-page-" + kind}
+          className="single-page-field"
+          data-input-section={kind}
           aria-labelledby={id + "-" + index}
         >
           <legend id={id + "-" + index} className="sr-only">

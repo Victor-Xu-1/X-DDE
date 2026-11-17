@@ -201,7 +201,9 @@ def test_shared_presentation_requires_both_exact_reviewed_git_blobs(path):
     before, after = approved[path]
     for pair in [("unknown-before", after), (before, "unknown-after"), (before, None)]:
         assert not scope["selected"](changed, shared={path: pair})
-    assert not scope["selected"]([*changed, "src/opendde_workbench/backend_router.py"], shared=approved)
+    assert not scope["selected"](
+        [*changed, "src/opendde_workbench/backend_router.py"], shared=approved,
+    )
 
 
 def test_retired_gate_paths_cannot_return_as_a_competing_implementation(monkeypatch):

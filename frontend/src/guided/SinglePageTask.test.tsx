@@ -124,8 +124,10 @@ it("rejects duplicate sends and preserves input after a failed request", async (
     user = userEvent.setup();
   const { container } = render(<Composer submit={submit} />);
   await user.type(screen.getByLabelText("Molecule"), "keep STAT6");
-  fireEvent.submit(container.querySelector("form")!);
-  fireEvent.submit(container.querySelector("form")!);
+  await act(async () => {
+    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.submit(container.querySelector("form")!);
+  });
   expect(submit).toHaveBeenCalledOnce();
   await act(async () => {
     reject(new Error("Service remains off"));

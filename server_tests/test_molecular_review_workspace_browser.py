@@ -88,7 +88,9 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             if digest:
                 assert source_digest == digest
             expect(utility.locator(".questionnaire-steps")).to_have_count(0)
-            expect(utility.get_by_role("button", name="下一步" if zh else "Next", exact=True)).to_have_count(0)
+            expect(utility.get_by_role(
+                "button", name="下一步" if zh else "Next", exact=True,
+            )).to_have_count(0)
             review = page.locator(".molecular-input-review")
             drawing = review.locator(".molecule-image")
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
