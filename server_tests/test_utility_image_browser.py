@@ -108,7 +108,7 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
                 if request.method == "POST" and "/api/jobs" in request.url else None)
         page.goto("http://127.0.0.1:4322/")
         primary = page.locator(".utility-image-entry")
-        primary.get_by_label("Choose structure image", exact=True).first.set_input_files({
+        primary.locator(':scope > input[type="file"]').set_input_files({
             "name": "STAT6-transport.png", "mimeType": "image/png", "buffer": png,
         })
         try:
