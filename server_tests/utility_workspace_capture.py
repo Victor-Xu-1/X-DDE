@@ -34,7 +34,7 @@ def capture_utility_space(page, utility, evidence):
 
 def verify_image_cancel(page, fields, evidence):
     """Tiny transport fixture checks controls, never scientific recognition."""
-    fields.locator('.image-molecule-input input[type="file"]').first.set_input_files({
+    fields.get_by_label("Choose structure image", exact=True).set_input_files({
         "name": "image-control.png", "mimeType": "image/png",
         "buffer": base64.b64decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
