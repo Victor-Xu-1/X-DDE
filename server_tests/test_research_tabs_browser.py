@@ -64,12 +64,14 @@ def test_retained_target_tabs_reveal_resize_keyboard_and_native_content(tab_work
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             image = drawing.get_by_role("img").element_handle()
             assert image
-            activities.focus()
+            search.focus()
+            page_position = page.evaluate("({x:scrollX,y:scrollY})")
             page.emulate_media(reduced_motion="reduce")
             page.set_viewport_size({"width": 390, "height": 1000})
             visible_selection(page, track)
             expect(activities).to_have_attribute("aria-selected", "true")
-            expect(activities).to_be_focused()
+            expect(search).to_be_focused()
+            assert page.evaluate("({x:scrollX,y:scrollY})") == page_position
             assert image.evaluate("node => node.isConnected")
             expect(search).to_have_value("CHEMBL226930")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
@@ -82,6 +84,7 @@ def test_retained_target_tabs_reveal_resize_keyboard_and_native_content(tab_work
             assert min(geometry["targets"]) >= 44
             page.screenshot(path=evidence / "selected-mobile.png")
             # End/Home and wrapping arrows retain the visited native image and input.
+            activities.focus()
             activities.press("End")
             visible_selection(page, track)
             expect(track.get_by_role("tab").last).to_be_focused()

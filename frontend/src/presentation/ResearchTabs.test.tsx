@@ -252,3 +252,23 @@ it("uses the horizontal RTL range and falls back to window resize when observers
   act(() => window.dispatchEvent(new Event("resize")));
   expect(track.scrollLeft).toBe(-200);
 });
+
+it("clamps corrections to the LTR and RTL track endpoints", () => {
+  const { state, resize } = trackGeometry();
+  state.start = 2000;
+  const view = render(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs()} />,
+  );
+  const track = screen.getByRole("tablist");
+  expect(track.scrollLeft).toBe(400);
+  state.start = -2000;
+  resize();
+  expect(track.scrollLeft).toBe(0);
+  state.rtl = true;
+  resize();
+  expect(track.scrollLeft).toBe(-400);
+  state.start = 2000;
+  resize();
+  expect(track.scrollLeft).toBe(0);
+  view.unmount();
+});
