@@ -368,6 +368,8 @@ export function App() {
             <div className="utility-view" hidden={view !== "utilities"}>
               <UtilityWorkspace
                 language={language}
+                jobs={jobs}
+                active={view === "utilities"}
                 onCreated={(next) => {
                   work.confirmJob(next);
                   refresh();

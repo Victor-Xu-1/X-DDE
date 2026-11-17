@@ -5,7 +5,7 @@ import { useSdfAsset } from "../research/useSdfAsset";
 import { Questionnaire } from "../guided/Questionnaire";
 import { Hint } from "../guided/Hint";
 import { MolecularReview } from "../guided/MolecularReview";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
@@ -29,7 +29,7 @@ export function LibraryScreenForm({
   const exampleLibrary = useExampleReference("library");
   const preset = useExampleTask("library_screen");
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated),
+    run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
   useEffect(() => {
@@ -77,6 +77,7 @@ export function LibraryScreenForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({ library, selectedQuery, options, name })}
       ready={availability.ready}
       onCheckEnvironment={availability.recheck}
       busy={run.busy || loading}
@@ -120,8 +121,8 @@ export function LibraryScreenForm({
                 }
               >
                 {zh
-                  ? "处理所选文件的全部记录，最多500条；保留失败和原始编号。参照步骤选择单个分子的确切版本。"
-                  : "Reads every record in the selected file, at most500. Failures and original indices remain. Choose an exact query molecular version in the relevant step."}
+                  ? "读取分子库全部记录（最多 500 条），结果保留原始编号。"
+                  : "Read all library records (up to 500); results retain original record numbers."}
               </Hint>
             </>
           ),
@@ -149,6 +150,7 @@ export function LibraryScreenForm({
         },
         {
           title: zh ? "选择范围" : "Choose limits",
+          inline: "options",
           valid: settingsValid,
           content: (
             <ScreenSettings
@@ -162,6 +164,7 @@ export function LibraryScreenForm({
         },
         {
           title: zh ? "确认筛选" : "Review selection",
+          inline: "preview",
           valid:
             Boolean(library) &&
             (!requiresQuery || Boolean(query)) &&

@@ -2,8 +2,16 @@ name: Molecular utility input and BBB checks
 on:
   push:
     paths: &utility_paths
+      - "frontend/src/utilities/ImageMoleculeInput*"
+      - "frontend/src/utilities/ImageMoleculeDialog*"
+      - "frontend/src/utilities/useImageInputSession*"
       - "frontend/src/admet/**"
       - "frontend/src/guided/MolecularReview*"
+      - "frontend/src/guided/InputActionScope*"
+      - "frontend/src/guided/useInputTaskSubmit*"
+      - "frontend/src/guided/TaskPresentation*"
+      - "frontend/src/guided/SinglePage*"
+      - "frontend/src/examples/ExampleActions*"
       - "frontend/src/guided/molecular-review.css"
       - "frontend/src/operations/PropertyForm.tsx"
       - "frontend/src/chemistry/StateForm.tsx"
@@ -11,6 +19,10 @@ on:
       - "frontend/src/chemistry/LibraryScreenQuestions.tsx"
       - "frontend/src/chemistry/MolecularToolReview.test.tsx"
       - "frontend/src/utilities/UtilityWorkspace*"
+      - "frontend/src/utilities/UtilityTask*"
+      - "frontend/src/utilities/UtilitySinglePage*"
+      - "frontend/src/utilities/utility-task.css"
+      - "frontend/src/utilities/UtilityBrainSubmission.test.tsx"
       - "frontend/src/operations/ToolCenter.tsx"
       - "frontend/src/operations/catalog.ts"
       - "frontend/src/studio/research-modules.ts"
@@ -34,6 +46,7 @@ on:
       - "server_tests/test_brain_profile_browser.py"
       - "server_tests/test_molecular_review_workspace_browser.py"
       - "server_tests/molecular_review_capture.py"
+      - "server_tests/utility_workspace_capture.py"
       - ".github/workflows/molecular-utility-checks.yml"
   pull_request:
     paths: *utility_paths
@@ -84,7 +97,12 @@ jobs:
           uv run --locked python scripts/generate-capability-catalog.py --check
           cd frontend
           npx vitest run \
+            src/examples/ExampleActions.test.tsx \
             src/guided/MolecularReview.test.tsx \
+            src/guided/Questionnaire.test.tsx \
+            src/guided/QuestionnaireGuidance.test.tsx \
+            src/guided/SinglePageTask.test.tsx \
+            src/App.test.tsx \
             src/operations/PropertyForm.test.tsx \
             src/operations/PropertyFormFileVerification.test.tsx \
             src/chemistry/StateForm.test.tsx \
@@ -92,6 +110,13 @@ jobs:
             src/chemistry/LibraryScreenTemplate.test.tsx \
             src/chemistry/MolecularToolReview.test.tsx \
             src/utilities/ImageMoleculeInput.test.tsx \
+            src/utilities/ImageMoleculeInput.action.test.tsx \
+            src/utilities/useRecognitionBridge.test.tsx \
+            src/operations/AssetPicker.test.tsx \
+            src/operations/useAssetUpload.image.test.tsx \
+            src/integrations/BoltzInputs.test.tsx \
+            src/integrations/Mol1Form.test.tsx \
+            src/presentation/PredictionEntityEditing.test.tsx \
             src/research/SdfRecordPicker.test.tsx \
             src/presentation/MoleculeImage.test.tsx \
             src/presentation/depiction-renderer.test.ts \
@@ -99,7 +124,10 @@ jobs:
             src/admet/AdmetForm.test.tsx \
             src/admet/AdmetResults.test.tsx \
             src/admet/EndpointValue.test.tsx \
-            src/admet/BrainForm.test.tsx \
+            src/utilities/UtilityBrainSubmission.test.tsx \
+            src/utilities/UtilityTask.test.tsx \
+            src/utilities/UtilityTaskResult.test.tsx \
+            src/utilities/UtilitySinglePage.test.tsx \
             src/admet/BrainScope.test.tsx \
             src/utilities/UtilityWorkspace.test.tsx \
             src/studio/MethodSwitch.test.tsx \
@@ -110,6 +138,7 @@ jobs:
             src/viewer/pose-plan.test.ts
           cd ..
           uv run --locked pytest -q tests/test_admet.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py tests/test_capabilities.py tests/test_example_pins.py tests/test_library_screen.py tests/test_library_evidence.py
+          uv run --locked ruff check server_tests/utility_workspace_capture.py
           uv run --locked ruff check scripts/record-study-catalogue.py scripts/molecular-utility-scope.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py server_tests/molecular_review_capture.py src/opendde_workbench/admet/contract.py src/opendde_workbench/admet/presentation.py src/opendde_workbench/capabilities/definitions.py src/opendde_workbench/capabilities/modalities.py src/opendde_workbench/task_history/kinds.py src/opendde_workbench/examples/stat6/task_requests.py src/opendde_workbench/examples/stat6/guidance.py src/opendde_workbench/examples/pin_validation.py
       - name: Retrieve sealed native outputs without starting a prediction engine
         env:

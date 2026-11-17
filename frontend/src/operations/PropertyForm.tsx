@@ -5,7 +5,7 @@ import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { Asset } from "./types";
 import { AssetPicker } from "./AssetPicker";
-import { useTaskSubmit } from "./useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
@@ -35,7 +35,7 @@ export function PropertyForm({
     [mode, setMode] = useState<"file" | "smiles" | "both">(
       initialFile && initialSmiles ? "both" : initialSmiles ? "smiles" : "file",
     );
-  const run = useTaskSubmit(onCreated);
+  const run = useInputTaskSubmit(onCreated);
   const { ready, error, recheck } = useTaskReadiness("properties");
   const lines =
       mode === "file"
@@ -127,6 +127,14 @@ export function PropertyForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        mode,
+        lines,
+        selectedFile,
+        selectedAsset,
+        scientificInput,
+        name,
+      })}
       busy={run.busy}
       error={error || run.error}
       ready={ready}
@@ -202,6 +210,7 @@ export function PropertyForm({
         },
         {
           title: zh ? "确认内容" : "Choose calculation",
+          inline: "options",
           valid: true,
           content: (
             <>
@@ -228,6 +237,7 @@ export function PropertyForm({
         },
         {
           title: zh ? "确认启动" : "Review & start",
+          inline: "preview",
           valid: true,
           content: (
             <MolecularReview

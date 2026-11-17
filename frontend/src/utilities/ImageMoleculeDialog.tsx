@@ -8,11 +8,13 @@ import { useRecognitionLocale } from "./useRecognitionLocale";
 export function ImageMoleculeDialog({
   file,
   language,
+  disabled = false,
   onAccept,
   onClose,
 }: {
   file: File;
   language: Language;
+  disabled?: boolean;
   onAccept(value: ImageMolecule, source: File): Promise<void> | void;
   onClose(): void;
 }) {
@@ -96,7 +98,9 @@ export function ImageMoleculeDialog({
         <button
           type="button"
           className="primary-button"
-          disabled={!bridge.connected || !bridge.valid || bridge.busy}
+          disabled={
+            disabled || !bridge.connected || !bridge.valid || bridge.busy
+          }
           onClick={bridge.accept}
         >
           {bridge.busy

@@ -7,7 +7,7 @@ import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { MolecularReview } from "../guided/MolecularReview";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { useSdfAsset } from "../research/useSdfAsset";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
@@ -34,7 +34,7 @@ export function AdmetForm({
     preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
   const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated),
+    run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness(brain ? "admet.brain" : "admet.predict");
   const single = useSdfAsset(language, admetLimits.maxInputBytes),
     library = useSdfAsset(language, admetLimits.maxInputBytes);
@@ -78,6 +78,13 @@ export function AdmetForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        sourceKind,
+        molecule,
+        library: library.asset,
+        options,
+        name,
+      })}
       ready={availability.ready}
       onCheckEnvironment={availability.recheck}
       busy={run.busy || selected.loading}
@@ -194,6 +201,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "选择推荐设置" : "Choose settings",
+          inline: "options",
           valid:
             [1, 2].includes(options.cpu) &&
             [2048, 4096, 8192].includes(options.memory_mib),
@@ -210,6 +218,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "确认预测" : "Review prediction",
+          inline: "preview",
           valid,
           content: (
             <>

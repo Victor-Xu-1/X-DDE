@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   useExampleTemplate,
   type ExampleTemplateOptions,
@@ -21,10 +21,18 @@ import {
 } from "./ReviewedReceptorComparison";
 
 export function ExampleActions(
-  options: ExampleTemplateOptions & { onBack?(): void },
+  options: ExampleTemplateOptions & {
+    onBack?(): void;
+    onBusyChange?(pending: boolean): void;
+  },
 ) {
   const { capability, language, onBack } = options;
   const state = useExampleTemplate(options);
+  const onBusyChange = options.onBusyChange;
+  useLayoutEffect(() => {
+    onBusyChange?.(state.pending !== null);
+    return () => onBusyChange?.(false);
+  }, [state.pending, onBusyChange]);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const resultRef = useRef<HTMLButtonElement>(null);
   const returning = useRef(false);
