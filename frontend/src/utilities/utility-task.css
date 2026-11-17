@@ -64,7 +64,7 @@
 }
 .single-page-main .field {
   gap: 4px;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
 }
 .single-page-main .field input,
 .single-page-main .field select {
