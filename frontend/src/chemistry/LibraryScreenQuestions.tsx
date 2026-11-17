@@ -32,6 +32,23 @@ export function ScreenPurpose({
     requiresQuery = mode === "similarity" || mode === "substructure";
   const presentation = useContext(TaskPresentationContext);
   const [imageInput, setImageInput] = useState<UtilityImageValue | null>(null);
+  const purposeLabel = zh
+    ? "这次希望找什么？"
+    : "What should this selection do?";
+  const purposes = Object.entries(screenLabels).map(([value, label]) => ({
+    value: value as ScreenMode,
+    title: label[zh ? 0 : 1],
+    hint:
+      value === "alerts"
+        ? zh
+          ? "用 PAINS/Brenk 规则标记需要核查的结构，默认保留候选。"
+          : "Flag structural patterns with PAINS/Brenk rules; candidates are kept by default."
+        : value === "scaffold"
+          ? zh
+            ? "先覆盖不同骨架，再挑同组代表，避免选择全是近似结构。"
+            : "Cover different scaffolds before another representative from the same family."
+          : undefined,
+  }));
   const queryInput = (
     <ReferencePicker
       kind="ligand"
@@ -45,25 +62,37 @@ export function ScreenPurpose({
   );
   return (
     <>
-      <ChoiceCards<ScreenMode>
-        label={zh ? "这次希望找什么？" : "What should this selection do?"}
-        value={mode}
-        onChange={onMode}
-        options={Object.entries(screenLabels).map(([value, label]) => ({
-          value: value as ScreenMode,
-          title: label[zh ? 0 : 1],
-          hint:
-            value === "alerts"
-              ? zh
-                ? "用 PAINS/Brenk 规则标记需要核查的结构，默认保留候选。"
-                : "Flag structural patterns with PAINS/Brenk rules; candidates are kept by default."
-              : value === "scaffold"
-                ? zh
-                  ? "先覆盖不同骨架，再挑同组代表，避免选择全是近似结构。"
-                  : "Cover different scaffolds before another representative from the same family."
-                : undefined,
-        }))}
-      />
+      {presentation?.layout === "single" ? (
+        <label className="field">
+          {purposeLabel}
+          <select
+            value={mode}
+            onChange={(event) => {
+              const selected = purposes.find(
+                (option) => option.value === event.target.value,
+              );
+              if (selected) onMode(selected.value);
+            }}
+          >
+            {purposes.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                title={option.hint}
+              >
+                {option.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <ChoiceCards<ScreenMode>
+          label={purposeLabel}
+          value={mode}
+          onChange={onMode}
+          options={purposes}
+        />
+      )}
       {requiresQuery &&
         (presentation?.imageEntry === "workspace" ? (
           <UtilityImageInput

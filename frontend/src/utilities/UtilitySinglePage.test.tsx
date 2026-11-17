@@ -60,6 +60,39 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("keeps query validation and explicit Run when the compact selection purpose changes", async () => {
+  vi.spyOn(client, "request").mockResolvedValue(asset);
+  const send = vi.spyOn(client.api, "submit").mockResolvedValue({
+    id: "accepted-library",
+    status: "succeeded",
+  } as never);
+  const user = userEvent.setup();
+  render(<UtilityTask tool="screen" language="en" onCreated={vi.fn()} />);
+  await user.click(
+    screen.getByRole("button", { name: "Choose molecular file" }),
+  );
+  const purpose = screen.getByRole("combobox", {
+    name: "What should this selection do?",
+  });
+  await user.selectOptions(purpose, "similarity");
+  const run = screen.getByRole("button", { name: "Run library selection" });
+  expect(run).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Choose molecule" }));
+  expect(run).toBeEnabled();
+  await user.selectOptions(purpose, "inventory");
+  expect(screen.queryByRole("button", { name: "Choose molecule" })).toBeNull();
+  expect(send).not.toHaveBeenCalled();
+  await user.click(run);
+  expect(send).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      operation: "library_screen",
+      query: null,
+      options: expect.objectContaining({ mode: "inventory" }),
+    }),
+    expect.any(String),
+  );
+});
+
 it.each([
   ["admet", "Choose molecule", "Predict properties", "admet_predict"],
   ["brain", "Choose molecule", "Assess brain penetration", "admet_predict"],
@@ -80,17 +113,15 @@ it.each([
   "%s uses its real native form without Next, and shows its accepted result in place",
   async (tool, input, run, operation) => {
     vi.spyOn(client, "request").mockResolvedValue(asset);
-    const send = vi
-      .spyOn(client.api, "submit")
-      .mockImplementation(
-        async (request) =>
-          ({
-            id: "accepted-" + tool,
-            request,
-            status: "succeeded",
-            error: null,
-          }) as never,
-      );
+    const send = vi.spyOn(client.api, "submit").mockImplementation(
+      async (request) =>
+        ({
+          id: "accepted-" + tool,
+          request,
+          status: "succeeded",
+          error: null,
+        }) as never,
+    );
     const onCreated = vi.fn(),
       user = userEvent.setup();
     render(<UtilityTask tool={tool} language="en" onCreated={onCreated} />);
