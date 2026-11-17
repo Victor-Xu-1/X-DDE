@@ -42,7 +42,7 @@ function Parent() {
         >
           <label>
             Primary draft
-            <textarea defaultValue="Keep my draft" />
+            <textarea aria-label="Primary draft" defaultValue="Keep my draft" />
           </label>
           <output aria-label="Primary input">
             {value?.reference.asset_id ?? "Empty"}
@@ -56,7 +56,10 @@ function Parent() {
           >
             <label>
               Query draft
-              <textarea defaultValue="Keep query draft" />
+              <textarea
+                aria-label="Query draft"
+                defaultValue="Keep query draft"
+              />
             </label>
             <output aria-label="Query input">
               {query?.reference.asset_id ?? "Empty"}
