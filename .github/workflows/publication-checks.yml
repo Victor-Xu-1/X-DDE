@@ -168,6 +168,7 @@ jobs:
           uv run --locked python -m pytest -x -q
           server_tests/test_publication_controls_browser.py::test_shared_steps_models_and_result_tabs_retain_user_choices
           server_tests/test_research_tabs_browser.py
+          --basetemp "$RUNNER_TEMP/research-tabs-browser"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
