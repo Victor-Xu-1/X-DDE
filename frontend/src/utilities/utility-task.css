@@ -144,14 +144,19 @@
 .single-page-task .molecular-input-review {
   display: block;
 }
-.single-page-options {
+.molecular-utility .single-page-options {
+  margin: 0;
   border-top: 1px solid var(--line);
   padding-top: 8px;
 }
-.single-page-options > summary {
+.molecular-utility .single-page-options > summary {
   color: var(--muted);
   cursor: pointer;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  padding: 4px 0;
+}
+.single-page-task .molecular-input-summary {
+  margin: 0;
 }
 .single-page-readiness {
   min-width: 0;
@@ -229,7 +234,7 @@
     text-align: center;
   }
   .single-page-preview .molecule-image {
-    height: clamp(380px, calc(100dvh - 320px), 760px);
+    height: clamp(320px, calc(100dvh - 380px), 760px);
   }
   .single-page-options {
     grid-column: 2;
@@ -239,6 +244,7 @@
     grid-column: 2;
     grid-row: 3;
     margin-top: 0;
+    padding-top: 8px;
     align-items: end;
   }
   .single-page-task > .error-box {
