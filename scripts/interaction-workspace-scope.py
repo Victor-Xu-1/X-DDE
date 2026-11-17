@@ -45,13 +45,6 @@ REFERENCE_SOURCES = {
     "server_tests/test_reference_preview_browser.py",
 }
 REFERENCE_FILES = REFERENCE_SOURCES | {
-    ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/utility-tools-checks.yml",
-    ".github/workflows/library-screen-checks.yml",
-    ".github/workflows/task-service-availability.yml",
-    ".github/workflows/appearance-checks.yml",
-    ".github/workflows/chart-quality-checks.yml",
-    ".github/workflows/simulation-view-checks.yml",
     "scripts/interaction-workspace-scope.py",
     "tests/test_interaction_workspace_scope.py",
     ".github/workflows/structure-layout-checks.yml",

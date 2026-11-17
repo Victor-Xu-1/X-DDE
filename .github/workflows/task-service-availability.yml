@@ -29,7 +29,7 @@ jobs:
       scope_only: true
   availability:
     needs: utility-scope
-    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && needs.utility-scope.outputs.reference_only != 'true' }}
+    if: needs.utility-scope.outputs.utility_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:

@@ -69,7 +69,7 @@ jobs:
   statistical-previews:
     needs: [appearance-scope, prediction-scope]
     # Exact canvas appearance or verified confidence-frame changes have focused owners.
-    if: ${{ needs.appearance-scope.outputs.appearance_only != 'true' && needs.prediction-scope.outputs.reference_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
+    if: ${{ needs.appearance-scope.outputs.appearance_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

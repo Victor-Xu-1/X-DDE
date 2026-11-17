@@ -77,8 +77,6 @@ on:
     outputs:
       utility_only:
         value: ${{ jobs.scope.outputs.utility_only }}
-      reference_only:
-        value: ${{ jobs.scope.outputs.reference_only }}
 permissions:
   contents: read
 jobs:
@@ -86,7 +84,6 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       utility_only: ${{ steps.select.outputs.utility_only }}
-      reference_only: ${{ steps.reference.outputs.reference_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -95,13 +92,9 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/molecular-utility-scope.py
-      - id: reference
-        env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: python scripts/interaction-workspace-scope.py
   utility-inputs:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.reference_only != 'true' }}
+    if: ${{ !inputs.scope_only }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

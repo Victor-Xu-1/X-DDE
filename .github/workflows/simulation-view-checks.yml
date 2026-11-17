@@ -61,7 +61,7 @@ jobs:
       scope_only: true
   previews:
     needs: prediction-scope
-    if: ${{ needs.prediction-scope.outputs.reference_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
+    if: ${{ needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

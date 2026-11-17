@@ -929,12 +929,6 @@ The focused result gate checks both archive kinds in English and Chinese Chrome,
 including source mismatch/retry, native downloads, print export and original
 depiction defaults. Public-record retrieval in isolated CI is recorded separately
 from scientific computation; it does not create a computed template example.
-Reviewed-main adoption can trigger utility and chart workflows through the raw
-push paths. Those callers retain their normal gates for mixed/unknown changes;
-only the closed reference scope delegates them to the native reference gate.
-The reusable utility scope exposes that same reference result without adding a
-second selector or using skip instructions. Final-head and new-main checks remain
-required before delivery.
 
 Prediction fallback checks reuse the existing utility scope-only workflow when a
 molecular-utility branch adopts reviewed main. The dedicated utility input, image
