@@ -43,6 +43,11 @@ REFERENCE_SOURCES = {
     "frontend/src/viewer/structure-bytes.ts",
     "frontend/src/viewer/structure-bytes.test.ts",
     "server_tests/test_reference_preview_browser.py",
+    "server_tests/reference_archive_replay.py",
+    "tests/test_reference_replay.py",
+    "tests/fixtures/reference_import/CHEMBL376085.json",
+    "tests/fixtures/reference_import/CHEMBL376085.sdf",
+    "tests/fixtures/reference_import/source.json",
 }
 REFERENCE_FILES = REFERENCE_SOURCES | {
     "scripts/interaction-workspace-scope.py",

@@ -16,6 +16,7 @@ from playwright.sync_api import expect, sync_playwright
 from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 from server_tests.publication_browser_helpers import export_figure, inspect_png
+from server_tests.reference_archive_replay import configure_replay
 from server_tests.test_frontend_browser import contrast_ratio
 from server_tests.test_ketcher_depiction_browser import assert_native_bonds
 from server_tests.test_ketcher_startup_browser import (
@@ -63,11 +64,16 @@ def capture_failure_layout(page, workspace, evidence, phase):
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 @pytest.mark.parametrize("kind", ["structure", "molecule"])
-def test_native_reference_workspace(reference_workspace, language, width, kind):
+def test_native_reference_workspace(reference_workspace, language, width, kind,
+                                    tmp_path, monkeypatch):
     evidence = Path("outputs/reference-preview") / f"{kind}-{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     errors, writes = [], []
+    replay_log = (
+        configure_replay(monkeypatch, tmp_path / "archive-replay")
+        if kind == "molecule" else None
+    )
     with platform(reference_workspace.state_dir, evidence / "service.log") as base:
         with sync_playwright() as driver:
             browser = driver.chromium.launch(channel="chrome", args=["--enable-unsafe-swiftshader"])
@@ -112,6 +118,24 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     job = imported[0]["id"]
                     result = page.request.get(base + f"/api/jobs/{job}/result").json()
                     assert result["identifier"] == "CHEMBL376085"
+                    replay_events = [json.loads(line)
+                                     for line in replay_log.read_text().splitlines()]
+                    calls = [call for call in replay_events
+                             if call["mode"] == "sealed_official_response"]
+                    assert [call["url"] for call in calls] == [
+                        "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL376085" + suffix
+                        for suffix in (".json", ".sdf")
+                    ]
+                    launches = [call for call in replay_events
+                                if call["mode"] == "native_importer_process"]
+                    assert len(launches) == 1
+                    process = launches[0]
+                    assert process["runner"] == "runner.py"
+                    assert process["job"] == job
+                    assert {call["pid"] for call in calls} == {process["pid"]}
+                    (evidence / "archive-transport.json").write_text(
+                        json.dumps(replay_events, indent=2)
+                    )
                     assert result["preparation"] == (
                         "original_archive_bytes_not_prepared_or_bound_pose"
                     )
@@ -304,6 +328,9 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "source_sha256": result["sha256"], "chrome": browser.version,
                     "language": language, "width": width,
                     "archive_retrieval_jobs": int(kind == "molecule"),
+                    "live_network_retrieval_jobs": 0,
+                    "archive_transport": ("sealed_official_responses" if kind == "molecule"
+                                          else "retained_STAT6_archive"),
                     "scientific_calculations": 0, "preview_writes": writes,
                     "source_mismatch_recovered": True, "source_bytes_unchanged": True,
                     "optional_drawing_failure_allows_preparation": kind == "molecule",

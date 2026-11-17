@@ -927,8 +927,18 @@ Only active reference results hide the new-task method picker; returning to the
 questionnaire restores it. Source digests and internal receipts stay off the page.
 The focused result gate checks both archive kinds in English and Chinese Chrome,
 including source mismatch/retry, native downloads, print export and original
-depiction defaults. Public-record retrieval in isolated CI is recorded separately
-from scientific computation; it does not create a computed template example.
+depiction defaults. The molecular browser fixture replays two sealed, unmodified
+ChEMBL responses at the test-only transport boundary. Actual questionnaire
+submission, queue, native importer child, typed archive validation, asset indexing
+and native drawing/export remain real. Receipts bind both response reads to the
+native child PID and label replay separately from live retrieval. The capture
+records exact public URLs, acquisition times, fixed digests and ChEMBL attribution
+under CC-BY-SA-3.0. Unlisted requests and changed bytes fail without network fallback.
+Existing import/transport contracts remain in this focused gate. This test harness
+is never packaged or enabled in the application and does not change production
+timeouts, TLS or retry policy. The observed GitHub-runner ChEMBL timeouts remain
+failed live-retrieval observations; controlled fixture success does not qualify
+runner egress or scientific computation or create a computed template example.
 
 Prediction fallback checks reuse the existing utility scope-only workflow when a
 molecular-utility branch adopts reviewed main. The dedicated utility input, image

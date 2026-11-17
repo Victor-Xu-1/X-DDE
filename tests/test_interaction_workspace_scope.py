@@ -60,6 +60,9 @@ def test_reference_gate_retains_default_depiction_and_exact_source_checks():
                      "StructureViewer.test.tsx", "SelectedAssetPreview.test.tsx",
                      "test_reference_preview_browser.py"):
         assert required in body
+    for required in ("test_reference_replay.py", "test_reference_import.py",
+                     "test_source_transport.py", "test_source_proxy.py"):
+        assert required in body
     browser = Path("server_tests/test_reference_preview_browser.py").read_text()
     assert "test_ketcher_startup_browser import" in browser
     for name in ("ketcher-depiction", "workspace-preview", "molecular-preview", "viewer"):
