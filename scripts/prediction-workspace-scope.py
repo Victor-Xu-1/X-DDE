@@ -6,6 +6,10 @@ import runpy
 import subprocess
 
 
+def confidence_frame_only(changed, event="push"):
+    return runpy.run_path("scripts/confidence-frame-scope.py")["selected"](changed, event)
+
+
 def setup_summary_only(changed, event="push"):
     return runpy.run_path("scripts/prediction-setup-scope.py")["selected"](changed, event)
 
@@ -895,6 +899,8 @@ def boltz_confidence_only(changed):
 
 
 def native_confidence_only(changed):
+    if confidence_frame_only(changed):
+        return True
     if boltz_confidence_only(changed):
         return True
     if any(name in CONFIDENCE_LAYOUT_SOURCES for name in changed):
@@ -913,6 +919,8 @@ def native_confidence_only(changed):
 
 
 def confidence_changed(changed):
+    if confidence_frame_only(changed):
+        return True
     if workspace_expansion_only(changed):
         return True
     if boltz_confidence_only(changed):
@@ -1328,6 +1336,9 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
+            "confidence_frame": confidence_frame_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
             "setup_summary": setup_summary_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),

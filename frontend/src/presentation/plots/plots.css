@@ -29,7 +29,7 @@
   min-width: 0;
   background: var(--chart-bg);
 }
-.research-plot-canvas[aria-busy="true"] {
+.research-plot-canvas[data-frame-current="false"] {
   visibility: hidden;
 }
 .research-plot-status {
