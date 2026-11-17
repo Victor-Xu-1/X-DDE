@@ -184,7 +184,10 @@ def test_inherited_main_callers_use_the_same_canonical_utility_output(name, job)
     assert "utility_only:\n        value: ${{ jobs.utility-scope.outputs.utility_only }}" in parent
     workflow = (Path(".github/workflows") / name).read_text()
     block = workflow.split("\n  " + job + ":\n", 1)[1].split("    steps:", 1)[0]
-    assert "needs: prediction-scope" in block
+    dependencies = re.search(r"^    needs: (.+)$", block, re.MULTILINE)
+    assert dependencies
+    needs = [item.strip().strip("\"'") for item in dependencies[1].strip("[]").split(",")]
+    assert "prediction-scope" in needs
     assert "needs.prediction-scope.outputs.utility_only != 'true'" in block
 
 
