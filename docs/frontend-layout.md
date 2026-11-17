@@ -893,6 +893,53 @@ The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
 
+## Original reference preview
+
+Imported structures display their archived coordinates in the shared large left
+3D workspace. Original molecular records use the existing Ketcher 2D renderer;
+opening an archive never starts conformer generation or minimization. Preparing
+the selected structure or molecule remains an explicit next action on the right.
+Both preview paths verify the complete source bytes against the recorded digest
+before enabling preparation; the registered asset must identify the same source.
+Missing or changed source bytes cannot leave an older preview or action enabled.
+The unmodified source download remains available during a preview failure.
+Molecular source verification reuses the bounded byte/record reader independently
+of Ketcher. A missing or failed drawing component does not block preparation of a
+verified file. Source read/digest failures stay blocking and have their own retry;
+redrawing remains a separate display action. Late verification from an older
+archive cannot change the current preparation state.
+The drawing receives the immutable record snapshot from that same successful
+read, bound to the exact URL, record and digest. It does not race a second fetch
+against preparation readiness. Other drawing callers retain their existing reads;
+an explicit publication export still validates its original source.
+Reference failure views use a compact recovery area so the message, retry and
+preparation/download actions remain close. Healthy views keep their large working
+area. The unused drawing-readiness callback was removed after source verification
+became independent; native checks assert one verified source read before drawing.
+Reference molecular controls follow the selected UI theme while the scientific
+paper and its status text keep readable contrast. The focused failure checks
+exercise Warm plus Night desktop and White narrow views without enabling an engine.
+Desktop reference views use approximately three quarters of the working width,
+with a compact preparation/download column; narrow screens retain a single column.
+The molecular reader reuses the shared streamed byte limiter with a tighter
+5 MiB cap, while existing 3D consumers retain their original 10 MB cap.
+Only active reference results hide the new-task method picker; returning to the
+questionnaire restores it. Source digests and internal receipts stay off the page.
+The focused result gate checks both archive kinds in English and Chinese Chrome,
+including source mismatch/retry, native downloads, print export and original
+depiction defaults. The molecular browser fixture replays two sealed, unmodified
+ChEMBL responses at the test-only transport boundary. Actual questionnaire
+submission, queue, native importer child, typed archive validation, asset indexing
+and native drawing/export remain real. Receipts bind both response reads to the
+native child PID and label replay separately from live retrieval. The capture
+records exact public URLs, acquisition times, fixed digests and ChEMBL attribution
+under CC-BY-SA-3.0. Unlisted requests and changed bytes fail without network fallback.
+Existing import/transport contracts remain in this focused gate. This test harness
+is never packaged or enabled in the application and does not change production
+timeouts, TLS or retry policy. The observed GitHub-runner ChEMBL timeouts remain
+failed live-retrieval observations; controlled fixture success does not qualify
+runner egress or scientific computation or create a computed template example.
+
 Prediction fallback checks reuse the existing utility scope-only workflow when a
 molecular-utility branch adopts reviewed main. The dedicated utility input, image
 lifecycle and native preview checks remain required. This does not expand the

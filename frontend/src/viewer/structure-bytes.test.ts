@@ -32,3 +32,31 @@ it("rejects HTTP errors and oversized declared bodies before allocating a merged
     ),
   ).rejects.toThrow();
 });
+
+it("enforces a caller's tighter byte cap for missing and dishonest headers", async () => {
+  for (const declared of [undefined, "1"]) {
+    const cancel = vi.fn();
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(5 * 1024 ** 2 + 1));
+        },
+        cancel,
+      }),
+      { headers: declared ? { "Content-Length": declared } : undefined },
+    );
+    await expect(structureBytes(response, 5 * 1024 ** 2)).rejects.toThrow(
+      /byte limit/,
+    );
+    expect(cancel).toHaveBeenCalledOnce();
+  }
+});
+
+it.each([0, -1, 1.5, NaN, Infinity, 10_000_001])(
+  "rejects an invalid byte cap %s",
+  async (limit) => {
+    await expect(structureBytes(new Response("x"), limit)).rejects.toThrow(
+      /valid structure byte limit/,
+    );
+  },
+);

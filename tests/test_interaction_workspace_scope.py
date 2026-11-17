@@ -39,3 +39,40 @@ def test_both_unrelated_layout_jobs_delegate_to_the_contact_gate():
     native = Path(".github/workflows/protein-interface-checks.yml").read_text()
     body = native.split("  contracts-and-preview:", 1)[1].split("    steps:", 1)[0]
     assert "needs.native-scope.outputs.interaction_only != 'true'" in body
+
+
+def test_reference_preview_has_a_closed_source_and_direct_dependency_scope():
+    assert scope["reference_selected"](scope["REFERENCE_FILES"])
+    for source in scope["REFERENCE_SOURCES"]:
+        assert scope["reference_selected"]([source])
+    assert not scope["reference_selected"](scope["REFERENCE_FILES"], "workflow_dispatch")
+    assert not scope["reference_selected"](["pyproject.toml"])
+    for unrelated in (*scope["SOURCES"], "frontend/src/viewer/frame.ts",
+                      "frontend/src/App.tsx", "src/opendde_workbench/discovery/import_runner.py"):
+        assert not scope["reference_selected"]([*scope["REFERENCE_SOURCES"], unrelated])
+
+
+def test_reference_gate_retains_default_depiction_and_exact_source_checks():
+    workflow = Path(".github/workflows/structure-layout-checks.yml").read_text()
+    body = workflow.split("  interaction-workspace:", 1)[1].split("  view-alignment:", 1)[0]
+    for required in ("ReferenceImportResults.test.tsx", "MoleculeImage.test.tsx",
+                     "depiction-renderer.test.ts", "structure-bytes.test.ts",
+                     "StructureViewer.test.tsx", "SelectedAssetPreview.test.tsx",
+                     "test_reference_preview_browser.py"):
+        assert required in body
+    for required in ("test_reference_replay.py", "test_reference_import.py",
+                     "test_source_transport.py", "test_source_proxy.py"):
+        assert required in body
+    browser = Path("server_tests/test_reference_preview_browser.py").read_text()
+    assert "test_ketcher_startup_browser import" in browser
+    for name in ("ketcher-depiction", "workspace-preview", "molecular-preview", "viewer"):
+        text = Path(f".github/workflows/{name}-checks.yml").read_text()
+        assert "scripts/interaction-workspace-scope.py" in text
+        assert "reference_only != 'true'" in text
+    prediction = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    interface = prediction.split("  interface:", 1)[1].split("    runs-on:", 1)[0]
+    assert "reference_only != 'true'" in interface
+    for name, job in (("task-layout", "scoped-layout"), ("user-interface", "presentation")):
+        text = Path(f".github/workflows/{name}-checks.yml").read_text()
+        body = text.split(f"  {job}:", 1)[1].split("    runs-on:", 1)[0]
+        assert "needs.prediction-scope.outputs.reference_only != 'true'" in body
