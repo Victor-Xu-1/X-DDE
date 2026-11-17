@@ -842,6 +842,17 @@ scientific colors and neutral paper canvases remain unchanged.
 
 ## Molecular input confirmation
 
+The shared prediction setup keeps the model, requested structure count and
+current material entries visible. Seed values and aggregate entity/copy counts
+are available through Calculation details, collapsed for valid initial settings.
+Unfinished settings expand that section and retain a visible check-settings
+notice; invalid numbers are not printed or replaced by invented defaults.
+This changes presentation only. Original seed order, samples, copy counts,
+questionnaire values, saved drafts and request admission remain unchanged across
+OpenDDE, Boltz-2 and Mol-1. Existing input preview, native drawing/export and return
+to edit continue through the same components. A focused Chrome check exercises
+each form in English and Chinese without submitting tasks or enabling engines.
+
 Molecular confirmation uses one shared workspace for properties, ADMET, brain
 assessment, state preparation and library selection. The actual input structure
 appears first in a large left Ketcher view, with the concise submission summary

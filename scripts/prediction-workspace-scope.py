@@ -10,6 +10,10 @@ def confidence_frame_only(changed, event="push"):
     return runpy.run_path("scripts/confidence-frame-scope.py")["selected"](changed, event)
 
 
+def setup_summary_only(changed, event="push"):
+    return runpy.run_path("scripts/prediction-setup-scope.py")["selected"](changed, event)
+
+
 PATTERNS = (
     "frontend/public/fonts/jetbrains-mono/*",
     "frontend/public/fonts/plus-jakarta/*",
@@ -746,6 +750,8 @@ def drafts_changed(changed, event="push"):
 
 
 def input_preview_only(changed, event="push"):
+    if setup_summary_only(changed, event):
+        return True
     changed = set(changed)
     return (
         event in {"push", "pull_request"}
@@ -759,6 +765,8 @@ def input_preview_only(changed, event="push"):
 
 
 def preview_changed(changed, event="push"):
+    if setup_summary_only(changed, event):
+        return True
     if draft_compatibility_only(changed, event):
         return False
     return event == "workflow_dispatch" or any(
@@ -1188,6 +1196,8 @@ def result_layout_only(changed, event="push"):
 
 
 def selected(changed, event="push"):
+    if setup_summary_only(changed, event):
+        return True
     if result_layout_only(changed, event):
         return True
     if workspace_expansion_only(changed, event):
@@ -1327,6 +1337,9 @@ def main():
     with open(os.environ["GITHUB_OUTPUT"], "a") as stream:
         for key, value in {
             "confidence_frame": confidence_frame_only(
+                changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "setup_summary": setup_summary_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "result_layout_only": result_layout_only(
