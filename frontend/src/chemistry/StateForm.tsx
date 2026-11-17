@@ -1,10 +1,14 @@
 import "./states.css";
 import { useExampleReference, useExampleTask } from "../examples/context";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import {
+  UtilityFormImage,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { Hint } from "../guided/Hint";
@@ -12,20 +16,32 @@ import { MolecularReview } from "../guided/MolecularReview";
 import { optionsFor, type PreparationChoice } from "./model";
 import type { StateOptions } from "./types";
 
-export function StateForm({
+export function StateForm(props: Parameters<typeof StateFields>[0]) {
+  return (
+    <UtilityFormImage language={props.language}>
+      {(imageInput) => (
+        <StateFields {...props} imageInput={imageInput ?? props.imageInput} />
+      )}
+    </UtilityFormImage>
+  );
+}
+
+function StateFields({
   language,
   onCreated,
   initialMolecule = null,
+  imageInput = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
+  imageInput?: UtilityImageValue | null;
 }) {
   const preset = useExampleTask("molecular_states");
   const example = useExampleReference("ligand", "imatinib", "jq1");
   initialMolecule ??= preset?.molecule ?? example;
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated);
+    run = useInputTaskSubmit(onCreated);
   const [molecule, setMolecule] = useState<MoleculeRef | null>(initialMolecule),
     [choice, setChoice] = useState<PreparationChoice>(
       preset ? "physiological" : "supplied",
@@ -37,6 +53,9 @@ export function StateForm({
     [raw, setRaw] = useState(""),
     [name, setName] = useState(""),
     [error, setError] = useState("");
+  useLayoutEffect(() => {
+    if (imageInput) setMolecule(imageInput.reference);
+  }, [imageInput?.key]);
   const {
     ready,
     error: readinessError,
@@ -48,7 +67,7 @@ export function StateForm({
       const selected = expert ? JSON.parse(raw) : options;
       if (!molecule)
         throw new Error(
-          zh ? "请选择分子版本。" : "Choose a molecular version.",
+          zh ? "请选择研究分子。" : "Choose a research molecule.",
         );
       return await run.submit({
         operation: "molecular_states",
@@ -69,7 +88,8 @@ export function StateForm({
         value={molecule}
         onChange={setMolecule}
         language={language}
-        label={zh ? "选择 SDF 分子版本" : "Choose an SDF molecular version"}
+        label={zh ? "研究分子" : "Research molecule"}
+        uploadKey={imageInput?.key}
       />
     </>
   );
@@ -210,6 +230,14 @@ export function StateForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        molecule,
+        choice,
+        options,
+        expert,
+        raw,
+        name,
+      })}
       busy={run.busy}
       error={error || run.error || readinessError}
       ready={ready}
@@ -234,11 +262,13 @@ export function StateForm({
         },
         {
           title: zh ? "选择方案" : "Choose settings",
+          inline: "options",
           content: settings,
           valid: true,
         },
         {
           title: zh ? "确认启动" : "Review & start",
+          inline: "preview",
           content: (
             <MolecularReview
               language={language}

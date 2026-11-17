@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  UtilityFormImage,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import { useExampleReference, useExampleTask } from "../examples/context";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { AssetPicker } from "../operations/AssetPicker";
@@ -7,7 +11,7 @@ import { Hint } from "../guided/Hint";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { MolecularReview } from "../guided/MolecularReview";
-import { useTaskSubmit } from "../operations/useTaskSubmit";
+import { useInputTaskSubmit } from "../guided/useInputTaskSubmit";
 import { useSdfAsset } from "../research/useSdfAsset";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
@@ -15,26 +19,41 @@ import { AdmetSettings } from "./AdmetSettings";
 import { admetDefaults, admetLimits, admetVersions } from "./generated";
 import type { AdmetOptions, SourceKind } from "./types";
 
-export function AdmetForm({
+export function AdmetForm(props: Parameters<typeof AdmetFields>[0]) {
+  return (
+    <UtilityFormImage language={props.language}>
+      {(imageInput) => (
+        <AdmetFields {...props} imageInput={imageInput ?? props.imageInput} />
+      )}
+    </UtilityFormImage>
+  );
+}
+
+function AdmetFields({
   language,
   onCreated,
   initialMolecule = null,
   focus,
+  imageInput = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
   focus?: "brain";
+  imageInput?: UtilityImageValue | null;
 }) {
   const recordedLibrary = useExampleReference("library");
   const recordedMolecule = useExampleReference("ligand");
   const preset = useExampleTask("admet_predict");
   const brain = focus === "brain" || preset?.focus === "brain";
-  initialMolecule ??=
-    preset?.molecule ?? (recordedLibrary ? null : recordedMolecule);
+  initialMolecule =
+    imageInput?.reference ??
+    initialMolecule ??
+    preset?.molecule ??
+    (recordedLibrary ? null : recordedMolecule);
   const exampleLibrary = initialMolecule ? null : recordedLibrary;
   const zh = language === "zh",
-    run = useTaskSubmit(onCreated),
+    run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness(brain ? "admet.brain" : "admet.predict");
   const single = useSdfAsset(language, admetLimits.maxInputBytes),
     library = useSdfAsset(language, admetLimits.maxInputBytes);
@@ -50,10 +69,11 @@ export function AdmetForm({
   useEffect(() => {
     if (exampleLibrary) void library.choose(exampleLibrary.asset_id);
   }, [exampleLibrary?.asset_id, library.choose]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (initialMolecule) {
       setMolecule(initialMolecule);
-      void single.choose(initialMolecule.asset_id);
+      if (imageInput) setSourceKind("molecule");
+      void single.choose(initialMolecule.asset_id, initialMolecule.sha256);
     }
   }, [
     initialMolecule?.asset_id,
@@ -61,6 +81,7 @@ export function AdmetForm({
     initialMolecule?.record,
     initialMolecule?.conformer,
     initialMolecule?.version_id,
+    imageInput?.key,
     single.choose,
   ]);
   const selected = sourceKind === "molecule" ? single : library;
@@ -78,6 +99,13 @@ export function AdmetForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        sourceKind,
+        molecule,
+        library: library.asset,
+        options,
+        name,
+      })}
       ready={availability.ready}
       onCheckEnvironment={availability.recheck}
       busy={run.busy || selected.loading}
@@ -124,31 +152,33 @@ export function AdmetForm({
           title: zh ? "选择分子范围" : "Choose molecular scope",
           valid: true,
           content: (
-            <ChoiceCards<SourceKind>
-              label={
-                zh
-                  ? "这次预测哪些分子？"
-                  : "Which molecules should be predicted?"
-              }
-              value={sourceKind}
-              onChange={setSourceKind}
-              options={[
-                {
-                  value: "molecule",
-                  title: zh ? "一个研究分子" : "One research molecule",
-                  note: zh
-                    ? "提供一个分子，确认需要预测的结构。"
-                    : "Provide one molecule and confirm the structure to predict.",
-                },
-                {
-                  value: "library",
-                  title: zh ? "一组候选分子" : "A candidate set",
-                  note: zh
-                    ? "处理 SDF 文件全部记录，最多 50 个。"
-                    : "Read every SDF record, at most 50.",
-                },
-              ]}
-            />
+            <div data-molecule-source>
+              <ChoiceCards<SourceKind>
+                label={
+                  zh
+                    ? "这次预测哪些分子？"
+                    : "Which molecules should be predicted?"
+                }
+                value={sourceKind}
+                onChange={setSourceKind}
+                options={[
+                  {
+                    value: "molecule",
+                    title: zh ? "一个研究分子" : "One research molecule",
+                    note: zh
+                      ? "提供一个分子，确认需要预测的结构。"
+                      : "Provide one molecule and confirm the structure to predict.",
+                  },
+                  {
+                    value: "library",
+                    title: zh ? "一组候选分子" : "A candidate set",
+                    note: zh
+                      ? "处理 SDF 文件全部记录，最多 50 个。"
+                      : "Read every SDF record, at most 50.",
+                  },
+                ]}
+              />
+            </div>
           ),
         },
         {
@@ -167,6 +197,7 @@ export function AdmetForm({
                   }}
                   language={language}
                   label={zh ? "研究分子" : "Research molecule"}
+                  uploadKey={imageInput?.key}
                 />
               ) : (
                 <AssetPicker
@@ -194,6 +225,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "选择推荐设置" : "Choose settings",
+          inline: "options",
           valid:
             [1, 2].includes(options.cpu) &&
             [2048, 4096, 8192].includes(options.memory_mib),
@@ -210,6 +242,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "确认预测" : "Review prediction",
+          inline: "preview",
           valid,
           content: (
             <>

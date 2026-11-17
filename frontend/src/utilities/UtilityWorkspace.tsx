@@ -1,11 +1,7 @@
 import { useState } from "react";
 import type { Job, Language } from "../types";
-import { AdmetForm } from "../admet/AdmetForm";
-import { BrainForm } from "../admet/BrainForm";
-import { PropertyForm } from "../operations/PropertyForm";
-import { LibraryScreenForm } from "../chemistry/LibraryScreenForm";
-import { StateForm } from "../chemistry/StateForm";
 import { ImageRecognition } from "./ImageRecognition";
+import { UtilityTask } from "./UtilityTask";
 
 const utilityTabs = [
   ["image", "图片识别与编辑", "Image recognition & editor"],
@@ -20,26 +16,17 @@ type Utility = (typeof utilityTabs)[number][0];
 export function UtilityWorkspace({
   language,
   onCreated,
+  jobs = [],
+  active: visible = true,
 }: {
   language: Language;
   onCreated(job: Job): void;
+  jobs?: readonly Job[];
+  active?: boolean;
 }) {
   const [active, setActive] = useState<Utility>("image");
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
   const [visited, setVisited] = useState<Utility[]>(["image"]);
-  const [completed, setCompleted] = useState<Partial<Record<Utility, boolean>>>(
-    {},
-  );
-  const [revisions, setRevisions] = useState<Partial<Record<Utility, number>>>(
-    {},
-  );
-  const forms = {
-    admet: AdmetForm,
-    brain: BrainForm,
-    properties: PropertyForm,
-    screen: LibraryScreenForm,
-    states: StateForm,
-  };
   const zh = language === "zh";
   return (
     <div className="utility-workspace">
@@ -72,7 +59,6 @@ export function UtilityWorkspace({
       </div>
       {utilityTabs.map(([id, cn, en]) => {
         if (!visited.includes(id)) return null;
-        const Form = id === "image" ? null : forms[id];
         return (
           <section
             className="utility-panel"
@@ -81,36 +67,15 @@ export function UtilityWorkspace({
             hidden={active !== id}
             aria-label={zh ? cn : en}
           >
-            {Form ? (
+            {id !== "image" ? (
               <>
                 <h1 className="sr-only">{zh ? cn : en}</h1>
-                {completed[id] && (
-                  <div className="utility-toolbar">
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => {
-                        setRevisions((current) => ({
-                          ...current,
-                          [id]: (current[id] ?? 0) + 1,
-                        }));
-                        setCompleted((current) => ({
-                          ...current,
-                          [id]: false,
-                        }));
-                      }}
-                    >
-                      {zh ? "新建任务" : "New task"}
-                    </button>
-                  </div>
-                )}
-                <Form
-                  key={revisions[id] ?? 0}
+                <UtilityTask
+                  tool={id}
                   language={language}
-                  onCreated={(job) => {
-                    setCompleted((current) => ({ ...current, [id]: true }));
-                    onCreated(job);
-                  }}
+                  onCreated={onCreated}
+                  jobs={jobs}
+                  active={visible && active === id}
                 />
               </>
             ) : (

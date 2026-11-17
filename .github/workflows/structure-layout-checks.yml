@@ -5,6 +5,9 @@ on:
     paths: &structure_paths
       - "frontend/src/operations/NativeReport.tsx"
       - "frontend/src/operations/EpitopeResults.tsx"
+      - "frontend/src/operations/EpitopeResults.test.tsx"
+      - "frontend/src/operations/EpitopeWorkspace.test.tsx"
+      - "frontend/src/operations/EpitopeContactList.tsx"
       - "frontend/src/operations/epitope.css"
       - "frontend/src/operations/StructureComparisonResults.tsx"
       - "frontend/src/admet/AdmetResults.tsx"
@@ -19,7 +22,16 @@ on:
       - "frontend/src/diffsbdd/PocketPicker.tsx"
       - "frontend/src/diffsbdd/ReferencePocketResults.tsx"
       - "frontend/src/diffsbdd/interaction-results.css"
-      - "frontend/src/discovery/ReferenceImportResults.tsx"
+      - "frontend/src/discovery/ReferenceImportResults*"
+      - "frontend/src/discovery/ReferenceArchivePreview.tsx"
+      - "frontend/src/discovery/reference-import.css"
+      - "server_tests/test_reference_preview_browser.py"
+      - "server_tests/reference_archive_replay.py"
+      - "tests/test_reference_replay.py"
+      - "tests/fixtures/reference_import/*"
+      - "frontend/src/presentation/MoleculeImage*"
+      - "frontend/src/presentation/depiction-renderer*"
+      - "frontend/src/viewer/structure-bytes*"
       - "frontend/src/docking/DockingResults.tsx"
       - "frontend/src/docking/SearchRegion.tsx"
       - "frontend/src/evidence/EvidenceResults.tsx"
@@ -38,6 +50,7 @@ on:
       - "tests/test_interaction_workspace_scope.py"
       - "server_tests/test_interaction_workspace_browser.py"
       - "server_tests/test_protein_interface_workspace_browser.py"
+      - "server_tests/test_epitope_workspace_browser.py"
       - "server_tests/interaction_workspace_case.py"
       - "frontend/src/integrations/PotentialResults.tsx"
       - "frontend/src/integrations/ScaffoldSelection.tsx"
@@ -129,6 +142,9 @@ jobs:
       del_only: ${{ steps.change.outputs.del_only }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
       interaction_only: ${{ steps.interaction.outputs.interaction_only }}
+      epitope_only: ${{ steps.interaction.outputs.epitope_only }}
+      epitope_changed: ${{ steps.interaction.outputs.epitope_changed }}
+      reference_only: ${{ steps.interaction.outputs.reference_only }}
       admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
     steps:
       - uses: actions/checkout@v4
@@ -165,17 +181,34 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Native contact identity, repeated selection and exact table consumers
+        if: needs.scope.outputs.reference_only != 'true' && needs.scope.outputs.epitope_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/InteractionResults.test.tsx
           src/integrations/interaction-residue.test.ts
           src/integrations/ProteinInterfaceResults.test.tsx
           src/integrations/ScientificResults.test.tsx src/presentation/ResearchTable.test.tsx
+      - name: Exact epitope source, unique loaded residue focus and docked sequence controls
+        if: needs.scope.outputs.epitope_changed == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/EpitopeResults.test.tsx
+          src/operations/EpitopeWorkspace.test.tsx src/integrations/interaction-residue.test.ts
       - run: uv sync --locked --group dev --group browser
       - name: Closed result scope and native-browser source contracts
+        if: needs.scope.outputs.reference_only != 'true'
         run: |
           uv run --locked pytest -q tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py
           uv run --locked ruff check scripts/interaction-workspace-scope.py scripts/protein-interface-scope.py tests/test_interaction_workspace_scope.py tests/test_protein_interface_scope.py server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py server_tests/interaction_workspace_case.py
+          uv run --locked ruff check server_tests/test_epitope_workspace_browser.py
+      - name: Reference source integrity, native renderer defaults and direct preview consumers
+        if: needs.scope.outputs.reference_only == 'true'
+        run: |
+          cd frontend
+          npx vitest run src/discovery/ReferenceImportResults.test.tsx src/presentation/MoleculeImage.test.tsx src/presentation/depiction-renderer.test.ts src/viewer/structure-bytes.test.ts src/viewer/StructureViewer.test.tsx src/research/SelectedAssetPreview.test.tsx src/publication/molecular-vector.test.ts src/publication/FigureExport.test.tsx
+          cd ..
+          uv run --locked python -m pytest -q tests/test_interaction_workspace_scope.py tests/test_reference_replay.py tests/test_reference_import.py tests/test_source_transport.py tests/test_source_proxy.py
+          uv run --locked ruff check scripts/interaction-workspace-scope.py tests/test_interaction_workspace_scope.py server_tests/test_reference_preview_browser.py server_tests/reference_archive_replay.py tests/test_reference_replay.py
       - name: Obtain sealed STAT6 outputs; do not execute scientific engines
         env:
           GH_TOKEN: ${{ github.token }}
@@ -186,9 +219,25 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
+      - name: Browser dependencies for focused epitope preview checks
+        if: needs.scope.outputs.epitope_only == 'true'
+        run: uv run --locked playwright install-deps chromium
+      - name: Browser for other affected contact or reference views
+        if: needs.scope.outputs.epitope_only != 'true'
+        run: |
           uv run --locked playwright install chromium --with-deps
+          if [[ '${{ needs.scope.outputs.reference_only }}' == 'true' ]]; then
+            uv run --locked playwright install chrome --with-deps
+          fi
       - name: Actual bilingual saved contact rows, native 3D focus and source downloads
+        if: needs.scope.outputs.reference_only != 'true' && needs.scope.outputs.epitope_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_interaction_workspace_browser.py server_tests/test_protein_interface_workspace_browser.py
+      - name: Actual bilingual epitope preview integrity, docked sequence and native downloads
+        if: needs.scope.outputs.epitope_changed == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_epitope_workspace_browser.py
+      - name: Google Chrome native archive pipeline with sealed public transport, retry and export
+        if: needs.scope.outputs.reference_only == 'true'
+        run: uv run --locked python -m pytest -x -q --basetemp "$RUNNER_TEMP/reference-preview" server_tests/test_reference_preview_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -196,6 +245,9 @@ jobs:
           path: |
             outputs/interaction-workspace
             outputs/protein-interface-workspace
+            outputs/epitope-workspace
+            outputs/reference-preview
+            server_tests/evidence/hydrogen-policy
   view-alignment:
     needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope]
     if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
@@ -265,8 +317,8 @@ jobs:
           name: structure-workbench-evidence
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
-    needs: [scope, model-context, guidance-scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope]
+    if: needs.prediction-scope.outputs.confidence_frame != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

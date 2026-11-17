@@ -1,0 +1,28 @@
+{
+  "identifier": "CHEMBL376085",
+  "attribution": "ChEMBL, EMBL-EBI",
+  "license": "CC-BY-SA-3.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+  "source_home": "https://www.ebi.ac.uk/chembl/",
+  "purpose": "Unmodified official responses for controlled archive-transport replay; not live network or scientific acceptance.",
+  "responses": [
+    {
+      "file": "CHEMBL376085.json",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL376085.json",
+      "captured_at": "2026-11-17T13:33:16Z",
+      "status": 200,
+      "size": 3956,
+      "sha256": "e406edd48b6b01e60eb926a5abbbd47b993ca373943a6e3756aeb601b7083ffb",
+      "require_json": true
+    },
+    {
+      "file": "CHEMBL376085.sdf",
+      "url": "https://www.ebi.ac.uk/chembl/api/data/molecule/CHEMBL376085.sdf",
+      "captured_at": "2026-11-17T13:33:30Z",
+      "status": 200,
+      "size": 2393,
+      "sha256": "b3dd70118d9c6a2e7c8119f11bfa5d0210bcf63b785aa71287d6540fba64c733",
+      "require_json": false
+    }
+  ]
+}

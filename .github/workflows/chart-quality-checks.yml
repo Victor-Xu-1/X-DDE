@@ -2,7 +2,7 @@ name: Interactive statistical preview checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &chart_paths
       - "frontend/src/presentation/plots/**"
       - "frontend/src/datasets/CountBars*"
       - "frontend/src/datasets/CountEvidencePlot*"
@@ -45,9 +45,15 @@ on:
       - "!frontend/src/viewer/style.ts"
       # Library/index result routing is covered by the native member gate.
       - "!frontend/src/datasets/DatasetResults.tsx"
+  pull_request:
+    paths: *chart_paths
 permissions:
   contents: read
 jobs:
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   appearance-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -61,9 +67,9 @@ jobs:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/appearance-scope.py
   statistical-previews:
-    needs: appearance-scope
-    # Only the exact neutral-canvas CSS transition delegates to appearance checks.
-    if: needs.appearance-scope.outputs.appearance_only != 'true'
+    needs: [appearance-scope, prediction-scope]
+    # Exact canvas appearance or verified confidence-frame changes have focused owners.
+    if: ${{ needs.appearance-scope.outputs.appearance_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

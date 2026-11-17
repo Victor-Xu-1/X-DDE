@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MoleculeRef } from "../research/types";
 import type { Asset } from "../operations/types";
 import { ReferenceMetadataError, resolveReference } from "./reference-metadata";
+import { useImageInputSource } from "../utilities/ImageInputSource";
 
 export function useReferenceSelection(
   kind: "structure" | "ligand" | "sequences",
@@ -9,6 +10,7 @@ export function useReferenceSelection(
   onChange: (reference: MoleculeRef | null) => void,
   onAsset?: (asset: Asset, reference: MoleculeRef) => void,
 ) {
+  const inputSource = useImageInputSource();
   const key = kind + ":" + formats.join(",");
   const currentKey = useRef(key);
   currentKey.current = key;
@@ -45,6 +47,16 @@ export function useReferenceSelection(
     if (!id) return;
     const current = new AbortController();
     controller.current = current;
+    const sourceSignal = inputSource?.();
+    const replaced = () => {
+      if (controller.current === current) cancel();
+      else current.abort();
+    };
+    sourceSignal?.addEventListener("abort", replaced, { once: true });
+    if (sourceSignal?.aborted) {
+      replaced();
+      return;
+    }
     last.current = { id, reference };
     const requestedChoice = reference?.version_id
       ? "version:" + reference.version_id
@@ -88,6 +100,8 @@ export function useReferenceSelection(
         error:
           error instanceof ReferenceMetadataError ? error.code : "unavailable",
       });
+    } finally {
+      sourceSignal?.removeEventListener("abort", replaced);
     }
   }
   const visible =

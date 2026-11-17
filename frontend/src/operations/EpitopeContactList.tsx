@@ -11,13 +11,15 @@ export function EpitopeContactList({
   water,
   language,
   selected,
+  canSelect,
   onSelect,
 }: {
   protein: readonly ContactResidue[];
   water: number;
   language: Language;
   selected: string | null;
-  onSelect?: (residue: string) => void;
+  canSelect?(row: ContactResidue): boolean;
+  onSelect?(row: ContactResidue): void;
 }) {
   const zh = language === "zh";
   const [limit, setLimit] = useState("5");
@@ -101,12 +103,13 @@ export function EpitopeContactList({
                           type="button"
                           className="epitope-residue-button"
                           aria-pressed={selected === label}
+                          disabled={!canSelect?.(row)}
                           title={
                             zh
                               ? "点击在三维结构中定位"
                               : "Locate in the 3D structure"
                           }
-                          onClick={() => onSelect(label)}
+                          onClick={() => onSelect(row)}
                         >
                           {label}
                         </button>

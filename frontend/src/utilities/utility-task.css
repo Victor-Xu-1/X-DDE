@@ -1,0 +1,272 @@
+.utility-panel:not([hidden]):has(> .molecular-utility) {
+  display: flex;
+  flex: 1 0 auto;
+}
+.molecular-utility,
+.utility-task-form:not([hidden]) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.utility-template-controls,
+.utility-task-fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.utility-task-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.utility-task-fields > .utility-image-entry {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.utility-task-fields > .utility-image-entry > .questionnaire {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  padding: 8px 0 0;
+}
+.utility-image-entry > .image-molecule-actions {
+  order: -1;
+  margin: 4px 0 0;
+}
+.utility-template-controls .module-template {
+  margin: 0 0 4px;
+}
+.utility-template-controls .example-toolbar {
+  min-height: 32px;
+  padding: 2px 0;
+  gap: 8px 16px;
+}
+.utility-template-controls .example-controls > button,
+.utility-template-controls .example-guide > summary {
+  min-height: 30px;
+}
+.utility-template-controls .example-controls > button {
+  padding: 4px 10px;
+}
+.utility-task-form .questionnaire-actions {
+  position: static;
+  margin-top: auto;
+}
+.molecular-utility .molecule-drawing-style {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.single-page-main .field {
+  gap: 4px;
+  margin: 0 0 8px;
+}
+.single-page-main .field input,
+.single-page-main .field select {
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.single-page-main .field-help {
+  margin-block: 4px;
+}
+.molecular-utility .molecule-image {
+  background: var(--surface);
+}
+.molecular-utility .molecule-drawing-style select {
+  min-width: 0;
+  max-width: min(220px, 100%);
+}
+.utility-panel[data-utility="screen"] .discovery-results table {
+  min-width: 960px;
+}
+.utility-panel[data-utility="screen"] .discovery-results th {
+  white-space: nowrap;
+}
+/* The action button shows progress; preserve its live status without a second row. */
+.molecular-utility .module-template:has(> .example-toolbar) > .example-loading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.single-page-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.utility-task-fields > .utility-image-entry > .single-page-task {
+  flex: 1;
+}
+.molecular-utility .single-page-task .questionnaire-actions {
+  margin-top: 16px;
+}
+.single-page-main,
+.single-page-preview {
+  min-width: 0;
+}
+.single-page-field {
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+.single-page-field > * + * {
+  margin-top: 8px;
+}
+.molecular-utility .single-page-task .questionnaire-choices {
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+}
+.molecular-utility .single-page-task .questionnaire-choices label {
+  min-height: 0;
+  padding: 8px 10px;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.molecular-utility .single-page-task .questionnaire-choices small {
+  display: none;
+}
+.molecular-utility .single-page-task .questionnaire-choices span {
+  gap: 0;
+}
+.molecular-utility .single-page-task .reference-material {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.molecular-utility .single-page-task .reference-material-heading {
+  min-height: 0;
+  padding: 0 0 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.molecular-utility .single-page-task .reference-material-body {
+  padding: 0;
+}
+.single-page-task .molecular-input-review {
+  display: block;
+}
+.molecular-utility .single-page-options {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.molecular-utility .single-page-options > summary {
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 0;
+  padding: 4px 0;
+}
+.single-page-task .molecular-input-summary {
+  margin: 0;
+}
+.single-page-readiness {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  flex-basis: 100%;
+}
+.single-page-readiness > details {
+  max-width: 440px;
+  margin: 0;
+}
+.single-page-readiness > details > summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
+.single-page-readiness > button {
+  width: auto;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.utility-task-result {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 20px;
+  min-width: 0;
+}
+.utility-task-result > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.utility-task-result > header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.utility-task-result > header a {
+  margin-left: auto;
+}
+/* The native form keeps its inputs and validation; only its work area changes. */
+@media (min-width: 1100px) {
+  .utility-task-fields > .utility-image-entry > .single-page-task {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    column-gap: 24px;
+    row-gap: 12px;
+    min-height: calc(100dvh - 260px);
+  }
+  .single-page-inputs {
+    display: contents;
+  }
+  .single-page-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .single-page-preview {
+    grid-column: 1;
+    grid-row: 1 / 4;
+  }
+  .single-page-preview > .single-page-field {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    margin-bottom: 0;
+  }
+  .single-page-preview > .single-page-field > .field-help {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 360px;
+    margin: 0;
+    text-align: center;
+  }
+  .single-page-preview .molecule-image {
+    height: clamp(320px, calc(100dvh - 380px), 760px);
+  }
+  .single-page-options {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .molecular-utility .single-page-task .questionnaire-actions {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
+    padding-top: 8px;
+    align-items: end;
+  }
+  .single-page-task > .error-box {
+    grid-column: 1 / -1;
+  }
+}

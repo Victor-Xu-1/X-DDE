@@ -2,18 +2,51 @@ import { editorReady, type Ketcher } from "../editors/scientificEditor";
 import { configureKetcherPreview } from "../editors/ketcher-appearance";
 import { foldDisplayHydrogens } from "../editors/ketcher-hydrogens";
 import { molecularRecordText } from "./molecular-record";
+import { structureBytes } from "../viewer/structure-bytes";
 import {
   molecularImageOptions,
   type MolecularPrint,
 } from "../publication/molecular-vector";
 export type DepictionSource =
-  { smiles: string } | { url: string; record?: number };
+  { smiles: string } | { url: string; record?: number; sha256?: string };
+const verifiedRecord = Symbol("verified molecular record");
+export type MolecularSourceSnapshot = Readonly<{
+  key: string;
+  text: string;
+  [verifiedRecord]: true;
+}>;
+function sourceKey(source: DepictionSource) {
+  return JSON.stringify(
+    "smiles" in source
+      ? ["smiles", source.smiles]
+      : [
+          "url",
+          source.url,
+          source.record ?? 0,
+          source.sha256?.toLowerCase() ?? null,
+        ],
+  );
+}
+function snapshot(
+  source: DepictionSource,
+  text: string,
+): MolecularSourceSnapshot {
+  return Object.freeze({
+    key: sourceKey(source),
+    text,
+    [verifiedRecord]: true as const,
+  });
+}
 
-async function readStructure(source: DepictionSource, signal: AbortSignal) {
+/** Shared byte/record identity check; independent of the optional drawing component. */
+export async function readMolecularSource(
+  source: DepictionSource,
+  signal: AbortSignal,
+) {
   if ("smiles" in source) {
     if (!source.smiles.trim() || source.smiles.length > 20000)
       throw new Error("Unsupported molecule size.");
-    return source.smiles;
+    return snapshot(source, source.smiles);
   }
   const record = source.record ?? 0;
   if (
@@ -26,6 +59,8 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
     )
   )
     throw new Error("Select an exact local molecular record.");
+  if (source.sha256 !== undefined && !/^[a-f0-9]{64}$/i.test(source.sha256))
+    throw new Error("The recorded molecular source is unavailable.");
   const response = await fetch(source.url, { signal });
   if (
     !response.ok ||
@@ -40,9 +75,10 @@ async function readStructure(source: DepictionSource, signal: AbortSignal) {
       .at(-1);
   if (format !== "sdf" && format !== "mol")
     throw new Error("2D drawing needs an exact MOL or SDF molecular record.");
-  const text = await response.text();
-  if (text.length > 5 * 1024 ** 2) throw new Error("5 MiB maximum.");
-  return molecularRecordText(text, record, format);
+  const { text, sha256 } = await structureBytes(response, 5 * 1024 ** 2);
+  if (source.sha256 !== undefined && source.sha256.toLowerCase() !== sha256)
+    throw new Error("Reviewed molecular source checksum mismatch.");
+  return snapshot(source, molecularRecordText(text, record, format));
 }
 
 /** Native drawing pixels in an image URL accepted by the platform's strict CSP. */
@@ -111,10 +147,19 @@ export class DepictionRenderer {
     signal: AbortSignal,
     bondThickness = 1.6,
     print?: MolecularPrint,
+    verifiedSource?: MolecularSourceSnapshot,
   ) {
     if (![1.2, 1.6, 2.2].includes(bondThickness))
       throw new Error("Choose a supported drawing style.");
     signal.throwIfAborted();
+    if (
+      verifiedSource &&
+      (verifiedSource[verifiedRecord] !== true ||
+        verifiedSource.key !== sourceKey(source))
+    )
+      throw new Error(
+        "The verified molecular record does not match this source.",
+      );
     const key = JSON.stringify([source, bondThickness, print]);
     const cached = this.cache.get(key);
     if (cached) return cached;
@@ -139,7 +184,9 @@ export class DepictionRenderer {
         ensureVisible();
         const timeout = AbortSignal.timeout(25000);
         const active = AbortSignal.any([timeout, this.controller.signal]);
-        const structure = await readStructure(source, active);
+        const structure = (
+          verifiedSource ?? (await readMolecularSource(source, active))
+        ).text;
         ensureVisible();
         if (!editor.generateImage)
           throw new Error(

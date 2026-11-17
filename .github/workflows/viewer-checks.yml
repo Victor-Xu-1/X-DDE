@@ -100,7 +100,25 @@ on:
 permissions:
   contents: read
 jobs:
+  reference-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      reference_only: ${{ steps.scope.outputs.reference_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/interaction-workspace-scope.py
+  prediction-scope:
+    uses: ./.github/workflows/prediction-workspace-checks.yml
+    with:
+      scope_only: true
   molecular-preview:
+    needs: [reference-scope, prediction-scope]
+    if: ${{ needs.reference-scope.outputs.reference_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
