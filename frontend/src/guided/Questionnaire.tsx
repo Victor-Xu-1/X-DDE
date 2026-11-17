@@ -9,15 +9,18 @@ import {
 import type { Job, Language } from "../types";
 import "./questionnaire.css";
 import { TemplatePreviewContext } from "../examples/context";
-import { TemplateStepHelp } from "../examples/TemplateStepHelp";
 import { firstInvalidQuestion } from "./questionnaire-validity";
 import { researchError } from "../presentation/research-content";
 import { useReveal } from "../presentation/useReveal";
-import { ActiveIndicator } from "../presentation/ActiveIndicator";
 import { availabilityError } from "./task-availability";
 import { EnvironmentRecheck } from "./EnvironmentRecheck";
+import { TaskPresentationContext } from "./TaskPresentation";
+import { SinglePageFields } from "./SinglePageFields";
+import { GuidedQuestionFields } from "./GuidedQuestionFields";
 export interface QuestionStep {
   title: string;
+  /** Small utilities reuse these inputs without the research stepper. */
+  inline?: "input" | "options" | "preview";
   /** Stable template instruction index; null keeps self-guided optional pages separate. */
   guideStep?: number | null;
   actions?: ReactNode;
@@ -38,6 +41,7 @@ export function GuidedSteps<T extends { id: string }>({
   renderResult,
   resultTitle,
   initialResult = null,
+  inputKey,
 }: {
   language: Language;
   steps: readonly QuestionStep[];
@@ -55,8 +59,11 @@ export function GuidedSteps<T extends { id: string }>({
   renderResult(result: T): ReactNode;
   resultTitle?: string;
   initialResult?: T | null;
+  /** Exact native request identity for an inline utility's displayed result. */
+  inputKey?: string;
 }) {
   const preview = useContext(TemplatePreviewContext);
+  const singlePage = useContext(TaskPresentationContext)?.layout === "single";
   const zh = language === "zh",
     id = useId(),
     resultIndex = steps.length,
@@ -73,6 +80,7 @@ export function GuidedSteps<T extends { id: string }>({
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
   const activePanel = useRef<HTMLFieldSetElement | null>(null);
   const stepTrack = useRef<HTMLElement>(null);
+  const acceptedInput = useRef(inputKey);
   useReveal(activePanel, current);
   useEffect(() => {
     mounted.current = true;
@@ -104,7 +112,7 @@ export function GuidedSteps<T extends { id: string }>({
   }
   async function submit(reviewedSend?: () => Promise<T | undefined>) {
     if (preview) return;
-    if (current !== lastQuestion) {
+    if (!singlePage && current !== lastQuestion) {
       if (!reviewedSend) move(current + 1);
       return;
     }
@@ -123,8 +131,12 @@ export function GuidedSteps<T extends { id: string }>({
       setCurrent(invalid);
       setNotice(
         zh
-          ? `请检查第${invalid + 1}步的必填内容和参数。`
-          : `Check step ${invalid + 1}'s required inputs and settings.`,
+          ? singlePage
+            ? "请检查输入内容和设置。"
+            : `请检查第${invalid + 1}步的必填内容和参数。`
+          : singlePage
+            ? "Check the required inputs and settings."
+            : `Check step ${invalid + 1}'s required inputs and settings.`,
       );
       return;
     }
@@ -134,11 +146,14 @@ export function GuidedSteps<T extends { id: string }>({
     }
     const send = reviewedSend ?? onSubmit;
     if (!send) return;
+    setNotice("");
     pending.current = true;
+    const submittedInput = inputKey;
     try {
       const created = await send();
       if (created && mounted.current) {
         setReviewing(false);
+        acceptedInput.current = submittedInput;
         setJob(created);
         setCurrent(resultIndex);
       }
@@ -154,150 +169,149 @@ export function GuidedSteps<T extends { id: string }>({
     resultTitle ?? (zh ? "查看结果" : "View results"),
   ];
   return (
-    <form
-      className="questionnaire tool-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        void submit();
-      }}
-    >
-      <nav
-        ref={stepTrack}
-        className="questionnaire-steps"
-        aria-label={zh ? "任务步骤" : "Task steps"}
+    <>
+      <form
+        className={
+          "questionnaire tool-form" + (singlePage ? " single-page-task" : "")
+        }
+        noValidate={singlePage}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
       >
-        {titles.map((title, index) => (
-          <button
-            type="button"
-            key={index}
-            aria-current={current === index ? "step" : undefined}
-            disabled={
-              busy ||
-              (job
-                ? index !== resultIndex
-                : index === resultIndex || index > visited)
-            }
-            title={title}
-            aria-label={(zh ? "步骤 " : "Step ") + (index + 1) + ": " + title}
-            onClick={() => move(index)}
-          >
-            <span aria-hidden="true">{index < current ? "✓" : index + 1}</span>
-            <span>{title}</span>
-          </button>
-        ))}
-        <ActiveIndicator
-          container={stepTrack}
-          selection={current + ":" + titles.join("|")}
-        />
-      </nav>
-      <header className="questionnaire-page-heading">
-        <h2
-          ref={heading}
-          tabIndex={-1}
-          className="questionnaire-heading"
-          aria-label={current + 1 + ". " + titles[current]}
-        >
-          {titles[current]}
-        </h2>
-        {current < resultIndex && steps[current].actions && (
-          <fieldset className="questionnaire-heading-tools" disabled={busy}>
-            {steps[current].actions}
-          </fieldset>
+        {singlePage ? (
+          <SinglePageFields
+            steps={steps}
+            busy={busy}
+            language={language}
+            id={id}
+            invalid={notice ? current : null}
+            register={(index, node) => {
+              panels.current[index] = node;
+            }}
+          />
+        ) : (
+          <GuidedQuestionFields
+            steps={steps}
+            titles={titles}
+            current={current}
+            visited={visited}
+            busy={busy}
+            completed={Boolean(job)}
+            language={language}
+            id={id}
+            heading={heading}
+            track={stepTrack}
+            move={move}
+            register={(index, node) => {
+              panels.current[index] = node;
+              if (current === index) activePanel.current = node;
+            }}
+          />
         )}
-      </header>
-      {current < resultIndex && steps[current].guideStep !== null && (
-        <TemplateStepHelp
-          step={steps[current].guideStep ?? current}
-          language={language}
-        />
-      )}
-      {steps.map((step, index) => (
-        <fieldset
-          ref={(node) => {
-            panels.current[index] = node;
-            if (current === index) activePanel.current = node;
-          }}
-          key={index}
-          hidden={current !== index}
-          disabled={busy || current !== index}
-          aria-labelledby={id + "-" + index}
-        >
-          <legend id={id + "-" + index} className="sr-only">
-            {step.title}
-          </legend>
-          {step.content}
-        </fieldset>
-      ))}
-      {current === resultIndex && job && renderResult(job)}
-      {(notice || error) && (
-        <p role="alert" className="error-box">
-          {researchError(availabilityError(error || notice, zh), zh)}
-        </p>
-      )}
-      {current === lastQuestion && !ready && !error && (
-        <div role="status" className="notice">
-          {ready === undefined
-            ? zh
-              ? "正在确认计算环境…"
-              : "Checking the calculation environment…"
-            : unavailable}
-        </div>
-      )}
-      {current === lastQuestion && !preview && (
-        <EnvironmentRecheck
-          ready={ready}
-          onRecheck={onCheckEnvironment}
-          language={language}
-          busy={busy}
-        />
-      )}
-      {current < resultIndex && (
-        <div className="questionnaire-actions">
-          {current > 0 && (
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={busy}
-              onClick={() => move(current - 1)}
-            >
-              {zh ? "上一步" : "Back"}
-            </button>
-          )}
-          {current < lastQuestion ? (
-            <button
-              key="next-question"
-              type="button"
-              className="primary-button"
-              disabled={busy || !steps[current].valid}
-              onClick={() => move(current + 1)}
-            >
-              {zh ? "下一步" : "Next"}
-            </button>
-          ) : (
-            <button
-              key="submit-task"
-              ref={submitTrigger}
-              type="submit"
-              className="primary-button"
-              disabled={
-                preview || busy || !complete || (!renderReview && !ready)
-              }
-            >
-              {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
-            </button>
-          )}
-        </div>
-      )}
-      {reviewing &&
-        !preview &&
-        renderReview?.({
-          confirm: submit,
-          dismiss: () => {
-            setReviewing(false);
-            submitTrigger.current?.focus();
-          },
-        })}
-    </form>
+        {!singlePage && current === resultIndex && job && renderResult(job)}
+        {(notice || error) && (
+          <p role="alert" className="error-box">
+            {researchError(availabilityError(error || notice, zh), zh)}
+          </p>
+        )}
+        {!singlePage && current === lastQuestion && !ready && !error && (
+          <div role="status" className="notice">
+            {ready === undefined
+              ? zh
+                ? "正在确认计算环境…"
+                : "Checking the calculation environment…"
+              : unavailable}
+          </div>
+        )}
+        {!singlePage && current === lastQuestion && !preview && (
+          <EnvironmentRecheck
+            ready={ready}
+            onRecheck={onCheckEnvironment}
+            language={language}
+            busy={busy}
+          />
+        )}
+        {(singlePage || current < resultIndex) && (
+          <div className="questionnaire-actions">
+            {singlePage && !ready && (
+              <div className="single-page-readiness">
+                <span role="status">
+                  {ready === undefined
+                    ? zh
+                      ? "正在检查工具…"
+                      : "Checking tool…"
+                    : zh
+                      ? "工具尚未就绪"
+                      : "Tool is not ready"}
+                </span>
+                {ready === false && unavailable && (
+                  <details>
+                    <summary>{zh ? "查看原因" : "View details"}</summary>
+                    {unavailable}
+                  </details>
+                )}
+                {!preview && (
+                  <EnvironmentRecheck
+                    ready={ready}
+                    onRecheck={onCheckEnvironment}
+                    language={language}
+                    busy={busy}
+                  />
+                )}
+              </div>
+            )}
+            {!singlePage && current > 0 && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={busy}
+                onClick={() => move(current - 1)}
+              >
+                {zh ? "上一步" : "Back"}
+              </button>
+            )}
+            {!singlePage && current < lastQuestion ? (
+              <button
+                key="next-question"
+                type="button"
+                className="primary-button"
+                disabled={busy || !steps[current].valid}
+                onClick={() => move(current + 1)}
+              >
+                {zh ? "下一步" : "Next"}
+              </button>
+            ) : (
+              <button
+                key="submit-task"
+                ref={submitTrigger}
+                type="submit"
+                className="primary-button"
+                disabled={
+                  preview || busy || !complete || (!renderReview && !ready)
+                }
+              >
+                {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
+              </button>
+            )}
+          </div>
+        )}
+        {reviewing &&
+          !preview &&
+          renderReview?.({
+            confirm: submit,
+            dismiss: () => {
+              setReviewing(false);
+              submitTrigger.current?.focus();
+            },
+          })}
+      </form>
+      {singlePage &&
+        job &&
+        acceptedInput.current === inputKey &&
+        renderResult(job)}
+    </>
   );
 }
 
@@ -305,24 +319,29 @@ export function Questionnaire(
   props: Omit<Parameters<typeof GuidedSteps<Job>>[0], "renderResult">,
 ) {
   const zh = props.language === "zh";
+  const presentation = useContext(TaskPresentationContext);
   return (
     <GuidedSteps<Job>
       {...props}
-      renderResult={(job) => (
-        <section aria-label={zh ? "已提交的任务" : "Submitted task"}>
-          <p role="status">
-            {zh
-              ? "任务已提交，结果以实际计算为准。"
-              : "Task submitted. Results depend on the actual calculation."}
-          </p>
-          <a
-            className="primary-button"
-            href={"/#task=" + encodeURIComponent(job.id)}
-          >
-            {zh ? "查看任务进度与结果" : "Open task progress and results"}
-          </a>
-        </section>
-      )}
+      renderResult={(job) =>
+        presentation ? (
+          presentation.renderResult(job)
+        ) : (
+          <section aria-label={zh ? "已提交的任务" : "Submitted task"}>
+            <p role="status">
+              {zh
+                ? "任务已提交，结果以实际计算为准。"
+                : "Task submitted. Results depend on the actual calculation."}
+            </p>
+            <a
+              className="primary-button"
+              href={"/#task=" + encodeURIComponent(job.id)}
+            >
+              {zh ? "查看任务进度与结果" : "Open task progress and results"}
+            </a>
+          </section>
+        )
+      }
     />
   );
 }

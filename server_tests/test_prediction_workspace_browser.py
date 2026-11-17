@@ -1,6 +1,7 @@
 """Compiled prediction pages and real WebGL/Plotly; controlled fixtures, no inference."""
 
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -49,8 +50,7 @@ def check_prediction_setup_layout(page, width):
         assert content and content["width"] <= 1400, "Input reading width must return after results"
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390), ("en", 2560)])
-def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, language, width):
+def review_prediction_workspace(tmp_path, language, width, *, launch_browser=None):
     evidence = Path("outputs/prediction-workspace") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     state = tmp_path / "state"
@@ -58,7 +58,9 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
     errors, submissions = [], []
     zh = language == "zh"
     with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
-        browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
+        browser = launch_browser(driver) if launch_browser else driver.chromium.launch(
+            args=["--enable-unsafe-swiftshader"]
+        )
         page = browser.new_page(
             viewport={"width": width, "height": 1000},
             screen={"width": width, "height": 1000},
@@ -200,13 +202,30 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         matrix = plot.locator(".hm image").bounding_box()
         assert matrix and abs(matrix["width"] - matrix["height"]) <= 2
         if width >= 1800:
+            page.evaluate("window.scrollTo(0, 0)")
+            a, b = preview.bounding_box(), inspector.bounding_box()
+            matrix = plot.locator(".hm image").bounding_box()
+            assert a and b and matrix
             available = page.locator(".studio-main").bounding_box()
             content = page.locator("main.studio-content").bounding_box()
             stage = preview.locator(".molecular-stage").bounding_box()
             assert available and content and stage
             assert content["width"] >= available["width"] - 1
             assert a["x"] - available["x"] <= 40
+            footer = preview.locator(".viewer-footer").bounding_box()
+            controls = preview.locator(".viewer-controls").bounding_box()
+            assert footer and controls
+            (evidence / "wide-workspace-geometry.json").write_text(json.dumps({
+                "chrome": browser.version, "viewport": page.viewport_size,
+                "preview": a, "inspector": b, "stage": stage,
+                "footer": footer, "controls": controls, "matrix": matrix,
+            }, indent=2))
+            page.screenshot(path=evidence / "wide-workspace.png", full_page=True)
             assert stage["width"] >= 1000 and stage["height"] >= 600
+            assert matrix["width"] >= b["width"] * 0.65
+            for panel in (footer, controls):
+                assert panel["y"] >= stage["y"] + stage["height"] - 1
+                assert panel["y"] + panel["height"] <= a["y"] + a["height"] + 1
 
             def check_expanded_height():
                 expanded = preview.locator(".molecular-stage").bounding_box()
@@ -267,3 +286,8 @@ def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, lang
         assert not errors and not submissions, (errors, submissions)
         assert len(page.request.get(base + "/api/jobs").json()) == 1
         browser.close()
+
+
+@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390), ("en", 2560)])
+def test_prediction_workspace_selection_maps_and_responsive_input(tmp_path, language, width):
+    review_prediction_workspace(tmp_path, language, width)

@@ -248,9 +248,6 @@ on:
       # Molecular view alignment has structure-layout-checks.yml.
       - "!frontend/src/operations/NativeReport.tsx"
       - "!frontend/src/operations/EpitopeResults.tsx"
-      - "!frontend/src/operations/EpitopeResults.test.tsx"
-      - "!frontend/src/operations/EpitopeWorkspace.test.tsx"
-      - "!frontend/src/operations/EpitopeContactList.tsx"
       - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
@@ -570,9 +567,6 @@ on:
       # Molecular view alignment has structure-layout-checks.yml.
       - "!frontend/src/operations/NativeReport.tsx"
       - "!frontend/src/operations/EpitopeResults.tsx"
-      - "!frontend/src/operations/EpitopeResults.test.tsx"
-      - "!frontend/src/operations/EpitopeWorkspace.test.tsx"
-      - "!frontend/src/operations/EpitopeContactList.tsx"
       - "!frontend/src/operations/StructureComparisonResults.tsx"
       - "!frontend/src/admet/AdmetResults.tsx"
       - "!frontend/src/admet/admet.css"
@@ -703,7 +697,7 @@ jobs:
       scope_only: true
   presentation:
     needs: [model-context, prediction-scope, guidance-scope, utility-scope]
-    if: needs.prediction-scope.outputs.interaction_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.model-context.outputs.managed_compute_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    if: needs.prediction-scope.outputs.interaction_only != 'true' && needs.prediction-scope.outputs.reference_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.prediction-scope.outputs.appearance_only != 'true' && needs.model-context.outputs.calculation_plan_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.model-context.outputs.managed_compute_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

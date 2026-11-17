@@ -15,7 +15,7 @@
   align-items: center;
   gap: 8px 18px;
   padding: 12px 0;
-  color: var(--text-secondary, #64748b);
+  color: var(--muted);
   font-size: 11px;
 }
 .confidence-legend span {

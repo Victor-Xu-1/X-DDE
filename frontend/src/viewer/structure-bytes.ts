@@ -1,6 +1,7 @@
 /** Limit streamed bytes, including missing/dishonest Content-Length, before decoding. */
-export async function structureBytes(response: Response) {
-  const limit = 10_000_000;
+export async function structureBytes(response: Response, limit = 10_000_000) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10_000_000)
+    throw new Error("Choose a valid structure byte limit.");
   if (
     !response.ok ||
     !response.body ||

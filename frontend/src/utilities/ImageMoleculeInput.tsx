@@ -1,19 +1,36 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useContext, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
-import { validImage, type ImageMolecule } from "./image-molecule";
+import type { ImageMolecule } from "./image-molecule";
+import { useImageInputSession } from "./useImageInputSession";
 import "./image-molecule.css";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 
 export function ImageMoleculeInput({
   language,
   enabled = true,
   disabled = false,
+  className = "",
+  inputOwner = false,
+  automatic = false,
+  cancelOnEdit = false,
+  review,
+  onSourceEdit,
+  onImageSelected,
   onMolecule,
   children,
 }: {
   language: Language;
   enabled?: boolean;
   disabled?: boolean;
+  className?: string;
+  inputOwner?: boolean;
+  automatic?: boolean;
+  cancelOnEdit?: boolean;
+  review?: { molecule: ImageMolecule; image: File };
+  onSourceEdit?(): void;
+  onImageSelected?(editing: boolean): void;
   onMolecule(
     value: ImageMolecule,
     source: File,
@@ -21,82 +38,86 @@ export function ImageMoleculeInput({
   ): Promise<void> | void;
   children?: ReactNode;
 }) {
+  const presentation = useContext(TaskPresentationContext);
+  enabled =
+    enabled &&
+    presentation?.active !== false &&
+    (inputOwner || presentation?.imageEntry !== "workspace");
   const zh = language === "zh",
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const mounted = useRef(true);
-  const applying = useRef<AbortController | null>(null),
-    intent = useRef(0);
-  const current = useRef({ enabled, disabled });
-  current.current = { enabled, disabled };
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-      intent.current++;
-      applying.current?.abort();
-    };
-  }, []);
-  const [file, setFile] = useState<File | null>(null),
-    [error, setError] = useState("");
-  function select(image: File) {
+  const surface = useRef<HTMLDivElement>(null);
+  const session = useImageInputSession({
+    enabled,
+    disabled,
+    onMolecule,
+    trigger,
+    onImageSelected,
+  });
+  function owns(target: EventTarget) {
+    return (
+      target instanceof Element &&
+      target.closest(".image-molecule-input") === surface.current
+    );
+  }
+  function edit(target: EventTarget) {
     if (
-      !mounted.current ||
-      current.current.disabled ||
-      !current.current.enabled ||
-      trigger.current?.closest("[hidden]")
+      !cancelOnEdit ||
+      !owns(target) ||
+      !(target instanceof Element) ||
+      target.closest(".image-molecule-actions") ||
+      target === picker.current
     )
       return;
-    if (!validImage(image)) {
-      setError(
-        zh
-          ? "请选择不超过 10 MB 的 PNG、JPEG、WebP 或 BMP 图片。"
-          : "Use a PNG, JPEG, WebP or BMP image up to 10 MB.",
-      );
-      return;
-    }
-    setError("");
-    intent.current++;
-    applying.current?.abort();
-    setFile(image);
+    session.close(false);
+    if (target.closest("[data-molecule-source],.asset-picker,.diff-reference"))
+      onSourceEdit?.();
   }
-  function close() {
-    intent.current++;
-    applying.current?.abort();
-    setFile(null);
-    trigger.current?.focus();
-  }
-  if (!enabled) return <>{children}</>;
+  const errors = {
+    format: zh
+      ? "请选择不超过 10 MB 的 PNG、JPEG、WebP 或 BMP 图片。"
+      : "Use a PNG, JPEG, WebP or BMP image up to 10 MB.",
+    empty: zh ? "剪贴板中没有图片。" : "No image in the clipboard.",
+    clipboard: zh
+      ? "请在此处按 Ctrl+V 粘贴，或拖入图片。"
+      : "Press Ctrl+V here, or drop an image.",
+  };
+  if (!enabled && !inputOwner) return <>{children}</>;
   return (
     <div
-      className="image-molecule-input"
-      onPaste={(event) => {
+      ref={surface}
+      className={"image-molecule-input " + className}
+      onClickCapture={(event) => edit(event.target)}
+      onChangeCapture={(event) => edit(event.target)}
+      onPasteCapture={(event) => {
+        if (!owns(event.target)) return;
         const image = Array.from(event.clipboardData.files).find((item) =>
           item.type.startsWith("image/"),
         );
-        if (image && !disabled) {
+        if (image) {
           event.preventDefault();
           event.stopPropagation();
-          select(image);
+          session.select(image);
         }
       }}
-      onDragOver={(event) => {
+      onDragOverCapture={(event) => {
+        if (!owns(event.target)) return;
         if (
-          !disabled &&
           Array.from(event.dataTransfer.items).some((item) =>
             item.type.startsWith("image/"),
           )
         )
           event.preventDefault();
       }}
-      onDrop={(event) => {
+      onDropCapture={(event) => {
+        if (!owns(event.target)) return;
         const image = Array.from(event.dataTransfer.files).find((item) =>
           item.type.startsWith("image/"),
         );
-        if (image && !disabled) {
+        if (image) {
           event.preventDefault();
           event.stopPropagation();
-          select(image);
+          session.select(image);
         }
       }}
     >
@@ -106,47 +127,40 @@ export function ImageMoleculeInput({
           ref={trigger}
           type="button"
           className="secondary-button"
-          disabled={disabled}
-          onClick={() => picker.current?.click()}
+          disabled={session.disabled}
+          onClick={() => {
+            if (session.choose()) picker.current?.click();
+          }}
         >
-          {zh ? "从结构图片输入" : "Input from structure image"}
+          {automatic
+            ? zh
+              ? "上传结构图"
+              : "Upload structure image"
+            : zh
+              ? "从结构图片输入"
+              : "Input from structure image"}
         </button>
         <button
           type="button"
           className="text-button"
-          disabled={disabled}
-          onClick={async () => {
-            try {
-              for (const item of await navigator.clipboard.read()) {
-                const type = item.types.find((value) =>
-                  value.startsWith("image/"),
-                );
-                if (type) {
-                  select(
-                    new File([await item.getType(type)], "clipboard.png", {
-                      type,
-                    }),
-                  );
-                  return;
-                }
-              }
-              setError(
-                zh ? "剪贴板中没有图片。" : "No image in the clipboard.",
-              );
-            } catch {
-              setError(
-                zh
-                  ? "请在此处按 Ctrl+V 粘贴，或拖入图片。"
-                  : "Press Ctrl+V here, or drop an image.",
-              );
-            }
-          }}
+          disabled={session.disabled}
+          onClick={() => void session.paste()}
         >
           {zh ? "粘贴截图" : "Paste screenshot"}
         </button>
         <span>
           {zh ? "也可直接拖入结构图" : "Or drop a structure image here"}
         </span>
+        {review && (
+          <button
+            type="button"
+            className="text-button"
+            disabled={session.disabled}
+            onClick={() => session.review(review.molecule, review.image)}
+          >
+            {zh ? "编辑识别的结构" : "Edit recognized structure"}
+          </button>
+        )}
       </div>
       <input
         ref={picker}
@@ -154,39 +168,34 @@ export function ImageMoleculeInput({
         hidden
         aria-label={zh ? "选择结构图片" : "Choose structure image"}
         accept="image/png,image/jpeg,image/webp,image/bmp"
-        disabled={disabled}
+        disabled={session.disabled}
         onChange={(event) => {
           const image = event.target.files?.[0];
           event.target.value = "";
-          if (image) select(image);
+          if (image) session.picked(image);
         }}
       />
-      {error && (
+      {session.error && (
         <p role="alert" className="error-box">
-          {error}
+          {errors[session.error]}
         </p>
       )}
-      {file && (
-        <ImageMoleculeDialog
-          key={file.name + file.lastModified}
-          file={file}
-          language={language}
-          onClose={close}
-          onAccept={async (molecule, source) => {
-            const currentIntent = intent.current,
-              controller = new AbortController();
-            applying.current?.abort();
-            applying.current = controller;
-            await onMolecule(molecule, source, controller.signal);
-            if (
-              mounted.current &&
-              intent.current === currentIntent &&
-              !controller.signal.aborted
-            )
-              close();
-          }}
-        />
-      )}
+      {session.selection &&
+        createPortal(
+          <ImageMoleculeDialog
+            key={session.selection.token.id}
+            file={session.selection.file}
+            language={language}
+            disabled={session.disabled}
+            automatic={automatic && !session.selection.initialMolecule}
+            initialMolecule={session.selection.initialMolecule}
+            onClose={() => session.close()}
+            onAccept={(value, source) =>
+              session.accept(session.selection!, value, source)
+            }
+          />,
+          document.body,
+        )}
     </div>
   );
 }

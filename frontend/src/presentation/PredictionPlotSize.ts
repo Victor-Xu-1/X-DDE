@@ -25,9 +25,11 @@ export function usePredictionPlotSize() {
       const box = canvas.getBoundingClientRect();
       const top = box.top - pane.getBoundingClientRect().top + pane.scrollTop;
       // The matrix and its axes lead; optional notes remain reachable by pane scroll.
+      const widthLimit =
+        innerWidth >= 1800 ? Math.max(420, pane.clientWidth) : 420;
       const next = Math.max(
         180,
-        Math.min(420, Math.floor(pane.clientHeight - top - 8)),
+        Math.min(widthLimit, Math.floor(pane.clientHeight - top - 8)),
       );
       setHeight((current) => (current === next ? current : next));
     };

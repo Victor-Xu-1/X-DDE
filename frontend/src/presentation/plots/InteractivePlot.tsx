@@ -6,6 +6,7 @@ import "./plots.css";
 import { FigureExport } from "../../publication/FigureExport";
 import { plotlyFigure } from "../../publication/plotly";
 import { nativeTraces, type ChartTrace } from "./types";
+import { usePlotFrame } from "./usePlotFrame";
 
 export function InteractivePlot({
   title,
@@ -16,6 +17,7 @@ export function InteractivePlot({
   onRange,
   selectable = false,
   height = 280,
+  sourceKey,
 }: {
   title: string;
   data: ChartTrace[];
@@ -25,6 +27,8 @@ export function InteractivePlot({
   onRange?(range: { x: number[]; y: number[] }): void;
   selectable?: boolean;
   height?: number;
+  /** Opt in only when the caller owns the exact scientific source identity. */
+  sourceKey?: string;
 }) {
   const element = useRef<(HTMLDivElement & Plotly.PlotlyHTMLElement) | null>(
     null,
@@ -35,13 +39,13 @@ export function InteractivePlot({
   rangeCallback.current = onRange;
   const queue = useRef(Promise.resolve());
   const [error, setError] = useState(false);
-  const [loaded, setLoaded] = useState("");
   const [dragMode, setDragMode] = useState<"zoom" | "pan" | "select">("zoom");
   const plot = useRef<typeof Plotly | null>(null);
   const zh = language === "zh";
   const effectiveDragMode =
     dragMode === "select" && !selectable ? "zoom" : dragMode;
   const signature = JSON.stringify({
+    sourceKey,
     data,
     layout,
     height,
@@ -49,6 +53,14 @@ export function InteractivePlot({
     effectiveDragMode,
     selectable,
   });
+  // Scientific values and labels must match as well as the caller's identity.
+  // Default consumers retain the original hide-until-current behavior.
+  const frame = usePlotFrame(
+    sourceKey === undefined
+      ? signature
+      : JSON.stringify({ sourceKey, title, data }),
+    signature,
+  );
   const currentSignature = useRef(signature);
   currentSignature.current = signature;
   useEffect(() => {
@@ -85,6 +97,7 @@ export function InteractivePlot({
         const target = element.current,
           p = plot.current;
         if (!active || !target || !p) return;
+        frame.begin();
         await p.react(
           target,
           // Plotly normalizes input objects in place. Keep native scene state
@@ -139,12 +152,13 @@ export function InteractivePlot({
               y: range.y as number[],
             });
         });
-        if (active) {
-          setError(false);
-          setLoaded(signature);
-        }
+        // Even a superseded render changed the native canvas. Record that fact,
+        // rather than reviving an older ready signature during A-B-A navigation.
+        frame.complete();
+        if (active) setError(false);
       })
       .catch(() => {
+        frame.invalidate();
         if (active) setError(true);
       });
     return () => {
@@ -172,7 +186,7 @@ export function InteractivePlot({
           <button
             type="button"
             className="text-button"
-            disabled={loaded !== signature || error}
+            disabled={!frame.ready || error}
             onClick={() => {
               if (plot.current && element.current)
                 void plot.current.relayout(element.current, {
@@ -201,11 +215,11 @@ export function InteractivePlot({
           </button>
           <FigureExport
             sourceKey={signature}
-            sourceReady={loaded === signature && !error}
+            sourceReady={frame.ready && !error}
             language={language}
             filename={title}
             format="svg"
-            disabled={loaded !== signature || error}
+            disabled={!frame.ready || error}
             render={async (settings) => {
               if (!plot.current || !element.current)
                 throw new Error("Chart is not ready.");
@@ -221,7 +235,7 @@ export function InteractivePlot({
             : "Interactive chart could not load. Please refresh the page."}
         </p>
       )}
-      {!error && loaded !== signature && (
+      {!error && !frame.visible && (
         <p role="status" className="research-plot-status">
           {zh ? "正在加载交互图表…" : "Loading interactive chart…"}
         </p>
@@ -231,7 +245,8 @@ export function InteractivePlot({
         className="research-plot-canvas"
         role="application"
         aria-label={title}
-        aria-busy={loaded !== signature}
+        aria-busy={!frame.ready || error}
+        data-frame-current={frame.visible && !error}
         style={{ minHeight: height }}
       />
     </section>

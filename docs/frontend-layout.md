@@ -85,11 +85,30 @@ editable fields; general forms and nested result panels stay flat. Focused
 compiled-form checks cover these entity groups without making generic decorative
 frames or outer questionnaires part of the design.
 
-The existing questionnaire still exposes one step at a time. The setup sidebar is
+Research questionnaires expose one step at a time. The setup sidebar is
 a projection of the current form values, not another draft, task or validation
 authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
 readiness checks. The public Mol-1 base model does not gain unsupported geometric
 constraint capabilities from a change in presentation.
+
+The five molecular utilities use a single input-and-output page instead. Their
+native forms and submission checks remain authoritative: all applicable inputs
+are editable together, the actual structure is visible alongside, and optional
+settings stay collapsed until requested. Run is explicit and availability-gated;
+choosing an image or example never submits a scientific task. Results use the
+same platform job list and native result components in the current utility, with
+task details and original downloads still available. Each tool retains its own
+draft while switching tabs; starting a new task clears only that tool. Outside
+the utility boundary the default guided flow is unchanged.
+
+Desktop utilities give the structure the larger left pane and keep inputs,
+optional settings and explicit Run aligned on the right. The native form stays
+mounted; this arrangement does not change selected files, task parameters or
+validation. Compact template controls leave the working area available. Narrow
+screens stack the same inputs and preview without hiding settings or downloads.
+The utility library selector uses a compact purpose dropdown while retaining
+all native modes, query requirements and rule explanations. Guided research
+forms keep their existing choice cards.
 
 Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and
@@ -823,6 +842,23 @@ the brain group as the same original ADMET result. Models remain off on navigati
 Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
 this baseline is not an accuracy-superiority claim.
 
+## Verified native confidence frames
+
+The native confidence matrix retains its verified frame while selection overlays,
+zoom/pan controls or panel size update. This is an explicit opt-in from the
+confidence owner using its job/candidate/metric/request identity; the renderer also
+compares the original trace values and labels. Other chart consumers keep their
+conservative hide-until-current behavior. Source/value changes, invalid frames and
+render errors never reuse an old scientific view.
+
+One queued-render frame owner records actual native redraws, including superseded
+ones. A rapid A-B-A transition cannot revive an old ready flag while another native
+frame is drawing. Events remain bound to the current render signature, and reset
+and figure export stay disabled until that exact render completes. Original
+matrices, indices, units, source bytes and figure-export authority are unchanged.
+The confidence legend uses the shared muted text token in all three themes;
+scientific colors and neutral paper canvases remain unchanged.
+
 ## Molecular input confirmation
 
 The shared prediction setup keeps the model, requested structure count and
@@ -876,3 +912,110 @@ ambiguous insertion-coded residues remain unselectable. Source verification
 failure clears focus without changing the native contact records or downloads.
 Counts describe geometric proximity, including the native water-handling scope,
 and must not be presented as interaction strength or affinity.
+
+## Original reference preview
+
+Imported structures display their archived coordinates in the shared large left
+3D workspace. Original molecular records use the existing Ketcher 2D renderer;
+opening an archive never starts conformer generation or minimization. Preparing
+the selected structure or molecule remains an explicit next action on the right.
+Both preview paths verify the complete source bytes against the recorded digest
+before enabling preparation; the registered asset must identify the same source.
+Missing or changed source bytes cannot leave an older preview or action enabled.
+The unmodified source download remains available during a preview failure.
+Molecular source verification reuses the bounded byte/record reader independently
+of Ketcher. A missing or failed drawing component does not block preparation of a
+verified file. Source read/digest failures stay blocking and have their own retry;
+redrawing remains a separate display action. Late verification from an older
+archive cannot change the current preparation state.
+The drawing receives the immutable record snapshot from that same successful
+read, bound to the exact URL, record and digest. It does not race a second fetch
+against preparation readiness. Other drawing callers retain their existing reads;
+an explicit publication export still validates its original source.
+Reference failure views use a compact recovery area so the message, retry and
+preparation/download actions remain close. Healthy views keep their large working
+area. The unused drawing-readiness callback was removed after source verification
+became independent; native checks assert one verified source read before drawing.
+Reference molecular controls follow the selected UI theme while the scientific
+paper and its status text keep readable contrast. The focused failure checks
+exercise Warm plus Night desktop and White narrow views without enabling an engine.
+Desktop reference views use approximately three quarters of the working width,
+with a compact preparation/download column; narrow screens retain a single column.
+The molecular reader reuses the shared streamed byte limiter with a tighter
+5 MiB cap, while existing 3D consumers retain their original 10 MB cap.
+Only active reference results hide the new-task method picker; returning to the
+questionnaire restores it. Source digests and internal receipts stay off the page.
+The focused result gate checks both archive kinds in English and Chinese Chrome,
+including source mismatch/retry, native downloads, print export and original
+depiction defaults. The molecular browser fixture replays two sealed, unmodified
+ChEMBL responses at the test-only transport boundary. Actual questionnaire
+submission, queue, native importer child, typed archive validation, asset indexing
+and native drawing/export remain real. Receipts bind both response reads to the
+native child PID and label replay separately from live retrieval. The capture
+records exact public URLs, acquisition times, fixed digests and ChEMBL attribution
+under CC-BY-SA-3.0. Unlisted requests and changed bytes fail without network fallback.
+Existing import/transport contracts remain in this focused gate. This test harness
+is never packaged or enabled in the application and does not change production
+timeouts, TLS or retry policy. The observed GitHub-runner ChEMBL timeouts remain
+failed live-retrieval observations; controlled fixture success does not qualify
+runner egress or scientific computation or create a computed template example.
+
+Prediction fallback checks reuse the existing utility scope-only workflow when a
+molecular-utility branch adopts reviewed main. The dedicated utility input, image
+lifecycle and native preview checks remain required. This does not expand the
+utility source boundary or delegate mixed scientific/shared-viewer changes.
+
+## Utility templates and saved examples
+
+Each molecule utility offers the existing reviewed template and saved-example
+controls directly beside its form. General ADMET, brain assessment, properties,
+library selection and state preparation share one template/form lifecycle. New
+tools start blank; loading a template is explicit and affects only that tool.
+Switching visited tabs retains their unfinished inputs. Opening an example hides
+the current form, and returning preserves it. Clearing a loaded template or
+starting another accepted manual task creates a fresh form for that utility.
+
+The existing example service owns preparation, source identity, saved result
+selection and error/retry. A utility without a computed example labels its view
+as study inputs; a brain-profile input is not presented as a new computed result.
+No template, navigation or preview action enables a scientific engine or submits
+a computation. The shared lifecycle replaces the former brain-only wrapper.
+
+Utility forms use the full available width and remaining page height. Short steps
+keep the next action at the lower right; long steps and molecular reviews scroll
+in document flow, without a footer covering their inputs. Drawing line controls
+remain readable in both input reviews and saved utility results. Preparation uses
+the existing action button for visible progress while retaining its live status;
+metadata failures and retry remain visible without discarding personal inputs.
+The library-selection utility keeps readable column widths and single-line table
+headers; narrow screens scroll inside the result table to reach every column.
+
+Within one utility, template/result loading and task submission are serialized.
+An input-replacement action disables the current form; a pending submission
+disables template replacement until its response is accepted or rejected. Failures
+release the controls and retain the input. Other utilities keep their own state.
+The shared submission hook still owns request snapshots, idempotency and accepted
+task recovery; the input scope only controls these foreground interactions.
+
+Image entry observes the same scope before drag/drop, paste and file selection,
+and after each asynchronous clipboard read. Starting input replacement invalidates
+earlier image sessions and aborts their pending transfers. Busy state caused by an
+accepted image upload does not cancel that upload. The recognition dialog lives
+outside disabled fieldsets so Close and Cancel remain available; opening it never
+enables the recognition model. The shared image-session hook owns this lifecycle
+for utility, asset and structure-input forms without changing native source files.
+
+## Wide prediction inspection
+
+At wide prediction-result sizes, the 3D canvas has a 600px minimum and the
+workspace grows with its controls instead of compressing the scene inside a fixed
+height. Footer and inspection actions remain in flow below it; confidence and
+sequence stay aligned on the right. Narrow and expanded layouts retain their
+existing behavior. The existing 2560px inspection/input/expansion flow is reused
+in the native confidence gate with actual Chrome, including control containment;
+this does not submit a prediction or alter source coordinates and confidence data.
+The existing chart-size owner also uses the available wide pane height/width,
+instead of leaving a small 420px-tall chart centered in a broad confidence panel.
+Regular and narrow sizing remain bounded as before. Wide native confidence retains
+linked selection and zoom; the matrix stays square and uses at least 65% of its
+ordinary right pane width while keeping axes and color legend visible.
