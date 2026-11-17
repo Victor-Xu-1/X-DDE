@@ -2,6 +2,8 @@ name: Molecular utility input and BBB checks
 on:
   push:
     paths: &utility_paths
+      - "frontend/src/utilities/ImageMoleculeInput*"
+      - "frontend/src/utilities/useImageInputSession*"
       - "frontend/src/admet/**"
       - "frontend/src/guided/MolecularReview*"
       - "frontend/src/guided/InputActionScope*"
@@ -100,6 +102,13 @@ jobs:
             src/chemistry/LibraryScreenTemplate.test.tsx \
             src/chemistry/MolecularToolReview.test.tsx \
             src/utilities/ImageMoleculeInput.test.tsx \
+            src/utilities/ImageMoleculeInput.action.test.tsx \
+            src/utilities/useRecognitionBridge.test.tsx \
+            src/operations/AssetPicker.test.tsx \
+            src/operations/useAssetUpload.image.test.tsx \
+            src/integrations/BoltzInputs.test.tsx \
+            src/integrations/Mol1Form.test.tsx \
+            src/presentation/PredictionEntityEditing.test.tsx \
             src/research/SdfRecordPicker.test.tsx \
             src/presentation/MoleculeImage.test.tsx \
             src/presentation/depiction-renderer.test.ts \
