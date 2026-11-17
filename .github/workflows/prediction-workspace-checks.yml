@@ -350,6 +350,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/presentation/plots/InteractivePlot.frame.test.tsx
+          src/presentation/PredictionPlotSize.test.tsx
           src/presentation/plots/InteractivePlot.test.tsx src/presentation/plots/types.test.ts
           src/operations/ConfidencePanel.test.tsx src/operations/ConfidencePlddt.test.tsx
           src/operations/ConfidenceDownload.test.tsx src/presentation/usePredictionConfidence.test.tsx
@@ -445,7 +446,7 @@ jobs:
       - name: Native Google Chrome for verified confidence-frame interactions
         if: needs.scope.outputs.confidence_frame == 'true'
         run: uv run --locked playwright install chrome --with-deps
-      - name: Actual STAT6 matrix continuity, native source and three-theme legend in Chrome
+      - name: Actual STAT6 matrix continuity, pane sizing, native source and theme legend in Chrome
         if: needs.scope.outputs.confidence_frame == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_confidence_frame_browser.py
       - name: Bilingual shared entity editing, compact headers and preserved STAT6 inputs

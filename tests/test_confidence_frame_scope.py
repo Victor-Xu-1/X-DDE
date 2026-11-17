@@ -29,6 +29,7 @@ def test_frame_scope_reuses_prediction_owner_and_preserves_mixed_changes():
     assert not owner["prediction_only"]([*scope["FILES"], "src/opendde_workbench/api.py"])
     body = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
     for name in ("InteractivePlot.frame.test.tsx", "ConfidencePanel.test.tsx",
+                 "PredictionPlotSize.test.tsx",
                  "DatasetCharts.test.tsx", "FreeEnergyCycle.test.tsx",
                  "OverlapHeatmap.test.tsx", "FigureExport.test.tsx",
                  "server_tests/test_confidence_frame_browser.py"):

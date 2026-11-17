@@ -77,6 +77,7 @@ def zoom_matrix(page, matrix, evidence):
 
 @pytest.mark.parametrize("language,theme,width", [
     ("en", "warm", 1440), ("en", "light", 1440), ("zh", "dark", 390),
+    ("en", "warm", 2560),
 ])
 def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, width):
     evidence = Path("outputs/confidence-frame") / f"{language}-{theme}-{width}"
@@ -181,6 +182,6 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
             browser.close()
 
 
-def test_wide_native_prediction_retains_canvas_height_and_reachable_controls(tmp_path):
+def test_wide_reference_workspace_retains_canvas_height_and_reachable_controls(tmp_path):
     """Reuse the exact existing 2560px result/input/expansion flow in real Chrome."""
     review_prediction_workspace(tmp_path, "en", 2560, launch_browser=launch_review_browser)

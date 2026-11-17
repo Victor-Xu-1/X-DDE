@@ -204,7 +204,8 @@ def review_prediction_workspace(tmp_path, language, width, *, launch_browser=Non
         if width >= 1800:
             page.evaluate("window.scrollTo(0, 0)")
             a, b = preview.bounding_box(), inspector.bounding_box()
-            assert a and b
+            matrix = plot.locator(".hm image").bounding_box()
+            assert a and b and matrix
             available = page.locator(".studio-main").bounding_box()
             content = page.locator("main.studio-content").bounding_box()
             stage = preview.locator(".molecular-stage").bounding_box()
@@ -217,10 +218,11 @@ def review_prediction_workspace(tmp_path, language, width, *, launch_browser=Non
             (evidence / "wide-workspace-geometry.json").write_text(json.dumps({
                 "chrome": browser.version, "viewport": page.viewport_size,
                 "preview": a, "inspector": b, "stage": stage,
-                "footer": footer, "controls": controls,
+                "footer": footer, "controls": controls, "matrix": matrix,
             }, indent=2))
             page.screenshot(path=evidence / "wide-workspace.png", full_page=True)
             assert stage["width"] >= 1000 and stage["height"] >= 600
+            assert matrix["width"] >= b["width"] * 0.65
             for panel in (footer, controls):
                 assert panel["y"] >= stage["y"] + stage["height"] - 1
                 assert panel["y"] + panel["height"] <= a["y"] + a["height"] + 1

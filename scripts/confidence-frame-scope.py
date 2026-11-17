@@ -10,6 +10,8 @@ SOURCES = {
     "frontend/src/viewer/confidence-controls.css",
     "frontend/src/presentation/prediction-results.css",
     "frontend/src/presentation/prediction-wide-inspection.css",
+    "frontend/src/presentation/PredictionPlotSize.ts",
+    "frontend/src/presentation/PredictionPlotSize.test.tsx",
     "server_tests/test_confidence_frame_browser.py",
     "server_tests/test_prediction_workspace_browser.py",
 }

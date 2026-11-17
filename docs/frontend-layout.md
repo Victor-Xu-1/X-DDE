@@ -881,3 +881,8 @@ sequence stay aligned on the right. Narrow and expanded layouts retain their
 existing behavior. The existing 2560px inspection/input/expansion flow is reused
 in the native confidence gate with actual Chrome, including control containment;
 this does not submit a prediction or alter source coordinates and confidence data.
+The existing chart-size owner also uses the available wide pane height/width,
+instead of leaving a small 420px-tall chart centered in a broad confidence panel.
+Regular and narrow sizing remain bounded as before. Wide native confidence retains
+linked selection and zoom; the matrix stays square and uses at least 65% of its
+ordinary right pane width while keeping axes and color legend visible.
