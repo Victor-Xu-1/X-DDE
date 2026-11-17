@@ -17,6 +17,58 @@
   align-items: center;
   gap: 6px;
 }
+/* A single result header replaces the separate navigation row on resolved tasks. */
+.task-history-workspace .detail-panel.has-header-navigation {
+  padding-top: 12px;
+}
+.task-history-workspace .has-header-navigation > .task-detail-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 12px;
+}
+.has-header-navigation .task-detail-navigation {
+  min-width: 0;
+  max-width: 22rem;
+}
+.has-header-navigation .task-result-history {
+  margin: 0;
+  gap: 8px;
+}
+.has-header-navigation .task-result-history > button:first-child {
+  white-space: nowrap;
+}
+.task-history-workspace
+  .has-header-navigation
+  .task-project-filter.is-result-context {
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.has-header-navigation .task-detail-header .panel-heading {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.has-header-navigation .panel-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .task-history-workspace .has-header-navigation > .task-detail-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+  .has-header-navigation .task-detail-navigation {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
+@media (max-width: 600px), (pointer: coarse) {
+  .has-header-navigation .task-result-history > button,
+  .has-header-navigation .task-actions > button {
+    min-height: 44px;
+  }
+}
 .task-history-workspace .task-project-filter.is-result-context {
   margin: 0 0 12px;
 }

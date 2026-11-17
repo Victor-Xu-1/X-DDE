@@ -9,6 +9,11 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from server_tests.task_history_header_capture import (
+    inspect_refresh_continuity,
+    inspect_result_header,
+)
+
 EVIDENCE = Path("server_tests/evidence/task-history")
 
 
@@ -101,6 +106,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         oldest = fixture["controlled_metadata_records"][0]
         page.get_by_role("button", name=oldest["name"], exact=True).click()
         expect(page.locator(".detail-panel h2")).to_have_text(oldest["name"], timeout=15000)
+        inspect_result_header(page, root, language, width, "metadata")
         assert parse_qs(urlsplit(page.url).fragment)["task"] == [oldest["id"]]
         assert (
             page.request.get(base + "/api/jobs/" + oldest["id"]).json()["request"]["name"]
@@ -229,6 +235,8 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         open_module_results(page, language, "binding")
         page.get_by_role("button", name=fixture["native_name"], exact=True).click()
         expect(page.locator(".pocket-candidates")).to_be_visible(timeout=30000)
+        inspect_result_header(page, root, language, width, "retained-pocket")
+        inspect_refresh_continuity(page, root, language, fixture["native_job"])
         expect(page.locator(".page-context-title")).to_have_text(
             "口袋与对接" if zh else "Pockets and docking"
         )

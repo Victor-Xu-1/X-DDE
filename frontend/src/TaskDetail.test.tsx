@@ -31,6 +31,46 @@ it("shows an honest empty state", () => {
   );
   expect(screen.getByText("Select a task to inspect")).toBeVisible();
 });
+it("places optional result navigation in the header without replacing retained research files", () => {
+  const operation = {
+    ...job,
+    status: "cancelled",
+    request: {
+      operation: "properties",
+      name: "STAT6 properties",
+      smiles: [],
+      ligand_files: [],
+    },
+  } as Job;
+  const props = {
+    job: operation,
+    detail: {
+      id: job.id,
+      artifacts: [{ name: "native/compound.sdf", size: 128 }],
+    },
+    failed: false,
+    language: "en" as const,
+    onChange: vi.fn(),
+  };
+  const view = render(<TaskDetail {...props} />);
+  const file = view.container.querySelector('a[href*="compound.sdf"]');
+  expect(file).not.toBeNull();
+  view.rerender(
+    <TaskDetail
+      {...props}
+      headerNavigation={
+        <nav aria-label="Task result navigation">
+          <button type="button">Back to results</button>
+        </nav>
+      }
+    />,
+  );
+  expect(
+    screen.getByRole("navigation").closest(".task-detail-header"),
+  ).not.toBeNull();
+  expect(view.container.querySelector('a[href*="compound.sdf"]')).toBe(file);
+  expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+});
 it("shows scientific downloads without internal engineering files", () => {
   render(
     <TaskDetail

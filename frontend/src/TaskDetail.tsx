@@ -1,6 +1,6 @@
 import { ConstraintReceipt } from "./constraints/ConstraintReceipt";
 import { BinderContinuation } from "./integrations/BinderContinuation";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { api, artifactUrl } from "./api";
 import { translator } from "./i18n";
 import {
@@ -29,6 +29,7 @@ interface Props {
   language: Language;
   retryAvailable?: boolean;
   showPredictionInput?: boolean;
+  headerNavigation?: ReactNode;
   onPredictionHistory?(): void;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
@@ -40,6 +41,7 @@ export function TaskDetail({
   language,
   retryAvailable = true,
   showPredictionInput = true,
+  headerNavigation,
   onPredictionHistory,
   onChange,
   onDraft,
@@ -181,7 +183,13 @@ export function TaskDetail({
     </button>
   );
   return (
-    <section className="panel detail-panel" aria-label={t("selected")}>
+    <section
+      className={
+        "panel detail-panel" +
+        (headerNavigation && !predictionResult ? " has-header-navigation" : "")
+      }
+      aria-label={t("selected")}
+    >
       {predictionResult ? (
         <PredictionResultHeader
           job={job}
@@ -193,6 +201,9 @@ export function TaskDetail({
         </PredictionResultHeader>
       ) : (
         <header className="task-detail-header">
+          {headerNavigation && (
+            <div className="task-detail-navigation">{headerNavigation}</div>
+          )}
           <div className="panel-heading">
             <h2>{taskLabel}</h2>
             <span className={`status ${job.status}`}>{t(job.status)}</span>
