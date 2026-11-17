@@ -94,8 +94,16 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
     with image_hosts(compiled_image) as uploads, sync_playwright() as driver:
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": 900})
-        errors, research_posts = [], []
+        errors, research_posts, console, failed_requests = [], [], [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("console", lambda item: console.append({"type": item.type, "text": item.text}))
+        page.on("requestfailed", lambda item: failed_requests.append(item.url))
+        page.add_init_script("""window.__imageProtocolTest = [];
+          addEventListener('message', event => {
+            if (event.data?.type?.startsWith('xdde-image:'))
+              window.__imageProtocolTest.push({type:event.data.type, valid:event.data.valid,
+                phase:event.data.recognitionPhase, supported:event.data.recognitionSupported});
+          });""")
         page.on("request", lambda request: research_posts.append(request.url)
                 if request.method == "POST" and "/api/jobs" in request.url else None)
         page.goto("http://127.0.0.1:4322/")
@@ -103,7 +111,17 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
         primary.get_by_label("Choose structure image", exact=True).first.set_input_files({
             "name": "STAT6-transport.png", "mimeType": "image/png", "buffer": png,
         })
-        expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-1")
+        try:
+            expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-1")
+        except AssertionError:
+            page.screenshot(path=evidence / "failed-import.png", full_page=True)
+            (evidence / "failed-dom.html").write_text(page.content())
+            (evidence / "failed-import.json").write_text(json.dumps({
+                "errors": errors, "console": console, "requests_failed": failed_requests,
+                "uploads": len(uploads), "frames": [frame.url for frame in page.frames],
+                "messages": page.evaluate("window.__imageProtocolTest"),
+            }, indent=2))
+            raise
         expect(page.get_by_role("dialog")).to_have_count(0)
         assert b"Image-assisted molecular input" in uploads[0]
         assert hashlib.sha256(png).hexdigest().encode() in uploads[0]
