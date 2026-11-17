@@ -4,6 +4,24 @@ import type { TargetResearchResult } from "./types";
 
 type Activity = NonNullable<TargetResearchResult["activities"]>["rows"][number];
 
+export function ActivityValidityNote({
+  comment,
+  language,
+}: {
+  comment?: string | null;
+  language: Language;
+}) {
+  if (!comment?.trim()) return null;
+  return (
+    <small className="evidence-description" role="note">
+      <strong>
+        {language === "zh" ? "来源有效性备注：" : "Source validity note: "}
+      </strong>
+      {comment}
+    </small>
+  );
+}
+
 /** Inspect the selected source activity; depiction never creates a computed pose. */
 export function ActivityMoleculePreview({
   activity,
@@ -25,6 +43,10 @@ export function ActivityMoleculePreview({
         {" · "}
         {activity.assay_chembl_id}
       </p>
+      <ActivityValidityNote
+        comment={activity.data_validity_comment}
+        language={language}
+      />
       {activity.canonical_smiles ? (
         <>
           <MoleculeImage

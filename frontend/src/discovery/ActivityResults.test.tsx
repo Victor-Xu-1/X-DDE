@@ -113,3 +113,43 @@ it("does not leave a previous molecule when the source result becomes empty", ()
     screen.getByText("No matching results. Adjust the search."),
   ).toBeVisible();
 });
+
+it.each(["en", "zh"] as const)(
+  "keeps source validity visible without opening optional assay columns in %s",
+  (language) => {
+    const comment = "Outside typical range";
+    const noted = {
+      ...result,
+      activities: {
+        ...result.activities!,
+        rows: result.activities!.rows.map((row, index) => ({
+          ...row,
+          data_validity_comment: index === 0 ? comment : null,
+        })),
+      },
+    };
+    const original = JSON.stringify(noted);
+    render(<ActivityResults result={noted} language={language} />);
+    const preview = screen.getByRole("region", {
+      name:
+        language === "zh" ? "选中记录的分子结构" : "Selected reported molecule",
+    });
+    const table = screen.getByRole("table");
+    expect(
+      within(table).queryByRole("columnheader", {
+        name: language === "zh" ? "实验" : "Assay",
+      }),
+    ).not.toBeInTheDocument();
+    for (const area of [table, preview]) {
+      expect(within(area).getByRole("note")).toHaveTextContent(comment);
+      expect(within(area).getByRole("note")).toHaveTextContent(
+        language === "zh" ? "来源有效性备注：" : "Source validity note:",
+      );
+      expect(within(area).getByRole("note")).toBeVisible();
+    }
+    fireEvent.click(screen.getByText("Ki").closest("tr")!);
+    expect(within(preview).queryByRole("note")).not.toBeInTheDocument();
+    expect(within(table).getByRole("note")).toHaveTextContent(comment);
+    expect(JSON.stringify(noted)).toBe(original);
+  },
+);

@@ -5,7 +5,10 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import type { TargetResearchResult } from "./types";
 import type { ReferenceSelection } from "./ReferenceImportForm";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { ActivityMoleculePreview } from "./ActivityMoleculePreview";
+import {
+  ActivityMoleculePreview,
+  ActivityValidityNote,
+} from "./ActivityMoleculePreview";
 export function ActivityResults({
   result,
   language,
@@ -102,6 +105,10 @@ export function ActivityResults({
                   <br />
                   {row.standard_relation ?? ""} {row.standard_value ?? "—"}{" "}
                   {row.standard_units ?? ""}
+                  <ActivityValidityNote
+                    comment={row.data_validity_comment}
+                    language={language}
+                  />
                 </span>
               ),
             },
@@ -110,14 +117,7 @@ export function ActivityResults({
               label: zh ? "实验" : "Assay",
               value: (row) => row.assay_chembl_id,
               render: (row) => (
-                <span title={row.assay_description}>
-                  {row.assay_chembl_id}
-                  {row.data_validity_comment && (
-                    <small className="evidence-description">
-                      {row.data_validity_comment}
-                    </small>
-                  )}
-                </span>
+                <span title={row.assay_description}>{row.assay_chembl_id}</span>
               ),
             },
             {

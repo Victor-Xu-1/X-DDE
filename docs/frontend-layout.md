@@ -824,6 +824,9 @@ does not create a 3D conformer or dispatch scientific work.
 The narrow right-hand table initially combines the endpoint, relation, value and
 unit in one result cell beside the compound, with optional fields available from
 the column selector. CSV still contains all original columns and rows.
+Nonempty source validity comments stay visible in the default measurement cell
+and selected molecular preview, even when the optional assay column is hidden.
+The original comment is preserved; changing selection clears any previous note.
 
 ## Brain-penetration utility
 
