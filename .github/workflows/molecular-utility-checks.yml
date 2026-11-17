@@ -2,6 +2,23 @@ name: Molecular utility input and BBB checks
 on:
   push:
     paths: &utility_paths
+      - "frontend/src/utilities/ImageInputSource.ts"
+      - "frontend/src/utilities/UtilityImage*"
+      - "frontend/src/utilities/useRecognition*"
+      - "frontend/src/utilities/recognition-foreground*"
+      - "frontend/src/utilities/recognition-host*"
+      - "frontend/src/utilities/image-molecule.*"
+      - "frontend/src/operations/AssetPickerImageSource.test.tsx"
+      - "src/opendde_workbench/recognition_companion.py"
+      - "src/opendde_workbench/data/recognition_locale/patch.json"
+      - "tests/test_recognition_companion*.py"
+      - "tests/fixtures/utility_image/**"
+      - "server_tests/test_utility_image_browser.py"
+      - "frontend/src/diffsbdd/ReferencePicker.tsx"
+      - "frontend/src/diffsbdd/useReferenceSelection.ts"
+      - "frontend/src/operations/AssetPicker.tsx"
+      - "frontend/src/operations/AssetPickerSources.ts"
+      - "frontend/src/operations/AssetPickerUpload.tsx"
       - "frontend/src/utilities/ImageMoleculeInput*"
       - "frontend/src/utilities/ImageMoleculeDialog*"
       - "frontend/src/utilities/useImageInputSession*"
@@ -78,7 +95,7 @@ jobs:
     needs: scope
     if: ${{ !inputs.scope_only }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 25
     env:
       WB_AUTO_DEPLOY: "0"
     steps:
@@ -112,7 +129,24 @@ jobs:
             src/utilities/ImageMoleculeInput.test.tsx \
             src/utilities/ImageMoleculeInput.action.test.tsx \
             src/utilities/useRecognitionBridge.test.tsx \
+            src/utilities/useRecognitionRequest.test.tsx \
+            src/utilities/recognition-foreground.test.ts \
+            src/utilities/recognition-host-bridge.test.ts \
+            src/utilities/recognition-host-foreground.test.ts \
+            src/utilities/UtilityImageTask.test.tsx \
+            src/utilities/ImageRecognition.test.tsx \
+            src/utilities/recognition-locale.test.tsx \
+            src/utilities/BackendControls.test.tsx \
             src/operations/AssetPicker.test.tsx \
+            src/operations/AssetPickerSources.test.tsx \
+            src/operations/AssetPickerImageSource.test.tsx \
+            src/diffsbdd/ReferencePicker.test.tsx \
+            src/diffsbdd/ReferencePickerUpload.test.tsx \
+            src/diffsbdd/ReferencePickerLifecycle.test.tsx \
+            src/diffsbdd/useReferenceSelection.test.tsx \
+            src/editors/native-molecular-viewport.test.ts \
+            src/editors/molecule-readiness.test.ts \
+            src/editors/recognition-host-editor.test.ts \
             src/operations/useAssetUpload.image.test.tsx \
             src/integrations/BoltzInputs.test.tsx \
             src/integrations/Mol1Form.test.tsx \
@@ -130,6 +164,7 @@ jobs:
             src/utilities/UtilitySinglePage.test.tsx \
             src/admet/BrainScope.test.tsx \
             src/utilities/UtilityWorkspace.test.tsx \
+            src/studio/Navigation.test.tsx \
             src/studio/MethodSwitch.test.tsx \
             src/studio/research-modules.test.ts \
             src/presentation/ResearchTable.test.tsx \
@@ -138,6 +173,9 @@ jobs:
             src/viewer/pose-plan.test.ts
           cd ..
           uv run --locked pytest -q tests/test_admet.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py tests/test_capabilities.py tests/test_example_pins.py tests/test_library_screen.py tests/test_library_evidence.py
+          uv run --locked ruff check src/opendde_workbench/recognition_companion.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py server_tests/test_utility_image_browser.py
+          uv build --wheel
+          uv run --locked pytest -q tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py tests/test_utility_tools.py tests/test_compute_service.py tests/test_compute_msa_protocol.py tests/test_harness_admission.py
           uv run --locked ruff check server_tests/utility_workspace_capture.py
           uv run --locked ruff check scripts/record-study-catalogue.py scripts/molecular-utility-scope.py tests/test_brain_profile.py tests/test_molecular_utility_scope.py server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py server_tests/molecular_review_capture.py src/opendde_workbench/admet/contract.py src/opendde_workbench/admet/presentation.py src/opendde_workbench/capabilities/definitions.py src/opendde_workbench/capabilities/modalities.py src/opendde_workbench/task_history/kinds.py src/opendde_workbench/examples/stat6/task_requests.py src/opendde_workbench/examples/stat6/guidance.py src/opendde_workbench/examples/pin_validation.py
       - name: Retrieve sealed native outputs without starting a prediction engine
@@ -159,6 +197,7 @@ jobs:
           google-chrome --version
           uv run --locked python -c 'from server_tests.molecular_review_capture import verify_review_fonts; print(verify_review_fonts())'
           uv run --locked python -m pytest -q server_tests/test_brain_profile_browser.py server_tests/test_molecular_review_workspace_browser.py --basetemp "$RUNNER_TEMP/brain-profile-browser"
+          uv run --locked python -m pytest -q server_tests/test_recognition_locale_browser.py server_tests/test_utility_image_browser.py --basetemp "$RUNNER_TEMP/utility-image-browser"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -166,4 +205,6 @@ jobs:
           path: |
             outputs/brain-profile
             outputs/molecular-review-workspace
+            outputs/recognition-locale
+            outputs/utility-image
           if-no-files-found: warn

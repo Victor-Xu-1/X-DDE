@@ -1,6 +1,10 @@
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { useExampleReference } from "../examples/context";
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useState } from "react";
+import {
+  UtilityFormImage,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import type { Asset } from "./types";
@@ -11,21 +15,37 @@ import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { MolecularReview } from "../guided/MolecularReview";
 import { ImageMoleculeInput } from "../utilities/ImageMoleculeInput";
-export function PropertyForm({
+export function PropertyForm(props: Parameters<typeof PropertyFields>[0]) {
+  return (
+    <UtilityFormImage language={props.language}>
+      {(imageInput) => (
+        <PropertyFields
+          {...props}
+          imageInput={imageInput ?? props.imageInput}
+        />
+      )}
+    </UtilityFormImage>
+  );
+}
+
+function PropertyFields({
   language,
   onCreated,
   initialSmiles = "",
   initialFile = "",
   scientificInput,
+  imageInput = null,
 }: {
   language: Language;
   onCreated(j: Job): void;
   initialSmiles?: string;
   initialFile?: string;
   scientificInput?: MoleculeRef;
+  imageInput?: UtilityImageValue | null;
 }) {
   const example = useExampleReference("library");
-  initialFile ||= example?.asset_id ?? "";
+  initialFile ||= imageInput?.reference.asset_id ?? example?.asset_id ?? "";
+  scientificInput = imageInput?.reference ?? scientificInput;
   const id = useId(),
     zh = language === "zh",
     [smiles, setSmiles] = useState(initialSmiles),
@@ -36,6 +56,17 @@ export function PropertyForm({
       initialFile && initialSmiles ? "both" : initialSmiles ? "smiles" : "file",
     );
   const run = useInputTaskSubmit(onCreated);
+  useLayoutEffect(() => {
+    if (!imageInput) return;
+    const ref = imageInput.reference;
+    setMode("file");
+    setFile(ref.asset_id);
+    setSelectedAsset((current) =>
+      current?.id === ref.asset_id && current.sha256 === ref.sha256
+        ? current
+        : null,
+    );
+  }, [imageInput?.key]);
   const { ready, error, recheck } = useTaskReadiness("properties");
   const lines =
       mode === "file"
@@ -83,6 +114,7 @@ export function PropertyForm({
               rows={5}
               spellCheck={false}
               maxLength={200000}
+              data-molecule-source
             />
             {lines.length > 500 && (
               <p role="alert">
@@ -106,6 +138,7 @@ export function PropertyForm({
               ? "分子文件（可含多个记录）"
               : "Molecule file (multiple records allowed)"
           }
+          uploadKey={imageInput?.key}
         />
       )}
       {bound && (
@@ -159,48 +192,52 @@ export function PropertyForm({
           title: zh ? "选择方式" : "Choose source",
           valid: true,
           content: (
-            <ChoiceCards<"file" | "smiles" | "both">
-              label={
-                zh ? "用哪种方式提供分子？" : "How will you provide molecules?"
-              }
-              value={mode}
-              onChange={setMode}
-              options={[
-                {
-                  value: "file",
-                  title: file
-                    ? zh
-                      ? "使用已选分子文件"
-                      : "Use the selected molecular file"
-                    : zh
-                      ? "上传新分子文件（推荐）"
-                      : "Upload a new molecular file (recommended)",
-                  note: file
-                    ? zh
-                      ? "下一步确认这份分子文件。"
-                      : "Review the selected file in the next step."
-                    : zh
-                      ? "一个分子或一组分子，可上传新文件或选择历史文件。"
-                      : "One molecule or a set, from a new or historical file.",
-                },
-                {
-                  value: "smiles",
-                  title: zh
-                    ? "粘贴分子结构文字（SMILES）"
-                    : "Paste molecular structure text (SMILES)",
-                  note: zh
-                    ? "每行输入一个 SMILES。"
-                    : "Enter one SMILES per line.",
-                },
-                {
-                  value: "both",
-                  title: zh
-                    ? "文件和文字一起计算"
-                    : "Combine file and text inputs",
-                  note: zh ? "同时使用两类输入。" : "Use both input sources.",
-                },
-              ]}
-            />
+            <div data-molecule-source>
+              <ChoiceCards<"file" | "smiles" | "both">
+                label={
+                  zh
+                    ? "用哪种方式提供分子？"
+                    : "How will you provide molecules?"
+                }
+                value={mode}
+                onChange={setMode}
+                options={[
+                  {
+                    value: "file",
+                    title: file
+                      ? zh
+                        ? "使用已选分子文件"
+                        : "Use the selected molecular file"
+                      : zh
+                        ? "上传新分子文件（推荐）"
+                        : "Upload a new molecular file (recommended)",
+                    note: file
+                      ? zh
+                        ? "下一步确认这份分子文件。"
+                        : "Review the selected file in the next step."
+                      : zh
+                        ? "一个分子或一组分子，可上传新文件或选择历史文件。"
+                        : "One molecule or a set, from a new or historical file.",
+                  },
+                  {
+                    value: "smiles",
+                    title: zh
+                      ? "粘贴分子结构文字（SMILES）"
+                      : "Paste molecular structure text (SMILES)",
+                    note: zh
+                      ? "每行输入一个 SMILES。"
+                      : "Enter one SMILES per line.",
+                  },
+                  {
+                    value: "both",
+                    title: zh
+                      ? "文件和文字一起计算"
+                      : "Combine file and text inputs",
+                    note: zh ? "同时使用两类输入。" : "Use both input sources.",
+                  },
+                ]}
+              />
+            </div>
           ),
         },
         {

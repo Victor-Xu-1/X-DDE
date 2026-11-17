@@ -34,7 +34,7 @@ def capture_utility_space(page, utility, evidence):
 def verify_image_cancel(page, fields, evidence):
     """Tiny transport fixture checks controls, never scientific recognition."""
     expect(fields.get_by_role(
-        "button", name="Input from structure image", exact=True,
+        "button", name="Upload structure image", exact=True,
     )).to_be_visible()
     fields.get_by_label("Choose structure image", exact=True).set_input_files({
         "name": "image-control.png", "mimeType": "image/png",
@@ -46,9 +46,9 @@ def verify_image_cancel(page, fields, evidence):
     dialog = page.get_by_role("dialog", name="Read molecule from image", exact=True)
     expect(dialog).to_be_visible()
     assert not dialog.evaluate("node => Boolean(node.closest('fieldset'))")
-    expect(dialog.get_by_role("button", name="Cancel", exact=True)).to_be_enabled()
+    expect(dialog.get_by_role("button", name="Cancel import", exact=True)).to_be_enabled()
     page.screenshot(path=evidence / "image-input-cancel.png", full_page=True)
-    dialog.get_by_role("button", name="Cancel", exact=True).click()
+    dialog.get_by_role("button", name="Cancel import", exact=True).click()
     expect(dialog).to_have_count(0)
 
 

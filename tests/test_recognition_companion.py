@@ -35,14 +35,14 @@ def source(tmp_path):
 def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     host, resources, backups = source
     before = {p.relative_to(host): p.read_bytes() for p in host.rglob("*.tsx")}
-    assert len(companion.prepare(host, resources)) == 16
+    assert len(companion.prepare(host, resources)) == 18
     assert not backups.exists()
     assert all((host / p).read_bytes() == data for p, data in before.items())
     result = companion.apply(host, backups, resources, exclusive_source=True)
-    assert result["changed"] == 16
+    assert result["changed"] == 18
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
-    assert len(json.loads((saved / "receipt.json").read_text())) == 16
+    assert len(json.loads((saved / "receipt.json").read_text())) == 18
     assert companion.apply(host, backups, resources, exclusive_source=True) == {
         "changed": 0, "already_applied": True,
     }
@@ -76,6 +76,46 @@ def test_existing_different_adapter_is_not_overwritten(source):
     with pytest.raises(ValueError, match="Existing adapter differs"):
         companion.apply(host, backups, resources, exclusive_source=True)
     assert adapter.read_text() == "owner adapter"
+
+
+def test_upgrade_accepts_only_the_exact_previous_native_and_adapter_bytes(source):
+    host, resources, backups = source
+    manifest_path = resources / "patch.json"
+    manifest = json.loads(manifest_path.read_text())
+    record = next(item for item in manifest["files"] if item["path"].endswith("useWorkbench.ts"))
+    native = host / record["path"]
+    native.write_bytes(b"useWorkbench.ts: prior-reviewed")
+    record["upgrades"] = [{
+        "before_sha256": companion.digest(native.read_bytes()),
+        "changes": [{"before": "prior-reviewed", "after": "localized"}],
+    }]
+    adapter = host / "frontend/src/recognition-host-bridge.ts"
+    adapter.write_bytes(b"prior reviewed bridge")
+    manifest["adapter_upgrades"] = {adapter.name: [companion.digest(adapter.read_bytes())]}
+    manifest_path.write_text(json.dumps(manifest))
+    result = companion.apply(host, backups, resources, exclusive_source=True)
+    saved = Path(result["backup"])
+    assert (saved / record["path"]).read_bytes() == b"useWorkbench.ts: prior-reviewed"
+    saved_adapter = saved / "frontend/src/recognition-host-bridge.ts"
+    assert saved_adapter.read_bytes() == b"prior reviewed bridge"
+    assert native.read_bytes() == b"useWorkbench.ts: localized"
+    assert adapter.read_bytes() == (resources / adapter.name).read_bytes()
+    assert companion.prepare(host, resources) == {}
+
+
+def test_upgrade_hunk_does_not_authorize_an_unrecognized_native_edit(source):
+    host, resources, backups = source
+    path = resources / "patch.json"
+    manifest = json.loads(path.read_text())
+    record = manifest["files"][0]
+    record["upgrades"] = [{"before_sha256": "a" * 64, "changes": record["changes"]}]
+    path.write_text(json.dumps(manifest))
+    target = host / record["path"]
+    target.write_bytes(b"owner edit original")
+    with pytest.raises(ValueError, match="Unrecognized native source"):
+        companion.apply(host, backups, resources, exclusive_source=True)
+    assert target.read_bytes() == b"owner edit original"
+    assert not backups.exists()
 
 
 def test_manifest_cannot_expand_scope_or_escape_source(source):
@@ -178,3 +218,14 @@ def test_published_manifest_is_bounded_and_wheel_ships_canonical_adapters():
         assert mapping[source] == (
             "opendde_workbench/data/recognition_locale/" + name
         )
+
+
+def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
+    manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
+    record = next(item for item in manifest["files"] if item["path"].endswith("useXddeBridge.ts"))
+    routes = [record["changes"], *(item["changes"] for item in record["upgrades"])]
+    for changes in routes:
+        handlers = [item["after"] for item in changes if "recognize: (file, signal)" in item["after"]]
+        assert len(handlers) == 1
+        handler = handlers[0].split("recognize:", 1)[1].split("loadMolecule:", 1)[0]
+        assert handler.index('setError("")') < handler.index('foreground.current!.request')

@@ -13,6 +13,8 @@ NATIVE_FILES = {
     "useWorkbench.ts", "useXddeBridge.ts",
 }
 ADAPTERS = {
+    "recognition-host-bridge.ts": "frontend/src/utilities/recognition-host-bridge.ts",
+    "recognition-foreground.ts": "frontend/src/utilities/recognition-foreground.ts",
     "recognition-locale.ts": "frontend/src/utilities/recognition-locale.ts",
     "recognition-host-ui-locale.ts": "frontend/src/utilities/recognition-host-ui-locale.ts",
     "recognition-host-editor.ts": "frontend/src/editors/recognition-host-editor.ts",
@@ -48,10 +50,16 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         original = target.read_bytes()
         if digest(original) == record["after_sha256"]:
             continue
-        if digest(original) != record["before_sha256"]:
+        changes = record["changes"] if digest(original) == record["before_sha256"] else None
+        if changes is None:
+            prior = [item for item in record.get("upgrades", [])
+                     if item["before_sha256"] == digest(original)]
+            if len(prior) == 1:
+                changes = prior[0]["changes"]
+        if changes is None:
             raise ValueError(f"Unrecognized native source: {record['path']}")
         updated = original.decode("utf-8")
-        for change in record["changes"]:
+        for change in changes:
             if updated.count(change["before"]) != 1:
                 raise ValueError("Native hunk no longer matches")
             updated = updated.replace(change["before"], change["after"], 1)
@@ -66,7 +74,10 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         payload = (resources / name).read_bytes()
         if target.exists():
             if target.read_bytes() != payload:
-                raise ValueError(f"Existing adapter differs: {name}")
+                known = manifest.get("adapter_upgrades", {}).get(name, [])
+                if digest(target.read_bytes()) not in known:
+                    raise ValueError(f"Existing adapter differs: {name}")
+                updates[target] = payload
         else:
             updates[target] = payload
     return updates

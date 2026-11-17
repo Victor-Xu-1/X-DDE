@@ -5,5 +5,6 @@ import type { Job } from "../types";
 export const TaskPresentationContext = createContext<{
   layout: "single";
   active?: boolean;
+  imageEntry?: "workspace";
   renderResult(job: Job): ReactNode;
 } | null>(null);

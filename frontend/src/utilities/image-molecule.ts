@@ -43,7 +43,7 @@ export async function imageMoleculeFile(
   const content =
     suffix === ".mol"
       ? value.molfile
-      : `${value.molfile.trimEnd()}\n> <XDDE_INPUT_METHOD>\nReviewed structure image\n\n> <XDDE_IMAGE_SHA256>\n${hash}\n\n$$$$\n`;
+      : `${value.molfile.trimEnd()}\n> <XDDE_INPUT_METHOD>\nImage-assisted molecular input\n\n> <XDDE_IMAGE_SHA256>\n${hash}\n\n$$$$\n`;
   return new File([content], "image-structure" + suffix, {
     type: "chemical/x-mdl-sdfile",
   });

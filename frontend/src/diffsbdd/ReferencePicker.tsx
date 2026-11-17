@@ -1,5 +1,5 @@
 import { MaterialInput } from "../research/MaterialInput";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HistoricalFileSelect } from "../research/HistoricalFileSelect";
 import { AssetPicker } from "../operations/AssetPicker";
 import type { MoleculeRef } from "../research/types";
@@ -20,6 +20,7 @@ export function ReferencePicker({
   allowedSuffixes,
   wholeFile = false,
   onAssetVerified,
+  uploadKey,
 }: {
   kind: "structure" | "ligand";
   value: MoleculeRef | null;
@@ -29,6 +30,7 @@ export function ReferencePicker({
   allowedSuffixes?: readonly string[];
   wholeFile?: boolean;
   onAssetVerified?(asset: Asset, reference: MoleculeRef): void;
+  uploadKey?: string;
 }) {
   const zh = language === "zh";
   const formats =
@@ -43,9 +45,14 @@ export function ReferencePicker({
     saved: value?.version_id ? value : null,
     file: value && !value.version_id ? value : null,
   });
+  const adopting = useRef(false);
   useEffect(() => {
+    if (adopting.current && source !== "file") {
+      adopting.current = false;
+      return;
+    }
     if (value) selections.current[source] = value;
-  }, [value]);
+  }, [value, source, uploadKey]);
   const [query, setQuery] = useState(""),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0);
@@ -71,6 +78,15 @@ export function ReferencePicker({
       onAssetVerified?.(asset, reference);
     },
   );
+  const uploaded = useRef(uploadKey);
+  useLayoutEffect(() => {
+    if (!uploadKey || uploaded.current === uploadKey) return;
+    uploaded.current = uploadKey;
+    selection.cancel();
+    setInvalidRecord(false);
+    adopting.current = source !== "file";
+    setSource("file");
+  }, [uploadKey]);
   const recordBase =
     value ?? (invalidRecord ? selections.current[source] : null);
   const history = useReferenceHistory(kind, formats, source === "saved", {
