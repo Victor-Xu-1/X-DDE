@@ -35,6 +35,10 @@ def test_css_compares_only_the_exact_result_owned_selectors():
     for selector in (
         ".target-evidence-results, .library", ".target-evidence-results + .library",
         ".library", ".evidence-header",
+        ".discovery-results .evidence-header > div",
+        ".target-evidence-results .evidence-header > div, .reference-import",
+        ".target-evidence-results .evidence-header div",
+        ".target-evidence-results .evidence-header > div .file-select",
     ):
         changed = shared + f"\n{selector} {{ gap: 8px; }}"
         assert scope["unrelated_css"](shared) != scope["unrelated_css"](changed)
