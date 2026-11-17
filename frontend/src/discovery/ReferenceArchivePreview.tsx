@@ -2,6 +2,8 @@ import { MoleculeImage } from "../presentation/MoleculeImage";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Language } from "../types";
 import type { ReferenceImportResult } from "./ReferenceImportResults";
+import { useEffect, useState } from "react";
+import { readMolecularSource } from "../presentation/depiction-renderer";
 
 /** Display the archived source without preparing new molecular coordinates. */
 export function ReferenceArchivePreview({
@@ -25,11 +27,12 @@ export function ReferenceArchivePreview({
     );
   const sha256 = result.sha256.toLowerCase();
   return result.kind === "molecule" ? (
-    <MoleculeImage
-      source={{ url, record: 0, sha256 }}
-      language={language}
+    <VerifiedMoleculePreview
+      url={url}
+      sha256={sha256}
       label={result.identifier}
-      onDrawingReady={onVerified}
+      language={language}
+      onVerified={onVerified}
     />
   ) : (
     <StructureViewer
@@ -39,5 +42,72 @@ export function ReferenceArchivePreview({
       expectedStructureSha256={sha256}
       onStructureVerification={onVerified}
     />
+  );
+}
+
+function VerifiedMoleculePreview({
+  url,
+  sha256,
+  label,
+  language,
+  onVerified,
+}: {
+  url: string;
+  sha256: string;
+  label: string;
+  language: Language;
+  onVerified(ready: boolean): void;
+}) {
+  const [failed, setFailed] = useState(false),
+    [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = AbortSignal.any([
+      controller.signal,
+      AbortSignal.timeout(25000),
+    ]);
+    onVerified(false);
+    setFailed(false);
+    void readMolecularSource({ url, sha256, record: 0 }, signal)
+      .then(() => {
+        signal.throwIfAborted();
+        onVerified(true);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          onVerified(false);
+          setFailed(true);
+        }
+      });
+    return () => {
+      controller.abort();
+      onVerified(false);
+    };
+  }, [url, sha256, attempt, onVerified]);
+  const zh = language === "zh";
+  return (
+    <>
+      {failed && (
+        <div className="error-box">
+          <p role="alert">
+            {zh
+              ? "暂时无法核验源文件，请重试。"
+              : "The source file could not be verified. Try again."}
+          </p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setAttempt((value) => value + 1)}
+          >
+            {zh ? "重新核验源文件" : "Retry source verification"}
+          </button>
+        </div>
+      )}
+      <MoleculeImage
+        source={{ url, record: 0, sha256 }}
+        language={language}
+        label={label}
+      />
+    </>
   );
 }

@@ -143,6 +143,13 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 expect(next_step).to_be_disabled()
                 page.screenshot(path=evidence / "source-mismatch.png")
                 page.unroute(fault)
+                if kind == "molecule":
+                    workspace.get_by_role("button", name=(
+                        "重新核验源文件" if zh else "Retry source verification"
+                    ), exact=True).click()
+                    # Native bytes, not display readiness, authorize preparation.
+                    expect(next_step).to_be_enabled(timeout=30000)
+                    expect(panel).to_have_attribute("data-drawing-state", "unavailable")
                 panel.get_by_role("button", name=("重新加载" if zh else "Reload")
                                   if kind == "structure" else re.compile(
                                       "重新绘图" if zh else "Retry drawing"
@@ -199,6 +206,27 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 page.get_by_role("button", name="返回参考材料" if zh else
                                  "Back to reference material", exact=True).click()
                 expect(page.locator(".reference-import-results")).to_be_visible()
+                if kind == "molecule":
+                    # Fault only the optional display-component status; preserve real SDF bytes.
+                    def without_drawing_component(route):
+                        response = route.fetch()
+                        status = response.json()
+                        status.get("installed", {}).pop("ketcher", None)
+                        route.fulfill(response=response, json=status)
+
+                    page.route("**/api/deployment", without_drawing_component)
+                    page.reload()
+                    expect(workspace).to_be_visible(timeout=20000)
+                    expect(panel).to_have_attribute(
+                        "data-drawing-state", "unavailable", timeout=60000
+                    )
+                    expect(next_step).to_be_enabled(timeout=30000)
+                    page.screenshot(path=evidence / "drawing-unavailable-source-valid.png")
+                    next_step.click()
+                    expect(page.locator(".questionnaire:visible")).to_be_visible()
+                    page.get_by_role("button", name="返回参考材料" if zh else
+                                     "Back to reference material", exact=True).click()
+                    page.unroute("**/api/deployment", without_drawing_component)
                 if kind == "structure":
                     page.goto(base + "/#view=new&tool=discovery.import")
                     expect(page.locator(".module-task-picker:visible")).to_have_count(1)
@@ -221,6 +249,7 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "archive_retrieval_jobs": int(kind == "molecule"),
                     "scientific_calculations": 0, "preview_writes": writes,
                     "source_mismatch_recovered": True, "source_bytes_unchanged": True,
+                    "optional_drawing_failure_allows_preparation": kind == "molecule",
                     "canvas_bounds": bounds, "details_bounds": details,
                 }, indent=2))
             finally:

@@ -10,7 +10,11 @@ import {
 export type DepictionSource =
   { smiles: string } | { url: string; record?: number; sha256?: string };
 
-async function readStructure(source: DepictionSource, signal: AbortSignal) {
+/** Shared byte/record identity check; independent of the optional drawing component. */
+export async function readMolecularSource(
+  source: DepictionSource,
+  signal: AbortSignal,
+) {
   if ("smiles" in source) {
     if (!source.smiles.trim() || source.smiles.length > 20000)
       throw new Error("Unsupported molecule size.");
@@ -143,7 +147,7 @@ export class DepictionRenderer {
         ensureVisible();
         const timeout = AbortSignal.timeout(25000);
         const active = AbortSignal.any([timeout, this.controller.signal]);
-        const structure = await readStructure(source, active);
+        const structure = await readMolecularSource(source, active);
         ensureVisible();
         if (!editor.generateImage)
           throw new Error(

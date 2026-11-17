@@ -856,6 +856,11 @@ Both preview paths verify the complete source bytes against the recorded digest
 before enabling preparation; the registered asset must identify the same source.
 Missing or changed source bytes cannot leave an older preview or action enabled.
 The unmodified source download remains available during a preview failure.
+Molecular source verification reuses the bounded byte/record reader independently
+of Ketcher. A missing or failed drawing component does not block preparation of a
+verified file. Source read/digest failures stay blocking and have their own retry;
+redrawing remains a separate display action. Late verification from an older
+archive cannot change the current preparation state.
 Desktop reference views use approximately three quarters of the working width,
 with a compact preparation/download column; narrow screens retain a single column.
 The molecular reader reuses the shared streamed byte limiter with a tighter
