@@ -182,12 +182,15 @@
   gap: 8px 12px;
   color: var(--muted);
   font-size: 12px;
+  flex-basis: 100%;
 }
 .single-page-readiness > details {
   max-width: 440px;
+  margin: 0;
 }
 .single-page-readiness > details > summary {
   cursor: pointer;
+  padding: 4px 0;
 }
 .single-page-readiness > button {
   width: auto;
