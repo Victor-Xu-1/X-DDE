@@ -36,6 +36,9 @@ def inspect_result_header(page, root, language, width, name):
 
 
 def inspect_refresh_continuity(page, root, language, job_id):
+    expect(page.locator(".detail-panel").get_by_role(
+        "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓", exact=True
+    )).to_be_enabled(timeout=45000)
     frame = page.locator(".detail-panel iframe").first
     expect(frame).to_be_visible()
     original = frame.element_handle()
@@ -48,11 +51,30 @@ def inspect_refresh_continuity(page, root, language, job_id):
     refresh = page.locator(".task-detail-header").get_by_role(
         "button", name="刷新任务" if language == "zh" else "Refresh tasks", exact=True
     )
-    with page.expect_response(
-        lambda response: response.url.split("?")[0].endswith("/api/jobs/" + job_id)
-        and response.request.method == "GET"
+    started = page.evaluate("Date.now()")
+    job_path = "/api/jobs/" + job_id
+    with (
+        page.expect_request(
+            lambda request: request.url.split("?")[0].endswith(job_path)
+            and request.method == "GET"
+        ) as job_read,
+        page.expect_request(
+            lambda request: request.url.split("?")[0].endswith(job_path + "/artifacts")
+            and request.method == "GET"
+        ) as artifact_read,
     ):
         refresh.click()
+    responses = []
+    for request in (job_read.value, artifact_read.value):
+        response = request.response()
+        assert response and response.ok and response.finished() is None
+        assert request.timing["startTime"] >= started
+        responses.append(response)
+    assert responses[0].json()["id"] == job_id
+    assert isinstance(responses[1].json(), list) and responses[1].json()
+    # Completed bodies have reached the browser; inspect after its rendered update.
+    page.evaluate("""() => new Promise(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)))""")
     expect(refresh).to_be_focused()
     expect(selected).to_have_attribute("aria-selected", "true")
     assert original.evaluate("node => node.isConnected")
@@ -60,4 +82,5 @@ def inspect_refresh_continuity(page, root, language, job_id):
     (root / "retained-pocket-refresh.json").write_text(json.dumps({
         "job_id": job_id, "same_native_frame": True,
         "selected_row_retained": True, "refresh_focus_retained": True,
+        "fresh_job_and_artifact_reads_completed": True,
     }, indent=2))
