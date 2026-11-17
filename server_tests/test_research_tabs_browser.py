@@ -65,7 +65,9 @@ def test_retained_target_tabs_reveal_resize_keyboard_and_native_content(tab_work
             track = page.get_by_role(
                 "tablist", name="靶点研究结果" if zh else "Target research results", exact=True
             )
-            activities = track.get_by_role("tab", name="已有实测活性" if zh else "Reported activities")
+            activities = track.get_by_role(
+                "tab", name="已有实测活性" if zh else "Reported activities"
+            )
             activities.click()
             search = page.get_by_role(
                 "searchbox",
