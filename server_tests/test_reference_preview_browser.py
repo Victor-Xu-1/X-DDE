@@ -166,7 +166,10 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 else:
                     expect(panel.locator("iframe")).to_have_count(0)
                     frame = panel.locator(".figure-preview-sheet")
-                    image = panel.get_by_role("img")
+                    expect(panel).to_have_attribute("data-drawing-state", "ready", timeout=60000)
+                    image = panel.get_by_role("img", name=(
+                        "二维分子结构 · " if zh else "2D molecular structure · "
+                    ) + result["identifier"], exact=True)
                     expect(image).to_be_visible()
                     drawing = base64.b64decode(image.get_attribute("src").split(",", 1)[1])
                     assert_native_bonds(drawing)
