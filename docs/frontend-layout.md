@@ -861,6 +861,10 @@ of Ketcher. A missing or failed drawing component does not block preparation of 
 verified file. Source read/digest failures stay blocking and have their own retry;
 redrawing remains a separate display action. Late verification from an older
 archive cannot change the current preparation state.
+The drawing receives the immutable record snapshot from that same successful
+read, bound to the exact URL, record and digest. It does not race a second fetch
+against preparation readiness. Other drawing callers retain their existing reads;
+an explicit publication export still validates its original source.
 Desktop reference views use approximately three quarters of the working width,
 with a compact preparation/download column; narrow screens retain a single column.
 The molecular reader reuses the shared streamed byte limiter with a tighter

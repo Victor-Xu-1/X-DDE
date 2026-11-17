@@ -123,6 +123,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 )
                 page.route(fault, lambda route: route.fulfill(status=200, body=altered))
                 page.goto(base + f"/#task={job}")
+                # Reload an already-open imported task so verification sees this transport.
+                page.reload()
                 workspace = page.locator(".reference-import-results")
                 expect(workspace).to_be_visible(timeout=20000)
                 panel = workspace.locator(
@@ -149,11 +151,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     ), exact=True).click()
                     # Native bytes, not display readiness, authorize preparation.
                     expect(next_step).to_be_enabled(timeout=30000)
-                    expect(panel).to_have_attribute("data-drawing-state", "unavailable")
-                panel.get_by_role("button", name=("重新加载" if zh else "Reload")
-                                  if kind == "structure" else re.compile(
-                                      "重新绘图" if zh else "Retry drawing"
-                                  )).click()
+                else:
+                    panel.get_by_role("button", name="重新加载" if zh else "Reload").click()
                 expect(next_step).to_be_enabled(timeout=60000)
                 if kind == "structure":
                     frame = panel.locator("iframe")

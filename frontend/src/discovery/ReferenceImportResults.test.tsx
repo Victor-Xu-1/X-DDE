@@ -80,12 +80,14 @@ it.each(["en", "zh"] as const)(
 
 it.each(["en", "zh"] as const)(
   "shows an original molecule in verified 2D without a 3D request in %s",
-  (language) => {
+  async (language) => {
+    const { source, molecule } = await originalMolecule();
+    vi.mocked(fetch).mockImplementation(async () => new Response(source));
     render(
       <ReferenceImportResults
         job={job}
         result={{
-          ...result,
+          ...molecule,
           source: "chembl",
           kind: "molecule",
           artifact: "CHEMBL376085.sdf",
@@ -96,11 +98,12 @@ it.each(["en", "zh"] as const)(
       />,
     );
     expect(structure).not.toHaveBeenCalled();
+    await waitFor(() => expect(drawing).toHaveBeenCalled());
     expect(drawing.mock.lastCall?.[0]).toMatchObject({
       source: {
         url: "/api/jobs/source-job/download?name=CHEMBL376085.sdf",
         record: 0,
-        sha256: digest,
+        sha256: molecule.sha256,
       },
     });
   },

@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DepictionRenderer, depictionDataUrl } from "./depiction-renderer";
+import {
+  DepictionRenderer,
+  depictionDataUrl,
+  readMolecularSource,
+} from "./depiction-renderer";
 import type { Ketcher } from "../editors/scientificEditor";
 import { webcrypto } from "node:crypto";
 
@@ -74,6 +78,58 @@ function nativeRenderer() {
   } as unknown as HTMLIFrameElement;
   return { renderer: new DepictionRenderer(() => frame), editor, calls };
 }
+
+it("draws the exact verified snapshot without rereading bytes and rejects another source", async () => {
+  const { renderer, editor } = nativeRenderer();
+  const text =
+    "Archived\n  native\n\n  0  0  0  0  0  0            999 V2000\nM  END\n";
+  vi.stubGlobal("crypto", webcrypto);
+  const sha256 = Buffer.from(
+    await webcrypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+  ).toString("hex");
+  const source = {
+    url: "/api/jobs/original/download?name=source.sdf",
+    sha256,
+    record: 0,
+  };
+  const deployment = vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation(async (...args) =>
+    args[0] === "/api/deployment" ? deployment(...args) : new Response(text),
+  );
+  const verified = await readMolecularSource(
+    source,
+    new AbortController().signal,
+  );
+  expect(Object.isFrozen(verified)).toBe(true);
+  vi.mocked(fetch).mockClear();
+  try {
+    await renderer.render(
+      source,
+      new AbortController().signal,
+      1.6,
+      undefined,
+      verified,
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith("/api/deployment", expect.anything());
+    expect(editor.structService.dearomatize).toHaveBeenCalledWith(
+      { struct: text, output_format: "chemical/x-mdl-molfile" },
+      { "aromaticity-model": "generic" },
+    );
+    await expect(
+      renderer.render(
+        { ...source, record: 1 },
+        new AbortController().signal,
+        1.6,
+        undefined,
+        verified,
+      ),
+    ).rejects.toThrow(/does not match/);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  } finally {
+    renderer.close();
+  }
+});
 
 it.each([false, true])(
   "checks native file bytes before drawing (recorded source=%s)",

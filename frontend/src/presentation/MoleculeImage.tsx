@@ -11,6 +11,7 @@ import {
   DepictionRenderer,
   depictionDataUrl,
   type DepictionSource,
+  type MolecularSourceSnapshot,
 } from "./depiction-renderer";
 import type { Language } from "../types";
 import "./molecule-image.css";
@@ -65,12 +66,14 @@ export function MoleculeImage({
   label,
   compact = false,
   onDrawingReady,
+  verifiedSource,
 }: {
   source: DepictionSource | null;
   language: Language;
   label: string;
   compact?: boolean;
   onDrawingReady?(ready: boolean): void;
+  verifiedSource?: MolecularSourceSnapshot;
 }) {
   const renderer = useContext(DrawingContext),
     key = JSON.stringify(source),
@@ -122,7 +125,13 @@ export function MoleculeImage({
     // failed drawing that can be accepted as an unavailable result screenshot.
     if (renderer === null) return () => controller.abort();
     void renderer
-      .render(source, controller.signal, bondThickness)
+      .render(
+        source,
+        controller.signal,
+        bondThickness,
+        undefined,
+        verifiedSource,
+      )
       .then(depictionDataUrl)
       .then((value) => {
         if (!controller.signal.aborted) {
@@ -141,7 +150,7 @@ export function MoleculeImage({
     return () => {
       controller.abort();
     };
-  }, [key, renderer, visible, attempt, bondThickness]);
+  }, [key, renderer, visible, attempt, bondThickness, verifiedSource]);
   return (
     <div
       ref={element}
