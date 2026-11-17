@@ -77,6 +77,7 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 f"localStorage.setItem('opendde-workbench.language','{language}');}}"
             )
             page.on("pageerror", lambda error: errors.append(str(error)))
+            before_import = None
             try:
                 if kind == "molecule":
                     token = page.request.get(base + "/api/session").json()["csrf_token"]
@@ -314,6 +315,14 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "canvas_bounds": bounds, "details_bounds": details,
                 }, indent=2))
             finally:
+                if before_import is not None:
+                    previous = {row["id"] for row in before_import}
+                    imports = [row for row in page.request.get(base + "/api/jobs").json()
+                               if row["id"] not in previous]
+                    (evidence / "import-jobs.json").write_text(json.dumps(imports, indent=2))
+                    for imported in imports:
+                        log = page.request.get(base + f"/api/jobs/{imported['id']}/logs")
+                        (evidence / f"import-{imported['id']}.log").write_text(log.text())
                 page.screenshot(path=evidence / "last-state.png")
                 browser.close()
 
