@@ -1,10 +1,10 @@
 """Closed shared-tab routing keeps unrelated result, source and compute checks active."""
 
 import os
-from pathlib import Path
 import runpy
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -46,7 +46,11 @@ def test_counter_or_routing_alone_does_not_claim_a_tab_change():
     assert not selected([])
 
 
-@pytest.mark.parametrize("event,ref", [("push", "refs/heads/main"), ("push", "refs/heads/tab-fix"), ("pull_request", "refs/pull/1/merge")])
+@pytest.mark.parametrize("event,ref", [
+    ("push", "refs/heads/main"),
+    ("push", "refs/heads/tab-fix"),
+    ("pull_request", "refs/pull/1/merge"),
+])
 def test_real_entrypoint_uses_the_whole_reviewed_diff_for_push_and_pr(tmp_path, event, ref):
     script = Path("scripts/research-tabs-scope.py").resolve()
     repo = tmp_path / "repo"
@@ -71,24 +75,37 @@ def test_real_entrypoint_uses_the_whole_reviewed_diff_for_push_and_pr(tmp_path, 
     git("add", ".")
     git("commit", "-m", "metadata fixup")
     output = tmp_path / "output"
-    env = {**os.environ, "BASE": base if ref == "refs/heads/main" else first,
-           "GITHUB_REF": ref, "GITHUB_EVENT_NAME": event, "GITHUB_OUTPUT": str(output)}
+    env = {
+        **os.environ,
+        "BASE": base if ref == "refs/heads/main" else first,
+        "GITHUB_REF": ref,
+        "GITHUB_EVENT_NAME": event,
+        "GITHUB_OUTPUT": str(output),
+    }
     subprocess.run([sys.executable, str(script)], cwd=repo, env=env, check=True)
     assert output.read_text() == "research_tabs_only=true\n"
     (repo / "unowned-backend.py").write_text("unowned\n")
     git("add", ".")
     git("commit", "-m", "mixed change")
     output.write_text("")
-    subprocess.run([sys.executable, str(script)], cwd=repo, env=env, check=True)
-    assert output.read_text() == "research_tabs_only=false\n"
+    result = subprocess.run([sys.executable, str(script)], cwd=repo, env=env, capture_output=True)
+    assert result.returncode != 0
+    assert b"Mixed shared-tab changes" in result.stderr
+    assert output.read_text() == ""
 
 
 def test_pose_workflow_retains_units_and_docking_but_never_minimizes_in_tab_mode():
     workflow = Path(".github/workflows/pose-handoff-checks.yml").read_text()
-    for name in ["Isolated native Chemistry and existing managed Ketcher", "Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads"]:
+    for name in [
+        "Isolated native Chemistry and existing managed Ketcher",
+        "Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads",
+    ]:
         step = workflow.split("- name: " + name, 1)[1].split("      - ", 1)[0]
         assert "needs.refinement-scope.outputs.research_tabs_only != 'true'" in step
-    for name in ["Pose controller, explicit choices, record identity and direct research consumers", "Bilingual native docking table, linked fullscreen and complete original downloads"]:
+    for name in [
+        "Pose controller, explicit choices, record identity and direct research consumers",
+        "Bilingual native docking table, linked fullscreen and complete original downloads",
+    ]:
         step = workflow.split("- name: " + name, 1)[1].split("      - ", 1)[0]
         assert "research_tabs_only" not in step
     assert "src/presentation/ResearchTabs.test.tsx" in workflow

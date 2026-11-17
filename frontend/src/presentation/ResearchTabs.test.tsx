@@ -140,6 +140,7 @@ function measuredTabs(count = 1) {
 
 it("reveals selection after resize with reduced motion without moving focus or remounting native panels", async () => {
   const { state, resize, observers } = trackGeometry();
+  const pageScroll = vi.spyOn(window, "scrollTo");
   vi.stubGlobal(
     "matchMedia",
     vi.fn(() => ({ matches: true })),
@@ -163,6 +164,7 @@ it("reveals selection after resize with reduced motion without moving focus or r
   expect(screen.getByRole("tabpanel")).toHaveFocus();
   expect(screen.getByTitle("Native structure")).toBe(frame);
   expect(changed).not.toHaveBeenCalled();
+  expect(pageScroll).not.toHaveBeenCalled();
   // Repeated measurements must not jitter or override free horizontal browsing.
   resize();
   expect(track.scrollLeft).toBe(160);
