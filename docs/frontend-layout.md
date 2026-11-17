@@ -857,6 +857,12 @@ The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
 
+Contact-result synchronization reuses the closed interaction workspace selector
+in prediction and layout callers. Already reviewed prediction setup files adopted
+from main do not authorize an all-page layout run for an epitope-only candidate.
+The dedicated native contact gate remains required; shared contact CSS keeps both
+contact and epitope consumers. Mixed shared/backend changes are not delegated.
+
 ## Epitope contact workspace
 
 Epitope contact results reuse the shared contact workspace: native structure on

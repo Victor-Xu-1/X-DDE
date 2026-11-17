@@ -37,6 +37,7 @@ FILES = SOURCES | {
     "tests/test_protein_interface_scope.py",
     ".github/workflows/protein-interface-checks.yml",
     ".github/workflows/structure-layout-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
     ".github/workflows/restraint-guidance-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/task-layout-checks.yml",

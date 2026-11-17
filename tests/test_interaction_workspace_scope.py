@@ -54,6 +54,52 @@ def test_epitope_only_changes_keep_the_native_gate_focused():
     assert "server_tests/test_epitope_workspace_browser.py" in contact
 
 
+def test_synchronization_callers_reuse_the_closed_contact_owner():
+    prediction = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "value: ${{ jobs.scope.outputs.interaction_only }}" in prediction
+    assert "${{ steps.contact_workspace.outputs.interaction_only }}" in prediction
+    assert "run: python scripts/interaction-workspace-scope.py" in prediction
+    interface = prediction.split("  interface:", 1)[1].split("    steps:", 1)[0]
+    assert "needs.scope.outputs.interaction_only != 'true'" in interface
+    for filename, job in (
+        ("task-layout-checks.yml", "scoped-layout"),
+        ("user-interface-checks.yml", "presentation"),
+    ):
+        workflow = Path(f".github/workflows/{filename}").read_text()
+        body = workflow.split(f"  {job}:", 1)[1].split("    steps:", 1)[0]
+        assert "needs.prediction-scope.outputs.interaction_only != 'true'" in body
+
+
+@pytest.mark.parametrize("event", ["push", "pull_request"])
+@pytest.mark.parametrize("mixed", [False, True])
+def test_refreshed_epitope_scope_outputs_are_closed(monkeypatch, tmp_path, event, mixed):
+    changed = [*scope["EPITOPE_SOURCES"], ".github/workflows/prediction-workspace-checks.yml"]
+    if mixed:
+        changed.append("frontend/src/App.tsx")
+    calls = []
+
+    def output(args, **_kwargs):
+        calls.append(args)
+        if args == ["git", "merge-base", "origin/main", "HEAD"]:
+            return "reviewed-main"
+        assert args == ["git", "diff", "--name-only", "reviewed-main", "HEAD"]
+        return "\n".join(changed)
+
+    destination = tmp_path / "scope-output"
+    monkeypatch.setenv("BASE", "previous-branch-head")
+    monkeypatch.setenv("GITHUB_REF_NAME", "fix/epitope-native-workspace")
+    monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(destination))
+    monkeypatch.setattr(scope["subprocess"], "check_output", output)
+    scope["main"]()
+    assert dict(line.split("=", 1) for line in destination.read_text().splitlines()) == {
+        "interaction_only": str(not mixed).lower(),
+        "epitope_only": str(not mixed).lower(),
+        "epitope_changed": "true",
+    }
+    assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]
+
+
 @pytest.mark.parametrize("event", ["push", "pull_request"])
 @pytest.mark.parametrize("publication", [False, True])
 def test_shared_contact_styles_retain_both_native_consumers(
