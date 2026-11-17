@@ -441,15 +441,19 @@ Focused CI checks exercise these result, identity, navigation, failure and compo
 
 ## Research navigation consolidation
 
-One capability/view selection authority lives in App. The presentation registry assigns
-all 44 visible catalogue IDs exactly once to six workflows; defaults and recommended
-choices are checked against the backend-generated catalogue. Sidebar has nine destinations;
-settings menu has three. Native task IDs, methods, scientific assets and example identities
-remain unchanged. Scientific estimates are not merged or renamed into a different method.
+One capability/view selection authority lives in App. The current presentation registry
+assigns research tools to their owning modules; defaults and recommended choices are
+checked against the backend-generated catalogue. Derive visible groups from
+`researchModules` rather than maintaining a second fixed count or historical grouping.
+Native task IDs, methods, scientific assets and example identities remain unchanged.
+Scientific estimates are not merged or renamed into a different method.
 
-Projects/files/editor share Research workspace. Actual results/exports share Tasks and
-results and PredictionResults. Component installation/readiness share Installation and
-runtime. Removed account and overview placeholders are not hidden behind another menu.
+Each research module owns its New task and Task results views. History queries, filters,
+pagination, direct task links and return navigation retain that module's scope; there is
+no combined cross-module Tasks and results destination. Prediction results use their
+native inspector; other resolved tasks use the shared compact task-detail header.
+Projects/files/editor share Research workspace. Component installation/readiness share
+Installation and runtime. Removed account and overview placeholders are not hidden behind another menu.
 Navigation/Header, typed module mapping, task selection, task results and workspace tabs
 have separate maintainable modules; duplicate UtilityViews routes are retired.
 
