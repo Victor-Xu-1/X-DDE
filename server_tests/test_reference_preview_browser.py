@@ -259,10 +259,14 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     alternate_bounds = capture_failure_layout(
                         page, workspace, evidence, f"drawing-unavailable-{alternate}-source-valid",
                     )
+                    message = panel.locator(".figure-preview-image-space > span")
+                    expect(message).to_have_text("二维图暂不可用" if zh else "2D unavailable")
                     paper_colors = panel.locator(".figure-preview-sheet").evaluate("""node => {
                       const style = getComputedStyle(node);
                       const root = node.closest('.molecule-image');
-                      return {foreground: style.color, background: style.backgroundColor,
+                      const message = node.querySelector('.figure-preview-image-space > span');
+                      return {foreground: getComputedStyle(message).color,
+                        message: message.textContent, background: style.backgroundColor,
                         controls_foreground: getComputedStyle(
                           root.querySelector('.molecule-drawing-style')).color,
                         controls_background: getComputedStyle(root).backgroundColor};

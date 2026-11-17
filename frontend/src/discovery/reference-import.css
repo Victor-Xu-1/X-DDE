@@ -15,6 +15,11 @@
   color: #475569;
 }
 
+/* The scientific paper stays white even when the surrounding controls are dark. */
+.reference-import-results .figure-preview-image-space > span {
+  color: #475569;
+}
+
 .studio-content:has(.reference-import-results) .module-task-picker {
   display: none;
 }
