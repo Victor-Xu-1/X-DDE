@@ -52,3 +52,27 @@ def test_epitope_only_changes_keep_the_native_gate_focused():
     assert "needs.scope.outputs.epitope_only != 'true'" in contact
     assert "needs.scope.outputs.epitope_changed == 'true'" in contact
     assert "server_tests/test_epitope_workspace_browser.py" in contact
+
+
+@pytest.mark.parametrize("event", ["push", "pull_request"])
+@pytest.mark.parametrize("publication", [False, True])
+def test_shared_contact_styles_retain_both_native_consumers(
+    monkeypatch, tmp_path, event, publication,
+):
+    changed = ["frontend/src/integrations/interaction-workspace.css"]
+    if publication:
+        changed.append("pyproject.toml")
+    output = tmp_path / "scope-output"
+    monkeypatch.setenv("BASE", "a" * 40)
+    monkeypatch.setenv("GITHUB_REF_NAME", "main")
+    monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setattr(
+        scope["subprocess"], "check_output", lambda *_args, **_kwargs: "\n".join(changed),
+    )
+    scope["main"]()
+    assert dict(line.split("=", 1) for line in output.read_text().splitlines()) == {
+        "interaction_only": "true",
+        "epitope_only": "false",
+        "epitope_changed": "true",
+    }

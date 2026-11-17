@@ -12,6 +12,7 @@ EPITOPE_SOURCES = {
     "server_tests/test_epitope_workspace_browser.py",
 }
 EPITOPE_SHARED = {
+    "frontend/src/integrations/interaction-workspace.css",
     "frontend/src/integrations/interaction-residue.ts",
     "frontend/src/integrations/interaction-residue.test.ts",
     "server_tests/interaction_workspace_case.py",
