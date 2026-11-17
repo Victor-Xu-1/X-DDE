@@ -19,8 +19,16 @@ vi.mock("../api", () => ({
   artifactUrl: (job: string, file: string) => job + "/" + file,
 }));
 vi.mock("../presentation/plots/InteractivePlot", () => ({
-  InteractivePlot: ({ title, data }: { title: string; data: unknown }) => (
-    <output role="application" aria-label={title}>
+  InteractivePlot: ({
+    title,
+    data,
+    sourceKey,
+  }: {
+    title: string;
+    data: unknown;
+    sourceKey?: string;
+  }) => (
+    <output role="application" aria-label={title} data-source-key={sourceKey}>
       {JSON.stringify(data)}
     </output>
   ),
@@ -50,6 +58,10 @@ it("drops late confidence from the previous sample and never labels token indice
     native_artifact: "second.npz",
   };
   await act(async () => current.resolve(value));
+  expect(screen.getByRole("application")).toHaveAttribute(
+    "data-source-key",
+    "job:second:pae:0",
+  );
   expect(
     screen.getByRole("link", { name: "Download full native confidence" }),
   ).toHaveAttribute("href", "job/second.npz");
@@ -57,7 +69,9 @@ it("drops late confidence from the previous sample and never labels token indice
     old.resolve({ ...value, native_artifact: "first.npz" }),
   );
   expect(screen.getByRole("link")).toHaveAttribute("href", "job/second.npz");
-  expect(screen.getByText(/Native token indices are not residue numbers/)).not.toBeVisible();
+  expect(
+    screen.getByText(/Native token indices are not residue numbers/),
+  ).not.toBeVisible();
   fireEvent.click(screen.getByText(/Display stride/));
   expect(
     screen.getByText(/Native token indices are not residue numbers/),

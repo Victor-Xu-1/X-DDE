@@ -823,6 +823,23 @@ the brain group as the same original ADMET result. Models remain off on navigati
 Dedicated graphB3/BBBScope methods remain candidates pending native qualification;
 this baseline is not an accuracy-superiority claim.
 
+## Verified native confidence frames
+
+The native confidence matrix retains its verified frame while selection overlays,
+zoom/pan controls or panel size update. This is an explicit opt-in from the
+confidence owner using its job/candidate/metric/request identity; the renderer also
+compares the original trace values and labels. Other chart consumers keep their
+conservative hide-until-current behavior. Source/value changes, invalid frames and
+render errors never reuse an old scientific view.
+
+One queued-render frame owner records actual native redraws, including superseded
+ones. A rapid A-B-A transition cannot revive an old ready flag while another native
+frame is drawing. Events remain bound to the current render signature, and reset
+and figure export stay disabled until that exact render completes. Original
+matrices, indices, units, source bytes and figure-export authority are unchanged.
+The confidence legend uses the shared muted text token in all three themes;
+scientific colors and neutral paper canvases remain unchanged.
+
 ## Molecular input confirmation
 
 The shared prediction setup keeps the model, requested structure count and
@@ -856,3 +873,16 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+At wide prediction-result sizes, the 3D canvas has a 600px minimum and the
+workspace grows with its controls instead of compressing the scene inside a fixed
+height. Footer and inspection actions remain in flow below it; confidence and
+sequence stay aligned on the right. Narrow and expanded layouts retain their
+existing behavior. The existing 2560px inspection/input/expansion flow is reused
+in the native confidence gate with actual Chrome, including control containment;
+this does not submit a prediction or alter source coordinates and confidence data.
+The existing chart-size owner also uses the available wide pane height/width,
+instead of leaving a small 420px-tall chart centered in a broad confidence panel.
+Regular and narrow sizing remain bounded as before. Wide native confidence retains
+linked selection and zoom; the matrix stays square and uses at least 65% of its
+ordinary right pane width while keeping axes and color legend visible.

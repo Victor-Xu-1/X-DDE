@@ -2,7 +2,7 @@ name: Interactive molecular and sequence landscapes
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &landscape_paths
       - "frontend/src/presentation/MetricScatter*"
       - "frontend/src/presentation/metric-scatter*"
       - "frontend/src/presentation/plots/InteractivePlot*"
@@ -12,6 +12,8 @@ on:
       - "server_tests/test_model_landscape_browser.py"
       - "server_tests/landscape_browser_helpers.py"
       - ".github/workflows/landscape-checks.yml"
+  pull_request:
+    paths: *landscape_paths
 permissions:
   contents: read
 jobs:

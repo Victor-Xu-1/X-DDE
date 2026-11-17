@@ -1,4 +1,5 @@
 @import url("./prediction-inspection.css");
+@import url("./prediction-wide-inspection.css");
 
 .prediction-result {
   min-width: 0;
