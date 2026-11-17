@@ -125,9 +125,17 @@ FILES = SOURCES | RETIRED | {
 # Exact reviewed transitions only; unknown shared-shell changes retain native gates.
 # Values are bound to Git blob bytes and updated only with independent source review.
 SHARED = {
-    "frontend/src/App.tsx": ("PENDING_REVIEW", "PENDING_REVIEW"),
-    "frontend/src/guided/Questionnaire.tsx": ("PENDING_REVIEW", "PENDING_REVIEW"),
-    "frontend/src/guided/GuidedQuestionFields.tsx": (None, "PENDING_REVIEW"),
+    "frontend/src/App.tsx": (
+        "3cf9036e6351d2f0571b3e2317686083422f661c140ec405003134af1f63c728",
+        "a67ca642b1f1f16c602a4b54751b4e974af7e73bf8ab4b0992e64b1a5ab0e60d",
+    ),
+    "frontend/src/guided/Questionnaire.tsx": (
+        "2416d834416a19cbdd65ff43256ec661d8fd14afd4353d0782f6153c88f5e8a1",
+        "895c527d11cd1bf9a17743a9ad8b3dcb3258728b779651cb71b2c71a265e35c5",
+    ),
+    "frontend/src/guided/GuidedQuestionFields.tsx": (
+        None, "7f3752d3f7d11f762e0b240628c406551a91a1e45aca0d2e8d25f6dc51686206",
+    ),
 }
 
 

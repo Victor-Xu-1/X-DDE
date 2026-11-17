@@ -1,10 +1,11 @@
-import { useRef, type ReactNode } from "react";
+import { useContext, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
 import type { ImageMolecule } from "./image-molecule";
 import { useImageInputSession } from "./useImageInputSession";
 import "./image-molecule.css";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 
 export function ImageMoleculeInput({
   language,
@@ -23,6 +24,8 @@ export function ImageMoleculeInput({
   ): Promise<void> | void;
   children?: ReactNode;
 }) {
+  const presentation = useContext(TaskPresentationContext);
+  enabled = enabled && presentation?.active !== false;
   const zh = language === "zh",
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);

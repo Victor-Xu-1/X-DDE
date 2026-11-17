@@ -20,6 +20,7 @@ on:
       - "frontend/src/chemistry/MolecularToolReview.test.tsx"
       - "frontend/src/utilities/UtilityWorkspace*"
       - "frontend/src/utilities/UtilityTask*"
+      - "frontend/src/utilities/UtilitySinglePage*"
       - "frontend/src/utilities/utility-task.css"
       - "frontend/src/utilities/UtilityBrainSubmission.test.tsx"
       - "frontend/src/operations/ToolCenter.tsx"

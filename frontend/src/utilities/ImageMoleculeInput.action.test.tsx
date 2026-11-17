@@ -13,6 +13,7 @@ import {
 } from "../guided/InputActionScope";
 import { ImageMoleculeInput } from "./ImageMoleculeInput";
 import type { ImageMolecule } from "./image-molecule";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 
 type Apply = (
   value: ImageMolecule,
@@ -244,4 +245,26 @@ it("does not cancel the accepted upload when its own busy state disables input",
   });
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByText("Input from structure image")).toBeEnabled();
+});
+
+it("cancels the current image import when its utility becomes inactive", () => {
+  const apply = vi.fn();
+  const view = (active: boolean) => (
+    <TaskPresentationContext.Provider
+      value={{ layout: "single", active, renderResult: () => null }}
+    >
+      <InputActionScope>
+        <ImageMoleculeInput language="en" onMolecule={apply}>
+          <textarea aria-label="SMILES" />
+        </ImageMoleculeInput>
+      </InputActionScope>
+    </TaskPresentationContext.Provider>
+  );
+  const { rerender } = render(view(true));
+  drop();
+  expect(screen.getByRole("dialog")).toBeVisible();
+  rerender(view(false));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByLabelText("SMILES")).toBeInTheDocument();
+  expect(apply).not.toHaveBeenCalled();
 });
