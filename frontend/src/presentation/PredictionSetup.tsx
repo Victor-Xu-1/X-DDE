@@ -5,6 +5,7 @@ import { usePredictionHeadingFocus } from "./prediction-heading-focus";
 import { PredictionInputPreview } from "./PredictionInputPreview";
 import { predictionSettingsSummary } from "./prediction-settings-summary";
 import "./prediction-workspace.css";
+import "./prediction-setup-summary.css";
 
 /** A view of the form's current values; never a second draft or task authority. */
 export function PredictionSetup({
@@ -56,18 +57,6 @@ export function PredictionSetup({
           <div>
             <dt>{zh ? "后端模型" : "Prediction model"}</dt>
             <dd>{model}</dd>
-          </div>
-          <div>
-            <dt>{zh ? "研究组分" : "Entities"}</dt>
-            <dd>{components.length}</dd>
-          </div>
-          <div>
-            <dt>{zh ? "总拷贝数" : "Total copies"}</dt>
-            <dd>{components.reduce((sum, item) => sum + item.count, 0)}</dd>
-          </div>
-          <div>
-            <dt>{zh ? "随机种子" : "Seeds"}</dt>
-            <dd>{summary.seeds}</dd>
           </div>
           <div>
             <dt>{zh ? "请求构象" : "Requested structures"}</dt>
@@ -136,6 +125,31 @@ export function PredictionSetup({
             </li>
           ))}
         </ul>
+        {summary.structures === "—" && (
+          <p className="prediction-setup-warning" role="status">
+            {zh ? "请检查计算设置。" : "Check calculation settings."}
+          </p>
+        )}
+        <details
+          className="prediction-calculation-details"
+          open={summary.structures === "—"}
+        >
+          <summary>{zh ? "计算详情" : "Calculation details"}</summary>
+          <dl>
+            <div>
+              <dt>{zh ? "随机种子" : "Seeds"}</dt>
+              <dd>{summary.seeds}</dd>
+            </div>
+            <div>
+              <dt>{zh ? "研究组分" : "Entities"}</dt>
+              <dd>{components.length}</dd>
+            </div>
+            <div>
+              <dt>{zh ? "总拷贝数" : "Total copies"}</dt>
+              <dd>{components.reduce((sum, item) => sum + item.count, 0)}</dd>
+            </div>
+          </dl>
+        </details>
         <p className={"prediction-setup-status" + (valid ? " is-valid" : "")}>
           {valid
             ? zh

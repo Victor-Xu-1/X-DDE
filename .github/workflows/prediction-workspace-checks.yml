@@ -155,6 +155,9 @@ on:
       - "server_tests/test_prediction_input_preview_browser.py"
       - "server_tests/test_prediction_entry_browser.py"
       - "scripts/prediction-workspace-scope.py"
+      - "scripts/prediction-setup-scope.py"
+      - "tests/test_prediction_setup_scope.py"
+      - "server_tests/test_prediction_setup_browser.py"
       - "scripts/job-review-scope.py"
       - "tests/test_prediction_workspace_scope.py"
       - ".github/workflows/prediction-workspace-checks.yml"
@@ -211,6 +214,7 @@ jobs:
       boltz_confidence: ${{ steps.select.outputs.boltz_confidence }}
       confidence_changed: ${{ steps.select.outputs.confidence_changed }}
       input_preview: ${{ steps.select.outputs.input_preview }}
+      setup_summary: ${{ steps.select.outputs.setup_summary }}
       preview_changed: ${{ steps.select.outputs.preview_changed }}
       drafts_only: ${{ steps.select.outputs.drafts_only }}
       drafts_changed: ${{ steps.select.outputs.drafts_changed }}
@@ -380,6 +384,10 @@ jobs:
         run: |
           uv run --locked python -m pytest -q tests/test_prediction_workspace_scope.py
           uv run --locked ruff check scripts/prediction-workspace-scope.py tests/test_prediction_workspace_scope.py server_tests/prediction_workspace_case.py server_tests/test_prediction_workspace_browser.py
+          if [[ '${{ needs.scope.outputs.setup_summary }}' == 'true' ]]; then
+            uv run --locked python -m pytest -q tests/test_prediction_setup_scope.py
+            uv run --locked ruff check scripts/prediction-setup-scope.py tests/test_prediction_setup_scope.py server_tests/test_prediction_setup_browser.py
+          fi
       - name: Native fractional pLDDT contract and invalid source values
         if: needs.scope.outputs.confidence_changed == 'true'
         run: |
@@ -403,6 +411,9 @@ jobs:
           echo "WB_REVIEWED_STAT6_ARCHIVE=$RUNNER_TEMP/${source[1]}" >> "$GITHUB_ENV"
       - if: needs.scope.outputs.draft_compatibility_only != 'true'
         run: uv run --locked playwright install chromium --with-deps
+      - name: Native Chrome for setup summaries
+        if: needs.scope.outputs.setup_summary == 'true'
+        run: uv run --locked playwright install chrome --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && (needs.scope.outputs.entity_inputs == 'true' || needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true' || needs.scope.outputs.boltz_review_changed == 'true' || needs.scope.outputs.opendde_review_changed == 'true')
         run: |
@@ -425,6 +436,9 @@ jobs:
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.preview_changed == 'true' && needs.scope.outputs.result_layout_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
+      - name: Guided setup, expandable settings and current values across all prediction forms
+        if: needs.scope.outputs.setup_summary == 'true'
+        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_setup_browser.py
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
@@ -519,6 +533,7 @@ jobs:
             outputs/native-confidence/**
             outputs/boltz-confidence/**
             outputs/prediction-input-preview/**
+            outputs/prediction-setup/**
             outputs/prediction-entities/**
             outputs/prediction-feature-settings/**
             outputs/prediction-drafts/**
