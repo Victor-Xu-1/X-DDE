@@ -32,11 +32,32 @@ def capture_utility_space(page, utility, evidence):
     page.screenshot(path=evidence / "utility-first-step.png", full_page=True)
 
 
+def verify_image_cancel(page, fields, evidence):
+    """Tiny transport fixture checks controls, never scientific recognition."""
+    fields.locator('.image-molecule-input input[type="file"]').first.set_input_files({
+        "name": "image-control.png", "mimeType": "image/png",
+        "buffer": base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+            "AwMCAO+a9XcAAAAASUVORK5CYII="
+        ),
+    })
+    dialog = page.get_by_role("dialog", name="Read molecule from image", exact=True)
+    expect(dialog).to_be_visible()
+    assert not dialog.evaluate("node => Boolean(node.closest('fieldset'))")
+    expect(dialog.get_by_role("button", name="Cancel", exact=True)).to_be_enabled()
+    page.screenshot(path=evidence / "image-input-cancel.png", full_page=True)
+    dialog.get_by_role("button", name="Cancel", exact=True).click()
+    expect(dialog).to_have_count(0)
+
+
 def load_utility_template(page, utility, capability, language, evidence):
     """Hold one real preparation request long enough to inspect its pending UI."""
     pattern = f"**/api/examples/{capability}/prepare"
     label = "使用此模板" if language == "zh" else "Use this template"
     inspect_pending = capability == "properties" and language == "en"
+    if inspect_pending:
+        # The blank upload form owns image entry. A loaded template uses history.
+        verify_image_cancel(page, utility.locator(".utility-task-fields"), evidence)
     heading = utility.locator(".questionnaire-page-heading")
     previous = heading.bounding_box()
 
@@ -79,22 +100,6 @@ def load_utility_template(page, utility, capability, language, evidence):
         fields = utility.locator(".utility-task-fields")
         expect(fields).not_to_have_attribute("disabled", "")
         expect(fields.locator('input[type="radio"]').first).to_be_enabled()
-        if inspect_pending:
-            # A tiny transport fixture tests controls only, never scientific recognition.
-            fields.locator('.image-molecule-input input[type="file"]').first.set_input_files({
-                "name": "image-control.png", "mimeType": "image/png",
-                "buffer": base64.b64decode(
-                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
-                    "AwMCAO+a9XcAAAAASUVORK5CYII="
-                ),
-            })
-            dialog = page.get_by_role("dialog", name="Read molecule from image", exact=True)
-            expect(dialog).to_be_visible()
-            assert not dialog.evaluate("node => Boolean(node.closest('fieldset'))")
-            expect(dialog.get_by_role("button", name="Cancel", exact=True)).to_be_enabled()
-            page.screenshot(path=evidence / "image-input-cancel.png", full_page=True)
-            dialog.get_by_role("button", name="Cancel", exact=True).click()
-            expect(dialog).to_have_count(0)
         return response.value.json()
     finally:
         if inspect_pending:
