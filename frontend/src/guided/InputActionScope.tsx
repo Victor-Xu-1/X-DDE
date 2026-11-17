@@ -13,6 +13,8 @@ type Action = "example" | "submission";
 type Scope = {
   action: Action | null;
   begin(action: Action): (() => void) | null;
+  isLocked(): boolean;
+  currentSignal(): AbortSignal;
 };
 const Context = createContext<Scope | null>(null);
 
@@ -21,25 +23,38 @@ export function InputActionScope({ children }: { children: ReactNode }) {
   const [action, setAction] = useState<Action | null>(null);
   const owner = useRef<symbol | null>(null),
     mounted = useRef(true);
+  const generation = useRef(new AbortController());
   useLayoutEffect(() => {
     mounted.current = true;
+    if (generation.current.signal.aborted)
+      generation.current = new AbortController();
     return () => {
       mounted.current = false;
+      generation.current.abort();
       owner.current = null;
     };
   }, []);
   const begin = useCallback((kind: Action) => {
-    if (owner.current !== null) return null;
+    if (!mounted.current || owner.current !== null) return null;
     const current = Symbol(kind);
     owner.current = current;
+    generation.current.abort();
+    generation.current = new AbortController();
     setAction(kind);
     return () => {
       if (owner.current !== current) return;
+      generation.current.abort();
       owner.current = null;
+      generation.current = new AbortController();
       if (mounted.current) setAction(null);
     };
   }, []);
-  const scope = useMemo(() => ({ action, begin }), [action, begin]);
+  const isLocked = useCallback(() => owner.current !== null, []);
+  const currentSignal = useCallback(() => generation.current.signal, []);
+  const scope = useMemo(
+    () => ({ action, begin, isLocked, currentSignal }),
+    [action, begin, isLocked, currentSignal],
+  );
   return <Context.Provider value={scope}>{children}</Context.Provider>;
 }
 

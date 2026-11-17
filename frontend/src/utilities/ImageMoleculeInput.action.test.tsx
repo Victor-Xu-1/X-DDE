@@ -205,3 +205,43 @@ it("keeps dismissal usable inside an independently disabled fieldset", () => {
   fireEvent.click(screen.getByText("Cancel image"));
   expect(screen.queryByRole("dialog")).toBeNull();
 });
+
+it("does not cancel the accepted upload when its own busy state disables input", async () => {
+  const transfer = deferred<void>();
+  let signal!: AbortSignal;
+  function Form() {
+    const [busy, setBusy] = useState(false);
+    return (
+      <ImageMoleculeInput
+        language="en"
+        disabled={busy}
+        onMolecule={async (_value, _source, active) => {
+          signal = active;
+          setBusy(true);
+          await transfer.promise;
+          setBusy(false);
+        }}
+      >
+        <textarea aria-label="SMILES" />
+      </ImageMoleculeInput>
+    );
+  }
+  render(<Form />);
+  drop();
+  let running!: Promise<void>;
+  act(() => {
+    running = dialog.accept!(
+      { smiles: "NC(=O)c1ccccc1", molfile: "M  END" },
+      image(),
+    );
+  });
+  expect(signal.aborted).toBe(false);
+  expect(screen.getByText("Input from structure image")).toBeDisabled();
+  expect(screen.getByText("Cancel image")).toBeEnabled();
+  await act(async () => {
+    transfer.resolve();
+    await running;
+  });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByText("Input from structure image")).toBeEnabled();
+});

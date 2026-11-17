@@ -3,6 +3,7 @@ on:
   push:
     paths: &utility_paths
       - "frontend/src/utilities/ImageMoleculeInput*"
+      - "frontend/src/utilities/ImageMoleculeDialog*"
       - "frontend/src/utilities/useImageInputSession*"
       - "frontend/src/admet/**"
       - "frontend/src/guided/MolecularReview*"

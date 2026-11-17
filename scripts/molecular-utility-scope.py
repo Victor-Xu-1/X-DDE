@@ -6,6 +6,7 @@ from pathlib import Path
 
 SOURCES = {
     "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/ImageMoleculeDialog.tsx",
     "frontend/src/utilities/ImageMoleculeInput.action.test.tsx",
     "frontend/src/utilities/useImageInputSession.ts",
     "server_tests/molecular_review_capture.py",

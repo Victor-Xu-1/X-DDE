@@ -877,3 +877,11 @@ disables template replacement until its response is accepted or rejected. Failur
 release the controls and retain the input. Other utilities keep their own state.
 The shared submission hook still owns request snapshots, idempotency and accepted
 task recovery; the input scope only controls these foreground interactions.
+
+Image entry observes the same scope before drag/drop, paste and file selection,
+and after each asynchronous clipboard read. Starting input replacement invalidates
+earlier image sessions and aborts their pending transfers. Busy state caused by an
+accepted image upload does not cancel that upload. The recognition dialog lives
+outside disabled fieldsets so Close and Cancel remain available; opening it never
+enables the recognition model. The shared image-session hook owns this lifecycle
+for utility, asset and structure-input forms without changing native source files.

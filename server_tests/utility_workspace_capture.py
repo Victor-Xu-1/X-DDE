@@ -1,5 +1,6 @@
 """Check the visible utility work area and native controls without starting a task."""
 
+import base64
 import json
 
 from playwright.sync_api import expect
@@ -51,6 +52,17 @@ def load_utility_template(page, utility, capability, language, evidence):
         # The button carries visible feedback; the live status remains accessible.
         bounds = status.bounding_box()
         assert bounds and bounds["width"] <= 1 and bounds["height"] <= 1, bounds
+        # Disabled fieldsets do not suppress div events. No image session may open.
+        fields.locator(".image-molecule-input").first.evaluate("""node => {
+          const data = new DataTransfer();
+          data.items.add(new File(['pending-input-control'], 'pending.png',
+            {type: 'image/png'}));
+          const event = new DragEvent('drop', {bubbles: true, cancelable: true,
+            dataTransfer: data});
+          node.dispatchEvent(event);
+          if (!event.defaultPrevented) throw new Error('Image drop was not consumed');
+        }""")
+        expect(page.locator(".image-molecule-dialog")).to_have_count(0)
         page.screenshot(path=evidence / "template-preparing.png", full_page=True)
         route.continue_()
 
@@ -67,6 +79,22 @@ def load_utility_template(page, utility, capability, language, evidence):
         fields = utility.locator(".utility-task-fields")
         expect(fields).not_to_have_attribute("disabled", "")
         expect(fields.locator('input[type="radio"]').first).to_be_enabled()
+        if inspect_pending:
+            # A tiny transport fixture tests controls only, never scientific recognition.
+            fields.locator('.image-molecule-input input[type="file"]').first.set_input_files({
+                "name": "image-control.png", "mimeType": "image/png",
+                "buffer": base64.b64decode(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+                    "AwMCAO+a9XcAAAAASUVORK5CYII="
+                ),
+            })
+            dialog = page.get_by_role("dialog", name="Read molecule from image", exact=True)
+            expect(dialog).to_be_visible()
+            assert not dialog.evaluate("node => Boolean(node.closest('fieldset'))")
+            expect(dialog.get_by_role("button", name="Cancel", exact=True)).to_be_enabled()
+            page.screenshot(path=evidence / "image-input-cancel.png", full_page=True)
+            dialog.get_by_role("button", name="Cancel", exact=True).click()
+            expect(dialog).to_have_count(0)
         return response.value.json()
     finally:
         if inspect_pending:
