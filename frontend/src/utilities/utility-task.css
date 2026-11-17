@@ -62,6 +62,22 @@
   flex-wrap: wrap;
   max-width: 100%;
 }
+.single-page-main .field {
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.single-page-main .field input,
+.single-page-main .field select {
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.single-page-main .field-help {
+  margin-block: 4px;
+}
+.molecular-utility .molecule-image {
+  background: var(--surface);
+}
 .molecular-utility .molecule-drawing-style select {
   min-width: 0;
   max-width: min(220px, 100%);

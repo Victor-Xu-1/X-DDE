@@ -106,6 +106,9 @@ optional settings and explicit Run aligned on the right. The native form stays
 mounted; this arrangement does not change selected files, task parameters or
 validation. Compact template controls leave the working area available. Narrow
 screens stack the same inputs and preview without hiding settings or downloads.
+The utility library selector uses a compact purpose dropdown while retaining
+all native modes, query requirements and rule explanations. Guided research
+forms keep their existing choice cards.
 
 Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and
