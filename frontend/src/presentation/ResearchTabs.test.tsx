@@ -80,7 +80,7 @@ function trackGeometry() {
     },
   );
   vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(
-    function () {
+    function (this: HTMLElement) {
       return this.getAttribute("role") === "tablist" && !state.hidden
         ? state.width
         : 0;
@@ -88,7 +88,7 @@ function trackGeometry() {
   );
   vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-    function () {
+    function (this: HTMLElement) {
       const track =
         this.getAttribute("role") === "tablist" ? this : this.parentElement;
       const selected =
