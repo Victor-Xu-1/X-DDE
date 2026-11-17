@@ -8,10 +8,10 @@
   max-width: 100%;
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 19px;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
-  margin: 18px 0;
+  margin: 15px 0;
 }
 .research-tab-list button {
   flex-shrink: 0;
@@ -19,7 +19,8 @@
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
-  padding: 12px 2px;
+  min-height: 40px;
+  padding: 10px 2px;
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
@@ -42,4 +43,10 @@
 .research-tabs [role="tabpanel"] {
   outline: 0;
   min-width: 0;
+}
+@media (max-width: 600px), (pointer: coarse) {
+  .research-tab-list button {
+    min-height: 44px;
+    padding-block: 12px;
+  }
 }

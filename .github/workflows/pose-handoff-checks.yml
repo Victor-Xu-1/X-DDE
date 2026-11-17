@@ -15,6 +15,9 @@ on:
       - "frontend/src/viewer/usePoseOptimization*"
       - "frontend/src/presentation/MolecularPreview.tsx"
       - "frontend/src/presentation/ResearchTabs*"
+      - "scripts/research-tabs-scope.py"
+      - "tests/test_research_tabs_scope.py"
+      - "server_tests/test_research_tabs_browser.py"
       - "frontend/src/docking/DockingResults*"
       - "frontend/src/presentation/CandidateReviewBar.tsx"
       - "frontend/src/presentation/candidate-review-bar.css"
@@ -56,6 +59,7 @@ jobs:
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
+      research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,6 +72,10 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/admet-workspace-scope.py
+      - id: tabs
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/research-tabs-scope.py
   pose-continuity:
     needs: [refinement-scope, utility-scope]
     if: needs.utility-scope.outputs.utility_only != 'true' && (needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true')
@@ -148,7 +156,7 @@ jobs:
           src/operations/PropertyForm.test.tsx \
           src/research/SelectedAssetPreview.test.tsx src/research/ResearchWorkspace.test.tsx
       - name: Isolated native Chemistry and existing managed Ketcher
-        if: steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
+        if: needs.refinement-scope.outputs.research_tabs_only != 'true' && steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-pose-handoff" >> "$GITHUB_ENV"
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
@@ -156,7 +164,7 @@ jobs:
       - name: Prepare the ephemeral CI browser for retained-source inspection
         run: uv run --locked playwright install chromium --with-deps
       - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
-        if: steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
+        if: needs.refinement-scope.outputs.research_tabs_only != 'true' && steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
         run: |
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m pytest -x -q server_tests/test_pose_handoff_browser.py

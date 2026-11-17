@@ -1,9 +1,14 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it } from "vitest";
+import { act } from "react";
+import { afterEach, expect, it, vi } from "vitest";
 import { ResearchTabs } from "./ResearchTabs";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 it("switches visible panels by click and keyboard while retaining an edited input", async () => {
   const user = userEvent.setup();
   render(
@@ -50,4 +55,200 @@ it("mounts only the chosen controlled view on a fresh molecular source", async (
   await user.click(screen.getByRole("tab", { name: "2D" }));
   // A controlled tab still follows its owner rather than a local click.
   expect(screen.getByTestId("native-3d")).toBeVisible();
+});
+
+function trackGeometry() {
+  const state = {
+    width: 500,
+    start: 300,
+    tabWidth: 120,
+    hidden: false,
+    rtl: false,
+  };
+  const observers: {
+    callback: () => void;
+    disconnect: ReturnType<typeof vi.fn>;
+  }[] = [];
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      disconnect = vi.fn();
+      observe = vi.fn();
+      constructor(callback: () => void) {
+        observers.push({ callback, disconnect: this.disconnect });
+      }
+    },
+  );
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(
+    function () {
+      return this.getAttribute("role") === "tablist" && !state.hidden
+        ? state.width
+        : 0;
+    },
+  );
+  vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+    function () {
+      const track =
+        this.getAttribute("role") === "tablist" ? this : this.parentElement;
+      const selected =
+        this.getAttribute("role") === "tab" &&
+        this.textContent?.startsWith("Structure");
+      return new DOMRect(
+        20 +
+          (selected ? state.start : 0) -
+          (this === track ? 0 : (track?.scrollLeft ?? 0)),
+        200,
+        state.hidden ? 0 : this === track ? state.width : state.tabWidth,
+        44,
+      );
+    },
+  );
+  const originalStyle = window.getComputedStyle;
+  vi.spyOn(window, "getComputedStyle").mockImplementation((node, pseudo) => {
+    const style = originalStyle(node, pseudo);
+    if (node.getAttribute("role") === "tablist")
+      Object.defineProperty(style, "direction", {
+        value: state.rtl ? "rtl" : "ltr",
+      });
+    return style;
+  });
+  return {
+    state,
+    observers,
+    resize: () => act(() => observers.forEach(({ callback }) => callback())),
+  };
+}
+
+function measuredTabs(count = 1) {
+  return [
+    {
+      id: "table",
+      label: "Candidates",
+      content: (
+        <input aria-label="Retained note" defaultValue="Original note" />
+      ),
+    },
+    {
+      id: "structure",
+      label: "Structure",
+      count,
+      content: <iframe title="Native structure" src="about:blank" />,
+    },
+  ];
+}
+
+it("reveals selection after resize with reduced motion without moving focus or remounting native panels", async () => {
+  const { state, resize, observers } = trackGeometry();
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: true })),
+  );
+  const changed = vi.fn();
+  const view = render(
+    <ResearchTabs
+      label="Views"
+      active="structure"
+      onChange={changed}
+      tabs={measuredTabs()}
+    />,
+  );
+  const track = screen.getByRole("tablist"),
+    frame = screen.getByTitle("Native structure");
+  expect(track.scrollLeft).toBe(0);
+  screen.getByRole("tabpanel").focus();
+  state.width = 260;
+  resize();
+  expect(track.scrollLeft).toBe(160);
+  expect(screen.getByRole("tabpanel")).toHaveFocus();
+  expect(screen.getByTitle("Native structure")).toBe(frame);
+  expect(changed).not.toHaveBeenCalled();
+  // Repeated measurements must not jitter or override free horizontal browsing.
+  resize();
+  expect(track.scrollLeft).toBe(160);
+  track.scrollLeft = 0;
+  view.rerender(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs()} />,
+  );
+  expect(track.scrollLeft).toBe(0);
+  view.unmount();
+  expect(
+    observers.every(({ disconnect }) => disconnect.mock.calls.length > 0),
+  ).toBe(true);
+});
+
+it("remeasures count and label geometry and retains externally selected native views and notes", async () => {
+  const user = userEvent.setup(),
+    { state } = trackGeometry();
+  const view = render(
+    <ResearchTabs label="Views" active="table" tabs={measuredTabs()} />,
+  );
+  const note = screen.getByRole("textbox");
+  await user.type(note, " edited");
+  view.rerender(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs()} />,
+  );
+  const frame = screen.getByTitle("Native structure");
+  state.start = 480;
+  view.rerender(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs(200)} />,
+  );
+  expect(screen.getByRole("tablist").scrollLeft).toBe(100);
+  view.rerender(
+    <ResearchTabs label="Views" active="table" tabs={measuredTabs(200)} />,
+  );
+  expect(screen.getByRole("textbox")).toBe(note);
+  expect(note).toHaveValue("Original note edited");
+  expect(screen.getByTitle("Native structure")).toBe(frame);
+  view.rerender(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs(200)} />,
+  );
+  expect(screen.getByTitle("Native structure")).toBe(frame);
+});
+
+it("ignores hidden tracks then reveals them, with deterministic oversized labels and current fallback", () => {
+  const { state, resize } = trackGeometry();
+  state.hidden = true;
+  state.width = 200;
+  state.tabWidth = 320;
+  const view = render(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs()} />,
+  );
+  const track = screen.getByRole("tablist");
+  expect(track.scrollLeft).toBe(0);
+  state.hidden = false;
+  resize();
+  expect(track.scrollLeft).toBe(300);
+  resize();
+  expect(track.scrollLeft).toBe(300);
+  view.rerender(
+    <ResearchTabs label="Views" active="missing" tabs={measuredTabs()} />,
+  );
+  expect(screen.getByRole("tab", { name: "Candidates" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(track.scrollLeft).toBe(0);
+  view.rerender(<ResearchTabs label="Views" tabs={[]} />);
+  expect(screen.queryByRole("tab")).toBeNull();
+});
+
+it("uses the horizontal RTL range and falls back to window resize when observers are unavailable", () => {
+  const { state } = trackGeometry();
+  vi.stubGlobal("ResizeObserver", undefined);
+  state.rtl = true;
+  state.width = 260;
+  state.start = -150;
+  const view = render(
+    <ResearchTabs label="Views" active="structure" tabs={measuredTabs()} />,
+  );
+  const track = screen.getByRole("tablist");
+  expect(track.scrollLeft).toBe(-150);
+  state.start = -200;
+  act(() => window.dispatchEvent(new Event("resize")));
+  expect(track.scrollLeft).toBe(-200);
+  view.unmount();
+  state.start = -300;
+  act(() => window.dispatchEvent(new Event("resize")));
+  expect(track.scrollLeft).toBe(-200);
 });

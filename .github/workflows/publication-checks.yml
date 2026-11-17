@@ -12,6 +12,9 @@ on:
       - "frontend/src/presentation/ResearchTabs.tsx"
       - "frontend/src/presentation/ResearchTabs.test.tsx"
       - "frontend/src/presentation/research-tabs.css"
+      - "scripts/research-tabs-scope.py"
+      - "tests/test_research_tabs_scope.py"
+      - "server_tests/test_research_tabs_browser.py"
       - "frontend/src/presentation/ActiveIndicator*"
       - "frontend/src/presentation/active-indicator.css"
       - "frontend/src/presentation/MetricBars.tsx"
@@ -96,6 +99,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
+      research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -104,10 +108,76 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/case-data-scope.py
+      - id: tabs
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python3 scripts/research-tabs-scope.py
+  research-tabs:
+    needs: scope
+    if: needs.scope.outputs.research_tabs_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_HOME: ${{ runner.temp }}/x-dde-tab-controls
+      WB_STATE_DIR: ${{ runner.temp }}/x-dde-tab-controls/state
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Tab lifecycle, shared indicator and direct result consumers; no model execution
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/ResearchTabs.test.tsx
+          src/presentation/ActiveIndicator.test.tsx src/presentation/useReveal.test.tsx
+          src/discovery/TargetResearchResults.test.tsx src/admet/AdmetResults.test.tsx
+          src/examples/CampaignCasePreview.test.tsx src/diffsbdd/DesignInputContext.test.tsx
+          src/viewer/capture.test.ts src/proximity/Results.test.tsx
+          src/presentation/plots/InteractivePlot.test.tsx src/operations/CandidateSequenceResults.test.tsx
+          src/integrations/ScientificResults.test.tsx src/simulations/SimulationResults.test.tsx
+          src/operations/PreparedInputResults.test.tsx
+          src/viewer/useViewerSnapshot.test.ts
+      - name: Closed routing boundaries
+        run: |
+          uv run --locked python -m pytest -q tests/test_research_tabs_scope.py
+          uv run --locked ruff check scripts/research-tabs-scope.py tests/test_research_tabs_scope.py server_tests/test_research_tabs_browser.py
+      - name: Reuse sealed STAT6 outputs and native chemical drawing; never start a model
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          archive_path="$(uv run --locked python - <<'PY'
+          import os
+          from pathlib import Path
+          from server_tests.prepare_quality_context_cases import download_archive
+          print(download_archive(Path(os.environ['RUNNER_TEMP']) / 'reviewed-stat6-data'))
+          PY
+          )"
+          echo "WB_REVIEWED_STAT6_ARCHIVE=$archive_path" >> "$GITHUB_ENV"
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked playwright install chromium --with-deps
+      - name: Bilingual actual result resize, keyboard, retained native view and filter
+        run: >-
+          uv run --locked python -m pytest -x -q
+          server_tests/test_publication_controls_browser.py::test_shared_steps_models_and_result_tabs_retain_user_choices
+          server_tests/test_research_tabs_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-tabs-evidence
+          path: |
+            outputs/research-tabs/**
+            outputs/publication-browser/controls/**
+          if-no-files-found: error
   publication:
     needs: [scope, utility-scope]
     # Exact original-file menu bounds and real downloads use the retained-stage gate.
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.native_receptor_only != 'true')
+    if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.research_tabs_only != 'true' && (needs.scope.outputs.native_receptor_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
