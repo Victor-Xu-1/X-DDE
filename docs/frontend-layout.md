@@ -101,6 +101,12 @@ task details and original downloads still available. Each tool retains its own
 draft while switching tabs; starting a new task clears only that tool. Outside
 the utility boundary the default guided flow is unchanged.
 
+Desktop utilities give the structure the larger left pane and keep inputs,
+optional settings and explicit Run aligned on the right. The native form stays
+mounted; this arrangement does not change selected files, task parameters or
+validation. Compact template controls leave the working area available. Narrow
+screens stack the same inputs and preview without hiding settings or downloads.
+
 Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and
 downloads from its selected immutable asset; no internal file path is displayed.
