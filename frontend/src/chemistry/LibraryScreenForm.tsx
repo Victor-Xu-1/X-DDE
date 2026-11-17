@@ -149,6 +149,7 @@ export function LibraryScreenForm({
         },
         {
           title: zh ? "选择范围" : "Choose limits",
+          inline: "options",
           valid: settingsValid,
           content: (
             <ScreenSettings
@@ -162,6 +163,7 @@ export function LibraryScreenForm({
         },
         {
           title: zh ? "确认筛选" : "Review selection",
+          inline: "preview",
           valid:
             Boolean(library) &&
             (!requiresQuery || Boolean(query)) &&

@@ -12,6 +12,8 @@ import {
   useInputActionScope,
 } from "../guided/InputActionScope";
 import "./utility-task.css";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
+import { UtilityTaskResult } from "./UtilityTaskResult";
 
 const utilities = {
   admet: { capability: "admet.predict", Form: AdmetForm },
@@ -25,6 +27,8 @@ type UtilityTaskProps = {
   tool: MolecularUtility;
   language: Language;
   onCreated(job: Job): void;
+  jobs?: readonly Job[];
+  active?: boolean;
 };
 
 /** New tasks replace the whole session, including outstanding template intent. */
@@ -45,6 +49,8 @@ function UtilityTaskSession({
   language,
   onCreated,
   onReset,
+  jobs = [],
+  active = true,
 }: UtilityTaskProps & { onReset(): void }) {
   const { capability, Form } = utilities[tool];
   const [example, setExample] = useState<PreparedExample | null>(null);
@@ -111,14 +117,29 @@ function UtilityTaskSession({
               example?.module.capability_id === capability ? example : null
             }
           >
-            <Form
-              language={language}
-              {...(tool === "brain" ? { focus: "brain" as const } : {})}
-              onCreated={(job) => {
-                setCompleted(true);
-                onCreated(job);
+            <TaskPresentationContext.Provider
+              value={{
+                layout: "single",
+                renderResult: (job) => (
+                  <UtilityTaskResult
+                    accepted={job}
+                    jobs={jobs}
+                    active={active}
+                    language={language}
+                    onCreated={onCreated}
+                  />
+                ),
               }}
-            />
+            >
+              <Form
+                language={language}
+                {...(tool === "brain" ? { focus: "brain" as const } : {})}
+                onCreated={(job) => {
+                  setCompleted(true);
+                  onCreated(job);
+                }}
+              />
+            </TaskPresentationContext.Provider>
           </ExampleContext.Provider>
         </fieldset>
       </div>

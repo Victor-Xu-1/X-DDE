@@ -85,11 +85,21 @@ editable fields; general forms and nested result panels stay flat. Focused
 compiled-form checks cover these entity groups without making generic decorative
 frames or outer questionnaires part of the design.
 
-The existing questionnaire still exposes one step at a time. The setup sidebar is
+Research questionnaires expose one step at a time. The setup sidebar is
 a projection of the current form values, not another draft, task or validation
 authority. Mol-1, OpenDDE and Boltz retain their own supported parameters and
 readiness checks. The public Mol-1 base model does not gain unsupported geometric
 constraint capabilities from a change in presentation.
+
+The five molecular utilities use a single input-and-output page instead. Their
+native forms and submission checks remain authoritative: all applicable inputs
+are editable together, the actual structure is visible alongside, and optional
+settings stay collapsed until requested. Run is explicit and availability-gated;
+choosing an image or example never submits a scientific task. Results use the
+same platform job list and native result components in the current utility, with
+task details and original downloads still available. Each tool retains its own
+draft while switching tabs; starting a new task clears only that tool. Outside
+the utility boundary the default guided flow is unchanged.
 
 Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and

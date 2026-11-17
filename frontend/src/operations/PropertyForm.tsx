@@ -202,6 +202,7 @@ export function PropertyForm({
         },
         {
           title: zh ? "确认内容" : "Choose calculation",
+          inline: "options",
           valid: true,
           content: (
             <>
@@ -228,6 +229,7 @@ export function PropertyForm({
         },
         {
           title: zh ? "确认启动" : "Review & start",
+          inline: "preview",
           valid: true,
           content: (
             <MolecularReview

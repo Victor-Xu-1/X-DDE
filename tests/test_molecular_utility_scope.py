@@ -81,7 +81,7 @@ GUARDS = {
 
 
 def test_exact_profile_paths_and_version_mirrors():
-    assert scope["selected"](scope["FILES"])
+    assert scope["selected"](scope["FILES"], shared=scope["SHARED"])
     assert not scope["selected"]([])
     assert not scope["selected"](["pyproject.toml"])
     assert not scope["selected"](scope["FILES"], "workflow_dispatch")
@@ -106,7 +106,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "pyproject.toml",
     ]
     if mixed:
-        changed.append("frontend/src/App.tsx")
+        changed.append("src/opendde_workbench/backend_router.py")
     calls = []
 
     def output(args, **_kwargs):
@@ -169,6 +169,35 @@ def test_heavy_jobs_delegate_to_the_exact_utility_consumers():
             block = text.split("\n  " + name + ":\n", 1)[1].split("    steps:", 1)[0]
             assert "utility-scope" in block
             assert "needs.utility-scope.outputs.utility_only != 'true'" in block
+
+
+@pytest.mark.parametrize("name,job", [
+    ("appearance-checks.yml", "appearance"),
+    ("chart-quality-checks.yml", "statistical-previews"),
+    ("landscape-checks.yml", "landscapes"),
+    ("simulation-view-checks.yml", "previews"),
+    ("viewer-checks.yml", "molecular-preview"),
+])
+def test_inherited_main_callers_use_the_same_canonical_utility_output(name, job):
+    parent = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    assert "utility_only:\n        value: ${{ jobs.utility-scope.outputs.utility_only }}" in parent
+    workflow = (Path(".github/workflows") / name).read_text()
+    block = workflow.split("\n  " + job + ":\n", 1)[1].split("    steps:", 1)[0]
+    assert "needs: prediction-scope" in block
+    assert "needs.prediction-scope.outputs.utility_only != 'true'" in block
+
+
+@pytest.mark.parametrize("path", scope["SHARED"])
+def test_shared_presentation_requires_both_exact_reviewed_git_blobs(path):
+    changed = ["frontend/src/utilities/UtilityTask.tsx", path]
+    approved = scope["SHARED"]
+    assert scope["selected"](changed, shared=approved)
+    assert not scope["selected"]([path], shared=approved)
+    assert not scope["selected"](changed)
+    before, after = approved[path]
+    for pair in [("unknown-before", after), (before, "unknown-after"), (before, None)]:
+        assert not scope["selected"](changed, shared={path: pair})
+    assert not scope["selected"]([*changed, "src/opendde_workbench/backend_router.py"], shared=approved)
 
 
 def test_retired_gate_paths_cannot_return_as_a_competing_implementation(monkeypatch):

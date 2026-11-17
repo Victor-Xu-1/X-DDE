@@ -9,6 +9,8 @@ on:
       - "frontend/src/guided/MolecularReview*"
       - "frontend/src/guided/InputActionScope*"
       - "frontend/src/guided/useInputTaskSubmit*"
+      - "frontend/src/guided/TaskPresentation*"
+      - "frontend/src/guided/SinglePage*"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/guided/molecular-review.css"
       - "frontend/src/operations/PropertyForm.tsx"
@@ -96,6 +98,10 @@ jobs:
           npx vitest run \
             src/examples/ExampleActions.test.tsx \
             src/guided/MolecularReview.test.tsx \
+            src/guided/Questionnaire.test.tsx \
+            src/guided/QuestionnaireGuidance.test.tsx \
+            src/guided/SinglePageTask.test.tsx \
+            src/App.test.tsx \
             src/operations/PropertyForm.test.tsx \
             src/operations/PropertyFormFileVerification.test.tsx \
             src/chemistry/StateForm.test.tsx \
@@ -119,6 +125,8 @@ jobs:
             src/admet/EndpointValue.test.tsx \
             src/utilities/UtilityBrainSubmission.test.tsx \
             src/utilities/UtilityTask.test.tsx \
+            src/utilities/UtilityTaskResult.test.tsx \
+            src/utilities/UtilitySinglePage.test.tsx \
             src/admet/BrainScope.test.tsx \
             src/utilities/UtilityWorkspace.test.tsx \
             src/studio/MethodSwitch.test.tsx \

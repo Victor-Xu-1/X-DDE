@@ -16,9 +16,13 @@ type Utility = (typeof utilityTabs)[number][0];
 export function UtilityWorkspace({
   language,
   onCreated,
+  jobs = [],
+  active: visible = true,
 }: {
   language: Language;
   onCreated(job: Job): void;
+  jobs?: readonly Job[];
+  active?: boolean;
 }) {
   const [active, setActive] = useState<Utility>("image");
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
@@ -70,6 +74,8 @@ export function UtilityWorkspace({
                   tool={id}
                   language={language}
                   onCreated={onCreated}
+                  jobs={jobs}
+                  active={visible && active === id}
                 />
               </>
             ) : (

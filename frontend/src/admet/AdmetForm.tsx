@@ -194,6 +194,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "选择推荐设置" : "Choose settings",
+          inline: "options",
           valid:
             [1, 2].includes(options.cpu) &&
             [2048, 4096, 8192].includes(options.memory_mib),
@@ -210,6 +211,7 @@ export function AdmetForm({
         },
         {
           title: zh ? "确认预测" : "Review prediction",
+          inline: "preview",
           valid,
           content: (
             <>

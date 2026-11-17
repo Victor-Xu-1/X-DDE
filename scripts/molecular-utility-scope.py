@@ -1,10 +1,17 @@
 """Delegate closed molecular-utility changes; preserve mixed scientific gates."""
 
 import os
+import hashlib
 import subprocess
 from pathlib import Path
 
 SOURCES = {
+    "frontend/src/guided/TaskPresentation.tsx",
+    "frontend/src/guided/SinglePageFields.tsx",
+    "frontend/src/guided/SinglePageTask.test.tsx",
+    "frontend/src/utilities/UtilitySinglePage.test.tsx",
+    "frontend/src/utilities/UtilityTaskResult.tsx",
+    "frontend/src/utilities/UtilityTaskResult.test.tsx",
     "frontend/src/utilities/ImageMoleculeInput.tsx",
     "frontend/src/utilities/ImageMoleculeDialog.tsx",
     "frontend/src/utilities/ImageMoleculeInput.action.test.tsx",
@@ -60,6 +67,14 @@ RETIRED = {
     "frontend/src/admet/BrainForm.test.tsx",
 }
 FILES = SOURCES | RETIRED | {
+    "frontend/src/App.tsx",
+    "frontend/src/guided/Questionnaire.tsx",
+    "frontend/src/guided/GuidedQuestionFields.tsx",
+    ".github/workflows/appearance-checks.yml",
+    ".github/workflows/chart-quality-checks.yml",
+    ".github/workflows/landscape-checks.yml",
+    ".github/workflows/simulation-view-checks.yml",
+    ".github/workflows/viewer-checks.yml",
     "frontend/src/examples/ExampleActions.tsx",
     "frontend/src/examples/ExampleActions.test.tsx",
     ".github/workflows/library-screen-checks.yml",
@@ -107,11 +122,33 @@ FILES = SOURCES | RETIRED | {
 }
 
 
-def selected(changed, event="push"):
+# Exact reviewed transitions only; unknown shared-shell changes retain native gates.
+# Values are bound to Git blob bytes and updated only with independent source review.
+SHARED = {
+    "frontend/src/App.tsx": ("PENDING_REVIEW", "PENDING_REVIEW"),
+    "frontend/src/guided/Questionnaire.tsx": ("PENDING_REVIEW", "PENDING_REVIEW"),
+    "frontend/src/guided/GuidedQuestionFields.tsx": (None, "PENDING_REVIEW"),
+}
+
+
+def selected(changed, event="push", *, shared=None):
     paths = set(changed)
     if any(Path(path).exists() for path in paths & RETIRED):
         return False
+    for path in paths & SHARED.keys():
+        if not shared or shared.get(path) != SHARED[path]:
+            return False
     return event in {"push", "pull_request"} and bool(paths & SOURCES) and paths <= FILES
+
+
+def blob_digest(revision, path):
+    try:
+        value = subprocess.check_output(
+            ["git", "show", f"{revision}:{path}"], stderr=subprocess.DEVNULL
+        )
+    except subprocess.CalledProcessError:
+        return None
+    return hashlib.sha256(value).hexdigest()
 
 
 def main():
@@ -125,7 +162,9 @@ def main():
     ).splitlines() if base and set(base) != {"0"} else []
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("utility_only=" + str(selected(
-            changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            changed, os.environ.get("GITHUB_EVENT_NAME", "push"),
+            shared={path: (blob_digest(base, path), blob_digest("HEAD", path))
+                    for path in set(changed) & SHARED.keys()},
         )).lower() + "\n")
 
 

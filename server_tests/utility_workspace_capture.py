@@ -59,10 +59,9 @@ def load_utility_template(page, utility, capability, language, evidence):
     label = "使用此模板" if language == "zh" else "Use this template"
     inspect_pending = capability == "properties" and language == "en"
     if inspect_pending:
-        # Follow the questionnaire into its visible input page before exercising images.
-        utility.get_by_role("button", name="Next", exact=True).click()
+        # Utilities expose the input directly; images never require a Next step.
         verify_image_cancel(page, utility.locator(".utility-task-fields"), evidence)
-    heading = utility.locator(".questionnaire-page-heading")
+    heading = utility.locator(".single-page-main")
     previous = heading.bounding_box()
 
     def pending(route):

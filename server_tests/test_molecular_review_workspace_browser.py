@@ -87,10 +87,8 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
             source_digest = hashlib.sha256(original).hexdigest()
             if digest:
                 assert source_digest == digest
-            for _ in range(3):
-                next_step = page.get_by_role("button", name="下一步" if zh else "Next", exact=True)
-                expect(next_step).to_be_enabled(timeout=30000)
-                next_step.click()
+            expect(utility.locator(".questionnaire-steps")).to_have_count(0)
+            expect(utility.get_by_role("button", name="下一步" if zh else "Next", exact=True)).to_have_count(0)
             review = page.locator(".molecular-input-review")
             drawing = review.locator(".molecule-image")
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
@@ -99,11 +97,10 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
                 ".molecular-input-summary"
             ).bounding_box()
             assert structure and summary
-            if width > 700:
-                assert structure["x"] + structure["width"] <= summary["x"]
-                assert structure["width"] > summary["width"]
-            else:
-                assert structure["y"] + structure["height"] <= summary["y"]
+            assert structure["y"] + structure["height"] <= summary["y"] + 1
+            expect(review.locator(".molecular-input-summary")).not_to_have_attribute("open", "")
+            review.locator(".molecular-input-summary > summary").click()
+            expect(review.locator(".molecular-input-summary")).to_have_attribute("open", "")
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             encoded = drawing.get_by_role("img").get_attribute("src")
             vector = base64.b64decode(encoded.split(",", 1)[1])
@@ -141,8 +138,8 @@ def test_exact_molecular_input_workspace(admet_saved_workspace, capability, lang
                 drawing.get_by_role("combobox", name="2D drawing line weight").select_option("1.6")
                 expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             capture_input_review(page, review, evidence)
-            page.get_by_role("button", name="上一步" if zh else "Back", exact=True).click()
-            page.get_by_role("button", name="下一步" if zh else "Next", exact=True).click()
+            utility.locator(".single-page-options > summary").click()
+            utility.locator(".single-page-options > summary").click()
             expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
             # The saved result stays inside this utility and does not replace its input.
             info = page.request.get(base + "/api/examples/" + capability).json()

@@ -234,11 +234,13 @@ export function StateForm({
         },
         {
           title: zh ? "选择方案" : "Choose settings",
+          inline: "options",
           content: settings,
           valid: true,
         },
         {
           title: zh ? "确认启动" : "Review & start",
+          inline: "preview",
           content: (
             <MolecularReview
               language={language}

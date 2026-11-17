@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 it.each(["en", "zh"] as const)(
-  "submits a brain profile only after review (%s)",
+  "submits a brain profile from the single input page (%s)",
   async (language) => {
     const user = userEvent.setup(),
       zh = language === "zh";
@@ -51,18 +51,19 @@ it.each(["en", "zh"] as const)(
     render(
       <UtilityTask tool="brain" language={language} onCreated={vi.fn()} />,
     );
-    const next = () =>
-      user.click(screen.getByRole("button", { name: zh ? "下一步" : "Next" }));
-    await next();
+    expect(
+      screen.queryByRole("button", { name: zh ? "下一步" : "Next" }),
+    ).toBeNull();
     await user.click(screen.getByRole("button", { name: "Choose molecule" }));
-    await next();
+    await user.click(
+      screen.getByText(zh ? "更多设置（可选）" : "More settings (optional)"),
+    );
     expect(screen.getByRole("radio", { name: /ADMET-AI/ })).toBeChecked();
     expect(
       screen.queryByText(
         zh ? "全部性质（推荐）" : "All properties (recommended)",
       ),
     ).toBeNull();
-    await next();
     expect(screen.getByText("Structure confirmation")).toBeVisible();
     await user.click(
       screen.getByRole("button", {
