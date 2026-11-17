@@ -44,3 +44,22 @@ def test_unrelated_suites_delegate_only_to_the_exact_frame_scope():
         body = Path(f".github/workflows/{name}-checks.yml").read_text()
         assert f"paths: &{anchor}" in body
         assert f"pull_request:\n    paths: *{anchor}" in body
+    layout = Path(".github/workflows/structure-layout-checks.yml").read_text()
+    adjacent = layout.split("  adjacent-result-consumers:", 1)[1].split("    steps:", 1)[0]
+    assert "prediction-scope" in adjacent.split("    if:", 1)[0]
+    assert "needs.prediction-scope.outputs.confidence_frame != 'true'" in adjacent
+
+
+def test_main_setup_and_frame_scopes_remain_independent_after_refresh():
+    owner = runpy.run_path("scripts/prediction-workspace-scope.py")
+    setup = runpy.run_path("scripts/prediction-setup-scope.py")["FILES"]
+    assert owner["setup_summary_only"](setup)
+    assert not owner["confidence_frame_only"](setup)
+    assert owner["confidence_frame_only"](scope["FILES"])
+    assert not owner["setup_summary_only"](scope["FILES"])
+    assert not owner["confidence_frame_only"]([*scope["FILES"], *setup])
+    workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
+    for field in ("confidence_frame", "setup_summary"):
+        assert f"{field}: ${{{{ steps.select.outputs.{field} }}}}" in workflow
+    assert "tests/test_confidence_frame_scope.py" in workflow
+    assert "tests/test_prediction_setup_scope.py" in workflow

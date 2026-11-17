@@ -12,7 +12,9 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.confidence import confidence_view
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.molecular_review_capture import launch_review_browser
 from server_tests.native_confidence_case import native_case
+from server_tests.test_prediction_workspace_browser import review_prediction_workspace
 
 
 def observe_updates(plot):
@@ -177,3 +179,8 @@ def test_native_confidence_keeps_verified_frames(tmp_path, language, theme, widt
             raise
         finally:
             browser.close()
+
+
+def test_wide_native_prediction_retains_canvas_height_and_reachable_controls(tmp_path):
+    """Reuse the exact existing 2560px result/input/expansion flow in real Chrome."""
+    review_prediction_workspace(tmp_path, "en", 2560, launch_browser=launch_review_browser)

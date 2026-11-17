@@ -873,3 +873,11 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+At wide prediction-result sizes, the 3D canvas has a 600px minimum and the
+workspace grows with its controls instead of compressing the scene inside a fixed
+height. Footer and inspection actions remain in flow below it; confidence and
+sequence stay aligned on the right. Narrow and expanded layouts retain their
+existing behavior. The existing 2560px inspection/input/expansion flow is reused
+in the native confidence gate with actual Chrome, including control containment;
+this does not submit a prediction or alter source coordinates and confidence data.
