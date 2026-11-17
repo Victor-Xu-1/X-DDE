@@ -1,12 +1,17 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { useInputActionScope } from "../guided/InputActionScope";
-import { validImage, type ImageMolecule } from "./image-molecule";
+import {
+  validImage,
+  validImageMolecule,
+  type ImageMolecule,
+} from "./image-molecule";
 
 type Token = { id: number; availability: number; signal?: AbortSignal };
-type Selection = { file: File; token: Token };
+type Selection = { file: File; token: Token; initialMolecule?: ImageMolecule };
 type Options = {
   enabled: boolean;
   disabled: boolean;
+  onImageSelected?(editing: boolean): void;
   trigger: RefObject<HTMLButtonElement | null>;
   onMolecule(
     value: ImageMolecule,
@@ -74,14 +79,17 @@ export function useImageInputSession(options: Options) {
       signal: current.current.scope?.currentSignal(),
     };
   }
-  function select(file: File, token?: Token) {
+  function select(file: File, token?: Token, initialMolecule?: ImageMolecule) {
     if (blocked() || (token && !readable(token))) return;
     if (!validImage(file)) {
       setError("format");
       return;
     }
     const next = begin();
-    if (next) setSelection({ file, token: next });
+    if (next) {
+      current.current.onImageSelected?.(Boolean(initialMolecule));
+      setSelection({ file, token: next, initialMolecule });
+    }
   }
   async function paste() {
     const token = begin();
@@ -118,6 +126,9 @@ export function useImageInputSession(options: Options) {
       await current.current.onMolecule(value, source, controller.signal);
       // Uploading this accepted image may itself disable the source controls.
       if (valid(selected.token) && !controller.signal.aborted) close();
+    } catch (error) {
+      // A deliberately cancelled import has no current UI to report a failure to.
+      if (!controller.signal.aborted) throw error;
     } finally {
       selected.token.signal?.removeEventListener("abort", cancel);
     }
@@ -149,7 +160,10 @@ export function useImageInputSession(options: Options) {
     paste,
     accept,
     close,
-    disabled: options.disabled || Boolean(scope?.action),
+    disabled: !options.enabled || options.disabled || Boolean(scope?.action),
+    review(value: ImageMolecule, file: File) {
+      if (validImageMolecule(value)) select(file, undefined, value);
+    },
     choose() {
       pickerToken.current = begin();
       return Boolean(pickerToken.current);

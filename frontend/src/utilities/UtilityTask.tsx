@@ -123,7 +123,8 @@ function UtilityTaskSession({
             <TaskPresentationContext.Provider
               value={{
                 layout: "single",
-                active,
+                active: active && !previewing,
+                imageEntry: "workspace",
                 renderResult: (job) => (
                   <UtilityTaskResult
                     accepted={job}

@@ -20,6 +20,7 @@ type Props = {
   allowedSuffixes?: readonly string[];
   showHistory?: boolean;
   maxBytes?: number;
+  uploadKey?: string;
 };
 
 export function AssetPicker(props: Props) {
@@ -48,13 +49,14 @@ function AssetPickerBody({
   formats,
   showHistory,
   maxBytes,
+  uploadKey,
 }: Props & {
   formats: readonly string[];
   showHistory: boolean;
   maxBytes: number;
 }) {
   const zh = language === "zh";
-  const sources = useAssetSources(value, showHistory, onChange);
+  const sources = useAssetSources(value, showHistory, onChange, uploadKey);
   const { source } = sources;
   const [knownBySource, setKnownBySource] = useState<
     Partial<Record<AssetSource, Asset>>

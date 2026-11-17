@@ -3,6 +3,12 @@ import { Hint } from "../guided/Hint";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
+import { useContext, useState } from "react";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
+import {
+  UtilityImageInput,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import {
   screenLabels,
   type ScreenMode,
@@ -24,6 +30,19 @@ export function ScreenPurpose({
 }) {
   const zh = language === "zh",
     requiresQuery = mode === "similarity" || mode === "substructure";
+  const presentation = useContext(TaskPresentationContext);
+  const [imageInput, setImageInput] = useState<UtilityImageValue | null>(null);
+  const queryInput = (
+    <ReferencePicker
+      kind="ligand"
+      allowedSuffixes={[".sdf"]}
+      value={query}
+      onChange={onQuery}
+      language={language}
+      label={zh ? "参照分子或片段" : "Query molecule or fragment"}
+      uploadKey={imageInput?.key}
+    />
+  );
   return (
     <>
       <ChoiceCards<ScreenMode>
@@ -45,20 +64,28 @@ export function ScreenPurpose({
                 : undefined,
         }))}
       />
-      {requiresQuery && (
-        <ReferencePicker
-          kind="ligand"
-          allowedSuffixes={[".sdf"]}
-          value={query}
-          onChange={onQuery}
-          language={language}
-          label={zh ? "参照分子或片段" : "Query molecule or fragment"}
-        />
-      )}
+      {requiresQuery &&
+        (presentation?.imageEntry === "workspace" ? (
+          <UtilityImageInput
+            key={mode}
+            query
+            language={language}
+            active={presentation.active !== false}
+            value={query?.asset_id ?? ""}
+            onLoaded={(value) => {
+              setImageInput(value);
+              onQuery(value.reference);
+            }}
+          >
+            {queryInput}
+          </UtilityImageInput>
+        ) : (
+          queryInput
+        ))}
       <Hint label={zh ? "选择的依据是什么？" : "What is selection based on?"}>
         {zh
-          ? "按已有化学结构筛选；风险规则和骨架选择在下一步设置。相似性使用保留手性的 Morgan 指纹。这些方法不预测药效或结合。"
-          : "Select by existing chemical structures; set rule alerts and scaffold limits next. Similarity uses chiral Morgan fingerprints. These methods do not predict activity or binding."}
+          ? "按已有化学结构筛选；风险规则和骨架选择可在设置中调整。相似性使用保留手性的 Morgan 指纹。这些方法不预测药效或结合。"
+          : "Select by existing chemical structures; adjust rule alerts and scaffold limits in settings. Similarity uses chiral Morgan fingerprints. These methods do not predict activity or binding."}
       </Hint>
     </>
   );

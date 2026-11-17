@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import {
+  UtilityFormImage,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import { useExampleReference, useExampleTask } from "../examples/context";
 import { AssetPicker } from "../operations/AssetPicker";
 import { useSdfAsset } from "../research/useSdfAsset";
@@ -17,14 +21,26 @@ import {
   type ScreenOptions,
 } from "./screen-types";
 
-export function LibraryScreenForm({
+export function LibraryScreenForm(props: Parameters<typeof LibraryFields>[0]) {
+  return (
+    <UtilityFormImage language={props.language}>
+      {(imageInput) => (
+        <LibraryFields {...props} imageInput={imageInput ?? props.imageInput} />
+      )}
+    </UtilityFormImage>
+  );
+}
+
+function LibraryFields({
   language,
   onCreated,
   initialLibrary = null,
+  imageInput = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialLibrary?: LibraryRef | null;
+  imageInput?: UtilityImageValue | null;
 }) {
   const exampleLibrary = useExampleReference("library");
   const preset = useExampleTask("library_screen");
@@ -32,11 +48,17 @@ export function LibraryScreenForm({
     run = useInputTaskSubmit(onCreated),
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
-  useEffect(() => {
-    const selected = initialLibrary ?? preset?.library ?? exampleLibrary;
-    if (selected) void input.choose(selected.asset_id);
+  useLayoutEffect(() => {
+    const selected =
+      imageInput?.reference ??
+      initialLibrary ??
+      preset?.library ??
+      exampleLibrary;
+    if (selected) void input.choose(selected.asset_id, selected.sha256);
   }, [
     initialLibrary?.asset_id,
+    initialLibrary?.sha256,
+    imageInput?.key,
     preset?.library.asset_id,
     exampleLibrary?.asset_id,
     input.choose,
@@ -112,6 +134,7 @@ export function LibraryScreenForm({
                 allowedSuffixes={[".sdf"]}
                 value={library?.asset_id ?? ""}
                 onChange={(id) => void input.choose(id)}
+                uploadKey={imageInput?.key}
               />
               <Hint
                 label={

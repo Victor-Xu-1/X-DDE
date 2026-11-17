@@ -11,12 +11,26 @@ export function ImageMoleculeInput({
   language,
   enabled = true,
   disabled = false,
+  className = "",
+  inputOwner = false,
+  automatic = false,
+  cancelOnEdit = false,
+  review,
+  onSourceEdit,
+  onImageSelected,
   onMolecule,
   children,
 }: {
   language: Language;
   enabled?: boolean;
   disabled?: boolean;
+  className?: string;
+  inputOwner?: boolean;
+  automatic?: boolean;
+  cancelOnEdit?: boolean;
+  review?: { molecule: ImageMolecule; image: File };
+  onSourceEdit?(): void;
+  onImageSelected?(editing: boolean): void;
   onMolecule(
     value: ImageMolecule,
     source: File,
@@ -25,16 +39,40 @@ export function ImageMoleculeInput({
   children?: ReactNode;
 }) {
   const presentation = useContext(TaskPresentationContext);
-  enabled = enabled && presentation?.active !== false;
+  enabled =
+    enabled &&
+    presentation?.active !== false &&
+    (inputOwner || presentation?.imageEntry !== "workspace");
   const zh = language === "zh",
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const surface = useRef<HTMLDivElement>(null);
   const session = useImageInputSession({
     enabled,
     disabled,
     onMolecule,
     trigger,
+    onImageSelected,
   });
+  function owns(target: EventTarget) {
+    return (
+      target instanceof Element &&
+      target.closest(".image-molecule-input") === surface.current
+    );
+  }
+  function edit(target: EventTarget) {
+    if (
+      !cancelOnEdit ||
+      !owns(target) ||
+      !(target instanceof Element) ||
+      target.closest(".image-molecule-actions") ||
+      target === picker.current
+    )
+      return;
+    session.close(false);
+    if (target.closest("[data-molecule-source],.asset-picker,.diff-reference"))
+      onSourceEdit?.();
+  }
   const errors = {
     format: zh
       ? "请选择不超过 10 MB 的 PNG、JPEG、WebP 或 BMP 图片。"
@@ -44,11 +82,15 @@ export function ImageMoleculeInput({
       ? "请在此处按 Ctrl+V 粘贴，或拖入图片。"
       : "Press Ctrl+V here, or drop an image.",
   };
-  if (!enabled) return <>{children}</>;
+  if (!enabled && !inputOwner) return <>{children}</>;
   return (
     <div
-      className="image-molecule-input"
-      onPaste={(event) => {
+      ref={surface}
+      className={"image-molecule-input " + className}
+      onClickCapture={(event) => edit(event.target)}
+      onChangeCapture={(event) => edit(event.target)}
+      onPasteCapture={(event) => {
+        if (!owns(event.target)) return;
         const image = Array.from(event.clipboardData.files).find((item) =>
           item.type.startsWith("image/"),
         );
@@ -58,7 +100,8 @@ export function ImageMoleculeInput({
           session.select(image);
         }
       }}
-      onDragOver={(event) => {
+      onDragOverCapture={(event) => {
+        if (!owns(event.target)) return;
         if (
           Array.from(event.dataTransfer.items).some((item) =>
             item.type.startsWith("image/"),
@@ -66,7 +109,8 @@ export function ImageMoleculeInput({
         )
           event.preventDefault();
       }}
-      onDrop={(event) => {
+      onDropCapture={(event) => {
+        if (!owns(event.target)) return;
         const image = Array.from(event.dataTransfer.files).find((item) =>
           item.type.startsWith("image/"),
         );
@@ -88,7 +132,13 @@ export function ImageMoleculeInput({
             if (session.choose()) picker.current?.click();
           }}
         >
-          {zh ? "从结构图片输入" : "Input from structure image"}
+          {automatic
+            ? zh
+              ? "上传结构图"
+              : "Upload structure image"
+            : zh
+              ? "从结构图片输入"
+              : "Input from structure image"}
         </button>
         <button
           type="button"
@@ -101,6 +151,16 @@ export function ImageMoleculeInput({
         <span>
           {zh ? "也可直接拖入结构图" : "Or drop a structure image here"}
         </span>
+        {review && (
+          <button
+            type="button"
+            className="text-button"
+            disabled={session.disabled}
+            onClick={() => session.review(review.molecule, review.image)}
+          >
+            {zh ? "编辑识别的结构" : "Edit recognized structure"}
+          </button>
+        )}
       </div>
       <input
         ref={picker}
@@ -127,6 +187,8 @@ export function ImageMoleculeInput({
             file={session.selection.file}
             language={language}
             disabled={session.disabled}
+            automatic={automatic && !session.selection.initialMolecule}
+            initialMolecule={session.selection.initialMolecule}
             onClose={() => session.close()}
             onAccept={(value, source) =>
               session.accept(session.selection!, value, source)

@@ -1,6 +1,10 @@
 import "./states.css";
 import { useExampleReference, useExampleTask } from "../examples/context";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import {
+  UtilityFormImage,
+  type UtilityImageValue,
+} from "../utilities/UtilityImageInput";
 import type { Job, Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
@@ -12,14 +16,26 @@ import { MolecularReview } from "../guided/MolecularReview";
 import { optionsFor, type PreparationChoice } from "./model";
 import type { StateOptions } from "./types";
 
-export function StateForm({
+export function StateForm(props: Parameters<typeof StateFields>[0]) {
+  return (
+    <UtilityFormImage language={props.language}>
+      {(imageInput) => (
+        <StateFields {...props} imageInput={imageInput ?? props.imageInput} />
+      )}
+    </UtilityFormImage>
+  );
+}
+
+function StateFields({
   language,
   onCreated,
   initialMolecule = null,
+  imageInput = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialMolecule?: MoleculeRef | null;
+  imageInput?: UtilityImageValue | null;
 }) {
   const preset = useExampleTask("molecular_states");
   const example = useExampleReference("ligand", "imatinib", "jq1");
@@ -37,6 +53,9 @@ export function StateForm({
     [raw, setRaw] = useState(""),
     [name, setName] = useState(""),
     [error, setError] = useState("");
+  useLayoutEffect(() => {
+    if (imageInput) setMolecule(imageInput.reference);
+  }, [imageInput?.key]);
   const {
     ready,
     error: readinessError,
@@ -70,6 +89,7 @@ export function StateForm({
         onChange={setMolecule}
         language={language}
         label={zh ? "研究分子" : "Research molecule"}
+        uploadKey={imageInput?.key}
       />
     </>
   );

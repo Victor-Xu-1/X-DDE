@@ -5,6 +5,7 @@ import { researchError } from "../presentation/research-content";
 import { useAssetUpload } from "./useAssetUpload";
 import { ImageMoleculeInput } from "../utilities/ImageMoleculeInput";
 import { imageMoleculeFile } from "../utilities/image-molecule";
+import { useImageInputSource } from "../utilities/ImageInputSource";
 
 /** Unmounting this source invalidates its existing native upload lifecycle. */
 export function AssetPickerUpload({
@@ -27,6 +28,7 @@ export function AssetPickerUpload({
   label: string;
 }) {
   const zh = language === "zh";
+  const inputSource = useImageInputSource();
   const upload = useAssetUpload(
     kind,
     formats,
@@ -70,7 +72,7 @@ export function AssetPickerUpload({
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
-            if (file) void upload.upload(file);
+            if (file) void upload.upload(file, { signal: inputSource?.() });
           }}
         />
       </label>
