@@ -27,9 +27,14 @@ export function useRecognitionRequest(options: Options) {
     completed = useRef<string | null>(null),
     applied = useRef<string | null>(null);
   const deadline = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const destination = useRef<Window | null>(null);
   function send(type: string, requestId: string) {
     const item = current.current;
-    item.frame.current?.contentWindow?.postMessage(
+    // React clears the iframe ref before passive cleanup. Keep its exact target
+    // so closing a dialog can still revoke the current native import lease.
+    destination.current =
+      item.frame.current?.contentWindow ?? destination.current;
+    destination.current?.postMessage(
       { type, id: item.id, requestId },
       item.origin,
     );

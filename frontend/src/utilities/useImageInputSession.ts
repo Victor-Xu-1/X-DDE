@@ -126,6 +126,9 @@ export function useImageInputSession(options: Options) {
       await current.current.onMolecule(value, source, controller.signal);
       // Uploading this accepted image may itself disable the source controls.
       if (valid(selected.token) && !controller.signal.aborted) close();
+    } catch (error) {
+      // A deliberately cancelled import has no current UI to report a failure to.
+      if (!controller.signal.aborted) throw error;
     } finally {
       selected.token.signal?.removeEventListener("abort", cancel);
     }
