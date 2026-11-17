@@ -19,6 +19,7 @@ SOURCES = {
 }
 FILES = SOURCES | {
     ".github/workflows/dataset-discovery-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
     ".github/workflows/task-layout-checks.yml",
     ".github/workflows/user-interface-checks.yml",
     ".github/workflows/restraint-guidance-checks.yml",

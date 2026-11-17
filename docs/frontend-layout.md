@@ -881,3 +881,10 @@ geometry receipts. It does not install or control the owner's desktop browser.
 The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
+
+Target-evidence branch synchronization reuses the existing closed target selector
+in prediction and layout callers. A push that merely adopts reviewed main must
+not turn unchanged prediction inputs into an all-page layout run. The dedicated
+target-evidence gate still owns real native selection, source notes and export;
+its exact file/CSS boundary is unchanged. Mixed shared or backend changes fail
+closed and require an explicit scoped plan instead of being silently delegated.
