@@ -52,10 +52,16 @@ class ArchiveReplay:
 
 def configure_replay(monkeypatch, directory):
     """Inject the transport seam into this isolated server and its actual importer child."""
+    ArchiveReplay()
     directory.mkdir()
     site = directory / "sitecustomize.py"
     site.write_text(
-        f"import runpy\nrunpy.run_path({str(Path(__file__).resolve())!r})['install']()\n"
+        "import os, runpy\ntry:\n"
+        f"    runpy.run_path({str(Path(__file__).resolve())!r})['install']()\n"
+        "except BaseException as error:\n"
+        "    os.write(2, ('Archive replay bootstrap failed: ' + "
+        "type(error).__name__ + '\\n').encode())\n"
+        "    os._exit(86)\n"
     )
     log = directory / "requests.jsonl"
     monkeypatch.setenv(SITE, str(directory.resolve()))

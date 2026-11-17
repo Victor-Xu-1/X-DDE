@@ -2,10 +2,12 @@
 
 import json
 import shutil
+import subprocess
+import sys
 
 import pytest
 
-from server_tests.reference_archive_replay import CAPTURE, PREFIX, ArchiveReplay
+from server_tests.reference_archive_replay import CAPTURE, LOG, PREFIX, ArchiveReplay, configure_replay
 
 
 def test_exact_capture_metadata_and_sdf_are_replayed_without_network(tmp_path):
@@ -42,3 +44,21 @@ def test_capture_tampering_is_rejected_before_startup_or_after_verification(tmp_
     (capture / "source.json").write_text(json.dumps(data))
     with pytest.raises(ValueError, match="two reviewed"):
         ArchiveReplay(capture)
+
+
+def test_bootstrap_failure_is_fatal_before_entrypoint_or_unpatched_transport(tmp_path, monkeypatch):
+    configure_replay(monkeypatch, tmp_path / "site")
+    monkeypatch.setenv(LOG, str(tmp_path / "outside-context.jsonl"))
+    entered, transport_called = tmp_path / "entered", tmp_path / "transport-called"
+    script = (
+        "from pathlib import Path\n"
+        "from opendde_workbench.discovery import transport\n"
+        f"Path({str(entered)!r}).write_text('entrypoint executed')\n"
+        f"transport.build_opener = lambda *args: Path({str(transport_called)!r}).touch()\n"
+        f"transport.request_bytes({(PREFIX + '.json')!r})\n"
+    )
+    result = subprocess.run([sys.executable, "-c", script], capture_output=True,
+                            text=True, timeout=10, check=False)
+    assert result.returncode == 86
+    assert result.stderr == "Archive replay bootstrap failed: ValueError\n"
+    assert not entered.exists() and not transport_called.exists()
