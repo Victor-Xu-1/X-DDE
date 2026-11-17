@@ -34,7 +34,9 @@ def capture_utility_space(page, utility, evidence):
 
 def verify_image_cancel(page, fields, evidence):
     """Tiny transport fixture checks controls, never scientific recognition."""
-    expect(fields.get_by_role("button", name="Input from structure image", exact=True)).to_be_visible()
+    expect(fields.get_by_role(
+        "button", name="Input from structure image", exact=True,
+    )).to_be_visible()
     fields.get_by_label("Choose structure image", exact=True).set_input_files({
         "name": "image-control.png", "mimeType": "image/png",
         "buffer": base64.b64decode(
