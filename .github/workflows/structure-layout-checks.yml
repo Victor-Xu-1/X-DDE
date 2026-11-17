@@ -194,7 +194,7 @@ jobs:
           cd frontend
           npx vitest run src/discovery/ReferenceImportResults.test.tsx src/presentation/MoleculeImage.test.tsx src/presentation/depiction-renderer.test.ts src/viewer/structure-bytes.test.ts src/viewer/StructureViewer.test.tsx src/research/SelectedAssetPreview.test.tsx src/publication/molecular-vector.test.ts src/publication/FigureExport.test.tsx
           cd ..
-          uv run --locked pytest -q tests/test_interaction_workspace_scope.py tests/test_reference_replay.py tests/test_reference_import.py tests/test_source_transport.py tests/test_source_proxy.py
+          uv run --locked python -m pytest -q tests/test_interaction_workspace_scope.py tests/test_reference_replay.py tests/test_reference_import.py tests/test_source_transport.py tests/test_source_proxy.py
           uv run --locked ruff check scripts/interaction-workspace-scope.py tests/test_interaction_workspace_scope.py server_tests/test_reference_preview_browser.py server_tests/reference_archive_replay.py tests/test_reference_replay.py
       - name: Obtain sealed STAT6 outputs; do not execute scientific engines
         env:
