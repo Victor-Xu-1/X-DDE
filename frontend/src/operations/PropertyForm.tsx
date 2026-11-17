@@ -103,7 +103,7 @@ function PropertyFields({
               <label htmlFor={id}>SMILES</label>{" "}
               <Hint label={zh ? "SMILES说明" : "SMILES help"}>
                 {zh
-                  ? "用文字表示分子结构。一行一个分子，不附名称或表头；如果不熟悉，可返回上一步选择分子文件。"
+                  ? "用文字表示分子结构。一行一个分子，不附名称或表头；也可以选择分子文件。"
                   : "A text representation of molecular structure. One molecule per line without names/headers; choose a molecular file instead if unfamiliar."}
               </Hint>
             </span>
@@ -213,8 +213,8 @@ function PropertyFields({
                         : "Upload a new molecular file (recommended)",
                     note: file
                       ? zh
-                        ? "下一步确认这份分子文件。"
-                        : "Review the selected file in the next step."
+                        ? "核对已选分子的结构后即可计算。"
+                        : "Inspect the selected molecule before running the calculation."
                       : zh
                         ? "一个分子或一组分子，可上传新文件或选择历史文件。"
                         : "One molecule or a set, from a new or historical file.",
