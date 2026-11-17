@@ -1,5 +1,6 @@
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
@@ -9,18 +10,11 @@ import { afterEach, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { contactRecords, proteinContacts } from "./epitope-contacts";
 import type { Job } from "../types";
+import type { StructureViewerProps } from "../viewer/StructureViewport";
 import { EpitopeResults } from "./EpitopeResults";
 afterEach(cleanup);
 const viewer = vi.fn(
-  ({
-    focusResidue,
-    initialMode,
-    ligandContext,
-  }: {
-    focusResidue?: { residue: string; nonce: number };
-    initialMode?: string;
-    ligandContext?: boolean;
-  }) => (
+  ({ focusResidue, initialMode, ligandContext }: StructureViewerProps) => (
     <div
       role="region"
       aria-label="Test structure viewer"
@@ -40,7 +34,9 @@ function sourceJob(id = "first") {
     request: {
       operation: "harness",
       payload: { structure_path: "asset:" + asset },
-      scientific_inputs: [{ asset_id: asset, record: 0, conformer: 0 }],
+      scientific_inputs: [
+        { asset_id: asset, sha256: "a".repeat(64), record: 0, conformer: 0 },
+      ],
     },
   } as unknown as Job;
 }
@@ -89,6 +85,21 @@ it("shows the real top five, expands all, and locates repeated selections withou
     />,
   );
   const table = screen.getByRole("table", { name: "蛋白接触残基" });
+  act(() =>
+    viewer.mock.lastCall?.[0].onSceneLoaded?.({
+      chains: ["C"],
+      ligands: [],
+      atoms: contacts.length,
+      hasPolymer: true,
+      residues: contacts.map((row) => ({
+        key: `C:PRO${row.residue_id}`,
+        chain: row.chain,
+        resn: row.residue_name,
+        resi: row.residue_id,
+        icode: "",
+      })),
+    }),
+  );
   expect(within(table).getAllByRole("button")).toHaveLength(5);
   expect(
     screen.getByRole("region", { name: "Test structure viewer" }),

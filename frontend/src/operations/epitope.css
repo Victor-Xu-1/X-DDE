@@ -2,6 +2,9 @@
 .epitope-contact-map {
   min-width: 0;
 }
+.epitope-contact-map {
+  height: 100%;
+}
 .studio-app .epitope-contact-map > .viewer-panel {
   padding: 0;
 }

@@ -893,6 +893,26 @@ The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
 
+Contact-result synchronization reuses the closed interaction workspace selector
+in prediction and layout callers. Already reviewed prediction setup files adopted
+from main do not authorize an all-page layout run for an epitope-only candidate.
+The dedicated native contact gate remains required; shared contact CSS keeps both
+contact and epitope consumers. Mixed shared/backend changes are not delegated.
+
+## Epitope contact workspace
+
+Epitope contact results reuse the shared contact workspace: native structure on
+the left, the contact table and compact sequence dock on the right. Expanded
+views retain the same scene and controls; narrow screens stack the panels.
+The task chooser returns when the user leaves the saved example.
+
+The preview uses the declared input snapshot and digest. Contact focus becomes
+available only after the source has loaded and a unique matching residue exists;
+ambiguous insertion-coded residues remain unselectable. Source verification
+failure clears focus without changing the native contact records or downloads.
+Counts describe geometric proximity, including the native water-handling scope,
+and must not be presented as interaction strength or affinity.
+
 ## Original reference preview
 
 Imported structures display their archived coordinates in the shared large left
