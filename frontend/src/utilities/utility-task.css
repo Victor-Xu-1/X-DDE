@@ -87,18 +87,35 @@
 .single-page-field > * + * {
   margin-top: 12px;
 }
-.single-page-task .questionnaire-choices {
+.molecular-utility .single-page-task .questionnaire-choices {
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
 }
-.single-page-task .questionnaire-choices label {
+.molecular-utility .single-page-task .questionnaire-choices label {
   min-height: 0;
   padding: 10px 12px;
   gap: 8px;
 }
-.single-page-task .questionnaire-choices small {
-  font-size: 12px;
-  line-height: 1.5;
+.molecular-utility .single-page-task .questionnaire-choices small {
+  display: none;
+}
+.molecular-utility .single-page-task .questionnaire-choices span {
+  gap: 0;
+}
+.molecular-utility .single-page-task .reference-material {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.molecular-utility .single-page-task .reference-material-heading {
+  min-height: 0;
+  padding: 0 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.molecular-utility .single-page-task .reference-material-body {
+  padding: 0;
 }
 .single-page-task .molecular-input-review {
   display: block;
