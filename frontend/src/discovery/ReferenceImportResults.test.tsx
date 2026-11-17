@@ -239,7 +239,6 @@ it.each(["en", "zh"] as const)(
     expect(prepare).toBeDisabled();
     await waitFor(() => expect(prepare).toBeEnabled());
     // The mock never reports drawing readiness; file identity is verified from real bytes.
-    expect(drawing.mock.lastCall![0]).not.toHaveProperty("onDrawingReady");
     expect(fetch).toHaveBeenCalledExactlyOnceWith(
       "/api/jobs/source-job/download?name=reference.sdf",
       { signal: expect.any(AbortSignal) },

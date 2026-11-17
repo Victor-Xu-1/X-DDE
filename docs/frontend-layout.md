@@ -876,6 +876,13 @@ The drawing receives the immutable record snapshot from that same successful
 read, bound to the exact URL, record and digest. It does not race a second fetch
 against preparation readiness. Other drawing callers retain their existing reads;
 an explicit publication export still validates its original source.
+Reference failure views use a compact recovery area so the message, retry and
+preparation/download actions remain close. Healthy views keep their large working
+area. The unused drawing-readiness callback was removed after source verification
+became independent; native checks assert one verified source read before drawing.
+Reference molecular controls follow the selected UI theme while the scientific
+paper and its status text keep readable contrast. The focused failure checks
+exercise Warm plus Night desktop and White narrow views without enabling an engine.
 Desktop reference views use approximately three quarters of the working width,
 with a compact preparation/download column; narrow screens retain a single column.
 The molecular reader reuses the shared streamed byte limiter with a tighter

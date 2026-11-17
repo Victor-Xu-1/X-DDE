@@ -17,6 +17,7 @@ from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_ketcher_depiction_browser import assert_native_bonds
+from server_tests.test_frontend_browser import contrast_ratio
 from server_tests.test_ketcher_startup_browser import (
     test_cold_embedded_ketcher_can_initialize_without_taking_user_focus as cold_depiction,
 )
@@ -48,6 +49,16 @@ def frame_below_header(page, frame):
     frame.evaluate("node => { const y=node.getBoundingClientRect().top; "
                    "const bar=document.querySelector('.studio-topbar'); "
                    "window.scrollBy(0,y-(bar?.getBoundingClientRect().bottom||0)-12); }")
+
+
+def capture_failure_layout(page, workspace, evidence, phase):
+    """Recovery stays near the message instead of below an empty healthy-size canvas."""
+    page.evaluate("window.scrollTo(0,0)")
+    bounds = workspace.locator(".structure-workbench-view").bounding_box()
+    assert bounds and bounds["height"] <= 500, bounds
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    page.screenshot(path=evidence / f"{phase}.png")
+    return bounds
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
@@ -118,6 +129,9 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 page.on("request", lambda req: writes.append(req.url)
                         if req.method in {"POST", "PUT", "PATCH", "DELETE"} else None)
                 fault = re.compile(re.escape(url) + "$")
+                source_reads = []
+                page.on("request", lambda req: source_reads.append(req.url)
+                        if req.url == url and req.method == "GET" else None)
                 altered = original + (
                     b"\n# preview transport fault\n" if kind == "structure" else b"\n"
                 )
@@ -143,9 +157,13 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "准备分子" if zh else "Prepare molecule"
                 ), exact=True)
                 expect(next_step).to_be_disabled()
-                page.screenshot(path=evidence / "source-mismatch.png")
+                mismatch_bounds = capture_failure_layout(
+                    page, workspace, evidence, "source-mismatch",
+                )
                 page.unroute(fault)
+                source_read_count = None
                 if kind == "molecule":
+                    source_reads.clear()
                     workspace.get_by_role("button", name=(
                         "重新核验源文件" if zh else "Retry source verification"
                     ), exact=True).click()
@@ -171,6 +189,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                         "二维分子结构 · " if zh else "2D molecular structure · "
                     ) + result["identifier"], exact=True)
                     expect(image).to_be_visible()
+                    source_read_count = len(source_reads)
+                    assert source_read_count == 1, source_reads
                     drawing = base64.b64decode(image.get_attribute("src").split(",", 1)[1])
                     assert_native_bonds(drawing)
                     assert b"CH3" not in drawing
@@ -208,6 +228,8 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                 page.get_by_role("button", name="返回参考材料" if zh else
                                  "Back to reference material", exact=True).click()
                 expect(page.locator(".reference-import-results")).to_be_visible()
+                unavailable_bounds, alternate_bounds, paper_colors = None, None, None
+                themes_checked = [page.locator("html").get_attribute("data-theme")]
                 if kind == "molecule":
                     # Fault only the optional display-component status; preserve real SDF bytes.
                     def without_drawing_component(route):
@@ -223,7 +245,35 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                         "data-drawing-state", "unavailable", timeout=60000
                     )
                     expect(next_step).to_be_enabled(timeout=30000)
-                    page.screenshot(path=evidence / "drawing-unavailable-source-valid.png")
+                    unavailable_bounds = capture_failure_layout(
+                        page, workspace, evidence, "drawing-unavailable-source-valid",
+                    )
+                    alternate = "dark" if language == "en" else "light"
+                    page.evaluate("theme => localStorage.setItem('x-dde-theme', theme)", alternate)
+                    page.reload()
+                    expect(page.locator("html")).to_have_attribute("data-theme", alternate)
+                    expect(panel).to_have_attribute(
+                        "data-drawing-state", "unavailable", timeout=60000,
+                    )
+                    expect(next_step).to_be_enabled(timeout=30000)
+                    alternate_bounds = capture_failure_layout(
+                        page, workspace, evidence, f"drawing-unavailable-{alternate}-source-valid",
+                    )
+                    paper_colors = panel.locator(".figure-preview-sheet").evaluate("""node => {
+                      const style = getComputedStyle(node);
+                      const root = node.closest('.molecule-image');
+                      return {foreground: style.color, background: style.backgroundColor,
+                        controls_foreground: getComputedStyle(
+                          root.querySelector('.molecule-drawing-style')).color,
+                        controls_background: getComputedStyle(root).backgroundColor};
+                    }""")
+                    assert contrast_ratio(
+                        paper_colors["foreground"], paper_colors["background"],
+                    ) >= 4.5, paper_colors
+                    assert contrast_ratio(
+                        paper_colors["controls_foreground"], paper_colors["controls_background"],
+                    ) >= 4.5, paper_colors
+                    themes_checked.append(alternate)
                     next_step.click()
                     expect(page.locator(".questionnaire:visible")).to_be_visible()
                     page.get_by_role("button", name="返回参考材料" if zh else
@@ -252,6 +302,11 @@ def test_native_reference_workspace(reference_workspace, language, width, kind):
                     "scientific_calculations": 0, "preview_writes": writes,
                     "source_mismatch_recovered": True, "source_bytes_unchanged": True,
                     "optional_drawing_failure_allows_preparation": kind == "molecule",
+                    "source_mismatch_bounds": mismatch_bounds,
+                    "drawing_unavailable_bounds": unavailable_bounds,
+                    "alternate_failure_bounds": alternate_bounds,
+                    "failure_themes_checked": themes_checked, "paper_colors": paper_colors,
+                    "source_read_count_before_drawing": source_read_count,
                     "canvas_bounds": bounds, "details_bounds": details,
                 }, indent=2))
             finally:

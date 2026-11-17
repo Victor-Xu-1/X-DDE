@@ -65,14 +65,12 @@ export function MoleculeImage({
   language,
   label,
   compact = false,
-  onDrawingReady,
   verifiedSource,
 }: {
   source: DepictionSource | null;
   language: Language;
   label: string;
   compact?: boolean;
-  onDrawingReady?(ready: boolean): void;
   verifiedSource?: MolecularSourceSnapshot;
 }) {
   const renderer = useContext(DrawingContext),
@@ -88,12 +86,6 @@ export function MoleculeImage({
   const drawingKey = JSON.stringify([key, bondThickness]);
   const url = drawing?.key === drawingKey ? drawing.url : "";
   const error = failedKey === drawingKey;
-  const readyCallback = useRef(onDrawingReady);
-  readyCallback.current = onDrawingReady;
-  useEffect(() => {
-    readyCallback.current?.(Boolean(url) && !error);
-    return () => readyCallback.current?.(false);
-  }, [drawingKey, url, error]);
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") {
