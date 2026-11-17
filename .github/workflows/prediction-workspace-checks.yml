@@ -189,6 +189,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -234,8 +238,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/prediction-workspace-scope.py
   interface:
-    needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
+    needs: [scope, utility-scope]
+    if: ${{ !inputs.scope_only && needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

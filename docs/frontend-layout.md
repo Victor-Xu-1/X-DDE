@@ -857,6 +857,11 @@ The isolated runner receives the standard browser system dependencies, including
 CJK fonts. Fontconfig glyph coverage is checked before browser acceptance; DOM
 text assertions alone do not qualify an unreadable Chinese screenshot.
 
+Prediction fallback checks reuse the existing utility scope-only workflow when a
+molecular-utility branch adopts reviewed main. The dedicated utility input, image
+lifecycle and native preview checks remain required. This does not expand the
+utility source boundary or delegate mixed scientific/shared-viewer changes.
+
 ## Utility templates and saved examples
 
 Each molecule utility offers the existing reviewed template and saved-example

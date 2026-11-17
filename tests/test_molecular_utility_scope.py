@@ -9,6 +9,7 @@ import pytest
 
 scope = runpy.run_path("scripts/molecular-utility-scope.py")
 GUARDS = {
+    "prediction-workspace-checks.yml": ["interface"],
     "library-screen-checks.yml": ["library-inspections"],
     "reference-input-checks.yml": ["material-inputs", "inputs"],
     "example-result-set-checks.yml": ["immutable-stages", "native-preview"],
@@ -92,6 +93,38 @@ def test_shared_example_changes_alone_keep_the_original_consumer_gates():
         "frontend/src/examples/ExampleActions.test.tsx",
         "pyproject.toml",
     ])
+
+
+@pytest.mark.parametrize("event", ["push", "pull_request"])
+@pytest.mark.parametrize("mixed", [False, True])
+def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
+    monkeypatch, tmp_path, event, mixed,
+):
+    changed = [
+        "frontend/src/utilities/UtilityTask.tsx",
+        ".github/workflows/prediction-workspace-checks.yml",
+        "pyproject.toml",
+    ]
+    if mixed:
+        changed.append("frontend/src/App.tsx")
+    calls = []
+
+    def output(args, **_kwargs):
+        calls.append(args)
+        if args == ["git", "merge-base", "origin/main", "HEAD"]:
+            return "reviewed-main"
+        assert args == ["git", "diff", "--name-only", "reviewed-main", "HEAD"]
+        return "\n".join(changed)
+
+    destination = tmp_path / "scope-output"
+    monkeypatch.setenv("BASE", "previous-branch-head")
+    monkeypatch.setenv("GITHUB_REF_NAME", "feat/utility-template-access")
+    monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(destination))
+    monkeypatch.setattr(scope["subprocess"], "check_output", output)
+    scope["main"]()
+    assert destination.read_text() == f"utility_only={str(not mixed).lower()}\n"
+    assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]
 
 
 @pytest.mark.parametrize("name", [

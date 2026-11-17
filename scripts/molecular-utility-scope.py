@@ -75,6 +75,7 @@ FILES = SOURCES | RETIRED | {
     ".github/workflows/examples-checks.yml",
     ".github/workflows/module-example-checks.yml",
     ".github/workflows/pocket-result-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
     ".github/workflows/pose-handoff-checks.yml",
     ".github/workflows/publication-checks.yml",
     ".github/workflows/research-material-checks.yml",
