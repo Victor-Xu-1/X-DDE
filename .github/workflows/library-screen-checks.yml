@@ -34,7 +34,7 @@ jobs:
       scope_only: true
   library-inspections:
     needs: utility-scope
-    if: needs.utility-scope.outputs.utility_only != 'true'
+    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && needs.utility-scope.outputs.reference_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:

@@ -73,3 +73,31 @@ def test_reference_gate_retains_default_depiction_and_exact_source_checks():
         text = Path(f".github/workflows/{name}-checks.yml").read_text()
         body = text.split(f"  {job}:", 1)[1].split("    runs-on:", 1)[0]
         assert "needs.prediction-scope.outputs.reference_only != 'true'" in body
+
+
+def test_reference_main_adoption_preserves_each_native_fallback_boundary():
+    callers = (
+        ("molecular-utility", "utility-inputs", "scope"),
+        ("utility-tools", "utilities", "utility-scope"),
+        ("library-screen", "library-inspections", "utility-scope"),
+        ("task-service-availability", "availability", "utility-scope"),
+        ("appearance", "appearance", "prediction-scope"),
+        ("chart-quality", "statistical-previews", "prediction-scope"),
+        ("simulation-view", "previews", "prediction-scope"),
+    )
+    for name, job, owner in callers:
+        filename = (
+            name + ".yml" if name == "task-service-availability"
+            else name + "-checks.yml"
+        )
+        text = (Path(".github/workflows") / filename).read_text()
+        body = text.split(f"  {job}:", 1)[1].split("    runs-on:", 1)[0]
+        assert f"needs.{owner}.outputs.reference_only != 'true'" in body
+        if owner == "scope":
+            assert "!inputs.scope_only" in body
+        else:
+            assert "utility_only != 'true'" in body
+    shared = Path(".github/workflows/molecular-utility-checks.yml").read_text()
+    assert "value: ${{ jobs.scope.outputs.reference_only }}" in shared
+    assert "reference_only: ${{ steps.reference.outputs.reference_only }}" in shared
+    assert "run: python scripts/interaction-workspace-scope.py" in shared

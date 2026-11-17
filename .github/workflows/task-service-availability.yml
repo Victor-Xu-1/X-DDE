@@ -23,7 +23,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   availability:
+    needs: utility-scope
+    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && needs.utility-scope.outputs.reference_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:

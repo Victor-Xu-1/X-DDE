@@ -258,7 +258,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "5d9bb5069d5491e24ddafff251f5731077a4e084704d0bfee6c4d24ab62fa603",
+      "after_sha256": "4350972ca0c4e1805285ab8889e7f3d2f677bffc88332c583ac3404afd2a15d6",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -331,13 +331,36 @@
         {
           "before": "      />\n    </div>",
           "after": "      />\n      {(preparing || displayError) && <div className=\"recognition-editor-status\" role=\"status\">\n        <span>{text(preparing ? \"正在准备分子结构…\" : policy.current?.retainedDrawing()\n          ? \"绘图备份已保留。\" : \"请重新载入分子结构。\")}</span>\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          void policy.current?.recheck().then(applied => {\n            if (applied) { setDisplayError(false); callbacks.current.onError(\"\"); }\n          }).catch(() => callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\"));\n        }}>{text(\"整理为二维结构\")}</button>}\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          const retained = policy.current?.retainedDrawing();\n          if (!retained) return;\n          const url = URL.createObjectURL(new Blob([retained], {type:\"application/json\"}));\n          const link = document.createElement(\"a\");\n          link.href = url; link.download = \"retained-drawing.ket\"; link.click();\n          setTimeout(() => URL.revokeObjectURL(url), 1000);\n        }}>{text(\"下载绘图备份\")}</button>}\n      </div>}\n    </div>"
+        },
+        {
+          "before": "import \"./recognition-host-editor.css\";",
+          "after": "import \"./recognition-host-editor.css\";\nimport { serializeKetcherConversions } from \"./ketcher-conversions\";"
+        },
+        {
+          "before": "const service = new StandaloneStructServiceProvider();",
+          "after": "const service = new StandaloneStructServiceProvider();\nconst createStructService = service.createStructService.bind(service);\nservice.createStructService = (options) => {\n  const engine = createStructService(options);\n  engine.convert = serializeKetcherConversions(engine.convert.bind(engine));\n  return engine;\n};"
+        }
+      ],
+      "upgrades": [
+        {
+          "before_sha256": "5d9bb5069d5491e24ddafff251f5731077a4e084704d0bfee6c4d24ab62fa603",
+          "changes": [
+            {
+              "before": "import \"./recognition-host-editor.css\";",
+              "after": "import \"./recognition-host-editor.css\";\nimport { serializeKetcherConversions } from \"./ketcher-conversions\";"
+            },
+            {
+              "before": "const service = new StandaloneStructServiceProvider();",
+              "after": "const service = new StandaloneStructServiceProvider();\nconst createStructService = service.createStructService.bind(service);\nservice.createStructService = (options) => {\n  const engine = createStructService(options);\n  engine.convert = serializeKetcherConversions(engine.convert.bind(engine));\n  return engine;\n};"
+            }
+          ]
         }
       ]
     },
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "f49af1be29a1efe1ef73c877b6d1c83c3ae2fb7915658d0eedfb8ad31d81f8d0",
+      "after_sha256": "b161bb2e9571ffd48c6acdc5ad31ecdfa6696021f1d09b339dcaa4a0bc2081ca",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -390,13 +413,68 @@
         {
           "before": "    } catch {\n      setError(\"结构导出失败。\");",
           "after": "    } catch (error) {\n      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");"
+        },
+        {
+          "before": "      setMolfile(job.result.molfile);",
+          "after": "      setStructureReady(false);\n      setMolfile(job.result.molfile);"
+        },
+        {
+          "before": "      if (busy) {\n        setToast(\"当前任务正在识别。\");",
+          "after": "      if (busy && (submitting || !state.job || state.job.id === activeJob.current)) {\n        setToast(\"当前任务正在识别。\");"
+        },
+        {
+          "before": "        setFile(candidate);",
+          "after": "        setStructureReady(false);\n        setFile(candidate);"
+        },
+        {
+          "before": "    [busy],\n  );",
+          "after": "    [busy, submitting, state.job?.id],\n  );"
+        },
+        {
+          "before": "    setSubmitting(true);\n    setError(\"\");",
+          "after": "    setSubmitting(true);\n    setStructureReady(false);\n    setError(\"\");"
+        },
+        {
+          "before": "      setState((value) => ({ ...value, phase: \"busy\", job }));",
+          "after": "      setState((value) => ({ ...value, phase: \"busy\", job }));\n      return job;"
+        }
+      ],
+      "upgrades": [
+        {
+          "before_sha256": "f49af1be29a1efe1ef73c877b6d1c83c3ae2fb7915658d0eedfb8ad31d81f8d0",
+          "changes": [
+            {
+              "before": "      setMolfile(job.result.molfile);",
+              "after": "      setStructureReady(false);\n      setMolfile(job.result.molfile);"
+            },
+            {
+              "before": "      if (busy) {\n        setToast(\"当前任务正在识别。\");",
+              "after": "      if (busy && (submitting || !state.job || state.job.id === activeJob.current)) {\n        setToast(\"当前任务正在识别。\");"
+            },
+            {
+              "before": "        setFile(candidate);",
+              "after": "        setStructureReady(false);\n        setFile(candidate);"
+            },
+            {
+              "before": "    [busy],\n  );",
+              "after": "    [busy, submitting, state.job?.id],\n  );"
+            },
+            {
+              "before": "    setSubmitting(true);\n    setError(\"\");",
+              "after": "    setSubmitting(true);\n    setStructureReady(false);\n    setError(\"\");"
+            },
+            {
+              "before": "      setState((value) => ({ ...value, phase: \"busy\", job }));",
+              "after": "      setState((value) => ({ ...value, phase: \"busy\", job }));\n      return job;"
+            }
+          ]
         }
       ]
     },
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "90e1ddc10b1732d905a226e3df0c51b61df641213f7bc4817dfb5539850b4e49",
+      "after_sha256": "a39a5b6e26017ccb2f9a5c54a63ea6077c1b68e7f4f12ae6fb9f7e96e93f42c4",
       "changes": [
         {
           "before": "          const molfile = await editor.getMolfile();",
@@ -413,8 +491,61 @@
         {
           "before": "[origin, work.smiles, work.busy, work.editorReady, work.file]",
           "after": "[origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]"
+        },
+        {
+          "before": "import type { useWorkbench } from \"./useWorkbench\";",
+          "after": "import type { useWorkbench } from \"./useWorkbench\";\nimport { flushSync } from \"react-dom\";\nimport { createForegroundRecognition } from \"./recognition-foreground\";"
+        },
+        {
+          "before": "  const origin = inputBridgeOrigin();",
+          "after": "  const origin = inputBridgeOrigin();\n  const foreground = useRef<ReturnType<typeof createForegroundRecognition> | null>(null);\n  foreground.current ??= createForegroundRecognition(() => latest.current);\n  useEffect(() => () => foreground.current?.dispose(), []);"
+        },
+        {
+          "before": "        selectFile: (file) => latest.current.selectFile(file),",
+          "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+        },
+        {
+          "before": "          !latest.current.busy &&",
+          "after": "          (!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id)) &&"
+        },
+        {
+          "before": "  useEffect(() => {\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]);",
+          "after": "  useEffect(() => {\n    foreground.current?.update();\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file, work.error, work.state.phase, work.state.job?.id, work.state.job?.status]);"
+        }
+      ],
+      "upgrades": [
+        {
+          "before_sha256": "90e1ddc10b1732d905a226e3df0c51b61df641213f7bc4817dfb5539850b4e49",
+          "changes": [
+            {
+              "before": "import type { useWorkbench } from \"./useWorkbench\";",
+              "after": "import type { useWorkbench } from \"./useWorkbench\";\nimport { flushSync } from \"react-dom\";\nimport { createForegroundRecognition } from \"./recognition-foreground\";"
+            },
+            {
+              "before": "  const origin = inputBridgeOrigin();",
+              "after": "  const origin = inputBridgeOrigin();\n  const foreground = useRef<ReturnType<typeof createForegroundRecognition> | null>(null);\n  foreground.current ??= createForegroundRecognition(() => latest.current);\n  useEffect(() => () => foreground.current?.dispose(), []);"
+            },
+            {
+              "before": "        selectFile: (file) => latest.current.selectFile(file),",
+              "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+            },
+            {
+              "before": "          !latest.current.busy &&",
+              "after": "          (!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id)) &&"
+            },
+            {
+              "before": "  useEffect(() => {\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]);",
+              "after": "  useEffect(() => {\n    foreground.current?.update();\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file, work.error, work.state.phase, work.state.job?.id, work.state.job?.status]);"
+            }
+          ]
         }
       ]
     }
-  ]
+  ],
+  "adapter_upgrades": {
+    "recognition-host-bridge.ts": [
+      "16f4156052bf98fdf8ac0e697dfee5a6f34f1ce7386f111c35e1c8e190cb7ecb",
+      "db899bf156c8192310882c3d8e4b526e1d23cae9be5e31985d3e193c0266f7f0"
+    ]
+  }
 }

@@ -8,10 +8,21 @@ import type { Job } from "../types";
 vi.mock("./ImageRecognition", () => ({
   ImageRecognition: () => <input aria-label="Image editing" />,
 }));
+vi.mock("../examples/ExampleActions", () => ({
+  ExampleActions: ({ capability }: { capability: string }) => (
+    <span>Template {capability}</span>
+  ),
+}));
 vi.mock("../admet/AdmetForm", () => ({
-  AdmetForm: ({ onCreated }: { onCreated(job: Job): void }) => (
+  AdmetForm: ({
+    onCreated,
+    focus,
+  }: {
+    onCreated(job: Job): void;
+    focus?: "brain";
+  }) => (
     <>
-      <input aria-label="ADMET input" />
+      <input aria-label={focus === "brain" ? "Brain input" : "ADMET input"} />
       <button onClick={() => onCreated({ id: "accepted" } as Job)}>
         Accept task
       </button>
@@ -21,9 +32,6 @@ vi.mock("../admet/AdmetForm", () => ({
 vi.mock("../operations/PropertyForm", () => ({
   PropertyForm: () => <input aria-label="Properties input" />,
 }));
-vi.mock("../admet/BrainForm", () => ({
-  BrainForm: () => <input aria-label="Brain input" />,
-}));
 vi.mock("../chemistry/LibraryScreenForm", () => ({
   LibraryScreenForm: () => <input aria-label="Screen input" />,
 }));
@@ -31,6 +39,22 @@ vi.mock("../chemistry/StateForm", () => ({
   StateForm: () => <input aria-label="States input" />,
 }));
 afterEach(cleanup);
+
+it("exposes each utility's own template controls without loading an old input", async () => {
+  const user = userEvent.setup();
+  render(<UtilityWorkspace language="en" onCreated={vi.fn()} />);
+  for (const [label, capability, input] of [
+    ["ADMET prediction", "admet.predict", "ADMET input"],
+    ["Brain penetration", "admet.brain", "Brain input"],
+    ["Molecular properties", "properties", "Properties input"],
+    ["Similarity & structural alerts", "chemistry.screen", "Screen input"],
+    ["Protonation & tautomers", "chemistry.states", "States input"],
+  ]) {
+    await user.click(screen.getByRole("button", { name: label }));
+    expect(screen.getByText("Template " + capability)).toBeVisible();
+    expect(screen.getByLabelText(input)).toHaveValue("");
+  }
+});
 
 it("keeps brain input separate from an unfinished ADMET input", async () => {
   const user = userEvent.setup();

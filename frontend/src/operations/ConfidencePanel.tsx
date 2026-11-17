@@ -181,6 +181,7 @@ export function ConfidencePanel({
       ) : (
         <>
           <InteractivePlot
+            sourceKey={key}
             title={labels[metric]}
             language={language}
             height={plotSize.height}
