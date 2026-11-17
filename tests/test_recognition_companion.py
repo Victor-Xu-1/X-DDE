@@ -225,7 +225,9 @@ def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
     record = next(item for item in manifest["files"] if item["path"].endswith("useXddeBridge.ts"))
     routes = [record["changes"], *(item["changes"] for item in record["upgrades"])]
     for changes in routes:
-        handlers = [item["after"] for item in changes if "recognize: (file, signal)" in item["after"]]
+        handlers = [
+            item["after"] for item in changes if "recognize: (file, signal)" in item["after"]
+        ]
         assert len(handlers) == 1
         handler = handlers[0].split("recognize:", 1)[1].split("loadMolecule:", 1)[0]
         assert handler.index('setError("")') < handler.index('foreground.current!.request')
