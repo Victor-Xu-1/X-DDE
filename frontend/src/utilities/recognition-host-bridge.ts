@@ -205,7 +205,10 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
       return;
     const revision = version;
     const source = host.file();
-    const respond = (molecule: { smiles: string; molfile: string } | null) => {
+    const respond = (
+      molecule: { smiles: string; molfile: string } | null,
+      error?: "timeout",
+    ) => {
       if (mounted && context === bound)
         window.parent.postMessage(
           {
@@ -214,6 +217,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
             requestId: data.requestId,
             molecule,
             source,
+            error,
           },
           origin,
         );
@@ -229,16 +233,27 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
       return;
     }
     exporting = true;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    let timedOut = false;
     try {
-      const molecule = await host.molecule();
+      const molecule = await Promise.race([
+        host.molecule(),
+        new Promise<never>((_resolve, reject) => {
+          deadline = setTimeout(() => {
+            timedOut = true;
+            reject(new Error("Native molecular export timed out"));
+          }, 12000);
+        }),
+      ]);
       respond(
         revision === version && host.file() === source && host.available()
           ? molecule
           : null,
       );
     } catch {
-      respond(null);
+      respond(null, timedOut ? "timeout" : undefined);
     } finally {
+      clearTimeout(deadline);
       exporting = false;
     }
   }

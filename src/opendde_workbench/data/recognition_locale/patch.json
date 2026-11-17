@@ -258,7 +258,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "5d9bb5069d5491e24ddafff251f5731077a4e084704d0bfee6c4d24ab62fa603",
+      "after_sha256": "4350972ca0c4e1805285ab8889e7f3d2f677bffc88332c583ac3404afd2a15d6",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -331,6 +331,29 @@
         {
           "before": "      />\n    </div>",
           "after": "      />\n      {(preparing || displayError) && <div className=\"recognition-editor-status\" role=\"status\">\n        <span>{text(preparing ? \"正在准备分子结构…\" : policy.current?.retainedDrawing()\n          ? \"绘图备份已保留。\" : \"请重新载入分子结构。\")}</span>\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          void policy.current?.recheck().then(applied => {\n            if (applied) { setDisplayError(false); callbacks.current.onError(\"\"); }\n          }).catch(() => callbacks.current.onError(\"无法安全准备简洁视图，已保留原始结构。\"));\n        }}>{text(\"整理为二维结构\")}</button>}\n        {!preparing && <button disabled={!policy.current?.retainedDrawing()} onClick={() => {\n          const retained = policy.current?.retainedDrawing();\n          if (!retained) return;\n          const url = URL.createObjectURL(new Blob([retained], {type:\"application/json\"}));\n          const link = document.createElement(\"a\");\n          link.href = url; link.download = \"retained-drawing.ket\"; link.click();\n          setTimeout(() => URL.revokeObjectURL(url), 1000);\n        }}>{text(\"下载绘图备份\")}</button>}\n      </div>}\n    </div>"
+        },
+        {
+          "before": "import \"./recognition-host-editor.css\";",
+          "after": "import \"./recognition-host-editor.css\";\nimport { serializeKetcherConversions } from \"./ketcher-conversions\";"
+        },
+        {
+          "before": "const service = new StandaloneStructServiceProvider();",
+          "after": "const service = new StandaloneStructServiceProvider();\nconst createStructService = service.createStructService.bind(service);\nservice.createStructService = (options) => {\n  const engine = createStructService(options);\n  engine.convert = serializeKetcherConversions(engine.convert.bind(engine));\n  return engine;\n};"
+        }
+      ],
+      "upgrades": [
+        {
+          "before_sha256": "5d9bb5069d5491e24ddafff251f5731077a4e084704d0bfee6c4d24ab62fa603",
+          "changes": [
+            {
+              "before": "import \"./recognition-host-editor.css\";",
+              "after": "import \"./recognition-host-editor.css\";\nimport { serializeKetcherConversions } from \"./ketcher-conversions\";"
+            },
+            {
+              "before": "const service = new StandaloneStructServiceProvider();",
+              "after": "const service = new StandaloneStructServiceProvider();\nconst createStructService = service.createStructService.bind(service);\nservice.createStructService = (options) => {\n  const engine = createStructService(options);\n  engine.convert = serializeKetcherConversions(engine.convert.bind(engine));\n  return engine;\n};"
+            }
+          ]
         }
       ]
     },
@@ -521,7 +544,8 @@
   ],
   "adapter_upgrades": {
     "recognition-host-bridge.ts": [
-      "16f4156052bf98fdf8ac0e697dfee5a6f34f1ce7386f111c35e1c8e190cb7ecb"
+      "16f4156052bf98fdf8ac0e697dfee5a6f34f1ce7386f111c35e1c8e190cb7ecb",
+      "db899bf156c8192310882c3d8e4b526e1d23cae9be5e31985d3e193c0266f7f0"
     ]
   }
 }

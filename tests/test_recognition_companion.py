@@ -35,14 +35,14 @@ def source(tmp_path):
 def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     host, resources, backups = source
     before = {p.relative_to(host): p.read_bytes() for p in host.rglob("*.tsx")}
-    assert len(companion.prepare(host, resources)) == 18
+    assert len(companion.prepare(host, resources)) == 19
     assert not backups.exists()
     assert all((host / p).read_bytes() == data for p, data in before.items())
     result = companion.apply(host, backups, resources, exclusive_source=True)
-    assert result["changed"] == 18
+    assert result["changed"] == 19
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
-    assert len(json.loads((saved / "receipt.json").read_text())) == 18
+    assert len(json.loads((saved / "receipt.json").read_text())) == 19
     assert companion.apply(host, backups, resources, exclusive_source=True) == {
         "changed": 0, "already_applied": True,
     }
@@ -231,3 +231,17 @@ def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
         assert len(handlers) == 1
         handler = handlers[0].split("recognize:", 1)[1].split("loadMolecule:", 1)[0]
         assert handler.index('setError("")') < handler.index('foreground.current!.request')
+
+
+def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():
+    manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
+    record = next(item for item in manifest["files"] if item["path"].endswith("MoleculeEditor.tsx"))
+    routes = [record["changes"], *(item["changes"] for item in record["upgrades"])]
+    for changes in routes:
+        adapters = [
+            item["after"] for item in changes if "const createStructService" in item["after"]
+        ]
+        assert len(adapters) == 1
+        body = adapters[0]
+        assert body.index("serializeKetcherConversions") < body.index("return engine;")
+        assert "engine.convert.bind(engine)" in body

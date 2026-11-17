@@ -13,6 +13,7 @@ NATIVE_FILES = {
     "useWorkbench.ts", "useXddeBridge.ts",
 }
 ADAPTERS = {
+    "ketcher-conversions.ts": "frontend/src/editors/ketcher-conversions.ts",
     "recognition-host-bridge.ts": "frontend/src/utilities/recognition-host-bridge.ts",
     "recognition-foreground.ts": "frontend/src/utilities/recognition-foreground.ts",
     "recognition-locale.ts": "frontend/src/utilities/recognition-locale.ts",

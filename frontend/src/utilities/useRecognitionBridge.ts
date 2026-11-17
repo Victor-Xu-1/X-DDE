@@ -123,6 +123,11 @@ export function useRecognitionBridge(
         setBusy(false);
         return;
       }
+      if (message.error === "timeout") {
+        setBusy(false);
+        setError("timeout");
+        return;
+      }
       if (
         !validImageMolecule(message.molecule) ||
         !(message.source instanceof File) ||
