@@ -119,10 +119,12 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-tab-controls
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-tab-controls/state
     steps:
       - uses: actions/checkout@v4
+      - name: Isolated tab control state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-tab-controls" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-tab-controls/state" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
