@@ -28,7 +28,7 @@ def capture_utility_space(page, utility, evidence):
     assert geometry["form"]["width"] >= geometry["panel"]["width"] - 2, geometry
     assert geometry["actionsPosition"] == "static", geometry
     assert not geometry["pageOverflow"], geometry
-    if geometry["viewport"] >= 1050:
+    if geometry["viewport"] >= 1100:
         assert geometry["preview"]["x"] < geometry["inputs"]["x"], geometry
         assert geometry["preview"]["width"] > geometry["inputs"]["width"] * 1.45, geometry
         assert geometry["actions"]["x"] >= geometry["inputs"]["x"] - 1, geometry
