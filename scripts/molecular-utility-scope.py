@@ -75,6 +75,7 @@ FILES = SOURCES | RETIRED | {
     ".github/workflows/landscape-checks.yml",
     ".github/workflows/simulation-view-checks.yml",
     ".github/workflows/viewer-checks.yml",
+    ".github/workflows/task-service-availability.yml",
     "frontend/src/examples/ExampleActions.tsx",
     "frontend/src/examples/ExampleActions.test.tsx",
     ".github/workflows/library-screen-checks.yml",

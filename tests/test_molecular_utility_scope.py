@@ -9,6 +9,7 @@ import pytest
 
 scope = runpy.run_path("scripts/molecular-utility-scope.py")
 GUARDS = {
+    "task-service-availability.yml": ["availability"],
     "prediction-workspace-checks.yml": ["interface"],
     "library-screen-checks.yml": ["library-inspections"],
     "reference-input-checks.yml": ["material-inputs", "inputs"],
