@@ -1,6 +1,6 @@
 [project]
 name = "x-dde"
-version = "0.8.24"
+version = "0.8.25"
 description = "Independent discovery platform integrating scientific software backends"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -31,6 +31,7 @@ build-backend = "hatchling.build"
 packages = ["src/opendde_workbench"]
 
 [tool.hatch.build.targets.wheel.force-include]
+"frontend/src/editors/ketcher-conversions.ts" = "opendde_workbench/data/recognition_locale/ketcher-conversions.ts"
 "frontend/src/utilities/recognition-host-bridge.ts" = "opendde_workbench/data/recognition_locale/recognition-host-bridge.ts"
 "frontend/src/utilities/recognition-foreground.ts" = "opendde_workbench/data/recognition_locale/recognition-foreground.ts"
 "frontend/src/utilities/recognition-locale.ts" = "opendde_workbench/data/recognition_locale/recognition-locale.ts"

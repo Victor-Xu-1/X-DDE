@@ -2,6 +2,7 @@ name: Molecular utility input and BBB checks
 on:
   push:
     paths: &utility_paths
+      - "frontend/src/editors/ketcher-conversions*"
       - "frontend/src/utilities/ImageInputSource.ts"
       - "frontend/src/utilities/UtilityImage*"
       - "frontend/src/utilities/useRecognition*"
@@ -147,6 +148,7 @@ jobs:
             src/editors/native-molecular-viewport.test.ts \
             src/editors/molecule-readiness.test.ts \
             src/editors/recognition-host-editor.test.ts \
+            src/editors/ketcher-conversions.test.ts \
             src/operations/useAssetUpload.image.test.tsx \
             src/integrations/BoltzInputs.test.tsx \
             src/integrations/Mol1Form.test.tsx \

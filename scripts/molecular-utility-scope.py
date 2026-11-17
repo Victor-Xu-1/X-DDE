@@ -6,6 +6,8 @@ import subprocess
 from pathlib import Path
 
 SOURCES = {
+    "frontend/src/editors/ketcher-conversions.ts",
+    "frontend/src/editors/ketcher-conversions.test.ts",
     "frontend/src/utilities/ImageInputSource.ts",
     "frontend/src/utilities/UtilityImageInput.tsx",
     "frontend/src/utilities/UtilityImageTask.test.tsx",

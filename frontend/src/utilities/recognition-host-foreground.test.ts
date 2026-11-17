@@ -9,6 +9,53 @@ afterEach(() => {
   Object.defineProperty(window, "parent", descriptor);
   document.body.innerHTML = "";
   vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
+it("a stalled export releases its lease and a later export can succeed without OCR", async () => {
+  vi.useFakeTimers();
+  const h = setup();
+  let late!: (value: { smiles: string; molfile: string }) => void;
+  h.host.molecule = vi
+    .fn()
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          late = resolve;
+        }),
+    )
+    .mockResolvedValue({ smiles: "Nc1ccccc1", molfile: "M  END\n" });
+  h.deliver({ type: "xdde-image:connect", file: h.file });
+  await flush();
+  h.commit();
+  h.deliver({ type: "xdde-image:export", requestId: h.requestId });
+  await vi.advanceTimersByTimeAsync(12000);
+  expect(h.post).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      type: "xdde-image:result",
+      requestId: h.requestId,
+      molecule: null,
+      error: "timeout",
+    }),
+    "http://127.0.0.1:4322",
+  );
+  const next = crypto.randomUUID();
+  h.deliver({ type: "xdde-image:export", requestId: next });
+  await flush();
+  expect(h.post).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      type: "xdde-image:result",
+      requestId: next,
+      molecule: { smiles: "Nc1ccccc1", molfile: "M  END\n" },
+    }),
+    "http://127.0.0.1:4322",
+  );
+  expect(h.host.recognize).not.toHaveBeenCalled();
+  h.bridge.dispose();
+  const count = h.post.mock.calls.length;
+  late({ smiles: "old result", molfile: "M  END\n" });
+  await flush();
+  expect(h.post.mock.calls).toHaveLength(count);
 });
 function setup() {
   const frame = document.createElement("iframe");
