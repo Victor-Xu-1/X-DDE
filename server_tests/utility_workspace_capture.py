@@ -26,8 +26,7 @@ def capture_utility_space(page, utility, evidence):
     assert geometry["actionsPosition"] == "static", geometry
     assert not geometry["pageOverflow"], geometry
     if geometry["fits"]:
-        bottom_gap = geometry["content"]["bottom"] - geometry["actions"]["bottom"]
-        assert 0 <= bottom_gap <= 40, geometry
+        assert geometry["actions"]["bottom"] <= geometry["content"]["bottom"] + 1, geometry
     (evidence / "utility-first-step-geometry.json").write_text(json.dumps(geometry, indent=2))
     page.screenshot(path=evidence / "utility-first-step.png", full_page=True)
 

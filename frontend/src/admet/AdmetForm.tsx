@@ -78,6 +78,13 @@ export function AdmetForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        sourceKind,
+        molecule,
+        library: library.asset,
+        options,
+        name,
+      })}
       ready={availability.ready}
       onCheckEnvironment={availability.recheck}
       busy={run.busy || selected.loading}

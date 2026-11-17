@@ -77,6 +77,7 @@ export function LibraryScreenForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({ library, selectedQuery, options, name })}
       ready={availability.ready}
       onCheckEnvironment={availability.recheck}
       busy={run.busy || loading}

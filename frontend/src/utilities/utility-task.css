@@ -130,6 +130,27 @@
   cursor: pointer;
   margin-bottom: 12px;
 }
+.single-page-readiness {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.single-page-readiness > details {
+  max-width: 440px;
+}
+.single-page-readiness > details > summary {
+  cursor: pointer;
+}
+.single-page-readiness > button {
+  width: auto;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
 .utility-task-result {
   border-top: 1px solid var(--line);
   margin-top: 24px;

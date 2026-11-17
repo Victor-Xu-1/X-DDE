@@ -210,6 +210,14 @@ export function StateForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        molecule,
+        choice,
+        options,
+        expert,
+        raw,
+        name,
+      })}
       busy={run.busy}
       error={error || run.error || readinessError}
       ready={ready}

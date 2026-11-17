@@ -98,7 +98,10 @@ function UtilityTaskSession({
             <button
               type="button"
               className="secondary-button"
-              onClick={onReset}
+              disabled={actions.action === "submission"}
+              onClick={() => {
+                if (!actions.isLocked("submission")) onReset();
+              }}
             >
               {language === "zh" ? "新建任务" : "New task"}
             </button>

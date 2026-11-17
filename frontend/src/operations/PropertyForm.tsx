@@ -127,6 +127,14 @@ export function PropertyForm({
   return (
     <Questionnaire
       language={language}
+      inputKey={JSON.stringify({
+        mode,
+        lines,
+        selectedFile,
+        selectedAsset,
+        scientificInput,
+        name,
+      })}
       busy={run.busy}
       error={error || run.error}
       ready={ready}

@@ -41,6 +41,7 @@ export function GuidedSteps<T extends { id: string }>({
   renderResult,
   resultTitle,
   initialResult = null,
+  inputKey,
 }: {
   language: Language;
   steps: readonly QuestionStep[];
@@ -58,6 +59,8 @@ export function GuidedSteps<T extends { id: string }>({
   renderResult(result: T): ReactNode;
   resultTitle?: string;
   initialResult?: T | null;
+  /** Exact native request identity for an inline utility's displayed result. */
+  inputKey?: string;
 }) {
   const preview = useContext(TemplatePreviewContext);
   const singlePage = useContext(TaskPresentationContext)?.layout === "single";
@@ -77,6 +80,7 @@ export function GuidedSteps<T extends { id: string }>({
     panels = useRef<(HTMLFieldSetElement | null)[]>([]);
   const activePanel = useRef<HTMLFieldSetElement | null>(null);
   const stepTrack = useRef<HTMLElement>(null);
+  const acceptedInput = useRef(inputKey);
   useReveal(activePanel, current);
   useEffect(() => {
     mounted.current = true;
@@ -144,10 +148,12 @@ export function GuidedSteps<T extends { id: string }>({
     if (!send) return;
     setNotice("");
     pending.current = true;
+    const submittedInput = inputKey;
     try {
       const created = await send();
       if (created && mounted.current) {
         setReviewing(false);
+        acceptedInput.current = submittedInput;
         setJob(created);
         setCurrent(resultIndex);
       }
@@ -169,23 +175,6 @@ export function GuidedSteps<T extends { id: string }>({
           "questionnaire tool-form" + (singlePage ? " single-page-task" : "")
         }
         noValidate={singlePage}
-        onChangeCapture={() => {
-          if (singlePage && job) setJob(null);
-        }}
-        onPasteCapture={(event) => {
-          if (
-            singlePage &&
-            job &&
-            Array.from(event.clipboardData.files).some((file) =>
-              file.type.startsWith("image/"),
-            )
-          )
-            setJob(null);
-        }}
-        onDropCapture={(event) => {
-          if (singlePage && job && event.dataTransfer.files.length)
-            setJob(null);
-        }}
         onSubmit={(e) => {
           e.preventDefault();
           void submit();
@@ -227,7 +216,7 @@ export function GuidedSteps<T extends { id: string }>({
             {researchError(availabilityError(error || notice, zh), zh)}
           </p>
         )}
-        {(singlePage || current === lastQuestion) && !ready && !error && (
+        {!singlePage && current === lastQuestion && !ready && !error && (
           <div role="status" className="notice">
             {ready === undefined
               ? zh
@@ -236,7 +225,7 @@ export function GuidedSteps<T extends { id: string }>({
               : unavailable}
           </div>
         )}
-        {(singlePage || current === lastQuestion) && !preview && (
+        {!singlePage && current === lastQuestion && !preview && (
           <EnvironmentRecheck
             ready={ready}
             onRecheck={onCheckEnvironment}
@@ -246,6 +235,33 @@ export function GuidedSteps<T extends { id: string }>({
         )}
         {(singlePage || current < resultIndex) && (
           <div className="questionnaire-actions">
+            {singlePage && !ready && (
+              <div className="single-page-readiness">
+                <span role="status">
+                  {ready === undefined
+                    ? zh
+                      ? "正在检查工具…"
+                      : "Checking tool…"
+                    : zh
+                      ? "工具尚未就绪"
+                      : "Tool is not ready"}
+                </span>
+                {ready === false && unavailable && (
+                  <details>
+                    <summary>{zh ? "查看原因" : "View details"}</summary>
+                    {unavailable}
+                  </details>
+                )}
+                {!preview && (
+                  <EnvironmentRecheck
+                    ready={ready}
+                    onRecheck={onCheckEnvironment}
+                    language={language}
+                    busy={busy}
+                  />
+                )}
+              </div>
+            )}
             {!singlePage && current > 0 && (
               <button
                 type="button"
@@ -291,7 +307,10 @@ export function GuidedSteps<T extends { id: string }>({
             },
           })}
       </form>
-      {singlePage && job && renderResult(job)}
+      {singlePage &&
+        job &&
+        acceptedInput.current === inputKey &&
+        renderResult(job)}
     </>
   );
 }

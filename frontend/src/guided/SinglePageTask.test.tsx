@@ -28,8 +28,12 @@ function Composer({
         renderResult: (job) => <p>Native result {job.id}</p>,
       }}
     >
+      <button type="button" onClick={() => setValue("Recognized screenshot")}>
+        Apply recognized structure
+      </button>
       <Questionnaire
         language="en"
+        inputKey={value}
         ready={ready}
         busy={false}
         error=""
@@ -135,7 +139,25 @@ it("never enables or submits an unavailable service", async () => {
     submit = vi.fn();
   render(<Composer submit={submit} ready={false} />);
   await user.type(screen.getByLabelText("Molecule"), "STAT6");
-  expect(screen.getByText("Service is off")).toBeVisible();
+  expect(screen.getByText("Tool is not ready")).toBeVisible();
+  expect(screen.getByText("Service is off")).not.toBeVisible();
   expect(screen.getByRole("button", { name: "Calculate" })).toBeDisabled();
   expect(submit).not.toHaveBeenCalled();
+});
+
+it("invalidates the prior output when an asynchronous image callback replaces the input", async () => {
+  const user = userEvent.setup(),
+    submit = vi.fn().mockResolvedValue({ id: "original" });
+  render(<Composer submit={submit} />);
+  await user.type(screen.getByLabelText("Molecule"), "Original structure");
+  await user.click(screen.getByRole("button", { name: "Calculate" }));
+  expect(await screen.findByText("Native result original")).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Apply recognized structure" }),
+  );
+  expect(screen.getByLabelText("Molecule")).toHaveValue(
+    "Recognized screenshot",
+  );
+  expect(screen.queryByText("Native result original")).toBeNull();
+  expect(submit).toHaveBeenCalledOnce();
 });

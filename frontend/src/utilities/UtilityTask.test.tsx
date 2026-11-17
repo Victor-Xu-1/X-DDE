@@ -345,6 +345,30 @@ it("releases template controls after a rejected submission without discarding in
   expect(accepted).not.toHaveBeenCalled();
 });
 
+it("does not reset a completed utility while a second explicit submission is pending", async () => {
+  const user = userEvent.setup(),
+    accepted = vi.fn();
+  render(<UtilityTask tool="properties" language="en" onCreated={accepted} />);
+  await user.click(screen.getByRole("button", { name: "Accept task" }));
+  expect(accepted).toHaveBeenCalledOnce();
+  let finish!: (job: Job) => void;
+  transport.submit.mockReturnValueOnce(
+    new Promise<Job>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  await user.type(screen.getByLabelText("Molecule input"), "new molecule");
+  await user.click(screen.getByRole("button", { name: "Accept task" }));
+  expect(screen.getByRole("button", { name: "New task" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "New task" }));
+  expect(screen.getByLabelText("Molecule input")).toHaveValue("new molecule");
+  await act(async () => {
+    finish({ id: "second-accepted" } as Job);
+  });
+  expect(accepted).toHaveBeenLastCalledWith({ id: "second-accepted" });
+  expect(screen.getByRole("button", { name: "New task" })).toBeEnabled();
+});
+
 it("ignores an old template response after starting a new manual task", async () => {
   let finish!: (value: PreparedExample) => void;
   transport.post.mockReturnValueOnce(
