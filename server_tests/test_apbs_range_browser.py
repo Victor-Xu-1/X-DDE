@@ -46,8 +46,11 @@ def test_edited_apbs_scale_keeps_native_geometry_camera_and_source_bytes(languag
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": 850})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
-        pin = page.request.get(f"{base}/api/examples/apbs.potential?profile=archive").json()
-        identifier = pin["pin"]["job_id"]
+        entry = page.request.get(f"{base}/api/examples/apbs.potential?profile=stat6")
+        assert entry.ok
+        pin = entry.json()["pin"]
+        assert pin is not None, "The verified STAT6 bundle must contain the APBS result"
+        identifier = pin["job_id"]
         job = page.request.get(f"{base}/api/jobs/{identifier}/result").json()
         assert job["operation"] == "electrostatics"
         files = [job["structure_artifact"], job["potential_artifact"]]

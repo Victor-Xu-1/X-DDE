@@ -478,7 +478,7 @@ POTENTIAL_DISPLAY_FILES = {
     "server_tests/test_potential_sdk_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-POTENTIAL_DISPLAY_DIFF = "2dbf1e33d64aac7dc744c71cb2aca38334b2fb69474578600c8e8b00db4204da"
+POTENTIAL_DISPLAY_DIFF = "f18fe92c89e61a49f6f306255aa8d368f27ece2a0b88d9307b6df430f56b8c6b"
 
 
 def reviewed_selected(changed, event, base, files, digest):
