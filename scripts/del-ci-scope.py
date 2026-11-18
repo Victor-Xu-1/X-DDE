@@ -4,9 +4,6 @@ import fnmatch
 import os
 import subprocess
 
-CANDIDATE_TABLE_STYLE = "frontend/src/datasets/candidate-table.css"
-CANDIDATE_PREVIEW_STYLES = {"frontend/src/datasets/CandidateView.css", CANDIDATE_TABLE_STYLE}
-
 PATTERNS = (
     "frontend/src/datasets/BarcodeQuality*",
     "frontend/src/datasets/barcode-quality*",
@@ -15,7 +12,6 @@ PATTERNS = (
     "frontend/src/datasets/ResearchTable*",
     "frontend/src/datasets/followup-observation*",
     "frontend/src/datasets/CandidateView*",
-    CANDIDATE_TABLE_STYLE,
     "frontend/src/datasets/DELCandidateEvidence*",
     "frontend/src/datasets/useDELCandidateEvidence*",
     "frontend/src/datasets/candidate-evidence.css",
@@ -117,7 +113,21 @@ def main():
         if base and set(base) != {"0"}
         else []
     )
-    selected = (
+    candidate_table_appearance = (
+        "frontend/src/datasets/candidate-table.css" in changed
+        and set(changed)
+        <= {
+            "frontend/src/datasets/candidate-table.css",
+            "scripts/del-ci-scope.py",
+            "pyproject.toml",
+            "uv.lock",
+            "frontend/package.json",
+            "frontend/package-lock.json",
+            "install.sh",
+            "install.ps1",
+        }
+    )
+    selected = candidate_table_appearance or (
         bool(changed)
         and any(
             name.startswith(
@@ -177,7 +187,6 @@ def main():
             "frontend/src/datasets/ResearchTable*",
             "frontend/src/datasets/followup-observation*",
             "frontend/src/datasets/CandidateView*",
-            CANDIDATE_TABLE_STYLE,
             "frontend/src/datasets/DELCandidateEvidence*",
             "frontend/src/datasets/useDELCandidateEvidence*",
             "frontend/src/datasets/candidate-evidence.css",
@@ -194,7 +203,7 @@ def main():
             "install.sh",
             "install.ps1",
         )
-        candidate_views = (
+        candidate_views = candidate_table_appearance or (
             selected
             and any(
                 name.startswith(
@@ -206,7 +215,6 @@ def main():
                         "frontend/src/datasets/followup-observation",
                     )
                 )
-                or name == CANDIDATE_TABLE_STYLE
                 for name in changed
             )
             and all(
@@ -256,12 +264,11 @@ def main():
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
         output.write("series_views_only=" + str(series_views).lower() + "\n")
         output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
-        candidate_preview = (
+        candidate_preview = candidate_table_appearance or (
             candidate_views
-            and bool(CANDIDATE_PREVIEW_STYLES.intersection(changed))
+            and "frontend/src/datasets/CandidateView.css" in changed
             and all(
                 name.startswith("frontend/src/datasets/CandidateView")
-                or name == CANDIDATE_TABLE_STYLE
                 for name in changed
                 if name.startswith("frontend/src/datasets/")
             )
