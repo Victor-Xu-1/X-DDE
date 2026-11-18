@@ -1,13 +1,13 @@
 /* Keep screening and library setup choices with the form while reading a result. */
-.studio-app .module-task-picker:has(+ .tool-center.is-result .dataset-results) {
+.studio-app .module-task-picker[data-dataset-task]:has(+ .tool-center.is-result) {
   display: none;
 }
 
 @media (max-width: 680px) {
   .studio-app
-    .module-task-picker
+    .module-task-picker[data-dataset-task]
     + .tool-center.is-result
-    .module-template:has(.dataset-results)
+    .module-template
     > .example-preview-toolbar {
     gap: 6px 12px;
     padding-block: 2px 8px;

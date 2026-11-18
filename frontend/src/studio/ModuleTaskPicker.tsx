@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { MethodSwitch } from "./MethodSwitch";
 import { BindingEntryDialog } from "./BindingEntryDialog";
 import "./ModuleTaskPicker.css";
+import { isDatasetTool } from "../datasets/dataset-model";
 import type { ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
 import type { Language } from "../types";
@@ -25,6 +26,7 @@ export function ModuleTaskPicker({
   const extra = module.tools.filter((id) => !module.recommended.includes(id));
   return (
     <div
+      data-dataset-task={isDatasetTool(value) || undefined}
       className={`module-task-picker ${module.id === "binding" || module.id === "structures" ? "binding-task-picker" : ""}`}
     >
       <label>
