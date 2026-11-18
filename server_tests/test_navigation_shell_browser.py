@@ -87,6 +87,96 @@ def capture(page, name):
     page.screenshot(path=EVIDENCE / (name + ".png"))
 
 
+def test_compact_header_keeps_actions_and_task_navigation_reachable(shell_page):
+    page = shell_page
+    base = os.environ["WB_BROWSER_URL"]
+    header = page.locator(".studio-topbar")
+    search = header.get_by_role("button", name="搜索任务", exact=True)
+    backend = header.get_by_role("button", name="后端管理", exact=True)
+    notifications = header.locator('summary[aria-label="任务提醒"]')
+    workspace = header.get_by_role("navigation", name="模块工作区")
+    new_task = workspace.get_by_role("button", name="新建任务", exact=True)
+    results = workspace.get_by_role("button", name="任务结果", exact=True)
+    initial = page.request.get(base + "/api/runtime-controls").json()
+    mutations = []
+    page.on("request", lambda event: mutations.append(event.url)
+            if event.method in {"POST", "PUT", "PATCH", "DELETE"} else None)
+
+    for width in (320, 390, 600):
+        page.set_viewport_size({"width": width, "height": 775})
+        page.goto(base + "/#view=new&tool=discovery.import")
+        expect(header.locator(".page-context-title")).to_have_text("靶点研究")
+        expect(new_task).to_have_attribute("aria-pressed", "true")
+        row = [control.bounding_box() for control in (search, backend, notifications)]
+        assert all(box["width"] >= 44 and box["height"] >= 44 for box in row)
+        assert max(box["y"] for box in row) - min(box["y"] for box in row) < 1
+        assert max(box["x"] + box["width"] for box in row) <= width
+        assert new_task.bounding_box()["y"] >= row[0]["y"] + row[0]["height"]
+        assert header.bounding_box()["height"] <= 120
+        assert header.evaluate("""bar => {
+            const items = [...bar.children];
+            return items.findIndex(e => e.matches('.task-search'))
+                < items.findIndex(e => e.matches('.module-workspace-navigation'));
+        }""")
+
+        search.focus()
+        page.keyboard.press("Tab")
+        expect(backend).to_be_focused()
+        page.keyboard.press("Tab")
+        expect(notifications).to_be_focused()
+        page.keyboard.press("Tab")
+        expect(new_task).to_be_focused()
+
+        backend.click()
+        panel = header.get_by_role("region", name="本模块的后端", exact=True)
+        expect(panel).to_be_visible()
+        discovery = panel.locator('[data-engine="discovery"]').get_by_role("switch")
+        expect(discovery).not_to_be_checked()
+        bounds = panel.bounding_box()
+        assert 0 <= bounds["x"] and bounds["x"] + bounds["width"] <= width
+        backend.press("Escape")
+        expect(backend).to_be_focused()
+        expect(panel).to_have_count(0)
+
+        notifications.click()
+        expect(header.get_by_text("需关注的任务", exact=True)).to_be_visible()
+        search.click()
+        expect(header.locator(".top-popover[open]")).to_have_count(0)
+        field = header.get_by_role("searchbox", name="搜索任务", exact=True)
+        expect(field).to_be_focused()
+        field.fill("no-existing-research-task")
+        expect(header.get_by_text("没有匹配的任务", exact=True)).to_be_visible()
+        search_results = header.get_by_role("region", name="任务搜索结果").bounding_box()
+        assert 0 <= search_results["x"] and search_results["x"] + search_results["width"] <= width
+        field.press("Escape")
+        expect(search).to_be_focused()
+        results.click()
+        expect(results).to_have_attribute("aria-pressed", "true")
+        new_task.click()
+        expect(new_task).to_have_attribute("aria-pressed", "true")
+        capture(page, f"compact-module-header-{width}")
+
+    search.click()
+    field = header.get_by_role("searchbox", name="搜索任务", exact=True)
+    field.fill("keep search while resizing")
+    page.set_viewport_size({"width": 601, "height": 775})
+    expect(field).to_have_value("keep search while resizing")
+    expect(field).to_be_focused()
+    field.press("Escape")
+    expect(search).to_be_focused()
+    page.set_viewport_size({"width": 1440, "height": 900})
+    expect(header.locator(".backend-controls-label")).to_be_visible()
+    expect(header.get_by_role("searchbox", name="搜索任务", exact=True)).to_be_visible()
+    expect(search).not_to_be_visible()
+    assert header.evaluate("""bar => {
+        const items = [...bar.children];
+        return items.findIndex(e => e.matches('.module-workspace-navigation'))
+            < items.findIndex(e => e.matches('.task-search'));
+    }""")
+    assert not mutations
+    assert page.request.get(base + "/api/runtime-controls").json() == initial
+
+
 def test_every_research_destination_has_full_navigation_and_visible_context(shell_page):
     page = shell_page
     measurements = []

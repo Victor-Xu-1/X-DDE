@@ -198,30 +198,6 @@
     }
   }
 }
-@media (max-width: 400px) {
-  .studio-main:has(
-      .task-result-content
-        > .detail-panel
-        > .operation-results
-        > .receptor-results
-    )
-    .studio-topbar {
-    .page-context {
-      flex: 1 1 0;
-      font-size: 13px;
-    }
-    .backend-controls > button {
-      width: 44px;
-      min-height: 44px;
-      padding: 0;
-      font-size: 0;
-    }
-    .backend-controls > button::before {
-      content: "⚙" / "";
-      font-size: 17px;
-    }
-  }
-}
 .receptor-results .receptor-actions {
   display: flex;
   gap: 0.5rem;

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { ControlOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
 import { enginesForScope } from "./backend-control-scope";
@@ -15,6 +16,7 @@ export function BackendControls({
   module?: Pick<ResearchModule, "label" | "tools">;
 }) {
   const zh = language === "zh";
+  const triggerLabel = zh ? "后端管理" : "Backend controls";
   const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
   const open = panel !== "closed";
   const showAll = panel === "all";
@@ -69,13 +71,15 @@ export function BackendControls({
     >
       <button
         ref={trigger}
-        className="secondary-button"
+        className="secondary-button backend-controls-trigger"
         type="button"
+        aria-label={triggerLabel}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => (open ? close() : setPanel("module"))}
       >
-        {zh ? "后端管理" : "Backend controls"}
+        <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
+        <span className="backend-controls-label">{triggerLabel}</span>
       </button>
       {open && (
         <section
