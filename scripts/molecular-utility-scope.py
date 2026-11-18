@@ -527,7 +527,7 @@ RECOGNITION_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_recognition_companion.py",
 }
-RECOGNITION_POWER_DIFF = "e5905d1bb2b204d1f9f9f88cbd0ced93e0c45563123bdf2ff3b631d59752aaf1"
+RECOGNITION_POWER_DIFF = "931c66f515c294674f933f2833a6c77a3c22d178c72839bf782ca9b284548af4"
 
 
 def reviewed_selected(changed, event, base, files, digest):
