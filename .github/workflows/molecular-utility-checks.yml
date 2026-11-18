@@ -288,12 +288,14 @@ jobs:
         run: >-
           npx vitest run src/utilities/ImageMoleculeInput.test.tsx
           src/utilities/ImageMoleculeInput.action.test.tsx src/utilities/UtilityImageTask.test.tsx
-      - name: Real Chrome touch size and image-input transport
+          src/operations/AssetPickerImageSource.test.tsx
+          src/diffsbdd/ReferencePickerUpload.test.tsx
+      - name: Chrome keyboard order, touch size and image-input transport
         run: |
           uv sync --locked --group dev --group browser
           google-chrome --version
           uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_image_browser.py
-          uv run --locked pytest -q server_tests/test_utility_image_browser.py --basetemp "$RUNNER_TEMP/utility-touch-browser"
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py server_tests/test_utility_image_browser.py --basetemp "$RUNNER_TEMP/utility-touch-browser"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
