@@ -39,14 +39,14 @@
 .molecular-input-review .molecule-inspection-view {
   display: contents;
 }
-.molecular-input-review .figure-preview-sheet {
+.molecular-input-review .molecule-inspection-view > .figure-preview-sheet {
   grid-area: canvas;
   contain: size;
   align-self: stretch;
   height: auto;
   min-height: 0;
 }
-.molecular-input-review .figure-view-toolbar {
+.molecular-input-review .molecule-inspection-view > .figure-view-toolbar {
   grid-area: view;
   justify-content: flex-start;
   margin: 0;
@@ -60,17 +60,17 @@
   grid-column: 1 / -1;
 }
 @media (max-width: 680px), (pointer: coarse) {
-  .molecular-input-review .figure-view-toolbar > div {
+  .molecular-input-review .molecule-inspection-view > .figure-view-toolbar > div {
     gap: 2px;
   }
-  .molecular-input-review .figure-view-toolbar div > span {
+  .molecular-input-review .molecule-inspection-view > .figure-view-toolbar div > span {
     min-width: 20px;
   }
-  .molecular-input-review .figure-view-toolbar button {
+  .molecular-input-review .molecule-inspection-view > .figure-view-toolbar button {
     padding-inline: 5px;
     white-space: nowrap;
   }
-  .molecular-input-review .figure-view-toolbar button,
+  .molecular-input-review .molecule-inspection-view > .figure-view-toolbar button,
   .molecular-input-review .molecule-image > .figure-export-trigger {
     min-height: 44px;
   }
