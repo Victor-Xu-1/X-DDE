@@ -23,7 +23,7 @@ def register_pose_minimization(app, store, assets, settings, mutation, enqueue):
             task, pose = initial.resolve(value)
             if pose is not None:
                 return {"state": "ready", "pose": pose.model_dump(mode="json")}
-            previous = initial.previous_attempt(task)
+            previous = initial.previous_attempt(task, exact_method=value.retry)
             if previous is not None and previous.status == "succeeded":
                 return {"state": "task", "job": previous.model_dump(mode="json")}
             controls = getattr(app.state, "runtime_controls", None)

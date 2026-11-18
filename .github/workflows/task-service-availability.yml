@@ -12,6 +12,7 @@ on:
       - "frontend/src/viewer/PreviewAvailability.test.tsx"
       - "frontend/src/viewer/usePoseOptimization*"
       - "frontend/src/viewer/InitialPoseStatus.tsx"
+      - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/PoseOptimizationControls.tsx"
       - "src/opendde_workbench/research/pose_contract.py"
       - "src/opendde_workbench/research/pose_routes.py"

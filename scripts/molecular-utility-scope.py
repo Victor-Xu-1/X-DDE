@@ -687,7 +687,7 @@ INITIAL_POSE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_pose_preview_availability.py",
 }
-INITIAL_POSE_POWER_DIFF = "2b68526e0eca1a9609cd29fc1ba7701ff1c76da506cde2c5768e4fea4d4283cb"
+INITIAL_POSE_POWER_DIFF = "566ba740c85bef4302d9e11087585eb3141571049e0123b06356d5e6ee616afc"
 
 
 def reviewed_selected(changed, event, base, files, digest):

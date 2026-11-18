@@ -37,8 +37,8 @@ def send(client, source, **options):
     )
 
 
-@pytest.mark.parametrize("retry", [False, True])
-def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview, retry):
+@pytest.mark.parametrize("retry_method", [None, "MMFF94s", "UFF"])
+def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview, retry_method):
     client, store, scientific, submitted = preview
     raw = b"protocol fixture\nsource 2D\n\n0 0 V2000\nM  END\n$$$$\n"
     asset = scientific.assets.save("unprepared.sdf", "ligand", raw)
@@ -59,9 +59,9 @@ def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview, re
     assert len(submitted) == 1 and len(store.list_jobs()) == 1
     job_id = response.json()["job"]["id"]
     assert store.claim(job_id)
-    if retry:
+    if retry_method:
         store.finish(job_id, Status.FAILED, "Fixture failure")
-        response = send(client, source, retry=True)
+        response = send(client, source, method=retry_method, retry=True)
         new_job_id = response.json()["job"]["id"]
         assert new_job_id != job_id and store.claim(new_job_id)
         job_id = new_job_id
@@ -69,7 +69,10 @@ def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview, re
     client.app.state.runtime_controls.change("chemistry", "stop", ready=False)
     restored = send(client, source, allow_compute=False)
     assert restored.status_code == 200 and restored.json()["job"]["id"] == job_id
-    assert len(submitted) == len(store.list_jobs()) == (2 if retry else 1)
+    if retry_method == "UFF":
+        explicit = send(client, source, method="MMFF94s", retry=True)
+        assert explicit.status_code == 200 and explicit.json() == {"state": "backend_off"}
+    assert len(submitted) == len(store.list_jobs()) == (2 if retry_method else 1)
 
 
 @pytest.mark.parametrize("key", ["study_ligand", "study_protac", "calculated_pose"])
