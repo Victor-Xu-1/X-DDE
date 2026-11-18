@@ -239,7 +239,7 @@
     margin: 0;
     border-bottom: 1px solid var(--line);
   }
-  .figure-export-dialog > header > button {
+  .figure-export-dialog > header > .text-button {
     min-width: 44px;
     min-height: 44px;
   }
@@ -265,8 +265,8 @@
     min-height: 44px;
   }
   .figure-export-dialog .figure-background {
-    grid-column: 1 / -1;
-    min-height: 34px;
+    align-self: end;
+    min-height: 44px;
   }
   .figure-output-spec {
     margin: 8px 0 0;
@@ -278,6 +278,9 @@
     min-height: 0;
     height: clamp(164px, 30svh, 300px);
   }
+  .figure-export-dialog .figure-preview-sheet[data-zoom="1"] {
+    overscroll-behavior: auto;
+  }
   .figure-export-dialog .figure-preview-image-space {
     padding: 12px;
   }
@@ -286,7 +289,7 @@
     padding: 10px 14px;
     border-top: 1px solid var(--line);
   }
-  .figure-export-dialog > footer > button {
+  .figure-export-dialog > footer > .primary-button {
     width: 100%;
     min-height: 44px;
   }
