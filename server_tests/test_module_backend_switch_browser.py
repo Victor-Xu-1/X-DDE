@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+from opendde_workbench.requests import Properties
+from opendde_workbench.store import Store
 from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
@@ -18,6 +20,12 @@ def controls(page, zh=False):
 def open_capability(page, base, tool):
     page.goto(f"{base}/#view=new&tool={tool}")
     return controls(page, zh=True).and_(page.locator(f'[data-capability="{tool}"]'))
+
+
+def module_power(page):
+    trigger = page.get_by_role("button", name="后端管理", exact=True)
+    panel = page.get_by_role("region", name="本模块的后端", exact=True)
+    return trigger, panel
 
 
 def verify_catalogue(page, base, snapshot):
@@ -81,28 +89,32 @@ def verify_shared_power(page, base):
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.screenshot(path=EVIDENCE / "local-power-390.png")
 
-    page.goto(f"{base}/#view=results&module=targets")
-    page.locator(".task-history-backends summary").click()
-    module = page.get_by_role("group", name="本模块的后端", exact=True)
+    trigger, module = module_power(page)
+    trigger.click()
     local_toggle = module.locator('[data-engine="discovery"]').get_by_role("switch")
     expect(local_toggle).to_be_checked()
-    page.get_by_role("button", name="后端管理", exact=True).click()
+    page.get_by_role("button", name="查看全部后端", exact=True).click()
     global_panel = page.get_by_role("region", name="后端启停", exact=True)
     global_toggle = global_panel.locator('[data-engine="discovery"]').get_by_role("switch")
     expect(global_toggle).to_be_checked()
-    # Close the global panel and switch off from the module's results.
-    page.get_by_role("button", name="关闭后端面板", exact=True).click()
+    expect(global_panel.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
+    page.get_by_role("button", name="返回本模块", exact=True).click()
+    nav = page.get_by_role("navigation", name="模块工作区")
+    nav.get_by_role("button", name="任务结果", exact=True).click()
+    expect(local_toggle).to_be_checked()
     local_toggle.click()
     expect(local_toggle).not_to_be_checked()
-    page.get_by_role("button", name="后端管理", exact=True).click()
+    page.get_by_role("button", name="查看全部后端", exact=True).click()
     expect(global_toggle).not_to_be_checked()
-    page.get_by_role("button", name="关闭后端面板", exact=True).click()
+    global_toggle.press("Escape")
+    expect(trigger).to_be_focused()
+    expect(global_panel).to_have_count(0)
     expect(open_capability(page, base, "discovery.disease").get_by_role(
         "switch"
     )).not_to_be_checked()
 
 
-def verify_module_history(page, base):
+def verify_modules(page, base):
     groups = {
         "targets": {"discovery", "harness"},
         "structures": {"opendde", "mol1", "boltz", "biopython", "diffsbdd"},
@@ -116,13 +128,13 @@ def verify_module_history(page, base):
         "simulations": {"gromacs", "openfe", "openmm"},
         "evaluation": {"admet", "chemistry", "chemprop", "diffsbdd"},
     }
-    page.set_viewport_size({"width": 390, "height": 775})
     for module, engines in groups.items():
+        width = 320 if module == "binding" else 390
+        page.set_viewport_size({"width": width, "height": 775})
         page.goto(f"{base}/#view=results&module={module}")
-        summary = page.locator(".task-history-backends summary")
-        panel = page.get_by_role("group", name="本模块的后端", exact=True)
+        trigger, panel = module_power(page)
         expect(panel).to_have_count(0)
-        summary.press("Space")
+        trigger.press("Space")
         expect(panel).to_be_visible()
         expected = engines | ({"native-compute"} if "harness" in engines else set())
         expect(panel.get_by_role("switch")).to_have_count(len(expected))
@@ -131,16 +143,27 @@ def verify_module_history(page, base):
         )) == expected
         assert all(not toggle.is_checked() for toggle in panel.get_by_role("switch").all())
         bounds = panel.bounding_box()
-        assert bounds and 0 <= bounds["x"] and bounds["x"] + bounds["width"] <= 390
+        assert bounds and 0 <= bounds["x"] and bounds["x"] + bounds["width"] <= width
         if module == "binding":
-            page.screenshot(path=EVIDENCE / "module-power-390.png")
-        summary.press("Space")
+            page.screenshot(path=EVIDENCE / "module-power-320.png")
+        nav = page.get_by_role("navigation", name="模块工作区")
+        nav.get_by_role("button", name="新建任务", exact=True).click()
+        expect(panel.get_by_role("switch")).to_have_count(len(expected))
+        panel.get_by_role("button", name="关闭后端面板", exact=True).press("Escape")
         expect(panel).to_have_count(0)
+        expect(trigger).to_be_focused()
     return list(groups)
 
 
 def verify_utilities(page, base):
     page.goto(base + "/#view=utilities")
+    trigger, module = module_power(page)
+    trigger.click()
+    expect(module.get_by_role("switch")).to_have_count(2)
+    assert set(module.locator("[data-engine]").evaluate_all(
+        "(rows) => rows.map((row) => row.dataset.engine)"
+    )) == {"admet", "chemistry"}
+    trigger.press("Escape")
     for label, engine in (
         ("ADMET 预测", "admet"),
         ("透脑评估", "admet"),
@@ -158,9 +181,31 @@ def verify_utilities(page, base):
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
 
 
+def verify_result_detail(page, base, job_id):
+    page.set_viewport_size({"width": 1450, "height": 950})
+    page.goto(f"{base}/#task={job_id}")
+    expect(page.get_by_text("Backend control history fixture", exact=True)).to_be_visible()
+    trigger, module = module_power(page)
+    trigger.click()
+    expect(module.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
+    expect(module.locator('[data-engine="admet"]').get_by_role("switch")).to_be_visible()
+    expect(module.locator('[data-engine="discovery"]')).to_have_count(0)
+    expect(page.locator('[data-backend-placement="result"] [data-engine="chemistry"]')).to_be_visible()
+    page.screenshot(path=EVIDENCE / "result-power-1450.png")
+
+
 def test_contextual_switches_bind_to_runtime_authority(tmp_path):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
-    with platform(tmp_path / "state", EVIDENCE / "server.log") as base, sync_playwright() as driver:
+    state_dir = tmp_path / "state"
+    store = Store(state_dir / "jobs.sqlite3")
+    fixture = store.create(
+        Properties(name="Backend control history fixture", smiles=["c1ccccc1"]),
+        "module-power-detail",
+        10,
+        100,
+    )
+    store.cancel(fixture.id)
+    with platform(state_dir, EVIDENCE / "server.log") as base, sync_playwright() as driver:
         chromium = driver.chromium.launch(channel="chrome")
         page = chromium.new_page(viewport={"width": 1450, "height": 950})
         page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
@@ -177,7 +222,8 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         page.on("request", record)
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
-        modules = verify_module_history(page, base)
+        modules = verify_modules(page, base)
+        verify_result_detail(page, base, fixture.id)
         assert posts == []
         verify_shared_power(page, base)
         verify_utilities(page, base)

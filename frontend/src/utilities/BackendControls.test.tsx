@@ -61,6 +61,51 @@ it("does not start engines on mount, offers only explicit available switches", a
     {},
   );
 });
+
+it("shows the current module first and returns to it after closing the full catalogue", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [entry, { ...entry, id: "admet", name: "ADMET-AI" }],
+  });
+  const user = userEvent.setup();
+  render(
+    <BackendControls
+      language="en"
+      module={{
+        label: ["分子性质", "Molecular properties"],
+        tools: ["properties"],
+      }}
+    />,
+  );
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(trigger);
+  const module = screen.getByRole("region", {
+    name: "Backends in this module",
+  });
+  expect(
+    await within(module).findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  expect(within(module).queryByRole("switch", { name: "ADMET-AI" })).toBeNull();
+  expect(request).toHaveBeenLastCalledWith(
+    "/runtime-controls?include_native=false",
+    expect.anything(),
+  );
+  await user.click(
+    within(module).getByRole("button", { name: "View all backends" }),
+  );
+  const all = screen.getByRole("region", { name: "Backend power" });
+  expect(
+    await within(all).findByRole("switch", { name: "ADMET-AI" }),
+  ).not.toBeChecked();
+  await user.keyboard("{Escape}");
+  expect(trigger).toHaveFocus();
+  expect(all).not.toBeInTheDocument();
+  await user.click(trigger);
+  expect(
+    screen.getByRole("region", { name: "Backends in this module" }),
+  ).toBeVisible();
+  expect(api.post).not.toHaveBeenCalled();
+});
 it("keeps failed changes off and prevents stopping active tasks", async () => {
   vi.mocked(request).mockResolvedValue({ engines: [entry] });
   vi.mocked(api.post).mockRejectedValue(new Error("conflict"));

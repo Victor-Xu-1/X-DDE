@@ -1,9 +1,21 @@
 import type { Job, Language } from "../types";
-import { viewTitle, type View } from "./navigation-model";
+import {
+  researchModuleForView,
+  viewTitle,
+  type View,
+} from "./navigation-model";
 import { TaskSearch } from "./TaskSearch";
 import { TaskNotifications } from "./TaskNotifications";
+import { BackendControls } from "../utilities/BackendControls";
+import { molecularUtilityCapabilities } from "../utilities/UtilityTask";
 import "./header.css";
 import type { ReactNode } from "react";
+
+const utilities = {
+  label: ["小工具", "Utilities"] as const,
+  tools: molecularUtilityCapabilities,
+};
+
 export function Header({
   view,
   language,
@@ -22,6 +34,8 @@ export function Header({
   runtime?: ReactNode;
 }) {
   const zh = language === "zh";
+  const researchModule = researchModuleForView(view);
+  const module = view === "utilities" ? utilities : researchModule;
   return (
     <header className="studio-topbar">
       <div className="page-context">
@@ -32,7 +46,15 @@ export function Header({
       {workspace}
       <TaskSearch jobs={jobs} language={language} onJob={onJob} />
       <div className="top-actions">
-        {runtime}
+        {module ? (
+          <BackendControls
+            key={researchModule?.id ?? "utilities"}
+            language={language}
+            module={module}
+          />
+        ) : (
+          runtime
+        )}
         <TaskNotifications jobs={jobs} language={language} onJob={onJob} />
       </div>
       {storageWarning && (
