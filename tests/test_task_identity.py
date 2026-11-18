@@ -9,6 +9,8 @@ from test_example_source_titles import persist_pin
 from test_task_history import create
 
 from opendde_workbench.examples.catalogue import CASES, MODULES
+from opendde_workbench.examples.del6.catalogue import CASE as DEL_CASE
+from opendde_workbench.examples.del6.catalogue import MODULES as DEL_MODULES
 from opendde_workbench.examples.library import ExampleLibrary
 from opendde_workbench.examples.stat6.catalogue import CASE
 from opendde_workbench.store import Store
@@ -62,6 +64,27 @@ def test_stat6_identity_is_derived_from_the_pin_and_never_from_its_title(library
         value = client.get(f"/api/task-history/{job.id}/identity").json()
         assert value["example_cases"] == [{"id": CASE.id, "label": list(CASE.label)}]
     assert library.store.get(job.id).request == job.request
+
+
+def test_reviewed_del_revision_has_the_same_source_in_detail_and_history(library):
+    job = create(library, "STAT6 misleading title")
+    capability = "del.series"
+    persist_pin(library, job, capability, revision=DEL_MODULES[capability].revision)
+    case = {"id": DEL_CASE.id, "label": list(DEL_CASE.label)}
+    before = snapshot(library)
+    app = FastAPI()
+    register_task_history(app, library)
+    with TestClient(app) as client:
+        detail = client.get(f"/api/task-history/{job.id}/identity")
+        assert detail.status_code == 200
+        assert detail.json()["example_cases"] == [case]
+        history = client.get("/api/task-history", params={"scope": "examples", "q": case["id"]})
+        assert history.status_code == 200
+        assert history.json()["total"] == 1
+        row = history.json()["items"][0]
+        assert row["job"]["id"] == job.id
+        assert row["example_cases"] == [case]
+    assert snapshot(library) == before
 
 
 def test_direct_open_uses_a_new_pin_before_history_origin_has_been_refreshed(library):

@@ -4,7 +4,9 @@ import json
 
 from ..examples.catalogue import CASES, MODULES
 from ..examples.contracts import ExamplePin, ExampleRecordPin
-from ..examples.stat6.catalogue import CASE
+from ..examples.del6.catalogue import CASE as DEL_CASE
+from ..examples.del6.catalogue import MODULES as DEL_MODULES
+from ..examples.stat6.catalogue import CASE as STUDY_CASE
 from ..examples.stat6.catalogue import MODULES as STUDY_MODULES
 
 
@@ -15,8 +17,9 @@ def case_index(db):
     }
     profiles.update(
         {
-            (module.capability_id, module.case_id, module.revision): CASE
-            for module in STUDY_MODULES.values()
+            (module.capability_id, module.case_id, module.revision): case
+            for modules, case in ((STUDY_MODULES, STUDY_CASE), (DEL_MODULES, DEL_CASE))
+            for module in modules.values()
         }
     )
     tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
