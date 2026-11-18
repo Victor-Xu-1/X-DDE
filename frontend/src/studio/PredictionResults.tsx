@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { componentsOf } from "../operations/types";
 import { TaskDetail } from "../TaskDetail";
 import { CandidatePanel } from "./CandidatePanel";
@@ -26,7 +27,7 @@ export type PredictionResultsProps = Pick<
   | "focusResidue"
   | "onResidue"
   | "onChanged"
-> & { onHistory?(): void };
+> & { onHistory?(): void; headerActions?: ReactNode };
 export function PredictionResults(p: PredictionResultsProps) {
   const zh = p.language === "zh",
     t = translator(p.language),
@@ -43,7 +44,9 @@ export function PredictionResults(p: PredictionResultsProps) {
           title={taskLabel}
           language={p.language}
           onHistory={p.onHistory}
-        />
+        >
+          {p.headerActions}
+        </PredictionResultHeader>
       )}
       <PredictionInspection
         job={p.job}

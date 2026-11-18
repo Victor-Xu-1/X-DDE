@@ -30,6 +30,7 @@ interface Props {
   retryAvailable?: boolean;
   showPredictionInput?: boolean;
   headerNavigation?: ReactNode;
+  headerActions?: ReactNode;
   onPredictionHistory?(): void;
   onChange(job: Job): void;
   onDraft?(request: Prediction): void;
@@ -42,6 +43,7 @@ export function TaskDetail({
   retryAvailable = true,
   showPredictionInput = true,
   headerNavigation,
+  headerActions,
   onPredictionHistory,
   onChange,
   onDraft,
@@ -197,10 +199,13 @@ export function TaskDetail({
           language={language}
           onHistory={onPredictionHistory}
         >
+          {headerActions}
           {jobAction}
         </PredictionResultHeader>
       ) : (
-        <header className="task-detail-header">
+        <header
+          className={`task-detail-header${headerActions ? " has-extra-actions" : ""}`}
+        >
           {headerNavigation && (
             <div className="task-detail-navigation">{headerNavigation}</div>
           )}
@@ -208,7 +213,10 @@ export function TaskDetail({
             <h2>{taskLabel}</h2>
             <span className={`status ${job.status}`}>{t(job.status)}</span>
           </div>
-          <div className="task-actions">{jobAction}</div>
+          <div className="task-actions">
+            {headerActions}
+            {jobAction}
+          </div>
         </header>
       )}
       {terminal(job.status) && !retryAvailable && (

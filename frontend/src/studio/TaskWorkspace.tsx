@@ -56,7 +56,7 @@ interface Props {
   onStart(tool?: ToolId): void;
   onProject(id: string | null): void;
   onDraft?(request: Prediction): void;
-  renderPrediction(onHistory: () => void): ReactNode;
+  renderPrediction(onHistory: () => void, headerActions: ReactNode): ReactNode;
 }
 export function TaskWorkspace(p: Props) {
   const zh = p.language === "zh";
@@ -237,6 +237,12 @@ export function TaskWorkspace(p: Props) {
     resultView === "detail" &&
     currentJob &&
     !predictionMethodId(currentJob.request);
+  const resultBackend = currentJob && (
+    <TaskBackendControl
+      language={p.language}
+      scope={{ operations: [currentJob.request.operation ?? "predict"] }}
+    />
+  );
   const historyToolbar = (
     <TaskHistoryToolbar
       language={p.language}
@@ -380,15 +386,9 @@ export function TaskWorkspace(p: Props) {
           </details>
           {currentJob && resultView !== "history" && (
             <div className="task-result-content">
-              <TaskBackendControl
-                language={p.language}
-                scope={{
-                  operations: [currentJob.request.operation ?? "predict"],
-                }}
-              />
               {currentJob.status === "succeeded" &&
               isPrediction(currentJob.request) ? (
-                p.renderPrediction(returnToHistory)
+                p.renderPrediction(returnToHistory, resultBackend)
               ) : (
                 <TaskDetail
                   key={currentJob.id}
@@ -399,6 +399,7 @@ export function TaskWorkspace(p: Props) {
                   retryAvailable={p.retryAvailable}
                   onPredictionHistory={returnToHistory}
                   headerNavigation={inlineHeader ? historyToolbar : undefined}
+                  headerActions={resultBackend}
                   onChange={p.onChanged}
                   onDraft={p.onDraft}
                 />

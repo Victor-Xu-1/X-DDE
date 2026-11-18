@@ -179,12 +179,8 @@ export function DiffResults({
       ))}
     </ul>
   );
-  return wrap(
-    <section
-      aria-label={
-        zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
-      }
-    >
+  const resultContext = (
+    <>
       {designing && mode !== "optimize" && (
         <p className="field-help">
           {zh
@@ -269,6 +265,16 @@ export function DiffResults({
           />
         </details>
       )}
+    </>
+  );
+  const showCandidateWorkbench = designing && records.length > 0 && targetArtifact;
+  return wrap(
+    <section
+      aria-label={
+        zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
+      }
+    >
+      {!showCandidateWorkbench && resultContext}
       {records.length > 0 && targetArtifact && (
         <>
           <GeneratedCandidates
@@ -285,6 +291,17 @@ export function DiffResults({
             metrics={designing ? generatedMetrics(data.report) : null}
             optimization={
               optimization?.state === "ready" ? optimization.data : undefined
+            }
+            details={
+              showCandidateWorkbench &&
+              (mode === "optimize" ? (
+                resultContext
+              ) : (
+                <details>
+                  <summary>{zh ? "生成详情" : "Generation details"}</summary>
+                  {resultContext}
+                </details>
+              ))
             }
             onSelect={(value) => {
               candidates.select(value);

@@ -5,6 +5,7 @@ import json
 import os
 import struct
 from pathlib import Path
+from urllib.parse import urlencode
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -75,6 +76,23 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             "table", name="生成的候选分子" if zh else "Generated candidate molecules", exact=True
         )
         expect(table).to_be_visible(timeout=30000)
+        control = page.locator(".task-detail-header").get_by_role(
+            "group", name="此任务的后端" if zh else "Backend for this task"
+        )
+        expect(control.get_by_role("switch")).to_have_attribute("aria-checked", "false")
+        workspace = page.locator(".structure-workbench").filter(has=table)
+        preview = workspace.locator(".structure-workbench-view")
+        details = workspace.locator(".structure-workbench-details")
+        stage = preview.locator(".molecular-stage")
+        expect(stage).to_be_visible(timeout=30000)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        if width > 1000:
+            box = stage.bounding_box()
+            assert box and box["y"] < 505, box
+        generation_details = details.get_by_text(
+            "生成详情" if zh else "Generation details", exact=True
+        )
+        expect(generation_details).to_be_visible()
         selected = table.get_by_role("button", name="候选 2" if zh else "Candidate 2", exact=True)
         strip = page.get_by_role(
             "region", name="生成候选预览" if zh else "Generated candidate preview"
@@ -117,20 +135,24 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         expect(
             row.get_by_role("cell", name=str(native_row["heavy_atoms"]), exact=True)
         ).to_be_visible()
+        generation_details.click()
         expect(
-            page.get_by_role(
+            details.get_by_role(
                 "status", name="生成片段处理" if zh else "Generation fragment processing"
             )
         ).to_contain_text(str(result["report"]["target_atoms"]))
-        workspace = page.locator(".structure-workbench").filter(
-            has=page.get_by_role(
-                "table",
-                name="生成的候选分子" if zh else "Generated candidate molecules",
-                exact=True,
+        details.get_by_text(
+            "原始结果文件" if zh else "Original result files", exact=True
+        ).click()
+        expect(
+            details.get_by_role(
+                "link", name="分子结构 · SDF" if zh else "Molecule structures · SDF"
             )
+        ).to_have_attribute(
+            "href",
+            f"/api/jobs/{job.id}/download?{urlencode({'name': result['molecule_artifact']})}",
         )
-        preview = workspace.locator(".structure-workbench-view")
-        details = workspace.locator(".structure-workbench-details")
+        generation_details.click()
         page.screenshot(path=evidence / "selected-native-view-loading.png", full_page=True)
         expect(preview.locator(".molecular-stage")).to_be_visible(timeout=30000)
         view_box, detail_box = preview.bounding_box(), details.bounding_box()

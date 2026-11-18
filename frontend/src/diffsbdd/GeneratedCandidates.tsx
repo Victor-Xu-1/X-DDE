@@ -32,6 +32,7 @@ export function GeneratedCandidates({
   proteinUrl,
   metrics,
   optimization,
+  details,
   onSelect,
   children,
 }: {
@@ -45,6 +46,7 @@ export function GeneratedCandidates({
   proteinUrl?: string;
   metrics?: GeneratedMetrics[] | null;
   optimization?: OptimizationData;
+  details?: ReactNode;
   onSelect(value: GeneratedRecord): void;
   children?: ReactNode;
 }) {
@@ -118,9 +120,11 @@ export function GeneratedCandidates({
         <div className="result-inspector">
           {selected && (
             <>
-              <header>
-                <h3>{label(selected)}</h3>
-              </header>
+              {!generated && (
+                <header>
+                  <h3>{label(selected)}</h3>
+                </header>
+              )}
               {(selected.object?.reference.conformer ?? 0) === 0 ? (
                 <MolecularPreview
                   label={label(selected)}
@@ -214,6 +218,7 @@ export function GeneratedCandidates({
           })}
         />
       </div>
+      {details}
       {optimization && (
         <OptimizationFigures
           data={optimization}

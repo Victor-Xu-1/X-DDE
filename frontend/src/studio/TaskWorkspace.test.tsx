@@ -45,6 +45,28 @@ beforeEach(() => {
   window.history.replaceState(null, "", "/");
   historyJobs = [job, descriptors];
   vi.spyOn(client, "request").mockImplementation(async (path) => {
+    if (path === "/runtime-controls?include_native=false")
+      return {
+        engines: [
+          {
+            id: "opendde",
+            name: "OpenDDE",
+            operations: ["predict"],
+            enabled: false,
+            active: false,
+            ready: true,
+          },
+          {
+            id: "chemistry",
+            name: "Chemistry",
+            operations: ["properties"],
+            enabled: false,
+            active: false,
+            ready: true,
+          },
+        ],
+        capabilities: {},
+      } as never;
     const identity = path.match(/^\/task-history\/([^/]+)\/identity$/);
     const selected = identity
       ? [job, descriptors, ...historyJobs].find(
@@ -115,10 +137,13 @@ it("restores date filters from the module route and clears them with the other f
   expect(window.location.hash).not.toContain("from=");
   expect(window.location.hash).not.toContain("to=");
 });
-it("uses current task-service availability for retries inside a module", () => {
+it("keeps retry availability and the matched backend inside a module header", async () => {
   const p = props({ job: descriptors, retryAvailable: false });
   const view = render(<TaskWorkspace {...p} />);
   expect(screen.getByRole("button", { name: "Run again" })).toBeDisabled();
+  const toggle = await screen.findByRole("switch", { name: "Chemistry" });
+  expect(toggle.closest("header")).toHaveClass("task-detail-header");
+  expect(toggle).not.toBeChecked();
   view.rerender(<TaskWorkspace {...p} retryAvailable />);
   expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
 });
@@ -134,13 +159,15 @@ it.each(["en", "zh"] as const)(
             scopedModule: "structures",
             job: selected,
             onJob: (id) => setSelected(id ? job : null),
-            renderPrediction: (onHistory) => (
+            renderPrediction: (onHistory, headerActions) => (
               <PredictionResultHeader
                 job={job}
                 title="STAT6 structure"
                 language={language}
                 onHistory={onHistory}
-              />
+              >
+                {headerActions}
+              </PredictionResultHeader>
             ),
           })}
         />
@@ -157,6 +184,9 @@ it.each(["en", "zh"] as const)(
     expect(
       screen.getByRole("heading", { name: "STAT6 structure" }),
     ).toBeVisible();
+    const toggle = await screen.findByRole("switch", { name: "OpenDDE" });
+    expect(toggle.closest("header")).toHaveClass("prediction-result-heading");
+    expect(toggle).not.toBeChecked();
     fireEvent.click(
       screen.getByRole("button", {
         name: language === "zh" ? "预测记录" : "Predictions",

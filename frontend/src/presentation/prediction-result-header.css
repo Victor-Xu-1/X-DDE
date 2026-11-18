@@ -10,6 +10,9 @@
   border-radius: 0;
   background: var(--surface);
 }
+.prediction-result-heading:has(.task-backend-control) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 48%);
+}
 .prediction-result-summary {
   display: grid;
   min-width: 0;
@@ -60,11 +63,16 @@
   border-radius: 999px;
 }
 @media (max-width: 840px) {
-  .prediction-result-heading {
+  .prediction-result-heading,
+  .prediction-result-heading:has(.task-backend-control) {
     grid-template-columns: minmax(0, 1fr);
     padding: 8px 0;
   }
   .prediction-result-actions {
+    justify-content: flex-start;
+  }
+  .prediction-result-actions > .task-backend-control {
+    margin-inline-start: 0;
     justify-content: flex-start;
   }
   .studio-app .prediction-result-heading .prediction-result-back {
