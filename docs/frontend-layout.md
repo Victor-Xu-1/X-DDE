@@ -108,6 +108,8 @@ selected records, draft and validation. On narrow screens, image upload and
 screenshot paste share a row where they would otherwise wrap; case identity
 remains in the guide and in the opened example. The same controls remain
 available when the input and preview stack.
+The 2D input review reserves its own toolbar row below the canvas. Zoom and the
+native SVG export stay separate on narrow screens and in short windows.
 The utility library selector uses a compact purpose dropdown while retaining
 all native modes, query requirements and rule explanations. Guided research
 forms keep their existing choice cards.

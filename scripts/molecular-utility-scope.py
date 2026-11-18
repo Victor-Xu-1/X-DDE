@@ -482,10 +482,11 @@ IMAGE_FOCUS_DIFF = "97ca35357ec32667dea099a9d96f0f983faff8160400ac844eaeafb89c6f
 UTILITY_NAVIGATION_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
+    "frontend/src/guided/molecular-review.css",
     "frontend/src/utilities/utility-task.css",
-    "server_tests/test_utility_navigation_browser.py",
+    "server_tests/test_molecular_review_controls_browser.py",
 }
-UTILITY_NAVIGATION_DIFF = "26b5164f80290c669cbcee9cfc9e51176dde72a24482516d11838c8325149189"
+UTILITY_NAVIGATION_DIFF = "df3ade6d18c23db03652cf3d15b75dc1ebc76d0ac5ddb8d79a44a877e9c6ec4d"
 
 
 POTENTIAL_DISPLAY_FILES = {
