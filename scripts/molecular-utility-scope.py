@@ -283,6 +283,7 @@ RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
     "frontend/src/poses/PosePlanRun.test.tsx",
+    "frontend/src/poses/PoseWorkspace.test.tsx",
     "frontend/src/discovery/TargetResearchForm.test.tsx",
     "frontend/src/editors/AlignedEditAction.test.tsx",
     "frontend/src/operations/CovalentEditor.test.tsx",
