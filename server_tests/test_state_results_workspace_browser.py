@@ -26,7 +26,10 @@ def verify_mismatched_download(page, base, job, output, original, replacement):
     # Only the freshly restored test copy is modified. The archived digest stays intact.
     assert output.read_bytes() == original
     transfers = []
-    on_download = transfers.append
+
+    def on_download(transfer):
+        transfers.append(transfer)
+
     page.on("download", on_download)
     try:
         output.write_bytes(replacement)
