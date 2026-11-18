@@ -179,14 +179,18 @@ jobs:
         run: |
           python - <<'PY'
           import os, subprocess
+          from runpy import run_path
           base = os.environ.get("BASE", "")
           if os.environ.get("GITHUB_EVENT_NAME") == "push" and os.environ.get("GITHUB_REF_NAME") != "main":
               base = subprocess.check_output(["git", "merge-base", "origin/main", "HEAD"], text=True).strip()
           changed = set(subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()) if base and set(base) != {"0"} else set()
           surface = {"QualityResults.tsx", "QualityPreview.tsx", "quality-results.css", "tests/QualityResults.test.tsx"}
           surface = {"frontend/src/quality/" + name for name in surface}
-          allowed = surface | {"server_tests/test_quality_context_browser.py", ".github/workflows/reference-input-checks.yml", ".github/workflows/sequence-result-checks.yml", "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1"}
-          selected = bool(changed & surface) and changed <= allowed
+          version_scope = run_path("scripts/docking-result-scope.py")
+          mirrors = version_scope["VERSION_FILES"]
+          allowed = surface | mirrors | {"server_tests/test_quality_context_browser.py", ".github/workflows/reference-input-checks.yml", ".github/workflows/sequence-result-checks.yml"}
+          selected = (bool(changed & surface) and changed <= allowed
+                      and version_scope["only_version_mirrors"](base, changed & mirrors))
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               output.write(f"quality_layout_only={str(selected).lower()}\n")
           PY
