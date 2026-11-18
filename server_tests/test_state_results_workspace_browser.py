@@ -22,8 +22,8 @@ def select_value(control, value):
     expect(control).to_have_value(str(value))
 
 
-def verify_mismatched_download(page, base, job, output, original, replacement):
-    # Only the freshly restored test copy is modified. The archived digest stays intact.
+def verify_mismatched_download(page, conformer, record, output, original, replacement):
+    # The result metadata has already loaded. Change only the next test artifact.
     assert output.read_bytes() == original
     transfers = []
 
@@ -33,7 +33,7 @@ def verify_mismatched_download(page, base, job, output, original, replacement):
     page.on("download", on_download)
     try:
         output.write_bytes(replacement)
-        page.goto(base + "/#task=" + job)
+        select_value(conformer, record)
         preview = page.locator(".state-native-preview")
         expect(preview.locator(".viewer-error")).to_be_visible(timeout=30000)
         expect(preview.locator(".viewer-original-downloads")).to_have_count(0)
@@ -83,15 +83,7 @@ def test_retained_conformers_render_and_switch_without_preparation(
             selected_bytes = page.request.get(second_url).body()
             assert hashlib.sha256(original).hexdigest() == first["artifact_sha256"]
             assert hashlib.sha256(selected_bytes).hexdigest() == second["artifact_sha256"]
-            if width == 1440:
-                output = interaction_workspace.state_dir / "jobs" / job / "output"
-                verify_mismatched_download(
-                    page, base, job, output / first["artifact"], original, selected_bytes
-                )
-                # Reload the view after restoring the original file.
-                page.reload()
-            else:
-                page.goto(base + "/#task=" + job)
+            page.goto(base + "/#task=" + job)
             preview = page.locator(".state-native-preview")
             expect(preview).to_be_visible(timeout=15000)
             scene = preview.locator(".molecular-stage")
@@ -113,7 +105,15 @@ def test_retained_conformers_render_and_switch_without_preparation(
                 "下载所选原始构象 SDF" if zh else "Download selected original conformer SDF"
             )
             download = preview.get_by_role("button", name=download_name, exact=True)
-            select_value(conformer, second["record"])
+            if width == 1440:
+                output = interaction_workspace.state_dir / "jobs" / job / "output"
+                verify_mismatched_download(
+                    page, conformer, second["record"], output / second["artifact"],
+                    selected_bytes, original,
+                )
+                preview.locator(".viewer-error").get_by_role("button", name="Reload").click()
+            else:
+                select_value(conformer, second["record"])
             expect(action).to_be_enabled(timeout=30000)
             with page.expect_download() as transfer:
                 download.click()
