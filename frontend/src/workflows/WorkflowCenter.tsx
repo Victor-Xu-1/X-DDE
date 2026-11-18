@@ -340,14 +340,6 @@ export function WorkflowCenter({
       {selected && (
         <section className="setup-card">
           <h2>{selected.body.name}</h2>
-          <TaskBackendControl
-            language={language}
-            scope={{
-              operations: selected.body.steps.map(
-                (step) => step.request.operation ?? "predict",
-              ),
-            }}
-          />
           <p>
             {zh ? "步骤数量" : "Steps"}: {selected.body.steps.length} ·{" "}
             {zh ? "任务预算" : "Job budget"}: {selected.body.budget.max_jobs}
@@ -389,8 +381,22 @@ export function WorkflowCenter({
       : expert
         ? Array.isArray(native.steps) && native.steps.length > 0
         : ids.length > 0 && ids.every(Boolean);
+  const runtimePlan =
+    run && run.plan_id !== selected?.id
+      ? plans.find((plan) => plan.id === run.plan_id)
+      : selected;
   return (
     <section>
+      {runtimePlan && (
+        <TaskBackendControl
+          language={language}
+          scope={{
+            operations: runtimePlan.body.steps.map(
+              (step) => step.request.operation ?? "predict",
+            ),
+          }}
+        />
+      )}
       <GuidedSteps<WorkflowRun>
         language={language}
         busy={busy}

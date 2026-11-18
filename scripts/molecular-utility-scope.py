@@ -243,8 +243,8 @@ RUNTIME_CONSUMERS = {
         "568d226c4a34f3c2d377d1061a0015296356bd35647ff2cdc76fd5c9f0a0f91c",
     ),
     "frontend/src/workflows/WorkflowCenter.tsx": (
-        "8993326fc3e7e4de38712ca50a9c1a21a9a001dfb077672425f80f795bd3e7b0",
         "4ba53c4f35809f75112d9129f4de4c4816934f9cc4404a2da4a1602569bdffbd",
+        "8c155794c38080eaa20dc5226cc91a7b969b0ef44c679f306faaea0c232b3ead",
     ),
     "frontend/src/regions/RegionWorkspace.tsx": (
         "dd7d9cd06d670a48cfe67aee3acf01f74bd0b2054a1b325389419bd40c531b85",
@@ -286,6 +286,7 @@ RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "frontend/src/discovery/TargetResearchForm.test.tsx",
     "frontend/src/editors/AlignedEditAction.test.tsx",
     "frontend/src/operations/CovalentEditor.test.tsx",
+    "frontend/src/workflows/WorkflowCenter.test.tsx",
     "docs/user-guide.md",
     "frontend/src/viewer/PreviewAvailability.test.tsx",
     "pyproject.toml",

@@ -44,9 +44,33 @@ const example: PreparedExample = {
 };
 
 it("loads a guided case plan and requires saving and review before running", async () => {
-  transport.request.mockResolvedValue([]);
+  transport.request.mockImplementation(async (path) =>
+    path.startsWith("/runtime-controls")
+      ? {
+          engines: [
+            {
+              id: "chemistry",
+              name: "RDKit",
+              ready: true,
+              enabled: false,
+              active: false,
+              operations: ["properties"],
+            },
+          ],
+        }
+      : [],
+  );
   const saved = { id: "fixed-plan", sha256: "a".repeat(64), body };
-  transport.post.mockResolvedValue(saved);
+  transport.post.mockImplementation(async (path) =>
+    path === "/workflows/plans"
+      ? saved
+      : {
+          id: "fixed-run",
+          plan_id: saved.id,
+          state: "succeeded",
+          attempts: [],
+        },
+  );
   render(
     <ExampleContext.Provider value={example}>
       <WorkflowCenter language="zh" jobs={[]} />
@@ -64,5 +88,15 @@ it("loads a guided case plan and requires saving and review before running", asy
   await waitFor(() => expect(transport.post).toHaveBeenCalledTimes(1));
   expect(transport.post.mock.calls[0][0]).toBe("/workflows/plans");
   expect(transport.post.mock.calls[0][1]).toEqual(body);
-  expect(screen.getByRole("button", { name: "运行这个计划" })).toBeEnabled();
+  const power = await screen.findByRole("switch", { name: "RDKit" });
+  expect(power).not.toBeChecked();
+  const start = screen.getByRole("button", { name: "运行这个计划" });
+  expect(start).toBeEnabled();
+  fireEvent.click(start);
+  await waitFor(() => expect(transport.post).toHaveBeenCalledTimes(2));
+  expect(
+    await screen.findByRole("region", { name: "研究计划运行" }),
+  ).toBeVisible();
+  expect(power).toBeVisible();
+  expect(power).not.toBeChecked();
 });
