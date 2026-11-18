@@ -94,6 +94,7 @@ it("keeps an exact downloadable mmCIF and its recorded metadata without offering
   );
   expect(screen.getByText("mmCIF")).toBeVisible();
   expect(screen.getByText("928")).toBeVisible();
+  expect(screen.getByText("选用的原始链")).toBeVisible();
   expect(screen.getByText("A, C")).toBeVisible();
   expect(screen.getByRole("link", { name: "下载结构" })).toHaveAttribute(
     "href",

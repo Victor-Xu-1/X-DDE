@@ -201,7 +201,7 @@ jobs:
           if-no-files-found: error
   receptor-workspace:
     needs: reference-scope
-    if: needs.reference-scope.outputs.receptor_workspace_only == 'true'
+    if: needs.reference-scope.outputs.receptor_alignment == 'true' || needs.reference-scope.outputs.structure_preparation == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

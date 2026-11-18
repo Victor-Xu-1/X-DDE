@@ -31,7 +31,7 @@ SUPPORT = {
 
 def receptor_workspaces(base, event):
     if event not in {"push", "pull_request"}:
-        return ()
+        return False, ()
     if (
         os.environ.get("GITHUB_REF_NAME") != "main"
         or not re.fullmatch(r"[0-9a-f]{40}", base)
@@ -49,21 +49,20 @@ def receptor_workspaces(base, event):
         ("alignment", ALIGNMENT), ("preparation", PREPARATION),
     ) if changed & paths)
     if not selected:
-        return ()
+        return False, ()
     mirrors = changed - ALIGNMENT - PREPARATION - SUPPORT
     release = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
-    if mirrors and not (
+    exclusive = not mirrors or (
         mirrors <= release["VERSION_FILES"] and release["only_version_mirrors"](base, mirrors)
-    ):
-        return ()
-    return selected
+    )
+    return exclusive, selected
 
 
 if __name__ == "__main__":
-    selected = receptor_workspaces(
+    exclusive, selected = receptor_workspaces(
         os.environ.get("BASE", ""), os.environ.get("GITHUB_EVENT_NAME", "")
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-        output.write(f"receptor_workspace_only={str(bool(selected)).lower()}\n")
+        output.write(f"receptor_workspace_only={str(exclusive).lower()}\n")
         output.write(f"receptor_alignment={str('alignment' in selected).lower()}\n")
         output.write(f"structure_preparation={str('preparation' in selected).lower()}\n")

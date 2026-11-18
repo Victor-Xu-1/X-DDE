@@ -69,7 +69,7 @@ export function StructurePrepareResults({
             </div>
             {result.inspection.selected_chains.length > 0 && (
               <div>
-                <dt>{zh ? "链" : "Chains"}</dt>
+                <dt>{zh ? "选用的原始链" : "Selected source chains"}</dt>
                 <dd>{result.inspection.selected_chains.join(", ")}</dd>
               </div>
             )}

@@ -95,6 +95,10 @@ def test_saved_preparation_layout_and_native_artifact(width, height, language, v
 
         expect(details).to_contain_text(str(native["atom_count"]))
         expect(details).to_contain_text("mmCIF" if native["options"]["format"] == "cif" else "PDB")
+        source_chains = native["inspection"]["selected_chains"]
+        if source_chains:
+            expect(details).to_contain_text(label("Selected source chains", "选用的原始链"))
+            expect(details).to_contain_text(", ".join(source_chains))
         record = details.locator("summary")
         record.click()
         expect(details.locator("details > p").first).to_contain_text(str(len(native["removed_residues"])))
