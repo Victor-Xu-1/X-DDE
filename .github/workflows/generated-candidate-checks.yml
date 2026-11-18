@@ -101,7 +101,7 @@ jobs:
           export WB_HOME="$RUNNER_TEMP/x-dde-generated-review" WB_STATE_DIR="$RUNNER_TEMP/x-dde-generated-review/state"
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
-      - run: uv run --locked python -m playwright install --with-deps chromium
+      - run: google-chrome --version
       - name: Native 3D and selected source questionnaire in desktop English and narrow Chinese
         run: uv run --locked python -m pytest -x -q server_tests/test_generated_quality_browser.py
       - name: Require the selected component checks after collecting browser evidence

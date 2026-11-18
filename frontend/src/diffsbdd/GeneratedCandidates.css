@@ -1,0 +1,99 @@
+.generated-structure-checks {
+  min-width: 0;
+  padding-block-end: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.generated-structure-checks > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.generated-structure-checks .native-result-metrics,
+.generated-batch-checks .native-result-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+  margin: 8px 0;
+}
+
+.generated-structure-checks .generated-primary-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.generated-structure-checks .generated-primary-metrics > div {
+  align-self: end;
+  padding-block: 2px;
+  border: 0;
+}
+
+.generated-structure-checks > p {
+  margin: 6px 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.generated-structure-checks > .notice {
+  padding: 6px 8px;
+}
+
+.generated-structure-checks summary,
+.generated-batch-checks summary {
+  cursor: pointer;
+  padding-block: 5px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.generated-candidate-table .research-table-toolbar {
+  gap: 7px;
+  padding: 7px 0;
+}
+
+.generated-candidate-table .research-table thead th {
+  white-space: normal;
+}
+
+.generated-candidate-table .column-sort {
+  white-space: normal;
+  gap: 4px;
+}
+
+.generated-candidate-table .research-table th,
+.generated-candidate-table .research-table td {
+  padding: 6px 7px;
+}
+
+.generated-candidate-table .molecule-record {
+  grid-template-columns: minmax(0, 96px) minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+}
+
+.generated-candidate-table .molecule-record strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.generated-candidate-table .molecule-image.is-thumbnail,
+.generated-candidate-table .molecule-image.is-thumbnail > img {
+  width: 100%;
+  height: 60px;
+}
+
+@media (max-width: 600px) {
+  .generated-candidate-table .molecule-record {
+    grid-template-columns: minmax(0, 72px) minmax(0, 1fr);
+  }
+
+  .generated-candidate-table .molecule-image.is-thumbnail,
+  .generated-candidate-table .molecule-image.is-thumbnail > img {
+    height: 48px;
+  }
+}

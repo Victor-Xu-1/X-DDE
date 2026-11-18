@@ -116,8 +116,9 @@ it("uses the same verified original record for selected and batch metrics", () =
     within(strip).getByRole("button", { name: "Preview candidate 2" }),
   ).toHaveAttribute("aria-pressed", "true");
   expect(
-    within(screen.getByRole("region", { name: "Selected structure checks" }))
-      .getByText("0.2"),
+    within(
+      screen.getByRole("region", { name: "Selected structure checks" }),
+    ).getByText("0.2"),
   ).toBeVisible();
   fireEvent.click(
     within(strip).getByRole("button", { name: "Preview candidate 1" }),
@@ -335,8 +336,8 @@ it.each(["en", "zh"] as const)(
     );
     expect(region).toHaveTextContent(
       language === "zh"
-        ? "不代表完整受体"
-        : "does not establish independently checked full-receptor",
+        ? "结合姿势需要独立质控"
+        : "binding pose need independent quality checks",
     );
   },
 );
@@ -433,7 +434,13 @@ it.each(["en", "zh"] as const)(
           : "Potential steric clashes: inspect and refine the pose before downstream research.",
       ),
     ).toBeVisible();
-    expect(screen.getByRole("columnheader", { name: "MW" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "QED" })).toBeVisible();
+    expect(screen.queryByRole("columnheader", { name: "MW" })).toBeNull();
+    const extra = screen.getByText(
+      language === "zh" ? "更多构象指标" : "More structure metrics",
+    );
+    expect(extra.parentElement).not.toHaveAttribute("open");
+    fireEvent.click(extra);
     expect(screen.getByText("0.88 Å")).toBeVisible();
   },
 );
@@ -453,10 +460,11 @@ it("keeps source record identities after a filtered/reordered table and does not
   expect(
     JSON.parse(screen.getByTestId("candidate-frame").textContent!).records,
   ).toEqual([0, 1]);
+  fireEvent.click(screen.getByText("More structure metrics"));
   expect(screen.getByText("1.64 Å")).toBeVisible();
   expect(
     screen.getByText(
-      "Proximity metrics cover conditioning-pocket atoms only, not the rest of the protein. Continue with full-receptor pose-quality checks.",
+      "Proximity metrics cover the conditioning pocket. Full-receptor geometry, stereochemistry and binding pose need independent quality checks.",
     ),
   ).toBeVisible();
 });
@@ -501,10 +509,10 @@ it.each(["en", "zh"] as const)(
         : "包含 3 个未连接的结构片段",
     );
     expect(
-      screen.getByRole("columnheader", {
+      screen.queryByRole("columnheader", {
         name: language === "en" ? "Output components" : "输出片段数",
       }),
-    ).toBeVisible();
+    ).toBeNull();
     expect(
       JSON.parse(screen.getByTestId("candidate-frame").textContent!).source,
     ).toEqual({ url: "/poses.sdf", record: 1 });
