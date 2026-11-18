@@ -30,7 +30,7 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
     phase: "idle",
     job: null,
     error: "",
-    initialReady: false,
+    initialReady: Boolean(base.nativeArtifactSha256),
     initializing: false,
   });
   const [state, setState] = useState<State>(initial);

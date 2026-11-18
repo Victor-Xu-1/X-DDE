@@ -98,6 +98,27 @@ it("prepares an initial 3D pose through the same queue and starts history at the
   expect(vi.mocked(api.post)).toHaveBeenCalledTimes(2);
 });
 
+it("keeps the precomputed artifact as the undo parent, without a preparation request", async () => {
+  vi.mocked(api.post).mockImplementation(async (path) =>
+    path.endsWith("/save") ? saved : { id: next },
+  );
+  vi.mocked(request).mockResolvedValue({ id: next, status: "succeeded" });
+  const nativeArtifactSha256 = "c".repeat(64);
+  const { result } = renderHook(() =>
+    usePoseOptimization({ ...base, nativeArtifactSha256 }, 0),
+  );
+  expect(result.current.initialReady).toBe(true);
+  await act(async () => result.current.prepareInitial());
+  expect(api.post).not.toHaveBeenCalled();
+  await act(async () => result.current.minimize("MMFF94s", 1000));
+  await waitFor(() => expect(result.current.count).toBe(2));
+  expect(result.current.initialReady).toBe(true);
+  expect(result.current.pose.nativeArtifactSha256).toBeUndefined();
+  act(() => result.current.previous());
+  expect(result.current.pose.nativeArtifactSha256).toBe(nativeArtifactSha256);
+  expect(result.current.pose.urls).toEqual(base.urls);
+});
+
 it("reuses a qualified calculated record without minimization and does not change other models", async () => {
   const object = {
     ...saved.pose,

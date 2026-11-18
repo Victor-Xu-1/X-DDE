@@ -599,6 +599,33 @@ MODULE_BACKEND_FILES = {
 }
 MODULE_BACKEND_DIFF = "19403e72a9be178dc82b13b4a7b4555b8d085108f1f78ac1dc8c0f1a9570b5af"
 
+NATIVE_STATE_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-preview-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/selected-pose-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/chemistry/StateCollectionPreview.test.tsx",
+    "frontend/src/chemistry/StateCollectionPreview.tsx",
+    "frontend/src/chemistry/StateInspectionTables.tsx",
+    "frontend/src/chemistry/StateResultNotes.tsx",
+    "frontend/src/chemistry/StateResults.test.tsx",
+    "frontend/src/chemistry/StateResults.tsx",
+    "frontend/src/chemistry/state-inspection.ts",
+    "frontend/src/chemistry/states.css",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/pose-plan.test.ts",
+    "frontend/src/viewer/pose-plan.ts",
+    "frontend/src/viewer/pose-source.ts",
+    "frontend/src/viewer/pose-types.ts",
+    "frontend/src/viewer/usePoseOptimization.test.tsx",
+    "frontend/src/viewer/usePoseOptimization.ts",
+    "server_tests/test_state_results_workspace_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+NATIVE_STATE_DIFF = "18db95a9a8ec62e95840fe7ed7988cba7a9b34ff18b0859ae462fcb0a5777c88"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -678,10 +705,15 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
     )
+    native_state = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        NATIVE_STATE_FILES, NATIVE_STATE_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
+        output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -703,7 +735,7 @@ def main():
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
         utility = (
-            recognition_power or potential_display or navigation or runtime or layout
+            recognition_power or potential_display or navigation or runtime or layout or native_state
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

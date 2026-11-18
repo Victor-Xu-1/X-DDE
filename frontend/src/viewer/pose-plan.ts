@@ -4,6 +4,7 @@ import type { PreviewPose } from "./pose-types";
 
 export interface PoseFrame {
   sourceSnapshot?: boolean;
+  nativeArtifactSha256?: string;
   urls: string[];
   records?: number[];
   nativeScore?: NativePoseScore | null;
@@ -25,6 +26,13 @@ export function posePlan(frame: PoseFrame): {
   const records = [...(frame.records ?? frame.urls.map(() => 0))];
   if (index >= 0 && frame.molecularSource?.record !== undefined)
     records[index] = frame.molecularSource.record;
+  const nativeArtifactSha256 = frame.nativeArtifactSha256;
+  const verifiedSingleArtifact =
+    frame.urls.length === 1 &&
+    records[0] === 0 &&
+    nativeArtifactSha256 &&
+    /^[a-f0-9]{64}$/.test(nativeArtifactSha256) &&
+    poseSource(frame.urls[0], 0)?.kind === "artifact";
   const base: PreviewPose = {
     urls: frame.urls,
     records:
@@ -32,6 +40,7 @@ export function posePlan(frame: PoseFrame): {
         ? records
         : undefined,
     score: frame.nativeScore,
+    ...(verifiedSingleArtifact ? { nativeArtifactSha256 } : {}),
     source:
       !frame.sourceSnapshot && !frame.comparison && index >= 0
         ? poseSource(

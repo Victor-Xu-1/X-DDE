@@ -5,10 +5,22 @@ import { afterEach, expect, it, vi } from "vitest";
 import { StateCollectionPreview } from "./StateCollectionPreview";
 import type { Job } from "../types";
 import type { StateResult } from "./types";
+import { stateReferences, stateSelection } from "./state-inspection";
 
 vi.mock("../viewer/StructureViewer", () => ({
-  StructureViewer: ({ urls }: { urls: string[] }) => (
-    <output data-testid="native-3d-source">{urls[0]}</output>
+  StructureViewer: ({
+    urls,
+    nativeArtifactSha256,
+  }: {
+    urls: string[];
+    nativeArtifactSha256?: string;
+  }) => (
+    <output
+      data-testid="native-3d-source"
+      data-source-hash={nativeArtifactSha256}
+    >
+      {urls[0]}
+    </output>
   ),
 }));
 vi.mock("../presentation/MoleculeImage", () => ({
@@ -102,16 +114,24 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
     "true",
   );
   await user.click(screen.getByRole("tab", { name: "2D structure" }));
-  await user.click(screen.getByRole("button", { name: /^Conformer 3$/ }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Free conformer" }),
+    "2",
+  );
   expect(screen.getByRole("tab", { name: "2D structure" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
   expect(screen.queryByTestId("native-3d-source")).toBeNull();
   expect(
-    screen.getByRole("link", { name: "Download current conformer SDF" }),
+    screen.getByRole("link", {
+      name: "Download selected original conformer SDF",
+    }),
   ).toHaveAttribute("href", expect.stringContaining("neutral-003.sdf"));
-  await user.click(screen.getByRole("button", { name: /^State 2$/ }));
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Chemical state" }),
+    "1",
+  );
   expect(screen.getByRole("tab", { name: "2D structure" })).toHaveAttribute(
     "aria-selected",
     "true",
@@ -121,11 +141,17 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
     screen.getByRole("tabpanel", { name: "2D structure" }),
   ).toHaveTextContent("cation-010.sdf");
   expect(
-    screen.getByRole("link", { name: "Download current conformer SDF" }),
+    screen.getByRole("link", {
+      name: "Download selected original conformer SDF",
+    }),
   ).toHaveAttribute("href", expect.stringContaining("cation-010.sdf"));
   await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByTestId("native-3d-source")).toHaveTextContent(
     "cation-010.sdf",
+  );
+  expect(screen.getByTestId("native-3d-source")).toHaveAttribute(
+    "data-source-hash",
+    "c".repeat(64),
   );
   expect(
     screen.getAllByTestId("native-2d-source").map((node) => node.textContent),
@@ -135,4 +161,52 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
       record: 1,
     }),
   );
+});
+
+it("matches the selected native file with the registered collection record", () => {
+  const native = data.conformers[1];
+  const registered = {
+    asset_id: "33333333-3333-4333-8333-333333333333",
+    version_id: "44444444-4444-4444-8444-444444444444",
+    sha256: "d".repeat(64),
+    record: native.record,
+    conformer: 0,
+  };
+  const stateRef = { ...registered, sha256: "e".repeat(64), record: 0 };
+  const result = {
+    ...data,
+    artifact_sha256: {
+      [data.state_artifact]: stateRef.sha256,
+      [data.conformer_artifact]: registered.sha256,
+    },
+  };
+  const set = {
+    id: "set",
+    source_job: job.id,
+    source: stateRef,
+    members: [
+      {
+        reference: stateRef,
+        evidence: data.states[0],
+        conformers: [{ reference: registered, evidence: native }],
+      },
+    ],
+  };
+  const selected = stateSelection(result, 0, native.record);
+  expect(stateReferences(result, [set], job.id, selected)).toEqual({
+    stateRef,
+    conformerRef: registered,
+  });
+  expect(
+    stateReferences(
+      result,
+      [{ ...set, source_job: "other-job" }],
+      job.id,
+      selected,
+    ).conformerRef,
+  ).toBeUndefined();
+  expect(
+    stateReferences(result, [set], job.id, stateSelection(result, 0, 0))
+      .conformerRef,
+  ).toBeUndefined();
 });
