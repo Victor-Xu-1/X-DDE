@@ -84,18 +84,20 @@ export function PocketSelection({
         <button
           className="secondary-button"
           type="button"
+          aria-label={zh ? "用这个口袋生成分子" : "Generate molecules in this pocket"}
           disabled={!usable}
           onClick={onGenerate}
         >
-          {zh ? "用这个口袋生成分子" : "Generate molecules in this pocket"}
+          {zh ? "生成分子" : "Generate molecules"}
         </button>
         <button
           className="secondary-button"
           type="button"
+          aria-label={zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
           disabled={!pdb || !coordinatesMatch || !hasValidBox}
           onClick={onDock}
         >
-          {zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
+          {zh ? "结合模式" : "Explore poses"}
         </button>
       </div>
       <details className="pocket-residues">

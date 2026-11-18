@@ -20,6 +20,58 @@ WARHEAD = (
 FIXTURE_NAME = "STAT6 user warhead handoff fixture.sdf"
 
 
+@pytest.mark.parametrize(("width", "height", "visible"), [
+    (1440, 900, 0.92), (1110, 580, 0.36), (390, 775, 0.44), (320, 568, 0.05),
+])
+def test_saved_stat6_canvas_leads_pocket_results(width, height, visible):
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    base = os.environ["WB_BROWSER_URL"].rstrip("/")
+    with sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": width, "height": height})
+        writes = []
+
+        def read_only(route):
+            if route.request.method not in {"GET", "HEAD", "OPTIONS"}:
+                writes.append(route.request.url)
+                route.abort()
+            else:
+                route.continue_()
+
+        page.route("**/api/**", read_only)
+        case = page.request.get(base + "/api/examples/p2rank.detect").json()
+        page.goto(f"{base}/#task={case['pin']['job_id']}")
+        workspace = page.locator(".pocket-result-workspace")
+        scene = workspace.get_by_role("region", name="Pocket 3D preview")
+        stage = scene.locator(".molecular-stage iframe")
+        expect(scene.get_by_role(
+            "button", name="Export figure ↓", exact=True,
+        )).to_be_enabled(timeout=30000)
+        expect(stage).to_be_in_viewport(ratio=visible)
+
+        view = workspace.locator(".structure-workbench-view").bounding_box()
+        details = workspace.locator(".structure-workbench-details").bounding_box()
+        assert view and details
+        if width > 1000:
+            assert view["x"] + view["width"] <= details["x"]
+            assert view["width"] > details["width"]
+            assert abs(view["y"] - details["y"]) <= 2
+        else:
+            assert view["y"] + view["height"] <= details["y"]
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        assert page.locator(".studio-topbar").evaluate("""(header) => {
+          const items = [...header.children].filter((node) => node.getClientRects().length);
+          const boxes = items.map((node) => node.getBoundingClientRect());
+          return boxes.every((box, i) => boxes.slice(i + 1).every((other) =>
+            box.right <= other.left + 1 || other.right <= box.left + 1 ||
+            box.bottom <= other.top + 1 || other.bottom <= box.top + 1
+          ));
+        }""")
+        page.screenshot(path=EVIDENCE / f"stat6-first-canvas-{width}.png")
+        assert not writes
+        browser.close()
+
+
 @pytest.fixture(scope="module")
 def warhead():
     settings = Settings.from_env()
@@ -122,6 +174,16 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
         expect(scene.get_by_role("status").filter(
             has_text=label("Region residues located", "已定位区域残基")
         )).to_contain_text(f"{len(labels)} / {len(labels)}")
+        assert original_scene.evaluate("(frame) => frame.isConnected")
+        expand = scene.get_by_role(
+            "button", name=label("Expand research workspace", "展开研究工作区"), exact=True
+        )
+        expand.click()
+        expect(page.locator('.structure-workbench[data-workspace-expanded="true"]')).to_be_visible()
+        assert original_scene.evaluate("(frame) => frame.isConnected")
+        page.keyboard.press("Escape")
+        expect(expand).to_be_focused()
+        expect(pick).to_have_attribute("aria-pressed", "true")
         assert original_scene.evaluate("(frame) => frame.isConnected")
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         page.screenshot(path=EVIDENCE / f"stat6-{language}-pocket-workspace.png")
