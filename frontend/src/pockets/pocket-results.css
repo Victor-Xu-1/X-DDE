@@ -125,29 +125,6 @@
     flex: none;
   }
 }
-@media (max-width: 400px) {
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .page-context {
-    flex: 1 1 0;
-    font-size: 13px;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .backend-controls > button {
-    width: 44px;
-    min-height: 44px;
-    padding: 0;
-    font-size: 0;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .backend-controls > button::before {
-    content: "⚙" / "";
-    font-size: 17px;
-  }
-}
-
 .pocket-selection {
   display: grid;
   gap: 8px;

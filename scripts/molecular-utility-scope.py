@@ -650,6 +650,22 @@ COMPACT_EXAMPLE_FILES = {
 }
 COMPACT_EXAMPLE_DIFF = "2818fd353d7450fa9e1c651aef9c7394eaa66eceacffb41708d602a1507dc515"
 
+MOBILE_HEADER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/navigation-shell-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/chemistry/states.css",
+    "frontend/src/integrations/interaction-workspace.css",
+    "frontend/src/pockets/pocket-results.css",
+    "frontend/src/presentation/prediction-shell.css",
+    "frontend/src/receptors/receptors.css",
+    "frontend/src/studio/header.css",
+    "frontend/src/utilities/BackendControls.tsx",
+    "server_tests/test_navigation_shell_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+MOBILE_HEADER_DIFF = "0b7aea3075462e277773f2daf075d428ac55f5fec503474e5b51d9aacc6a90b8"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -737,12 +753,17 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         COMPACT_EXAMPLE_FILES, COMPACT_EXAMPLE_DIFF,
     )
+    mobile_header = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
+        output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -765,7 +786,7 @@ def main():
         })
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
-            or native_state or compact_example or selected(changed, event, shared=shared)
+            or native_state or compact_example or mobile_header or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")

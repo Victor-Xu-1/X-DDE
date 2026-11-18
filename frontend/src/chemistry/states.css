@@ -214,41 +214,11 @@
     padding-inline: 8px;
     white-space: nowrap;
   }
-  .studio-main:has(.state-native-preview:not([hidden] *))
-    .studio-topbar
-    .page-context {
-    flex: 1 1 0;
-    font-size: 12px;
-    line-height: 1.25;
-  }
-  .studio-main:has(.state-native-preview:not([hidden] *))
-    .studio-topbar
-    .backend-controls
-    > button {
-    width: 44px;
-    min-height: 44px;
-    padding: 0;
-    font-size: 0;
-  }
-  .studio-main:has(.state-native-preview:not([hidden] *))
-    .studio-topbar
-    .backend-controls
-    > button::before {
-    content: "⚙" / "";
-    font-size: 17px;
-  }
 }
 
 @media (max-width: 360px) and (max-height: 620px) {
   .studio-app .state-native-preview .viewer-panel .molecular-stage {
     height: clamp(218px, 39dvh, 242px);
-  }
-  .studio-main:has(.state-native-preview:not([hidden] *)) .studio-topbar {
-    column-gap: 4px;
-  }
-  .studio-main:has(.state-native-preview:not([hidden] *))
-    .module-workspace-navigation {
-    padding-block: 0;
   }
   .detail-panel:has(.state-native-preview)
     .task-actions

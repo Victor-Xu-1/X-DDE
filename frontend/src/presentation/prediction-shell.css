@@ -33,27 +33,3 @@
     flex: none;
   }
 }
-
-@media (max-width: 400px) {
-  .studio-main:has(> .studio-content[data-prediction-layout="true"])
-    .studio-topbar
-    .page-context {
-    flex: 1 1 0;
-    font-size: 13px;
-  }
-
-  .studio-main:has(> .studio-content[data-prediction-layout="true"])
-    .studio-topbar
-    .backend-controls > button {
-    width: 36px;
-    min-height: 36px;
-    padding: 0;
-    font-size: 0;
-  }
-  .studio-main:has(> .studio-content[data-prediction-layout="true"])
-    .studio-topbar
-    .backend-controls > button::before {
-    content: "⚙" / "";
-    font-size: 17px;
-  }
-}

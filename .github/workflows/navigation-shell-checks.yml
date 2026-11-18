@@ -2,7 +2,7 @@ name: Research navigation and header checks
 on:
   workflow_dispatch:
   push:
-    paths:
+    paths: &navigation_paths
       - "frontend/src/studio/Navigation*"
       - "frontend/src/studio/ModuleWorkspaceNavigation*"
       - "frontend/src/studio/navigation-frame.css"
@@ -23,6 +23,8 @@ on:
       - "server_tests/test_navigation_shell_browser.py"
       - "server_tests/prepare_shell_history.py"
       - ".github/workflows/navigation-shell-checks.yml"
+  pull_request:
+    paths: *navigation_paths
 permissions:
   contents: read
 jobs:
@@ -45,7 +47,10 @@ jobs:
         run: python scripts/appearance-scope.py
   research-shell:
     needs: [appearance-scope, utility-scope]
-    if: needs.appearance-scope.outputs.appearance_only != 'true' && needs.utility-scope.outputs.utility_only != 'true'
+    if: >-
+      needs.appearance-scope.outputs.appearance_only != 'true' &&
+      (needs.utility-scope.outputs.utility_only != 'true' ||
+      needs.utility-scope.outputs.mobile_header_only == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -64,6 +69,7 @@ jobs:
           npx vitest run src/studio/Navigation.test.tsx
           src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/NavigationFrame.test.tsx src/studio/Header.test.tsx
+          src/utilities/BackendControls.test.tsx
           src/studio/MethodSwitch.test.tsx src/studio/BindingEntryDialog.test.tsx
           src/studio/research-modules.test.ts src/studio/InterfaceSettings.test.tsx
           src/App.test.tsx src/studio/TaskWorkspace.test.tsx
@@ -76,6 +82,11 @@ jobs:
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-research-shell/state" >> "$GITHUB_ENV"
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+      - name: Verify the approved header-only CI scope
+        if: needs.utility-scope.outputs.mobile_header_only == 'true'
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
       - name: Real page navigation, modal focus and task search in Chromium
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
