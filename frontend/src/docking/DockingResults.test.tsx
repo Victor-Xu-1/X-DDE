@@ -121,17 +121,22 @@ it.each(["en", "zh"] as const)(
     const box = screen.getByText(/1 \/ -2 \/ 3 Å/);
     expect(box).not.toBeVisible();
     await userEvent.click(
-      screen.getByText(language === "zh" ? "评分与搜索范围" : "Scores and search scope"),
+      screen.getByText(
+        language === "zh" ? "评分与搜索范围" : "Scores and search scope",
+      ),
     );
     expect(box).toBeVisible();
     expect(box).toHaveTextContent("20 × 22 × 24 Å");
     expect(screen.queryByText(/resulting bounds are not recorded/)).toBeNull();
     const download = screen.getByRole("link", {
-      name: language === "zh" ? "下载所选姿势 SDF" : "Download selected pose SDF",
+      name:
+        language === "zh" ? "下载所选姿势 SDF" : "Download selected pose SDF",
     });
     const visibleLabel = download.textContent?.trim().toLowerCase();
     expect(visibleLabel).toBeTruthy();
-    expect(download.getAttribute("aria-label")?.toLowerCase()).toContain(visibleLabel);
+    expect(download.getAttribute("aria-label")?.toLowerCase()).toContain(
+      visibleLabel,
+    );
   },
 );
 it("previews only the chosen valid pose and reuses its exact saved record", async () => {
@@ -323,7 +328,7 @@ it.each(["en", "zh"] as const)(
       name: zh ? "姿势预览选择" : "Pose preview selection",
     });
     const download = () =>
-      within(strip).queryByRole("link", {
+      screen.queryByRole("link", {
         name: zh ? "下载所选姿势 SDF" : "Download selected pose SDF",
       });
     expect(download()).toHaveAttribute("href", "/artifact/j/pose-001.sdf");
@@ -341,7 +346,13 @@ it.each(["en", "zh"] as const)(
         name: zh ? "预览姿势 2" : "Preview pose 2",
       }),
     ).toHaveAttribute("aria-pressed", "true");
-    expect(within(strip).getByText("-7.000")).toBeVisible();
+    expect(
+      within(
+        screen.getByRole("region", {
+          name: zh ? "所选姿势分数" : "Selected pose scores",
+        }),
+      ).getByText("-7.000"),
+    ).toBeVisible();
     await user.click(
       screen.getByRole("checkbox", {
         name: zh ? "对比 姿势 1" : "Compare Pose 1",
@@ -352,14 +363,15 @@ it.each(["en", "zh"] as const)(
         name: zh ? "对比 姿势 2" : "Compare Pose 2",
       }),
     );
-    await user.click(
-      screen.getByRole("button", { name: zh ? "对比 (2)" : "Compare (2)" }),
-    );
-    await user.click(
-      screen.getByRole("button", {
-        name: zh ? "三维比较两个姿势" : "Compare two poses in 3D",
+    const open = screen.getByRole("button", {
+      name: zh ? "三维比较两个姿势" : "Compare two poses in 3D",
+    });
+    expect(
+      screen.queryByRole("region", {
+        name: zh ? "结果对比" : "Result comparison",
       }),
-    );
+    ).toBeNull();
+    await user.click(open);
     const comparison = screen.getByRole("region", {
       name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
     });
@@ -387,12 +399,25 @@ it.each(["en", "zh"] as const)(
         .map((link) => link.getAttribute("href")),
     ).toEqual(["/artifact/j/pose-001.sdf", "/artifact/j/pose-002.sdf"]);
     expect(
+      within(comparison).getByRole("heading", {
+        name: zh ? "结合姿势比较" : "Compare binding poses",
+      }),
+    ).toHaveFocus();
+    await user.click(
+      within(comparison).getByRole("button", {
+        name: zh ? "返回单个姿势" : "Return to single pose",
+      }),
+    );
+    expect(open).toHaveFocus();
+    expect(download()).toHaveAttribute("href", "/artifact/j/pose-002.sdf");
+    await user.click(open);
+    expect(
       screen.queryByRole("button", {
         name: zh ? "检查姿势质量" : "Check pose quality",
       }),
     ).toBeNull();
     await user.click(
-      within(comparison).getByRole("button", {
+      screen.getByRole("button", {
         name: zh ? "姿势 2 · 紫色碳" : "Pose 2 · Purple carbon",
       }),
     );
@@ -445,7 +470,6 @@ it("leaves rejected and more-than-two metric selections out of the structural ov
   const user = userEvent.setup();
   await user.click(screen.getByRole("checkbox", { name: "Compare Pose 1" }));
   await user.click(screen.getByRole("checkbox", { name: "Compare Pose 2" }));
-  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
   expect(
     screen.getByRole("button", { name: "Compare two poses in 3D" }),
   ).toBeDisabled();

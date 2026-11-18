@@ -28,8 +28,9 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
     evidence.mkdir(parents=True, exist_ok=True)
     before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
     with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 960}, accept_downloads=True)
+        browser = pw.chromium.launch(channel="chrome")
+        height = 775 if width < 600 else 850
+        page = browser.new_page(viewport={"width": width, "height": height}, accept_downloads=True)
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.add_init_script("""window.addEventListener('message', event => {
           if (event.data?.channel === 'opendde-viewer' && event.data.type === 'load')
@@ -71,6 +72,8 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             "button", name="文献图导出 ↓" if language == "zh" else "Export figure ↓", exact=True
         )
         expect(export).to_be_enabled(timeout=45000)
+        initial = viewer.locator(".molecular-stage iframe").bounding_box()
+        assert initial and initial["y"] < (625 if width < 600 else 415), initial
         mapping = "原子映射" if language == "zh" else "Atom mapping"
         status = "状态" if language == "zh" else "Status"
         pose_label = "姿势" if language == "zh" else "Pose"
@@ -98,8 +101,11 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             preview.click()
             expect(preview).to_have_attribute("aria-pressed", "true")
             expect(row).to_have_attribute("aria-selected", "true")
+            scores = workspace.get_by_role(
+                "region", name="所选姿势分数" if language == "zh" else "Selected pose scores"
+            )
             for score in selected["scores"]:
-                expect(strip).to_contain_text(f"{score['value']:.3f}")
+                expect(scores).to_contain_text(f"{score['value']:.3f}")
             expect(export).to_be_enabled(timeout=30000)
             expect(workspace.get_by_role("note")).to_have_count(1)
             with page.expect_download() as download:
@@ -155,14 +161,15 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
                 name=("对比 " if language == "zh" else "Compare ") + pose_label + f" {number}",
                 exact=True,
             ).check()
-        workspace.get_by_role(
-            "button", name="对比 (2)" if language == "zh" else "Compare (2)", exact=True
-        ).click()
-        workspace.get_by_role(
+        opener = workspace.get_by_role(
             "button",
             name="三维比较两个姿势" if language == "zh" else "Compare two poses in 3D",
             exact=True,
-        ).click()
+        )
+        expect(workspace.get_by_role(
+            "region", name="结果对比" if language == "zh" else "Result comparison"
+        )).to_have_count(0)
+        opener.press("Enter")
         overlay = workspace.get_by_role(
             "region",
             name="结合姿势三维比较" if language == "zh" else "Binding pose structural comparison",
@@ -170,6 +177,11 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         )
         expect(overlay).to_be_visible()
         expect(export).to_be_enabled(timeout=30000)
+        expect(overlay.get_by_role(
+            "heading", name="结合姿势比较" if language == "zh" else "Compare binding poses"
+        )).to_be_focused()
+        expect(overlay.locator(".molecular-stage iframe")).to_be_in_viewport(ratio=0.65)
+        page.screenshot(path=evidence / "direct-overlay.png")
         load = (
             overlay.frame_locator("iframe")
             .locator("#molecule")
@@ -216,6 +228,7 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
             exact=True,
         ).click()
         expect(overlay).to_have_count(0)
+        expect(opener).to_be_focused()
         expect(export).to_be_enabled(timeout=30000)
         expect(
             workspace.get_by_role(

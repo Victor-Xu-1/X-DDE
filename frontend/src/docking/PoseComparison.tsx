@@ -1,4 +1,5 @@
 import { artifactUrl } from "../api";
+import { useLayoutEffect, useRef } from "react";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Language } from "../types";
 import type { DockingResult, PoseResult } from "./types";
@@ -20,25 +21,35 @@ export function PoseComparison({
   onInspect(pose: PoseResult): void;
   onClose(): void;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const first = poses[0]?.artifact;
+  const second = poses[1]?.artifact;
+  useLayoutEffect(() => {
+    heading.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
+    heading.current?.focus({ preventScroll: true });
+  }, [jobId, first, second]);
   if (poses.length !== 2 || poses.some((pose) => !pose.valid || !pose.artifact))
     return null;
   const zh = language === "zh";
   return (
     <section
+      className="pose-comparison"
       aria-label={
         zh ? "结合姿势三维比较" : "Binding pose structural comparison"
       }
     >
       <div className="section-heading">
-        <h3>{zh ? "结合姿势比较" : "Compare binding poses"}</h3>
+        <h3 ref={heading} tabIndex={-1}>
+          {zh ? "结合姿势比较" : "Compare binding poses"}
+        </h3>
         <button type="button" className="secondary-button" onClick={onClose}>
           {zh ? "返回单个姿势" : "Return to single pose"}
         </button>
       </div>
       <p className="field-help">
         {zh
-          ? "同一受体坐标中的原始姿势，不拟合配体。叠加不表示已验证结合；请分别查看各姿势的接触和质量检查。"
-          : "Original poses in the same receptor frame, without fitting the ligands. Overlay does not validate binding; inspect contacts and quality checks for each pose separately."}
+          ? "叠合保留同一受体中的原始姿势。请分别核查各姿势的接触和质控结果。"
+          : "The overlay preserves the original poses in the same receptor frame. Inspect the contacts and quality checks for each pose separately."}
       </p>
       <div className="pose-comparison-sources">
         {poses.map((pose, index) => (

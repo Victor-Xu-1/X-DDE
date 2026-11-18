@@ -52,6 +52,7 @@ export function ResearchTable<T>({
   initialSort?: SortOrder;
   initialVisibleColumns?: readonly string[];
   compare?: boolean;
+  /** Contextual actions for marked records, independent of the numeric comparison. */
   comparisonActions?(rows: readonly T[]): ReactNode;
   exportName?: string;
 }) {
@@ -178,6 +179,7 @@ export function ResearchTable<T>({
             {compared.length ? " (" + compared.length + ")" : ""}
           </button>
         )}
+        {compare && compared.length > 0 && comparisonActions?.(compared)}
         <TableColumns
           columns={columns}
           visible={view.visible}
@@ -240,7 +242,6 @@ export function ResearchTable<T>({
               ))}
             </tbody>
           </table>
-          {comparisonActions?.(compared)}
         </div>
       )}
       <div className="research-table-scroll table-scroll">

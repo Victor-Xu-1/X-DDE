@@ -1,13 +1,40 @@
+.pose-comparison .section-heading {
+  gap: 6px 12px;
+  margin-block-end: 4px;
+}
+
+.pose-comparison h3 {
+  scroll-margin-block-start: 88px;
+}
+
+.pose-comparison > .field-help {
+  margin-block: 4px;
+}
+
+.pose-comparison .viewer-panel {
+  padding-inline: 0;
+}
+
+.pose-comparison .viewer-comparison {
+  display: none;
+}
+
 .pose-comparison-sources {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 28px;
-  margin-block: 12px;
+  gap: 6px 18px;
+  margin-block: 6px;
 }
 .pose-comparison-sources > span {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .pose-comparison h3 {
+    scroll-margin-block-start: 130px;
+  }
 }

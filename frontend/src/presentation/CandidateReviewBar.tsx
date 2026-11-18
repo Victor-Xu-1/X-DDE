@@ -2,6 +2,33 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 import type { Language } from "../types";
 import "./candidate-review-bar.css";
 
+type CandidateMetric = {
+  label: string;
+  value: string | number;
+  detail?: string;
+};
+
+export function CandidateReviewMetrics({
+  metrics,
+}: {
+  metrics: readonly CandidateMetric[];
+}) {
+  if (!metrics.length) return null;
+  return (
+    <dl className="candidate-review-metrics">
+      {metrics.map(({ label, value, detail }) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>
+            {value}
+            {detail && <small>{detail}</small>}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function CandidateReviewBar({
   label,
   caption,
@@ -16,7 +43,7 @@ export function CandidateReviewBar({
   caption: string;
   candidates: { id: number; label: string; short: number }[];
   selected?: number;
-  metrics?: { label: string; value: string | number; detail?: string }[];
+  metrics?: readonly CandidateMetric[];
   language: Language;
   onSelect(id: number): void;
   actions?: ReactNode;
@@ -74,19 +101,7 @@ export function CandidateReviewBar({
           </button>
         </nav>
       </div>
-      {!!metrics?.length && (
-        <dl className="candidate-review-metrics">
-          {metrics.map(({ label, value, detail }) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>
-                {value}
-                {detail && <small>{detail}</small>}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {metrics && <CandidateReviewMetrics metrics={metrics} />}
       {actions}
     </section>
   );

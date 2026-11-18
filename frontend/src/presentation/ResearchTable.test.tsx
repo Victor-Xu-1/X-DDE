@@ -53,13 +53,24 @@ it("offers comparison actions for exact marked source rows without changing row 
   ).toBeNull();
   await user.click(screen.getByRole("checkbox", { name: "Compare Sotorasib" }));
   await user.click(screen.getByRole("checkbox", { name: "Compare JQ1" }));
-  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  expect(
+    screen.queryByRole("region", { name: "Result comparison" }),
+  ).toBeNull();
   await user.click(
     screen.getByRole("button", { name: "Inspect marked structures" }),
   );
   expect(action).toHaveBeenCalledExactlyOnceWith([rows[0], rows[1]]);
   expect(onSelect).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  expect(
+    screen.getByRole("region", { name: "Result comparison" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Compare (2)" }));
+  expect(
+    screen.getByRole("button", { name: "Inspect marked structures" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("checkbox", { name: "Compare Sotorasib" }));
+  await user.click(screen.getByRole("checkbox", { name: "Compare JQ1" }));
   expect(
     screen.queryByRole("button", { name: "Inspect marked structures" }),
   ).toBeNull();
