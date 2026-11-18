@@ -156,6 +156,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
       - run: uv run --locked playwright install chromium --with-deps
+        if: steps.export_scope.outputs.native_framing != 'true'
       - name: Native results, controlled completed-result diagnostics and exact downloads
         if: steps.export_scope.outputs.only != 'true' && steps.export_scope.outputs.native_framing != 'true'
         run: >-
@@ -165,6 +166,7 @@ jobs:
       - name: Verify framing and actual downloads from native MD and FEP results
         if: steps.export_scope.outputs.framing_changed == 'true'
         run: |
+          google-chrome --version
           uv run --locked ruff check server_tests/test_native_molstar_framing.py
           uv run --locked python -m pytest -x -q server_tests/test_native_molstar_framing.py
       - name: Restore retained DEL chart results for physical export checks, without science

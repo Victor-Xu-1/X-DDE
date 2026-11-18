@@ -78,7 +78,7 @@ def test_molstar_framing_uses_native_outputs(case, language):
     evidence.mkdir(parents=True, exist_ok=True)
     md = case.startswith("openmm")
     with platform(source / "state", evidence / "server.log") as base, sync_playwright() as driver:
-        browser = driver.chromium.launch()
+        browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.add_init_script(
             f"localStorage.setItem('opendde-workbench.language', '{language}')"
