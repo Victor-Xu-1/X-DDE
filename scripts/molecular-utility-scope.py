@@ -461,7 +461,7 @@ UTILITY_NAVIGATION_FILES = {
     "server_tests/test_utility_navigation_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-UTILITY_NAVIGATION_DIFF = "562e8bb0aff1f54a5840c7622a1a61cf29f95f75c68b60ba001a1071c8a6e1a0"
+UTILITY_NAVIGATION_DIFF = "a20a8fcfb14371b3f09ba2e875e7e38a7a0c502c05fc0446f69f21fd6d3e61a8"
 
 
 def reviewed_selected(changed, event, base, files, digest):
