@@ -135,7 +135,10 @@ export function ComparisonResults({
             type="button"
             className="secondary-button comparison-return-to-residue"
             onClick={() => {
-              previewHeader.current?.scrollIntoView({ block: "start" });
+              previewHeader.current?.scrollIntoView({
+                behavior: "instant",
+                block: "start",
+              });
               previewHeader.current?.focus({ preventScroll: true });
             }}
           >

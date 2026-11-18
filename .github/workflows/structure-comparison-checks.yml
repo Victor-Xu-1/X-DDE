@@ -86,6 +86,7 @@ jobs:
           google-chrome --version
           uv run --locked ruff check scripts/comparison-layout-scope.py
           uv run --locked ruff check server_tests/test_archived_comparison_browser.py server_tests/comparison_browser_harness.py
+          uv run --locked pytest -q tests/test_structure_comparison_layout_scope.py
           uv run --locked python server_tests/prepare_quality_context_cases.py
       - name: Inspect one native scene with desktop and narrow analysis controls
         run: uv run --locked python -m pytest -x -q server_tests/test_archived_comparison_browser.py
