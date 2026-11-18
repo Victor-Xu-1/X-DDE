@@ -322,12 +322,15 @@ class HarnessService:
         except FileNotFoundError:
             return False
 
-    async def runtime_busy(self):
+    def has_unresolved_launch(self):
         with self.store.connect() as db:
             pending = db.execute(
                 "SELECT 1 FROM design_plans WHERE state IN ('dispatching', 'uncertain') LIMIT 1"
             ).fetchone()
-        if pending:
+        return pending is not None
+
+    async def runtime_busy(self):
+        if self.has_unresolved_launch():
             return True
         if not self.settings.harness_python:
             return False

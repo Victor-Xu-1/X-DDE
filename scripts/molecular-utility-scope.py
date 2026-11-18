@@ -575,10 +575,11 @@ TASK_POWER_FILES = {
     "frontend/src/workflows/WorkflowCenter.tsx",
     "server_tests/test_module_backend_switch_browser.py",
     "src/opendde_workbench/api.py",
+    "src/opendde_workbench/harness_service.py",
     "tests/test_compute_power_admission.py",
     "tests/test_molecular_utility_scope.py",
 }
-TASK_POWER_DIFF = "603e2694f407c2d4c47841e2effb7e2c8fd36a8dd8f86858942c9fb6b79c272b"
+TASK_POWER_DIFF = "1d926dcc53bed5e9095817f93fe9e4bed6a8a4b4a9c87031134342d7fcb319e2"
 
 
 def reviewed_selected(changed, event, base, files, digest):
