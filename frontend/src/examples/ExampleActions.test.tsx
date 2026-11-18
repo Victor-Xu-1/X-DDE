@@ -596,10 +596,22 @@ it.each(["en", "zh"] as const)(
     expect(
       await screen.findByRole("switch", { name: "PoseBusters" }),
     ).not.toBeChecked();
+    const guideLink = screen.getByLabelText(
+      language === "zh" ? "模板说明与来源" : "Template guide & sources",
+    );
+    const guide = guideLink.closest("details")!;
+    const source = within(guide).getByText("Retained independent pose review");
+    expect(source).not.toBeVisible();
+    fireEvent.click(guideLink);
+    expect(source).toBeVisible();
+    fireEvent.keyDown(source, { key: "Escape" });
+    expect(guideLink).toHaveFocus();
+    expect(source).not.toBeVisible();
     expect(screen.getByText("Verified compound output")).not.toBeVisible();
     fireEvent.change(stage, { target: { value: primary } });
     expect(screen.getByText("Verified compound output")).toBeVisible();
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(guide).not.toHaveTextContent("Retained independent pose review");
     expect(onLoad).not.toHaveBeenCalled();
     expect(transport.post).not.toHaveBeenCalled();
   },

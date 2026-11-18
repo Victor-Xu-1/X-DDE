@@ -1,10 +1,8 @@
 import type { RefObject } from "react";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import type { Language } from "../types";
+import type { Job, Language } from "../types";
 import type { ExampleInfo } from "./types";
 import { ExampleGuide } from "./ExampleGuide";
-import { Hint } from "../guided/Hint";
-import { templateGuide } from "./guide";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { BackendControlScope } from "../utilities/backend-control-scope";
 
@@ -12,6 +10,7 @@ export function ExampleToolbar({
   info,
   capability,
   backendScope,
+  selectedJob,
   language,
   previewing,
   active,
@@ -28,6 +27,7 @@ export function ExampleToolbar({
   info: ExampleInfo;
   capability: string;
   backendScope: BackendControlScope | null;
+  selectedJob?: Job | null;
   language: Language;
   previewing: boolean;
   active: boolean;
@@ -47,6 +47,27 @@ export function ExampleToolbar({
     info.record_pin && !info.record_pin.computed_result_available,
   );
   const name = info.case.label[zh ? 0 : 1];
+  const kind =
+    info.study && !info.computed_result_available && !info.record_pin
+      ? zh
+        ? "研究材料预览"
+        : "Reference input preview"
+      : setup
+        ? zh
+          ? "配置示例"
+          : "Setup example"
+        : zh
+          ? "公开示例"
+          : "Public example";
+  const guide = (
+    <ExampleGuide
+      info={info}
+      capability={capability}
+      language={language}
+      previewing={previewing}
+      selectedJob={selectedJob}
+    />
+  );
   return (
     <div
       className={
@@ -70,22 +91,6 @@ export function ExampleToolbar({
             <h2 ref={titleRef} tabIndex={-1}>
               {name}
             </h2>
-            <span className="example-result-kind">
-              {info.study && !info.computed_result_available && !info.record_pin
-                ? zh
-                  ? "研究材料预览"
-                  : "Reference input preview"
-                : setup
-                  ? zh
-                    ? "配置示例"
-                    : "Setup example"
-                  : zh
-                    ? "公开示例"
-                    : "Public example"}
-            </span>
-            <Hint label={zh ? "结果解读说明" : "Result interpretation help"}>
-              {templateGuide(capability, language, info.study).interpretation}
-            </Hint>
           </div>
         ) : (
           <span
@@ -166,18 +171,24 @@ export function ExampleToolbar({
             {zh ? "新建空白任务" : "New blank task"}
           </button>
         )}
-        <ExampleGuide info={info} capability={capability} language={language} />
-        {previewing &&
-          active &&
-          (backendScope ? (
-            <TaskBackendControl
-              language={language}
-              scope={backendScope}
-              placement="example"
-            />
-          ) : (
-            <span data-example-backend-pending aria-hidden="true" />
-          ))}
+        {previewing ? (
+          <div className="example-result-context">
+            <span className="example-result-kind">{kind}</span>
+            {guide}
+            {active &&
+              (backendScope ? (
+                <TaskBackendControl
+                  language={language}
+                  scope={backendScope}
+                  placement="example"
+                />
+              ) : (
+                <span data-example-backend-pending aria-hidden="true" />
+              ))}
+          </div>
+        ) : (
+          guide
+        )}
       </div>
     </div>
   );

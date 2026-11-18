@@ -6,21 +6,38 @@ export function ExampleStageNavigation({
   selected,
   language,
   onSelect,
+  kind = "study",
 }: {
   stages: { id: string; label: string }[];
   selected: string;
   language: Language;
   onSelect(id: string): void;
+  kind?: "study" | "workflow";
 }) {
   const zh = language === "zh";
   const index = stages.findIndex(({ id }) => id === selected);
   const previous = stages[index - 1];
   const next = stages[index + 1];
-  const label = zh ? "研究阶段结果" : "Study result stage";
+  const workflow = kind === "workflow";
+  const label = workflow
+    ? zh
+      ? "工作流步骤"
+      : "Workflow step"
+    : zh
+      ? "研究阶段结果"
+      : "Study result stage";
   return (
     <nav
       className="example-stage-navigation"
-      aria-label={zh ? "研究阶段导航" : "Study stage navigation"}
+      aria-label={
+        workflow
+          ? zh
+            ? "工作流步骤导航"
+            : "Workflow step navigation"
+          : zh
+            ? "研究阶段导航"
+            : "Study stage navigation"
+      }
     >
       <label>
         <span>{label}</span>
@@ -39,7 +56,15 @@ export function ExampleStageNavigation({
       <div className="example-stage-buttons">
         <button
           type="button"
-          aria-label={zh ? "上一个研究阶段" : "Previous study stage"}
+          aria-label={
+            workflow
+              ? zh
+                ? "上一个工作流步骤"
+                : "Previous workflow step"
+              : zh
+                ? "上一个研究阶段"
+                : "Previous study stage"
+          }
           title={previous?.label}
           disabled={!previous}
           onClick={() => previous && onSelect(previous.id)}
@@ -55,7 +80,15 @@ export function ExampleStageNavigation({
         </span>
         <button
           type="button"
-          aria-label={zh ? "下一个研究阶段" : "Next study stage"}
+          aria-label={
+            workflow
+              ? zh
+                ? "下一个工作流步骤"
+                : "Next workflow step"
+              : zh
+                ? "下一个研究阶段"
+                : "Next study stage"
+          }
           title={next?.label}
           disabled={!next}
           onClick={() => next && onSelect(next.id)}

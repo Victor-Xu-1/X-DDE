@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import type { Language } from "../types";
+import type { Job, Language } from "../types";
+import { predictionMethodLabel } from "../presentation/PredictionResultHeader";
 import type { ExampleInfo } from "./types";
 import { templateGuide } from "./guide";
 
@@ -8,14 +9,21 @@ export function ExampleGuide({
   info,
   capability,
   language,
+  previewing,
+  selectedJob,
 }: {
   info: ExampleInfo;
   capability: string;
   language: Language;
+  previewing: boolean;
+  selectedJob?: Job | null;
 }) {
   const node = useRef<HTMLDetailsElement>(null);
   const zh = language === "zh";
   const label = zh ? "模板说明与来源" : "Template guide & sources";
+  const guide = templateGuide(capability, language, info.study);
+  const result = previewing ? selectedJob?.request : undefined;
+  const model = result && predictionMethodLabel(result);
   useEffect(() => {
     function dismiss(event: PointerEvent) {
       if (
@@ -48,13 +56,24 @@ export function ExampleGuide({
       </summary>
       <div className="example-guide-content">
         <strong>{info.case.label[zh ? 0 : 1]}</strong>
+        {result?.name && (
+          <dl className="example-result-source">
+            <dt>{zh ? "对应任务" : "Source task"}</dt>
+            <dd>{result.name}</dd>
+            {model && (
+              <>
+                <dt>{zh ? "模型" : "Model"}</dt>
+                <dd>{model}</dd>
+              </>
+            )}
+          </dl>
+        )}
+        {previewing && <p>{guide.interpretation}</p>}
         <p>{info.case.description[zh ? 0 : 1]}</p>
         <ol>
-          {templateGuide(capability, language, info.study)
-            .steps.slice(0, 3)
-            .map((text) => (
-              <li key={text}>{text}</li>
-            ))}
+          {guide.steps.slice(0, 3).map((text) => (
+            <li key={text}>{text}</li>
+          ))}
         </ol>
         <div className="example-sources">
           <span>{zh ? "公开来源" : "Public sources"}</span>

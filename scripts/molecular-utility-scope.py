@@ -627,6 +627,29 @@ NATIVE_STATE_FILES = {
 }
 NATIVE_STATE_DIFF = "65c9909aa0c41732fcb716457f159b1f266b341cf7135ac007a273dbb0f72f1e"
 
+COMPACT_EXAMPLE_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/template-controls-checks.yml",
+    "docs/design/research-examples.md",
+    "frontend/src/examples/ExampleActions.test.tsx",
+    "frontend/src/examples/ExampleActions.tsx",
+    "frontend/src/examples/ExampleGuide.tsx",
+    "frontend/src/examples/ExampleJobResult.tsx",
+    "frontend/src/examples/ExampleRecordResult.test.tsx",
+    "frontend/src/examples/ExampleRecordResult.tsx",
+    "frontend/src/examples/ExampleResultSet.test.tsx",
+    "frontend/src/examples/ExampleResultSet.tsx",
+    "frontend/src/examples/ExampleStageNavigation.tsx",
+    "frontend/src/examples/ExampleToolbar.tsx",
+    "frontend/src/examples/examples.css",
+    "frontend/src/presentation/plots/plots.css",
+    "frontend/src/utilities/UtilityTask.test.tsx",
+    "server_tests/test_compact_example_guide_browser.py",
+    "server_tests/test_result_visuals_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+COMPACT_EXAMPLE_DIFF = "2818fd353d7450fa9e1c651aef9c7394eaa66eceacffb41708d602a1507dc515"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -710,11 +733,16 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         NATIVE_STATE_FILES, NATIVE_STATE_DIFF,
     )
+    compact_example = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        COMPACT_EXAMPLE_FILES, COMPACT_EXAMPLE_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
+        output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -737,7 +765,7 @@ def main():
         })
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
-            or native_state or selected(changed, event, shared=shared)
+            or native_state or compact_example or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")

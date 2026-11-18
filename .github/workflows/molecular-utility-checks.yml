@@ -100,6 +100,8 @@ on:
         value: ${{ jobs.scope.outputs.task_power_only }}
       native_state_only:
         value: ${{ jobs.scope.outputs.native_state_only }}
+      compact_example_only:
+        value: ${{ jobs.scope.outputs.compact_example_only }}
       recognition_power_only:
         value: ${{ jobs.scope.outputs.recognition_power_only }}
       result_header_only:
@@ -120,6 +122,7 @@ jobs:
       task_power_only: ${{ steps.select.outputs.task_power_only }}
       module_backend_only: ${{ steps.select.outputs.module_backend_only }}
       native_state_only: ${{ steps.select.outputs.native_state_only }}
+      compact_example_only: ${{ steps.select.outputs.compact_example_only }}
       result_header_only: ${{ steps.select.outputs.result_header_only }}
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +134,7 @@ jobs:
         run: python scripts/molecular-utility-scope.py
   utility-inputs:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.recognition_power_only != 'true' && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' && needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' && needs.scope.outputs.potential_display_only != 'true' && needs.scope.outputs.native_state_only != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.recognition_power_only != 'true' && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' && needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' && needs.scope.outputs.potential_display_only != 'true' && needs.scope.outputs.native_state_only != 'true' && needs.scope.outputs.compact_example_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
