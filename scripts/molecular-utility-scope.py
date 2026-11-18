@@ -689,6 +689,23 @@ INITIAL_POSE_POWER_FILES = {
 }
 INITIAL_POSE_POWER_DIFF = "566ba740c85bef4302d9e11087585eb3141571049e0123b06356d5e6ee616afc"
 
+MOBILE_VIEWER_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/publication/FigureExport.tsx",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/ViewerExportActions.tsx",
+    "frontend/src/viewer/ViewerToolGroup.tsx",
+    "frontend/src/viewer/viewer-tool-group.css",
+    "frontend/src/viewer/viewer.css",
+    "server_tests/test_mobile_viewer_toolbar_browser.py",
+    "server_tests/test_target_selection_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+MOBILE_VIEWER_DIFF = "pending"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -784,6 +801,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         INITIAL_POSE_POWER_FILES, INITIAL_POSE_POWER_DIFF,
     )
+    mobile_viewer = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        MOBILE_VIEWER_FILES, MOBILE_VIEWER_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -792,6 +813,7 @@ def main():
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
+        output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -815,6 +837,7 @@ def main():
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
             or native_state or compact_example or mobile_header or initial_pose_power
+            or mobile_viewer
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { PictureOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { FigureSettings } from "./settings";
 import { FigureDialog } from "./FigureDialog";
@@ -18,6 +19,7 @@ export function FigureExport({
   typography = format === "svg",
   molecular = false,
   structureFraming = false,
+  compactTrigger = false,
 }: {
   language: Language;
   sourceKey: string;
@@ -32,6 +34,7 @@ export function FigureExport({
   typography?: boolean;
   molecular?: boolean;
   structureFraming?: boolean;
+  compactTrigger?: boolean;
 }) {
   const [open, setOpen] = useState(false),
     [inflight, setInflight] = useState(false);
@@ -71,16 +74,29 @@ export function FigureExport({
       if (mounted.current) setInflight(false);
     }
   }
+  const buttonLabel =
+    (label ?? (language === "zh" ? "文献图导出" : "Export figure")) + " ↓";
   return (
     <>
       <button
         ref={trigger}
         type="button"
         className="text-button figure-export-trigger"
+        aria-label={compactTrigger ? buttonLabel : undefined}
         disabled={disabled || !sourceReady || inflight}
         onClick={() => setOpen(true)}
       >
-        {label ?? (language === "zh" ? "文献图导出" : "Export figure")} ↓
+        {compactTrigger ? (
+          <>
+            <PictureOutlined
+              className="viewer-figure-icon"
+              aria-hidden="true"
+            />
+            <span className="viewer-figure-label">{buttonLabel}</span>
+          </>
+        ) : (
+          buttonLabel
+        )}
       </button>
       {open && (
         <FigureDialog
