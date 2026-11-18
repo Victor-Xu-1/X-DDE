@@ -28,13 +28,14 @@ def register_pose_minimization(app, store, assets, settings, mutation, enqueue):
             previous = store.existing_submission(task, str(key))
             if previous is not None and previous.status == "succeeded":
                 return {"state": "task", "job": previous.model_dump(mode="json")}
-            if not value.allow_compute:
-                raise HTTPException(
-                    503, "Task service is unavailable; previously calculated poses remain available."
-                )
             controls = getattr(app.state, "runtime_controls", None)
             if controls is not None and engine_for(task.operation).id not in controls.enabled:
                 return {"state": "backend_off"}
+            if not value.allow_compute:
+                raise HTTPException(
+                    503,
+                    "Task service is unavailable; previously calculated poses remain available.",
+                )
             if (
                 value.retry and previous
                 and previous.status in {"failed", "cancelled", "interrupted"}

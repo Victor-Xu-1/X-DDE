@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from test_stat6_templates import scientific_store
 
 from opendde_workbench.examples.stat6.preparation import prepare_stat6
@@ -44,13 +43,16 @@ def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview):
     asset = scientific.assets.save("unprepared.sdf", "ligand", raw)
     source = {"kind": "asset", "asset_id": str(asset.id), "record": 0}
     response = send(client, source, allow_compute=False)
-    assert response.status_code == 503 and "previously calculated poses" in response.text
+    assert response.status_code == 200 and response.json() == {"state": "backend_off"}
     assert submitted == [] and store.list_jobs() == []
     assert scientific.assets.path(asset).read_bytes() == raw
     response = send(client, source)
     assert response.status_code == 200 and response.json() == {"state": "backend_off"}
     assert submitted == [] and store.list_jobs() == []
     client.app.state.runtime_controls.change("chemistry", "start", ready=True)
+    response = send(client, source, allow_compute=False)
+    assert response.status_code == 503 and "previously calculated poses" in response.text
+    assert submitted == [] and store.list_jobs() == []
     response = send(client, source)
     assert response.status_code == 200 and response.json()["state"] == "task"
     assert len(submitted) == 1 and len(store.list_jobs()) == 1
