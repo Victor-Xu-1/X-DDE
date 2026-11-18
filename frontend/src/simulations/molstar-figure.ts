@@ -1,10 +1,12 @@
 import type { PluginContext } from "molstar/lib/mol-plugin/context";
+import { Camera } from "molstar/lib/mol-canvas3d/camera";
+import { canvasToBlob } from "molstar/lib/mol-canvas3d/util";
+import { Task } from "molstar/lib/mol-task";
 import {
   figureAspect,
   figureDimensions,
   type FigureSettings,
 } from "../publication/settings";
-import { dataUrlBlob } from "../publication/png-resolution";
 
 export interface FigurePixels {
   width: number;
@@ -40,40 +42,50 @@ export async function molecularFigure(
     figureAspect(settings, bounds.width / bounds.height),
   );
   const size = panel ? nativeFigurePixels(panel) : whole;
-  const values = helper.values,
-    crop = helper.behaviors.relativeCrop.value,
-    cropParams = helper.behaviors.cropParams.value;
-  const processing = structuredClone(canvas.props.postprocessing);
   const pass = helper.imagePass;
-  const sampling = structuredClone(pass.props.multiSample);
-  try {
-    // The native screenshot helper otherwise forces 128 occlusion samples for
-    // every high-resolution AA pass. Balanced lighting retains full native
-    // geometry and supersampling without blocking software WebGL for minutes.
-    canvas.setProps({
-      postprocessing: { occlusion: { name: "off", params: {} } },
-    });
-    // Four native jitter samples at the requested print resolution bound work
-    // for large paired scenes; the helper's default sixteen samples can stall
-    // software WebGL. Scientific geometry and the live viewport are unchanged.
-    pass.setProps({ multiSample: { ...sampling, mode: "on", sampleLevel: 2 } });
-    helper.behaviors.values.next({
-      ...values,
-      resolution: {
-        name: "custom",
-        params: { width: size.width, height: size.height },
-      },
-      format: { name: "png", params: {} },
-      transparent: settings.transparent,
-    });
-    helper.behaviors.cropParams.next({ ...cropParams, auto: false });
-    helper.behaviors.relativeCrop.next({ x: 0, y: 0, width: 1, height: 1 });
-    return await dataUrlBlob(await helper.getImageDataUri());
-  } finally {
-    pass.setProps({ multiSample: sampling });
-    canvas.setProps({ postprocessing: processing });
-    helper.behaviors.values.next(values);
-    helper.behaviors.cropParams.next(cropParams);
-    helper.behaviors.relativeCrop.next(crop);
-  }
+  const { multiSample, postprocessing, transparentBackground } = pass.props;
+  const image = await plugin.runTask(
+    Task.create("Render molecular figure", async (runtime) => {
+      const camera = canvas.camera.state;
+      const originalFov = camera.fov;
+      const scale = settings.structureScale ?? 1;
+      const wasAnimating = plugin.animationLoop.isAnimating;
+      if (wasAnimating) plugin.animationLoop.stop({ noDraw: true });
+      try {
+        // Bound the cost of supersampled print output in software WebGL.
+        pass.setProps({
+          multiSample: { ...multiSample, mode: "on", sampleLevel: 2 },
+          postprocessing: {
+            ...postprocessing,
+            occlusion: { name: "off", params: {} },
+          },
+          transparentBackground: settings.transparent,
+        });
+        await pass.updateBackground();
+        const render = () => pass.getImageData(runtime, size.width, size.height);
+        if (scale === 1) return await render();
+        let pixels: Promise<ImageData>;
+        try {
+          // ImagePass copies the camera synchronously before awaiting GPU work.
+          Camera.copySnapshot(camera, {
+            fov: 2 * Math.atan(Math.tan(originalFov / 2) / scale),
+          });
+          pixels = render();
+        } finally {
+          Camera.copySnapshot(camera, { fov: originalFov });
+        }
+        return await pixels;
+      } finally {
+        pass.setProps({ multiSample, postprocessing, transparentBackground });
+        if (wasAnimating) plugin.animationLoop.start();
+      }
+    }),
+  );
+  const output = document.createElement("canvas");
+  output.width = image.width;
+  output.height = image.height;
+  const context = output.getContext("2d");
+  if (!context) throw new Error("The figure canvas is unavailable.");
+  context.putImageData(image, 0, 0);
+  return canvasToBlob(output, "image/png");
 }
