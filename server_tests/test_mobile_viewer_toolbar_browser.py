@@ -115,14 +115,61 @@ def test_compact_native_viewer_keeps_camera_controls_and_export(interaction_work
             for label in ("Backbone", "Ligand and pocket", "Surface"):
                 expect(panel.get_by_role("button", name=label, exact=True)).to_be_visible()
             page.screenshot(path=evidence / "narrow-view-320.png")
-
+            picture_tools.click()
+            scale.focus()
             page.set_viewport_size({"width": 1440, "height": 900})
             expect(picture_tools).not_to_be_visible()
+            expect(picture_tools).to_have_attribute("aria-expanded", "false")
             expect(scale).to_have_value("3")
+            expect(scale).to_be_focused()
+            scale.press("Escape")
+            expect(scale).to_be_focused()
             expect(figure).to_be_visible()
             assert iframe.evaluate("(frame, original) => frame === original", original_handle)
             assert iframe.evaluate(coordinates) == initial_positions
             page.screenshot(path=evidence / "desktop.png")
             assert page.request.get(base + "/api/jobs").json() == jobs
             assert writes == []
+            browser.close()
+
+
+def test_prepared_structure_and_molecular_states_keep_narrow_controls(interaction_workspace):
+    evidence = Path("outputs/compact-native-viewer")
+    evidence.mkdir(parents=True, exist_ok=True)
+    with platform(interaction_workspace.state_dir, evidence / "consumers.log") as base:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch(channel="chrome", args=["--enable-unsafe-swiftshader"])
+            page = browser.new_page(viewport={"width": 320, "height": 680})
+            page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
+            jobs = page.request.get(base + "/api/jobs").json()
+            for capability, region in (
+                ("biopython.prepare", ".prepared-structure-workspace"),
+                ("chemistry.states", ".state-native-preview"),
+            ):
+                pin = page.request.get(base + f"/api/examples/{capability}").json()["pin"]
+                page.goto(base + f"/#task={pin['job_id']}")
+                preview = page.locator(region)
+                expect(preview.locator(".molecular-stage iframe")).to_be_visible(timeout=30000)
+                if capability == "chemistry.states":
+                    tools = preview.get_by_text("View tools", exact=True)
+                    resolution = preview.get_by_role("combobox", name="3D image resolution")
+                    expect(resolution).not_to_be_visible()
+                    tools.click()
+                    expect(resolution).to_be_visible()
+                    assert resolution.bounding_box()["width"] <= 80
+                    grouped = preview.locator('button[aria-label="Display options"]')
+                    expect(grouped).to_have_count(1)
+                    expect(grouped).not_to_be_visible()
+                else:
+                    backbone = preview.get_by_role("button", name="Backbone", exact=True)
+                    expect(backbone).to_be_visible(timeout=30000)
+                    assert backbone.bounding_box()["height"] >= 44
+                    figure = preview.get_by_role("button", name="Export figure ↓", exact=True)
+                    expect(figure).to_be_enabled()
+                    assert figure.bounding_box()["width"] >= 44
+                    backbone.click()
+                    expect(backbone).to_have_attribute("aria-pressed", "true")
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+                page.screenshot(path=evidence / f"consumer-{capability}-320.png")
+            assert page.request.get(base + "/api/jobs").json() == jobs
             browser.close()

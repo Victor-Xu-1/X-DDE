@@ -78,10 +78,6 @@
   gap: 5px;
   margin-block: 0 4px;
 }
-.pocket-result-workspace .viewer-heading-actions > .viewer-export-size {
-  width: 84px;
-}
-
 /* This result keeps the task header and the native canvas in the same scroll flow. */
 .studio-app .studio-content:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace) {
   padding-block-start: 12px;
@@ -214,42 +210,6 @@
   .studio-app .task-result-content
     .detail-panel:has(> .operation-results > .pocket-result-workspace) .task-actions > button {
     padding-inline: 12px;
-  }
-  .pocket-result-workspace .viewer-heading-actions {
-    gap: 4px;
-    flex-wrap: nowrap;
-  }
-  .pocket-result-workspace .pocket-scene .studio-heading {
-    gap: 4px;
-    flex-wrap: nowrap;
-  }
-  .pocket-result-workspace .pocket-scene .studio-heading > h3 {
-    font-size: 0;
-  }
-  .pocket-result-workspace .viewer-heading-actions > .viewer-export-size {
-    width: 62px;
-    padding-inline: 2px;
-  }
-  .pocket-result-workspace .viewer-heading-actions > .figure-export-trigger {
-    min-width: 56px;
-    padding-inline: 3px;
-    font-size: 0;
-  }
-  .pocket-result-workspace .figure-export-trigger::before {
-    content: "Figure ↓" / "";
-    font-size: 12px;
-  }
-  .pocket-result-workspace .figure-export-trigger:lang(zh)::before {
-    content: "图件 ↓" / "";
-  }
-  .pocket-result-workspace .viewer-heading-actions > button:not(.figure-export-trigger) {
-    min-width: 28px;
-    padding-inline: 2px;
-  }
-  .pocket-result-workspace .viewer-modes > button,
-  .pocket-result-workspace .viewer-chain-menu > summary {
-    padding-inline: 6px;
-    font-size: 11px;
   }
 }
 .pocket-residues summary {

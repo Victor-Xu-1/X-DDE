@@ -34,6 +34,14 @@ on:
       - "frontend/src/viewer/useViewerSnapshot*"
       - "frontend/src/viewer/StructureViewer.tsx"
       - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/viewer/ViewerExportActions.tsx"
+      - "frontend/src/viewer/ViewerToolGroup.tsx"
+      - "frontend/src/viewer/viewer-tool-group.css"
+      - "frontend/src/chemistry/states.css"
+      - "frontend/src/pockets/pocket-results.css"
+      - "frontend/src/presentation/prediction-inspection.css"
+      - "frontend/src/receptors/prepared-structure.css"
+      - "frontend/src/receptors/receptors.css"
       - "frontend/src/viewer/frame.ts"
       - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/contact-labels.ts"
@@ -105,6 +113,7 @@ jobs:
     outputs:
       native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
       research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
+      native_viewer_changed: ${{ steps.native_viewer.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,6 +126,22 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/research-tabs-scope.py
+      - id: native_viewer
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          changed=false
+          if git cat-file -e "${BASE}^{commit}" 2>/dev/null && ! git diff --quiet "$BASE" HEAD -- \
+            frontend/src/viewer/StructureViewport.tsx frontend/src/viewer/ViewerToolGroup.tsx \
+            frontend/src/viewer/ViewerExportActions.tsx frontend/src/viewer/viewer-tool-group.css \
+            frontend/src/viewer/viewer.css frontend/src/publication/FigureExport.tsx \
+            frontend/src/chemistry/states.css frontend/src/pockets/pocket-results.css \
+            frontend/src/presentation/prediction-inspection.css \
+            frontend/src/receptors/prepared-structure.css frontend/src/receptors/receptors.css \
+            server_tests/test_mobile_viewer_toolbar_browser.py; then
+            changed=true
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
   research-tabs:
     needs: scope
     if: needs.scope.outputs.research_tabs_only == 'true'
@@ -183,8 +208,8 @@ jobs:
             outputs/publication-browser/controls/**
           if-no-files-found: error
   mobile-native-viewer:
-    needs: utility-scope
-    if: needs.utility-scope.outputs.mobile_viewer_only == 'true'
+    needs: scope
+    if: needs.scope.outputs.native_viewer_changed == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:

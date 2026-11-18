@@ -694,7 +694,12 @@ MOBILE_VIEWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",
     "docs/frontend-layout.md",
+    "frontend/src/chemistry/states.css",
+    "frontend/src/pockets/pocket-results.css",
+    "frontend/src/presentation/prediction-inspection.css",
     "frontend/src/publication/FigureExport.tsx",
+    "frontend/src/receptors/prepared-structure.css",
+    "frontend/src/receptors/receptors.css",
     "frontend/src/viewer/StructureViewport.tsx",
     "frontend/src/viewer/ViewerExportActions.tsx",
     "frontend/src/viewer/ViewerToolGroup.tsx",
@@ -704,7 +709,7 @@ MOBILE_VIEWER_FILES = {
     "server_tests/test_target_selection_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MOBILE_VIEWER_DIFF = "5ff81a015aaaba1ae63b5f1376686959dc27b4c3fe6216fe1febdbd62ad4a06a"
+MOBILE_VIEWER_DIFF = "086778217a877a47f34590c40826bfce107f054280737a049c776cb1039f2593"
 
 
 def reviewed_selected(changed, event, base, files, digest):

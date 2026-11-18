@@ -18,6 +18,11 @@ export function ViewerToolGroup({
 
   useEffect(() => {
     if (!open) return;
+    // Match the layout breakpoint in viewer-tool-group.css.
+    const compact = window.matchMedia("(max-width: 600px)");
+    function onLayoutChange(event: MediaQueryListEvent) {
+      if (!event.matches) setOpen(false);
+    }
     function dismiss(event: PointerEvent) {
       if (
         event.target instanceof Node &&
@@ -25,8 +30,12 @@ export function ViewerToolGroup({
       )
         setOpen(false);
     }
+    compact.addEventListener("change", onLayoutChange);
     document.addEventListener("pointerdown", dismiss);
-    return () => document.removeEventListener("pointerdown", dismiss);
+    return () => {
+      compact.removeEventListener("change", onLayoutChange);
+      document.removeEventListener("pointerdown", dismiss);
+    };
   }, [open]);
 
   return (
@@ -45,6 +54,7 @@ export function ViewerToolGroup({
         if (
           open &&
           event.key === "Escape" &&
+          trigger.current?.getClientRects().length &&
           !(
             event.target instanceof Element &&
             event.target.closest("dialog[open]")

@@ -71,7 +71,7 @@
 .state-native-preview .viewer-panel > .studio-heading {
   gap: 6px;
 }
-.state-native-preview .viewer-heading-actions > .viewer-export-size {
+.state-native-preview .viewer-heading-actions .viewer-export-size {
   width: 79px;
   padding-inline: 5px;
 }
