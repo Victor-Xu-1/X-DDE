@@ -54,11 +54,24 @@ it.each([
   { dpi: 600 as const, width: 2102, height: 1577 },
   { dpi: 300 as const, width: 1051, height: 788 },
   { dpi: 600 as const, shape: "square" as const, width: 2102, height: 2102 },
+  {
+    dpi: 600 as const,
+    shape: "landscape" as const,
+    structureScale: 1.5 as const,
+    width: 2102,
+    height: 1401,
+  },
   { dpi: 300 as const, shape: "landscape" as const, width: 1051, height: 701 },
   { dpi: 300 as const, shape: "portrait" as const, width: 1051, height: 1401 },
 ])(
   "renders $dpi dpi at exact print pixels and restores the native camera on failure",
-  ({ dpi, shape, width: expectedWidth, height: expectedHeight }) => {
+  ({
+    dpi,
+    shape,
+    structureScale,
+    width: expectedWidth,
+    height: expectedHeight,
+  }) => {
     const element = document.createElement("div");
     element.style.width = "100%";
     vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
@@ -69,7 +82,8 @@ it.each([
       height = 600;
     const camera = [0, 1, 2, 3],
       setView = vi.fn(),
-      background = vi.fn();
+      background = vi.fn(),
+      zoom = vi.fn();
     const viewer = {
       getView: () => camera,
       getCanvas: () => ({ width, height }),
@@ -82,6 +96,7 @@ it.each([
       },
       setView,
       setBackgroundColor: background,
+      zoom,
       resize: () => {
         width = element.style.width.endsWith("px")
           ? Math.round(parseFloat(element.style.width) * 2)
@@ -93,11 +108,19 @@ it.each([
       render: vi.fn(),
       pngURI: () => {
         expect([width, height]).toEqual([expectedWidth, expectedHeight]);
+        expect(zoom.mock.calls).toEqual(
+          structureScale ? [[structureScale]] : [],
+        );
         throw new Error("native capture failed");
       },
     } as unknown as GLViewer;
     expect(() =>
-      captureFigure(viewer, element, { ...defaultFigure, dpi, shape }),
+      captureFigure(viewer, element, {
+        ...defaultFigure,
+        dpi,
+        shape,
+        structureScale,
+      }),
     ).toThrow("native capture failed");
     expect(element.style.width).toBe("100%");
     expect(element.style.height).toBe("");

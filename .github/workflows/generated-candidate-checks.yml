@@ -37,7 +37,11 @@ on:
 permissions:
   contents: read
 jobs:
+  framing-scope:
+    uses: ./.github/workflows/figure-framing-scope.yml
   candidate-results:
+    needs: framing-scope
+    if: needs.framing-scope.outputs.framing_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

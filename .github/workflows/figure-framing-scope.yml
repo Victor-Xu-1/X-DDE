@@ -1,0 +1,47 @@
+name: Native molecular figure framing scope
+on:
+  workflow_call:
+    outputs:
+      framing_only:
+        value: ${{ jobs.scope.outputs.framing_only }}
+permissions:
+  contents: read
+jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      framing_only: ${{ steps.paths.outputs.framing_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: paths
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          only=false
+          if [[ "$GITHUB_EVENT_NAME" == push || "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            if [[ "$GITHUB_REF_NAME" != main || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+              BASE=$(git merge-base HEAD origin/main)
+            fi
+            only=true
+            capture=false
+            while IFS= read -r path; do
+              case "$path" in
+                frontend/src/viewer/capture.ts) capture=true ;;
+                frontend/src/viewer/StructureViewport.tsx)
+                  # Leave unrelated viewer controls with their existing owners.
+                  edits=$(git diff --unified=0 "$BASE" HEAD -- "$path" | sed -n '/^[+-][^+-]/p')
+                  [[ "$edits" =~ ^\+[[:blank:]]+structureFraming$ ]] || only=false
+                  ;;
+                frontend/src/viewer/capture.test.ts|frontend/src/publication/settings.ts|frontend/src/publication/FigureDialog.tsx|frontend/src/publication/FigureExport.tsx|frontend/src/publication/FigureExport.test.tsx|server_tests/test_figure_framing_browser.py) ;;
+                .github/workflows/figure-framing-scope.yml|.github/workflows/publication-checks.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/generated-candidate-checks.yml|.github/workflows/prediction-workspace-checks.yml|.github/workflows/simulation-view-checks.yml) ;;
+                pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+                *) only=false ;;
+              esac
+            done < <(git diff --name-only "$BASE" HEAD)
+            [[ "$capture" == true ]] || only=false
+          fi
+          echo "framing_only=$only" >> "$GITHUB_OUTPUT"
