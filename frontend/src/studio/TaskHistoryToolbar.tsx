@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ArrowLeftOutlined,
   PlusOutlined,
@@ -6,35 +5,8 @@ import {
 } from "@ant-design/icons";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { researchModules } from "./research-modules";
 import type { HistoryModule } from "./task-history-model";
-
-function ModuleHistoryBackends({
-  language,
-  capabilities,
-}: {
-  language: Language;
-  capabilities: readonly ToolId[];
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <details
-      className="task-history-backends"
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-    >
-      <summary className="secondary-button">
-        {language === "zh" ? "后端启停" : "Backend switches"}
-      </summary>
-      <TaskBackendControl
-        language={language}
-        scope={{ capabilities }}
-        placement="module"
-        active={open}
-      />
-    </details>
-  );
-}
 
 export function TaskHistoryToolbar({
   language,
@@ -65,12 +37,6 @@ export function TaskHistoryToolbar({
         <header className="task-history-heading">
           <h2>{zh ? "任务结果" : "Task results"}</h2>
           <div className="task-history-heading-actions">
-            {researchModule && (
-              <ModuleHistoryBackends
-                capabilities={researchModule.tools}
-                language={language}
-              />
-            )}
             <button
               type="button"
               className="secondary-button"

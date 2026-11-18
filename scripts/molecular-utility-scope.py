@@ -585,19 +585,18 @@ TASK_POWER_DIFF = "feac177b02d6ff045d14ecea28ea9ec26407ff210deee16ac16b967954511
 MODULE_BACKEND_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
-    "frontend/src/studio/ModuleTaskPicker.css",
-    "frontend/src/studio/ModuleTaskPicker.tsx",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/studio/ModuleWorkspaceNavigation.tsx",
     "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/studio/navigation-model.ts",
     "frontend/src/studio/task-history.css",
-    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
     "frontend/src/utilities/TaskBackendControl.tsx",
-    "frontend/src/utilities/backend-control-scope.ts",
-    "frontend/src/utilities/backend-runtime.ts",
-    "frontend/src/utilities/runtime-switch.css",
+    "frontend/src/utilities/UtilityTask.tsx",
     "server_tests/test_module_backend_switch_browser.py",
-    "tests/test_molecular_utility_scope.py",
 }
-MODULE_BACKEND_DIFF = "19403e72a9be178dc82b13b4a7b4555b8d085108f1f78ac1dc8c0f1a9570b5af"
+MODULE_BACKEND_DIFF = "da2612ac37d6f489c3ac796f34a3e0b80d86bd85a1daec33c5961e624b1f7dae"
 
 NATIVE_STATE_FILES = {
     ".github/workflows/generated-candidate-checks.yml",

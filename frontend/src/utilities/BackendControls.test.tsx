@@ -61,6 +61,59 @@ it("does not start engines on mount, offers only explicit available switches", a
     {},
   );
 });
+
+it("shows the current module first and returns to it after closing the full catalogue", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [entry, { ...entry, id: "admet", name: "ADMET-AI" }],
+  });
+  const user = userEvent.setup();
+  render(
+    <>
+      <BackendControls
+        language="en"
+        module={{
+          label: ["分子性质", "Molecular properties"],
+          tools: ["properties"],
+        }}
+      />
+      <button type="button">Task form</button>
+    </>,
+  );
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(trigger);
+  const module = screen.getByRole("region", {
+    name: "Backends in this module",
+  });
+  expect(
+    await within(module).findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  expect(within(module).queryByRole("switch", { name: "ADMET-AI" })).toBeNull();
+  expect(request).toHaveBeenLastCalledWith(
+    "/runtime-controls?include_native=false",
+    expect.anything(),
+  );
+  await user.click(
+    within(module).getByRole("button", { name: "View all backends" }),
+  );
+  const all = screen.getByRole("region", { name: "Backend power" });
+  expect(
+    await within(all).findByRole("switch", { name: "ADMET-AI" }),
+  ).not.toBeChecked();
+  await user.keyboard("{Escape}");
+  expect(trigger).toHaveFocus();
+  expect(all).not.toBeInTheDocument();
+  await user.click(trigger);
+  const reopened = screen.getByRole("region", {
+    name: "Backends in this module",
+  });
+  expect(reopened).toBeVisible();
+  const form = screen.getByRole("button", { name: "Task form" });
+  await user.click(form);
+  expect(reopened).not.toBeInTheDocument();
+  expect(form).toHaveFocus();
+  expect(api.post).not.toHaveBeenCalled();
+});
 it("keeps failed changes off and prevents stopping active tasks", async () => {
   vi.mocked(request).mockResolvedValue({ engines: [entry] });
   vi.mocked(api.post).mockRejectedValue(new Error("conflict"));
@@ -129,13 +182,11 @@ it("shares one default-off engine across module, sibling tool and global switche
   toggles.forEach((toggle) => expect(toggle).not.toBeChecked());
   expect(request).toHaveBeenCalledTimes(1);
   expect(api.post).not.toHaveBeenCalled();
+  await user.click(toggles[0]);
+  await waitFor(() => expect(toggles[0]).toBeChecked());
   await user.click(screen.getByRole("button", { name: "Backend controls" }));
   const global = within(screen.getByRole("region", { name: "Backend power" }));
-  expect(global.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
-  await user.click(toggles[0]);
-  await waitFor(() =>
-    expect(global.getByRole("switch", { name: "RDKit" })).toBeChecked(),
-  );
+  expect(global.getByRole("switch", { name: "RDKit" })).toBeChecked();
   toggles.forEach((toggle) => expect(toggle).toBeChecked());
   await user.click(global.getByRole("switch", { name: "RDKit" }));
   await waitFor(() => expect(toggles[0]).not.toBeChecked());
@@ -275,11 +326,11 @@ it("starts and stops persistent compute from a Harness task and syncs the global
   });
   expect(task).not.toBeChecked();
   expect(api.post).not.toHaveBeenCalled();
+  await user.click(task);
+  expect(task).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Backend controls" }));
   const panel = within(screen.getByRole("region", { name: "Backend power" }));
   const global = panel.getByRole("switch", { name: "Persistent compute" });
-  await user.click(task);
-  expect(task).toBeDisabled();
   expect(global).toBeDisabled();
   // The app continues polling deployment while the native service starts.
   rerender(view({ compute_service: { ...service } } as Deployment));
