@@ -611,13 +611,17 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             ).fetchone()
         if active or workflows_service.records.runs({"running", "cancelling"}, limit=1):
             return True
-        if settings.harness_python and settings.harness_python.is_file():
-            try:
+        try:
+            if include_paused:
+                # Component and compute changes may strand a native launch whose
+                # task ID has not yet been recorded.
+                return await harness_service.runtime_busy()
+            if settings.harness_python and settings.harness_python.is_file():
                 return bool(await harness_service.invoke({"operation": "active"}, timeout=15))
-            except (RuntimeError, ValueError, OSError, TimeoutError):
-                raise HTTPException(
-                    503, "Cannot verify native task state; retry after checking Harness."
-                ) from None
+        except (RuntimeError, ValueError, OSError, TimeoutError):
+            raise HTTPException(
+                503, "Cannot verify native task state; retry after checking Harness."
+            ) from None
         return False
 
     async def deployment_claim(claim):

@@ -549,7 +549,12 @@ BACKEND_PLACEMENT_FILES = {
 BACKEND_PLACEMENT_DIFF = "6b67939a29d0b15f771b924e114cacf623411a4d58c6752e5541d51959fe6352"
 
 TASK_POWER_FILES = {
+    ".github/workflows/managed-compute-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/service-control-checks.yml",
+    ".github/workflows/task-action-checks.yml",
+    ".github/workflows/template-controls-checks.yml",
     "docs/user-guide.md",
     "frontend/src/App.tsx",
     "frontend/src/examples/ExampleActions.test.tsx",
@@ -569,9 +574,11 @@ TASK_POWER_FILES = {
     "frontend/src/workflows/WorkflowCenter.test.tsx",
     "frontend/src/workflows/WorkflowCenter.tsx",
     "server_tests/test_module_backend_switch_browser.py",
+    "src/opendde_workbench/api.py",
+    "tests/test_compute_power_admission.py",
     "tests/test_molecular_utility_scope.py",
 }
-TASK_POWER_DIFF = "c914cde8d27a790c8f60d02d688550e3984e5e163bd2a934db6a9a7997982657"
+TASK_POWER_DIFF = "603e2694f407c2d4c47841e2effb7e2c8fd36a8dd8f86858942c9fb6b79c272b"
 
 
 def reviewed_selected(changed, event, base, files, digest):
@@ -640,15 +647,17 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_POWER_FILES, RECOGNITION_POWER_DIFF,
     )
-    backend_placement = reviewed_selected(
-        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
-        BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
-    ) or reviewed_selected(
+    task_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         TASK_POWER_FILES, TASK_POWER_DIFF,
     )
+    backend_placement = task_power or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
+        output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")

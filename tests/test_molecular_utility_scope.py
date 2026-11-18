@@ -128,7 +128,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
-        "backend_placement_only=false\nrecognition_power_only=false\n"
+        "backend_placement_only=false\ntask_power_only=false\nrecognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
         "touch_controls_only=false\n"
         "runtime_switch_only=false\nresult_header_only=false\n"

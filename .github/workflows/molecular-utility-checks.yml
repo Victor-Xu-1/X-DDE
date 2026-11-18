@@ -77,6 +77,7 @@ on:
       - "frontend/src/utilities/runtime-switch.css"
       - "server_tests/test_module_backend_switch_browser.py"
       - "tests/test_utility_tools.py"
+      - "tests/test_compute_power_admission.py"
       - ".github/workflows/molecular-utility-checks.yml"
   pull_request:
     paths: *utility_paths
@@ -95,6 +96,8 @@ on:
         value: ${{ jobs.scope.outputs.runtime_switch_only }}
       backend_placement_only:
         value: ${{ jobs.scope.outputs.backend_placement_only }}
+      task_power_only:
+        value: ${{ jobs.scope.outputs.task_power_only }}
       recognition_power_only:
         value: ${{ jobs.scope.outputs.recognition_power_only }}
       result_header_only:
@@ -112,6 +115,7 @@ jobs:
       potential_display_only: ${{ steps.select.outputs.potential_display_only }}
       runtime_switch_only: ${{ steps.select.outputs.runtime_switch_only }}
       backend_placement_only: ${{ steps.select.outputs.backend_placement_only }}
+      task_power_only: ${{ steps.select.outputs.task_power_only }}
       result_header_only: ${{ steps.select.outputs.result_header_only }}
     steps:
       - uses: actions/checkout@v4
@@ -331,6 +335,11 @@ jobs:
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_module_backend_switch_browser.py server_tests/test_result_handoff_browser.py tests/test_molecular_utility_scope.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
+      - name: Compute power admission protects unresolved native launches
+        if: needs.scope.outputs.task_power_only == 'true'
+        run: |
+          uv run --locked ruff check src/opendde_workbench/api.py tests/test_compute_power_admission.py
+          uv run --locked pytest -q tests/test_compute_power_admission.py
       - name: Exercise the actual backend switches in Chrome
         run: |
           google-chrome --version
