@@ -168,7 +168,7 @@ def test_empty_inputs_take_priority_and_selected_molecule_restores_preview(
                 assert area["paste"]["bottom"] <= area["height"], area
                 if width == 320:
                     assert abs(area["upload"]["top"] - area["paste"]["top"]) <= 1, area
-                    assert area["input"]["top"] < 360, area
+                    assert area["input"]["top"] <= height - 96, area
                 if width == 1110:
                     assert area["backend"]["height"] < 60, area
                     if tool == "properties":

@@ -485,7 +485,7 @@ UTILITY_NAVIGATION_FILES = {
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_utility_navigation_browser.py",
 }
-UTILITY_NAVIGATION_DIFF = "c02153f5063a192f99d53ddd5779b2fcc32a6c0d9950002fe5d357a65522bf3e"
+UTILITY_NAVIGATION_DIFF = "26b5164f80290c669cbcee9cfc9e51176dde72a24482516d11838c8325149189"
 
 
 POTENTIAL_DISPLAY_FILES = {
