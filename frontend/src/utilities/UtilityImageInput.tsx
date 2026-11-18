@@ -98,6 +98,7 @@ export function UtilityImageInput({
         enabled={active}
         disabled={upload.busy}
         inputOwner
+        controlsFirst={!query}
         automatic
         cancelOnEdit
         review={review ?? undefined}

@@ -13,6 +13,7 @@ export function ImageMoleculeInput({
   disabled = false,
   className = "",
   inputOwner = false,
+  controlsFirst = false,
   automatic = false,
   cancelOnEdit = false,
   review,
@@ -26,6 +27,7 @@ export function ImageMoleculeInput({
   disabled?: boolean;
   className?: string;
   inputOwner?: boolean;
+  controlsFirst?: boolean;
   automatic?: boolean;
   cancelOnEdit?: boolean;
   review?: { molecule: ImageMolecule; image: File };
@@ -83,45 +85,8 @@ export function ImageMoleculeInput({
       : "Press Ctrl+V here, or drop an image.",
   };
   if (!enabled && !inputOwner) return <>{children}</>;
-  return (
-    <div
-      ref={surface}
-      className={"image-molecule-input " + className}
-      onClickCapture={(event) => edit(event.target)}
-      onChangeCapture={(event) => edit(event.target)}
-      onPasteCapture={(event) => {
-        if (!owns(event.target)) return;
-        const image = Array.from(event.clipboardData.files).find((item) =>
-          item.type.startsWith("image/"),
-        );
-        if (image) {
-          event.preventDefault();
-          event.stopPropagation();
-          session.select(image);
-        }
-      }}
-      onDragOverCapture={(event) => {
-        if (!owns(event.target)) return;
-        if (
-          Array.from(event.dataTransfer.items).some((item) =>
-            item.type.startsWith("image/"),
-          )
-        )
-          event.preventDefault();
-      }}
-      onDropCapture={(event) => {
-        if (!owns(event.target)) return;
-        const image = Array.from(event.dataTransfer.files).find((item) =>
-          item.type.startsWith("image/"),
-        );
-        if (image) {
-          event.preventDefault();
-          event.stopPropagation();
-          session.select(image);
-        }
-      }}
-    >
-      {children}
+  const controls = (
+    <>
       <div className="image-molecule-actions">
         <button
           ref={trigger}
@@ -180,6 +145,49 @@ export function ImageMoleculeInput({
           {errors[session.error]}
         </p>
       )}
+    </>
+  );
+  return (
+    <div
+      ref={surface}
+      className={"image-molecule-input " + className}
+      onClickCapture={(event) => edit(event.target)}
+      onChangeCapture={(event) => edit(event.target)}
+      onPasteCapture={(event) => {
+        if (!owns(event.target)) return;
+        const image = Array.from(event.clipboardData.files).find((item) =>
+          item.type.startsWith("image/"),
+        );
+        if (image) {
+          event.preventDefault();
+          event.stopPropagation();
+          session.select(image);
+        }
+      }}
+      onDragOverCapture={(event) => {
+        if (!owns(event.target)) return;
+        if (
+          Array.from(event.dataTransfer.items).some((item) =>
+            item.type.startsWith("image/"),
+          )
+        )
+          event.preventDefault();
+      }}
+      onDropCapture={(event) => {
+        if (!owns(event.target)) return;
+        const image = Array.from(event.dataTransfer.files).find((item) =>
+          item.type.startsWith("image/"),
+        );
+        if (image) {
+          event.preventDefault();
+          event.stopPropagation();
+          session.select(image);
+        }
+      }}
+    >
+      {controlsFirst && controls}
+      {children}
+      {!controlsFirst && controls}
       {session.selection &&
         createPortal(
           <ImageMoleculeDialog

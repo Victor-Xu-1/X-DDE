@@ -1,4 +1,5 @@
 /** Controlled two-origin image transport only; no OCR, model or scientific output. */
+import "../../../frontend/src/utilities/utility-task.css";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {

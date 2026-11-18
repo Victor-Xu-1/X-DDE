@@ -444,22 +444,37 @@ FOLLOWUP_FILES = {
 FOLLOWUP_DIFF = "c6cc1179bfb7e1a5e47f276a1f474876793b84a88b15f419dafc67a7882083bc"
 
 
-def followup_selected(changed, event, base):
-    if event not in {"push", "pull_request"} or not FOLLOWUP_FILES <= changed:
+IMAGE_FOCUS_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/UtilityImageInput.tsx",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_image_browser.py",
+    "tests/fixtures/utility_image/browser.tsx",
+}
+IMAGE_FOCUS_DIFF = "97ca35357ec32667dea099a9d96f0f983faff8160400ac844eaeafb89c6f99d9"
+
+
+def reviewed_selected(changed, event, base, files, digest):
+    if event not in {"push", "pull_request"} or not files <= changed:
         return False
     scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
-    remaining = changed - FOLLOWUP_FILES - {"scripts/molecular-utility-scope.py"}
+    remaining = changed - files - {"scripts/molecular-utility-scope.py"}
     if not remaining <= scope["VERSION_FILES"]:
         return False
     if not scope["only_version_mirrors"](base, remaining):
         return False
     reviewed = [
         [path, blob_digest(base, path), blob_digest("HEAD", path)]
-        for path in sorted(FOLLOWUP_FILES)
+        for path in sorted(files)
     ]
     return hashlib.sha256(
         json.dumps(reviewed, separators=(",", ":")).encode()
-    ).hexdigest() == FOLLOWUP_DIFF
+    ).hexdigest() == digest
+
+
+def followup_selected(changed, event, base):
+    return reviewed_selected(changed, event, base, FOLLOWUP_FILES, FOLLOWUP_DIFF)
 
 
 def main():
@@ -490,6 +505,9 @@ def main():
             "install.sh",
             "install.ps1",
         }
+    )
+    touch_controls = touch_controls or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base, IMAGE_FOCUS_FILES, IMAGE_FOCUS_DIFF
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")

@@ -108,13 +108,34 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
                 if request.method == "POST" and "/api/jobs" in request.url else None)
         page.goto("http://127.0.0.1:4322/")
         primary = page.locator(".utility-image-entry")
+        actions = primary.locator(":scope > .image-molecule-actions")
+        upload = actions.get_by_role("button", name="Upload structure image", exact=True)
+        paste = actions.get_by_role("button", name="Paste screenshot", exact=True)
+        draft = page.get_by_label("Primary draft", exact=True)
+        page.get_by_role("button", name="Toggle active tool").focus()
+        for element in (upload, paste, draft):
+            page.keyboard.press("Tab")
+            expect(element).to_be_focused()
+        assert upload.bounding_box()["y"] < draft.bounding_box()["y"]
+        page.keyboard.press("Shift+Tab")
+        expect(paste).to_be_focused()
         if width == 390:
-            actions = primary.locator(":scope > .image-molecule-actions")
-            for name in ("Upload structure image", "Paste screenshot"):
-                button = actions.get_by_role("button", name=name, exact=True)
-                expect(button).to_be_visible()
+            for button in (upload, paste):
                 box = button.bounding_box()
-                assert box and box["height"] >= 44 and box["width"] >= 44, (name, box)
+                assert box and box["height"] >= 44 and box["width"] >= 44
+        query = page.locator(".utility-query-image-entry")
+        page.get_by_label("Query draft", exact=True).focus()
+        page.keyboard.press("Tab")
+        expect(query.get_by_role(
+            "button", name="Upload structure image", exact=True
+        )).to_be_focused()
+        primary.locator(':scope > input[type="file"]').set_input_files({
+            "name": "unsupported.gif", "mimeType": "image/gif", "buffer": png,
+        })
+        message = primary.get_by_role("alert")
+        expect(message).to_contain_text("Use a PNG, JPEG, WebP or BMP image")
+        assert message.bounding_box()["y"] < draft.bounding_box()["y"]
+        assert not uploads
         primary.locator(':scope > input[type="file"]').set_input_files({
             "name": "STAT6-transport.png", "mimeType": "image/png", "buffer": png,
         })
@@ -161,5 +182,6 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
             "width": width, "controlled_native_host": True, "actual_ocr": False,
             "scientific_jobs": 0, "uploads": len(uploads), "edited_graph_prefill": True,
             "nested_query_ownership": True, "image_digest_preserved": True,
+            "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
         }, indent=2))
         browser.close()
