@@ -12,6 +12,7 @@ export function ExampleToolbar({
   capability,
   language,
   previewing,
+  active,
   loaded,
   pending,
   titleRef,
@@ -26,6 +27,7 @@ export function ExampleToolbar({
   capability: string;
   language: Language;
   previewing: boolean;
+  active: boolean;
   loaded: boolean;
   pending: "template" | "result" | null;
   titleRef: RefObject<HTMLHeadingElement | null>;
@@ -162,7 +164,7 @@ export function ExampleToolbar({
           </button>
         )}
         <ExampleGuide info={info} capability={capability} language={language} />
-        {previewing && (
+        {previewing && active && (
           <TaskBackendControl
             language={language}
             scope={{ capability }}

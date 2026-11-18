@@ -149,15 +149,15 @@ it("separates task entry from structure review while preserving the draft", asyn
   expect(
     within(summary!).getByRole("heading", { name: /^研究结果$/, level: 2 }),
   ).toBeVisible();
+  expect(summary).toHaveTextContent("已完成");
+  expect(
+    screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
+  ).toBeNull();
   const toggle = await within(summary!).findByRole("switch", {
     name: "OpenDDE",
   });
   expect(toggle).toBeEnabled();
   expect(toggle).toHaveAttribute("aria-checked", "false");
-  expect(summary).toHaveTextContent("已完成");
-  expect(
-    screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
-  ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "新建预测" }));
   expect(sequence).toBeVisible();
   expect(sequence).toHaveValue("ACDE");

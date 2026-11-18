@@ -91,6 +91,7 @@ function UtilityTaskSession({
           onLoad={replace}
           onClear={() => replace(null)}
           onPreviewChange={setPreviewing}
+          active={active}
           onBusyChange={exampleBusy}
         />
       </fieldset>

@@ -23,6 +23,30 @@
       "Inspect CDRs and sequence scores; these are not affinity measurements."
     ]
   },
+  "admet.brain": {
+    "steps": [
+      [
+        "粘贴分子结构截图，或输入已有的 SMILES。",
+        "Paste a structure image or enter a SMILES string."
+      ],
+      [
+        "核对识别后的分子结构，再开始预测。",
+        "Check the recognized molecular structure before running the prediction."
+      ],
+      [
+        "查看模型给出的透脑预测和适用范围。",
+        "Review the predicted brain exposure and the model’s applicability."
+      ],
+      [
+        "结合实验数据判断优先级。",
+        "Use experimental data alongside the prediction to prioritize compounds."
+      ]
+    ],
+    "interpretation": [
+      "预测用于早期比较，不能代替实验测定。",
+      "Use the prediction for early comparison; it does not replace experimental measurements."
+    ]
+  },
   "admet.predict": {
     "steps": [
       [
