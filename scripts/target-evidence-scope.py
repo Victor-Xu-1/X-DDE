@@ -34,6 +34,7 @@ HIDE_PICKER = (
 SELECTORS = {
     ".target-evidence-results",
     ".target-evidence-results .evidence-header",
+    ".target-evidence-results .evidence-header > div",
     ".target-evidence-results .evidence-header h3",
     ".target-evidence-results .evidence-header .field-help",
     ".target-evidence-results > .result-summary-grid",

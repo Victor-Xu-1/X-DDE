@@ -76,15 +76,28 @@
   gap: 8px;
 }
 .target-evidence-results .evidence-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(25%);
   align-items: baseline;
   gap: 12px;
 }
+.target-evidence-results .evidence-header > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 4px 12px;
+}
 .target-evidence-results .evidence-header h3 {
+  max-width: 100%;
   font-size: 20px;
-  margin: 2px 0 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 .target-evidence-results .evidence-header .field-help {
-  margin: 4px 0 0;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 .target-evidence-results > .result-summary-grid {
   display: flex;
