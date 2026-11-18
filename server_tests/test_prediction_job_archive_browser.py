@@ -82,6 +82,19 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
             expect(action).to_have_css("color", "rgb(255, 255, 255)")
             page.screenshot(path=evidence / f"{capability}.png")
+            if width == 390 and capability == "predict":
+                page.get_by_role("button", name="展开研究工作区").click()
+                workspace = page.locator('.structure-workbench[data-workspace-expanded="true"]')
+                metrics = workspace.locator(".prediction-confidence-metrics > div")
+                page.set_viewport_size({"width": 320, "height": 960})
+                expect(metrics).to_have_count(4)
+                assert metrics.evaluate_all(
+                    "cards => cards.every(card => card.scrollWidth <= card.clientWidth + 1)"
+                )
+                page.screenshot(path=evidence / "expanded-metrics-320.png")
+                page.keyboard.press("Escape")
+                expect(workspace).to_have_count(0)
+                page.set_viewport_size({"width": width, "height": 960})
             if capability == "boltz.predict":
                 endpoint = f"**/api/jobs/{job_id}/prediction-results.zip"
                 page.route(endpoint, lambda route: route.fulfill(status=503), times=1)
