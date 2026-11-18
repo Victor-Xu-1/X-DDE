@@ -77,6 +77,11 @@ jobs:
                      "$(git rev-parse "HEAD:$path")" == d860bf9fa162e87a49e5f700726e5bcf091e8b92 ]] ||
                     compact=false
                   ;;
+                .github/workflows/simulation-view-checks.yml)
+                  [[ "$(git rev-parse "$BASE:$path")" == 9460aeeb666cc5a0350c2a789108e8f3b9a8bc6c &&
+                     "$(git rev-parse "HEAD:$path")" == f1cb94ea9ded076944c31b6d5fd980982feb7e0a ]] ||
+                    compact=false
+                  ;;
                 .github/workflows/figure-framing-scope.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
                 *) compact=false ;;
               esac
