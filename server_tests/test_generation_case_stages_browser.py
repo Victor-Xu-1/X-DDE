@@ -7,13 +7,13 @@ import struct
 from pathlib import Path
 
 import pytest
+from example_preview_actions import choose_task
 from playwright.sync_api import expect, sync_playwright
+from test_navigation_shell_browser import open_navigation
 
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
-from example_preview_actions import choose_task
 from server_tests.browser_platform import platform
-from test_navigation_shell_browser import open_navigation
 
 GENERATED = "be6389cf-e6ce-4d2e-ae5a-9786d62dfe8a"
 RAW_QUALITY = (
