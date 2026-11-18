@@ -83,6 +83,7 @@ export function StateInspectionTables({
                         source={{
                           url: artifactUrl(jobId, data.state_artifact),
                           record: row.index,
+                          sha256: data.artifact_sha256[data.state_artifact],
                         }}
                         language={language}
                         label={String(row.index + 1)}

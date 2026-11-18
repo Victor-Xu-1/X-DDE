@@ -99,6 +99,7 @@ jobs:
           npx vitest run src/chemistry/StateCollectionPreview.test.tsx src/chemistry/StateResults.test.tsx
           src/viewer/usePoseOptimization.test.tsx src/viewer/pose-plan.test.ts src/viewer/pose-source.test.ts
           src/viewer/StructureViewer.test.tsx src/viewer/PoseSession.test.tsx src/presentation/ResearchTabs.test.tsx
+          src/presentation/depiction-renderer.test.ts
       - run: uv sync --locked --group dev --group browser
       - name: Only the reviewed native state diff takes this focused path
         run: |

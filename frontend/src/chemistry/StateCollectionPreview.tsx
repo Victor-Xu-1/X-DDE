@@ -112,6 +112,9 @@ export function StateCollectionPreview({
               source={{
                 url: url ?? artifactUrl(job.id, data.state_artifact),
                 record: url ? 0 : state.index,
+                sha256:
+                  nativeConformer?.artifact_sha256 ??
+                  data.artifact_sha256[data.state_artifact],
               }}
               defaultView={url ? "3d" : "2d"}
               urls={url ? [url] : undefined}

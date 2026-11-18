@@ -40,7 +40,7 @@ const data: StateResult = {
   complete: true,
   state_artifact: "states.sdf",
   conformer_artifact: "conformers.sdf",
-  artifact_sha256: {},
+  artifact_sha256: { "states.sdf": "d".repeat(64) },
   versions: {},
   coverage: { budget_limited: false, rejected: 0, protonation_rejected: 0 },
   states: [neutral, cation].map((smiles, index) => ({
@@ -141,6 +141,9 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
     screen.getByRole("tabpanel", { name: "2D structure" }),
   ).toHaveTextContent("cation-010.sdf");
   expect(
+    screen.getByRole("tabpanel", { name: "2D structure" }),
+  ).toHaveTextContent("c".repeat(64));
+  expect(
     screen.getByRole("link", {
       name: "Download selected original conformer SDF",
     }),
@@ -153,12 +156,14 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
     "data-source-hash",
     "c".repeat(64),
   );
+  await user.click(screen.getByRole("tab", { name: /Chemical states/ }));
   expect(
     screen.getAllByTestId("native-2d-source").map((node) => node.textContent),
   ).toContain(
     JSON.stringify({
       url: `/api/jobs/${job.id}/download?name=states.sdf`,
       record: 1,
+      sha256: "d".repeat(64),
     }),
   );
 });
