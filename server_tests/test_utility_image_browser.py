@@ -84,7 +84,7 @@ def image_hosts(root):
 
 
 @pytest.mark.parametrize("width", [1440, 390])
-def test_explicit_recognition_power_prefilled_edit_and_nested_query_ownership(compiled_image, width):
+def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
     evidence = Path("outputs/utility-image") / str(width)
     evidence.mkdir(parents=True, exist_ok=True)
     png = base64.b64decode(

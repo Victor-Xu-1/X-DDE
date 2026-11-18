@@ -524,7 +524,7 @@ RECOGNITION_POWER_FILES = {
     "tests/fixtures/utility_image/browser.tsx",
     "tests/test_recognition_companion.py",
 }
-RECOGNITION_POWER_DIFF = "b900c48eb1b215be826f0388597a7f5ff0c921f490107604fd23623d66857dc4"
+RECOGNITION_POWER_DIFF = "7f74f1e1ec6bccec785e2cf8e1dd6f5105c92b0972fb86aff18cb119219428f7"
 
 
 def reviewed_selected(changed, event, base, files, digest):
@@ -613,8 +613,9 @@ def main():
             path: (git_blob(base, path), git_blob("HEAD", path))
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
-        utility = recognition_power or potential_display or navigation or runtime or layout or selected(
-            changed, event, shared=shared
+        utility = (
+            recognition_power or potential_display or navigation or runtime or layout
+            or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")

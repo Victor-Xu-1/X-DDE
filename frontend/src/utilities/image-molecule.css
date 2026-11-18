@@ -83,6 +83,17 @@
   .image-molecule-dialog > footer {
     padding: 10px;
   }
+  .image-molecule-dialog > footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .image-molecule-dialog > footer > span {
+    flex: 1 0 100%;
+    max-width: 100%;
+  }
+  .image-molecule-dialog > footer > button {
+    white-space: nowrap;
+  }
   .image-molecule-dialog h2 {
     font-size: 17px;
   }
