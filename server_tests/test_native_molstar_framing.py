@@ -1,6 +1,7 @@
 """Native Mol* figure composition against retained MD and FEP outputs."""
 
 import json
+from base64 import b64encode
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,32 @@ def ready(viewer):
     assert scene.get_attribute("data-error") is None
 
 
+def comparison_pixels(page, path):
+    """Count visible geometry per panel below the label band."""
+    return page.evaluate(
+        """async source => {
+          const image = new Image();
+          image.src = 'data:image/png;base64,' + source;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          const context = canvas.getContext('2d');
+          context.drawImage(image, 0, 0);
+          const data = context.getImageData(0, 0, image.width, image.height).data;
+          const panelPixels = [0, 0];
+          for (let y = 100; y < image.height; y++) {
+            for (let x = 0; x < image.width; x++) {
+              if (data[(y * image.width + x) * 4 + 3] > 32)
+                panelPixels[x < image.width / 2 ? 0 : 1]++;
+            }
+          }
+          return { width: image.width, height: image.height, panelPixels };
+        }""",
+        b64encode(path.read_bytes()).decode("ascii"),
+    )
+
+
 @pytest.mark.parametrize(("case", "language"), [("openmm.dynamics", "en"), ("openfe.rbfe", "zh")])
 def test_molstar_framing_uses_native_outputs(case, language):
     source = Path("outputs/native-simulations") / case
@@ -66,20 +93,33 @@ def test_molstar_framing_uses_native_outputs(case, language):
             root.get_by_role("slider", name="Trajectory time", exact=True).fill("2")
             expect(viewer).to_have_attribute("data-frame", "2", timeout=45000)
             ready(viewer)
-            coordinates = root.get_by_role("link", name="Download frame", exact=True)
+            coordinates = root.get_by_role("link", name="Download frame ↓", exact=True)
             href = coordinates.get_attribute("href")
             assert href == f"/api/jobs/{identifier}/download?name=repeat-1-frame-0003.pdb"
             original = page.request.get(base + href).body()
             assert b"ATOM" in original
+            viewer.get_by_role("button", name="Overview", exact=True).click()
         else:
             root.get_by_role("tab", name="结合姿势", exact=True).click()
             expect(viewer).to_have_count(2)
             ready(viewer.nth(0))
             ready(viewer.nth(1))
+            viewer.nth(0).get_by_role("button", name="全景", exact=True).click()
+            viewer.nth(1).get_by_role("button", name="全景", exact=True).click()
             pair = root.get_by_role("button", name="导出比较图 ↓", exact=True)
             normal = capture(page, pair, evidence, "pair", language, "1", standalone=False)
-            smaller = capture(page, pair, evidence, "pair", language, "0.75", standalone=False)
-            assert normal.read_bytes() != smaller.read_bytes()
+            smaller = capture(page, pair, evidence, "pair", language, "0.5", standalone=False)
+            pair_before, pair_after = (
+                comparison_pixels(page, image) for image in (normal, smaller)
+            )
+            for view in (pair_before, pair_after):
+                assert (view["width"], view["height"]) == (1051, 526)
+            for large, small in zip(pair_before["panelPixels"], pair_after["panelPixels"]):
+                assert 100 < small < 0.8 * large, (pair_before, pair_after)
+            (evidence / "pair-coverage.json").write_text(
+                json.dumps({"before": pair_before, "after": pair_after}, indent=2),
+                encoding="utf-8",
+            )
             expect(viewer.nth(0)).to_have_attribute("data-ligand", "a")
             expect(viewer.nth(1)).to_have_attribute("data-ligand", "b")
             root.get_by_role("button", name="叠加查看", exact=True).click()
@@ -88,6 +128,7 @@ def test_molstar_framing_uses_native_outputs(case, language):
             selection.select_option("b")
             expect(viewer).to_have_attribute("data-ligand", "b")
             ready(viewer)
+            viewer.get_by_role("button", name="全景", exact=True).click()
         export = viewer.get_by_role(
             "button", name="Download view ↓" if md else "下载视图 ↓", exact=True
         )

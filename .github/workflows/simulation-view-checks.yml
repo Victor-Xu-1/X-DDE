@@ -95,8 +95,9 @@ jobs:
           consumers = {simulation + 'MolecularViewport.tsx', simulation + 'BoundPoseComparison.tsx'}
           versions = {'pyproject.toml', 'uv.lock', 'frontend/package.json',
                       'frontend/package-lock.json', 'install.sh', 'install.ps1'}
+          framing_changed = bool(set(changed) & framing)
           native_only = (os.environ['GITHUB_EVENT_NAME'] in {'push', 'pull_request'}
-                         and bool(set(changed) & framing)
+                         and framing_changed
                          and set(changed) <= framing | consumers | versions
                            | {'.github/workflows/simulation-view-checks.yml'})
           for path in set(changed) & consumers if native_only else ():
@@ -109,6 +110,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('only=' + str(only).lower() + '\n')
               output.write('native_framing=' + str(native_only).lower() + '\n')
+              output.write('framing_changed=' + str(framing_changed).lower() + '\n')
           PY
       - uses: actions/setup-node@v4
         with:
@@ -161,7 +163,7 @@ jobs:
           server_tests/test_native_simulation_views.py
           server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
       - name: Verify framing and actual downloads from native MD and FEP results
-        if: steps.export_scope.outputs.native_framing == 'true'
+        if: steps.export_scope.outputs.framing_changed == 'true'
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_molstar_framing.py
       - name: Restore retained DEL chart results for physical export checks, without science
