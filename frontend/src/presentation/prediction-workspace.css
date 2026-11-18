@@ -44,14 +44,21 @@
     padding: 12px;
   }
   .prediction-sample-bar {
-    gap: 12px;
-    padding: 8px 0;
+    gap: 8px 10px;
+    padding: 6px 0;
   }
   .prediction-confidence-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .prediction-seed-picker select {
+    width: clamp(88px, 27vw, 134px);
+  }
+  .prediction-sample-picker nav {
+    min-width: 0;
+  }
   .prediction-sample-options {
     max-width: 180px;
+    min-width: 0;
   }
   .prediction-setup-layout .questionnaire-heading {
     font-size: 20px;
@@ -66,5 +73,21 @@
   .prediction-setup-layout .questionnaire-steps button {
     min-height: 44px;
     justify-content: center;
+  }
+}
+
+@media (360px <= width <= 600px) {
+  .prediction-confidence-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .prediction-confidence-metrics > div {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    padding: 4px 6px;
+  }
+  .prediction-confidence-metrics dd {
+    font-size: 16px;
   }
 }
