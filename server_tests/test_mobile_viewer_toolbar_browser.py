@@ -37,7 +37,9 @@ def test_compact_native_viewer_keeps_camera_controls_and_export(interaction_work
             zoom = stage.get_by_role("button", name="Zoom in", exact=True)
             expect(zoom).to_be_visible(timeout=30000)
             files_label = "Structure files and resolution"
-            picture_tools = panel.get_by_role("button", name=files_label, exact=True)
+            picture_tools = panel.get_by_role(
+                "button", name=files_label, exact=True, include_hidden=True,
+            )
             display_tools = panel.get_by_role("button", name="Display options", exact=True)
             expect(picture_tools).to_have_attribute("aria-expanded", "false")
             expect(display_tools).to_have_attribute("aria-expanded", "false")

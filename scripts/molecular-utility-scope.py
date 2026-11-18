@@ -709,7 +709,7 @@ MOBILE_VIEWER_FILES = {
     "server_tests/test_target_selection_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MOBILE_VIEWER_DIFF = "086778217a877a47f34590c40826bfce107f054280737a049c776cb1039f2593"
+MOBILE_VIEWER_DIFF = "e4d0f1f45d5acaa178519f7793ca950e21fe6c84609835b2af83078af90ac983"
 
 
 def reviewed_selected(changed, event, base, files, digest):
