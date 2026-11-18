@@ -23,9 +23,7 @@ def register_pose_minimization(app, store, assets, settings, mutation, enqueue):
             task, pose = initial.resolve(value)
             if pose is not None:
                 return {"state": "ready", "pose": pose.model_dump(mode="json")}
-            # The same source reuses its verified calculation even with no engine enabled.
-            key = uuid5(NAMESPACE_URL, "x-dde-initial-pose-v1:" + task.model_dump_json())
-            previous = store.existing_submission(task, str(key))
+            previous = initial.previous_attempt(task)
             if previous is not None and previous.status == "succeeded":
                 return {"state": "task", "job": previous.model_dump(mode="json")}
             controls = getattr(app.state, "runtime_controls", None)
@@ -36,11 +34,14 @@ def register_pose_minimization(app, store, assets, settings, mutation, enqueue):
                     503,
                     "Task service is unavailable; previously calculated poses remain available.",
                 )
-            if (
-                value.retry and previous
-                and previous.status in {"failed", "cancelled", "interrupted"}
-            ):
+            if previous:
+                retryable = previous.status in {"failed", "cancelled", "interrupted"}
+                if not value.retry or not retryable:
+                    return {"state": "task", "job": previous.model_dump(mode="json")}
                 key = idempotency_key
+            else:
+                # Concurrent first views share one task for this exact source and settings.
+                key = uuid5(NAMESPACE_URL, "x-dde-initial-pose-v1:" + task.model_dump_json())
             job = await enqueue(task, key)
             return {"state": "task", "job": job.model_dump(mode="json")}
         except ConflictError as exc:

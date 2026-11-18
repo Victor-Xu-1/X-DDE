@@ -1,5 +1,7 @@
 """Initial free-ligand poses reuse scientific versions and the existing Chemistry queue."""
 
+import hashlib
+
 from ..chemistry.minimization_contract import MoleculeMinimizeTask
 from ..chemistry.minimization_options import MinimizationOptions
 from ..chemistry.sdf_io import split_records
@@ -26,6 +28,17 @@ class InitialPosePreparation:
     def __init__(self, store, assets, settings):
         self.store, self.assets = store, assets
         self.sources = PoseSources(store, assets, settings)
+
+    def previous_attempt(self, task):
+        """Find the same source and options, including retries under older submission keys."""
+        request = task.model_dump_json()
+        digest = hashlib.sha256(request.encode()).hexdigest()
+        with self.store.connect() as db:
+            return self.store.decode(db.execute(
+                "SELECT * FROM jobs WHERE request_hash=? AND parent_id IS NULL AND request=? "
+                "ORDER BY (status='succeeded') DESC, created_at DESC, id DESC LIMIT 1",
+                (digest, request),
+            ).fetchone())
 
     def resolve(self, value):
         reference = self.sources.resolve(value.source)

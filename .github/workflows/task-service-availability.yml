@@ -15,6 +15,7 @@ on:
       - "frontend/src/viewer/PoseOptimizationControls.tsx"
       - "src/opendde_workbench/research/pose_contract.py"
       - "src/opendde_workbench/research/pose_routes.py"
+      - "src/opendde_workbench/research/initial_pose.py"
       - "tests/test_pose_preview_availability.py"
       - "server_tests/test_initial_pose_power_browser.py"
       - "frontend/src/App.tsx"
@@ -35,6 +36,22 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: preview
+        name: Detect changed initial-pose consumers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          touched=false
+          if ! git cat-file -e "${BASE}^{commit}" 2>/dev/null || ! git diff --quiet "$BASE" HEAD -- \
+            frontend/src/viewer/InitialPoseStatus.tsx frontend/src/viewer/usePoseOptimization.ts \
+            src/opendde_workbench/research/initial_pose.py src/opendde_workbench/research/pose_routes.py \
+            src/opendde_workbench/research/pose_contract.py frontend/src/viewer/viewer.css \
+            server_tests/test_initial_pose_power_browser.py .github/workflows/task-service-availability.yml; then
+            touched=true
+          fi
+          echo "touched=$touched" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -60,11 +77,17 @@ jobs:
         run: >-
           npx vitest run src/viewer/PreviewAvailability.test.tsx src/viewer/usePoseOptimization.test.tsx
           src/viewer/StructureViewer.test.tsx
-      - name: Cache lookup, default-off API and actual Chrome preview
+      - name: Cache lookup and default-off API
         if: needs.utility-scope.outputs.initial_pose_power_only == 'true'
+        run: |
+          uv sync --locked --group dev
+          uv run --locked ruff check src/opendde_workbench/research/initial_pose.py src/opendde_workbench/research/pose_routes.py tests/test_pose_preview_availability.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_browser.py server_tests/test_native_initial_pose.py
+          uv run --locked python -m pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py
+      - name: Actual Chrome preview with a default-off backend
+        if: steps.preview.outputs.touched == 'true'
         env:
           WB_AUTO_DEPLOY: "0"
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check src/opendde_workbench/research/pose_routes.py tests/test_pose_preview_availability.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py server_tests/test_initial_pose_browser.py server_tests/test_native_initial_pose.py
-          uv run --locked python -m pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py
+          uv run --locked ruff check server_tests/test_initial_pose_power_browser.py
+          uv run --locked python -m pytest -q server_tests/test_initial_pose_power_browser.py

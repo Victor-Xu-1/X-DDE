@@ -681,11 +681,12 @@ INITIAL_POSE_POWER_FILES = {
     "server_tests/test_initial_pose_browser.py",
     "server_tests/test_initial_pose_power_browser.py",
     "server_tests/test_native_initial_pose.py",
+    "src/opendde_workbench/research/initial_pose.py",
     "src/opendde_workbench/research/pose_routes.py",
     "tests/test_molecular_utility_scope.py",
     "tests/test_pose_preview_availability.py",
 }
-INITIAL_POSE_POWER_DIFF = "887be2ffe8b1ffecfb3a8fb94d42188ecd7ae41b468d8c42bf2f4f718940d980"
+INITIAL_POSE_POWER_DIFF = "61bde460017b889b91bb5ece22b962534ac581b42c26ac929006728905654587"
 
 
 def reviewed_selected(changed, event, base, files, digest):

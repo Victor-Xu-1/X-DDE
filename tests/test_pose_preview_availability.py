@@ -37,7 +37,8 @@ def send(client, source, **options):
     )
 
 
-def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview):
+@pytest.mark.parametrize("retry", [False, True])
+def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview, retry):
     client, store, scientific, submitted = preview
     raw = b"protocol fixture\nsource 2D\n\n0 0 V2000\nM  END\n$$$$\n"
     asset = scientific.assets.save("unprepared.sdf", "ligand", raw)
@@ -58,11 +59,17 @@ def test_cache_only_missing_pose_does_not_enqueue_or_overwrite_input(preview):
     assert len(submitted) == 1 and len(store.list_jobs()) == 1
     job_id = response.json()["job"]["id"]
     assert store.claim(job_id)
+    if retry:
+        store.finish(job_id, Status.FAILED, "Fixture failure")
+        response = send(client, source, retry=True)
+        new_job_id = response.json()["job"]["id"]
+        assert new_job_id != job_id and store.claim(new_job_id)
+        job_id = new_job_id
     store.finish(job_id, Status.SUCCEEDED, None)
     client.app.state.runtime_controls.change("chemistry", "stop", ready=False)
     restored = send(client, source, allow_compute=False)
     assert restored.status_code == 200 and restored.json()["job"]["id"] == job_id
-    assert len(submitted) == 1 and len(store.list_jobs()) == 1
+    assert len(submitted) == len(store.list_jobs()) == (2 if retry else 1)
 
 
 @pytest.mark.parametrize("key", ["study_ligand", "study_protac", "calculated_pose"])
