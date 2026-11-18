@@ -1,8 +1,46 @@
 import { useState } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
+import { useBackendRuntime } from "../utilities/backend-runtime";
+import { enginesForScope } from "../utilities/backend-control-scope";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { usePoseOptimization } from "./usePoseOptimization";
 import { poseError } from "./pose-errors";
+
+const preparationScope = { operations: ["molecule_minimize"] } as const;
+
+function PreparationBackend({
+  language,
+  available,
+  prepare,
+}: {
+  language: Language;
+  available: boolean;
+  prepare(): void;
+}) {
+  const runtime = useBackendRuntime(true);
+  const [backend] = enginesForScope(runtime.catalogue, preparationScope);
+  const zh = language === "zh";
+  return (
+    <div className="initial-pose-actions">
+      <TaskBackendControl language={language} scope={preparationScope} />
+      <button
+        type="button"
+        className="secondary-button"
+        disabled={
+          !available ||
+          !backend?.enabled ||
+          !backend.ready ||
+          runtime.readError ||
+          Boolean(runtime.busy)
+        }
+        onClick={prepare}
+      >
+        {zh ? "生成三维构象" : "Prepare 3D conformer"}
+      </button>
+    </div>
+  );
+}
 
 export function InitialPoseStatus({
   state,
@@ -17,6 +55,24 @@ export function InitialPoseStatus({
     state.phase,
   );
   const unavailable = !state.available && !state.busy;
+  if (state.phase === "backend_off")
+    return (
+      <div className="viewer-message initial-pose-status">
+        <strong>
+          {zh ? "三维构象尚未准备" : "3D conformer is not prepared"}
+        </strong>
+        <span>
+          {zh
+            ? "开启后端后可生成优化构象，原始结构会保留。"
+            : "Enable the backend to prepare an optimized conformer. The original structure is retained."}
+        </span>
+        <PreparationBackend
+          language={language}
+          available={state.available}
+          prepare={() => void state.prepareInitial(method, true)}
+        />
+      </div>
+    );
   return (
     <div
       className="viewer-message initial-pose-status"

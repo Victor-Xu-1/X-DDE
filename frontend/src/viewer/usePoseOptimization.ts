@@ -7,7 +7,8 @@ import type { PreviewPose, SavedPose } from "./pose-types";
 import { poseDownloadUrl } from "./pose-download";
 import { useTaskServiceAvailability } from "../studio/ApplicationScope";
 
-type Phase = Status | "idle" | "submitting" | "saving" | "error";
+type Phase =
+  Status | "idle" | "submitting" | "saving" | "error" | "backend_off";
 interface State {
   key: string;
   history: PreviewPose[];
@@ -213,7 +214,9 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
         source = computedPose(pose, object, index).source!;
       }
       const response = await api.post<
-        { state: "ready"; pose: ScientificObject } | { state: "task"; job: Job }
+        | { state: "ready"; pose: ScientificObject }
+        | { state: "task"; job: Job }
+        | { state: "backend_off" }
       >(
         "/research/poses/initial",
         {
@@ -239,6 +242,8 @@ export function usePoseOptimization(base: PreviewPose, index: number) {
       } else if (response.state === "task" && response.job?.id) {
         setState((s) => ({ ...s, job: response.job.id, phase: "queued" }));
         setPoll((n) => n + 1);
+      } else if (response.state === "backend_off") {
+        setState((s) => ({ ...s, phase: "backend_off", initializing: false }));
       } else throw new Error("Initial pose response is invalid.");
     } catch (error) {
       if (generation === epoch.current)

@@ -128,6 +128,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
+        "initial_pose_power_only=false\n"
         "backend_placement_only=false\ntask_power_only=false\nmodule_backend_only=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "recognition_power_only=false\n"
@@ -264,6 +265,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
     [
         "BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES", "MODULE_BACKEND_FILES",
         "NATIVE_STATE_FILES", "COMPACT_EXAMPLE_FILES", "MOBILE_HEADER_FILES",
+        "INITIAL_POSE_POWER_FILES",
     ],
 )
 def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):

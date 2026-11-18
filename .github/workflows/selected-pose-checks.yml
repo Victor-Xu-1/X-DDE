@@ -22,7 +22,10 @@ jobs:
       scope_only: true
   selected-pose:
     needs: [result-scope, utility-scope]
-    if: needs.result-scope.outputs.presentation_only != 'true' && needs.utility-scope.outputs.native_state_only != 'true'
+    if: >-
+      needs.result-scope.outputs.presentation_only != 'true' &&
+      needs.utility-scope.outputs.native_state_only != 'true' &&
+      needs.utility-scope.outputs.initial_pose_power_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

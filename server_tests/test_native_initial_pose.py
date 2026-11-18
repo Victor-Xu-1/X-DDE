@@ -71,6 +71,8 @@ def test_initial_3d_generation_preserves_complex_ligand_stereo_and_source(tmp_pa
             headers={"Content-Type": "application/octet-stream"},
         ).json()
         body = {"source": {"kind": "asset", "asset_id": asset["id"], "record": 1}}
+        enabled = client.post("/api/runtime-controls/chemistry/start", json={})
+        assert enabled.status_code == 200 and enabled.json() == {"enabled": True}, enabled.text
         reply = client.post(
             "/api/research/poses/initial", json=body, headers={"Idempotency-Key": str(uuid4())}
         )

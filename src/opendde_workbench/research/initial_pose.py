@@ -1,5 +1,7 @@
 """Initial free-ligand poses reuse scientific versions and the existing Chemistry queue."""
 
+import hashlib
+
 from ..chemistry.minimization_contract import MoleculeMinimizeTask
 from ..chemistry.minimization_options import MinimizationOptions
 from ..chemistry.sdf_io import split_records
@@ -26,6 +28,31 @@ class InitialPosePreparation:
     def __init__(self, store, assets, settings):
         self.store, self.assets = store, assets
         self.sources = PoseSources(store, assets, settings)
+
+    def previous_attempt(self, task, *, exact_method):
+        """Reuse the same initial-pose calculation, including older explicit retries."""
+        request = task.model_dump_json()
+        # Automatic viewing can use a completed conformer from the alternate
+        # force field. An explicit preparation request keeps its selected method.
+        alternate = request
+        if not exact_method:
+            force_field = "UFF" if task.options.force_field == "MMFF94s" else "MMFF94s"
+            options = task.options.model_copy(update={"force_field": force_field})
+            alternate = task.model_copy(update={"options": options}).model_dump_json()
+        with self.store.connect() as db:
+            return self.store.decode(db.execute(
+                """SELECT * FROM jobs WHERE parent_id IS NULL AND (
+                    (request_hash=:digest AND request=:request) OR
+                    (status='succeeded' AND request_hash=:alternate_digest AND request=:alternate)
+                ) ORDER BY (status='succeeded') DESC, (request=:request) DESC,
+                    created_at DESC, id DESC LIMIT 1""",
+                {
+                    "request": request,
+                    "digest": hashlib.sha256(request.encode()).hexdigest(),
+                    "alternate": alternate,
+                    "alternate_digest": hashlib.sha256(alternate.encode()).hexdigest(),
+                },
+            ).fetchone())
 
     def resolve(self, value):
         reference = self.sources.resolve(value.source)
