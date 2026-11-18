@@ -18,14 +18,10 @@ def trigger_for(page, base, language, format):
     zh = language == "zh"
     name = "文献图导出 ↓" if zh else "Export figure ↓"
     if format == "SVG":
-        case = page.request.get(base + "/api/examples/del.series").json()
+        case = page.request.get(base + "/api/examples/caver.paths").json()
         page.goto(base + "/#task=" + case["pin"]["job_id"])
-        root = page.locator(".dataset-results")
-        root.get_by_role("tab", name="图表与质量" if zh else "Charts and quality").click()
-        chart = root.locator(".research-plot").first
-        expect(chart.locator(".research-plot-canvas")).to_have_attribute(
-            "aria-busy", "false", timeout=45000
-        )
+        chart = page.locator(".channel-profile")
+        expect(chart.locator("svg")).to_be_visible(timeout=45000)
         return chart.get_by_role("button", name=name, exact=True)
     open_navigation(page, language).get_by_role(
         "button", name="高通量筛选" if zh else "High-throughput screening", exact=True
@@ -158,6 +154,6 @@ def test_native_figure_action_stays_visible_on_narrow_screens(language, format, 
         if format == "PNG":
             inspect_png(figure, dpi=300, width=1051)
         else:
-            inspect_svg(figure, "")
+            inspect_svg(figure, "Å")
         assert page.request.get(base + "/api/jobs").json() == jobs
         browser.close()
