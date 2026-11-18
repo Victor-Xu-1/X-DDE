@@ -582,6 +582,23 @@ TASK_POWER_FILES = {
 }
 TASK_POWER_DIFF = "feac177b02d6ff045d14ecea28ea9ec26407ff210deee16ac16b967954511f43"
 
+MODULE_BACKEND_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/studio/ModuleTaskPicker.css",
+    "frontend/src/studio/ModuleTaskPicker.tsx",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/studio/task-history.css",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/backend-control-scope.ts",
+    "frontend/src/utilities/backend-runtime.ts",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+MODULE_BACKEND_DIFF = "19403e72a9be178dc82b13b4a7b4555b8d085108f1f78ac1dc8c0f1a9570b5af"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -653,13 +670,18 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         TASK_POWER_FILES, TASK_POWER_DIFF,
     )
-    backend_placement = task_power or reviewed_selected(
+    module_backend = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        MODULE_BACKEND_FILES, MODULE_BACKEND_DIFF,
+    )
+    backend_placement = task_power or module_backend or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
+        output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")

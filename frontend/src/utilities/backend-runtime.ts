@@ -29,7 +29,10 @@ const initial: RuntimeState = {
   busy: "",
   failed: "",
 };
-type Observation = { capability?: string; needsNative: boolean };
+type Observation = {
+  capabilities?: string | readonly string[];
+  needsNative: boolean;
+};
 
 /** All switches share one observation and serialize explicit permission changes. */
 class RuntimeControls {
@@ -63,11 +66,14 @@ class RuntimeControls {
   }
 
   private nativeRequested() {
-    for (const { capability, needsNative } of this.listeners.values()) {
+    for (const { capabilities, needsNative } of this.listeners.values()) {
+      if (needsNative) return true;
+      const selection =
+        typeof capabilities === "string" ? [capabilities] : capabilities;
       if (
-        needsNative ||
-        (capability &&
-          this.state.catalogue?.capabilities?.[capability] === "harness")
+        selection?.some(
+          (id) => this.state.catalogue?.capabilities?.[id] === "harness",
+        )
       )
         return true;
     }
@@ -152,15 +158,15 @@ export const canToggle = (item: RuntimeEngine) =>
 const controls = new RuntimeControls();
 export function useBackendRuntime(
   active: boolean,
-  capability?: string,
+  capabilities?: string | readonly string[],
   needsNative = false,
 ) {
   const subscribe = useCallback(
     (listener: () => void) =>
       active
-        ? controls.subscribe(listener, { capability, needsNative })
+        ? controls.subscribe(listener, { capabilities, needsNative })
         : () => undefined,
-    [active, capability, needsNative],
+    [active, capabilities, needsNative],
   );
   return {
     ...useSyncExternalStore(subscribe, controls.getSnapshot),

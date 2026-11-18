@@ -21,12 +21,16 @@ export function TaskBackendControl({
   language: Language;
   scope: BackendControlScope;
   active?: boolean;
-  placement?: "followup" | "result" | "example";
+  placement?: "entry" | "module" | "followup" | "result" | "example";
 }) {
   const primaryScope = useContext(PrimaryBackendScope);
   const runtime = useBackendRuntime(
     active,
-    "capability" in scope ? scope.capability : undefined,
+    "capability" in scope
+      ? scope.capability
+      : "capabilities" in scope
+        ? scope.capabilities
+        : undefined,
     "operations" in scope && scope.operations.includes("harness"),
   );
   if (!active) return null;
@@ -45,7 +49,15 @@ export function TaskBackendControl({
       data-backend-placement={placement}
       data-capability={"capability" in scope ? scope.capability : undefined}
       role="group"
-      aria-label={zh ? "此任务的后端" : "Backend for this task"}
+      aria-label={
+        placement === "module"
+          ? zh
+            ? "本模块的后端"
+            : "Backends in this module"
+          : zh
+            ? "此任务的后端"
+            : "Backend for this task"
+      }
     >
       {rows.map((item) => (
         <RuntimeSwitch

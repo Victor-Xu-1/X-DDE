@@ -1,5 +1,6 @@
 /* Keep screening and library setup choices with the form while reading a result. */
-.studio-app .module-task-picker[data-dataset-task]:has(+ .tool-center.is-result) {
+.studio-app
+  .module-task-picker[data-dataset-task]:has(+ .tool-center.is-result) {
   display: none;
 }
 
@@ -12,4 +13,9 @@
     gap: 6px 12px;
     padding-block: 2px 8px;
   }
+}
+.studio-app
+  .module-task-picker:has(> [data-backend-placement="entry"])
+  > .task-model-switch {
+  flex-basis: 100%;
 }

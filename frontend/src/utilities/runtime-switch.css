@@ -43,6 +43,12 @@
   flex: none;
   justify-content: center;
 }
+.runtime-switch > button[aria-checked="false"] i {
+  background: color-mix(in srgb, var(--muted) 38%, var(--line));
+}
+.runtime-switch > button:disabled {
+  opacity: 0.72;
+}
 .runtime-switch > button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
