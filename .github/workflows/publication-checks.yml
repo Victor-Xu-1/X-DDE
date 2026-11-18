@@ -63,6 +63,7 @@ on:
       - "server_tests/test_figure_framing_browser.py"
       - "server_tests/test_compact_figure_dialog_browser.py"
       - "server_tests/test_mobile_viewer_toolbar_browser.py"
+      - "server_tests/test_prediction_workspace_browser.py"
       - "server_tests/*native_annotation*"
       - "server_tests/test_workspace_fullscreen_browser.py"
       - "server_tests/fullscreen_browser_helpers.py"
@@ -131,6 +132,9 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           changed=false
+          if ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
           if git cat-file -e "${BASE}^{commit}" 2>/dev/null && ! git diff --quiet "$BASE" HEAD -- \
             frontend/src/viewer/StructureViewport.tsx frontend/src/viewer/ViewerToolGroup.tsx \
             frontend/src/viewer/ViewerExportActions.tsx frontend/src/viewer/viewer-tool-group.css \
@@ -138,7 +142,8 @@ jobs:
             frontend/src/chemistry/states.css frontend/src/pockets/pocket-results.css \
             frontend/src/presentation/prediction-inspection.css \
             frontend/src/receptors/prepared-structure.css frontend/src/receptors/receptors.css \
-            server_tests/test_mobile_viewer_toolbar_browser.py; then
+            server_tests/test_mobile_viewer_toolbar_browser.py \
+            server_tests/test_prediction_workspace_browser.py; then
             changed=true
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"

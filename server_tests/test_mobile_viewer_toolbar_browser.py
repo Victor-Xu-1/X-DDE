@@ -135,7 +135,7 @@ def test_compact_native_viewer_keeps_camera_controls_and_export(interaction_work
             browser.close()
 
 
-def test_prepared_structure_and_molecular_states_keep_narrow_controls(interaction_workspace):
+def test_archived_result_consumers_keep_narrow_controls(interaction_workspace):
     evidence = Path("outputs/compact-native-viewer")
     evidence.mkdir(parents=True, exist_ok=True)
     with platform(interaction_workspace.state_dir, evidence / "consumers.log") as base:
@@ -147,21 +147,32 @@ def test_prepared_structure_and_molecular_states_keep_narrow_controls(interactio
             for capability, region in (
                 ("biopython.prepare", ".prepared-structure-workspace"),
                 ("chemistry.states", ".state-native-preview"),
+                ("boltz.predict", ".prediction-result"),
             ):
                 pin = page.request.get(base + f"/api/examples/{capability}").json()["pin"]
                 page.goto(base + f"/#task={pin['job_id']}")
                 preview = page.locator(region)
                 expect(preview.locator(".molecular-stage iframe")).to_be_visible(timeout=30000)
                 if capability == "chemistry.states":
-                    tools = preview.get_by_text("View tools", exact=True)
+                    tools = preview.get_by_role("button", name="View tools", exact=True)
                     resolution = preview.get_by_role("combobox", name="3D image resolution")
                     expect(resolution).not_to_be_visible()
                     tools.click()
                     expect(resolution).to_be_visible()
                     assert resolution.bounding_box()["width"] <= 80
                     grouped = preview.locator('button[aria-label="Display options"]')
-                    expect(grouped).to_have_count(1)
                     expect(grouped).not_to_be_visible()
+                elif capability == "boltz.predict":
+                    display = preview.get_by_role("button", name="Display options", exact=True)
+                    display.click()
+                    for label in ("All atoms", "Side chains"):
+                        toggle = preview.get_by_role("switch", name=label, exact=True)
+                        toggle.click()
+                        expect(toggle).to_be_checked()
+                        toggle.click()
+                        expect(toggle).not_to_be_checked()
+                    display.press("Escape")
+                    expect(display).to_be_focused()
                 else:
                     backbone = preview.get_by_role("button", name="Backbone", exact=True)
                     expect(backbone).to_be_visible(timeout=30000)

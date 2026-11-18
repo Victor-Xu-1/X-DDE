@@ -158,6 +158,10 @@ def review_prediction_workspace(tmp_path, language, width, *, launch_browser=Non
             "button", name="清除选择" if zh else "Clear sequence selection", exact=True
         ).click()
         expect(second).to_have_attribute("aria-checked", "false")
+        if width <= 600:
+            page.get_by_role(
+                "button", name="显示选项" if zh else "Display options", exact=True,
+            ).click()
         for name in ("全部原子" if zh else "All atoms", "侧链" if zh else "Side chains"):
             toggle = page.get_by_role("switch", name=name, exact=True)
             toggle.click()

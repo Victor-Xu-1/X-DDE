@@ -706,10 +706,11 @@ MOBILE_VIEWER_FILES = {
     "frontend/src/viewer/viewer-tool-group.css",
     "frontend/src/viewer/viewer.css",
     "server_tests/test_mobile_viewer_toolbar_browser.py",
+    "server_tests/test_prediction_workspace_browser.py",
     "server_tests/test_target_selection_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MOBILE_VIEWER_DIFF = "e4d0f1f45d5acaa178519f7793ca950e21fe6c84609835b2af83078af90ac983"
+MOBILE_VIEWER_DIFF = "ebc248ef679e664c4955441262c9e742a510df3a7edfb497363a6e00940b4d9e"
 
 
 def reviewed_selected(changed, event, base, files, digest):
