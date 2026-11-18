@@ -64,8 +64,10 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
                 expect(files).to_be_focused()
                 assert capture.bounding_box()["height"] >= 44
             else:
-                assert abs(resolution.bounding_box()["height"] - capture.bounding_box()["height"]) < 2
-                assert resolution.bounding_box()["height"] <= 34
+                resolution_height = resolution.bounding_box()["height"]
+                capture_height = capture.bounding_box()["height"]
+                assert abs(resolution_height - capture_height) < 2
+                assert resolution_height <= 34
             expect(page.get_by_role("button", name="放大", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="展开研究工作区", exact=True)).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")

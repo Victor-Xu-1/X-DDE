@@ -20,8 +20,11 @@ def test_compact_native_viewer_keeps_camera_controls_and_export(interaction_work
             page = browser.new_page(viewport={"width": 390, "height": 775})
             page.add_init_script("localStorage.setItem('opendde-workbench.language','en')")
             writes = []
-            page.on("request", lambda request: writes.append(request.url)
-                    if request.method in {"POST", "PUT", "PATCH", "DELETE"} else None)
+            page.on(
+                "request",
+                lambda request: writes.append(request.url)
+                if request.method in {"POST", "PUT", "PATCH", "DELETE"} else None,
+            )
             case = page.request.get(base + "/api/examples/discovery.import").json()
             pin = case["pin"]
             artifact = page.request.get(base + f"/api/jobs/{pin['job_id']}/result").json()
@@ -104,6 +107,14 @@ def test_compact_native_viewer_keeps_camera_controls_and_export(interaction_work
             inspect_png(png, dpi=300, width=1051)
             assert iframe.evaluate(camera) == view
             expect(figure).to_be_focused()
+
+            page.set_viewport_size({"width": 320, "height": 680})
+            expect(picture_tools).to_be_visible()
+            expect(display_tools).to_be_visible()
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            for label in ("Backbone", "Ligand and pocket", "Surface"):
+                expect(panel.get_by_role("button", name=label, exact=True)).to_be_visible()
+            page.screenshot(path=evidence / "narrow-view-320.png")
 
             page.set_viewport_size({"width": 1440, "height": 900})
             expect(picture_tools).not_to_be_visible()

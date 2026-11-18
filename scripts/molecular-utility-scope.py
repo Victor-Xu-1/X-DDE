@@ -704,7 +704,7 @@ MOBILE_VIEWER_FILES = {
     "server_tests/test_target_selection_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MOBILE_VIEWER_DIFF = "pending"
+MOBILE_VIEWER_DIFF = "5ff81a015aaaba1ae63b5f1376686959dc27b4c3fe6216fe1febdbd62ad4a06a"
 
 
 def reviewed_selected(changed, event, base, files, digest):
