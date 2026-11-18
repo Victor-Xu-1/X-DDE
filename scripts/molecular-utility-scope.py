@@ -186,6 +186,86 @@ SHARED = {
 }
 
 
+RUNTIME_SOURCES = {
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/backend-runtime.ts",
+    "frontend/src/utilities/runtime-switch.css",
+    "src/opendde_workbench/runtime_controls.py",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_utility_tools.py",
+}
+RUNTIME_CONSUMERS = {
+    "frontend/src/App.tsx": (
+        "a67ca642b1f1f16c602a4b54751b4e974af7e73bf8ab4b0992e64b1a5ab0e60d",
+        "fa8cbe4d251738cd2b63a6a72ae33cad1b3d72c678df593b13cb86b364ed6959",
+    ),
+    "frontend/src/studio/ModuleTaskPicker.tsx": (
+        "ae4f908bb75c8cb88d725a3109f43c6c0a07635699bee260abf2053c9773516b",
+        "52d1d23a160d3cd63f2fcd9e5ffa0d2d578ee0a5721976337efa48acdfd9e8bf",
+    ),
+    "frontend/src/studio/EnvironmentWorkspace.tsx": (
+        "1a26e737282dcfe9f98a593c92b074b05a348737cb725281292a71de924ea710",
+        "62b095917680a277682be3938f571cfd3c91b337562a34dcd206ed1213e08843",
+    ),
+    "frontend/src/studio/TaskWorkspace.tsx": (
+        "83865332f63e2b1ae24db14d97c9e1051d806a22b362e8ecfc68399f72d89e45",
+        "66d3bfea053609e35bc89b62c624e40b3b84b3cc303a921fb36166a8999917d6",
+    ),
+    "frontend/src/utilities/UtilityTask.tsx": (
+        "6b47ed44278476bd7a76cfc776b320bb7a0f05e8ccdbca7c26d7a4ae1977aa59",
+        "c4b99fa6a33a0a1fd02ffd8ce4eb78a4a0ae9fe8c911fbff712f1a79977c7b01",
+    ),
+    "frontend/src/utilities/UtilityWorkspace.tsx": (
+        "2c1f2199178eda58018dfa7eb8d753e9bac12626b56491e9d539ee549164a84b",
+        "568d226c4a34f3c2d377d1061a0015296356bd35647ff2cdc76fd5c9f0a0f91c",
+    ),
+    "frontend/src/workflows/WorkflowCenter.tsx": (
+        "8993326fc3e7e4de38712ca50a9c1a21a9a001dfb077672425f80f795bd3e7b0",
+        "4ba53c4f35809f75112d9129f4de4c4816934f9cc4404a2da4a1602569bdffbd",
+    ),
+    "frontend/src/regions/RegionWorkspace.tsx": (
+        "ac4ce9a209a8abf8879255cfe2f4e3f0f584f15d29aab1985c95517ad86fbff6",
+        "dd7d9cd06d670a48cfe67aee3acf01f74bd0b2054a1b325389419bd40c531b85",
+    ),
+    "frontend/src/poses/PosePlanRun.tsx": (
+        "78cabb945dfc52837ba9cb5616317fa69926369f2df1d0f7a75a0951e85cf160",
+        "d6bbe57174a5e04720dd4e86b5289e45dbedbf6a2e5eeb89378b94dbeb735806",
+    ),
+    "frontend/src/viewer/PoseOptimizationControls.tsx": (
+        "5664d3c54850e50269ae7857d02a6df16b52f27615e67df105cc4154c24c9f9f",
+        "31355dc39867478e22bb68edf5222a1cc3ca6944a501e1922eecb57d4e2ee9cf",
+    ),
+}
+RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
+    "scripts/molecular-utility-scope.py",
+    "tests/test_molecular_utility_scope.py",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/navigation-shell-checks.yml",
+    ".github/workflows/pose-cluster-checks.yml",
+    ".github/workflows/workflow-quality-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def runtime_selected(changed, event, *, shared):
+    paths = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and bool(paths & RUNTIME_SOURCES)
+        and paths <= RUNTIME_FILES
+        and all(shared.get(path) == RUNTIME_CONSUMERS[path]
+                for path in paths & RUNTIME_CONSUMERS.keys())
+    )
+
+
 def selected(changed, event="push", *, shared=None):
     paths = set(changed)
     if any(Path(path).exists() for path in paths & RETIRED):
@@ -237,11 +317,18 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
-        output.write("utility_only=" + str(selected(
-            changed, os.environ.get("GITHUB_EVENT_NAME", "push"),
-            shared={path: (blob_digest(base, path), blob_digest("HEAD", path))
-                    for path in set(changed) & SHARED.keys()},
-        )).lower() + "\n")
+        event = os.environ.get("GITHUB_EVENT_NAME", "push")
+        shared_paths = SHARED.keys()
+        if set(changed) & RUNTIME_SOURCES:
+            shared_paths = shared_paths | RUNTIME_CONSUMERS.keys()
+        shared = {
+            path: (blob_digest(base, path), blob_digest("HEAD", path))
+            for path in set(changed) & shared_paths
+        }
+        runtime = runtime_selected(changed, event, shared=shared)
+        utility = runtime or selected(changed, event, shared=shared)
+        output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
+        output.write("utility_only=" + str(utility).lower() + "\n")
 
 
 if __name__ == "__main__":

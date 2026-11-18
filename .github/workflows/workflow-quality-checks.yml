@@ -23,6 +23,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   antibody-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -49,8 +53,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
   measured-handoff:
-    needs: [antibody-scope, refinement-scope]
-    if: needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.refinement-scope.outputs.refinement_only != 'true'
+    needs: [antibody-scope, refinement-scope, utility-scope]
+    if: needs.utility-scope.outputs.utility_only != 'true' && needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && needs.refinement-scope.outputs.refinement_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
