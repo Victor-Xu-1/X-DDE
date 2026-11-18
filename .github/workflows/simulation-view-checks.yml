@@ -55,13 +55,15 @@ on:
 permissions:
   contents: read
 jobs:
+  framing-scope:
+    uses: ./.github/workflows/figure-framing-scope.yml
   prediction-scope:
     uses: ./.github/workflows/prediction-workspace-checks.yml
     with:
       scope_only: true
   previews:
-    needs: prediction-scope
-    if: ${{ needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
+    needs: [prediction-scope, framing-scope]
+    if: ${{ needs.framing-scope.outputs.framing_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -203,6 +203,9 @@ on:
 permissions:
   contents: read
 jobs:
+  framing-scope:
+    if: ${{ !inputs.scope_only }}
+    uses: ./.github/workflows/figure-framing-scope.yml
   utility-scope:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
@@ -264,8 +267,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/target-evidence-scope.py
   interface:
-    needs: [scope, utility-scope]
-    if: ${{ !inputs.scope_only && needs.scope.outputs.target_evidence_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.reference_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
+    needs: [scope, utility-scope, framing-scope]
+    if: ${{ !inputs.scope_only && needs.framing-scope.outputs.framing_only != 'true' && needs.scope.outputs.target_evidence_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.reference_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.appearance_only != 'true' && needs.scope.outputs.computation_settings != 'true' && needs.scope.outputs.boltz_inputs != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

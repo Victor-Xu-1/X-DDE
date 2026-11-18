@@ -1,8 +1,11 @@
+export const structureScales = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
 export interface FigureSettings {
   widthMm: 89 | 183;
   dpi: 300 | 600;
   fontPt: 7 | 8 | 9;
   transparent: boolean;
+  structureScale?: (typeof structureScales)[number];
   shape?: "viewport" | "square" | "landscape" | "portrait";
 }
 export const defaultFigure: FigureSettings = {
@@ -22,6 +25,8 @@ export function validFigure(value: unknown): value is FigureSettings {
     typeof p.widthMm === "number" &&
     typeof p.dpi === "number" &&
     typeof p.fontPt === "number" &&
+    (p.structureScale === undefined ||
+      structureScales.some((scale) => scale === p.structureScale)) &&
     (p.shape === undefined ||
       (typeof p.shape === "string" &&
         ["viewport", "square", "landscape", "portrait"].includes(p.shape)))

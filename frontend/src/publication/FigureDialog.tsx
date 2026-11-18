@@ -5,6 +5,7 @@ import {
   defaultFigure,
   figureDimensions,
   figureAspect,
+  structureScales,
   type FigureSettings,
 } from "./settings";
 import { useFigurePreview } from "./useFigurePreview";
@@ -22,6 +23,7 @@ export function FigureDialog({
   onStart,
   typography,
   molecular,
+  structureFraming,
 }: {
   language: Language;
   sourceKey: string;
@@ -34,6 +36,7 @@ export function FigureDialog({
   onStart?(): void;
   typography: boolean;
   molecular: boolean;
+  structureFraming: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
@@ -110,6 +113,31 @@ export function FigureDialog({
                   <option value="viewport">
                     {zh ? "当前窗口比例" : "Current viewport"}
                   </option>
+                </select>
+              </label>
+            )}
+            {structureFraming && (
+              <label>
+                {zh ? "结构大小" : "Structure size"}
+                <select
+                  value={settings.structureScale ?? 1}
+                  onChange={(event) =>
+                    update({
+                      structureScale: structureScales.find(
+                        (scale) => scale === Number(event.target.value),
+                      ),
+                    })
+                  }
+                >
+                  {structureScales.map((scale) => (
+                    <option key={scale} value={scale}>
+                      {scale === 1
+                        ? zh
+                          ? "当前视图 · 1×"
+                          : "Current view · 1×"
+                        : `${scale}×`}
+                    </option>
+                  ))}
                 </select>
               </label>
             )}

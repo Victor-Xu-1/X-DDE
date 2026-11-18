@@ -65,6 +65,8 @@ export function captureFigure(
     viewer.setWidth(size.width / ratio);
     viewer.setHeight(size.height / ratio);
     viewer.setView(view);
+    const scale = settings.structureScale ?? 1;
+    if (scale !== 1) viewer.zoom(scale);
     labels.layout();
     viewer.render();
     const canvas = viewer.getCanvas();

@@ -628,6 +628,7 @@ export function StructureViewport({
             format="png"
             typography
             molecular
+            structureFraming
             aspect={() => {
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;

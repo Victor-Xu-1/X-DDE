@@ -50,6 +50,8 @@ on:
 permissions:
   contents: read
 jobs:
+  framing-scope:
+    uses: ./.github/workflows/figure-framing-scope.yml
   result-scope:
     uses: ./.github/workflows/docking-result-scope.yml
   utility-scope:
@@ -79,8 +81,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/research-tabs-scope.py
   pose-continuity:
-    needs: [refinement-scope, utility-scope, result-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true')
+    needs: [refinement-scope, utility-scope, result-scope, framing-scope]
+    if: needs.framing-scope.outputs.framing_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.admet_result_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
