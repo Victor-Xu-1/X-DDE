@@ -455,6 +455,15 @@ IMAGE_FOCUS_FILES = {
 IMAGE_FOCUS_DIFF = "97ca35357ec32667dea099a9d96f0f983faff8160400ac844eaeafb89c6f99d9"
 
 
+UTILITY_NAVIGATION_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "server_tests/test_utility_navigation_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+UTILITY_NAVIGATION_DIFF = "a20a8fcfb14371b3f09ba2e875e7e38a7a0c502c05fc0446f69f21fd6d3e61a8"
+
+
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
         return False
@@ -509,7 +518,12 @@ def main():
     touch_controls = touch_controls or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base, IMAGE_FOCUS_FILES, IMAGE_FOCUS_DIFF
     )
+    navigation = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        UTILITY_NAVIGATION_FILES, UTILITY_NAVIGATION_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         event = os.environ.get("GITHUB_EVENT_NAME", "push")
         shared_paths = SHARED.keys()
@@ -526,7 +540,7 @@ def main():
             path: (git_blob(base, path), git_blob("HEAD", path))
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
-        utility = runtime or layout or selected(changed, event, shared=shared)
+        utility = navigation or runtime or layout or selected(changed, event, shared=shared)
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")
         output.write("utility_only=" + str(utility).lower() + "\n")
