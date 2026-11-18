@@ -128,7 +128,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
-        "touch_controls_only=false\nruntime_switch_only=false\n"
+        "touch_controls_only=false\nruntime_switch_only=false\nresult_header_only=false\n"
         f"utility_only={str(not mixed).lower()}\n"
     )
     assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]
@@ -248,3 +248,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
     assert not selected(files - {"frontend/src/App.tsx"}, "push", blobs=approved)
     unrelated = {**approved, "frontend/src/App.tsx": ("other", "changes")}
     assert not selected(files, "push", blobs=unrelated)
+    for name in ("generated-candidate-checks.yml", "molecular-utility-checks.yml"):
+        path = ".github/workflows/" + name
+        mixed = {**approved, path: (approved[path][0], "unreviewed")}
+        assert not selected(files, "pull_request", blobs=mixed)

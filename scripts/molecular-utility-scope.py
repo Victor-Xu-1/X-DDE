@@ -302,6 +302,12 @@ RESULT_HEADER_BLOBS = {
     "frontend/src/presentation/candidate-review-bar.css": (
         "778b4bb22cf034c5a3e052f49c34de1a4883c265", "42f13fb28e45ff13424634a60c7c5c3cf53e375b",
     ),
+    ".github/workflows/generated-candidate-checks.yml": (
+        "c8b4b2de27da7e5e47b5ece263313e103cc4163d", "40f80ca4089490f4ed19c9b3447449362343c94e",
+    ),
+    ".github/workflows/molecular-utility-checks.yml": (
+        "0aa487f5f8616a3c577628d5f89a1937c589135f", "e021671bbeb2bb882e819137a35ecf2ad7034d64",
+    ),
 }
 RESULT_HEADER_FILES = RESULT_HEADER_BLOBS.keys() | {
     "frontend/src/studio/TaskWorkspace.test.tsx",
@@ -310,8 +316,6 @@ RESULT_HEADER_FILES = RESULT_HEADER_BLOBS.keys() | {
     "server_tests/test_generated_quality_browser.py",
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
-    ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/generated-candidate-checks.yml",
     "pyproject.toml",
     "uv.lock",
     "frontend/package.json",

@@ -146,14 +146,16 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         details.get_by_text(
             "原始结果文件" if zh else "Original result files", exact=True
         ).click()
-        expect(
-            details.get_by_role(
-                "link", name="分子结构 · SDF" if zh else "Molecule structures · SDF"
-            )
-        ).to_have_attribute(
+        original_link = details.get_by_role(
+            "link", name="分子结构 · SDF" if zh else "Molecule structures · SDF"
+        )
+        expect(original_link).to_have_attribute(
             "href",
             f"/api/jobs/{job.id}/download?{urlencode({'name': result['molecule_artifact']})}",
         )
+        with page.expect_download() as native_download:
+            original_link.click()
+        assert Path(native_download.value.path()).read_bytes() == original_sdf
         generation_details.click()
         page.screenshot(path=evidence / "selected-native-view-loading.png", full_page=True)
         expect(preview.locator(".molecular-stage")).to_be_visible(timeout=30000)
