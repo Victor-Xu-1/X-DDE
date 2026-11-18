@@ -104,6 +104,7 @@ jobs:
         run: >-
           npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
           src/examples/ExampleJobResult.test.tsx src/examples/guide.test.ts src/utilities/UtilityWorkspace.test.tsx
+          src/presentation/plots/InteractivePlot.test.tsx src/presentation/plots/InteractivePlot.frame.test.tsx
       - run: uv sync --locked --group dev --group browser
       - name: Validate scope and replay the retained examples in Chrome
         env:

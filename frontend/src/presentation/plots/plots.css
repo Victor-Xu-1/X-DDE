@@ -27,6 +27,8 @@
 .research-plot-canvas {
   width: 100%;
   min-width: 0;
+  /* The native SVG may keep its previous width until the resize is painted. */
+  overflow-x: clip;
   background: var(--chart-bg);
 }
 .research-plot-canvas[data-frame-current="false"] {

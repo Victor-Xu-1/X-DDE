@@ -62,6 +62,33 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             guide.press("Escape")
             expect(source).not_to_be_visible()
             expect(guide).to_be_focused()
+            if tool == "chemistry.states":
+                plot = template.locator(".research-plot-canvas")
+                expect(plot.locator("svg.main-svg").first).to_be_attached(timeout=30000)
+                page.set_viewport_size({"width": 390, "height": height})
+                page.set_viewport_size({"width": width, "height": height})
+                assert template.evaluate("e => e.scrollWidth <= e.clientWidth + 1")
+                page.wait_for_function("""() => {
+                    const plot = document.querySelector(
+                        '.module-template.is-preview .research-plot-canvas');
+                    const svg = plot?.querySelector('svg.main-svg');
+                    return svg &&
+                        Math.abs(svg.getBoundingClientRect().width - plot.clientWidth) < 2;
+                }""")
+                chart = template.locator(".research-plot")
+                chart.get_by_role("combobox", name="Chart interaction").select_option("pan")
+                page.wait_for_function("""() =>
+                    document.querySelector('.module-template.is-preview .research-plot-canvas')
+                        ?._fullLayout?.dragmode === 'pan'
+                """)
+                chart.locator(".figure-export-trigger").click()
+                export = page.locator(".figure-export-dialog footer button")
+                expect(export).to_be_enabled(timeout=30000)
+                with page.expect_download() as transfer:
+                    export.click()
+                svg_file = evidence / "conformer-energies.svg"
+                transfer.value.save_as(svg_file)
+                assert b"<svg" in svg_file.read_bytes()
             if tool == "boltz.predict":
                 followup = pin["supporting_evidence"][0]["job_id"]
                 job = page.request.get(base + f"/api/jobs/{followup}").json()
