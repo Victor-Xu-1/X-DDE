@@ -4,6 +4,10 @@ on:
     outputs:
       framing_only:
         value: ${{ jobs.scope.outputs.framing_only }}
+      compact_only:
+        value: ${{ jobs.scope.outputs.compact_only }}
+      compact_changed:
+        value: ${{ jobs.scope.outputs.compact_changed }}
 permissions:
   contents: read
 jobs:
@@ -12,6 +16,8 @@ jobs:
     timeout-minutes: 3
     outputs:
       framing_only: ${{ steps.paths.outputs.framing_only }}
+      compact_only: ${{ steps.paths.outputs.compact_only }}
+      compact_changed: ${{ steps.paths.outputs.compact_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,6 +28,8 @@ jobs:
         shell: bash
         run: |
           only=false
+          compact=false
+          compact_changed=false
           if [[ "$GITHUB_EVENT_NAME" == push || "$GITHUB_EVENT_NAME" == pull_request ]]; then
             if [[ "$GITHUB_REF_NAME" != main || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
               BASE=$(git merge-base HEAD origin/main)
@@ -43,5 +51,28 @@ jobs:
               esac
             done < <(git diff --name-only "$BASE" HEAD)
             [[ "$capture" == true ]] || only=false
+            compact=true
+            while IFS= read -r path; do
+              case "$path" in
+                frontend/src/publication/publication.css)
+                  compact_changed=true
+                  # Limit the layout-only replay to the reviewed mobile stylesheet delta.
+                  [[ "$(git rev-parse "$BASE:$path")" == 89df4fba2f223d58bfc654e8b536a585ff3fd211 &&
+                     "$(git rev-parse "HEAD:$path")" == 311c940b94cd5dcb216ddf47b51b2459eb91327d ]] ||
+                    compact=false
+                  ;;
+                server_tests/test_compact_figure_dialog_browser.py) compact_changed=true ;;
+                .github/workflows/publication-checks.yml)
+                  [[ "$(git rev-parse "$BASE:$path")" == bf0671e3cd3ea0dfa228e84076bd84ff73d3a7bc &&
+                     "$(git rev-parse "HEAD:$path")" == d860bf9fa162e87a49e5f700726e5bcf091e8b92 ]] ||
+                    compact=false
+                  ;;
+                .github/workflows/figure-framing-scope.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+                *) compact=false ;;
+              esac
+            done < <(git diff --name-only "$BASE" HEAD)
+            [[ "$compact_changed" == true ]] || compact=false
           fi
           echo "framing_only=$only" >> "$GITHUB_OUTPUT"
+          echo "compact_only=$compact" >> "$GITHUB_OUTPUT"
+          echo "compact_changed=$compact_changed" >> "$GITHUB_OUTPUT"
