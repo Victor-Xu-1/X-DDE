@@ -11,7 +11,7 @@ export type RuntimeEngine = {
   operations: string[];
 };
 
-type RuntimeCatalogue = {
+export type RuntimeCatalogue = {
   engines: RuntimeEngine[];
   capabilities: Partial<Record<string, string>>;
 };

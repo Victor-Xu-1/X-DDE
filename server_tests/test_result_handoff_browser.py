@@ -183,13 +183,16 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
         assert saved.read_bytes() == before_bytes[second.artifact]
         page.screenshot(path=str(evidence / "large-history-selected-pose.png"))
         source_backend = page.locator('[data-backend-placement="result"] [data-engine="gnina"]')
-        expect(source_backend.get_by_role("switch")).to_be_visible()
+        source_switch = source_backend.get_by_role("switch")
+        expect(source_switch).to_be_visible()
+        expect(source_switch).not_to_be_checked()
         follow.click()
         expect(page.locator(".questionnaire:visible")).to_be_visible()
         backend = page.locator('[data-backend-placement="followup"] [data-engine="chemistry"]')
-        expect(backend.get_by_role("switch")).to_be_visible()
-        expect(backend.get_by_role("switch")).not_to_be_checked()
-        expect(source_backend).to_be_hidden()
+        destination_switch = backend.get_by_role("switch")
+        expect(destination_switch).to_be_visible()
+        expect(destination_switch).not_to_be_checked()
+        expect(source_switch).to_be_visible()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.screenshot(path=str(evidence / "followup-backend-off.png"))
         page.get_by_role(
@@ -199,7 +202,7 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
             "href", f"/api/jobs/{source.id}/download?name={second.artifact}"
         )
 
-        expect(source_backend.get_by_role("switch")).to_be_visible()
+        expect(source_switch).to_be_visible()
         expect(backend).to_have_count(0)
 
         committed = []
