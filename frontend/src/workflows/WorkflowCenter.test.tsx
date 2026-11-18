@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { WorkflowCenter } from "./WorkflowCenter";
 import { ExampleContext } from "../examples/context";
 import type { PreparedExample } from "../examples/types";
@@ -43,22 +43,26 @@ const example: PreparedExample = {
   workflow_plan: body,
 };
 
+const runtime = {
+  engines: [
+    {
+      id: "chemistry",
+      name: "RDKit",
+      ready: true,
+      enabled: false,
+      active: false,
+      operations: ["properties"],
+    },
+  ],
+};
+beforeEach(() => {
+  transport.request.mockReset();
+  transport.post.mockReset();
+});
+
 it("loads a guided case plan and requires saving and review before running", async () => {
   transport.request.mockImplementation(async (path) =>
-    path.startsWith("/runtime-controls")
-      ? {
-          engines: [
-            {
-              id: "chemistry",
-              name: "RDKit",
-              ready: true,
-              enabled: false,
-              active: false,
-              operations: ["properties"],
-            },
-          ],
-        }
-      : [],
+    path.startsWith("/runtime-controls") ? runtime : [],
   );
   const saved = { id: "fixed-plan", sha256: "a".repeat(64), body };
   transport.post.mockImplementation(async (path) =>
@@ -99,4 +103,40 @@ it("loads a guided case plan and requires saving and review before running", asy
   ).toBeVisible();
   expect(power).toBeVisible();
   expect(power).not.toBeChecked();
+});
+
+it("looks up the exact plan for a history run outside the plan list, with retry", async () => {
+  const run = {
+    id: "historic-run",
+    plan_id: "older-plan",
+    state: "succeeded",
+    attempts: [],
+  };
+  const older = { id: run.plan_id, sha256: "b".repeat(64), body };
+  let detailReads = 0;
+  transport.request.mockImplementation(async (path) => {
+    if (path === "/workflows/runs") return [run];
+    if (path === "/workflows/plans/older-plan") {
+      if (++detailReads === 1) throw new Error("temporary read failure");
+      return older;
+    }
+    return path.startsWith("/runtime-controls") ? runtime : [];
+  });
+  render(<WorkflowCenter language="en" jobs={[]} />);
+  fireEvent.click(screen.getByText("Run history"));
+  await screen.findByRole("option", { name: /Run 1/ });
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "Open a persisted run" }),
+    { target: { value: run.id } },
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Cannot read the backends for this run.",
+  );
+  expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(
+    await screen.findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  expect(detailReads).toBe(2);
+  expect(transport.post).not.toHaveBeenCalled();
 });

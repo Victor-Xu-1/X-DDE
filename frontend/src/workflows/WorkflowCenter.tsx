@@ -8,7 +8,7 @@ import { RunMonitor, workflowStateLabel } from "./RunMonitor";
 import { hasExternalCalls, planFromJobs } from "./model";
 import { useWorkflowController } from "./useWorkflowController";
 import { useExample } from "../examples/context";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
+import { WorkflowBackendControl } from "./WorkflowBackendControl";
 export function WorkflowCenter({
   language,
   jobs,
@@ -387,16 +387,11 @@ export function WorkflowCenter({
       : selected;
   return (
     <section>
-      {runtimePlan && (
-        <TaskBackendControl
-          language={language}
-          scope={{
-            operations: runtimePlan.body.steps.map(
-              (step) => step.request.operation ?? "predict",
-            ),
-          }}
-        />
-      )}
+      <WorkflowBackendControl
+        plan={runtimePlan}
+        runPlanId={run?.plan_id}
+        language={language}
+      />
       <GuidedSteps<WorkflowRun>
         language={language}
         busy={busy}
