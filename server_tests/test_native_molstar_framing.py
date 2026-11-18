@@ -114,7 +114,9 @@ def test_molstar_framing_uses_native_outputs(case, language):
             )
             for view in (pair_before, pair_after):
                 assert (view["width"], view["height"]) == (1051, 526)
-            for large, small in zip(pair_before["panelPixels"], pair_after["panelPixels"]):
+            for large, small in zip(
+                pair_before["panelPixels"], pair_after["panelPixels"], strict=True
+            ):
                 assert 100 < small < 0.8 * large, (pair_before, pair_after)
             (evidence / "pair-coverage.json").write_text(
                 json.dumps({"before": pair_before, "after": pair_after}, indent=2),

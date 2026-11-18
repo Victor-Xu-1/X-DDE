@@ -164,7 +164,8 @@ jobs:
           server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
       - name: Verify framing and actual downloads from native MD and FEP results
         if: steps.export_scope.outputs.framing_changed == 'true'
-        run: >-
+        run: |
+          uv run --locked ruff check server_tests/test_native_molstar_framing.py
           uv run --locked python -m pytest -x -q server_tests/test_native_molstar_framing.py
       - name: Restore retained DEL chart results for physical export checks, without science
         if: steps.export_scope.outputs.only == 'true'
