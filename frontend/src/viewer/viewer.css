@@ -148,6 +148,10 @@
   justify-content: center;
   gap: 8px;
 }
+.initial-pose-actions,
+.initial-pose-status > button {
+  pointer-events: auto;
+}
 .viewer-controls button:disabled {
   opacity: 0.4;
 }

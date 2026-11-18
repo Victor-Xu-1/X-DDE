@@ -669,6 +669,24 @@ MOBILE_HEADER_FILES = {
 }
 MOBILE_HEADER_DIFF = "06dee94bdfc85b11323769a6edf467758ddb245af81ec01f0161673e016ff8f6"
 
+INITIAL_POSE_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/selected-pose-checks.yml",
+    ".github/workflows/task-service-availability.yml",
+    "docs/user-guide.md",
+    "frontend/src/viewer/InitialPoseStatus.tsx",
+    "frontend/src/viewer/PreviewAvailability.test.tsx",
+    "frontend/src/viewer/usePoseOptimization.ts",
+    "frontend/src/viewer/viewer.css",
+    "server_tests/test_initial_pose_browser.py",
+    "server_tests/test_initial_pose_power_browser.py",
+    "server_tests/test_native_initial_pose.py",
+    "src/opendde_workbench/research/pose_routes.py",
+    "tests/test_molecular_utility_scope.py",
+    "tests/test_pose_preview_availability.py",
+}
+INITIAL_POSE_POWER_DIFF = "54ac69fbf875a5e942bd36176976c77efd94534befa264386d3a3a5eccec6223"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -760,7 +778,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
     )
+    initial_pose_power = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        INITIAL_POSE_POWER_FILES, INITIAL_POSE_POWER_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
@@ -789,7 +812,7 @@ def main():
         })
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
-            or native_state or compact_example or mobile_header
+            or native_state or compact_example or mobile_header or initial_pose_power
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

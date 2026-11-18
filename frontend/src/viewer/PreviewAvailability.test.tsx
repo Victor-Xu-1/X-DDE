@@ -151,6 +151,47 @@ it("resolves a calculated pose while paused using cache-only admission, without 
   expect(request).not.toHaveBeenCalled();
 });
 
+it("offers backend power before the first 3D pose and waits for explicit preparation", async () => {
+  let enabled = false;
+  vi.mocked(request).mockImplementation(
+    async () =>
+      ({
+        ...runtime,
+        engines: [{ ...runtime.engines[0], enabled }],
+      }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    if (path === "/runtime-controls/chemistry/start") {
+      enabled = true;
+      return { enabled };
+    }
+    return enabled
+      ? { state: "ready", pose: saved.pose }
+      : { state: "backend_off" };
+  });
+  render(<Preview available initial />);
+  await act(() => controller.prepareInitial());
+  const toggle = await screen.findByRole("switch", { name: "RDKit" });
+  const prepare = screen.getByRole("button", { name: "Prepare 3D conformer" });
+  expect(toggle).not.toBeChecked();
+  expect(prepare).toBeDisabled();
+  expect(controller.pose.urls).toEqual(base.urls);
+  expect(controller.job).toBeNull();
+  fireEvent.click(toggle);
+  await waitFor(() => expect(prepare).toBeEnabled());
+  expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
+    "/research/poses/initial",
+    "/runtime-controls/chemistry/start",
+  ]);
+  fireEvent.click(prepare);
+  await waitFor(() => expect(controller.initialReady).toBe(true));
+  expect(api.post).toHaveBeenLastCalledWith(
+    "/research/poses/initial",
+    { source: base.source, method: "MMFF94s", retry: true },
+    expect.any(String),
+  );
+});
+
 it.each([false, true])(
   "shows a paused preparation, blocks explicit retry, and recovers after service return (zh=%s)",
   async (zh) => {

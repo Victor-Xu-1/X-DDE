@@ -251,6 +251,10 @@ Use the backend switch at the top of each calculation page, including nested too
 
 在研究模块的新建任务、任务结果和结果详情页，右上角的「后端管理」会显示本模块用到的引擎。面板中的「查看全部后端」可切换到全平台清单。每个计算任务页也有自己的开关，原子检查、三维对齐编辑等子功能可就地启停。继续研究时，新任务显示自己的计算后端。示例预览随当前结果阶段切换后端。工作流选中任务后即可启停相应引擎，保存计划前也能操作。使用同一引擎的页面共享开关状态，每次重启 X-DDE 后默认关闭。开启后按需加载，关闭后已排队的任务等待再次开启。请先完成或取消正在运行的任务。Harness 任务页也提供常驻计算服务开关，服务空闲时可关闭以释放内存。已安装组件和历史结果可照常使用。
 
+For a ligand that still needs its first calculated 3D conformer, the preview shows its RDKit switch while the engine is off. Turn it on and choose **Prepare 3D conformer**. Previously calculated conformers can still open while the engine is off.
+
+配体首次需要计算三维构象时，预览会就地显示 RDKit 开关。开启后点击「生成三维构象」。已计算的构象在关闭后端时仍可查看。
+
 Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Reopen the image or its editor to turn recognition off from the same tool.
 
 粘贴或拖入结构图后，可在导入窗口打开或关闭识别后端。若后端已关闭，图片会等待你手动开启。服务就绪后，小工具会自动识别并填入结构。重新打开图片或结构编辑窗口，即可在当前工具关闭识别后端。

@@ -96,6 +96,18 @@ def test_initial_admet_ligand_is_computed_saved_and_reused_in_the_real_browser()
                 ) as reply:
                     panel.get_by_role("tab", name="3D structure", exact=True).click()
                 initial_reply = reply.value
+                assert initial_reply.status == 200, initial_reply.text()
+                assert initial_reply.json() == {"state": "backend_off"}
+                preparation = panel.locator(".initial-pose-status")
+                preparation.locator('[data-engine="chemistry"]').get_by_role("switch").click()
+                with page.expect_response(
+                    lambda response: (
+                        response.url.endswith("/api/research/poses/initial")
+                        and response.request.method == "POST"
+                    )
+                ) as submitted:
+                    preparation.get_by_role("button", name="Prepare 3D conformer").click()
+                initial_reply = submitted.value
                 (evidence / "initial-response.json").write_text(
                     json.dumps(
                         {"status": initial_reply.status, "body": initial_reply.json()}, indent=2
@@ -129,6 +141,9 @@ def test_initial_admet_ligand_is_computed_saved_and_reused_in_the_real_browser()
                     page.screenshot(path=evidence / f"initial-calculated-3d-{width}.png")
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 # Leaving and reopening the same source reuses its calculation.
+                power = panel.locator('[data-engine="chemistry"]').get_by_role("switch")
+                power.click()
+                expect(power).not_to_be_checked()
                 page.get_by_role("navigation", name="Main navigation", exact=True).get_by_role(
                     "button", name="Structure prediction", exact=True
                 ).click()

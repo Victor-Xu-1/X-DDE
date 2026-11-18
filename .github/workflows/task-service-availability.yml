@@ -16,6 +16,7 @@ on:
       - "src/opendde_workbench/research/pose_contract.py"
       - "src/opendde_workbench/research/pose_routes.py"
       - "tests/test_pose_preview_availability.py"
+      - "server_tests/test_initial_pose_power_browser.py"
       - "frontend/src/App.tsx"
       - ".github/workflows/task-service-availability.yml"
   push:
@@ -29,7 +30,7 @@ jobs:
       scope_only: true
   availability:
     needs: utility-scope
-    if: needs.utility-scope.outputs.utility_only != 'true'
+    if: needs.utility-scope.outputs.utility_only != 'true' || needs.utility-scope.outputs.initial_pose_power_only == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -39,6 +40,7 @@ jobs:
           node-version: "22"
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Retry blocking, recovery, bilingual failures and module consumers
+        if: needs.utility-scope.outputs.initial_pose_power_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
@@ -48,6 +50,21 @@ jobs:
           src/viewer/StructureViewer.test.tsx src/viewer/PoseSession.test.tsx
       - uses: astral-sh/setup-uv@v6
       - name: Cache-only admission and retained computed-coordinate contracts
+        if: needs.utility-scope.outputs.initial_pose_power_only != 'true'
         run: >-
           uv run --locked --group dev pytest -q tests/test_pose_preview_availability.py
           tests/test_pose_minimization.py tests/test_stat6_geometry.py
+      - name: Initial conformer switch and preview consumers
+        if: needs.utility-scope.outputs.initial_pose_power_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/PreviewAvailability.test.tsx src/viewer/usePoseOptimization.test.tsx
+          src/viewer/StructureViewer.test.tsx
+      - name: Cache lookup, default-off API and actual Chrome preview
+        if: needs.utility-scope.outputs.initial_pose_power_only == 'true'
+        env:
+          WB_AUTO_DEPLOY: "0"
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check src/opendde_workbench/research/pose_routes.py tests/test_pose_preview_availability.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py server_tests/test_initial_pose_browser.py server_tests/test_native_initial_pose.py
+          uv run --locked pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py
