@@ -1,5 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { api } from "../api";
 import type { Job, Language } from "../types";
 import type { AssetKind } from "../operations/types";
@@ -32,6 +32,7 @@ export function ResearchWorkspace({
   onCreated(job: Job): void;
 }) {
   const zh = language === "zh";
+  const fileContext = useId();
   const {
     graph: sourceGraph,
     selected,
@@ -415,12 +416,13 @@ export function ResearchWorkspace({
                     <button
                       className={selected === n.id ? "selected" : ""}
                       aria-label={`${objectLabels[n.kind]?.[zh ? 0 : 1]}: ${n.label}`}
+                      aria-describedby={fileContext + n.id}
                       aria-current={selected === n.id ? true : undefined}
                       onClick={(event) => openNode(n.id, event.currentTarget)}
                     >
                       <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
                       <strong>{n.label}</strong>
-                      <small className="asset-context">
+                      <small className="asset-context" id={fileContext + n.id}>
                         {assetContext(n, graph.nodes, language)}
                       </small>
                     </button>
