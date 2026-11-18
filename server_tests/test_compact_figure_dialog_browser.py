@@ -74,8 +74,36 @@ def assert_first_screen(layout):
     assert layout["labels"][0]["top"] == layout["labels"][1]["top"]
 
 
+def assert_options_fit(dialog):
+    clipped = dialog.locator("fieldset select").evaluate_all(
+        """selects => {
+          const context = document.createElement('canvas').getContext('2d');
+          const losses = [];
+          for (const select of selects) {
+            const style = getComputedStyle(select);
+            context.font = [style.fontWeight, style.fontSize, style.fontFamily].join(' ');
+            const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+            const available = select.clientWidth - padding - 20;
+            for (const option of select.options) {
+              if (context.measureText(option.text).width > available)
+                losses.push({label: option.text, available});
+            }
+          }
+          return losses;
+        }"""
+    )
+    assert not clipped, clipped
+
+
 def check_short_body_scroll(page, dialog, before):
     assert before["canScroll"]
+    preview_canvas = dialog.locator(".figure-preview-sheet")
+    dialog.get_by_role("button", name="Zoom in preview", exact=True).click()
+    expect(preview_canvas).to_have_attribute("data-zoom", "2")
+    expect(preview_canvas).to_have_attribute("tabindex", "0")
+    dialog.get_by_role("button", name="Fit preview", exact=True).click()
+    expect(preview_canvas).to_have_attribute("data-zoom", "1")
+    dialog.locator(".figure-export-layout").evaluate("el => { el.scrollTop = 0; }")
     body, preview = before["body"], before["preview"]
     page.mouse.move(
         preview["left"] + preview["width"] / 2,
@@ -131,6 +159,7 @@ def test_native_figure_action_stays_visible_on_narrow_screens(language, format, 
         def inspect(dialog):
             layout = geometry(dialog)
             assert_first_screen(layout)
+            assert_options_fit(dialog)
             if width == 320:
                 check_short_body_scroll(page, dialog, layout)
             else:

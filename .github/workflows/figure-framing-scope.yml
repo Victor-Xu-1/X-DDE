@@ -58,7 +58,17 @@ jobs:
                   compact_changed=true
                   # Limit the layout-only replay to the reviewed mobile stylesheet delta.
                   [[ "$(git rev-parse "$BASE:$path")" == 89df4fba2f223d58bfc654e8b536a585ff3fd211 &&
-                     "$(git rev-parse "HEAD:$path")" == 311c940b94cd5dcb216ddf47b51b2459eb91327d ]] ||
+                     "$(git rev-parse "HEAD:$path")" == 85978131e4d3371102a191a53ab01044f621d667 ]] ||
+                    compact=false
+                  ;;
+                frontend/src/publication/FigureDialog.tsx)
+                  [[ "$(git rev-parse "$BASE:$path")" == abf37613a9606ce09ec6e54c50d2d356fc21c974 &&
+                     "$(git rev-parse "HEAD:$path")" == 3335dd7925820e4a7bef4b7fc57408b9fbd517c2 ]] ||
+                    compact=false
+                  ;;
+                frontend/src/publication/FigurePreview.tsx)
+                  [[ "$(git rev-parse "$BASE:$path")" == d83d6b16edc5b1811b38f2efe05fbfa51b5d10a6 &&
+                     "$(git rev-parse "HEAD:$path")" == 68eea3c34d9d6b3413e01704a257eb8971792805 ]] ||
                     compact=false
                   ;;
                 server_tests/test_compact_figure_dialog_browser.py) compact_changed=true ;;

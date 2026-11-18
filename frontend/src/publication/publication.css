@@ -263,6 +263,7 @@
   .figure-export-dialog fieldset select {
     width: 100%;
     min-height: 44px;
+    padding-inline: 8px;
   }
   .figure-export-dialog .figure-background {
     align-self: end;
