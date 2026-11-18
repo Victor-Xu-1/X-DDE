@@ -29,7 +29,13 @@ def inspect_result_header(page, root, language, width, name):
         assert abs(title["top"] - navigation["top"]) < 20
     else:
         assert title["top"] >= navigation["bottom"]
-        assert title["right"] <= actions["left"]
+        if header.evaluate("node => node.classList.contains('has-extra-actions')"):
+            # The mobile header gives visible backend and task actions their own row.
+            assert actions["top"] >= title["bottom"]
+            assert actions["left"] >= geometry["header"]["left"]
+            assert actions["right"] <= geometry["header"]["right"]
+        else:
+            assert title["right"] <= actions["left"]
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     (root / (name + "-header.json")).write_text(json.dumps(geometry, indent=2))
     page.screenshot(path=root / (name + "-header.png"))

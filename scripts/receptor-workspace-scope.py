@@ -12,11 +12,13 @@ RECEPTOR = {
     "frontend/src/receptors/receptors.css",
     "server_tests/test_receptor_workspace_browser.py",
 }
-ROUTING = {
+SUPPORT = {
     ".github/workflows/viewer-checks.yml",
     ".github/workflows/structure-layout-checks.yml",
     ".github/workflows/restraint-guidance-checks.yml",
     "scripts/receptor-workspace-scope.py",
+    # Exercise the shared result header in its own task history workflow.
+    "server_tests/task_history_header_capture.py",
 }
 
 
@@ -38,7 +40,7 @@ def receptor_workspace_only(base, event):
     ).splitlines())
     if not changed & RECEPTOR:
         return False
-    mirrors = changed - RECEPTOR - ROUTING
+    mirrors = changed - RECEPTOR - SUPPORT
     release = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
     return mirrors <= release["VERSION_FILES"] and release["only_version_mirrors"](base, mirrors)
 

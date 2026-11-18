@@ -6,6 +6,7 @@ import json
 import os
 import struct
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -131,13 +132,16 @@ def test_retained_stat6_receptor_preview(width, height, language, visible):
             expect(picker).to_have_value(str(aligned["index"]))
             verify_figure(page, figure)
         assert original_frame.evaluate("(frame) => frame.isConnected")
-        path = result.get_by_role("link", name=label(
+        download = result.get_by_role("link", name=label(
             "Download aligned structure", "下载对齐结构",
-        )).get_attribute("href")
-        assert path and path.endswith("/" + aligned["artifact"])
-        artifact = page.request.get(base + path)
-        assert artifact.ok
-        assert hashlib.sha256(artifact.body()).hexdigest() == aligned["artifact_sha256"]
+        ))
+        url = urlsplit(download.get_attribute("href") or "")
+        assert url.path == f"/api/jobs/{job}/download"
+        assert parse_qs(url.query) == {"name": [aligned["artifact"]]}
+        with page.expect_download() as artifact:
+            download.click()
+        digest = hashlib.sha256(artifact.value.path().read_bytes()).hexdigest()
+        assert digest == aligned["artifact_sha256"]
         assert read(f"jobs/{job}/result").json() == native
         assert not writes and not errors
         browser.close()
