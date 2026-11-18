@@ -7,7 +7,9 @@ import struct
 from pathlib import Path
 
 import pytest
+from example_preview_actions import choose_task
 from playwright.sync_api import expect, sync_playwright
+from test_navigation_shell_browser import open_navigation
 
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
@@ -135,12 +137,11 @@ def test_module_case_preserves_raw_generation_and_all_reviewed_stages(language, 
         info = page.request.get(base + "/api/examples/diffsbdd.generate").json()
         (evidence / "case-source.json").write_text(json.dumps(info, indent=2))
         page.goto(base)
-        page.get_by_role(
-            "button",
-            name="口袋条件分子生成" if zh else "Pocket-conditioned molecule generation",
-            exact=True,
+        open_navigation(page, language).get_by_role(
+            "button", name="小分子设计" if zh else "Small-molecule design", exact=True
         ).click()
-        page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
+        expect(page.locator(".module-task-picker select:visible")).to_be_visible()
+        choose_task(page, language, "diffsbdd.generate")
         choose = page.get_by_role("combobox", name="研究阶段结果" if zh else "Study result stage")
         try:
             expect(choose).to_be_visible(timeout=15000)

@@ -1,21 +1,20 @@
 .example-stage-navigation {
   display: grid;
-  grid-template-columns: minmax(0, 30rem) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 12px;
-  width: fit-content;
-  max-width: 100%;
-  margin-block: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
+  gap: 10px;
+  width: min(100%, 42rem);
+  margin-block: 8px 12px;
 }
+
 .example-stage-navigation label {
   display: grid;
-  gap: 4px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
+
 .example-stage-navigation label > span {
   color: var(--muted);
   font-size: 11px;
@@ -61,10 +60,9 @@
 .example-stage-error > p {
   margin: 0;
 }
-@media (max-width: 480px) {
-  .example-stage-navigation {
+@media (max-width: 600px) {
+  .example-stage-navigation label {
     grid-template-columns: minmax(0, 1fr);
-    width: 100%;
-    gap: 8px;
+    gap: 4px;
   }
 }

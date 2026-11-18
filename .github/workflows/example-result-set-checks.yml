@@ -76,6 +76,7 @@ jobs:
       del_only: ${{ steps.change.outputs.del_only }}
       review_only: ${{ steps.review_scope.outputs.review_only }}
       loader_changed: ${{ steps.review_scope.outputs.loader_changed }}
+      stage_layout_only: ${{ steps.review_scope.outputs.stage_layout_only }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
       prediction_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}
     steps:
@@ -116,6 +117,25 @@ jobs:
           if [[ "$found" != true ]]; then review_only=false; fi
           echo "review_only=$review_only" >> "$GITHUB_OUTPUT"
           echo "loader_changed=$loader_changed" >> "$GITHUB_OUTPUT"
+          # The module-example workflow runs this toolbar check on push and PR.
+          stage_layout_only=false
+          if [[ "$GITHUB_EVENT_NAME" == push || "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            stage_base="$BASE"
+            if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF_NAME" != main ]]; then
+              stage_base=$(git merge-base HEAD origin/main)
+            fi
+            stage_layout_only=true
+            stage_layout_changed=false
+            while IFS= read -r path; do
+              case "$path" in
+                frontend/src/examples/example-stage-navigation.css) stage_layout_changed=true ;;
+                server_tests/test_generation_case_stages_browser.py|.github/workflows/example-result-set-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+                *) stage_layout_only=false ;;
+              esac
+            done < <(git diff --name-only "$stage_base" HEAD)
+            if [[ "$stage_layout_changed" != true ]]; then stage_layout_only=false; fi
+          fi
+          echo "stage_layout_only=$stage_layout_only" >> "$GITHUB_OUTPUT"
   review-highlights:
     needs: scope
     if: needs.scope.outputs.review_only == 'true'
@@ -169,7 +189,7 @@ jobs:
           path: outputs/receptor-case-comparison
   immutable-stages:
     needs: [scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
+    if: needs.scope.outputs.stage_layout_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -218,7 +238,7 @@ jobs:
         run: npx vitest run src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
   native-preview:
     needs: [scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
+    if: needs.scope.outputs.stage_layout_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && (needs.scope.outputs.review_only != 'true' || needs.scope.outputs.loader_changed == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 16
     env:
