@@ -63,7 +63,7 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
                 }""")
             if tool == "workflows":
                 assert scene.evaluate("e => innerHeight - e.getBoundingClientRect().top >= 90")
-                expect(page.locator(".module-task-picker")).not_to_be_visible()
+                expect(page.locator("main .module-task-picker:visible")).to_have_count(0)
             page.screenshot(path=evidence / "first-view.png")
             guide.press("Enter")
             expect(source).to_contain_text(root["request"]["name"])
@@ -143,7 +143,7 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             ).click()
             expect(open_result).to_be_focused()
             if tool == "workflows":
-                expect(page.locator(".module-task-picker")).to_be_visible()
+                expect(page.locator("main .module-task-picker:visible")).to_have_count(1)
             assert page.request.get(base + "/api/jobs").json() == jobs
             assert writes == []
             browser.close()
