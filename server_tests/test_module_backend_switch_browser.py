@@ -81,13 +81,62 @@ def verify_shared_power(page, base):
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.screenshot(path=EVIDENCE / "local-power-390.png")
 
+    page.goto(f"{base}/#view=results&module=targets")
+    page.locator(".task-history-backends summary").click()
+    module = page.get_by_role("group", name="本模块的后端", exact=True)
+    local_toggle = module.locator('[data-engine="discovery"]').get_by_role("switch")
+    expect(local_toggle).to_be_checked()
     page.get_by_role("button", name="后端管理", exact=True).click()
     global_panel = page.get_by_role("region", name="后端启停", exact=True)
     global_toggle = global_panel.locator('[data-engine="discovery"]').get_by_role("switch")
     expect(global_toggle).to_be_checked()
-    global_toggle.click()
-    expect(sibling.get_by_role("switch")).not_to_be_checked()
+    # Close the global panel and switch off from the module's results.
+    page.get_by_role("button", name="关闭后端面板", exact=True).click()
+    local_toggle.click()
+    expect(local_toggle).not_to_be_checked()
+    page.get_by_role("button", name="后端管理", exact=True).click()
     expect(global_toggle).not_to_be_checked()
+    page.get_by_role("button", name="关闭后端面板", exact=True).click()
+    expect(open_capability(page, base, "discovery.disease").get_by_role(
+        "switch"
+    )).not_to_be_checked()
+
+
+def verify_module_history(page, base):
+    groups = {
+        "targets": {"discovery", "harness"},
+        "structures": {"opendde", "mol1", "boltz", "biopython", "diffsbdd"},
+        "binding": {"apbs", "biopython", "caver", "diffsbdd", "gnina", "p2rank",
+                    "plip", "posebusters"},
+        "screening": {"chemistry", "drugclip", "gnina"},
+        "del": {"deli"},
+        "molecules": {"chemistry", "diffsbdd", "reinvent"},
+        "proximity": {"deepternary"},
+        "biologics": {"anarcii", "boltzgen", "harness", "ligandmpnn", "sapiens"},
+        "simulations": {"gromacs", "openfe", "openmm"},
+        "evaluation": {"admet", "chemistry", "chemprop", "diffsbdd"},
+    }
+    page.set_viewport_size({"width": 390, "height": 775})
+    for module, engines in groups.items():
+        page.goto(f"{base}/#view=results&module={module}")
+        summary = page.locator(".task-history-backends summary")
+        panel = page.get_by_role("group", name="本模块的后端", exact=True)
+        expect(panel).to_have_count(0)
+        summary.press("Space")
+        expect(panel).to_be_visible()
+        expected = engines | ({"native-compute"} if "harness" in engines else set())
+        expect(panel.get_by_role("switch")).to_have_count(len(expected))
+        assert set(panel.locator("[data-engine]").evaluate_all(
+            "(rows) => rows.map((row) => row.dataset.engine)"
+        )) == expected
+        assert all(not toggle.is_checked() for toggle in panel.get_by_role("switch").all())
+        bounds = panel.bounding_box()
+        assert bounds and 0 <= bounds["x"] and bounds["x"] + bounds["width"] <= 390
+        if module == "binding":
+            page.screenshot(path=EVIDENCE / "module-power-390.png")
+        summary.press("Space")
+        expect(panel).to_have_count(0)
+    return list(groups)
 
 
 def verify_utilities(page, base):
@@ -128,10 +177,9 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         page.on("request", record)
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
+        modules = verify_module_history(page, base)
         assert posts == []
         verify_shared_power(page, base)
-        # Close the global panel before switching into the utility workspace.
-        page.get_by_role("button", name="关闭后端面板", exact=True).click()
         verify_utilities(page, base)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
@@ -141,6 +189,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             "/api/runtime-controls/discovery/stop",
         ]
         (EVIDENCE / "coverage.json").write_text(
-            json.dumps({"task_forms": checked, "posts": posts}, indent=2), encoding="utf-8"
+            json.dumps({"task_forms": checked, "modules": modules, "posts": posts}, indent=2),
+            encoding="utf-8",
         )
         chromium.close()

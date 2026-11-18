@@ -56,9 +56,13 @@ export function RuntimeSwitch({
           ? zh
             ? "请先结束该后端的活动任务。"
             : "Finish this backend’s active task first."
-          : zh
-            ? "开启后在提交任务时加载。"
-            : "Loads when you submit a task."
+          : !item.ready && !item.enabled
+            ? zh
+              ? "请在「安装与运行」中检查此组件。"
+              : "Check this component under Installation and runtime."
+            : zh
+              ? "开启后在执行任务时加载。"
+              : "Loads when a task runs."
       }
       onToggle={() => void runtime.toggle(item.id)}
     />

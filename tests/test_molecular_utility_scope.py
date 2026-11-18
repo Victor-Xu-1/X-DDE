@@ -128,7 +128,8 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
-        "backend_placement_only=false\ntask_power_only=false\nrecognition_power_only=false\n"
+        "backend_placement_only=false\ntask_power_only=false\nmodule_backend_only=false\n"
+        "recognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
         "touch_controls_only=false\n"
         "runtime_switch_only=false\nresult_header_only=false\n"
@@ -257,7 +258,9 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         assert not selected(files, "pull_request", blobs=mixed)
 
 
-@pytest.mark.parametrize("key", ["BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES"])
+@pytest.mark.parametrize(
+    "key", ["BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES", "MODULE_BACKEND_FILES"]
+)
 def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):
     select = scope["reviewed_selected"]
     files = scope[key]

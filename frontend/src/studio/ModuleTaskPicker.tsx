@@ -78,12 +78,13 @@ export function ModuleTaskPicker({
           )}
         </>
       )}
-      <MethodSwitch value={value} language={language} onChange={onChange} />
       <TaskBackendControl
         language={language}
         scope={{ capability: value }}
         active={active}
+        placement="entry"
       />
+      <MethodSwitch value={value} language={language} onChange={onChange} />
     </div>
   );
 }
