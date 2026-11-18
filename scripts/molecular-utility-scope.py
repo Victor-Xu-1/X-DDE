@@ -306,6 +306,7 @@ RUNTIME_CONSUMERS = {
     ),
 }
 RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
+    "server_tests/test_result_handoff_browser.py",
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
     "frontend/src/poses/PosePlanRun.test.tsx",
@@ -530,6 +531,24 @@ RECOGNITION_POWER_FILES = {
 RECOGNITION_POWER_DIFF = "931c66f515c294674f933f2833a6c77a3c22d178c72839bf782ca9b284548af4"
 
 
+# Only this exact presentation patch takes the narrower browser gate.
+BACKEND_PLACEMENT_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/result-handoff-checks.yml",
+    "frontend/src/studio/TaskWorkspace.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/backend-control-scope.ts",
+    "frontend/src/utilities/backend-runtime.ts",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_result_handoff_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+BACKEND_PLACEMENT_DIFF = "6b67939a29d0b15f771b924e114cacf623411a4d58c6752e5541d51959fe6352"
+
+
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
         return False
@@ -537,7 +556,7 @@ def reviewed_selected(changed, event, base, files, digest):
     remaining = changed - files - {"scripts/molecular-utility-scope.py"}
     if not remaining <= scope["VERSION_FILES"]:
         return False
-    if not scope["only_version_mirrors"](base, remaining):
+    if remaining and not scope["only_version_mirrors"](base, remaining):
         return False
     reviewed = [
         [path, blob_digest(base, path), blob_digest("HEAD", path)]
@@ -596,7 +615,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_POWER_FILES, RECOGNITION_POWER_DIFF,
     )
+    backend_placement = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -609,8 +633,9 @@ def main():
             path: (blob_digest(base, path), blob_digest("HEAD", path))
             for path in set(changed) & shared_paths
         }
-        runtime = runtime_selected(changed, event, shared=shared) or followup_selected(
-            set(changed), event, base
+        runtime = (
+            backend_placement or runtime_selected(changed, event, shared=shared)
+            or followup_selected(set(changed), event, base)
         )
         layout = result_header_selected(changed, event, blobs={
             path: (git_blob(base, path), git_blob("HEAD", path))

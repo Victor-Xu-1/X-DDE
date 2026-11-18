@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
 import { BackendControls } from "./BackendControls";
+import { PrimaryBackendScope } from "./backend-control-scope";
 import {
   FollowupBackendControl,
   TaskBackendControl,
@@ -195,5 +196,42 @@ it("does not expose a follow-up switch from a utility form hidden by its example
   ).not.toBeChecked();
   rerender(form(false));
   expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  expect(api.post).not.toHaveBeenCalled();
+});
+
+it("shows shared result and follow-up engines once, retaining different engines", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { humanization: "sapiens", properties: "chemistry" },
+    engines: [
+      { ...entry, id: "sapiens", name: "Sapiens", operations: ["humanize"] },
+      { ...entry, operations: ["properties"] },
+    ],
+  });
+  const scope = { operations: ["humanize"] };
+  render(
+    <PrimaryBackendScope.Provider value={scope}>
+      <TaskBackendControl language="en" placement="result" scope={scope} />
+      <TaskBackendControl
+        language="en"
+        placement="followup"
+        scope={{ capability: "humanization" }}
+      />
+      <TaskBackendControl
+        language="en"
+        placement="followup"
+        scope={{ capability: "properties" }}
+      />
+    </PrimaryBackendScope.Provider>,
+  );
+  const toggle = await screen.findByRole("switch", { name: "Sapiens" });
+  expect(toggle.closest("[data-backend-placement]")).toHaveAttribute(
+    "data-backend-placement",
+    "result",
+  );
+  expect(toggle).toHaveAttribute("aria-checked", "false");
+  expect(await screen.findByRole("switch", { name: "RDKit" })).toHaveAttribute(
+    "aria-checked",
+    "false",
+  );
   expect(api.post).not.toHaveBeenCalled();
 });

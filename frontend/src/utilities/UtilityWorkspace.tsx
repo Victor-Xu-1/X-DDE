@@ -3,6 +3,7 @@ import type { Job, Language } from "../types";
 import { ImageRecognition } from "./ImageRecognition";
 import { UtilityTask, utilityCapability } from "./UtilityTask";
 import { TaskBackendControl } from "./TaskBackendControl";
+import { PrimaryBackendScope } from "./backend-control-scope";
 
 const utilityTabs = [
   ["image", "图片识别与编辑", "Image recognition & editor"],
@@ -59,6 +60,8 @@ export function UtilityWorkspace({
     for (const tab of strip.children) observer.observe(tab);
     return () => observer.disconnect();
   }, [active, language, visible]);
+  const backendScope =
+    visible && active !== "image" ? { capability: utilityCapability(active) } : null;
   return (
     <div className="utility-workspace">
       <div className="utility-tabbar">
@@ -89,11 +92,8 @@ export function UtilityWorkspace({
           ref={setImageActions}
           hidden={active !== "image"}
         />
-        {visible && active !== "image" && (
-          <TaskBackendControl
-            language={language}
-            scope={{ capability: utilityCapability(active) }}
-          />
+        {backendScope && (
+          <TaskBackendControl language={language} scope={backendScope} />
         )}
       </div>
       {utilityTabs.map(([id, cn, en]) => {
@@ -109,13 +109,15 @@ export function UtilityWorkspace({
             {id !== "image" ? (
               <>
                 <h1 className="sr-only">{zh ? cn : en}</h1>
-                <UtilityTask
-                  tool={id}
-                  language={language}
-                  onCreated={onCreated}
-                  jobs={jobs}
-                  active={visible && active === id}
-                />
+                <PrimaryBackendScope.Provider value={backendScope}>
+                  <UtilityTask
+                    tool={id}
+                    language={language}
+                    onCreated={onCreated}
+                    jobs={jobs}
+                    active={visible && active === id}
+                  />
+                </PrimaryBackendScope.Provider>
               </>
             ) : (
               <ImageRecognition
