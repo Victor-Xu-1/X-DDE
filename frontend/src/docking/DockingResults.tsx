@@ -43,6 +43,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const [comparison, setComparison] = useState<{
     jobId: string;
     records: number[];
+    activation: number;
   } | null>(null);
   const compared =
     comparison?.jobId === job.id
@@ -214,6 +215,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 result={result}
                 poses={compared}
                 language={language}
+                activation={comparison?.activation ?? 0}
                 onClose={() => {
                   returningToLauncher.current = true;
                   setComparison(null);
@@ -364,10 +366,11 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
               setDiagnostic(null);
               handoff.clear();
               launcher.current = trigger;
-              setComparison({
+              setComparison((previous) => ({
                 jobId: job.id,
                 records: poses.map((pose) => pose.record),
-              });
+                activation: (previous?.activation ?? 0) + 1,
+              }));
             }}
           />
           <DockingResultsEvidence

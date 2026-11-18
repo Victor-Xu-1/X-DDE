@@ -25,13 +25,13 @@ REVIEWED_BLOBS = {
         "522234e268d358cf7df3094c629453bc46646b55", "d7da88e34414aa36b86457cc376e2e38c77e00fd",
     ),
     "frontend/src/docking/DockingResults.tsx": (
-        "58ee8872fdae5022fc4bd5d96c3dd8150ccba026", "2bae05602aef5807bcd2f9196c3f158dfc606d2a",
+        "58ee8872fdae5022fc4bd5d96c3dd8150ccba026", "4882fdbc6ff058c34f5b9340398d2257b95f0b45",
     ),
     "frontend/src/docking/PoseComparison.css": (
         "e5ae14223767e40a0a6d7b53c6c7645591707808", "e1e8af33c3e91d98a20f6318c7daae50507511b8",
     ),
     "frontend/src/docking/PoseComparison.tsx": (
-        "731e5bc12853549a01256c1b4006f4984170f75c", "cb10d7f3a61551436458dfda5b882807b34c5716",
+        "731e5bc12853549a01256c1b4006f4984170f75c", "112543a727b27ac6f2bf7cbfd8f709e523ec9208",
     ),
     "frontend/src/docking/PoseTable.tsx": (
         "a0ebf42c66612cc0407b4a91140f77f752594013", "38275825014df6f992cbcaec324bb09e0325206b",
@@ -46,7 +46,7 @@ REVIEWED_BLOBS = {
         "d854e112164e77aa90f1371a952903c4c910c2df", "7bc9ad1de894e9463c014851f778072428f266ab",
     ),
     "server_tests/test_docking_table_browser.py": (
-        "b6a5dc541257a75ea9eebd298ef31d9b383fd17e", "b725c1c3df1676f3d2ff1dd1ace3149cf21a0b76",
+        "b6a5dc541257a75ea9eebd298ef31d9b383fd17e", "03cfb972fe55cba6f6c2f331348e756ba0de7262",
     ),
 }
 VERSION_FILES = {

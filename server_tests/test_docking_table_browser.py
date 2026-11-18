@@ -182,6 +182,14 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         )).to_be_focused()
         expect(overlay.locator(".molecular-stage iframe")).to_be_in_viewport(ratio=0.65)
         page.screenshot(path=evidence / "direct-overlay.png")
+        native_scene = overlay.locator(".molecular-stage iframe").element_handle()
+        assert native_scene
+        opener.press("Enter")
+        assert native_scene.evaluate("(frame) => frame.isConnected")
+        expect(overlay.get_by_role(
+            "heading", name="结合姿势比较" if language == "zh" else "Compare binding poses"
+        )).to_be_focused()
+        expect(overlay.locator(".molecular-stage iframe")).to_be_in_viewport(ratio=0.65)
         load = (
             overlay.frame_locator("iframe")
             .locator("#molecule")

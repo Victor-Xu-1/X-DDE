@@ -11,6 +11,7 @@ export function PoseComparison({
   result,
   poses,
   language,
+  activation,
   onInspect,
   onClose,
 }: {
@@ -18,16 +19,15 @@ export function PoseComparison({
   result: DockingResult;
   poses: readonly PoseResult[];
   language: Language;
+  activation: number;
   onInspect(pose: PoseResult): void;
   onClose(): void;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
-  const first = poses[0]?.artifact;
-  const second = poses[1]?.artifact;
   useLayoutEffect(() => {
     heading.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
     heading.current?.focus({ preventScroll: true });
-  }, [jobId, first, second]);
+  }, [activation]);
   if (poses.length !== 2 || poses.some((pose) => !pose.valid || !pose.artifact))
     return null;
   const zh = language === "zh";
