@@ -265,7 +265,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
     [
         "BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES", "MODULE_BACKEND_FILES",
         "NATIVE_STATE_FILES", "COMPACT_EXAMPLE_FILES", "MOBILE_HEADER_FILES",
-        "INITIAL_POSE_POWER_FILES", "MOBILE_VIEWER_FILES",
+        "INITIAL_POSE_POWER_FILES", "MOBILE_VIEWER_FILES", "SPLIT_VIEWER_FILES",
     ],
 )
 def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):

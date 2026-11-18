@@ -63,6 +63,7 @@ on:
       - "server_tests/test_figure_framing_browser.py"
       - "server_tests/test_compact_figure_dialog_browser.py"
       - "server_tests/test_mobile_viewer_toolbar_browser.py"
+      - "server_tests/test_split_viewer_toolbar_browser.py"
       - "server_tests/test_prediction_workspace_browser.py"
       - "server_tests/*native_annotation*"
       - "server_tests/test_workspace_fullscreen_browser.py"
@@ -143,6 +144,7 @@ jobs:
             frontend/src/presentation/prediction-inspection.css \
             frontend/src/receptors/prepared-structure.css frontend/src/receptors/receptors.css \
             server_tests/test_mobile_viewer_toolbar_browser.py \
+            server_tests/test_split_viewer_toolbar_browser.py \
             server_tests/test_prediction_workspace_browser.py; then
             changed=true
           fi
@@ -236,7 +238,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_mobile_viewer_toolbar_browser.py
+          uv run --locked ruff check scripts/molecular-utility-scope.py \
+            tests/test_molecular_utility_scope.py server_tests/test_mobile_viewer_toolbar_browser.py \
+            server_tests/test_split_viewer_toolbar_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           google-chrome --version
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
@@ -244,7 +248,8 @@ jobs:
           [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
-          WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}" uv run --locked python -m pytest -x -q server_tests/test_mobile_viewer_toolbar_browser.py
+          WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}" uv run --locked python -m pytest -x -q \
+            server_tests/test_mobile_viewer_toolbar_browser.py server_tests/test_split_viewer_toolbar_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

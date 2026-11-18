@@ -17,12 +17,13 @@ export function ViewerToolGroup({
   const panel = useId();
 
   useEffect(() => {
-    if (!open) return;
-    // Match the layout breakpoint in viewer-tool-group.css.
-    const compact = window.matchMedia("(max-width: 600px)");
-    function onLayoutChange(event: MediaQueryListEvent) {
-      if (!event.matches) setOpen(false);
-    }
+    const button = trigger.current;
+    if (!open || !button) return;
+    // Observe the disclosure itself so CSS owns the breakpoint.
+    const observer = new ResizeObserver(() => {
+      if (!button.getClientRects().length) setOpen(false);
+    });
+    observer.observe(button);
     function dismiss(event: PointerEvent) {
       if (
         event.target instanceof Node &&
@@ -30,10 +31,9 @@ export function ViewerToolGroup({
       )
         setOpen(false);
     }
-    compact.addEventListener("change", onLayoutChange);
     document.addEventListener("pointerdown", dismiss);
     return () => {
-      compact.removeEventListener("change", onLayoutChange);
+      observer.disconnect();
       document.removeEventListener("pointerdown", dismiss);
     };
   }, [open]);
