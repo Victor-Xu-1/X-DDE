@@ -25,6 +25,9 @@ const utilities = {
 export type MolecularUtility = keyof typeof utilities;
 export const utilityCapability = (id: MolecularUtility) =>
   utilities[id].capability;
+export const molecularUtilityCapabilities = Object.values(utilities).map(
+  ({ capability }) => capability,
+);
 type UtilityTaskProps = {
   tool: MolecularUtility;
   language: Language;

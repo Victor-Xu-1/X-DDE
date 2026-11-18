@@ -29,6 +29,12 @@ export function resultModule(view: View): ModuleId | "other" | null {
 }
 export const viewForResults = (module: ModuleId | "other"): View =>
   `results:${module}`;
+export function researchModuleForView(view: View) {
+  const results = resultModule(view);
+  return results
+    ? researchModules.find((module) => module.id === results)
+    : moduleForTool(toolForView(view));
+}
 export const navigationItems = [
   {
     id: "utilities" as const,
@@ -78,14 +84,11 @@ export function navigationActive(
   item: (typeof navigationItems)[number],
 ) {
   return item.module
-    ? (resultModule(view) ?? moduleForTool(toolForView(view))?.id) ===
-        item.module
+    ? researchModuleForView(view)?.id === item.module
     : view === item.id;
 }
 export function viewTitle(view: View, language: Language) {
-  const module =
-    researchModules.find((module) => module.id === resultModule(view)) ??
-    moduleForTool(toolForView(view));
+  const module = researchModuleForView(view);
   const item =
     navigationItems.find((item) => item.id === view) ??
     managementItems.find((item) => item.id === view);

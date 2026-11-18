@@ -113,35 +113,6 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-.task-history-backends {
-  position: relative;
-}
-.task-history-backends > summary {
-  cursor: pointer;
-}
-.task-history-backends > .task-backend-control {
-  position: absolute;
-  z-index: 8;
-  inset-block-start: calc(100% + 6px);
-  inset-inline-start: 0;
-  width: min(282px, calc(100vw - 42px));
-  max-width: none;
-  max-height: min(55vh, 320px);
-  overflow: auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow: 0 10px 26px #10182721;
-}
-@media (min-width: 701px) {
-  .task-history-backends > .task-backend-control {
-    inset-inline: auto 0;
-  }
-}
 .task-history-heading select,
 .task-history-controls select,
 .task-history-controls input {

@@ -1,58 +1,114 @@
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Language } from "../types";
+import type { ResearchModule } from "../studio/research-modules";
+import { enginesForScope } from "./backend-control-scope";
 import { computeActivity, ComputeSwitch } from "./ComputeSwitch";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
 import "./runtime-switch.css";
 
-export function BackendControls({ language }: { language: Language }) {
+export function BackendControls({
+  language,
+  module,
+}: {
+  language: Language;
+  module?: Pick<ResearchModule, "label" | "tools">;
+}) {
   const zh = language === "zh";
-  const [open, setOpen] = useState(false);
-  const runtime = useBackendRuntime(open, undefined, true);
-  const harness = runtime.catalogue?.engines.find(
-    (row) => row.id === "harness",
-  );
+  const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
+  const open = panel !== "closed";
+  const showAll = panel === "all";
+  const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const capabilities = showAll ? undefined : module?.tools;
+  const runtime = useBackendRuntime(open, capabilities, !capabilities);
+  const rows = capabilities
+    ? enginesForScope(runtime.catalogue, { capabilities })
+    : (runtime.catalogue?.engines ?? []);
+  const harness = rows.find((row) => row.id === "harness");
+  const index = zh ? 0 : 1;
+  const heading = capabilities
+    ? module?.label[zh ? 0 : 1]
+    : zh
+      ? "所有后端"
+      : "All backends";
+  const label = capabilities
+    ? zh
+      ? "本模块的后端"
+      : "Backends in this module"
+    : zh
+      ? "后端启停"
+      : "Backend power";
+  useEffect(() => {
+    if (!open) return;
+    function dismissOutside(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !container.current?.contains(event.target)
+      )
+        setPanel("closed");
+    }
+    document.addEventListener("pointerdown", dismissOutside);
+    return () => document.removeEventListener("pointerdown", dismissOutside);
+  }, [open]);
+  function close() {
+    setPanel("closed");
+    trigger.current?.focus();
+  }
   return (
-    <div className="backend-controls">
+    <div
+      ref={container}
+      className="backend-controls"
+      onKeyDown={(event) => {
+        if (open && event.key === "Escape") {
+          event.stopPropagation();
+          close();
+        }
+      }}
+    >
       <button
+        ref={trigger}
         className="secondary-button"
         type="button"
         aria-expanded={open}
-        onClick={() => setOpen(!open)}
+        aria-controls={open ? panelId : undefined}
+        onClick={() => (open ? close() : setPanel("module"))}
       >
         {zh ? "后端管理" : "Backend controls"}
       </button>
       {open && (
         <section
+          id={panelId}
           className="backend-controls-panel"
-          aria-label={zh ? "后端启停" : "Backend power"}
+          aria-label={label}
         >
           <header>
-            <strong>{zh ? "按需启用" : "Enable on demand"}</strong>
+            <strong>{heading}</strong>
             <button
               type="button"
               className="text-button"
               aria-label={zh ? "关闭后端面板" : "Close backend panel"}
-              onClick={() => setOpen(false)}
+              onClick={close}
             >
               ×
             </button>
           </header>
           <p>
             {zh
-              ? "默认关闭。开启后，仅在递交任务时加载；任务结束后释放进程。"
-              : "Off by default. Models load only for submitted tasks; task processes exit when finished."}
+              ? "默认关闭。各任务页共用同一后端状态。"
+              : "Off by default. Tasks that use the same backend share its switch."}
           </p>
           <BackendStateMessage
             runtime={runtime}
             language={language}
-            failed={Boolean(runtime.failed)}
+            failed={rows.some((row) => row.id === runtime.failed)}
           />
           {!runtime.catalogue && !runtime.readError && (
             <p role="status">{zh ? "正在读取…" : "Loading…"}</p>
           )}
           <div className="backend-controls-list">
-            {runtime.catalogue?.engines.map((item) => (
+            {rows.map((item) => (
               <RuntimeSwitch
                 key={item.id}
                 item={item}
@@ -60,12 +116,27 @@ export function BackendControls({ language }: { language: Language }) {
                 runtime={runtime}
               />
             ))}
-            <ComputeSwitch
-              language={language}
-              configuredOnly
-              activity={computeActivity(harness, runtime.readError)}
-            />
+            {(harness || !capabilities) && (
+              <ComputeSwitch
+                language={language}
+                configuredOnly={!capabilities}
+                activity={computeActivity(harness, runtime.readError)}
+              />
+            )}
           </div>
+          {module && (
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => setPanel(showAll ? "module" : "all")}
+            >
+              {
+                (showAll
+                  ? ["返回本模块", "Back to this module"]
+                  : ["查看全部后端", "View all backends"])[index]
+              }
+            </button>
+          )}
         </section>
       )}
     </div>
