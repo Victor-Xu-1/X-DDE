@@ -62,6 +62,7 @@ export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   expectedStructureSha256?: string;
+  nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
   trajectoryKey?: string;
   ligandContext?: boolean;
@@ -129,6 +130,8 @@ export function StructureViewport({
   optimization,
 }: StructureViewerProps & { optimization: PoseController }) {
   const { urls, records, score: nativeScore } = optimization.pose;
+  const structureSha256 =
+    optimization.pose.nativeArtifactSha256 ?? expectedStructureSha256;
   const previousTrajectory = useRef<string | undefined>(undefined);
   const requestedPotentialRange = electrostaticMap
     ? (electrostaticMap.range ?? defaultPotentialRange)
@@ -147,7 +150,7 @@ export function StructureViewport({
       (records?.join(",") ?? "") +
       ":" +
       JSON.stringify({
-        expectedStructureSha256,
+        expectedStructureSha256: structureSha256,
         nativeInteractions,
         potentialSource: electrostaticMap && [
           electrostaticMap.url,
@@ -240,7 +243,7 @@ export function StructureViewport({
   function loadSpecification() {
     return {
       urls,
-      expectedStructureSha256,
+      expectedStructureSha256: structureSha256,
       ...(trajectoryKey ? { trajectoryKey } : {}),
       ...(optimization.initialReady || sourceSnapshot
         ? { initialPosePrepared: true }
@@ -605,7 +608,7 @@ export function StructureViewport({
               {zh ? "定位通道" : "Focus channel"}
             </button>
           )}
-          {urls.length > 0 && (
+          {urls.length > 0 && !optimization.pose.nativeArtifactSha256 && (
             <details className="viewer-original-downloads">
               <summary
                 aria-label={zh ? "下载结构文件" : "Download structure files"}

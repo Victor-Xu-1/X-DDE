@@ -45,7 +45,7 @@ jobs:
       scope_only: true
   candidate-results:
     needs: [framing-scope, result-scope]
-    if: needs.framing-scope.outputs.framing_only != 'true' && needs.result-scope.outputs.potential_display_only != 'true'
+    if: needs.framing-scope.outputs.framing_only != 'true' && needs.result-scope.outputs.potential_display_only != 'true' && needs.result-scope.outputs.native_state_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

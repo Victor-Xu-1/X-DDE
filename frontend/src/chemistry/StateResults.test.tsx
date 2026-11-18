@@ -1,4 +1,5 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { StateResults } from "./StateResults";
 import * as api from "../api";
@@ -49,6 +50,7 @@ it("distinguishes loading from an unindexed collection and preserves original do
       screen.getByText(/Original results can be previewed and downloaded/),
     ).toHaveTextContent("Original results can be previewed and downloaded"),
   );
+  await userEvent.click(screen.getByText("Result notes and source files"));
   expect(
     screen.getByRole("link", { name: "Download state SDF" }),
   ).toHaveAttribute("download");

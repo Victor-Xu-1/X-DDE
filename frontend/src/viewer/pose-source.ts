@@ -143,6 +143,7 @@ export function computedPose(
     ...previous,
     urls,
     records,
+    nativeArtifactSha256: undefined,
     source: { kind: "version", version_id: object.id },
     versionId: object.id,
     object,

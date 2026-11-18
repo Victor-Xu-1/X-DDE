@@ -10,6 +10,7 @@ import { DockingForm } from "../docking/DockingForm";
 import { StateCollectionPreview } from "./StateCollectionPreview";
 import type { MoleculeRef } from "../research/types";
 import type { StateResult, StateSet } from "./types";
+import { stateSelection } from "./state-inspection";
 
 export function StateResults({
   job,
@@ -32,26 +33,23 @@ export function StateResults({
   );
   const [nextOrigin, setNextOrigin] = useState("");
   const [record, setRecord] = useState<number | null>(null);
-  const chemicalState =
-    data.states.find((value) => value.index === stateIndex) ?? data.states[0];
-  const conformers = data.conformers.filter(
-    (value) => value.state_index === chemicalState?.index,
-  );
-  const conformer =
-    conformers.find((value) => value.record === record) ?? conformers[0];
-  const url = conformer ? artifactUrl(job.id, conformer.artifact) : null;
+  const { state, nativeConformer } = stateSelection(data, stateIndex, record);
+  const url = nativeConformer
+    ? artifactUrl(job.id, nativeConformer.artifact)
+    : null;
   const frame = {
     urls: url ? [url] : [],
     records: url ? [0] : undefined,
     molecularSource: url ? { url, record: 0 } : undefined,
+    nativeArtifactSha256: nativeConformer?.artifact_sha256,
   };
   const wrap = (content: ReactNode) => (
     <PoseSession frame={frame}>{content}</PoseSession>
   );
   const origin = JSON.stringify([
     job.id,
-    chemicalState?.index,
-    conformer?.record,
+    state?.index,
+    nativeConformer?.record,
     posePlan(frame).key,
   ]);
   useEffect(() => {
@@ -112,70 +110,12 @@ export function StateResults({
         zh ? "分子状态与构象结果" : "Molecular-state and conformer results"
       }
     >
-      <p>
-        {zh ? "化学状态" : "Chemical states"}: {data.states.length} ·{" "}
-        {zh ? "游离三维构象" : "Free 3D conformers"}: {data.conformers.length}
-      </p>
-      <p className="field-help">
-        {zh
-          ? "状态编号不是优势状态排名；能量只在同一化学状态、同一力场内比较。新构象不是结合姿势。"
-          : "State numbers are not population ranks. Compare energies only within one chemical state and force field. New conformers are not binding poses."}
-      </p>
-      {data.coverage.budget_limited && (
-        <p role="status">
-          {zh
-            ? "枚举达到部分预算上限，不能视为穷尽所有状态。"
-            : "Enumeration reached a budget limit; it is not exhaustive."}
-        </p>
-      )}
-      <a href={artifactUrl(job.id, data.state_artifact)} download>
-        {zh ? "下载化学状态 SDF" : "Download state SDF"}
-      </a>
-      {data.conformers.length > 0 && (
-        <>
-          {" "}
-          ·{" "}
-          <a href={artifactUrl(job.id, data.conformer_artifact)} download>
-            {zh ? "下载构象 SDF" : "Download conformer SDF"}
-          </a>
-        </>
-      )}
-      {data.coverage.rejected > 0 && (
-        <p role="status">
-          {zh
-            ? "已排除改变原有指定构型的候选："
-            : "Candidates excluded for changes to defined source stereochemistry: "}
-          {data.coverage.rejected}
-        </p>
-      )}
-      {data.coverage.protonation_rejected > 0 && (
-        <p role="status">
-          {zh
-            ? "质子化方法排除的无效候选："
-            : "Invalid candidates excluded by the protonation method: "}
-          {data.coverage.protonation_rejected}
-        </p>
-      )}
-      {loading && !error && (
-        <p role="status">
-          {zh
-            ? "正在读取已登记集合；可在任务文件中检查原始输出。"
-            : "Loading the indexed collection; inspect task files for original outputs."}
-        </p>
-      )}
-      {!loading && !error && sets.length === 0 && (
-        <p role="status">
-          {zh
-            ? "可直接查看和下载原始结果；后续任务的历史材料选择将在保存后提供。"
-            : "Original results can be previewed and downloaded; saved materials will enable history selection for later tasks."}
-        </p>
-      )}
       <StateCollectionPreview
         job={job}
         data={data}
         sets={sets}
         language={language}
-        stateIndex={chemicalState?.index}
+        stateIndex={state?.index}
         record={record}
         onSelection={(index, conformer) => {
           setState(index);
@@ -187,6 +127,18 @@ export function StateResults({
           setNext(kind);
         }}
       />
+      {loading && !error && (
+        <p className="field-help" role="status">
+          {zh ? "正在读取已保存的研究材料…" : "Loading the indexed collection…"}
+        </p>
+      )}
+      {!loading && !error && sets.length === 0 && (
+        <p className="field-help" role="status">
+          {zh
+            ? "可查看和下载原始结果。保存材料后即可用于新任务。"
+            : "Original results can be previewed and downloaded. Save materials to use them in a new task."}
+        </p>
+      )}
       {error && (
         <p role="alert" className="error-box">
           {error}
