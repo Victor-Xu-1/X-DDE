@@ -263,10 +263,12 @@ def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeyp
     blobs = {(ref, path): f"{ref}:{path}" for path in files for ref in ("base", "HEAD")}
     monkeypatch.setitem(select.__globals__, "blob_digest", lambda ref, path: blobs[ref, path])
     payload = [[path, blobs["base", path], blobs["HEAD", path]] for path in sorted(files)]
-    digest = scope["hashlib"].sha256(scope["json"].dumps(payload, separators=(",", ":")).encode()).hexdigest()
+    encoded = scope["json"].dumps(payload, separators=(",", ":")).encode()
+    digest = scope["hashlib"].sha256(encoded).hexdigest()
     assert select(files, "push", "base", files, digest)
     assert select(files, "pull_request", "base", files, digest)
     assert not select(files, "workflow_dispatch", "base", files, digest)
-    assert not select(files | {"src/opendde_workbench/backend_router.py"}, "push", "base", files, digest)
+    mixed = files | {"src/opendde_workbench/backend_router.py"}
+    assert not select(mixed, "push", "base", files, digest)
     blobs["HEAD", "frontend/src/utilities/TaskBackendControl.tsx"] = "unreviewed edit"
     assert not select(files, "push", "base", files, digest)

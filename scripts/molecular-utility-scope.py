@@ -546,7 +546,7 @@ BACKEND_PLACEMENT_FILES = {
     "server_tests/test_result_handoff_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-BACKEND_PLACEMENT_DIFF = "4885525e2b5a54766b492ae6d89083193a6c208e73a072329dff057e45165178"
+BACKEND_PLACEMENT_DIFF = "6b67939a29d0b15f771b924e114cacf623411a4d58c6752e5541d51959fe6352"
 
 
 def reviewed_selected(changed, event, base, files, digest):
