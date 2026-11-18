@@ -577,10 +577,11 @@ export function App() {
                 projectId={projectId}
                 onProject={chooseProject}
                 onDraft={prepareDraft}
-                renderPrediction={(onHistory) => (
+                renderPrediction={(onHistory, headerActions) => (
                   <PredictionResults
                     {...common}
                     onHistory={onHistory}
+                    headerActions={headerActions}
                     urls={urls}
                     compared={compared}
                     onCompare={(ids) => {

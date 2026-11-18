@@ -115,7 +115,10 @@ it("uses the same verified original record for selected and batch metrics", () =
   expect(
     within(strip).getByRole("button", { name: "Preview candidate 2" }),
   ).toHaveAttribute("aria-pressed", "true");
-  expect(within(strip).getByText("0.2")).toBeVisible();
+  expect(
+    within(screen.getByRole("region", { name: "Selected structure checks" }))
+      .getByText("0.2"),
+  ).toBeVisible();
   fireEvent.click(
     within(strip).getByRole("button", { name: "Preview candidate 1" }),
   );

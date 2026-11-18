@@ -25,6 +25,18 @@ export function GeneratedMetricsView({
       )}
       <dl className="native-result-metrics">
         <div>
+          <dt>QED</dt>
+          <dd>{active.qed}</dd>
+        </div>
+        <div>
+          <dt>{zh ? "结构组分" : "Components"}</dt>
+          <dd>{active.fragments ?? "—"}</dd>
+        </div>
+        <div>
+          <dt>{zh ? "口袋近接原子对（< 1.2 Å）" : "Pocket atom pairs < 1.2 Å"}</dt>
+          <dd>{active.pocket_atom_pairs_under_1_2_angstrom}</dd>
+        </div>
+        <div>
           <dt>LogP</dt>
           <dd>{active.logp}</dd>
         </div>

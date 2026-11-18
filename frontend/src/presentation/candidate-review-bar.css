@@ -18,6 +18,22 @@
   color: var(--muted);
   font-size: 11px;
 }
+.candidate-review-bar:has(> .candidate-review-selector:only-child) {
+  padding: 4px 0;
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+.candidate-review-selector:only-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 680px), (pointer: coarse) {
+  .candidate-review-bar > .candidate-review-selector:only-child nav button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .candidate-review-bar nav,
 .candidate-review-options {
   display: flex;

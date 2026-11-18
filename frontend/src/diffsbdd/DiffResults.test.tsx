@@ -1,4 +1,11 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { DiffResults } from "./DiffResults";
 import { artifactUrl, api } from "../api";
@@ -152,7 +159,13 @@ it("previews the retained native molecule file even before scientific objects ar
   ).toContain(
     artifactUrl("case", "native/protein.pdb") + "|" + artifactUrl("case", name),
   );
-  const link = screen.getByRole("link", { name: "分子结构 · SDF" });
+  const details = screen.getByText("生成详情");
+  expect(details.closest(".structure-workbench-details")).not.toBeNull();
+  fireEvent.click(details);
+  fireEvent.click(screen.getByText("原始结果文件"));
+  const link = within(details.parentElement!).getByRole("link", {
+    name: "分子结构 · SDF",
+  });
   expect(link).toHaveAttribute("href", artifactUrl("case", name));
   expect(link).toHaveAttribute("title", "molecules.sdf");
   expect(screen.queryByText(name, { exact: true })).not.toBeInTheDocument();

@@ -39,8 +39,12 @@ permissions:
 jobs:
   framing-scope:
     uses: ./.github/workflows/figure-framing-scope.yml
+  result-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   candidate-results:
-    needs: framing-scope
+    needs: [framing-scope, result-scope]
     if: needs.framing-scope.outputs.framing_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -62,18 +66,31 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Selected candidate identity, fragment interpretation and exact quality inputs
-        if: steps.scope.outputs.review_only != 'true'
+        if: steps.scope.outputs.review_only != 'true' && needs.result-scope.outputs.result_header_only != 'true'
         id: unit
         continue-on-error: true
         working-directory: frontend
         run: npx vitest run src/diffsbdd/DiffResults.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/diffsbdd/generated-metrics.test.ts src/diffsbdd/optimization-model.test.ts src/diffsbdd/OptimizationSummary.test.tsx src/diffsbdd/OptimizationFigures.test.tsx src/quality/QualityReview.test.tsx src/viewer/PoseSession.test.tsx src/viewer/usePoseOptimization.test.tsx src/viewer/StructureViewer.test.tsx src/viewer/viewer-connection.test.tsx
       - name: Selected structure checks, truthful counts and direct result consumers only
-        if: steps.scope.outputs.review_only == 'true'
+        if: steps.scope.outputs.review_only == 'true' || needs.result-scope.outputs.result_header_only == 'true'
         id: review
         continue-on-error: true
         working-directory: frontend
         run: npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx src/diffsbdd/GeneratedCandidateDownload.test.tsx src/presentation/molecular-record.test.ts src/diffsbdd/generated-metrics.test.ts src/diffsbdd/DiffResults.test.tsx src/diffsbdd/DiffQualityHandoff.test.tsx src/diffsbdd/GenerationRejections.test.tsx src/diffsbdd/CoreVerification.test.tsx src/diffsbdd/GenerationSummary.test.tsx src/examples/review-highlights.test.ts src/quality/tests/QualityForm.test.tsx
+      - name: Task actions, source-specific headers and shared frontend routing
+        if: needs.result-scope.outputs.result_header_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/TaskWorkspace.test.tsx src/studio/PredictionResults.test.tsx
+          src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx src/App.test.tsx
+          src/utilities/BackendControls.test.tsx src/docking/DockingResults.test.tsx
+          src/pockets/PocketResults.test.tsx
       - run: uv run --locked ruff check server_tests/test_generated_quality_browser.py
+      - name: Guard the exact scoped layout and preserve broader change selection
+        if: needs.result-scope.outputs.result_header_only == 'true'
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
       - name: Restore retained native files and graphical editor; no scientific inference
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +105,7 @@ jobs:
       - name: Native 3D and selected source questionnaire in desktop English and narrow Chinese
         run: uv run --locked python -m pytest -x -q server_tests/test_generated_quality_browser.py
       - name: Require the selected component checks after collecting browser evidence
-        if: always() && ((steps.scope.outputs.review_only == 'true' && steps.review.outcome != 'success') || (steps.scope.outputs.review_only != 'true' && steps.unit.outcome != 'success'))
+        if: always() && ((steps.review.outcome != 'skipped' && steps.review.outcome != 'success') || (steps.unit.outcome != 'skipped' && steps.unit.outcome != 'success'))
         run: exit 1
       - uses: actions/upload-artifact@v4
         if: always()
