@@ -1,4 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import "../presentation/ensemble-results.css";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { Hint } from "../guided/Hint";
@@ -69,14 +70,13 @@ export function ReceptorResults({
       .find((row) => row.evidence.index === selected)?.reference;
   const canOverlay = Boolean(
     member?.artifact &&
-      reference?.artifact &&
-      member.artifact !== reference.artifact,
+    reference?.artifact &&
+    member.artifact !== reference.artifact,
   );
   const overlay = canOverlay && showReference;
-  const urls = [
-    overlay ? reference?.artifact : null,
-    member?.artifact,
-  ].flatMap((file) => (file ? [artifactUrl(job.id, file)] : []));
+  const urls = [overlay ? reference?.artifact : null, member?.artifact].flatMap(
+    (file) => (file ? [artifactUrl(job.id, file)] : []),
+  );
   function select(index: number) {
     setSelected(index);
     setNext(false);
@@ -174,17 +174,22 @@ export function ReceptorResults({
                 </p>
               </>
             ) : (
-              <div className="ensemble-empty-preview" role="status">
-                <strong>
-                  {zh
-                    ? "没有可查看的对齐结构"
-                    : "No aligned structure to inspect"}
-                </strong>
-                <p>
-                  {zh
-                    ? "查看所选成员的原因，或选择其他受体。"
-                    : "Inspect the selected member's reason or choose another receptor."}
-                </p>
+              <div className="ensemble-empty-preview">
+                <div role="status">
+                  <strong>
+                    {zh
+                      ? "没有可查看的对齐结构"
+                      : "No aligned structure to inspect"}
+                  </strong>
+                  <p>
+                    {zh
+                      ? "查看所选成员的原因，或选择其他受体。"
+                      : "Inspect the selected member's reason or choose another receptor."}
+                  </p>
+                </div>
+                <div className="receptor-empty-exit">
+                  <WorkspaceFullscreenControl language={language} />
+                </div>
               </div>
             )}
           </section>

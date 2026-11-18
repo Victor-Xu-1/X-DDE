@@ -1,13 +1,17 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api";
 import { ReceptorResults } from "./ReceptorResults";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import type { ReceptorResult, MemberEvidence, ReceptorSet } from "./types";
 import type { Job } from "../types";
 vi.mock("../viewer/StructureViewer", () => ({
   StructureViewer: (props: unknown) => (
-    <output data-testid="receptor-preview">{JSON.stringify(props)}</output>
+    <>
+      <WorkspaceFullscreenControl language="en" />
+      <output data-testid="receptor-preview">{JSON.stringify(props)}</output>
+    </>
   ),
 }));
 vi.mock("../pockets/PocketForm", () => ({
@@ -168,6 +172,47 @@ it("makes rejected members inspectable without retaining another member's overla
   expect(
     screen.getByRole("link", { name: "Download original structure" }),
   ).toHaveAttribute("href", "/api/assets/original-2");
+});
+
+it("can close the expanded workspace after selecting a member without a structure", async () => {
+  boundary();
+  const user = userEvent.setup();
+  const original = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "showPopover",
+  );
+  Object.defineProperty(HTMLElement.prototype, "showPopover", {
+    configurable: true,
+    value(this: HTMLElement) {
+      this.style.display = "block";
+    },
+  });
+  try {
+    render(<ReceptorResults job={job} data={data} language="en" />);
+    await user.click(
+      await screen.findByRole("button", { name: "Expand research workspace" }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "Structure research workspace",
+    });
+    const picker = within(dialog).getByRole("combobox", {
+      name: "Preview receptor",
+    });
+    await user.selectOptions(picker, "2");
+    expect(within(dialog).queryByTestId("receptor-preview")).toBeNull();
+    await user.click(
+      within(dialog).getByRole("button", { name: "Close expanded view" }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(picker).toHaveFocus();
+    expect(picker).toHaveValue("2");
+  } finally {
+    if (original) {
+      Object.defineProperty(HTMLElement.prototype, "showPopover", original);
+    } else {
+      Reflect.deleteProperty(HTMLElement.prototype, "showPopover");
+    }
+  }
 });
 
 it("hands the exact saved member to a separate pocket questionnaire and retains the selection on return", async () => {
