@@ -101,11 +101,13 @@ task details and original downloads still available. Each tool retains its own
 draft while switching tabs; starting a new task clears only that tool. Outside
 the utility boundary the default guided flow is unchanged.
 
-Desktop utilities give the structure the larger left pane and keep inputs,
-optional settings and explicit Run aligned on the right. The native form stays
-mounted; this arrangement does not change selected files, task parameters or
-validation. Compact template controls leave the working area available. Narrow
-screens stack the same inputs and preview without hiding settings or downloads.
+Utility inputs use the full working width until a structure is available.
+Desktop then gives the structure the larger left pane, with inputs, optional
+settings and Run on the right. The native form stays mounted and retains the
+selected records, draft and validation. On narrow screens, image upload and
+screenshot paste share a row where they would otherwise wrap; case identity
+remains in the guide and in the opened example. The same controls remain
+available when the input and preview stack.
 The utility library selector uses a compact purpose dropdown while retaining
 all native modes, query requirements and rule explanations. Guided research
 forms keep their existing choice cards.

@@ -321,7 +321,9 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Utility selection and preserved forms
         working-directory: frontend
-        run: npx vitest run src/utilities/UtilityWorkspace.test.tsx
+        run: >-
+          npx vitest run src/utilities/UtilityWorkspace.test.tsx
+          src/utilities/UtilitySinglePage.test.tsx
       - name: Chrome resize and keyboard focus
         run: |
           uv sync --locked --group dev --group browser

@@ -1,4 +1,4 @@
-"""Chrome: utility tabs stay in view through a workspace resize."""
+"""Chrome: compact utility materials, native review, and retained navigation."""
 
 from pathlib import Path
 
@@ -95,4 +95,108 @@ def test_resize_keeps_current_tool_visible_and_draft_focused(tmp_path, language,
             expect_tab_in_view(page, strip, properties)
             expect(draft).to_have_value(DRAFT)
             assert not posts
+            browser.close()
+
+
+def work_area(panel):
+    return panel.evaluate("""panel => {
+      const rect = (el) => {
+        const {left, right, top, bottom, width, height} = el.getBoundingClientRect();
+        return {left, right, top, bottom, width, height};
+      };
+      const one = (selector) => rect(panel.querySelector(selector));
+      const image = '.utility-image-entry > .image-molecule-actions';
+      return {
+        panel: rect(panel),
+        input: one('.single-page-main'),
+        preview: one('.single-page-preview'),
+        upload: one(image + ' > button:first-of-type'),
+        paste: one(image + ' > button:nth-of-type(2)'),
+        run: one('.questionnaire-actions .primary-button'),
+        backend: rect(document.querySelector('.utility-tabbar > .task-backend-control')),
+        width: innerWidth,
+        height: innerHeight,
+        overflow: document.documentElement.scrollWidth > innerWidth + 1,
+      };
+    }""")
+
+
+@pytest.mark.parametrize(("language", "width", "height"), [
+    ("en", 1110, 580), ("en", 320, 568), ("zh", 390, 775),
+])
+def test_empty_inputs_take_priority_and_selected_molecule_restores_preview(
+    tmp_path, language, width, height,
+):
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    zh = language == "zh"
+    key = f"work-area-{language}-{width}"
+    tools = ["admet", "brain", "properties", "screen", "states"]
+    source = (
+        "粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)"
+    )
+    with platform(tmp_path / "state", EVIDENCE / f"{key}.log") as base:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch(channel="chrome")
+            page = browser.new_page(
+                viewport={"width": width, "height": height}, reduced_motion="reduce"
+            )
+            page.add_init_script(
+                f"localStorage.setItem('opendde-workbench.language', '{language}')"
+            )
+            writes = []
+            page.on(
+                "request",
+                lambda req: writes.append(req.url)
+                if req.method != "GET" and req.url.startswith(f"{base}/api/")
+                else None,
+            )
+            page.goto(f"{base}/#view=utilities")
+            tabs = page.locator(".utility-tabs button")
+            for index, tool in enumerate(tools, start=1):
+                tabs.nth(index).click()
+                panel = page.locator(f'[data-utility="{tool}"]')
+                expect(panel.locator(".utility-template-controls .example-toolbar")).to_be_visible()
+                backend = page.locator(".utility-tabbar").get_by_role("switch")
+                expect(backend).to_have_attribute("aria-checked", "false")
+                page.locator('.studio-main.is-utilities > .studio-content').evaluate(
+                    "content => { content.scrollTop = 0; }"
+                )
+                area = work_area(panel)
+                assert not area["overflow"], area
+                assert area["input"]["width"] >= 0.90 * area["panel"]["width"], area
+                assert area["upload"]["bottom"] <= area["height"], area
+                assert area["paste"]["bottom"] <= area["height"], area
+                if width == 320:
+                    assert abs(area["upload"]["top"] - area["paste"]["top"]) <= 1, area
+                    assert area["input"]["top"] <= height - 96, area
+                if width == 1110:
+                    assert area["backend"]["height"] < 60, area
+                    if tool == "properties":
+                        assert area["run"]["bottom"] <= height, area
+
+            tabs.nth(3).click()
+            panel = page.locator('[data-utility="properties"]')
+            if width <= 390:
+                guide = panel.locator("summary[aria-label]").filter(
+                    has=page.locator(".example-guide-caption")
+                )
+                guide.click()
+                expect(panel.locator(".example-guide-content strong")).to_contain_text("STAT6")
+                page.keyboard.press("Escape")
+                expect(guide).to_be_focused()
+            panel.get_by_role("radio", name=source, exact=True).check()
+            draft = panel.get_by_role("textbox", name="SMILES", exact=True)
+            draft.fill(DRAFT)
+            expect(panel.locator(".molecular-input-review")).to_be_visible()
+            filled = work_area(panel)
+            if width >= 1100:
+                assert filled["preview"]["right"] <= filled["input"]["left"], filled
+                assert filled["preview"]["width"] > filled["input"]["width"], filled
+            else:
+                assert filled["input"]["bottom"] <= filled["preview"]["top"], filled
+            expect(draft).to_have_value(DRAFT)
+            page.screenshot(path=EVIDENCE / f"{key}-selected.png")
+            draft.fill("")
+            expect(panel.locator(".single-page-preview")).to_be_hidden()
+            assert not writes
             browser.close()

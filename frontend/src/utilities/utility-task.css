@@ -38,6 +38,10 @@
 .utility-image-entry > .image-molecule-actions {
   margin: 4px 0 0;
 }
+.utility-tabbar > .task-backend-control {
+  flex: 0 0 auto;
+  max-width: min(100%, 220px);
+}
 .utility-template-controls .module-template {
   margin: 0 0 4px;
 }
@@ -102,14 +106,14 @@
 .single-page-inputs {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 10px;
   align-items: start;
 }
 .utility-task-fields > .utility-image-entry > .single-page-task {
   flex: 1;
 }
 .molecular-utility .single-page-task .questionnaire-actions {
-  margin-top: 16px;
+  margin-top: 8px;
 }
 .single-page-main,
 .single-page-preview {
@@ -124,6 +128,12 @@
 .single-page-field > * + * {
   margin-top: 8px;
 }
+/* The empty review has no controls; keep its semantic siblings, such as ADMET help. */
+.single-page-preview:not(:has(.molecular-input-review)) .single-page-field > .field-help,
+.single-page-preview:not(:has(.single-page-field > :not(legend, .field-help))) {
+  display: none;
+}
+
 .molecular-utility .single-page-task .questionnaire-choices {
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
@@ -216,53 +226,80 @@
 .utility-task-result > header a {
   margin-left: auto;
 }
-/* The native form keeps its inputs and validation; only its work area changes. */
+@media (max-width: 520px) {
+  /* Case identity remains in the guide and in the open example's heading. */
+  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
+    .example-case:not(:has(button)) {
+    display: none;
+  }
+  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
+    .example-controls {
+    gap: 4px;
+  }
+  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
+    .example-controls > button {
+    padding-inline: 6px;
+  }
+  .utility-template-controls .example-guide > summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (max-width: 360px) {
+  .utility-image-entry > .image-molecule-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+    align-items: stretch;
+  }
+  .utility-image-entry > .image-molecule-actions > button {
+    min-width: 0;
+    padding: 6px 8px;
+    white-space: normal;
+  }
+  .utility-image-entry > .image-molecule-actions > :is(span, button:nth-of-type(3)) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Allocate the left-hand stage once there is a molecule to inspect. */
 @media (min-width: 1100px) {
-  .utility-task-fields > .utility-image-entry > .single-page-task {
+  .utility-task-fields > .utility-image-entry >
+    .single-page-task:has(.single-page-preview .molecular-input-review) {
     display: grid;
     flex: 0 0 auto;
     grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
-    grid-template-rows: auto auto auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    min-height: calc(100dvh - 260px);
     column-gap: 24px;
     row-gap: 12px;
   }
-  .single-page-task:has(.single-page-preview .molecular-input-review) {
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    min-height: calc(100dvh - 260px);
-  }
-  .single-page-inputs {
+  .single-page-inputs:has(.molecular-input-review) {
     display: contents;
   }
-  .single-page-main {
+  .single-page-inputs:has(.molecular-input-review) > .single-page-main {
     grid-column: 2;
     grid-row: 1;
   }
-  .single-page-preview {
+  .single-page-inputs:has(.molecular-input-review) > .single-page-preview {
     grid-column: 1;
     grid-row: 1 / 4;
   }
-  .single-page-preview > .single-page-field {
+  .single-page-preview:has(.molecular-input-review) > .single-page-field {
     display: flex;
     flex-direction: column;
     min-height: 100%;
     margin-bottom: 0;
   }
-  .single-page-preview > .single-page-field > .field-help {
-    display: grid;
-    flex: 1;
-    place-items: center;
-    min-height: 144px;
-    margin: 0;
-    text-align: center;
-  }
   .single-page-preview .molecule-image {
     height: clamp(320px, calc(100dvh - 380px), 760px);
   }
-  .single-page-options {
+  .single-page-inputs:has(.molecular-input-review) > .single-page-options {
     grid-column: 2;
     grid-row: 2;
   }
-  .molecular-utility .single-page-task .questionnaire-actions {
+  .molecular-utility .single-page-task:has(.molecular-input-review)
+    .questionnaire-actions {
     grid-column: 2;
     grid-row: 3;
     margin-top: 0;
