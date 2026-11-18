@@ -19,8 +19,10 @@ def capture_utility_space(page, utility, evidence):
       const actions = form.querySelector('.questionnaire-actions');
       const inputs = form.querySelector('.single-page-main');
       const preview = form.querySelector('.single-page-preview');
+      const inputEnd = Math.max(...[...inputs.querySelectorAll('fieldset.single-page-field')]
+        .map(field => field.getBoundingClientRect().bottom));
       return {panel: box(panel), form: box(form), actions: box(actions),
-        inputs: box(inputs), preview: box(preview), viewport: innerWidth,
+        inputs: box(inputs), inputEnd, preview: box(preview), viewport: innerWidth,
         content: box(content), fits: content.scrollHeight <= content.clientHeight + 1,
         actionsPosition: getComputedStyle(actions).position,
         pageOverflow: document.documentElement.scrollWidth > innerWidth + 1};
@@ -32,6 +34,7 @@ def capture_utility_space(page, utility, evidence):
         assert geometry["preview"]["x"] < geometry["inputs"]["x"], geometry
         assert geometry["preview"]["width"] > geometry["inputs"]["width"] * 1.45, geometry
         assert geometry["actions"]["x"] >= geometry["inputs"]["x"] - 1, geometry
+        assert geometry["actions"]["y"] - geometry["inputEnd"] <= 96, geometry
     if geometry["fits"]:
         assert geometry["actions"]["bottom"] <= geometry["content"]["bottom"] + 1, geometry
     (evidence / "utility-first-step-geometry.json").write_text(json.dumps(geometry, indent=2))
