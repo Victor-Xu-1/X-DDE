@@ -556,7 +556,7 @@ def reviewed_selected(changed, event, base, files, digest):
     remaining = changed - files - {"scripts/molecular-utility-scope.py"}
     if not remaining <= scope["VERSION_FILES"]:
         return False
-    if not scope["only_version_mirrors"](base, remaining):
+    if remaining and not scope["only_version_mirrors"](base, remaining):
         return False
     reviewed = [
         [path, blob_digest(base, path), blob_digest("HEAD", path)]
