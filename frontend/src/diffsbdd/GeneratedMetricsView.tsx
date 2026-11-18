@@ -6,10 +6,12 @@ export function GeneratedMetricsView({
   active,
   language,
   action,
+  fixedRegionVerified,
 }: {
   active: GeneratedMetrics;
   language: Language;
   action?: ReactNode;
+  fixedRegionVerified?: boolean;
 }) {
   const zh = language === "zh";
   return (
@@ -30,6 +32,10 @@ export function GeneratedMetricsView({
           {zh
             ? `包含 ${active.fragments} 个未连接的结构片段。请先检查连接关系。`
             : `Contains ${active.fragments} disconnected components. Check connectivity before continuing.`}
+          {fixedRegionVerified &&
+            (zh
+              ? "固定区域检查仅覆盖保留核心。"
+              : " Fixed-region checks cover the retained core.")}
         </p>
       )}
       <dl className="native-result-metrics generated-primary-metrics">
@@ -42,9 +48,7 @@ export function GeneratedMetricsView({
           <dd>{active.fragments ?? "—"}</dd>
         </div>
         <div>
-          <dt>
-            {zh ? "口袋近接原子对（< 1.2 Å）" : "Pocket atom pairs < 1.2 Å"}
-          </dt>
+          <dt>{zh ? "口袋近接 <1.2 Å" : "Pocket pairs <1.2 Å"}</dt>
           <dd>{active.pocket_atom_pairs_under_1_2_angstrom}</dd>
         </div>
       </dl>
@@ -53,7 +57,7 @@ export function GeneratedMetricsView({
           active.relaxation_converged === false ? "notice" : "field-help"
         }
       >
-        {zh ? "分子内松弛：" : "Intramolecular relaxation: "}
+        {zh ? "分子内松弛 · " : "Intramolecular relaxation · "}
         {active.relaxation_converged === true
           ? zh
             ? "已报告收敛"
@@ -73,6 +77,11 @@ export function GeneratedMetricsView({
             : "Potential steric clashes: inspect and refine the pose before downstream research."}
         </p>
       )}
+      <p className="field-help">
+        {zh
+          ? "近接仅检查条件口袋。完整受体姿势和立体化学需独立质控。"
+          : "Proximity covers the conditioning pocket. Verify full-receptor poses and stereochemistry separately."}
+      </p>
       <details>
         <summary>{zh ? "更多构象指标" : "More structure metrics"}</summary>
         <dl className="native-result-metrics">
@@ -97,11 +106,6 @@ export function GeneratedMetricsView({
             <dd>{active.minimum_pocket_distance_angstrom} Å</dd>
           </div>
         </dl>
-        <p className="field-help">
-          {zh
-            ? "近接指标仅覆盖生成条件口袋。完整受体中的构象、立体化学与结合姿势需要独立质控。"
-            : "Proximity metrics cover the conditioning pocket. Full-receptor geometry, stereochemistry and binding pose need independent quality checks."}
-        </p>
       </details>
     </section>
   );

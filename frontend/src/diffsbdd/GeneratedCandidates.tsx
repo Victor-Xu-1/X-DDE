@@ -141,6 +141,9 @@ export function GeneratedCandidates({
           active={active}
           language={language}
           action={download}
+          fixedRegionVerified={
+            selected ? qualified?.has(selected.record) : false
+          }
         />
       ) : (
         download
@@ -155,7 +158,7 @@ export function GeneratedCandidates({
       <div
         className={
           optimization
-            ? "generated-candidate-table optimization-candidate-table"
+            ? "optimization-candidate-table"
             : generated
               ? "generated-candidate-table"
               : undefined

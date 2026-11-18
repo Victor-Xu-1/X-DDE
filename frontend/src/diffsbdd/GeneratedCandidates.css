@@ -27,9 +27,16 @@
 }
 
 .generated-structure-checks .generated-primary-metrics > div {
-  align-self: end;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   padding-block: 2px;
   border: 0;
+}
+
+.generated-primary-metrics dt {
+  margin-bottom: 3px;
+  line-height: 1.25;
 }
 
 .generated-structure-checks > p {
@@ -53,6 +60,11 @@
 .generated-candidate-table .research-table-toolbar {
   gap: 7px;
   padding: 7px 0;
+}
+
+.generated-candidate-table .result-search {
+  flex-basis: 115px;
+  min-width: 0;
 }
 
 .generated-candidate-table .research-table thead th {
@@ -88,6 +100,10 @@
 }
 
 @media (max-width: 600px) {
+  .generated-structure-checks .generated-candidate-download > button {
+    min-height: 44px;
+  }
+
   .generated-candidate-table .molecule-record {
     grid-template-columns: minmax(0, 72px) minmax(0, 1fr);
   }

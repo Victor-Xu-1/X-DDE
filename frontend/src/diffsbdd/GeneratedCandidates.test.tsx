@@ -336,8 +336,8 @@ it.each(["en", "zh"] as const)(
     );
     expect(region).toHaveTextContent(
       language === "zh"
-        ? "结合姿势需要独立质控"
-        : "binding pose need independent quality checks",
+        ? "完整受体姿势和立体化学需独立质控"
+        : "Verify full-receptor poses and stereochemistry separately",
     );
   },
 );
@@ -464,7 +464,7 @@ it("keeps source record identities after a filtered/reordered table and does not
   expect(screen.getByText("1.64 Å")).toBeVisible();
   expect(
     screen.getByText(
-      "Proximity metrics cover the conditioning pocket. Full-receptor geometry, stereochemistry and binding pose need independent quality checks.",
+      "Proximity covers the conditioning pocket. Verify full-receptor poses and stereochemistry separately.",
     ),
   ).toBeVisible();
 });

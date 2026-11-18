@@ -50,7 +50,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         sync_playwright() as driver,
     ):
         browser = driver.chromium.launch(channel="chrome")
-        page = browser.new_page(viewport={"width": width, "height": 1050})
+        height = 900 if width > 1000 else 775
+        page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.add_init_script("""window.__nativeViewerLoads = [];
             window.addEventListener('message', event => {
@@ -92,7 +93,9 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         rail = details.bounding_box()
         assert initial_table and rail and initial_table["width"] <= rail["width"] + 2
         if width > 1000:
-            assert initial_table["y"] < 660, initial_table
+            first_row = table.locator("tbody tr").first.bounding_box()
+            assert first_row and first_row["y"] + 44 <= height, first_row
+            assert box["y"] + 250 <= height, box
         expect(table.get_by_role("columnheader", name="QED", exact=True)).to_be_visible()
         generation_details = details.get_by_text(
             "生成详情" if zh else "Generation details", exact=True
@@ -111,11 +114,26 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
         )
         expect(checks).to_contain_text(str(native_row["qed"]))
-        advanced = checks.get_by_text("更多构象指标" if zh else "More structure metrics", exact=True)
+        expect(
+            checks.get_by_text("近接仅检查条件口袋" if zh else "Proximity covers the conditioning pocket")
+        ).to_be_visible()
+        advanced = checks.get_by_text(
+            "更多构象指标" if zh else "More structure metrics", exact=True
+        )
         expect(checks.get_by_text("LogP", exact=True)).to_be_hidden()
         advanced.click()
         expect(checks.get_by_text("LogP", exact=True)).to_be_visible()
         advanced.click()
+        expect(selected).to_have_attribute("aria-pressed", "true")
+        compare = "对比" if zh else "Compare"
+        candidate = "候选" if zh else "Candidate"
+        for number in (1, 2):
+            table.get_by_role("checkbox", name=f"{compare} {candidate} {number}").check()
+        compare_button = details.get_by_role("button", name=f"{compare} (2)", exact=True)
+        compare_button.click()
+        comparison = details.get_by_role("region", name="结果对比" if zh else "Result comparison")
+        expect(comparison).to_contain_text(str(native_row["qed"]))
+        compare_button.click()
         expect(selected).to_have_attribute("aria-pressed", "true")
         with page.expect_download() as sdf_download:
             details.get_by_role(
