@@ -182,7 +182,6 @@ on:
       # The view alignment gate builds and checks these exact preview consumers.
       - "!frontend/src/examples/CampaignCasePreview.tsx"
       - "!frontend/src/examples/campaign-preview.css"
-      - "!frontend/src/operations/PreparedInputResults.tsx"
       - "!frontend/src/operations/CampaignMonitor.tsx"
       # Shared interactive charts and appearance use chart-quality-checks.yml.
       - "!frontend/src/presentation/plots/**"
@@ -314,6 +313,7 @@ on:
       - "!frontend/src/receptors/ReceptorResults.tsx"
       - "!frontend/src/receptors/StructurePrepareForm.tsx"
       - "!frontend/src/receptors/StructurePrepareResults*"
+      - "!frontend/src/operations/PreparedInputResults*"
       - "!frontend/src/receptors/SurfaceRegionPicker.tsx"
       - "!frontend/src/receptors/SurfaceResults.tsx"
       - "!frontend/src/receptors/surface.css"
@@ -637,6 +637,7 @@ on:
       - "!frontend/src/receptors/ReceptorResults.tsx"
       - "!frontend/src/receptors/StructurePrepareForm.tsx"
       - "!frontend/src/receptors/StructurePrepareResults*"
+      - "!frontend/src/operations/PreparedInputResults*"
       - "!frontend/src/receptors/SurfaceRegionPicker.tsx"
       - "!frontend/src/receptors/SurfaceResults.tsx"
       - "!frontend/src/receptors/surface.css"

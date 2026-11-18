@@ -9,6 +9,12 @@ on:
       - "frontend/src/presentation/sequence-track.css"
       - "frontend/src/presentation/result-inspection.css"
       - "frontend/src/operations/SequenceScoreResults*"
+      - "frontend/src/operations/PreparedInputResults*"
+      - "frontend/src/operations/prepared-input-*.ts"
+      - "frontend/src/operations/prepared-input-results.css"
+      - "frontend/src/operations/usePreparedDocuments.ts"
+      - "server_tests/test_prepared_input_workspace_browser.py"
+      - "scripts/prepared-input-scope.py"
       - "frontend/src/operations/sequence-scores.css"
       - "frontend/src/antibodies/AntibodyNumberResults*"
       - "frontend/src/antibodies/AntibodyDomainDetail*"
@@ -49,6 +55,8 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
+      prepared_inputs: ${{ steps.preparation.outputs.prepared_inputs }}
+      prepared_inputs_only: ${{ steps.preparation.outputs.prepared_inputs_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,9 +65,58 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
+      - id: preparation
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/prepared-input-scope.py
+  prepared-inputs:
+    needs: workflow-scope
+    if: needs.workflow-scope.outputs.prepared_inputs == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - working-directory: frontend
+        run: npx vitest run src/operations/PreparedInputResults.test.tsx src/operations/OperationResults.test.tsx
+      - name: Restore sealed input results without running any engine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-prepared-inputs"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          uv sync --locked --group dev --group browser
+          version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
+          gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
+          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
+      - name: Preview native materials and verify original JSON and FASTA
+        run: |
+          uv run --locked ruff check scripts/prepared-input-scope.py server_tests/test_prepared_input_workspace_browser.py
+          google-chrome --version
+          mkdir -p server_tests/evidence/prepared-inputs
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/prepared-inputs/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_prepared_input_workspace_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prepared-input-workspace-evidence
+          path: server_tests/evidence/prepared-inputs
   result-inspection:
     needs: [workflow-scope, utility-scope]
-    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true'
+    if: needs.workflow-scope.outputs.prepared_inputs_only != 'true' && needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

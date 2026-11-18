@@ -43,6 +43,7 @@ jobs:
       admet_result_only: ${{ steps.admet.outputs.admet_result_only }}
       target_evidence_only: ${{ steps.target.outputs.target_evidence_only }}
       receptor_workspace_only: ${{ steps.receptors.outputs.receptor_workspace_only }}
+      prepared_inputs_only: ${{ steps.preparation.outputs.prepared_inputs_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,9 +68,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/receptor-workspace-scope.py
+      - id: preparation
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/prepared-input-scope.py
   frontend-guidance:
     needs: [scope, utility-scope, workspace-scope]
-    if: needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (!inputs.scope_only && needs.scope.outputs.receptor_workspace_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.target_evidence_only != 'true')
+    if: needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (!inputs.scope_only && needs.scope.outputs.prepared_inputs_only != 'true' && needs.scope.outputs.receptor_workspace_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.target_evidence_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
