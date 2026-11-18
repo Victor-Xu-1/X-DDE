@@ -48,6 +48,7 @@ def check_series_quality(page, root, base, identifier, evidence, language):
     results_tab.press("ArrowRight")
     expect(charts_tab).to_be_focused()
     expect(mono_view).to_have_attribute("aria-pressed", "true")
+    expect(root.locator(".dataset-series-context")).to_have_count(1)
     result = page.request.get(base + f"/api/jobs/{identifier}/result").json()
     artifact = next(
         item for item in result["artifacts"] if item["role"] == "del_series_visualization"
