@@ -50,9 +50,6 @@
   .prediction-confidence-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .prediction-seed-picker select {
-    width: clamp(88px, 27vw, 134px);
-  }
   .prediction-sample-picker nav {
     min-width: 0;
   }
