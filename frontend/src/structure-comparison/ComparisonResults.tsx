@@ -1,6 +1,6 @@
 import { ComparisonPreview } from "./ComparisonPreview";
 import { ComparisonDownloads, ComparisonSources } from "./ComparisonFiles";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Hint } from "../guided/Hint";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
 import { PocketForm } from "../pockets/PocketForm";
@@ -9,6 +9,7 @@ import {
   type ResearchColumn,
 } from "../presentation/ResearchTable";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Job, Language } from "../types";
 import { CoverageTable, InterfaceTable } from "./ComparisonEvidenceTables";
 import { DisplacementPlot } from "./DisplacementPlot";
@@ -19,6 +20,7 @@ import {
   type Displacement,
 } from "./types";
 import "./comparison.css";
+import "./comparison-result-view.css";
 
 export function ComparisonResults({
   job,
@@ -33,9 +35,7 @@ export function ComparisonResults({
 }) {
   const zh = language === "zh",
     data = result.geometry;
-  const [tab, setTab] = useState<
-    "displacements" | "interfaces" | "coverage" | "sources"
-  >("displacements");
+  const previewHeader = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<Displacement | null>(null),
     [handoff, setHandoff] = useState(false);
   const columns: ResearchColumn<Displacement>[] = [
@@ -92,6 +92,7 @@ export function ComparisonResults({
           <ComparisonPreview
             jobId={job.id}
             language={language}
+            headerRef={previewHeader}
             selection={selection}
             onClear={() => setSelection(null)}
             onUse={saved && onCreated ? () => setHandoff(true) : undefined}
@@ -118,32 +119,6 @@ export function ComparisonResults({
             </small>
           </div>
         </dl>
-        <div
-          className="comparison-preview-actions"
-          role="group"
-          aria-label={zh ? "比较分析" : "Comparison analysis"}
-        >
-          {(
-            ["displacements", "interfaces", "coverage", "sources"] as const
-          ).map((value) => (
-            <button
-              key={value}
-              type="button"
-              className="secondary-button"
-              aria-pressed={tab === value}
-              onClick={() => setTab(value)}
-            >
-              {
-                {
-                  displacements: zh ? "残基位移" : "Residue displacement",
-                  interfaces: zh ? "界面" : "Interfaces",
-                  coverage: zh ? "覆盖率" : "Coverage",
-                  sources: zh ? "结构来源" : "Sources",
-                }[value]
-              }
-            </button>
-          ))}
-        </div>
         <Hint
           label={zh ? "结构比较的解释" : "Interpreting structural comparisons"}
         >
@@ -155,40 +130,79 @@ export function ComparisonResults({
               ? "结果只适用于所选参照、链对应和观测残基；不能代替实验验证。"
               : "Results are conditioned on the selected reference, mapping and observed residues; they do not replace experimental validation."}
         </Hint>
-        {tab === "displacements" && (
-          <>
-            <DisplacementPlot
-              rows={data.residue_displacements}
-              language={language}
-              onSelect={setSelection}
-            />
-            <ResearchTable
-              rows={data.residue_displacements}
-              columns={columns}
-              rowId={displacementId}
-              selected={selection ? displacementId(selection) : null}
-              onSelect={setSelection}
-              compare={false}
-              title={zh ? "逐残基比较" : "Per-residue comparison"}
-              language={language}
-              exportName="selected-residue-displacements.csv"
-              initialVisibleColumns={["reference", "moving", "displacement"]}
-            />
-          </>
+        {selection && (
+          <button
+            type="button"
+            className="secondary-button comparison-return-to-residue"
+            onClick={() => {
+              previewHeader.current?.scrollIntoView({ block: "start" });
+              previewHeader.current?.focus({ preventScroll: true });
+            }}
+          >
+            {zh ? "查看选中残基" : "View selected residue"}
+          </button>
         )}
-        {tab === "interfaces" && (
-          <InterfaceTable result={result} language={language} />
-        )}
-        {tab === "coverage" && (
-          <CoverageTable result={result} language={language} />
-        )}
-        {tab === "sources" && (
-          <ComparisonSources
-            jobId={job.id}
-            result={result}
-            language={language}
+        <div className="comparison-analysis">
+          <ResearchTabs
+            label={zh ? "比较分析" : "Comparison analysis"}
+            tabs={[
+              {
+                id: "plot",
+                label: zh ? "位移图" : "Plot",
+                content: (
+                  <DisplacementPlot
+                    rows={data.residue_displacements}
+                    language={language}
+                    onSelect={setSelection}
+                  />
+                ),
+              },
+              {
+                id: "residues",
+                label: zh ? "残基表" : "Residues",
+                content: (
+                  <ResearchTable
+                    rows={data.residue_displacements}
+                    columns={columns}
+                    rowId={displacementId}
+                    selected={selection ? displacementId(selection) : null}
+                    onSelect={setSelection}
+                    compare={false}
+                    title={zh ? "逐残基比较" : "Per-residue comparison"}
+                    language={language}
+                    exportName="selected-residue-displacements.csv"
+                    initialVisibleColumns={[
+                      "reference",
+                      "moving",
+                      "displacement",
+                    ]}
+                  />
+                ),
+              },
+              {
+                id: "interfaces",
+                label: zh ? "界面" : "Interfaces",
+                content: <InterfaceTable result={result} language={language} />,
+              },
+              {
+                id: "coverage",
+                label: zh ? "覆盖率" : "Coverage",
+                content: <CoverageTable result={result} language={language} />,
+              },
+              {
+                id: "sources",
+                label: zh ? "来源" : "Sources",
+                content: (
+                  <ComparisonSources
+                    jobId={job.id}
+                    result={result}
+                    language={language}
+                  />
+                ),
+              },
+            ]}
           />
-        )}
+        </div>
         <ComparisonDownloads jobId={job.id} language={language} />
       </StructureWorkbench>
     </section>

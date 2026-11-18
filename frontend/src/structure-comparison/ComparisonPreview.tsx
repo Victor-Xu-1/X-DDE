@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -8,12 +8,14 @@ import { addressLabel, type Displacement } from "./types";
 export function ComparisonPreview({
   jobId,
   language,
+  headerRef,
   selection,
   onClear,
   onUse,
 }: {
   jobId: string;
   language: Language;
+  headerRef: Ref<HTMLDivElement>;
   selection: Displacement | null;
   onClear(): void;
   onUse?: () => void;
@@ -36,24 +38,47 @@ export function ComparisonPreview({
     : [];
   return (
     <>
-      <div className="comparison-preview-actions">
-        {(["overlay", "reference", "moving"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className="secondary-button"
-            aria-pressed={view === value}
-            onClick={() => setView(value)}
-          >
-            {
+      <div className="comparison-preview-header" ref={headerRef} tabIndex={-1}>
+        <div className="comparison-preview-actions">
+          {(["overlay", "reference", "moving"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              className="secondary-button"
+              aria-pressed={view === value}
+              onClick={() => setView(value)}
+            >
               {
-                overlay: zh ? "已对齐叠合" : "Aligned overlay",
-                reference: zh ? "参照" : "Reference",
-                moving: zh ? "已对齐比较结构" : "Aligned comparison",
-              }[value]
-            }
-          </button>
-        ))}
+                {
+                  overlay: zh ? "已对齐叠合" : "Aligned overlay",
+                  reference: zh ? "参照" : "Reference",
+                  moving: zh ? "已对齐比较结构" : "Aligned comparison",
+                }[value]
+              }
+            </button>
+          ))}
+        </div>
+        <div className="comparison-preview-context">
+          <p className="field-help">
+            {view === "overlay"
+              ? zh
+                ? "蓝色参照 · 橙色比较 · 同一已验证坐标系"
+                : "Blue reference · Orange comparison · Verified shared frame"
+              : zh
+                ? "原生链配色"
+                : "Native chain colors"}
+          </p>
+          {selection && (
+            <output className="field-help">
+              {addressLabel(selection.reference)} →{" "}
+              {addressLabel(selection.moving)} ·{" "}
+              {selection.displacement_angstrom.toFixed(3)} Å
+              <button type="button" className="text-button" onClick={onClear}>
+                {zh ? "清除选择" : "Clear selection"}
+              </button>
+            </output>
+          )}
+        </div>
       </div>
       <StructureViewer
         key={jobId + ":" + view}
@@ -63,24 +88,6 @@ export function ComparisonPreview({
         sourceSnapshot
         residueRegion={region}
       />
-      <p className="field-help">
-        {view === "overlay"
-          ? zh
-            ? "蓝色：参照；橙色：比较结构。两者使用已验证的同一坐标系。"
-            : "Blue: reference; orange: comparison. Both use the verified reference coordinate frame."
-          : zh
-            ? "已选择结构的原生链配色。"
-            : "Native chain colors for the selected structure."}
-      </p>
-      {selection && (
-        <output className="field-help">
-          {addressLabel(selection.reference)} → {addressLabel(selection.moving)}{" "}
-          · {selection.displacement_angstrom.toFixed(3)} Å
-          <button type="button" className="text-button" onClick={onClear}>
-            {zh ? "清除选择" : "Clear selection"}
-          </button>
-        </output>
-      )}
       {onUse && (
         <button type="button" className="secondary-button" onClick={onUse}>
           {zh

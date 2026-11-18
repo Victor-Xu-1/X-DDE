@@ -32,13 +32,68 @@ on:
       - "src/opendde_workbench/examples/stat6/catalogue-profiles.json"
       - "src/opendde_workbench/examples/stat6/inputs/4Y5W.cif"
       - "server_tests/test_native_structure_comparison.py"
+      - "server_tests/test_archived_comparison_browser.py"
       - "tests/test_structure_comparison*.py"
+      - "scripts/comparison-layout-scope.py"
       - ".github/workflows/structure-comparison-checks.yml"
   pull_request:
     paths: *comparison_paths
 permissions:
   contents: read
 jobs:
+  layout-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      layout_only: ${{ steps.scope.outputs.layout_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/comparison-layout-scope.py
+  archived-result-layout:
+    needs: layout-scope
+    if: needs.layout-scope.outputs.layout_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - run: uv sync --locked --group dev --group browser
+      - name: Comparison selection identity and direct form and viewer consumers
+        working-directory: frontend
+        run: >-
+          npx vitest run src/structure-comparison/ComparisonForm.test.tsx
+          src/structure-comparison/ComparisonScene.test.ts
+          src/operations/StructureComparisonResults.test.tsx
+          src/presentation/ResearchTabs.test.tsx
+      - name: Validate and restore the published STAT6 result without running an engine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-comparison-layout" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-comparison-layout/state" >> "$GITHUB_ENV"
+          export WB_HOME="$RUNNER_TEMP/x-dde-comparison-layout"
+          export WB_STATE_DIR="$WB_HOME/state"
+          google-chrome --version
+          uv run --locked ruff check scripts/comparison-layout-scope.py
+          uv run --locked ruff check server_tests/test_archived_comparison_browser.py server_tests/comparison_browser_harness.py
+          uv run --locked python server_tests/prepare_quality_context_cases.py
+      - name: Inspect one native scene with desktop and narrow analysis controls
+        run: uv run --locked python -m pytest -x -q server_tests/test_archived_comparison_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archived-comparison-layout
+          path: outputs/comparison-layout/
   utility-scope:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
@@ -57,8 +112,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/antibody_template_scope.py
   contracts-and-frame:
-    needs: [antibody-scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
+    needs: [antibody-scope, utility-scope, layout-scope]
+    if: needs.layout-scope.outputs.layout_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

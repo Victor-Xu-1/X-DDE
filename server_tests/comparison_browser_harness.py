@@ -38,6 +38,7 @@ def verify_browser(state, job_id, result, evidence):
                 expect(capture).to_be_enabled(timeout=45000)
                 expected = format(result["geometry"]["partner_rmsd_angstrom"], ".3f") + " Å"
                 expect(panel.locator(".comparison-result-metrics")).to_contain_text(expected)
+                panel.get_by_role("tab", name="残基表" if zh else "Residues", exact=True).click()
                 table = panel.get_by_role(
                     "table", name="逐残基比较" if zh else "Per-residue comparison", exact=True
                 )
@@ -80,10 +81,10 @@ def verify_browser(state, job_id, result, evidence):
                         "链对应与覆盖率" if zh else "Chain correspondence and coverage",
                     ),
                 ):
-                    panel.get_by_role("button", name=name, exact=True).click()
+                    panel.get_by_role("tab", name=name, exact=True).click()
                     expect(panel.get_by_role("table", name=title, exact=True)).to_be_visible()
                 panel.get_by_role(
-                    "button", name="结构来源" if zh else "Sources", exact=True
+                    "tab", name="来源" if zh else "Sources", exact=True
                 ).click()
                 expect(panel.get_by_role("link", name="reference.cif", exact=True)).to_be_visible()
                 expect(panel.get_by_role("link", name="moving.cif", exact=True)).to_be_visible()
@@ -121,9 +122,10 @@ def verify_browser(state, job_id, result, evidence):
                     .startswith("role,reference_chain,")
                 )
                 panel.get_by_role(
-                    "button", name="残基位移" if zh else "Residue displacement", exact=True
+                    "tab", name="位移图" if zh else "Plot", exact=True
                 ).click()
-                expect(panel.locator(".research-plot .js-plotly-plot")).to_be_visible(timeout=45000)
+                plot = panel.get_by_role("tabpanel", name="位移图" if zh else "Plot", exact=True)
+                expect(plot.locator(".research-plot .js-plotly-plot")).to_be_visible(timeout=45000)
                 capture.click()
                 image_link = panel.get_by_role(
                     "link", name="下载视图 PNG" if zh else "Download view PNG", exact=True
