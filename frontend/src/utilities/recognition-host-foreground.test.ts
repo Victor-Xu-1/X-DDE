@@ -80,6 +80,7 @@ function setup() {
       .fn()
       .mockResolvedValue({ smiles: "Nc1ccccc1", molfile: "M  END\n" }),
     subscribe: () => () => {},
+    recognitionReady: vi.fn(() => true),
     loadMolecule: vi.fn(),
     recognize: vi.fn().mockImplementation((_file, currentSignal) => {
       signal = currentSignal;
@@ -108,6 +109,10 @@ function setup() {
     deliver,
     commit: () => {
       selected = file;
+      bridge.publish();
+    },
+    replace: (next: File) => {
+      selected = next;
       bridge.publish();
     },
     finish: () => finish(),
@@ -142,6 +147,45 @@ it("connect only stages an image; committed file lease and explicit foreground r
   expect(h.post).toHaveBeenLastCalledWith(
     expect.objectContaining({ recognitionPhase: "ready", valid: true }),
     "http://127.0.0.1:4322",
+  );
+  h.bridge.dispose();
+});
+
+it("refuses OCR when the service stops after connection and publishes its actual state", async () => {
+  const h = setup();
+  h.deliver({ type: "xdde-image:connect", file: h.file });
+  await flush();
+  h.commit();
+  expect(h.post).toHaveBeenLastCalledWith(
+    expect.objectContaining({ recognitionServiceReady: true }),
+    "http://127.0.0.1:4322",
+  );
+  h.host.recognitionReady = () => false;
+  h.deliver({ type: "xdde-image:recognize", requestId: h.requestId });
+  expect(h.host.recognize).not.toHaveBeenCalled();
+  expect(h.post).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      recognitionServiceReady: false,
+      recognitionPhase: "failed",
+    }),
+    "http://127.0.0.1:4322",
+  );
+  h.bridge.dispose();
+});
+
+it("recognizes the image selected in the editor after a source replacement", async () => {
+  const h = setup();
+  h.deliver({ type: "xdde-image:connect", file: h.file });
+  await flush();
+  h.commit();
+  const replacement = new File(["replacement"], "replacement.png", {
+    type: "image/png",
+  });
+  h.replace(replacement);
+  h.deliver({ type: "xdde-image:recognize", requestId: h.requestId });
+  expect(h.host.recognize).toHaveBeenCalledExactlyOnceWith(
+    replacement,
+    expect.any(AbortSignal),
   );
   h.bridge.dispose();
 });

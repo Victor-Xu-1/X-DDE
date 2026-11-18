@@ -6,7 +6,6 @@ export interface NativeRecognitionWork {
   error: string;
   smiles: string;
   structureGate: { available: boolean };
-  setPower(enabled: boolean): Promise<unknown>;
   recognize(): Promise<{ id: string } | undefined>;
 }
 type Pending = {
@@ -16,8 +15,6 @@ type Pending = {
   reject(error: Error): void;
   remove(): void;
   seenFile: boolean;
-  seenPower: boolean;
-  powerRequested: boolean;
   started: boolean;
   jobId: string | null;
 };
@@ -48,8 +45,6 @@ export function createForegroundRecognition(
     }
     item.seenFile = true;
     const phase = work.state.phase;
-    if (["starting", "loading", "ready", "busy"].includes(phase))
-      item.seenPower = true;
     if (item.started && item.jobId) {
       const job = work.state.job;
       if (job?.id === item.jobId) {
@@ -76,19 +71,7 @@ export function createForegroundRecognition(
       return;
     }
     if (phase === "stopped") {
-      if (item.seenPower) {
-        finish(item, new Error("Recognition service was stopped"));
-        return;
-      }
-      if (!item.powerRequested) {
-        item.powerRequested = true;
-        void work
-          .setPower(true)
-          .then(update)
-          .catch(() =>
-            finish(item, new Error("Recognition service did not start")),
-          );
-      }
+      finish(item, new Error("Recognition service is off"));
       return;
     }
     if (item.started) return;
@@ -126,8 +109,6 @@ export function createForegroundRecognition(
           resolve,
           reject,
           seenFile: false,
-          seenPower: false,
-          powerRequested: false,
           started: false,
           jobId: null,
           remove: () => signal.removeEventListener("abort", cancel),

@@ -74,47 +74,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.image-molecule-dialog.is-automatic {
-  width: min(600px, calc(100vw - 24px));
-  height: auto;
-}
-.image-molecule-dialog > .recognition-background-frame {
-  position: absolute;
-  left: -10000px;
-  top: 0;
-  width: 1000px;
-  height: 680px;
-  min-height: 0;
-  flex: none;
-  visibility: hidden;
-  pointer-events: none;
-}
-.image-recognition-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 28px 20px;
-  min-height: 108px;
-}
-.image-recognition-spinner {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
-  border: 2px solid var(--line);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: image-recognition-spin 900ms linear infinite;
-}
-@keyframes image-recognition-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .image-recognition-spinner {
-    animation: none;
-  }
-}
 @media (max-width: 600px) {
   .image-molecule-dialog {
     width: calc(100vw - 12px);
@@ -123,6 +82,17 @@
   .image-molecule-dialog > header,
   .image-molecule-dialog > footer {
     padding: 10px;
+  }
+  .image-molecule-dialog > footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .image-molecule-dialog > footer > span {
+    flex: 1 0 100%;
+    max-width: 100%;
+  }
+  .image-molecule-dialog > footer > button {
+    white-space: nowrap;
   }
   .image-molecule-dialog h2 {
     font-size: 17px;

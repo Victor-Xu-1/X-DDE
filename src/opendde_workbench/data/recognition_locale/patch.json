@@ -474,7 +474,7 @@
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "a39a5b6e26017ccb2f9a5c54a63ea6077c1b68e7f4f12ae6fb9f7e96e93f42c4",
+      "after_sha256": "7d61226e7a2f4f8738fb2642dabca1d9d55c23690c07b86fd8a984c9abea1433",
       "changes": [
         {
           "before": "          const molfile = await editor.getMolfile();",
@@ -502,7 +502,7 @@
         },
         {
           "before": "        selectFile: (file) => latest.current.selectFile(file),",
-          "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+          "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
         },
         {
           "before": "          !latest.current.busy &&",
@@ -527,7 +527,7 @@
             },
             {
               "before": "        selectFile: (file) => latest.current.selectFile(file),",
-              "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+              "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
             },
             {
               "before": "          !latest.current.busy &&",
@@ -538,6 +538,15 @@
               "after": "  useEffect(() => {\n    foreground.current?.update();\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file, work.error, work.state.phase, work.state.job?.id, work.state.job?.status]);"
             }
           ]
+        },
+        {
+          "before_sha256": "a39a5b6e26017ccb2f9a5c54a63ea6077c1b68e7f4f12ae6fb9f7e96e93f42c4",
+          "changes": [
+            {
+              "before": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },",
+              "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+            }
+          ]
         }
       ]
     }
@@ -545,7 +554,14 @@
   "adapter_upgrades": {
     "recognition-host-bridge.ts": [
       "16f4156052bf98fdf8ac0e697dfee5a6f34f1ce7386f111c35e1c8e190cb7ecb",
-      "db899bf156c8192310882c3d8e4b526e1d23cae9be5e31985d3e193c0266f7f0"
+      "db899bf156c8192310882c3d8e4b526e1d23cae9be5e31985d3e193c0266f7f0",
+      "db2e0692f0b0623f4e636b78b04982db3546e2ea2450300bdcae66302fa87172"
+    ],
+    "recognition-foreground.ts": [
+      "abffd7e0d991d0d5d442d857b7dff2475e0bea7b6f93bb81bd089b9eac5346f8"
+    ],
+    "recognition-host-editor.css": [
+      "ad4f65c41edea5c7f91205960e125c3732701007a4ee0420d2a6318f2f90823a"
     ]
   }
 }

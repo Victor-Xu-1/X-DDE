@@ -84,7 +84,7 @@ def image_hosts(root):
 
 
 @pytest.mark.parametrize("width", [1440, 390])
-def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_image, width):
+def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
     evidence = Path("outputs/utility-image") / str(width)
     evidence.mkdir(parents=True, exist_ok=True)
     png = base64.b64decode(
@@ -139,6 +139,23 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
         primary.locator(':scope > input[type="file"]').set_input_files({
             "name": "STAT6-transport.png", "mimeType": "image/png", "buffer": png,
         })
+        dialog = page.get_by_role("dialog")
+        frame = dialog.frame_locator("iframe")
+        power = frame.get_by_role("switch", name="Recognition backend")
+        expect(power).to_be_visible()
+        expect(power).not_to_be_checked()
+        expect(frame.get_by_label("OCR calls")).to_have_text("0")
+        expect(dialog.get_by_role("button", name="Use this molecule")).to_be_disabled()
+        assert not uploads
+        page.screenshot(path=evidence / "recognition-off.png")
+        replacement = png + b"replacement image fixture"
+        frame.get_by_label("Replace image").set_input_files({
+            "name": "replacement-transport.png", "mimeType": "image/png", "buffer": replacement,
+        })
+        expect(dialog.locator('footer [role="status"]')).to_have_text(
+            "replacement-transport.png",
+        )
+        power.press("Space")
         try:
             expect(page.get_by_label("Primary input", exact=True)).to_have_text(
                 "controlled-image-1",
@@ -154,13 +171,17 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
             raise
         expect(page.get_by_role("dialog")).to_have_count(0)
         assert b"Image-assisted molecular input" in uploads[0]
-        assert hashlib.sha256(png).hexdigest().encode() in uploads[0]
+        assert hashlib.sha256(replacement).hexdigest().encode() in uploads[0]
         primary.get_by_role("button", name="Edit recognized structure", exact=True).click()
         dialog = page.get_by_role("dialog")
         expect(dialog).to_be_visible()
         frame = dialog.frame_locator("iframe")
         expect(frame.get_by_label("Graph text")).to_have_value("Nc1ccccc1")
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
+        power = frame.get_by_role("switch", name="Recognition backend")
+        expect(power).to_be_checked()
+        power.click()
+        expect(power).not_to_be_checked()
         frame.get_by_label("Graph text").fill("NCCc1ccccc1")
         dialog.get_by_role("button", name="Use this molecule", exact=True).click()
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
@@ -169,6 +190,11 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
         query.get_by_label("Choose structure image", exact=True).set_input_files({
             "name": "query-transport.png", "mimeType": "image/png", "buffer": png,
         })
+        frame = page.get_by_role("dialog").frame_locator("iframe")
+        power = frame.get_by_role("switch", name="Recognition backend")
+        expect(power).not_to_be_checked()
+        expect(frame.get_by_label("OCR calls")).to_have_text("0")
+        power.click()
         expect(page.get_by_label("Query input", exact=True)).to_have_text("controlled-image-3")
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
         page.get_by_role("button", name="Toggle active tool").click()
@@ -183,5 +209,7 @@ def test_automatic_import_prefilled_edit_and_nested_query_ownership(compiled_ima
             "scientific_jobs": 0, "uploads": len(uploads), "edited_graph_prefill": True,
             "nested_query_ownership": True, "image_digest_preserved": True,
             "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
+            "off_on_entry": True, "explicit_enable_and_disable_in_import": True,
+            "replacement_source_digest": True,
         }, indent=2))
         browser.close()

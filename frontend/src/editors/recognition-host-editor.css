@@ -13,3 +13,15 @@
   background: #ffffffed;
   z-index: 5;
 }
+@media (max-width: 680px), (pointer: coarse) {
+  .app-header .power-switch {
+    flex: none;
+    width: 50px;
+    height: 44px;
+    min-height: 44px;
+    border-radius: 999px;
+  }
+  .app-header .power-switch[aria-checked="true"] span {
+    transform: translateX(27px);
+  }
+}

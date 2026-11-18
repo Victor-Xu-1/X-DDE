@@ -22,6 +22,10 @@ def open_capability(page, base, tool):
 
 def verify_catalogue(page, base, snapshot):
     catalogue = page.request.get(base + "/api/capabilities").json()["capabilities"]
+    expected = {
+        spec["id"] for spec in catalogue
+        if spec["frontend_form"] and spec["environment"] != "platform"
+    } - {"resources"}
     checked = []
     for spec in catalogue:
         key = spec["id"]
@@ -36,7 +40,7 @@ def verify_catalogue(page, base, snapshot):
         expect(row.get_by_role("switch")).to_have_attribute("aria-checked", "false")
         expect(panel.get_by_role("switch")).to_have_count(1)
         checked.append(key)
-    assert len(checked) >= 65
+    assert set(checked) == expected
     return checked
 
 

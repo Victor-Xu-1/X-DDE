@@ -251,6 +251,10 @@ Use the backend switch on each task page, including nested tools such as atom in
 
 每个计算任务页都有后端开关，原子检查、三维对齐编辑等子功能也可就地启停。从结果或已保存文件继续研究时，新任务会显示自己的计算后端。工作流在确认方案时显示实际需要的后端。同一个引擎在不同页面共用开关状态，每次重启 X-DDE 后默认关闭。开启后按需加载，关闭后停止接收新的执行请求，已排队的任务等待再次开启。请等检索结束，或完成、取消正在运行的任务，再关闭相应后端。浏览文件和历史结果可以照常进行。
 
+Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Reopen the image or its editor to turn recognition off from the same tool.
+
+粘贴或拖入结构图后，可在导入窗口打开或关闭识别后端。若后端已关闭，图片会等待你手动开启。服务就绪后，小工具会自动识别并填入结构。重新打开图片或结构编辑窗口，即可在当前工具关闭识别后端。
+
 ### Images as task input / 结构图片直接输入任务
 
 Ligand file inputs and the shared small-molecule text fields offer **Input from structure image** and **Paste screenshot**. Paste with Ctrl+V in the input area, drop an image, or choose a PNG/JPEG/WebP/BMP file up to 10 MB. The installed local recognition workbench opens inside the task. Enable its model explicitly, recognize the image, review/edit the structure, and choose **Use this molecule**. This does not submit a research task automatically. Continue the task's existing review and submission steps.
