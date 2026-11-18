@@ -1,8 +1,15 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
 import { BackendControls } from "./BackendControls";
+import { TaskBackendControl } from "./TaskBackendControl";
 
 vi.mock("../api", () => ({ request: vi.fn(), api: { post: vi.fn() } }));
 afterEach(() => {
@@ -69,4 +76,99 @@ it("keeps failed changes off and prevents stopping active tasks", async () => {
     screen.getByRole("button", { name: "Backend controls" }),
   );
   expect(await screen.findByRole("switch", { name: "RDKit" })).toBeDisabled();
+});
+
+it("shares one default-off engine across module, sibling tool and global switches", async () => {
+  let enabled = false;
+  const user = userEvent.setup();
+  const chemistry = {
+    ...entry,
+    operations: ["properties", "molecular_states"],
+  };
+  vi.mocked(request).mockImplementation(
+    async () =>
+      ({
+        capabilities: {
+          properties: "chemistry",
+          "chemistry.states": "chemistry",
+        },
+        engines: [{ ...chemistry, enabled }],
+      }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    enabled = path.endsWith("/start");
+    return { enabled } as never;
+  });
+  render(
+    <>
+      <TaskBackendControl language="en" scope={{ capability: "properties" }} />
+      <TaskBackendControl
+        language="en"
+        scope={{ capability: "chemistry.states" }}
+      />
+      <TaskBackendControl
+        language="en"
+        scope={{ operations: ["properties", "molecular_states"] }}
+      />
+      <TaskBackendControl
+        language="en"
+        scope={{ capability: "experimental.evidence" }}
+      />
+      <BackendControls data={null} language="en" refresh={vi.fn()} />
+    </>,
+  );
+  const toggles = await screen.findAllByRole("switch", { name: "RDKit" });
+  expect(toggles).toHaveLength(3);
+  toggles.forEach((toggle) => expect(toggle).not.toBeChecked());
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(api.post).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const global = within(screen.getByRole("region", { name: "Backend power" }));
+  expect(global.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  await user.click(toggles[0]);
+  await waitFor(() =>
+    expect(global.getByRole("switch", { name: "RDKit" })).toBeChecked(),
+  );
+  toggles.forEach((toggle) => expect(toggle).toBeChecked());
+  await user.click(global.getByRole("switch", { name: "RDKit" }));
+  await waitFor(() => expect(toggles[0]).not.toBeChecked());
+  expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
+    "/runtime-controls/chemistry/start",
+    "/runtime-controls/chemistry/stop",
+  ]);
+});
+
+it("only probes native campaign activity when a matching tool is visible", async () => {
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      ({
+        capabilities: { properties: "chemistry", fold: "harness" },
+        engines: [
+          entry,
+          {
+            ...entry,
+            id: "harness",
+            name: "OpenDDE Harness",
+            activity_unknown: path.includes("?"),
+          },
+        ],
+      }) as never,
+  );
+  const { rerender } = render(
+    <TaskBackendControl language="en" scope={{ capability: "properties" }} />,
+  );
+  await screen.findByRole("switch", { name: "RDKit" });
+  expect(vi.mocked(request).mock.calls.map(([path]) => path)).toEqual([
+    "/runtime-controls?include_native=false",
+  ]);
+  rerender(<TaskBackendControl language="en" scope={{ capability: "fold" }} />);
+  const harness = await screen.findByRole("switch", {
+    name: "OpenDDE Harness",
+  });
+  await waitFor(() => expect(harness).toBeEnabled());
+  expect(request).toHaveBeenLastCalledWith(
+    "/runtime-controls",
+    expect.anything(),
+  );
+  expect(api.post).not.toHaveBeenCalled();
 });

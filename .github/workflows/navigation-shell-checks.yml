@@ -26,6 +26,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   appearance-scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -40,8 +44,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/appearance-scope.py
   research-shell:
-    needs: appearance-scope
-    if: needs.appearance-scope.outputs.appearance_only != 'true'
+    needs: [appearance-scope, utility-scope]
+    if: needs.appearance-scope.outputs.appearance_only != 'true' && needs.utility-scope.outputs.utility_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

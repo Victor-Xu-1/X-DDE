@@ -4,6 +4,7 @@ import { Hint } from "../guided/Hint";
 import type { Language } from "../types";
 import type { usePoseOptimization } from "./usePoseOptimization";
 import { poseError } from "./pose-errors";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import "./pose-optimization.css";
 
 export function PoseOptimizationControls({
@@ -51,6 +52,11 @@ export function PoseOptimizationControls({
       aria-label={zh ? "pose 优化与历史" : "Pose optimization and history"}
     >
       <div className="pose-optimization-actions">
+        <TaskBackendControl
+          language={language}
+          scope={{ operations: [bound ? "docking" : "molecule_minimize"] }}
+          active={!disabled && state.available}
+        />
         <button
           type="button"
           className="primary-button"

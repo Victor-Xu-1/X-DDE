@@ -470,6 +470,7 @@ export function App() {
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"
+                active={view === "home"}
                 language={language}
                 onChange={openTool}
               />

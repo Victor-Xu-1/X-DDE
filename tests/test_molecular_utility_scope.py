@@ -9,6 +9,9 @@ import pytest
 
 scope = runpy.run_path("scripts/molecular-utility-scope.py")
 GUARDS = {
+    "navigation-shell-checks.yml": ["research-shell"],
+    "pose-cluster-checks.yml": ["cluster"],
+    "workflow-quality-checks.yml": ["measured-handoff"],
     "task-service-availability.yml": ["availability"],
     "prediction-workspace-checks.yml": ["interface"],
     "library-screen-checks.yml": ["library-inspections"],
@@ -124,7 +127,10 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setenv("GITHUB_OUTPUT", str(destination))
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
-    assert destination.read_text() == f"utility_only={str(not mixed).lower()}\n"
+    assert destination.read_text() == (
+        "touch_controls_only=false\nruntime_switch_only=false\n"
+        f"utility_only={str(not mixed).lower()}\n"
+    )
     assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]
 
 
@@ -212,3 +218,20 @@ def test_retired_gate_paths_cannot_return_as_a_competing_implementation(monkeypa
         Path, "exists", lambda path: str(path) in scope["RETIRED"] or existing(path)
     )
     assert not scope["selected"](scope["FILES"])
+
+
+def test_contextual_switch_scope_covers_reviewed_consumers_and_preserves_scientific_checks():
+    changed = scope["RUNTIME_FILES"]
+    approved = scope["RUNTIME_CONSUMERS"]
+    selected = scope["runtime_selected"]
+    assert selected(changed, "pull_request", shared=approved)
+    assert selected(changed, "push", shared=approved)
+    assert not selected(changed, "workflow_dispatch", shared=approved)
+    assert not selected(
+        changed | {"src/opendde_workbench/backend_router.py"}, "push", shared=approved
+    )
+    assert not selected(changed, "push", shared={})
+    assert not selected(approved, "push", shared=approved)
+    handoff = ".github/workflows/workflow-quality-checks.yml"
+    unrelated_workflow_edit = {**approved, handoff: (approved[handoff][0], "changed")}
+    assert not selected(changed, "push", shared=unrelated_workflow_edit)

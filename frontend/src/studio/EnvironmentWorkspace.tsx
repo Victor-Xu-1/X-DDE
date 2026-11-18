@@ -4,6 +4,7 @@ import { RuntimeStatus } from "./RuntimeStatus";
 import { WorkspaceTabs } from "./WorkspaceTabs";
 import type { Deployment } from "../deployment/client";
 import type { Health, Language } from "../types";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function EnvironmentWorkspace({
   language,
   data,
@@ -42,13 +43,19 @@ export function EnvironmentWorkspace({
         />
       </div>
       {tab === "runtime" && (
-        <RuntimeStatus
-          language={language}
-          health={health}
-          connectionError={connectionError}
-          onRefresh={onReconnect}
-          onSetup={() => setTab("components")}
-        />
+        <>
+          <TaskBackendControl
+            language={language}
+            scope={{ capability: "resources" }}
+          />
+          <RuntimeStatus
+            language={language}
+            health={health}
+            connectionError={connectionError}
+            onRefresh={onReconnect}
+            onSetup={() => setTab("components")}
+          />
+        </>
       )}
     </WorkspaceTabs>
   );
