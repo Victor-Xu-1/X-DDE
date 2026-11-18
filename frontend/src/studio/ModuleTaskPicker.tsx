@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { MethodSwitch } from "./MethodSwitch";
 import { BindingEntryDialog } from "./BindingEntryDialog";
+import "./ModuleTaskPicker.css";
 import type { ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
 import type { Language } from "../types";

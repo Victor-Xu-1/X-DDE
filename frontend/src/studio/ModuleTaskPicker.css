@@ -1,0 +1,15 @@
+/* Keep screening and library setup choices with the form while reading a result. */
+.studio-app .module-task-picker:has(+ .tool-center.is-result .dataset-results) {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .studio-app
+    .module-task-picker
+    + .tool-center.is-result
+    .module-template:has(.dataset-results)
+    > .example-preview-toolbar {
+    gap: 6px 12px;
+    padding-block: 2px 8px;
+  }
+}
