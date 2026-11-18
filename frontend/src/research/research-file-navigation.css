@@ -1,6 +1,22 @@
 .research-file-inspection {
   min-width: 0;
 }
+.studio-app .research-workspace > .research-file-toolbar {
+  padding-block: 6px;
+}
+.studio-app .research-file-inspection .research-inspector:not(.is-empty) {
+  padding-block-start: 10px;
+}
+.research-file-inspection .research-inspector > h2 {
+  margin-block: 0 10px;
+}
+.studio-app .research-file-inspection .research-inspector > .editor-toolbar {
+  padding: 0;
+  gap: 8px;
+}
+.research-file-inspection .research-selected-preview {
+  margin-block-start: 12px;
+}
 .studio-app .research-workspace .research-file-preview-actions {
   display: none;
 }

@@ -143,9 +143,9 @@ it("returns keyboard focus to the selected file without changing the filter", as
   );
   const search = await screen.findByRole("searchbox");
   fireEvent.change(search, { target: { value: original.label } });
-  const row = screen.getByRole("button", {
-    name: "Molecule: " + original.label,
-  });
+  const row = within(
+    screen.getByRole("list", { name: "Assets and tasks" }),
+  ).getByRole("button", { name: "Molecule: " + original.label });
   fireEvent.click(row);
   expect(
     screen.getByRole("region", { name: "Research file details" }),
