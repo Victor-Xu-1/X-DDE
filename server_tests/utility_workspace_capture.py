@@ -32,6 +32,7 @@ def capture_utility_space(page, utility, evidence):
         assert geometry["preview"]["x"] < geometry["inputs"]["x"], geometry
         assert geometry["preview"]["width"] > geometry["inputs"]["width"] * 1.45, geometry
         assert geometry["actions"]["x"] >= geometry["inputs"]["x"] - 1, geometry
+        assert geometry["actions"]["y"] - geometry["inputs"]["bottom"] <= 96, geometry
     if geometry["fits"]:
         assert geometry["actions"]["bottom"] <= geometry["content"]["bottom"] + 1, geometry
     (evidence / "utility-first-step-geometry.json").write_text(json.dumps(geometry, indent=2))
