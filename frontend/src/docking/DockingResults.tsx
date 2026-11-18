@@ -65,14 +65,21 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const qualified = result.poses.filter((pose) => pose.valid && pose.artifact);
   const inspectingPose = compared.length !== 2 && !diagnostic;
   const launcher = useRef<HTMLButtonElement | null>(null);
-  const returningToLauncher = useRef(false);
+  const poseDetails = useRef<HTMLDivElement | null>(null);
+  const returningToTable = useRef(false);
   useLayoutEffect(() => {
-    if (compared.length || !returningToLauncher.current) return;
-    returningToLauncher.current = false;
+    if (compared.length || !returningToTable.current) return;
+    returningToTable.current = false;
     const button = launcher.current;
-    if (!button?.isConnected || button.disabled) return;
-    button.scrollIntoView?.({ block: "nearest", behavior: "instant" });
-    button.focus({ preventScroll: true });
+    const target =
+      button?.isConnected && !button.disabled
+        ? button
+        : poseDetails.current?.querySelector<HTMLInputElement>(
+            'input[type="search"]',
+          );
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView?.({ block: "center", behavior: "instant" });
   }, [compared.length]);
   const target: PoseAssetTarget | null = selected?.artifact
     ? { name: selected.artifact, kind: "molecule", record: 0 }
@@ -217,7 +224,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 language={language}
                 activation={comparison?.activation ?? 0}
                 onClose={() => {
-                  returningToLauncher.current = true;
+                  returningToTable.current = true;
                   setComparison(null);
                 }}
                 onInspect={(pose) => selectPose(pose.record)}
@@ -334,7 +341,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
           </div>
         }
       >
-        <div className="docking-result-details">
+        <div className="docking-result-details" ref={poseDetails}>
           {qualified.length > 0 && (
             <DockingPoseSummary
               jobId={job.id}

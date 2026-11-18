@@ -238,6 +238,7 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         expect(overlay).to_have_count(0)
         expect(opener).to_be_focused()
         expect(export).to_be_enabled(timeout=30000)
+        expect(opener).to_be_in_viewport(ratio=1)
         expect(
             workspace.get_by_role(
                 "link",
@@ -245,6 +246,21 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
                 exact=True,
             )
         ).to_have_attribute("href", load["urls"][2])
+        opener.press("Enter")
+        table.get_by_role(
+            "checkbox",
+            name=("对比 " if language == "zh" else "Compare ") + pose_label + " 2",
+            exact=True,
+        ).uncheck()
+        overlay.get_by_role(
+            "button",
+            name="返回单个姿势" if language == "zh" else "Return to single pose",
+            exact=True,
+        ).click()
+        search = workspace.get_by_role("searchbox")
+        expect(search).to_be_focused()
+        expect(export).to_be_enabled(timeout=30000)
+        expect(search).to_be_in_viewport(ratio=1)
         expect(table.locator('tr[aria-selected="true"]')).to_contain_text(pose_label + " 2")
         quality = workspace.get_by_role(
             "region",
