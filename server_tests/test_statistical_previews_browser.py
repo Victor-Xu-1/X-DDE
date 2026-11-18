@@ -119,7 +119,7 @@ def test_real_del_chart_values_interaction_and_figures(capability, language):
         root = page.locator(".dataset-results")
         expect(root).to_be_visible(timeout=30000)
         charts_tab = root.get_by_role(
-            "button", name="Charts and quality" if language == "en" else "图表与质量", exact=True
+            "tab", name="Charts and quality" if language == "en" else "图表与质量", exact=True
         )
         if charts_tab.count():
             charts_tab.click()
