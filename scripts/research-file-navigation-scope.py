@@ -5,7 +5,15 @@ from pathlib import Path
 from runpy import run_path
 
 _SCOPE = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
-_WORKFLOWS = {
+_REVIEWED_BLOBS = {
+    "frontend/src/research/ResearchWorkspace.tsx": (
+        "da35e863d2950356e2d36a68c17ec55df0d0c4e1",
+        "ef8b4ace9815c50d30ef02e270ca1d79d0f210ff",
+    ),
+    "frontend/src/research/useResearchRegistration.ts": (
+        "178b04c0d71c23335edf6339063ce05049f56361",
+        "d92abdbfb8f24778e76cfa226fe4e5155ec70bfc",
+    ),
     ".github/workflows/workspace-preview-checks.yml": (
         "f1f21ae7863ca060d54c1e10d5ffa406b82bf2a9",
         "f9a5a7e9063544f923e1cd74a962a7bf3d99542f",
@@ -28,7 +36,6 @@ _WORKFLOWS = {
     ),
 }
 _NAVIGATION = {
-    "frontend/src/research/ResearchWorkspace.tsx",
     "frontend/src/research/ResearchWorkspace.test.tsx",
     "frontend/src/research/useResearchFileNavigation.ts",
     "frontend/src/research/research-file-navigation.css",
@@ -45,7 +52,7 @@ def file_navigation_only(base, event, ref):
         return False
     paths = set(git("diff", "--name-only", base, "HEAD").decode().splitlines())
     mirrors = _SCOPE["VERSION_FILES"]
-    allowed = _NAVIGATION | _WORKFLOWS.keys() | mirrors | {
+    allowed = _NAVIGATION | _REVIEWED_BLOBS.keys() | mirrors | {
         "scripts/research-file-navigation-scope.py",
     }
     blob = _SCOPE["git_blob"]
@@ -53,8 +60,8 @@ def file_navigation_only(base, event, ref):
         bool(paths & _NAVIGATION)
         and paths <= allowed
         and all(
-            (blob(base, path), blob("HEAD", path)) == _WORKFLOWS[path]
-            for path in paths & _WORKFLOWS.keys()
+            (blob(base, path), blob("HEAD", path)) == _REVIEWED_BLOBS[path]
+            for path in paths & _REVIEWED_BLOBS.keys()
         )
         and _SCOPE["only_version_mirrors"](base, paths & mirrors)
     )

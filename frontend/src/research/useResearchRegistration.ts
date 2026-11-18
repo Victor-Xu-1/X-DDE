@@ -29,8 +29,9 @@ export function useResearchRegistration({
     kind: ObjectKind,
     name: string,
     parent?: ScientificObject,
+    selection?: { intent: number; reveal(): void },
   ) {
-    const intent = selectionIntent();
+    const intent = selection?.intent ?? selectionIntent();
     const body = {
       asset_id: assetId,
       kind,
@@ -70,6 +71,7 @@ export function useResearchRegistration({
         "The saved version does not match the confirmed material. Choose the original material again.",
       );
     retainSaved(value);
+    if (selection && selectionIntent() === intent) selection.reveal();
     selectSaved("object:" + value.id, intent);
     await load();
     return value;

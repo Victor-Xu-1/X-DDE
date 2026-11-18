@@ -196,6 +196,7 @@ export function ResearchWorkspace({
               const file = e.target.files?.[0];
               if (file)
                 void mutate(async () => {
+                  const intent = selectionIntent();
                   const kind: AssetKind =
                     uploadKind === "molecule"
                       ? "ligand"
@@ -203,7 +204,12 @@ export function ResearchWorkspace({
                         ? "structure"
                         : "sequences";
                   const asset = await api.upload(file, kind);
-                  await register(asset.id, uploadKind, file.name);
+                  await register(asset.id, uploadKind, file.name, undefined, {
+                    intent,
+                    reveal: () => {
+                      if (mounted.current) navigation.open();
+                    },
+                  });
                 });
               e.target.value = "";
             }}
