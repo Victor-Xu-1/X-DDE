@@ -91,6 +91,9 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
                 assert metrics.evaluate_all(
                     "cards => cards.every(card => card.scrollWidth <= card.clientWidth + 1)"
                 )
+                matrix = workspace.locator(".prediction-confidence-body")
+                expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
+                assert workspace.evaluate("panel => panel.scrollWidth <= panel.clientWidth + 1")
                 page.screenshot(path=evidence / "expanded-metrics-320.png")
                 page.keyboard.press("Escape")
                 expect(workspace).to_have_count(0)
