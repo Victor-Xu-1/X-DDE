@@ -24,6 +24,17 @@
   margin: 0;
 }
 
+.comparison-result-view
+  > .structure-workbench:not([data-workspace-expanded="true"])
+  .viewer-panel {
+  padding-inline: 0;
+}
+
+/* The header names both sources and their exact overlay colors. */
+.comparison-result-view .viewer-comparison {
+  display: none;
+}
+
 .comparison-result-view .comparison-result-metrics {
   gap: 10px;
   margin: 0;

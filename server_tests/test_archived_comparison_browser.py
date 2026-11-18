@@ -9,6 +9,7 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.examples.pins import ExamplePins
+from opendde_workbench.examples.stat6.catalogue import MODULES
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
@@ -19,7 +20,7 @@ def test_archived_comparison_keeps_scene_and_residue_selection_linked(language, 
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
     store = Store(settings.state_dir / "jobs.sqlite3")
-    pin = ExamplePins(store, settings.state_dir).get("rmsd", verify=True)
+    pin = ExamplePins(store, settings.state_dir, modules=MODULES).get("rmsd", verify=True)
     assert pin and pin.job_id
     job = store.get(str(pin.job_id))
     assert job and job.request.operation == "structure_compare"
