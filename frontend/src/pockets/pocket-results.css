@@ -83,55 +83,56 @@
 }
 
 /* This result keeps the task header and the native canvas in the same scroll flow. */
-.studio-app .studio-content:has(.task-result-content .pocket-result-workspace) {
+.studio-app .studio-content:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace) {
   padding-block-start: 12px;
 }
 .task-history-workspace
-  .detail-panel.has-header-navigation:has(.pocket-result-workspace)
+  .detail-panel.has-header-navigation:has(> .operation-results > .pocket-result-workspace)
   > .task-detail-header {
   gap: 6px 12px;
   margin-block-end: 8px;
 }
 .task-history-workspace
-  .detail-panel.has-header-navigation:has(.pocket-result-workspace)
+  .detail-panel.has-header-navigation:has(> .operation-results > .pocket-result-workspace)
   .panel-heading {
   gap: 4px 8px;
   margin: 0;
 }
 @media (961px <= width <= 1360px) {
-  .studio-main:has(.task-result-content .pocket-result-workspace) .studio-topbar {
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar {
     gap: 10px;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .page-context {
     min-width: 110px;
     white-space: normal;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .task-search {
     flex: 1 1 110px;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .global-search {
     width: 100%;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .top-actions {
     flex: none;
   }
 }
 @media (max-width: 400px) {
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .page-context {
     flex: 1 1 0;
     font-size: 13px;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .backend-controls > button {
     width: 44px;
@@ -139,7 +140,7 @@
     padding: 0;
     font-size: 0;
   }
-  .studio-main:has(.task-result-content .pocket-result-workspace)
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
     .studio-topbar
     .backend-controls > button::before {
     content: "⚙" / "";
@@ -210,7 +211,7 @@
   }
 }
 @media (max-width: 360px) {
-  .studio-app .task-result-content > .detail-panel:has(.pocket-result-workspace) {
+  .studio-app .task-result-content > .detail-panel:has(> .operation-results > .pocket-result-workspace) {
     padding-inline: 12px;
   }
   .pocket-result-workspace .candidate-review-selector {
@@ -230,11 +231,11 @@
     font-size: 17px;
   }
   .studio-app .task-result-content
-    .detail-panel:has(.pocket-result-workspace) .task-actions {
+    .detail-panel:has(> .operation-results > .pocket-result-workspace) .task-actions {
     gap: 4px 8px;
   }
   .studio-app .task-result-content
-    .detail-panel:has(.pocket-result-workspace) .task-actions > button {
+    .detail-panel:has(> .operation-results > .pocket-result-workspace) .task-actions > button {
     padding-inline: 12px;
   }
   .pocket-result-workspace .viewer-heading-actions {
