@@ -712,6 +712,17 @@ MOBILE_VIEWER_FILES = {
 }
 MOBILE_VIEWER_DIFF = "ebc248ef679e664c4955441262c9e742a510df3a7edfb497363a6e00940b4d9e"
 
+SPLIT_VIEWER_FILES = {
+    ".github/workflows/publication-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/presentation/workspace-expansion.ts",
+    "frontend/src/viewer/ViewerToolGroup.tsx",
+    "frontend/src/viewer/viewer-tool-group.css",
+    "server_tests/test_split_viewer_toolbar_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SPLIT_VIEWER_DIFF = "fcd668deeca469111005f7d56aaecb0d54dc100598bcd1f4ade24e69e216b592"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -810,6 +821,9 @@ def main():
     mobile_viewer = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_VIEWER_FILES, MOBILE_VIEWER_DIFF,
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SPLIT_VIEWER_FILES, SPLIT_VIEWER_DIFF,
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")

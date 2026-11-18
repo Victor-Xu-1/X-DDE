@@ -141,6 +141,20 @@ export function toggleWorkspace(
     )
       return;
     if (event.key === "Escape") {
+      // An open visible child disclosure handles Escape before its workspace.
+      const localScope =
+        event.target instanceof Element
+          ? event.target.closest("[data-workspace-escape-scope]")
+          : null;
+      const localTrigger = localScope?.querySelector<HTMLElement>(
+        ':scope > [aria-expanded="true"]',
+      );
+      if (
+        localTrigger &&
+        target.contains(localTrigger) &&
+        visible(localTrigger)
+      )
+        return;
       event.preventDefault();
       event.stopPropagation();
       close();

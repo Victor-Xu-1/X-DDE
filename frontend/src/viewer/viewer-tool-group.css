@@ -3,6 +3,10 @@
   display: contents;
 }
 
+.viewer-panel {
+  container: native-viewer / inline-size;
+}
+
 .viewer-panel .viewer-tool-trigger,
 .viewer-panel .viewer-mode-short,
 .viewer-panel .viewer-title-short,
@@ -10,11 +14,15 @@
   display: none;
 }
 
-/* State and interaction previews already expose a single outer tools disclosure. */
+/* On phones these views already have an outer tools disclosure. */
 @media (max-width: 600px) {
-  .viewer-panel:not(
-    :where(.state-native-preview, .interaction-preview-region) *
-  ) {
+  :where(.state-native-preview, .interaction-preview-region) .viewer-panel {
+    container-name: none;
+  }
+}
+
+@container native-viewer (max-width: 560px) {
+  .viewer-panel {
     > .studio-heading,
     > .viewer-mode-options {
       position: relative;
@@ -123,10 +131,8 @@
   }
 }
 
-@media (max-width: 360px) {
-  .viewer-panel:not(
-    :where(.state-native-preview, .interaction-preview-region) *
-  ) {
+@container native-viewer (max-width: 300px) {
+  .viewer-panel {
     .viewer-title-full {
       display: none;
     }
