@@ -223,8 +223,12 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
               actions={
                 <>
                   {inspectingPose && selected?.artifact && (
-                    <a href={artifactUrl(job.id, selected.artifact)} download>
-                      {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                    <a
+                      href={artifactUrl(job.id, selected.artifact)}
+                      download
+                      aria-label={zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                    >
+                      {zh ? "下载 SDF" : "Download SDF"}
                     </a>
                   )}
                   {interpretation}

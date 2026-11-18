@@ -10,6 +10,10 @@
   border-radius: 0;
 }
 
+.docking-results .candidate-review-metrics {
+  flex-basis: 320px;
+}
+
 .pose-result-interpretation {
   min-width: 0;
   color: var(--muted);
