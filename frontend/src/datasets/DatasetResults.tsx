@@ -11,6 +11,7 @@ import { chartArtifacts } from "./chart-documents";
 import { countSummary } from "./count-summary";
 import { IndexedLibraryResults } from "./IndexedLibraryResults";
 import { DELSeriesContext } from "./DELSeriesContext";
+import { ResearchTabs } from "../presentation/ResearchTabs";
 
 export function DatasetResults({
   job,
@@ -24,7 +25,6 @@ export function DatasetResults({
   onCreated?(job: Job): void;
 }) {
   const zh = language === "zh",
-    [tab, setTab] = useState("results"),
     comparison = String(result.metadata.chosen_comparison ?? ""),
     [chosen, setChosen] = useState(comparison),
     available = result.metadata.comparisons as
@@ -54,9 +54,6 @@ export function DatasetResults({
   const hasPrimary = Boolean(
     tableView || result.candidates.length || result.data_kind === "definition",
   );
-  const showTabs = hasCharts && hasPrimary;
-  const hasComparisons =
-    Boolean(available?.length) && tableView === "enrichment";
   const stats = Object.entries(result.counts)
     .filter(
       ([key, value]) =>
@@ -66,6 +63,89 @@ export function DatasetResults({
         !(key === "unresolved_structures" && value === 0),
     )
     .slice(0, 5);
+  const primary = (
+    <>
+      {available && available.length > 0 && tableView === "enrichment" && (
+        <label className="dataset-comparison-control">
+          {zh ? "比较组" : "Comparison"}
+          <select
+            value={chosen}
+            aria-label={zh ? "选择比较" : "Comparison"}
+            onChange={(e) => setChosen(e.target.value)}
+          >
+            {available.map((item) => (
+              <option value={item.id} key={item.id}>
+                {item.selection} / {item.reference}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {tableView === "enrichment" &&
+        result.metadata.minimum_supporting_samples != null && (
+          <p className="field-help">
+            {zh ? "优先条件：" : "Prioritization: "}
+            {zh ? "靶点计数 ≥ " : "target counts ≥ "}
+            {String(result.metadata.minimum_counts)}
+            {" · "}
+            {zh ? "富集 ≥ " : "enrichment ≥ "}
+            {String(result.metadata.minimum_enrichment)}×{" · "}
+            {zh ? "支持样本 ≥ " : "supporting samples ≥ "}
+            {String(result.metadata.minimum_supporting_samples)}
+            {result.metadata.count_unit === "reported_counts" &&
+              (zh
+                ? "。外部报告计数，处理方法未独立核实；区间仅为计数模型估计。"
+                : ". Externally reported counts; processing unverified. Intervals are count-model estimates only.")}
+          </p>
+        )}
+      {result.candidates.length > 0 && !tableView && (
+        <CandidateView
+          job={job}
+          result={result}
+          language={language}
+          onCreated={onCreated}
+        />
+      )}
+      {(tableView === "index" || tableView === "library") && (
+        <IndexedLibraryResults
+          key={job.id}
+          jobId={job.id}
+          language={language}
+          view={tableView}
+        />
+      )}
+      {tableView && tableView !== "index" && tableView !== "library" && (
+        <ResearchTable
+          key={job.id}
+          jobId={job.id}
+          view={tableView}
+          comparison={chosen}
+          language={language}
+          defaultPrioritized={
+            tableView === "enrichment" &&
+            Number(result.metadata.minimum_supporting_samples ?? 1) > 1
+          }
+        />
+      )}
+      {result.candidates.length > 0 && tableView && (
+        <details className="dataset-structure-details">
+          <summary>{zh ? "查看候选结构" : "Candidate structures"}</summary>
+          <CandidateView
+            job={job}
+            result={result}
+            language={language}
+            onCreated={onCreated}
+          />
+        </details>
+      )}
+      {result.data_kind === "definition" && (
+        <DefinitionView job={job} result={result} language={language} />
+      )}
+    </>
+  );
+  const charts = hasCharts ? (
+    <DatasetCharts job={job} result={result} language={language} />
+  ) : null;
   return (
     <div className="dataset-results">
       <div className="dataset-result-metrics">
@@ -94,114 +174,33 @@ export function DatasetResults({
           </p>
         )}
       {tableView === "series" && (
-        <DELSeriesContext key={job.id} job={job} language={language} />
+        <DELSeriesContext
+          key={`series:${job.id}`}
+          job={job}
+          language={language}
+        />
       )}
-      {(showTabs || hasComparisons) && (
-        <div className="dataset-result-tabs">
-          {showTabs && (
-            <>
-              <button
-                type="button"
-                aria-pressed={tab === "results"}
-                onClick={() => setTab("results")}
-              >
-                {zh ? "结果探索" : "Results"}
-              </button>
-              <button
-                type="button"
-                aria-pressed={tab === "quality"}
-                onClick={() => setTab("quality")}
-              >
-                {zh ? "图表与质量" : "Charts and quality"}
-              </button>
-            </>
-          )}
-          {available && available.length > 0 && tableView === "enrichment" && (
-            <select
-              value={chosen}
-              aria-label={zh ? "选择比较" : "Comparison"}
-              onChange={(e) => setChosen(e.target.value)}
-            >
-              {available.map((item) => (
-                <option value={item.id} key={item.id}>
-                  {item.selection} / {item.reference}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      )}
-      {tableView === "enrichment" &&
-        result.metadata.minimum_supporting_samples != null && (
-          <p className="field-help">
-            {zh ? "优先条件：" : "Prioritization: "}
-            {zh ? "靶点计数 ≥ " : "target counts ≥ "}
-            {String(result.metadata.minimum_counts)}
-            {" · "}
-            {zh ? "富集 ≥ " : "enrichment ≥ "}
-            {String(result.metadata.minimum_enrichment)}×{" · "}
-            {zh ? "支持样本 ≥ " : "supporting samples ≥ "}
-            {String(result.metadata.minimum_supporting_samples)}
-            {result.metadata.count_unit === "reported_counts" &&
-              (zh
-                ? "。外部报告计数，处理方法未独立核实；区间仅为计数模型估计。"
-                : ". Externally reported counts; processing unverified. Intervals are count-model estimates only.")}
-          </p>
-        )}
-      {showTabs && tab === "quality" ? (
-        <DatasetCharts job={job} result={result} language={language} />
+      {hasPrimary && charts ? (
+        <ResearchTabs
+          key={`views:${job.id}`}
+          label={zh ? "研究结果视图" : "Research result views"}
+          tabs={[
+            {
+              id: "results",
+              label: zh ? "结果探索" : "Results",
+              content: primary,
+            },
+            {
+              id: "quality",
+              label: zh ? "图表与质量" : "Charts and quality",
+              content: charts,
+            },
+          ]}
+        />
+      ) : hasPrimary ? (
+        primary
       ) : (
-        <>
-          {result.candidates.length > 0 && !tableView && (
-            <CandidateView
-              job={job}
-              result={result}
-              language={language}
-              onCreated={onCreated}
-            />
-          )}
-          {(tableView === "index" || tableView === "library") && (
-            <IndexedLibraryResults
-              key={job.id}
-              jobId={job.id}
-              language={language}
-              view={tableView}
-            />
-          )}
-          {tableView && tableView !== "index" && tableView !== "library" && (
-            <ResearchTable
-              key={job.id}
-              jobId={job.id}
-              view={tableView}
-              comparison={chosen}
-              language={language}
-              defaultPrioritized={
-                tableView === "enrichment" &&
-                Number(result.metadata.minimum_supporting_samples ?? 1) > 1
-              }
-            />
-          )}
-          {result.candidates.length > 0 && tableView && (
-            <details className="dataset-structure-details">
-              <summary>{zh ? "查看候选结构" : "Candidate structures"}</summary>
-              <CandidateView
-                job={job}
-                result={result}
-                language={language}
-                onCreated={onCreated}
-              />
-            </details>
-          )}
-          {result.data_kind === "definition" && (
-            <DefinitionView job={job} result={result} language={language} />
-          )}
-          {!tableView &&
-            !result.candidates.length &&
-            result.data_kind !== "definition" &&
-            hasCharts && (
-              <DatasetCharts job={job} result={result} language={language} />
-            )}
-        </>
+        charts
       )}
       {result.warnings.length > 0 && (
         <details className="dataset-method-note">

@@ -56,9 +56,7 @@ it("presents actual indexed members without placeholder plots, dead tabs or shar
   expect(screen.queryByText("Molecule shards")).toBeNull();
   expect(screen.queryByText("Unresolved structures")).toBeNull();
   expect(screen.queryByText("Native chart")).toBeNull();
-  expect(
-    screen.queryByRole("button", { name: "Charts and quality" }),
-  ).toBeNull();
+  expect(screen.queryByRole("tab", { name: "Charts and quality" })).toBeNull();
 });
 
 it("shows chart-only model results directly without two identical result tabs", () => {
@@ -66,7 +64,7 @@ it("shows chart-only model results directly without two identical result tabs", 
     <DatasetResults job={job} result={data("model", true)} language="en" />,
   );
   expect(screen.getByText("Native chart")).toBeVisible();
-  expect(screen.queryByRole("button", { name: /^Results$/ })).toBeNull();
+  expect(screen.queryByRole("tab", { name: /^Results$/ })).toBeNull();
 });
 
 it("offers decoded member observations before the separate quality view without calling them unique molecules", () => {
@@ -82,9 +80,7 @@ it("offers decoded member observations before the separate quality view without 
   expect(screen.getByText("Native members: decoded")).toBeVisible();
   expect(screen.getByText("UMI observations")).toBeVisible();
   expect(screen.queryByText("Distinct UMIs")).toBeNull();
-  expect(
-    screen.getByRole("button", { name: "Charts and quality" }),
-  ).toBeVisible();
+  expect(screen.getByRole("tab", { name: "Charts and quality" })).toBeVisible();
 });
 
 it("keeps UMI exclusions visible in count summaries instead of spending space on matrix bookkeeping", () => {
@@ -154,7 +150,5 @@ it("preserves a quality tab when real primary data and real chart artifacts both
     <DatasetResults job={job} result={data("library", true)} language="en" />,
   );
   expect(screen.getByText("Native members: library")).toBeVisible();
-  expect(
-    screen.getByRole("button", { name: "Charts and quality" }),
-  ).toBeVisible();
+  expect(screen.getByRole("tab", { name: "Charts and quality" })).toBeVisible();
 });

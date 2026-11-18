@@ -53,7 +53,7 @@ def check_decoding_quality(page, root, state, identifier, evidence, language):
     destination = evidence / (language + "-decode-failures.csv")
     pending.value.save_as(destination)
     assert destination.read_bytes() == (output / "decode-failures.csv").read_bytes()
-    root.get_by_role("button", name="结果探索" if zh else "Results", exact=True).click()
+    root.get_by_role("tab", name="结果探索" if zh else "Results", exact=True).click()
     database = sqlite3.connect((output / "decoded.sqlite").as_uri() + "?mode=ro", uri=True)
     try:
         rows = database.execute(
@@ -97,7 +97,7 @@ def check_decoding_quality(page, root, state, identifier, evidence, language):
     finally:
         database.close()
     root.get_by_role(
-        "button", name="图表与质量" if zh else "Charts and quality", exact=True
+        "tab", name="图表与质量" if zh else "Charts and quality", exact=True
     ).click()
     assert before == {
         name: hashlib.sha256((output / name).read_bytes()).hexdigest() for name in before
