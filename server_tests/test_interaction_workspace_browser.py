@@ -16,8 +16,10 @@ from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_navigation_shell_browser import open_navigation
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_saved_native_contact_workspace(interaction_workspace, language, width):
+@pytest.mark.parametrize(
+    "language,width,height", [("en", 1440, 1000), ("zh", 390, 775), ("en", 320, 568)]
+)
+def test_saved_native_contact_workspace(interaction_workspace, language, width, height):
     evidence = Path("outputs/interaction-workspace") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
@@ -25,7 +27,7 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width):
     with platform(interaction_workspace.state_dir, evidence / "service.log") as base:
         with sync_playwright() as driver:
             browser = driver.chromium.launch(args=["--enable-unsafe-swiftshader"])
-            page = browser.new_page(viewport={"width": width, "height": 1000})
+            page = browser.new_page(viewport={"width": width, "height": height})
             page.add_init_script(
                 f"if (location.origin === {json.dumps(base)}) {{"
                 f"localStorage.setItem('opendde-workbench.language','{language}');}}"
@@ -80,11 +82,56 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width):
                 result["version"]
             )
             original_frame = panel.locator("iframe").element_handle()
-            row.click()
-            expect(row).to_have_attribute("aria-selected", "true")
+            original_camera = panel.locator("iframe").evaluate(
+                "el => el.contentDocument.querySelector('canvas')._3dmol_viewer.getView()"
+            )
             selection = panel.get_by_role(
                 "group", name="当前结构选择" if zh else "Current structure selection"
             )
+            show_contacts = workspace.get_by_role(
+                "button", name="查看相互作用" if zh else "Review interactions", exact=True
+            )
+            show_tools = workspace.get_by_role(
+                "button",
+                name="视图工具与导出" if zh else "View tools for display and export",
+                exact=True,
+            )
+            if width <= 600:
+                expect(show_tools).to_have_attribute("aria-expanded", "false")
+                expect(workspace.locator(".viewer-heading-actions")).to_be_hidden()
+                show_contacts.press("Enter")
+                expect(workspace.locator(".interaction-review-region")).to_be_focused()
+                assert workspace.locator("tbody tr").first.evaluate(
+                    "el => {const r=el.getBoundingClientRect(); return r.top >= 132 "
+                    "&& r.bottom <= innerHeight}"
+                )
+                back = workspace.get_by_role(
+                    "button", name="返回三维 ↑" if zh else "Back to 3D ↑", exact=True
+                )
+                back.press("Enter")
+                expect(workspace.locator(".interaction-preview-region")).to_be_focused()
+                expect(show_tools).to_be_in_viewport()
+                assert panel.locator("iframe").evaluate(
+                    "el => el.contentDocument.querySelector('canvas')._3dmol_viewer.getView()"
+                ) == original_camera
+                show_contacts.press("Enter")
+                filter_contacts = workspace.get_by_role("searchbox")
+                filter_contacts.fill("ARG562")
+                row.press("Enter")
+                expect(row).to_have_attribute("aria-selected", "true")
+                back.press("Enter")
+                expect(workspace.locator(".interaction-preview-region")).to_be_focused()
+                expect(selection.get_by_text("A:ARG562", exact=True)).to_be_visible()
+                expect(filter_contacts).to_have_value("ARG562")
+                filter_contacts.fill("")
+                show_tools.click()
+                expect(show_tools).to_have_attribute("aria-expanded", "true")
+                expect(workspace.locator(".viewer-heading-actions")).to_be_visible()
+            else:
+                expect(show_contacts).to_have_count(0)
+                expect(show_tools).to_have_count(0)
+            row.click()
+            expect(row).to_have_attribute("aria-selected", "true")
             expect(selection.get_by_text("A:ARG562", exact=True)).to_be_visible()
             panel.get_by_role(
                 "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True

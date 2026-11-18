@@ -13,6 +13,22 @@
 .interaction-result-method strong {
   color: var(--ink);
 }
+.interaction-preview-region {
+  height: 100%;
+  min-width: 0;
+}
+.interaction-review-region {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+}
+.interaction-narrow-actions,
+.studio-app .interaction-return-to-view {
+  display: none;
+}
 .interaction-residue {
   display: inline-block;
   white-space: nowrap;
@@ -184,5 +200,120 @@ html
   }
   .contact-workspace .research-table-scroll {
     max-height: 520px;
+  }
+}
+
+@media (max-width: 600px) {
+  .interaction-results .interaction-result-method {
+    align-items: center;
+    gap: 6px;
+    margin-block-end: 4px;
+    scroll-margin-block-start: 132px;
+  }
+  .interaction-results .interaction-method-label {
+    display: none;
+  }
+  .interaction-narrow-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+  }
+  .studio-app .interaction-return-to-view {
+    display: inline-flex;
+    align-self: start;
+    align-items: center;
+  }
+  .studio-app
+    :is(.interaction-narrow-actions > button, .interaction-return-to-view) {
+    min-height: 44px;
+    padding: 4px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .interaction-review-region {
+    scroll-margin-block-start: 132px;
+  }
+  .interaction-preview-region .viewer-panel > .studio-heading {
+    gap: 6px;
+    margin-block-end: 4px;
+  }
+  .interaction-preview-region[data-view-tools="closed"]
+    :is(.viewer-heading-actions, .viewer-panel > .viewer-modes) {
+    display: none;
+  }
+  .studio-app
+    .interaction-results
+    .structure-workbench:not([data-workspace-expanded])
+    .molecular-stage {
+    min-height: 0;
+    height: clamp(330px, 58dvh, 460px);
+  }
+  .studio-app
+    .studio-content:has(
+      .task-result-content .detail-panel .interaction-results
+    ) {
+    padding-block-start: 8px;
+  }
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(.interaction-results)
+    > .task-detail-header {
+    gap: 6px;
+    margin-block-end: 6px;
+  }
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(.interaction-results)
+    .panel-heading
+    h2 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 400px) {
+  .studio-app .task-result-content .detail-panel:has(.interaction-results) {
+    padding-inline: 12px;
+  }
+  .studio-app
+    .task-result-content
+    .detail-panel:has(.interaction-results)
+    > .task-detail-header
+    .task-actions {
+    gap: 6px 8px;
+  }
+  .studio-app
+    .task-result-content
+    .detail-panel:has(.interaction-results)
+    > .task-detail-header
+    .task-actions
+    > button {
+    padding-inline: 10px;
+  }
+  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+    .studio-topbar
+    .page-context {
+    flex: 1 1 0;
+    font-size: 13px;
+  }
+  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+    .studio-topbar
+    .backend-controls
+    > button {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+    .studio-topbar
+    .backend-controls
+    > button::before {
+    content: "⚙" / "";
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 360px) {
+  .module-example-result
+    :is(.interaction-result-method, .interaction-review-region) {
+    scroll-margin-block-start: 174px;
   }
 }

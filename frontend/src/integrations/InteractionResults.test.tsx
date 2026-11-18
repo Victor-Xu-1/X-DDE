@@ -143,6 +143,12 @@ it("keeps native contact values and downloads available without a retained struc
     />,
   );
   expect(screen.queryByTestId("native-view")).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Review interactions" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "View tools for display and export" }),
+  ).not.toBeInTheDocument();
   expect(screen.getByText("2.42")).toBeInTheDocument();
   expect(screen.getByRole("row", { name: /A:GLN590/ })).not.toHaveAttribute(
     "tabindex",
@@ -150,6 +156,37 @@ it("keeps native contact values and downloads available without a retained struc
   expect(
     screen.getByRole("link", { name: "Download interaction table" }),
   ).toHaveAttribute("download");
+});
+
+it("jumps between the retained view and the filtered contacts without remounting", async () => {
+  const user = userEvent.setup();
+  render(<InteractionResults job={task} result={result} language="en" />);
+  loaded();
+  const view = screen.getByRole("region", {
+    name: "Ligand and protein 3D view",
+  });
+  const contacts = screen.getByRole("region", { name: "Interaction review" });
+  const native = screen.getByTestId("native-view");
+  const showTools = screen.getByRole("button", {
+    name: "View tools for display and export",
+  });
+  const showContacts = screen.getByRole("button", {
+    name: "Review interactions",
+  });
+  expect(showTools).toHaveAttribute("aria-expanded", "false");
+  expect(showContacts).toHaveAttribute("aria-controls", contacts.id);
+  await user.click(showContacts);
+  expect(contacts).toHaveFocus();
+  await user.type(screen.getByRole("searchbox"), "GLN590");
+  await user.click(screen.getByRole("row", { name: /A:GLN590/ }));
+  await user.click(screen.getByRole("button", { name: "Back to 3D ↑" }));
+  expect(view).toHaveFocus();
+  await user.click(showTools);
+  expect(showTools).toHaveAttribute("aria-expanded", "true");
+  expect(view).toHaveAttribute("data-view-tools", "open");
+  expect(screen.getByTestId("native-view")).toBe(native);
+  expect(focus()).toMatchObject({ residue: "A:GLN:590:" });
+  expect(screen.getByRole("searchbox")).toHaveValue("GLN590");
 });
 
 it("binds selection to the task, artifact and fingerprint while retaining language changes", async () => {
