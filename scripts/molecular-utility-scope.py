@@ -735,8 +735,8 @@ def main():
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
         utility = (
-            recognition_power or potential_display or navigation or runtime or layout or native_state
-            or selected(changed, event, shared=shared)
+            recognition_power or potential_display or navigation or runtime or layout
+            or native_state or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")
