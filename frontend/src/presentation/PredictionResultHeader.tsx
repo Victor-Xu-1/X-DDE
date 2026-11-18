@@ -51,10 +51,12 @@ export function PredictionResultHeader({
             <button
               type="button"
               className="secondary-button prediction-result-back"
+              aria-label={zh ? "预测记录" : "Predictions"}
+              title={zh ? "预测记录" : "Predictions"}
               onClick={onHistory}
             >
               <ArrowLeftOutlined aria-hidden="true" />
-              {zh ? "预测记录" : "Predictions"}
+              <span>{zh ? "预测记录" : "Predictions"}</span>
             </button>
           )}
           <h2 className="result-task-name">{title}</h2>

@@ -308,3 +308,85 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         assert not writes
         assert before == {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
         browser.close()
+
+
+@pytest.mark.parametrize(("width", "height"), [(1110, 580), (320, 568)])
+def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, height):
+    """A structural canvas is the leading work area, with no nested viewer scroll."""
+    evidence = Path("outputs/native-confidence") / f"stage-{width}"
+    evidence.mkdir(parents=True, exist_ok=True)
+    state = tmp_path / "state"
+    identifier, _ = native_case(state, os.environ["WB_REVIEWED_STAT6_ARCHIVE"])
+    with platform(state, evidence / "service.log") as base, sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome", args=["--enable-unsafe-swiftshader"])
+        page = browser.new_page(
+            viewport={"width": width, "height": height}, reduced_motion="reduce"
+        )
+        writes = []
+        page.on(
+            "request",
+            lambda request: writes.append(request.url)
+            if request.method == "POST" and request.url.startswith(base + "/api/")
+            else None,
+        )
+        page.goto(base + "/#task=" + identifier)
+        stage = page.locator(".prediction-result .molecular-stage iframe:visible")
+        viewer = page.locator(".prediction-result .viewer-panel:visible")
+        modes = viewer.locator(".viewer-modes").first
+        expect(modes).to_be_visible(timeout=45000)
+        before = page.evaluate("""() => {
+          const viewer=document.querySelector('.prediction-result .viewer-panel');
+          const work=viewer.closest('.structure-workbench');
+          const panel=work.querySelector('.structure-workbench-view');
+          const rect=(el)=>{const r=el.getBoundingClientRect();return [r.top,r.bottom,r.height];};
+          const stage=rect(viewer.querySelector('.molecular-stage'));
+          return {
+            stage, heading:rect(viewer.querySelector('.studio-heading')),
+            modes:rect(viewer.querySelector('.viewer-modes')),
+            scrolled:panel.scrollHeight-panel.clientHeight,
+            overflow:document.documentElement.scrollWidth>innerWidth+1,
+          };
+        }""")
+        assert not before["overflow"] and before["scrolled"] <= 1, before
+        assert before["heading"][1] <= before["modes"][0] + 1, before
+        assert before["modes"][1] <= before["stage"][0] + 1, before
+        assert before["stage"][2] >= 319, before
+        if width == 1110:
+            assert before["stage"][0] <= height - 64, before
+        else:
+            assert before["stage"][0] < height + 64, before
+        page.screenshot(path=evidence / "initial.png")
+
+        camera = """node => node.contentDocument.querySelector('canvas')
+          ._3dmol_viewer.getView()"""
+        original = stage.element_handle()
+        zoom = viewer.get_by_role("button", name="Zoom in", exact=True)
+        nominal = stage.evaluate(camera)
+        zoom.click()
+        page.wait_for_function(
+            """initial => {
+              const el=document.querySelector('.prediction-result .molecular-stage iframe');
+              const v=el?.contentDocument?.querySelector('canvas')?._3dmol_viewer;
+              return v && Math.abs(v.getView()[3] - initial) > 0.001;
+            }""",
+            arg=nominal[3],
+        )
+        adjusted = stage.evaluate(camera)
+        expand = viewer.get_by_role("button", name="Expand research workspace", exact=True)
+        expand.click()
+        expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_be_visible()
+        assert stage.evaluate("(node, original) => node === original", original)
+        expanded = stage.evaluate(camera)
+        assert expanded[:3] + expanded[4:] == pytest.approx(adjusted[:3] + adjusted[4:])
+        page.screenshot(path=evidence / "expanded.png")
+        page.keyboard.press("Escape")
+        expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_have_count(0)
+        expect(expand).to_be_focused()
+        assert stage.evaluate("(node, original) => node === original", original)
+        stage.evaluate(
+            "() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
+        )
+        restored = stage.evaluate(camera)
+        assert restored == pytest.approx(adjusted, abs=1)
+        assert not writes
+        browser.close()

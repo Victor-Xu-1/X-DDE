@@ -784,7 +784,10 @@ The ordinary prediction result uses the same live structure, sample controls,
 confidence plots and sequence as its expanded workspace. Compact sample metrics
 lead a large structure on the left; confidence and a bounded sequence pane follow
 on the right. Narrow windows stack these panes; short windows retain readable
-minimum chart sizes and use normal document scrolling.
+minimum chart sizes and scroll the document instead of scrolling the structure
+pane itself. The inline viewer controls stay in normal flow. Compact headers and
+sample controls reserve more room for the scene without hiding the active score,
+recorded method, or downloads.
 Source task and recorded prediction method remain visible. New-task model choices
 return when the user leaves an example result for its form. Expanding and closing
 the workspace retains the iframe, selected sample and residue selection; styling

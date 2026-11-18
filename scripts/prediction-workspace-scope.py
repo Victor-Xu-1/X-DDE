@@ -1169,6 +1169,8 @@ RESULT_LAYOUT_SOURCES = {
     "frontend/src/presentation/PredictionConfidenceCard.tsx",
     "frontend/src/operations/ConfidencePanel.tsx",
     "frontend/src/presentation/prediction-inspection.css",
+    "frontend/src/presentation/prediction-wide-inspection.css",
+    "frontend/src/presentation/PredictionArchiveDownload.tsx",
     "frontend/src/presentation/prediction-results.css",
     "frontend/src/presentation/prediction-workspace.css",
     "frontend/src/presentation/prediction-shell.css",
