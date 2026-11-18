@@ -1,4 +1,5 @@
 import { isChainSubset } from "./chain-visibility";
+import { defaultPotentialRange, isPotentialRange } from "./potential-range";
 import { nativeInteractions, type PotentialMap } from "./scientific-data";
 import type { NativeInteraction } from "../integrations/types";
 import { channelGeometry, type ChannelGeometry } from "./channel-input";
@@ -153,9 +154,12 @@ function potentialMap(value: unknown): PotentialMap {
     !map ||
     typeof map.url !== "string" ||
     map.unit !== "kBT/e" ||
-    (map.range !== undefined &&
-      (!Number.isFinite(map.range) || map.range < 1 || map.range > 20))
+    (map.range !== undefined && !isPotentialRange(map.range))
   )
     throw new Error("Invalid potential display request");
-  return { url: map.url, unit: map.unit, range: map.range ?? 5 };
+  return {
+    url: map.url,
+    unit: map.unit,
+    range: map.range ?? defaultPotentialRange,
+  };
 }

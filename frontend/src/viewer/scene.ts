@@ -72,12 +72,20 @@ import {
   focusChannel,
   type ChannelGeometry,
 } from "./channel-geometry";
+function potentialStyle(data: mol.VolumeData, range: number) {
+  return {
+    opacity: 0.82,
+    voldata: data,
+    volscheme: new mol.Gradient.RWB(-range, range),
+  };
+}
 export class MolecularScene {
   channelGeometry?: ChannelGeometry;
   searchBox?: SearchBoxGeometry;
   attachmentGeometry?: AttachmentGeometry;
   nativeInteractions?: NativeInteraction[];
   potential?: { data: mol.VolumeData; range: number };
+  private potentialSurface: number | undefined;
   options: ViewerOptions = { ...defaultOptions };
   info: SceneInfo = {
     atoms: 0,
@@ -143,6 +151,7 @@ export class MolecularScene {
     this.attachmentGeometry = undefined;
     this.attachmentCount = 0;
     this.potential = undefined;
+    this.potentialSurface = undefined;
     this.confidence = null;
     this.preferredColor = null;
     this.emit("confidence-inspection", null);
@@ -312,6 +321,22 @@ export class MolecularScene {
     );
   }
   paint(): Promise<void> {
+    return this.queuePaint(() => this.draw());
+  }
+  setPotentialRange(range: number): Promise<void> {
+    return this.queuePaint(() => {
+      if (!this.potential || this.potential.range === range) return;
+      if (this.potentialSurface !== undefined) {
+        this.viewer.setSurfaceMaterialStyle(
+          this.potentialSurface,
+          potentialStyle(this.potential.data, range),
+        );
+        this.viewer.render();
+      }
+      this.potential.range = range;
+    });
+  }
+  private queuePaint(work: () => void | Promise<void>): Promise<void> {
     const revision = this.revision;
     this.pendingPaints++;
     this.emit("rendering", true);
@@ -319,7 +344,7 @@ export class MolecularScene {
     const next = this.painting
       .catch(() => undefined)
       .then(async () => {
-        if (revision === this.revision) await this.draw();
+        if (revision === this.revision) await work();
       })
       .finally(() => {
         this.pendingPaints--;
@@ -331,6 +356,7 @@ export class MolecularScene {
   private async draw() {
     const v = this.viewer;
     nativeLabelLayer(v).clear();
+    this.potentialSurface = undefined;
     v.removeAllSurfaces();
     v.removeAllShapes();
     paintChannel(v, this.channelGeometry);
@@ -443,15 +469,17 @@ export class MolecularScene {
         throw new Error(
           "Potential grid does not cover the displayed structure",
         );
-      await this.viewer.addSurface(
+      const style = potentialStyle(data, range);
+      const id = await this.viewer.addSurface(
         mol.SurfaceType.SAS,
-        {
-          opacity: 0.82,
-          voldata: data,
-          volscheme: new mol.Gradient.RWB(-range, range),
-        },
+        { opacity: style.opacity },
         { model: 0, index: atoms.map((a) => a.index!) },
       );
+      if (revision === this.revision) {
+        this.potentialSurface = id;
+        // Use the same vertex coordinates and sampling for the first and later palettes.
+        this.viewer.setSurfaceMaterialStyle(id, style);
+      }
       return;
     }
     const { style, summary } = electricalSurfaceStyle(

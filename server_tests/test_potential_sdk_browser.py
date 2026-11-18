@@ -26,7 +26,7 @@ component "connections" value 2
 component "data" value 3
 """
     with sync_playwright() as driver:
-        browser = driver.chromium.launch()
+        browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page()
         page.set_content("<title>Potential parsing contract</title>")
         page.add_script_tag(path=str(sdk))

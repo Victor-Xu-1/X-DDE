@@ -87,6 +87,8 @@ on:
     outputs:
       utility_only:
         value: ${{ jobs.scope.outputs.utility_only }}
+      potential_display_only:
+        value: ${{ jobs.scope.outputs.potential_display_only }}
       runtime_switch_only:
         value: ${{ jobs.scope.outputs.runtime_switch_only }}
       result_header_only:
@@ -100,6 +102,7 @@ jobs:
       utility_only: ${{ steps.select.outputs.utility_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
+      potential_display_only: ${{ steps.select.outputs.potential_display_only }}
       runtime_switch_only: ${{ steps.select.outputs.runtime_switch_only }}
       result_header_only: ${{ steps.select.outputs.result_header_only }}
     steps:
@@ -112,7 +115,7 @@ jobs:
         run: python scripts/molecular-utility-scope.py
   utility-inputs:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' && needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' && needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' && needs.scope.outputs.potential_display_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

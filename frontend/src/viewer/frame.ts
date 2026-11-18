@@ -22,6 +22,7 @@ import "./frame.css";
 import { captureView, captureFigure } from "./capture";
 import { validFigure } from "../publication/settings";
 import { potentialData } from "./scientific-overlay";
+import { defaultPotentialRange, isPotentialRange } from "./potential-range";
 import {
   resizeZoomFactor,
   viewportFitFactor,
@@ -222,7 +223,7 @@ async function load(input: ViewerLoad) {
       if (current !== generation) return;
       scene.potential = {
         data: potentialData(text),
-        range: input.electrostaticMap.range ?? 5,
+        range: input.electrostaticMap.range ?? defaultPotentialRange,
       };
       scene.options.mode = "surface";
     }
@@ -253,6 +254,7 @@ async function load(input: ViewerLoad) {
       ...scene.info,
       options: scene.options,
       hiddenChains: hiddenChainIds,
+      potentialRange: scene.potential?.range,
     });
   } catch (error) {
     if (!request.signal.aborted && current === generation) {
@@ -308,6 +310,14 @@ async function command(type: string, value: unknown, requestId?: string) {
     if (type === "site-region") await scene.highlightResidues(value);
     if (type === "focus-site") scene.focusSite();
     if (type === "attachment-geometry") await scene.showAttachments(value);
+    if (
+      type === "potential-range" &&
+      scene.potential &&
+      isPotentialRange(value)
+    ) {
+      await scene.setPotentialRange(value);
+      if (current === generation) notify("potential-range", value);
+    }
     if (type === "search-box") {
       scene.searchBox = searchBoxGeometry(value);
       await scene.paint();

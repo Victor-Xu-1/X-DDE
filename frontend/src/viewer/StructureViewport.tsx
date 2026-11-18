@@ -47,6 +47,7 @@ import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import { InitialPoseStatus } from "./InitialPoseStatus";
 import { poseError } from "./pose-errors";
 import type { NativeInteraction } from "../integrations/types";
+import { defaultPotentialRange, isPotentialRange } from "./potential-range";
 import type { PotentialMap } from "./scientific-data";
 import type { ChannelGeometry } from "./channel-geometry";
 import type { AttachmentGeometry } from "./attachment-geometry";
@@ -129,6 +130,11 @@ export function StructureViewport({
 }: StructureViewerProps & { optimization: PoseController }) {
   const { urls, records, score: nativeScore } = optimization.pose;
   const previousTrajectory = useRef<string | undefined>(undefined);
+  const requestedPotentialRange = electrostaticMap
+    ? (electrostaticMap.range ?? defaultPotentialRange)
+    : undefined;
+  const sentPotentialRange = useRef<number | undefined>(undefined);
+  const [appliedPotentialRange, setAppliedPotentialRange] = useState<number>();
   const optimizationReceiver = useRef(optimization);
   optimizationReceiver.current = optimization;
   const frame = useRef<HTMLIFrameElement>(null),
@@ -143,7 +149,10 @@ export function StructureViewport({
       JSON.stringify({
         expectedStructureSha256,
         nativeInteractions,
-        electrostaticMap,
+        potentialSource: electrostaticMap && [
+          electrostaticMap.url,
+          electrostaticMap.unit,
+        ],
         channelGeometry,
         initialMode,
         initialChains,
@@ -157,7 +166,9 @@ export function StructureViewport({
   const requestedKey = useRef<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const focusedLigand = useRef<string | null>(null);
-  const snapshot = useViewerSnapshot(key),
+  const snapshot = useViewerSnapshot(
+      JSON.stringify([key, requestedPotentialRange]),
+    ),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
   const [imageScale, setImageScale] = useState(2);
@@ -333,6 +344,8 @@ export function StructureViewport({
       )
         setAttachmentCount(detail);
       if (type === "surface") setSurface(surfaceSummary(detail));
+      if (type === "potential-range" && isPotentialRange(detail))
+        setAppliedPotentialRange(detail);
       if (type === "site-region") setSiteStatus(detail);
       if (type === "distance")
         setDistance(
@@ -345,6 +358,11 @@ export function StructureViewport({
       }
       if (type === "loading") setStatus("loading");
       if (type === "loaded") {
+        setAppliedPotentialRange(
+          isPotentialRange(detail.potentialRange)
+            ? detail.potentialRange
+            : undefined,
+        );
         setHiddenChains(detail.hiddenChains ?? []);
         setHiddenResidues([]);
         displayWork.current.reset();
@@ -399,6 +417,7 @@ export function StructureViewport({
     previousTrajectory.current = trajectoryKey;
     if (ready && urls.length) {
       requestedKey.current = sceneKey;
+      sentPotentialRange.current = requestedPotentialRange;
       send("load", specification);
       setStatus("loading");
     } else if (!urls.length) {
@@ -479,6 +498,19 @@ export function StructureViewport({
     send("options", value);
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
+  const displayBusy =
+    displayPending ||
+    (loaded && requestedPotentialRange !== appliedPotentialRange);
+  useEffect(() => {
+    if (
+      loaded &&
+      requestedPotentialRange !== undefined &&
+      sentPotentialRange.current !== requestedPotentialRange
+    ) {
+      sentPotentialRange.current = requestedPotentialRange;
+      send("potential-range", requestedPotentialRange);
+    }
+  }, [loaded, sceneKey, requestedPotentialRange]);
   const chainScope =
     loaded &&
     !comparison &&
@@ -622,7 +654,7 @@ export function StructureViewport({
               selectedResidues,
               displayRevision,
             ])}
-            sourceReady={loaded && !displayPending}
+            sourceReady={loaded && !displayBusy}
             language={language}
             filename="X-DDE-structure"
             format="png"
@@ -633,12 +665,12 @@ export function StructureViewport({
               const bounds = frame.current?.getBoundingClientRect();
               return bounds ? bounds.width / bounds.height : 1.5;
             }}
-            disabled={!loaded || displayPending || snapshot.busy}
+            disabled={!loaded || displayBusy || snapshot.busy}
             render={(settings) => snapshot.figure(send, settings)}
           />
           <button
             type="button"
-            disabled={!loaded || displayPending || snapshot.busy}
+            disabled={!loaded || displayBusy || snapshot.busy}
             aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
             title={zh ? "生成三维视图图片" : "Capture 3D view"}
             onClick={() => snapshot.begin(send, imageScale)}
@@ -886,14 +918,15 @@ export function StructureViewport({
           {options.mode === "surface" && !comparison && !electrostaticMap && (
             <SurfaceLegend summary={surface} language={language} />
           )}
-          {options.mode === "surface" && electrostaticMap && (
-            <div className="potential-legend">
-              <span>{zh ? "APBS 电势" : "APBS potential"}</span>
-              <span>−{electrostaticMap.range ?? 5}</span>
-              <i />
-              <span>+{electrostaticMap.range ?? 5} kBT/e</span>
-            </div>
-          )}
+          {options.mode === "surface" &&
+            appliedPotentialRange !== undefined && (
+              <div className="potential-legend">
+                <span>{zh ? "APBS 电势" : "APBS potential"}</span>
+                <span>−{appliedPotentialRange}</span>
+                <i />
+                <span>+{appliedPotentialRange} kBT/e</span>
+              </div>
+            )}
           {siteStatus && siteStatus.requested > 0 && (
             <p className="field-help" role="status">
               {zh ? "已定位区域残基：" : "Region residues located: "}

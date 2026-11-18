@@ -464,6 +464,23 @@ UTILITY_NAVIGATION_FILES = {
 UTILITY_NAVIGATION_DIFF = "a20a8fcfb14371b3f09ba2e875e7e38a7a0c502c05fc0446f69f21fd6d3e61a8"
 
 
+POTENTIAL_DISPLAY_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/potential-grid-checks.yml",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/display-readiness.ts",
+    "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/potential-range.ts",
+    "frontend/src/viewer/scene.ts",
+    "frontend/src/viewer/source-layout.ts",
+    "server_tests/test_apbs_range_browser.py",
+    "server_tests/test_potential_sdk_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+POTENTIAL_DISPLAY_DIFF = "2dbf1e33d64aac7dc744c71cb2aca38334b2fb69474578600c8e8b00db4204da"
+
+
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
         return False
@@ -522,7 +539,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         UTILITY_NAVIGATION_FILES, UTILITY_NAVIGATION_DIFF,
     )
+    potential_display = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        POTENTIAL_DISPLAY_FILES, POTENTIAL_DISPLAY_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         event = os.environ.get("GITHUB_EVENT_NAME", "push")
@@ -540,7 +562,9 @@ def main():
             path: (git_blob(base, path), git_blob("HEAD", path))
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
-        utility = navigation or runtime or layout or selected(changed, event, shared=shared)
+        utility = potential_display or navigation or runtime or layout or selected(
+            changed, event, shared=shared
+        )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
         output.write("result_header_only=" + str(layout).lower() + "\n")
         output.write("utility_only=" + str(utility).lower() + "\n")
