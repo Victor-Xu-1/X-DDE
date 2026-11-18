@@ -12,10 +12,12 @@ export function ExampleJobResult({
   job,
   language,
   initialCandidateId,
+  showSource = true,
 }: {
   job: Job;
   language: Language;
   initialCandidateId?: string;
+  showSource?: boolean;
 }) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState("");
@@ -54,7 +56,7 @@ export function ExampleJobResult({
           language === "zh" ? "模板的真实结果" : "Actual template result"
         }
       >
-        {job.request.name && (
+        {showSource && job.request.name && (
           <p
             className={prediction ? "prediction-example-source" : "field-help"}
           >

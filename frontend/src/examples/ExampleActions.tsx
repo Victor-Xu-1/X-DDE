@@ -90,6 +90,7 @@ export function ExampleActions(
           info={state.info}
           capability={capability}
           backendScope={backendScope}
+          selectedJob={selectedJob}
           language={language}
           previewing={Boolean(state.result)}
           active={options.active ?? true}

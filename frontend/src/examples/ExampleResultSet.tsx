@@ -34,6 +34,7 @@ export function ExampleResultSet(
             job={props.job}
             language={language}
             initialCandidateId={props.initialCandidateId}
+            showSource={false}
           />
         ),
       }
@@ -140,7 +141,12 @@ export function ExampleResultSet(
           </button>
         </div>
       ) : current ? (
-        <ExampleJobResult key={current.id} job={current} language={language} />
+        <ExampleJobResult
+          key={current.id}
+          job={current}
+          language={language}
+          showSource={false}
+        />
       ) : (
         <p role="status">
           {zh ? "正在读取已核对的结果…" : "Loading reviewed result…"}

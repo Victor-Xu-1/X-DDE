@@ -482,6 +482,8 @@ or automatically triggered by this work.
 
 任务与记录共用一个研究阶段选择器。原始结果保留所选姿势，查看后续原生报告后可以返回；
 默认任务草稿保持不变。解读与限制按需展开，不向研究者展示校验摘要或内部日志。
+「案例说明」集中提供当前阶段的来源任务、预测方法、结果解读和公开来源。切换阶段时，
+来源任务和后端开关跟随当前结果，视觉预览上方保留案例标题和常用操作。
 
 Job and record examples use the same retained-stage controller. Core run evidence stays separate
 from optional follow-up evidence, and verification rechecks the exact computed output versions,
