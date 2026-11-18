@@ -52,6 +52,7 @@ it("shows the original sequence for feature preparation jobs without claiming a 
   ).toBeVisible();
   expect(screen.getByRole("heading", { name: "蛋白序列" })).toBeVisible();
   expect(screen.queryByRole("tablist")).toBeNull();
+  expect(screen.queryByRole("button", { name: "查看组分" })).toBeNull();
   expect(
     screen.getByRole("link", { name: "预测输入 1 · JSON" }),
   ).toHaveAttribute("href", expect.stringContaining("prepared-input.json"));
@@ -97,6 +98,23 @@ it("retains keyboard tabs for real multiple inputs and keeps the original struct
   expect(
     screen.getByText("Original source: /api/assets/asset-two"),
   ).toBeVisible();
+  const original = screen.getByText("Original source: /api/assets/asset-two");
+  const viewComponents = screen.getByRole("button", {
+    name: "View components",
+  });
+  const componentRegion = screen.getByRole("region", {
+    name: "Input components",
+  });
+  expect(viewComponents).toHaveAttribute("aria-controls", componentRegion.id);
+  await user.click(viewComponents);
+  expect(componentRegion).toHaveFocus();
+  await user.click(screen.getByRole("button", { name: "Back to original 3D" }));
+  expect(
+    screen.getByRole("region", { name: "Original input structure" }),
+  ).toHaveFocus();
+  expect(screen.getByText("Original source: /api/assets/asset-two")).toBe(
+    original,
+  );
   expect(
     screen.getByRole("tab", { name: "Component 2", selected: true }),
   ).toBeVisible();
