@@ -59,7 +59,6 @@ on:
       - "frontend/src/integrations/target-selection.css"
       - "frontend/src/operations/CandidateSequenceResults.tsx"
       - "frontend/src/operations/CampaignMonitor.tsx"
-      - "frontend/src/operations/PreparedInputResults.tsx"
       - "frontend/src/operations/CovalentEditor.tsx"
       - "frontend/src/operations/PropertyResults.tsx"
       - "frontend/src/pockets/PocketResults.tsx"
@@ -118,6 +117,7 @@ on:
       - "!frontend/src/receptors/ReceptorResults.tsx"
       # Saved preparation views use the same native viewer gate.
       - "!frontend/src/receptors/StructurePrepareResults*"
+      - "!frontend/src/operations/PreparedInputResults*"
       # Native ternary tabs, exact coordinates and desktop widths use proximity-checks.
       - "!frontend/src/proximity/Results.tsx"
   pull_request:

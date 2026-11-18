@@ -1,0 +1,83 @@
+.prepared-research-inputs .structure-workbench {
+  gap: 12px 18px;
+}
+.prepared-research-inputs .structure-workbench-details {
+  gap: 10px;
+}
+.prepared-input-toolbar,
+.prepared-input-source > label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+.prepared-input-toolbar {
+  justify-content: space-between;
+  padding-block-end: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.prepared-input-toolbar h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.prepared-input-documents > div {
+  display: grid;
+  gap: 4px;
+}
+.prepared-input-documents > summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.prepared-input-toolbar .research-download,
+.prepared-input-documents > summary {
+  font-size: 12px;
+  padding: 8px 0;
+  overflow-wrap: anywhere;
+}
+.prepared-input-source > label {
+  margin-block-end: 8px;
+  font-size: 12px;
+}
+.prepared-input-source > label > select {
+  min-width: 0;
+  width: auto;
+  max-width: 100%;
+}
+.prepared-input-source .viewer-panel {
+  padding: 0;
+  background: transparent;
+}
+.prepared-research-inputs .sequence-track {
+  padding: 0;
+}
+.prepared-research-inputs .sequence-track header {
+  gap: 6px 10px;
+  margin-block-end: 8px;
+}
+.prepared-research-inputs .sequence-track-scroll {
+  max-height: clamp(240px, 36vh, 380px);
+}
+.prepared-research-inputs .structure-workbench-details > .field-help {
+  margin: 0;
+}
+@media (max-width: 360px) {
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(
+      > .operation-results > .prepared-research-inputs
+    )
+    > .task-detail-header {
+    gap: 6px;
+    margin-block-end: 8px;
+  }
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(
+      > .operation-results > .prepared-research-inputs
+    )
+    .panel-heading
+    h2 {
+    font-size: 16px;
+  }
+  .prepared-research-inputs .sequence-track header h3 {
+    font-size: 14px;
+  }
+}
