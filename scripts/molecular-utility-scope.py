@@ -549,6 +549,7 @@ BACKEND_PLACEMENT_FILES = {
 BACKEND_PLACEMENT_DIFF = "6b67939a29d0b15f771b924e114cacf623411a4d58c6752e5541d51959fe6352"
 
 TASK_POWER_FILES = {
+    ".github/workflows/harness-checks.yml",
     ".github/workflows/managed-compute-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/prediction-workspace-checks.yml",
@@ -579,7 +580,7 @@ TASK_POWER_FILES = {
     "tests/test_compute_power_admission.py",
     "tests/test_molecular_utility_scope.py",
 }
-TASK_POWER_DIFF = "1d926dcc53bed5e9095817f93fe9e4bed6a8a4b4a9c87031134342d7fcb319e2"
+TASK_POWER_DIFF = "feac177b02d6ff045d14ecea28ea9ec26407ff210deee16ac16b967954511f43"
 
 
 def reviewed_selected(changed, event, base, files, digest):
