@@ -5,6 +5,7 @@ import type { ExampleInfo } from "./types";
 import { ExampleGuide } from "./ExampleGuide";
 import { Hint } from "../guided/Hint";
 import { templateGuide } from "./guide";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 
 export function ExampleToolbar({
   info,
@@ -161,6 +162,13 @@ export function ExampleToolbar({
           </button>
         )}
         <ExampleGuide info={info} capability={capability} language={language} />
+        {previewing && (
+          <TaskBackendControl
+            language={language}
+            scope={{ capability }}
+            placement="example"
+          />
+        )}
       </div>
     </div>
   );

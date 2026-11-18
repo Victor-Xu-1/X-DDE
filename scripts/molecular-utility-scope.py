@@ -200,6 +200,18 @@ RUNTIME_SOURCES = {
     "tests/test_utility_tools.py",
 }
 RUNTIME_CONSUMERS = {
+    "frontend/src/examples/ExampleToolbar.tsx": (
+        "b13790abbc7b64f138283d9ac351812185eb7148376e368d2233cec0ba228215",
+        "1981bbf1d39634e854ae307369fae040c339bf8ee183271e236094271264964a",
+    ),
+    "frontend/src/studio/HomeWorkspace.tsx": (
+        "fdaf5feebb8468d9ae1ce222a96ded35e99f9007e377c905b3abe57acbedc787",
+        "b229d77b830c4b382dac24dd9fc0e5bea4063231f9ea71a2a871cda5ce757ccb",
+    ),
+    "frontend/src/studio/HomeWorkspace.test.tsx": (
+        "ddb9d6f34c9764f4cbbe7b70bd8513c830fa2b18a89ca7803a39410c3109ec95",
+        "7be50af475a52847ab4860e2bff49a06b12d7a16ecc7d320b92908c2a657a049",
+    ),
     "src/opendde_workbench/discovery/routes.py": (
         "a3ebc5c97b74a564ac65291492da27d21b6456f8b696813d17aab10eec4a1e7f",
         "dd71fdff10786d29e40c166243d5c88f0e363c82994c1f67484203baf2b391c7",
