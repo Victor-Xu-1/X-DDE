@@ -180,6 +180,8 @@ jobs:
           python - <<'PY'
           import os, subprocess
           base = os.environ.get("BASE", "")
+          if os.environ.get("GITHUB_EVENT_NAME") == "push" and os.environ.get("GITHUB_REF_NAME") != "main":
+              base = subprocess.check_output(["git", "merge-base", "origin/main", "HEAD"], text=True).strip()
           changed = set(subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()) if base and set(base) != {"0"} else set()
           surface = {"QualityResults.tsx", "QualityPreview.tsx", "quality-results.css", "tests/QualityResults.test.tsx"}
           surface = {"frontend/src/quality/" + name for name in surface}
