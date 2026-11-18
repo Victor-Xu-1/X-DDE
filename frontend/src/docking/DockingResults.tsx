@@ -124,7 +124,17 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const nextInput = handoff.value?.selection.reference;
   if (nextInput && next)
     return wrap(
-      <ResearchHandoff language={language} onBack={handoff.clear}>
+      <ResearchHandoff
+        language={language}
+        onBack={handoff.clear}
+        capability={
+          next === "properties"
+            ? "properties"
+            : next === "quality"
+              ? "posebusters.check"
+              : `gnina.${next}`
+        }
+      >
         {next === "properties" ? (
           <PropertyForm
             language={language}

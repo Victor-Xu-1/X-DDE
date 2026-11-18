@@ -1,3 +1,6 @@
+import { useContext } from "react";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
+import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
@@ -9,10 +12,12 @@ export function TaskBackendControl({
   language,
   scope,
   active = true,
+  placement,
 }: {
   language: Language;
   scope: Scope;
   active?: boolean;
+  placement?: "followup" | "result";
 }) {
   const runtime = useBackendRuntime(
     active,
@@ -38,6 +43,7 @@ export function TaskBackendControl({
   return (
     <div
       className="task-backend-control"
+      data-backend-placement={placement}
       data-capability={"capability" in scope ? scope.capability : undefined}
       role="group"
       aria-label={zh ? "此任务的后端" : "Backend for this task"}
@@ -61,5 +67,24 @@ export function TaskBackendControl({
         </span>
       )}
     </div>
+  );
+}
+
+/** Follow-up forms use the destination capability, independent of the source result. */
+export function FollowupBackendControl({
+  capability,
+  language,
+}: {
+  capability: ToolId;
+  language: Language;
+}) {
+  const active = useContext(TaskPresentationContext)?.active ?? true;
+  return (
+    <TaskBackendControl
+      language={language}
+      scope={{ capability }}
+      placement="followup"
+      active={active}
+    />
   );
 }

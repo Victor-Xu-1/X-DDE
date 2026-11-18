@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useCallback, useRef, useState } from "react";
 import { artifactUrl } from "../api";
@@ -66,6 +67,16 @@ export function ReferenceImportResults({
         >
           {zh ? "返回参考材料" : "Back to reference material"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={
+            next.step === "prepare"
+              ? "biopython.prepare"
+              : next.step === "states"
+                ? "chemistry.states"
+                : "p2rank.detect"
+          }
+        />
         {next.step === "prepare" ? (
           <StructurePrepareForm
             language={language}

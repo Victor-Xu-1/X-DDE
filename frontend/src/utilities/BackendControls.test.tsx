@@ -9,7 +9,11 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
 import { BackendControls } from "./BackendControls";
-import { TaskBackendControl } from "./TaskBackendControl";
+import {
+  FollowupBackendControl,
+  TaskBackendControl,
+} from "./TaskBackendControl";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 
 vi.mock("../api", () => ({ request: vi.fn(), api: { post: vi.fn() } }));
 afterEach(() => {
@@ -170,5 +174,26 @@ it("only probes native campaign activity when a matching tool is visible", async
     "/runtime-controls",
     expect.anything(),
   );
+  expect(api.post).not.toHaveBeenCalled();
+});
+
+it("does not expose a follow-up switch from a utility form hidden by its example", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [entry],
+  });
+  const form = (active: boolean) => (
+    <TaskPresentationContext.Provider
+      value={{ layout: "single", active, renderResult: () => null }}
+    >
+      <FollowupBackendControl capability="properties" language="en" />
+    </TaskPresentationContext.Provider>
+  );
+  const { rerender } = render(form(true));
+  expect(
+    await screen.findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  rerender(form(false));
+  expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   expect(api.post).not.toHaveBeenCalled();
 });

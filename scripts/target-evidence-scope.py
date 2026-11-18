@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
+from runpy import run_path
 
 CSS = "frontend/src/discovery/discovery.css"
 SOURCES = {
@@ -86,10 +87,12 @@ def main():
     )
     only = selected(paths, event, css_safe=safe)
     if event in {"push", "pull_request"} and set(paths) & SOURCES and not only:
-        raise SystemExit(
-            "Mixed target-evidence/shared changes require an explicit scoped check plan; "
-            "unrelated dataset and native DEL jobs were not started."
-        )
+        utility = run_path(str(Path(__file__).with_name("molecular-utility-scope.py")))
+        if not utility["followup_selected"](set(paths), event, base):
+            raise SystemExit(
+                "Mixed target-evidence/shared changes require an explicit scoped check plan; "
+                "unrelated dataset and native DEL jobs were not started."
+            )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write(f"target_evidence_only={str(only).lower()}\n")
 

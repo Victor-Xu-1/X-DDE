@@ -74,7 +74,11 @@ export function PocketResultsHandoff({
         : "Generate molecules";
 
   return (
-    <ResearchHandoff language={language} onBack={onBack}>
+    <ResearchHandoff
+      language={language}
+      onBack={onBack}
+      capability={action === "dock" ? "gnina.dock" : "diffsbdd.generate"}
+    >
       <section
         className="pocket-handoff-source"
         aria-label={zh ? "起始研究材料" : "Starting research inputs"}

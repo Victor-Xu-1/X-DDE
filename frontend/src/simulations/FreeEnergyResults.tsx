@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
@@ -47,6 +48,10 @@ export function FreeEnergyResults({
         >
           {zh ? "返回变化网络" : "Back to perturbation network"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={"openfe.rbfe"}
+        />
         <SimulationForm
           form="openfe.rbfe"
           language={language}

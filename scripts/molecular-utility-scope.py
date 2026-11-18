@@ -1,9 +1,11 @@
 """Delegate closed molecular-utility changes; preserve mixed scientific gates."""
 
 import hashlib
+import json
 import os
 import subprocess
 from pathlib import Path
+from runpy import run_path
 
 SOURCES = {
     "frontend/src/editors/ketcher-conversions.ts",
@@ -405,6 +407,61 @@ def git_blob(revision, path):
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+# Exact follow-up UI patch and its test delegation. Any scientific or
+# unrelated edit retains the original workflows and their checks.
+FOLLOWUP_FILES = {
+    ".github/workflows/dataset-discovery-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/sequence-result-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/admet/AdmetResults.tsx",
+    "frontend/src/chemistry/LibraryScreenResults.tsx",
+    "frontend/src/chemistry/StateResults.tsx",
+    "frontend/src/datasets/CandidateHandoff.tsx",
+    "frontend/src/diffsbdd/DiffResults.tsx",
+    "frontend/src/discovery/ReferenceImportResults.tsx",
+    "frontend/src/discovery/TargetResearchResults.tsx",
+    "frontend/src/docking/DockingResults.test.tsx",
+    "frontend/src/docking/DockingResults.tsx",
+    "frontend/src/editors/Editors.tsx",
+    "frontend/src/guided/ResearchHandoff.tsx",
+    "frontend/src/humanization/HumanizationResults.tsx",
+    "frontend/src/pockets/PocketResultsHandoff.tsx",
+    "frontend/src/poses/PoseResults.tsx",
+    "frontend/src/receptors/ReceptorResults.tsx",
+    "frontend/src/receptors/StructurePrepareResults.tsx",
+    "frontend/src/research/ResearchWorkspace.test.tsx",
+    "frontend/src/research/ResearchWorkspace.tsx",
+    "frontend/src/simulations/FreeEnergyResults.tsx",
+    "frontend/src/structure-comparison/ComparisonResults.tsx",
+    "frontend/src/studio/TaskWorkspace.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "scripts/target-evidence-scope.py",
+    "server_tests/test_result_handoff_browser.py",
+}
+FOLLOWUP_DIFF = "c6cc1179bfb7e1a5e47f276a1f474876793b84a88b15f419dafc67a7882083bc"
+
+
+def followup_selected(changed, event, base):
+    if event not in {"push", "pull_request"} or not FOLLOWUP_FILES <= changed:
+        return False
+    scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
+    remaining = changed - FOLLOWUP_FILES - {"scripts/molecular-utility-scope.py"}
+    if not remaining <= scope["VERSION_FILES"]:
+        return False
+    if not scope["only_version_mirrors"](base, remaining):
+        return False
+    reviewed = [
+        [path, blob_digest(base, path), blob_digest("HEAD", path)]
+        for path in sorted(FOLLOWUP_FILES)
+    ]
+    return hashlib.sha256(
+        json.dumps(reviewed, separators=(",", ":")).encode()
+    ).hexdigest() == FOLLOWUP_DIFF
+
+
 def main():
     base = os.environ.get("BASE", "")
     if os.environ.get("GITHUB_REF_NAME", "main") != "main":
@@ -444,7 +501,9 @@ def main():
             path: (blob_digest(base, path), blob_digest("HEAD", path))
             for path in set(changed) & shared_paths
         }
-        runtime = runtime_selected(changed, event, shared=shared)
+        runtime = runtime_selected(changed, event, shared=shared) or followup_selected(
+            set(changed), event, base
+        )
         layout = result_header_selected(changed, event, blobs={
             path: (git_blob(base, path), git_blob("HEAD", path))
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()

@@ -78,7 +78,11 @@ export function StateResults({
   }, [job.id]);
   if (selected && next && nextOrigin === origin)
     return wrap(
-      <ResearchHandoff language={language} onBack={() => setNext(null)}>
+      <ResearchHandoff
+        language={language}
+        onBack={() => setNext(null)}
+        capability={next === "properties" ? "properties" : "gnina.dock"}
+      >
         {next === "properties" ? (
           <PropertyForm
             language={language}

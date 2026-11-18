@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import { artifactUrl } from "../api";
@@ -25,6 +26,10 @@ export function StructurePrepareResults({
         <button type="button" onClick={() => setPocket(false)}>
           {zh ? "返回结构" : "Back to structure"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={"p2rank.detect"}
+        />
         <PocketForm
           language={language}
           onCreated={onCreated}

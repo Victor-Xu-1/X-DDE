@@ -82,3 +82,13 @@
     flex-basis: 100%;
   }
 }
+
+.task-result-content:has([data-backend-placement="followup"])
+  [data-backend-placement="result"],
+.utility-workspace:has(
+    .utility-panel:not([hidden]) [data-backend-placement="followup"]
+  )
+  > .utility-tabbar
+  > .task-backend-control {
+  display: none;
+}

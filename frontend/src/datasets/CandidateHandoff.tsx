@@ -32,6 +32,17 @@ type Action =
   | "minimize"
   | "edit"
   | "curate";
+const followupCapability = {
+  interactions: "plip.profile",
+  admet: "admet.predict",
+  quality: "posebusters.check",
+  dock: "gnina.dock",
+  score: "gnina.score",
+  minimize: "gnina.minimize",
+  edit: null,
+  curate: "chemistry.screen",
+} as const;
+
 function EditCandidate(props: {
   job: Job;
   language: Language;
@@ -123,7 +134,11 @@ export function CandidateHandoff({
   }
   if (action && input)
     return (
-      <ResearchHandoff language={language} onBack={handoff.clear}>
+      <ResearchHandoff
+        language={language}
+        onBack={handoff.clear}
+        capability={followupCapability[action]}
+      >
         {action === "interactions" ? (
           complex ? (
             <ScientificForm

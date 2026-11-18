@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState, type ReactNode } from "react";
 import { PoseSession } from "../viewer/PoseSession";
@@ -52,6 +53,10 @@ function AdmetWorkspace({ job, result, language, onCreated }: Props) {
         >
           {zh ? "返回性质预测" : "Back to predictions"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={"chemistry.states"}
+        />
         <StateForm
           language={language}
           onCreated={onCreated}

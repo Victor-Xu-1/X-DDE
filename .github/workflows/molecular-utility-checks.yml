@@ -250,6 +250,14 @@ jobs:
           src/poses/PoseWorkspace.test.tsx src/regions/RegionWorkspace.test.tsx
           src/viewer/PreviewAvailability.test.tsx src/discovery/TargetResearchForm.test.tsx
           src/editors/AlignedEditAction.test.tsx src/operations/CovalentEditor.test.tsx
+          src/admet/AdmetResults.test.tsx src/chemistry/LibraryScreenResults.test.tsx
+          src/chemistry/StateResults.test.tsx src/datasets/CandidateHandoff.test.tsx
+          src/diffsbdd/DiffResults.test.tsx src/discovery/ReferenceImportResults.test.tsx
+          src/discovery/TargetResearchResults.test.tsx src/docking/DockingResults.test.tsx
+          src/humanization/HumanizationResults.test.tsx src/pockets/PocketResults.test.tsx
+          src/pockets/PocketResults.return.test.tsx src/poses/PoseResults.test.tsx
+          src/receptors/ReceptorResults.test.tsx src/research/ResearchWorkspace.test.tsx
+          src/simulations/SimulationResults.test.tsx src/operations/StructureComparisonResults.test.tsx
       - name: Canonical mappings, default-off admission and actual browser controls
         run: |
           uv sync --locked --group dev --group browser

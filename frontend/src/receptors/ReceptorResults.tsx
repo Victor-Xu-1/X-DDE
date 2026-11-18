@@ -75,7 +75,11 @@ export function ReceptorResults({
     : [];
   if (next && saved)
     return (
-      <ResearchHandoff language={language} onBack={() => setNext(false)}>
+      <ResearchHandoff
+        language={language}
+        onBack={() => setNext(false)}
+        capability={"p2rank.detect"}
+      >
         <PocketForm
           language={language}
           initialProtein={saved}
