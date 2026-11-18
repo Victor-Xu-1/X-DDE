@@ -103,8 +103,6 @@ jobs:
           review_only=true
           found=false
           loader_changed=false
-          stage_layout_only=true
-          stage_layout_changed=false
           if [[ ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             BASE=$(git merge-base HEAD origin/main)
           fi
@@ -115,17 +113,28 @@ jobs:
               frontend/src/examples/ExampleResultSet.tsx|frontend/src/examples/ExampleResultSet.test.tsx|frontend/src/examples/ExampleActions.tsx|frontend/src/examples/ExampleActions.test.tsx|frontend/src/examples/examples.css|docs/design/research-examples.md|scripts/release-version.py|tests/test_versioning.py|.github/workflows/examples-checks.yml|.github/workflows/example-result-set-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) review_only=false ;;
             esac
-            # The module-example workflow owns visual checks of this shared toolbar.
-            case "$path" in
-              frontend/src/examples/example-stage-navigation.css) stage_layout_changed=true ;;
-              .github/workflows/example-result-set-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
-              *) stage_layout_only=false ;;
-            esac
           done < <(git diff --name-only "$BASE" HEAD)
           if [[ "$found" != true ]]; then review_only=false; fi
           echo "review_only=$review_only" >> "$GITHUB_OUTPUT"
           echo "loader_changed=$loader_changed" >> "$GITHUB_OUTPUT"
-          if [[ "$stage_layout_changed" != true ]]; then stage_layout_only=false; fi
+          # The module-example workflow runs this toolbar check on push and PR.
+          stage_layout_only=false
+          if [[ "$GITHUB_EVENT_NAME" == push || "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            stage_base="$BASE"
+            if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF_NAME" != main ]]; then
+              stage_base=$(git merge-base HEAD origin/main)
+            fi
+            stage_layout_only=true
+            stage_layout_changed=false
+            while IFS= read -r path; do
+              case "$path" in
+                frontend/src/examples/example-stage-navigation.css) stage_layout_changed=true ;;
+                .github/workflows/example-result-set-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+                *) stage_layout_only=false ;;
+              esac
+            done < <(git diff --name-only "$stage_base" HEAD)
+            if [[ "$stage_layout_changed" != true ]]; then stage_layout_only=false; fi
+          fi
           echo "stage_layout_only=$stage_layout_only" >> "$GITHUB_OUTPUT"
   review-highlights:
     needs: scope
