@@ -626,7 +626,7 @@ NATIVE_STATE_FILES = {
     "server_tests/test_state_results_workspace_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-NATIVE_STATE_DIFF = "e58bc4f9efe7c24a61d6619014f3e704506bba447026b62a231765dcd69c8645"
+NATIVE_STATE_DIFF = "d9b9e3c158ca0b07ef34bfd7cdf008927c3dbfc0482877af1e63b8ecb691e136"
 
 
 def reviewed_selected(changed, event, base, files, digest):

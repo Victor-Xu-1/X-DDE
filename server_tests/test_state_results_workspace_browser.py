@@ -12,6 +12,41 @@ from server_tests.browser_platform import platform
 from server_tests.interaction_workspace_case import retained_contact_workspace  # noqa: F401
 
 
+def select_value(control, value):
+    control.evaluate(
+        """(element, value) => {
+            element.value = value;
+            element.dispatchEvent(new Event("change", {bubbles: true}));
+        }""", str(value),
+    )
+    expect(control).to_have_value(str(value))
+
+
+def verify_mismatched_download(page, base, job, output, original, replacement):
+    # Only the freshly restored test copy is modified. The archived digest stays intact.
+    assert output.read_bytes() == original
+    transfers = []
+    on_download = transfers.append
+    page.on("download", on_download)
+    try:
+        output.write_bytes(replacement)
+        page.goto(base + "/#task=" + job)
+        preview = page.locator(".state-native-preview")
+        expect(preview.locator(".viewer-error")).to_be_visible(timeout=30000)
+        expect(preview.locator(".viewer-original-downloads")).to_have_count(0)
+        preview.get_by_role(
+            "button", name="Download selected original conformer SDF", exact=True
+        ).click()
+        error = preview.locator(".state-conformer-download").get_by_role("alert")
+        expect(error).to_have_text(
+            "Could not verify the original conformer. Try again.", timeout=15000
+        )
+        assert transfers == []
+    finally:
+        output.write_bytes(original)
+        page.remove_listener("download", on_download)
+
+
 @pytest.mark.parametrize(
     "lang,width,height", [("en", 1440, 900), ("zh", 390, 775), ("en", 320, 568)]
 )
@@ -45,7 +80,15 @@ def test_retained_conformers_render_and_switch_without_preparation(
             selected_bytes = page.request.get(second_url).body()
             assert hashlib.sha256(original).hexdigest() == first["artifact_sha256"]
             assert hashlib.sha256(selected_bytes).hexdigest() == second["artifact_sha256"]
-            page.goto(base + "/#task=" + job)
+            if width == 1440:
+                output = interaction_workspace.state_dir / "jobs" / job / "output"
+                verify_mismatched_download(
+                    page, base, job, output / first["artifact"], original, selected_bytes
+                )
+                # Reload the view after restoring the original file.
+                page.reload()
+            else:
+                page.goto(base + "/#task=" + job)
             preview = page.locator(".state-native-preview")
             expect(preview).to_be_visible(timeout=15000)
             scene = preview.locator(".molecular-stage")
@@ -67,35 +110,7 @@ def test_retained_conformers_render_and_switch_without_preparation(
                 "下载所选原始构象 SDF" if zh else "Download selected original conformer SDF"
             )
             download = preview.get_by_role("button", name=download_name, exact=True)
-            # Substitute a valid but different SDF. The renderer must bind the selected hash
-            # instead of displaying stale/potentially unrelated native coordinates.
-            if width == 1440:
-                page.route(
-                    second_url,
-                    lambda route: route.fulfill(
-                        status=200,
-                        headers={"Content-Type": "application/octet-stream",
-                                 "X-Structure-Format": "sdf"},
-                        body=original,
-                    ),
-                )
-                with page.expect_response(second_url, timeout=30000):
-                    conformer.select_option(str(second["record"]))
-            else:
-                conformer.select_option(str(second["record"]))
-            if width == 1440:
-                expect(preview.locator(".viewer-error")).to_be_visible(timeout=15000)
-                transfers = []
-                page.on("download", transfers.append)
-                expect(preview.locator(".viewer-original-downloads")).to_have_count(0)
-                download.click()
-                error = preview.locator(".state-conformer-download").get_by_role("alert")
-                expect(error).to_have_text(
-                    "Could not verify the original conformer. Try again.", timeout=15000
-                )
-                assert transfers == []
-                page.unroute(second_url)
-                preview.locator(".viewer-error").get_by_role("button", name="Reload").click()
+            select_value(conformer, second["record"])
             expect(action).to_be_enabled(timeout=30000)
             with page.expect_download() as transfer:
                 download.click()
@@ -103,9 +118,10 @@ def test_retained_conformers_render_and_switch_without_preparation(
             transfer.value.save_as(output)
             assert output.read_bytes() == selected_bytes
             different = next(value for value in result["conformers"] if value["state_index"] != 0)
-            preview.get_by_role(
+            state = preview.get_by_role(
                 "combobox", name="化学状态" if zh else "Chemical state", exact=True
-            ).select_option(str(different["state_index"]))
+            )
+            select_value(state, different["state_index"])
             expect(conformer).to_have_value(str(different["record"]))
             expect(action).to_be_enabled(timeout=30000)
             assert download.is_enabled()
