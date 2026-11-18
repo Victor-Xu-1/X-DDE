@@ -22,6 +22,10 @@ _WORKFLOWS = {
         "f3bf05164a88d7dd4317206b4f8ca5656717cd0d",
         "67e57ba80690720c8e167f641502f4dd3a815c9b",
     ),
+    ".github/workflows/task-layout-checks.yml": (
+        "f76b007d7a850ff22c41bbb7dddf2ea772dc93f0",
+        "63495b8c3d807a0d9784e6f7f6fb45c0d96ba1c9",
+    ),
 }
 _NAVIGATION = {
     "frontend/src/research/ResearchWorkspace.tsx",
