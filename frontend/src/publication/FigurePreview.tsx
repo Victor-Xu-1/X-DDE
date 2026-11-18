@@ -83,8 +83,8 @@ export function FigurePreview({
           <p>
             {state.layoutError
               ? zh
-                ? "当前分子无法在所选宽度内清晰排布，请选择双栏或较小字号。"
-                : "This structure needs more space. Choose double column or a smaller printed type size."
+                ? "当前分子无法在所选宽度内清晰排布，请选择双栏（183 mm）或较小字号。"
+                : "This structure needs more space. Choose double column (183 mm) or a smaller printed type size."
               : zh
                 ? "预览未能生成，请降低清晰度或重试。"
                 : "Preview could not be prepared. Reduce resolution or try again."}

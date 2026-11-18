@@ -101,17 +101,11 @@ export function FigureDialog({
                     update({ shape: e.target.value as FigureSettings["shape"] })
                   }
                 >
-                  <option value="square">
-                    {zh ? "正方形 · 推荐" : "Square · Recommended"}
-                  </option>
-                  <option value="landscape">
-                    {zh ? "横向 · 3:2" : "Landscape · 3:2"}
-                  </option>
-                  <option value="portrait">
-                    {zh ? "纵向 · 3:4" : "Portrait · 3:4"}
-                  </option>
+                  <option value="square">1:1</option>
+                  <option value="landscape">3:2</option>
+                  <option value="portrait">3:4</option>
                   <option value="viewport">
-                    {zh ? "当前窗口比例" : "Current viewport"}
+                    {zh ? "跟随窗口" : "Viewport"}
                   </option>
                 </select>
               </label>
@@ -131,11 +125,7 @@ export function FigureDialog({
                 >
                   {structureScales.map((scale) => (
                     <option key={scale} value={scale}>
-                      {scale === 1
-                        ? zh
-                          ? "当前视图 · 1×"
-                          : "Current view · 1×"
-                        : `${scale}×`}
+                      {scale}×
                     </option>
                   ))}
                 </select>
@@ -153,11 +143,11 @@ export function FigureDialog({
                   })
                 }
               >
-                <option value="89">
-                  {zh ? "单栏 · 89 mm" : "Single column · 89 mm"}
+                <option value="89" title={zh ? "单栏" : "Single column"}>
+                  89 mm
                 </option>
-                <option value="183">
-                  {zh ? "双栏 · 183 mm" : "Double column · 183 mm"}
+                <option value="183" title={zh ? "双栏" : "Double column"}>
+                  183 mm
                 </option>
               </select>
             </label>
@@ -213,8 +203,8 @@ export function FigureDialog({
                 ? `${size.width} × ${size.height} px · ${settings.dpi} dpi`
                 : `${settings.widthMm} mm · ${settings.fontPt} pt · SVG`
               : zh
-                ? "图件过大，请选择单栏或 300 dpi。"
-                : "Figure is too large. Choose single column or 300 dpi."}
+                ? "图件过大，请选择 89 mm 或 300 dpi。"
+                : "Figure is too large. Choose 89 mm or 300 dpi."}
           </p>
           <p className="field-help">
             {zh

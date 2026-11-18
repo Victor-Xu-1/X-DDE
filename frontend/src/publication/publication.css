@@ -192,21 +192,6 @@
     transform: rotate(360deg);
   }
 }
-@media (max-width: 660px) {
-  .figure-export-dialog {
-    width: calc(100vw - 24px);
-    padding: 18px;
-    max-height: calc(100svh - 24px);
-  }
-  .figure-export-layout {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-  .figure-preview-sheet {
-    min-height: 220px;
-    height: 30svh;
-  }
-}
 .figure-export-dialog label {
   display: grid;
   gap: 7px;
@@ -236,6 +221,79 @@
 }
 .figure-export-dialog:focus {
   outline: none;
+}
+@media (max-width: 660px) {
+  .figure-export-dialog[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    box-sizing: border-box;
+    width: calc(100% - 24px);
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    padding: 0;
+    overflow: hidden;
+  }
+  .figure-export-dialog > header {
+    min-height: 54px;
+    padding: 4px 14px;
+    margin: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .figure-export-dialog > header > .text-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .figure-export-dialog .figure-export-layout {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 14px;
+    min-height: 0;
+    padding: 12px 14px 14px;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+  .figure-export-dialog fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+  .figure-export-dialog fieldset > label,
+  .figure-export-dialog fieldset select {
+    min-width: 0;
+  }
+  .figure-export-dialog fieldset select {
+    width: 100%;
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+  .figure-export-dialog .figure-background {
+    align-self: end;
+    min-height: 44px;
+  }
+  .figure-output-spec {
+    margin: 8px 0 0;
+  }
+  .figure-export-options > .field-help {
+    display: none;
+  }
+  .figure-export-dialog .figure-preview-sheet {
+    min-height: 0;
+    height: clamp(164px, 30svh, 300px);
+  }
+  .figure-export-dialog .figure-preview-sheet[data-zoom="1"] {
+    overscroll-behavior: auto;
+  }
+  .figure-export-dialog .figure-preview-image-space {
+    padding: 12px;
+  }
+  .figure-export-dialog > footer {
+    margin: 0;
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+  }
+  .figure-export-dialog > footer > .primary-button {
+    width: 100%;
+    min-height: 44px;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .figure-export-dialog[open] {
