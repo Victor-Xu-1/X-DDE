@@ -198,6 +198,21 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
                 expect(row).to_be_in_viewport()
                 expect(search).to_have_value(label)
                 page.screenshot(path=evidence / "narrow-return-to-files.png")
+                # The filter still refers to the old file when a user uploads.
+                source_id = cases["study_ligand"]["reference"]["asset_id"]
+                source_bytes = page.request.get(base + "/api/assets/" + source_id).body()
+                uploaded = f"browser-reuse-{language}.sdf"
+                page.locator(".research-file-toolbar input[type=file]").set_input_files(
+                    {"name": uploaded, "mimeType": "chemical/x-mdl-sdfile", "buffer": source_bytes}
+                )
+                expect(page.get_by_role("heading", name=uploaded, exact=True)).to_be_visible()
+                expect(files).to_be_hidden()
+                expect(page.get_by_role(
+                    "region", name="研究文件详情" if zh else "Research file details",
+                )).to_be_focused()
+                back.press("Space")
+                expect(search).to_have_value(label)
+                expect(search).to_be_focused()
         assert not errors, errors
         assert not submissions, submissions
         assert page.request.get(base + "/api/jobs").json() == jobs
