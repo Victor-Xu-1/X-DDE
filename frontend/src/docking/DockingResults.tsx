@@ -12,6 +12,7 @@ import { ReferenceComparison } from "./ReferenceComparison";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
+import "./DockingResults.css";
 import { useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
@@ -174,26 +175,36 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
         )}
       </ResearchHandoff>,
     );
-  return wrap(
-    <section
-      className="docking-results"
-      aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
-    >
+  const interpretation = (
+    <details className="pose-result-interpretation">
+      <summary>
+        {result.mode === "dock"
+          ? zh ? "评分与搜索范围" : "Scores and search scope"
+          : zh ? "评分说明" : "Score interpretation"}
+      </summary>
       <p className="field-help">
         {zh
           ? "经验评分用于同一方法下比较候选，不是实测亲和力。化学与坐标检查通过也不等于结合模式已被实验确认。"
           : "Empirical scores compare candidates within the same method; they are not measured affinity. Chemical and coordinate checks do not establish experimental pose validity."}
       </p>
-      <ReceptorRefinementSummary
-        jobId={job.id}
-        result={result}
-        language={language}
-      />
       {result.mode === "dock" && (
         <p className="field-help">
           {searchNotice(language, result.search_report)}
         </p>
       )}
+    </details>
+  );
+  return wrap(
+    <section
+      className="docking-results"
+      aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
+    >
+      <ReceptorRefinementSummary
+        jobId={job.id}
+        result={result}
+        language={language}
+      />
+      {!qualified.length && interpretation}
       <StructureWorkbench
         toolbar={
           qualified.length > 0 && (
@@ -210,12 +221,14 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
               onSelect={selectPose}
               metrics={metrics}
               actions={
-                inspectingPose &&
-                selected?.artifact && (
-                  <a href={artifactUrl(job.id, selected.artifact)} download>
-                    {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-                  </a>
-                )
+                <>
+                  {inspectingPose && selected?.artifact && (
+                    <a href={artifactUrl(job.id, selected.artifact)} download>
+                      {zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
+                    </a>
+                  )}
+                  {interpretation}
+                </>
               }
             />
           )

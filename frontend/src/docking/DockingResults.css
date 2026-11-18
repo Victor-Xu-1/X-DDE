@@ -1,0 +1,23 @@
+.pose-result-interpretation {
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--text-small, 13px);
+}
+
+.pose-result-interpretation > summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.candidate-review-bar > .pose-result-interpretation[open] {
+  flex-basis: 100%;
+}
+
+.pose-result-interpretation .field-help {
+  margin: 4px 0 8px;
+}
+
+.docking-results .result-inspector > .molecular-preview
+  > .research-tabs > .research-tab-list {
+  margin-block: 0 6px;
+}
