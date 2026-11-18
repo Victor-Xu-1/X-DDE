@@ -116,7 +116,7 @@ html
   .viewer-panel
   .molecular-stage {
   flex: none;
-  height: clamp(360px, calc(100dvh - 330px), 800px);
+  height: clamp(360px, calc(100dvh - 360px), 800px);
   min-height: 360px;
 }
 .prediction-example-source {
