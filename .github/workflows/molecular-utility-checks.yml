@@ -66,6 +66,7 @@ on:
       - "server_tests/molecular_review_capture.py"
       - "server_tests/utility_workspace_capture.py"
       - "server_tests/test_utility_navigation_browser.py"
+      - "server_tests/test_molecular_review_controls_browser.py"
       - "src/opendde_workbench/runtime_controls.py"
       - "frontend/src/utilities/backend-runtime.ts"
       - "frontend/src/utilities/BackendControls.tsx"
@@ -311,7 +312,9 @@ jobs:
     needs: scope
     if: ${{ !inputs.scope_only && needs.scope.outputs.utility_navigation_only == 'true' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -324,12 +327,15 @@ jobs:
         run: >-
           npx vitest run src/utilities/UtilityWorkspace.test.tsx
           src/utilities/UtilitySinglePage.test.tsx
-      - name: Chrome resize and keyboard focus
+      - name: Chrome layout, focus and native 2D review
         run: |
           uv sync --locked --group dev --group browser
           google-chrome --version
-          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_navigation_browser.py
-          uv run --locked python -m pytest -q tests/test_molecular_utility_scope.py server_tests/test_utility_navigation_browser.py
+          export WB_HOME="$RUNNER_TEMP/x-dde-review-controls"
+          export WB_STATE_DIR="$WB_HOME/state"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_navigation_browser.py server_tests/test_molecular_review_controls_browser.py
+          uv run --locked python -m pytest -q tests/test_molecular_utility_scope.py server_tests/test_utility_navigation_browser.py server_tests/test_molecular_review_controls_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
