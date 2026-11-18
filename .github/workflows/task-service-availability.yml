@@ -67,4 +67,4 @@ jobs:
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check src/opendde_workbench/research/pose_routes.py tests/test_pose_preview_availability.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py server_tests/test_initial_pose_browser.py server_tests/test_native_initial_pose.py
-          uv run --locked pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py
+          uv run --locked python -m pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_power_browser.py
