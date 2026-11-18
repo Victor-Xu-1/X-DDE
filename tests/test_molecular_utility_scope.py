@@ -235,3 +235,16 @@ def test_contextual_switch_scope_covers_reviewed_consumers_and_preserves_scienti
     handoff = ".github/workflows/workflow-quality-checks.yml"
     unrelated_workflow_edit = {**approved, handoff: (approved[handoff][0], "changed")}
     assert not selected(changed, "push", shared=unrelated_workflow_edit)
+
+
+def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers():
+    selected = scope["result_header_selected"]
+    files = scope["RESULT_HEADER_FILES"]
+    approved = scope["RESULT_HEADER_BLOBS"]
+    assert selected(files, "push", blobs=approved)
+    assert selected(files, "pull_request", blobs=approved)
+    assert not selected(files, "workflow_dispatch", blobs=approved)
+    assert not selected(files | {"frontend/src/viewer/StructureViewer.tsx"}, "push", blobs=approved)
+    assert not selected(files - {"frontend/src/App.tsx"}, "push", blobs=approved)
+    unrelated = {**approved, "frontend/src/App.tsx": ("other", "changes")}
+    assert not selected(files, "push", blobs=unrelated)

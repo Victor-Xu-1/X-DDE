@@ -86,6 +86,8 @@ on:
     outputs:
       utility_only:
         value: ${{ jobs.scope.outputs.utility_only }}
+      result_header_only:
+        value: ${{ jobs.scope.outputs.result_header_only }}
 permissions:
   contents: read
 jobs:
@@ -95,6 +97,7 @@ jobs:
       utility_only: ${{ steps.select.outputs.utility_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       runtime_switch_only: ${{ steps.select.outputs.runtime_switch_only }}
+      result_header_only: ${{ steps.select.outputs.result_header_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -105,7 +108,7 @@ jobs:
         run: python scripts/molecular-utility-scope.py
   utility-inputs:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' && needs.scope.outputs.result_header_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

@@ -268,6 +268,58 @@ RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "install.ps1",
 }
 
+RESULT_HEADER_BLOBS = {
+    "frontend/src/App.tsx": (
+        "42445698be60911b83d673f11503e2fb6ce3f26e", "f6a6e8346355c7771ef5bd7c35107caeda162561",
+    ),
+    "frontend/src/TaskDetail.tsx": (
+        "64b947d1305eccaac11e5bc51ef671bc5f04fe3b", "14d108ba16091a3ef1b1cae88c4ae57d8196b2e6",
+    ),
+    "frontend/src/studio/TaskWorkspace.tsx": (
+        "f0c2fb0034f48efd0a27c27999671939948087bd", "e1810976b781f881f9f12daaf16c64ced200d020",
+    ),
+    "frontend/src/studio/PredictionResults.tsx": (
+        "50e043cd8a82aff79b37244f4162a02ad8861542", "530cfed4e314412829ddda5b8aa0d46d3814d428",
+    ),
+    "frontend/src/studio/task-history.css": (
+        "4937a0b7170a6fb5ed5976dfca0abf2afc9931de", "3cf1e4feae1bbf900518a426cd1123a4b0712861",
+    ),
+    "frontend/src/presentation/prediction-result-header.css": (
+        "0c5c46e45334cc4478c1d9ee8f5437d6c65b01c1", "54bf12ec295c4bf1246d4585706ad5ef9b3cf93d",
+    ),
+    "frontend/src/diffsbdd/DiffResults.tsx": (
+        "18d3c93ed00da60a12f2c2f00295ccb301c42d93", "03e712863f54604e88e8a729aeceea6c2e64efd5",
+    ),
+    "frontend/src/diffsbdd/GeneratedCandidates.tsx": (
+        "dcab766617a2523fa8b294b9c77104e1a923911d", "134444f0a8cb6593e3513bde641e964fee9caf06",
+    ),
+}
+RESULT_HEADER_FILES = RESULT_HEADER_BLOBS.keys() | {
+    "frontend/src/studio/TaskWorkspace.test.tsx",
+    "frontend/src/diffsbdd/DiffResults.test.tsx",
+    "server_tests/test_generated_quality_browser.py",
+    "scripts/molecular-utility-scope.py",
+    "tests/test_molecular_utility_scope.py",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/generated-candidate-checks.yml",
+    "pyproject.toml",
+    "uv.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "install.sh",
+    "install.ps1",
+}
+
+
+def result_header_selected(changed, event, *, blobs):
+    paths = set(changed)
+    return (
+        event in {"push", "pull_request"}
+        and paths <= RESULT_HEADER_FILES
+        and RESULT_HEADER_BLOBS.keys() <= paths
+        and all(blobs.get(path) == pair for path, pair in RESULT_HEADER_BLOBS.items())
+    )
+
 
 def runtime_selected(changed, event, *, shared):
     paths = set(changed)
@@ -298,6 +350,14 @@ def blob_digest(revision, path):
     except subprocess.CalledProcessError:
         return None
     return hashlib.sha256(value).hexdigest()
+
+
+def git_blob(revision, path):
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", f"{revision}:{path}"],
+        capture_output=True, text=True, check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 else None
 
 
 def main():
@@ -340,8 +400,13 @@ def main():
             for path in set(changed) & shared_paths
         }
         runtime = runtime_selected(changed, event, shared=shared)
-        utility = runtime or selected(changed, event, shared=shared)
+        layout = result_header_selected(changed, event, blobs={
+            path: (git_blob(base, path), git_blob("HEAD", path))
+            for path in set(changed) & RESULT_HEADER_BLOBS.keys()
+        })
+        utility = runtime or layout or selected(changed, event, shared=shared)
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
+        output.write("result_header_only=" + str(layout).lower() + "\n")
         output.write("utility_only=" + str(utility).lower() + "\n")
 
 
