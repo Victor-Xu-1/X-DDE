@@ -118,7 +118,99 @@ it("does not replace the researcher’s newer material selection with a late sav
     asset_id: original.reference.asset_id,
   });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+function narrowView() {
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    media,
+    matches: media === "(max-width: 1000px)",
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+}
+
+it("returns keyboard focus to the selected file without changing the filter", async () => {
+  narrowView();
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path === "/research/indexing" ? ([] as never) : (graph() as never),
+  );
+  render(
+    <ResearchWorkspace
+      language="en"
+      onEdit={vi.fn()}
+      onJob={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const search = await screen.findByRole("searchbox");
+  fireEvent.change(search, { target: { value: original.label } });
+  const row = within(
+    screen.getByRole("list", { name: "Assets and tasks" }),
+  ).getByRole("button", { name: "Molecule: " + original.label });
+  fireEvent.click(row);
+  expect(
+    screen.getByRole("region", { name: "Research file details" }),
+  ).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Back to files" }));
+  expect(row).toHaveFocus();
+  expect(row).toHaveAttribute("aria-current", "true");
+  expect(search).toHaveValue(original.label);
+});
+
+it("opens an uploaded file after Back even when the current search excludes it", async () => {
+  narrowView();
+  const saved: ScientificObject = {
+    ...original,
+    id: "55555555-5555-4555-8555-555555555555",
+    label: "new molecule.sdf",
+    notes: "",
+    reference: {
+      ...original.reference,
+      asset_id: "new-file",
+      record: 0,
+      version_id: "55555555-5555-4555-8555-555555555555",
+    },
+  };
+  let current = graph();
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path === "/research/indexing" ? ([] as never) : (current as never),
+  );
+  vi.spyOn(client.api, "upload").mockResolvedValue({ id: "new-file" } as never);
+  vi.spyOn(client.api, "post").mockImplementation(async () => {
+    current = graph([original, saved]);
+    return saved as never;
+  });
+  render(
+    <ResearchWorkspace
+      language="en"
+      onEdit={vi.fn()}
+      onJob={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const search = await screen.findByRole("searchbox");
+  fireEvent.change(search, { target: { value: original.label } });
+  const list = screen.getByRole("list", { name: "Assets and tasks" });
+  fireEvent.click(
+    within(list).getByRole("button", { name: "Molecule: ethanol" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Back to files" }));
+  fireEvent.change(screen.getByLabelText("Upload material"), {
+    target: { files: [new File(["retained fixture"], saved.label)] },
+  });
+  expect(
+    await screen.findByRole("heading", { name: saved.label }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("region", { name: "Research file details" }),
+  ).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Back to files" }));
+  expect(search).toHaveValue(original.label);
+  expect(search).toHaveFocus();
+});
 
 it("recovers from a loading failure and saves annotations as a separate version", async () => {
   let fail = true,

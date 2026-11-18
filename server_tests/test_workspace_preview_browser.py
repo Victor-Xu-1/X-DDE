@@ -167,9 +167,52 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             page.screenshot(path=evidence / f"selected-protac-{width}.png", full_page=True)
             if width == 390:
-                inspect_molecular_viewing(
-                    page, page.locator(".research-selected-preview"), evidence, language
+                narrow_preview = page.locator(".research-selected-preview")
+                inspect_molecular_viewing(page, narrow_preview, evidence, language)
+                back = page.get_by_role(
+                    "button", name="返回文件列表" if zh else "Back to files", exact=True
                 )
+                expect(files).to_be_hidden()
+                back.press("Space")
+                search = page.get_by_role(
+                    "searchbox",
+                    name="查找研究文件或任务" if zh else "Find research files or tasks",
+                )
+                label = cases["study_protac"]["label"]
+                search.fill(label)
+                row = files.get_by_role(
+                    "button", name=("分子: " if zh else "Molecule: ") + label, exact=True
+                )
+                row.press("Space")
+                expect(page.get_by_role(
+                    "region", name="研究文件详情" if zh else "Research file details",
+                )).to_be_focused()
+                expect(narrow_preview).to_be_visible()
+                expect(files).to_be_hidden()
+                assert back.bounding_box()["height"] >= 44
+                page.screenshot(path=evidence / "narrow-file-inspection.png")
+                back.press("Space")
+                expect(narrow_preview).to_be_hidden()
+                expect(row).to_be_focused()
+                expect(row).to_have_attribute("aria-current", "true")
+                expect(row).to_be_in_viewport()
+                expect(search).to_have_value(label)
+                page.screenshot(path=evidence / "narrow-return-to-files.png")
+                # The filter still refers to the old file when a user uploads.
+                source_id = cases["study_ligand"]["reference"]["asset_id"]
+                source_bytes = page.request.get(base + "/api/assets/" + source_id).body()
+                uploaded = f"browser-reuse-{language}.sdf"
+                page.locator(".research-file-toolbar input[type=file]").set_input_files(
+                    {"name": uploaded, "mimeType": "chemical/x-mdl-sdfile", "buffer": source_bytes}
+                )
+                expect(page.get_by_role("heading", name=uploaded, exact=True)).to_be_visible()
+                expect(files).to_be_hidden()
+                expect(page.get_by_role(
+                    "region", name="研究文件详情" if zh else "Research file details",
+                )).to_be_focused()
+                back.press("Space")
+                expect(search).to_have_value(label)
+                expect(search).to_be_focused()
         assert not errors, errors
         assert not submissions, submissions
         assert page.request.get(base + "/api/jobs").json() == jobs

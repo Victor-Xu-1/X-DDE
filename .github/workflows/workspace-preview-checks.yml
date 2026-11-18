@@ -1,10 +1,21 @@
 name: Research file preview checks
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      scope_only:
+        type: boolean
+        default: false
+    outputs:
+      file_navigation_only:
+        value: ${{ jobs.reference-scope.outputs.file_navigation_only }}
   push:
     paths: &workspace_paths
       - "frontend/src/research/SelectedAssetPreview*"
       - "frontend/src/research/ResearchWorkspace*"
+      - "frontend/src/research/useResearchFileNavigation.ts"
+      - "frontend/src/research/research-file-navigation.css"
+      - "scripts/research-file-navigation-scope.py"
       - "frontend/src/research/ObjectInspector*"
       - "frontend/src/research/useResearchGraph*"
       - "frontend/src/research/useResearchRegistration*"
@@ -26,9 +37,8 @@ on:
       - "server_tests/*workspace_preview*"
       - "server_tests/test_workspace_versions_browser.py"
       - ".github/workflows/workspace-preview-checks.yml"
-      # Pose continuity and exact downstream versions use pose-handoff-checks.yml.
+      # Inspector handoffs also use pose-handoff-checks.yml.
       - "!frontend/src/research/ObjectInspector.tsx"
-      - "!frontend/src/research/ResearchWorkspace.tsx"
       - "!.github/workflows/workspace-preview-checks.yml"
   pull_request:
     paths: *workspace_paths
@@ -39,6 +49,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       reference_only: ${{ steps.scope.outputs.reference_only }}
+      file_navigation_only: ${{ steps.file-navigation.outputs.file_navigation_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,9 +58,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/interaction-workspace-scope.py
+      - id: file-navigation
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/research-file-navigation-scope.py
   workspace:
     needs: reference-scope
-    if: needs.reference-scope.outputs.reference_only != 'true'
+    if: ${{ !inputs.scope_only && needs.reference-scope.outputs.reference_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
