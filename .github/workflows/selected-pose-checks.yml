@@ -14,7 +14,11 @@ on:
 permissions:
   contents: read
 jobs:
+  result-scope:
+    uses: ./.github/workflows/docking-result-scope.yml
   selected-pose:
+    needs: result-scope
+    if: needs.result-scope.outputs.presentation_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
