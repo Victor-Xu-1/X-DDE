@@ -70,10 +70,22 @@ it("submits a real edit envelope with the original version rather than overwriti
 });
 
 it("opens in the adjacent pane and closes without a molecular read or task submission", async () => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(
-      JSON.stringify({ availability: { configuration_present: true } }),
-      { headers: { "Content-Type": "application/json" } },
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    Response.json(
+      String(input).startsWith("/api/runtime-controls")
+        ? {
+            capabilities: { "diffsbdd.edit": "diffsbdd" },
+            engines: [
+              {
+                id: "diffsbdd",
+                name: "DiffSBDD",
+                ready: true,
+                enabled: false,
+                active: false,
+              },
+            ],
+          }
+        : { availability: { configuration_present: true } },
     ),
   );
   const target = document.createElement("div");
@@ -100,6 +112,9 @@ it("opens in the adjacent pane and closes without a molecular read or task submi
   expect(
     within(target).getByRole("region", { name: "3D edit task" }),
   ).toBeVisible();
+  expect(
+    await within(target).findByRole("switch", { name: "DiffSBDD" }),
+  ).not.toBeChecked();
   expect(view.container.querySelector(".aligned-edit-task")).toBeNull();
   await user.click(
     within(target).getByRole("button", { name: "Return to editor" }),

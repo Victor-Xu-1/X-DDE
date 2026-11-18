@@ -29,6 +29,7 @@ def verify_catalogue(page, base, snapshot):
             continue
         owner = snapshot["capabilities"].get(key)
         if owner is None:
+            assert key in {"experimental.evidence", "regions", "workflows", "pose_exploration"}
             continue
         panel = open_capability(page, base, key)
         row = panel.locator(f'[data-engine="{owner}"]')
@@ -39,14 +40,31 @@ def verify_catalogue(page, base, snapshot):
     return checked
 
 
+def verify_composite_tools(page, base):
+    for tool, owner in (("regions", "diffsbdd"), ("pose_exploration", "gnina")):
+        page.goto(f"{base}/#view=new&tool={tool}")
+        panel = controls(page, zh=True)
+        expect(panel.locator(f'[data-engine="{owner}"]').get_by_role("switch")).not_to_be_checked()
+        expect(panel.get_by_role("switch")).to_have_count(1)
+
+    page.goto(f"{base}/#view=new&tool=experimental.evidence")
+    expect(page.get_by_role("button", name="下一步")).to_be_visible()
+    expect(controls(page, zh=True)).to_have_count(0)
+
+
 def verify_shared_power(page, base):
     page.set_viewport_size({"width": 390, "height": 775})
     tool = open_capability(page, base, "discovery.target")
     button = tool.get_by_role("switch")
     expect(button).to_be_enabled()
     expect(button).not_to_be_checked()
+    page.get_by_role("textbox", name="靶点名称或基因符号").fill("STAT6")
+    page.get_by_role("checkbox", name="允许将名称或数据库编号发送到公共数据库查询").check()
+    search = page.get_by_role("button", name="查找", exact=True)
+    expect(search).to_be_disabled()
     button.press("Space")
     expect(button).to_be_checked()
+    expect(search).to_be_enabled()
     sibling = open_capability(page, base, "discovery.disease")
     expect(sibling.get_by_role("switch")).to_be_checked()
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
@@ -97,6 +115,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
 
         page.on("request", record)
         checked = verify_catalogue(page, base, state)
+        verify_composite_tools(page, base)
         assert posts == []
         verify_shared_power(page, base)
         # Close the global panel before switching into the utility workspace.

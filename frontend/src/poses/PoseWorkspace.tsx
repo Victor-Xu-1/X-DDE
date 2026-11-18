@@ -8,6 +8,7 @@ import type { Language } from "../types";
 import { PoseForm } from "./PoseForm";
 import { PosePlanRun } from "./PosePlanRun";
 import { DefinedSiteStart } from "../sites/DefinedSiteStart";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { Exploration } from "./types";
 import "./poses.css";
 export function PoseWorkspace({
@@ -79,6 +80,10 @@ export function PoseWorkspace({
       }
       aria-busy={loading}
     >
+      <TaskBackendControl
+        language={language}
+        scope={{ capability: "gnina.dock" }}
+      />
       {loading && (
         <p role="status">
           {zh

@@ -252,30 +252,24 @@ export function RegionEditor({
         </p>
       )}
       {subject && !identity.result && (
-        <>
-          <TaskBackendControl
-            language={language}
-            scope={{ capability: "diffsbdd.identity" }}
-          />
-          <button
-            type="button"
-            disabled={!ready || identity.running || loading}
-            title={
-              zh
-                ? "读取实际原子身份后，可在预览中点击选区；保持原始分子完整。"
-                : "Read actual atom identities, then select regions in the preview; retain the intact original molecule."
-            }
-            onClick={() => void identity.inspect()}
-          >
-            {identity.running
-              ? zh
-                ? "正在读取…"
-                : "Reading…"
-              : zh
-                ? "读取可选原子"
-                : "Read selectable atoms"}
-          </button>
-        </>
+        <button
+          type="button"
+          disabled={!ready || identity.running || loading}
+          title={
+            zh
+              ? "读取实际原子身份后，可在预览中点击选区；保持原始分子完整。"
+              : "Read actual atom identities, then select regions in the preview; retain the intact original molecule."
+          }
+          onClick={() => void identity.inspect()}
+        >
+          {identity.running
+            ? zh
+              ? "正在读取…"
+              : "Reading…"
+            : zh
+              ? "读取可选原子"
+              : "Read selectable atoms"}
+        </button>
       )}
     </>
   );
@@ -304,7 +298,7 @@ export function RegionEditor({
   } catch {
     complete = false;
   }
-  return (
+  const guide = (
     <GuidedSteps<SavedRegion>
       initialResult={showResult ? initialRecord : null}
       language={language}
@@ -373,5 +367,14 @@ export function RegionEditor({
         </>
       )}
     />
+  );
+  return (
+    <>
+      <TaskBackendControl
+        language={language}
+        scope={{ capability: "diffsbdd.identity" }}
+      />
+      {guide}
+    </>
   );
 }

@@ -20,6 +20,23 @@
   color: var(--muted);
   font-size: 11px;
 }
+.runtime-switch-label > small::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 6px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.65;
+  vertical-align: 1px;
+}
+.runtime-switch:has([aria-checked="true"]:enabled)
+  .runtime-switch-label
+  > small::before {
+  background: var(--accent);
+  opacity: 1;
+}
 .runtime-switch > button {
   min-width: 44px;
   min-height: 34px;

@@ -198,6 +198,26 @@ RUNTIME_SOURCES = {
     "tests/test_utility_tools.py",
 }
 RUNTIME_CONSUMERS = {
+    "src/opendde_workbench/discovery/routes.py": (
+        "a3ebc5c97b74a564ac65291492da27d21b6456f8b696813d17aab10eec4a1e7f",
+        "dd71fdff10786d29e40c166243d5c88f0e363c82994c1f67484203baf2b391c7",
+    ),
+    "frontend/src/discovery/TargetResearchForm.tsx": (
+        "a4bd9a9117b8627e03da18689eca34cad94464c3d4ff82e69af997707a010b20",
+        "4c990a04722f252ef7f7075eba4011a647f32691445a346f571187bb0a3bbfed",
+    ),
+    "frontend/src/editors/AlignedEditAction.tsx": (
+        "5e025a01830c94ba6e668f3fa0defacb59da4611e900ff8a4b62600afa5c3c6f",
+        "a40c61ae0868bdb958a662e931378f3b1167721c4a8475b95e482bb176d67502",
+    ),
+    "frontend/src/operations/CovalentEditor.tsx": (
+        "b30a0a5e2c16b618d932b714c6f88acb0d1a69aaafb9ca8fa780135c628b2b96",
+        "607478e5d9252332af1fe53bcc033c8cbc2173a55530c0eca29dbb045a606fcd",
+    ),
+    "frontend/src/poses/PoseWorkspace.tsx": (
+        "f1469bbcca582a8a23b8844b5883c1b5762a45a0b7fb36aa204ff8943323d2bd",
+        "4052a3fe7736133f49738a8ce295626a8a8ce4ed2910f63cdd0e3594ae8df336",
+    ),
     "frontend/src/App.tsx": (
         "a67ca642b1f1f16c602a4b54751b4e974af7e73bf8ab4b0992e64b1a5ab0e60d",
         "fa8cbe4d251738cd2b63a6a72ae33cad1b3d72c678df593b13cb86b364ed6959",
@@ -227,20 +247,24 @@ RUNTIME_CONSUMERS = {
         "4ba53c4f35809f75112d9129f4de4c4816934f9cc4404a2da4a1602569bdffbd",
     ),
     "frontend/src/regions/RegionWorkspace.tsx": (
-        "ac4ce9a209a8abf8879255cfe2f4e3f0f584f15d29aab1985c95517ad86fbff6",
         "dd7d9cd06d670a48cfe67aee3acf01f74bd0b2054a1b325389419bd40c531b85",
+        "0511a4fecba72251d7fd3f6e3c6a116a552a6cc16d9dd35bee2450760c552844",
     ),
     "frontend/src/poses/PosePlanRun.tsx": (
-        "78cabb945dfc52837ba9cb5616317fa69926369f2df1d0f7a75a0951e85cf160",
         "32979cd160c301e1383e4ce5503acce05de414544d7cc427ead012ea482e230a",
+        "78cabb945dfc52837ba9cb5616317fa69926369f2df1d0f7a75a0951e85cf160",
     ),
     "frontend/src/viewer/PoseOptimizationControls.tsx": (
         "5664d3c54850e50269ae7857d02a6df16b52f27615e67df105cc4154c24c9f9f",
         "83d2ef24d29d3f8a19ed8e2f3c801c32c8d4e39dfc8acd73b6036dd62172cc47",
     ),
     ".github/workflows/molecular-utility-checks.yml": (
-        "7de71cac940b3fbd8d70eb6fc5faf284df93ba02d5e1c267f00291c9ed0f1680",
-        "34e2b027b00542d62b4cfbd0cd5c185f72bc5529bc1e33fe0a254d5a286626bf",
+        "0c8cde23b65b925abc0cafcf11ee0371d16731150fd13ba60a5f9d3d2735a35b",
+        "f601e414d64d716306875f9d9b6cd712e18c16e463bb2cf883a117cfde7b7e4b",
+    ),
+    ".github/workflows/ketcher-depiction-checks.yml": (
+        "2c0c199e4aef580991ea84327e80fefdf2cd4cd75d66179c676947384a0b49df",
+        "0f4beba05e0c07d022b3c6d169b01b1929ef359667a83aa5ab56b7fad776c4a0",
     ),
     ".github/workflows/navigation-shell-checks.yml": (
         "f8f88be2979d908c91ed3e0ec11bb9a95d28637391015016729c5a31105b4714",
@@ -259,6 +283,10 @@ RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
     "frontend/src/poses/PosePlanRun.test.tsx",
+    "frontend/src/discovery/TargetResearchForm.test.tsx",
+    "frontend/src/editors/AlignedEditAction.test.tsx",
+    "frontend/src/operations/CovalentEditor.test.tsx",
+    "docs/user-guide.md",
     "frontend/src/viewer/PreviewAvailability.test.tsx",
     "pyproject.toml",
     "uv.lock",

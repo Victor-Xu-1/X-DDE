@@ -1,6 +1,7 @@
 """Local tool discovery must never install or start a recognition process."""
 
 import asyncio
+from threading import Event
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
@@ -14,6 +15,7 @@ from opendde_workbench import api
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
+from opendde_workbench.discovery import routes
 from opendde_workbench.engine_registry import engine_for
 from opendde_workbench.harness_service import HarnessService
 from opendde_workbench.requests import TASK_ADAPTER
@@ -94,6 +96,51 @@ def test_active_or_paused_lifetime_cannot_be_disabled(tmp_path):
             controls.change("chemistry", "stop", False)
     assert error.value.status_code == 409
     assert "chemistry" in controls.enabled
+
+
+def test_lookup_shares_engine_permission_and_active_lifetime(tmp_path, monkeypatch):
+    app, engine = FastAPI(), object.__new__(BackendRouter)
+    store = Store(tmp_path / "jobs.sqlite3")
+    health = AsyncMock(return_value={"engine": {"backends": {"discovery": {"ready": True}}}})
+    worker = SimpleNamespace(gate=None)
+    register_runtime_controls(app, store, engine, worker, health, lambda: None)
+    routes.register_discovery(app, lambda: None)
+    entered, release = Event(), Event()
+
+    def lookup(entity, text):
+        assert (entity, text) == ("target", "query")
+        entered.set()
+        assert release.wait(5)
+        return {"hits": []}
+
+    mocked = Mock(side_effect=lookup)
+    monkeypatch.setattr(routes, "lookup", mocked)
+    payload = {"query": "query", "entity": "target", "allow_external": True}
+    endpoint = "/api/discovery/lookup"
+    switch = "/api/runtime-controls/discovery/"
+
+    async def scenario():
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+        ) as client:
+            assert (await client.post(endpoint, json=payload)).status_code == 409
+            mocked.assert_not_called()
+            assert (await client.post(switch + "start", json={})).json() == {"enabled": True}
+            pending = asyncio.create_task(client.post(endpoint, json=payload))
+            try:
+                assert await asyncio.to_thread(entered.wait, 5)
+                engines = (await client.get("/api/runtime-controls?include_native=false")).json()
+                assert next(e for e in engines["engines"] if e["id"] == "discovery")["active"]
+                assert (await client.post(switch + "stop", json={})).status_code == 409
+            finally:
+                release.set()
+                completed = await pending
+            assert completed.json() == {"hits": []}
+            assert (await client.post(switch + "stop", json={})).json() == {"enabled": False}
+            assert (await client.post(endpoint, json=payload)).status_code == 409
+            mocked.assert_called_once()
+
+    asyncio.run(scenario())
 
 
 def test_disabled_queue_head_does_not_starve_enabled_engine(tmp_path):

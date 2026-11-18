@@ -8,6 +8,7 @@ import { useTaskReadiness } from "../guided/useTaskReadiness";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import type { Job, Language } from "../types";
 import type { EvidenceHit, EvidenceLookup } from "./types";
+import { useBackendRuntime } from "../utilities/backend-runtime";
 
 export function TargetResearchForm({
   language,
@@ -53,6 +54,12 @@ export function TargetResearchForm({
     mounted = useRef(true),
     run = useTaskSubmit(onCreated);
   const { ready, error, recheck } = useTaskReadiness("discovery." + entity);
+  const runtime = useBackendRuntime(true, "discovery." + entity);
+  const backend = runtime.catalogue?.engines.find(
+    (item) => item.id === "discovery",
+  );
+  const searchEnabled =
+    !runtime.readError && runtime.busy !== "discovery" && backend?.enabled;
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -62,7 +69,7 @@ export function TargetResearchForm({
   }, []);
   const selected = hits.find((h) => h.id === selection);
   async function search() {
-    if (busy || !consent || query.trim().length < 2) return;
+    if (busy || !searchEnabled || !consent || query.trim().length < 2) return;
     const current = ++epoch.current;
     setBusy(true);
     setLookupError("");
@@ -163,7 +170,9 @@ export function TargetResearchForm({
               </Hint>
               <button
                 type="button"
-                disabled={busy || !consent || query.trim().length < 2}
+                disabled={
+                  busy || !searchEnabled || !consent || query.trim().length < 2
+                }
                 onClick={() => void search()}
               >
                 {busy
@@ -174,6 +183,15 @@ export function TargetResearchForm({
                     ? "查找"
                     : "Search"}
               </button>
+              {consent &&
+                query.trim().length >= 2 &&
+                backend?.enabled === false && (
+                  <p className="field-help">
+                    {zh
+                      ? "请先开启页面顶部的检索后端。"
+                      : "Turn on the search backend at the top of the page."}
+                  </p>
+                )}
               {searched && (
                 <p role="status">
                   {hits.length

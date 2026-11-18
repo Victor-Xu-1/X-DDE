@@ -86,6 +86,8 @@ on:
     outputs:
       utility_only:
         value: ${{ jobs.scope.outputs.utility_only }}
+      runtime_switch_only:
+        value: ${{ jobs.scope.outputs.runtime_switch_only }}
       result_header_only:
         value: ${{ jobs.scope.outputs.result_header_only }}
 permissions:
@@ -245,13 +247,15 @@ jobs:
           npx vitest run src/utilities/BackendControls.test.tsx src/utilities/UtilityWorkspace.test.tsx
           src/studio/MethodSwitch.test.tsx src/studio/TaskWorkspace.test.tsx src/App.test.tsx
           src/workflows/WorkflowCenter.test.tsx src/poses/PosePlanRun.test.tsx
-          src/viewer/PreviewAvailability.test.tsx
+          src/poses/PoseWorkspace.test.tsx src/regions/RegionWorkspace.test.tsx
+          src/viewer/PreviewAvailability.test.tsx src/discovery/TargetResearchForm.test.tsx
+          src/editors/AlignedEditAction.test.tsx src/operations/CovalentEditor.test.tsx
       - name: Canonical mappings, default-off admission and actual browser controls
         run: |
           uv sync --locked --group dev --group browser
           google-chrome --version
-          uv run --locked ruff check src/opendde_workbench/runtime_controls.py server_tests/test_module_backend_switch_browser.py tests/test_utility_tools.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
-          uv run --locked pytest -q tests/test_utility_tools.py tests/test_engine_registry.py tests/test_harness_admission.py tests/test_molecular_utility_scope.py
+          uv run --locked ruff check src/opendde_workbench/runtime_controls.py src/opendde_workbench/discovery/routes.py server_tests/test_module_backend_switch_browser.py tests/test_utility_tools.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
+          uv run --locked pytest -q tests/test_utility_tools.py tests/test_discovery.py tests/test_engine_registry.py tests/test_harness_admission.py tests/test_molecular_utility_scope.py
           uv run --locked python -m pytest -x -q server_tests/test_module_backend_switch_browser.py
       - uses: actions/upload-artifact@v4
         if: always()

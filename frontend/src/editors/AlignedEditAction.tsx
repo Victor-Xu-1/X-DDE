@@ -6,6 +6,7 @@ import type { Ketcher } from "./scientificEditor";
 import { useTaskSubmit } from "../operations/useTaskSubmit";
 import { Questionnaire } from "../guided/Questionnaire";
 import { useTaskReadiness } from "../guided/useTaskReadiness";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function AlignedEditAction({
   origin,
   language,
@@ -95,6 +96,10 @@ export function AlignedEditAction({
       >
         {zh ? "返回编辑器" : "Return to editor"}
       </button>
+      <TaskBackendControl
+        language={language}
+        scope={{ capability: "diffsbdd.edit" }}
+      />
       <Questionnaire
         language={language}
         busy={busy || reading || run.busy}
