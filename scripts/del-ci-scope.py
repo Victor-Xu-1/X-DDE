@@ -180,6 +180,7 @@ def main():
             "scripts/del-ci-scope.py",
             ".github/workflows/dataset-discovery-checks.yml",
             ".github/workflows/chart-quality-checks.yml",
+            ".github/workflows/example-result-set-checks.yml",
             ".github/workflows/task-layout-checks.yml",
             ".github/workflows/user-interface-checks.yml",
             "docs/design/screening-and-del.md",

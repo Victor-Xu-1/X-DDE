@@ -74,6 +74,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       del_only: ${{ steps.change.outputs.del_only }}
+      candidate_views_only: ${{ steps.change.outputs.candidate_views_only }}
       review_only: ${{ steps.review_scope.outputs.review_only }}
       loader_changed: ${{ steps.review_scope.outputs.loader_changed }}
       native_receptor_only: ${{ steps.case_scope.outputs.native_receptor_only }}
@@ -167,6 +168,22 @@ jobs:
         with:
           name: reviewed-receptor-comparison
           path: outputs/receptor-case-comparison
+  candidate-views:
+    needs: scope
+    if: needs.scope.outputs.candidate_views_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Candidate selection, native download identity and scoped preview layout
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/CandidateView.test.tsx
+          src/datasets/CandidateTable.test.tsx src/datasets/CandidateHandoff.test.tsx
   immutable-stages:
     needs: [scope, utility-scope]
     if: needs.utility-scope.outputs.utility_only != 'true' && needs.scope.outputs.prediction_layout != 'true' && needs.scope.outputs.del_only != 'true' && needs.scope.outputs.review_only != 'true'
