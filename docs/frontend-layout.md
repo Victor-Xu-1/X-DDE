@@ -66,9 +66,6 @@ stacking and expanded height retain their shared sizing rules; compact result
 cards do not override expanded viewports.
 The wide-screen confidence inspector keeps a readable width in both normal and
 expanded views while the molecular view takes the remaining space.
-Saved results group the history link and title in one row and wrap the status,
-submission time and recorded model beneath them. Narrow displays keep the
-sample controls and native confidence metrics compact above the viewer.
 PAE/PDE/contact matrices retain equal pixel scales
 for their two native token axes when their container changes size.
 
