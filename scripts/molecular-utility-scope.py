@@ -670,6 +670,7 @@ MOBILE_HEADER_FILES = {
 MOBILE_HEADER_DIFF = "06dee94bdfc85b11323769a6edf467758ddb245af81ec01f0161673e016ff8f6"
 
 INITIAL_POSE_POWER_FILES = {
+    ".github/workflows/molecule-design-review-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/selected-pose-checks.yml",
     ".github/workflows/task-service-availability.yml",
@@ -686,7 +687,7 @@ INITIAL_POSE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_pose_preview_availability.py",
 }
-INITIAL_POSE_POWER_DIFF = "61bde460017b889b91bb5ece22b962534ac581b42c26ac929006728905654587"
+INITIAL_POSE_POWER_DIFF = "2b68526e0eca1a9609cd29fc1ba7701ff1c76da506cde2c5768e4fea4d4283cb"
 
 
 def reviewed_selected(changed, event, base, files, digest):

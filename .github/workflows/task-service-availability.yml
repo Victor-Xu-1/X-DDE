@@ -82,7 +82,7 @@ jobs:
         run: |
           uv sync --locked --group dev
           uv run --locked ruff check src/opendde_workbench/research/initial_pose.py src/opendde_workbench/research/pose_routes.py tests/test_pose_preview_availability.py scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_initial_pose_browser.py server_tests/test_native_initial_pose.py
-          uv run --locked python -m pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py
+          uv run --locked python -m pytest -q tests/test_pose_preview_availability.py tests/test_molecular_utility_scope.py tests/test_pose_minimization.py tests/test_stat6_geometry.py
       - name: Actual Chrome preview with a default-off backend
         if: steps.preview.outputs.touched == 'true'
         env:
