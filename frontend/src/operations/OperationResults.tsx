@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { api, artifactUrl } from "../api";
 import type { Job, Language, Prediction } from "../types";
 import { PropertyResults } from "./PropertyResults";
@@ -38,6 +38,7 @@ import type { TargetResearchResult } from "../discovery/types";
 import { StateResults } from "../chemistry/StateResults";
 import type { StateResult } from "../chemistry/types";
 import { DiffResults } from "../diffsbdd/DiffResults";
+import { PreparedReceptorResults } from "../diffsbdd/PreparedReceptorResults";
 import type { OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { MinimizedPoseResults } from "../viewer/MinimizedPoseResults";
@@ -163,11 +164,22 @@ export function OperationResults({
         onCreated={onCreated}
       />
     );
+  if (
+    job.request.operation === "diffsbdd" &&
+    job.request.payload.mode === "prepare"
+  )
+    return (
+      <ResultArea language={language}>
+        <PreparedReceptorResults
+          jobId={job.id}
+          data={data}
+          language={language}
+        />
+      </ResultArea>
+    );
+
   return (
-    <section
-      className="operation-results"
-      aria-label={zh ? "计算结果" : "Computed results"}
-    >
+    <ResultArea language={language}>
       {job.request.operation === "antibody_humanize" && (
         <HumanizationResults
           job={job}
@@ -364,6 +376,23 @@ export function OperationResults({
           language={language}
         />
       )}
+    </ResultArea>
+  );
+}
+
+function ResultArea({
+  language,
+  children,
+}: {
+  language: Language;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className="operation-results"
+      aria-label={language === "zh" ? "计算结果" : "Computed results"}
+    >
+      {children}
     </section>
   );
 }

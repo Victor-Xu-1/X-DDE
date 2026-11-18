@@ -33,8 +33,13 @@
   color: var(--muted);
   font-size: 12px;
 }
+.prepared-structure-summary dl > div {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  row-gap: 3px;
+}
 .prepared-structure-summary dd {
-  margin-block-start: 3px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -106,6 +111,22 @@
   }
 }
 @media (max-width: 360px) {
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(
+      > .operation-results > .prepared-structure-workspace
+    )
+    > .task-detail-header {
+    gap: 6px;
+    margin-block-end: 8px;
+  }
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has(
+      > .operation-results > .prepared-structure-workspace
+    )
+    .panel-heading
+    h2 {
+    font-size: 16px;
+  }
   .prepared-structure-workspace .viewer-panel > .studio-heading,
   .prepared-structure-workspace .viewer-heading-actions {
     flex-wrap: nowrap;

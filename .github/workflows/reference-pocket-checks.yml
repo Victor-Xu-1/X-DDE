@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       review_only: ${{ steps.changes.outputs.review_only }}
+      receptor_workspace_only: ${{ steps.preparation.outputs.receptor_workspace_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,9 +30,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/generated-result-scope.py
+      - id: preparation
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/receptor-workspace-scope.py
   reference-pocket:
     needs: scope
-    if: needs.scope.outputs.review_only != 'true'
+    if: needs.scope.outputs.review_only != 'true' && needs.scope.outputs.receptor_workspace_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
