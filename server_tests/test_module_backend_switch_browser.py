@@ -77,12 +77,15 @@ def verify_shared_power(page, base):
     button = tool.get_by_role("switch")
     expect(button).to_be_enabled()
     expect(button).not_to_be_checked()
+    observed = page.locator(".backend-module-status")
+    expect(observed).to_have_attribute("data-power", "off")
     page.get_by_role("textbox", name="靶点名称或基因符号").fill("STAT6")
     page.get_by_role("checkbox", name="允许将名称或数据库编号发送到公共数据库查询").check()
     search = page.get_by_role("button", name="查找", exact=True)
     expect(search).to_be_disabled()
     button.press("Space")
     expect(button).to_be_checked()
+    expect(observed).to_have_attribute("data-power", "on")
     expect(search).to_be_enabled()
     sibling = open_capability(page, base, "discovery.disease")
     expect(sibling.get_by_role("switch")).to_be_checked()
@@ -116,6 +119,7 @@ def verify_shared_power(page, base):
     expect(open_capability(page, base, "discovery.disease").get_by_role(
         "switch"
     )).not_to_be_checked()
+    expect(observed).to_have_attribute("data-power", "off")
 
 
 def verify_modules(page, base):
@@ -137,6 +141,7 @@ def verify_modules(page, base):
         page.set_viewport_size({"width": width, "height": 775})
         page.goto(f"{base}/#view=results&module={module}")
         trigger, panel = module_power(page)
+        expect(page.locator(".backend-module-status")).to_have_attribute("data-power", "off")
         expect(panel).to_have_count(0)
         trigger.press("Space")
         expect(panel).to_be_visible()

@@ -75,6 +75,7 @@ on:
       - "frontend/src/utilities/RuntimeSwitch.tsx"
       - "frontend/src/utilities/TaskBackendControl.tsx"
       - "frontend/src/utilities/runtime-switch.css"
+      - "frontend/src/datasets/ScreeningForm*"
       - "server_tests/test_module_backend_switch_browser.py"
       - "tests/test_utility_tools.py"
       - "tests/test_compute_power_admission.py"
@@ -127,6 +128,7 @@ jobs:
       backend_placement_only: ${{ steps.select.outputs.backend_placement_only }}
       task_power_only: ${{ steps.select.outputs.task_power_only }}
       module_backend_only: ${{ steps.select.outputs.module_backend_only }}
+      module_power_only: ${{ steps.select.outputs.module_power_only }}
       native_state_only: ${{ steps.select.outputs.native_state_only }}
       compact_example_only: ${{ steps.select.outputs.compact_example_only }}
       mobile_header_only: ${{ steps.select.outputs.mobile_header_only }}
@@ -321,7 +323,10 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Contextual backend, utility, workflow and example switches
-        if: needs.scope.outputs.backend_placement_only == 'true' && needs.scope.outputs.module_backend_only != 'true'
+        if: >-
+          needs.scope.outputs.backend_placement_only == 'true' &&
+          needs.scope.outputs.module_backend_only != 'true' &&
+          needs.scope.outputs.module_power_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/utilities/BackendControls.test.tsx
@@ -337,6 +342,13 @@ jobs:
           src/studio/TaskWorkspace.test.tsx src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/MethodSwitch.test.tsx src/App.test.tsx
           src/discovery/TargetResearchForm.test.tsx
+      - name: Module status and selected screening stage switches
+        if: needs.scope.outputs.module_power_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/utilities/BackendControls.test.tsx
+          src/datasets/ScreeningForm.test.tsx src/datasets/screening-readiness.test.ts
+          src/studio/ModuleWorkspaceNavigation.test.tsx
       - name: Backend switches and directly changed surfaces
         if: needs.scope.outputs.backend_placement_only != 'true'
         working-directory: frontend
