@@ -17,7 +17,7 @@ export function TaskBackendControl({
   language: Language;
   scope: Scope;
   active?: boolean;
-  placement?: "followup" | "result";
+  placement?: "followup" | "result" | "example";
 }) {
   const runtime = useBackendRuntime(
     active,

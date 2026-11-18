@@ -351,9 +351,11 @@ describe("module templates", () => {
     );
     expect(await screen.findByText("Verified compound output")).toBeVisible();
     expect(onLoad).not.toHaveBeenCalled();
-    expect(transport.request).toHaveBeenLastCalledWith(
-      "/examples/regions/result",
-    );
+    expect(
+      transport.request.mock.calls
+        .filter(([path]) => path.startsWith("/examples/"))
+        .at(-1),
+    ).toEqual(["/examples/regions/result"]);
     expect(transport.post).not.toHaveBeenCalled();
   });
   it("lets the user explicitly return to a new blank task", async () => {
@@ -456,7 +458,9 @@ it("names result loading correctly and retries the same public result without pr
   });
   fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
   expect(await screen.findByText("Native output native-task")).toBeVisible();
-  expect(transport.request).toHaveBeenLastCalledWith("/jobs/native-task");
+  expect(
+    transport.request.mock.calls.filter(([path]) => path.startsWith("/jobs/")),
+  ).toEqual([["/jobs/native-task"], ["/jobs/native-task"]]);
   expect(onLoad).not.toHaveBeenCalled();
   expect(transport.post).not.toHaveBeenCalled();
 });

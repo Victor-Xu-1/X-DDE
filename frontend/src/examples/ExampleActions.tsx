@@ -22,6 +22,7 @@ import {
 
 export function ExampleActions(
   options: ExampleTemplateOptions & {
+    active?: boolean;
     onBack?(): void;
     onBusyChange?(pending: boolean): void;
   },
@@ -66,6 +67,7 @@ export function ExampleActions(
           capability={capability}
           language={language}
           previewing={Boolean(state.result)}
+          active={options.active ?? true}
           loaded={state.loaded}
           pending={state.pending}
           titleRef={titleRef}

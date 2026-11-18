@@ -200,6 +200,34 @@ RUNTIME_SOURCES = {
     "tests/test_utility_tools.py",
 }
 RUNTIME_CONSUMERS = {
+    "frontend/src/examples/ExampleToolbar.tsx": (
+        "b13790abbc7b64f138283d9ac351812185eb7148376e368d2233cec0ba228215",
+        "c55ecbcff3494861746d707e9b2039105f028cbcbf00fa88c6f10478138963cc",
+    ),
+    "frontend/src/examples/ExampleActions.tsx": (
+        "ffe7affa0018e2d9f19ec792134a1fa0ee8fabe1bc1a328109db95564d9ae8e3",
+        "83466d5ad006912f10e63664095ae0920415fad215416feb2cda1de0b1c65a70",
+    ),
+    "frontend/src/utilities/UtilityTask.tsx": (
+        "c4b99fa6a33a0a1fd02ffd8ce4eb78a4a0ae9fe8c911fbff712f1a79977c7b01",
+        "cbe222c82c91a270d42e0ea3cf17f7355f785379ac38f6884050cdba23951e88",
+    ),
+    "frontend/src/examples/ExampleActions.test.tsx": (
+        "b7a84d002b300d4b4a63b48da5e833af67d392202fcec75d1761d7a351dd6194",
+        "a7bf8b36d4dbebda57e4af7da14670559f9118b4341e1e1ef3364647b9e955f5",
+    ),
+    "frontend/src/examples/guide-data.json": (
+        "6884cc87a96277d58f45d27f37735adaa545603deb431628719d1b5ed789c608",
+        "90d130ab70a8ab7a4959fc710c86e28c96eb780dfcaee8bded56f08023847ac2",
+    ),
+    "frontend/src/studio/HomeWorkspace.tsx": (
+        "fdaf5feebb8468d9ae1ce222a96ded35e99f9007e377c905b3abe57acbedc787",
+        "b229d77b830c4b382dac24dd9fc0e5bea4063231f9ea71a2a871cda5ce757ccb",
+    ),
+    "frontend/src/studio/HomeWorkspace.test.tsx": (
+        "ddb9d6f34c9764f4cbbe7b70bd8513c830fa2b18a89ca7803a39410c3109ec95",
+        "2959aa084eb8b4d54bc60720e7e62184618afb2baf5d6d064a174b9ddbe91d42",
+    ),
     "src/opendde_workbench/discovery/routes.py": (
         "a3ebc5c97b74a564ac65291492da27d21b6456f8b696813d17aab10eec4a1e7f",
         "dd71fdff10786d29e40c166243d5c88f0e363c82994c1f67484203baf2b391c7",
@@ -235,10 +263,6 @@ RUNTIME_CONSUMERS = {
     "frontend/src/studio/TaskWorkspace.tsx": (
         "83865332f63e2b1ae24db14d97c9e1051d806a22b362e8ecfc68399f72d89e45",
         "66d3bfea053609e35bc89b62c624e40b3b84b3cc303a921fb36166a8999917d6",
-    ),
-    "frontend/src/utilities/UtilityTask.tsx": (
-        "6b47ed44278476bd7a76cfc776b320bb7a0f05e8ccdbca7c26d7a4ae1977aa59",
-        "c4b99fa6a33a0a1fd02ffd8ce4eb78a4a0ae9fe8c911fbff712f1a79977c7b01",
     ),
     "frontend/src/utilities/UtilityWorkspace.tsx": (
         "2c1f2199178eda58018dfa7eb8d753e9bac12626b56491e9d539ee549164a84b",

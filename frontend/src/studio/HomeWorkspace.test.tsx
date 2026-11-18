@@ -111,16 +111,30 @@ it("separates task entry from structure review while preserving the draft", asyn
   const request = client.request;
   const transport = vi
     .spyOn(client, "request")
-    .mockImplementation((path, init) =>
-      path === "/task-history/job/identity"
-        ? Promise.resolve({
-            job_id: "job",
-            capability_id: "predict",
-            origin: "research",
-            example_cases: [],
-          })
-        : request(path, init),
-    );
+    .mockImplementation((path, init) => {
+      if (path === "/runtime-controls?include_native=false")
+        return Promise.resolve({
+          engines: [
+            {
+              id: "opendde",
+              name: "OpenDDE",
+              ready: true,
+              enabled: false,
+              active: false,
+              operations: ["predict"],
+            },
+          ],
+          capabilities: { predict: "opendde" },
+        });
+      if (path === "/task-history/job/identity")
+        return Promise.resolve({
+          job_id: "job",
+          capability_id: "predict",
+          origin: "research",
+          example_cases: [],
+        });
+      return request(path, init);
+    });
   const { rerender, container } = render(<HomeWorkspace {...props} />);
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   const sequence = screen.getByLabelText("单字母氨基酸序列");
@@ -139,9 +153,15 @@ it("separates task entry from structure review while preserving the draft", asyn
   expect(
     screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
   ).toBeNull();
+  const toggle = await within(summary!).findByRole("switch", {
+    name: "OpenDDE",
+  });
+  expect(toggle).toBeEnabled();
+  expect(toggle).toHaveAttribute("aria-checked", "false");
   fireEvent.click(screen.getByRole("button", { name: "新建预测" }));
   expect(sequence).toBeVisible();
   expect(sequence).toHaveValue("ACDE");
+  expect(screen.queryByRole("switch", { name: "OpenDDE" })).toBeNull();
   rerender(<HomeWorkspace {...props} resultsVersion={1} />);
   expect(sequence).not.toBeVisible();
   const refreshedSummary = container.querySelector<HTMLElement>(
