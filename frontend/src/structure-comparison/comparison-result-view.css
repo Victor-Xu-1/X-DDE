@@ -1,0 +1,89 @@
+.comparison-result-view .structure-workbench-view,
+.comparison-result-view .structure-workbench-details {
+  gap: 10px;
+}
+
+.comparison-preview-header {
+  min-width: 0;
+  scroll-margin-block-start: 130px;
+}
+
+.comparison-preview-header .comparison-preview-actions {
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.comparison-preview-context {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.comparison-preview-context > .field-help {
+  margin: 0;
+}
+
+.comparison-result-view
+  > .structure-workbench:not([data-workspace-expanded="true"])
+  .viewer-panel {
+  padding-inline: 0;
+}
+
+/* The header names both sources and their exact overlay colors. */
+.comparison-result-view .viewer-comparison {
+  display: none;
+}
+
+.comparison-result-view .comparison-result-metrics {
+  gap: 10px;
+  margin: 0;
+}
+
+.comparison-result-view .comparison-result-metrics > div {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.comparison-result-view .comparison-result-metrics dt {
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.comparison-analysis .research-tab-list {
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.comparison-result-view .comparison-downloads {
+  margin-block: 4px 12px;
+}
+
+.comparison-return-to-residue {
+  justify-self: start;
+  min-height: 44px;
+}
+
+/* Desktop flow scrolls naturally while the molecular inspector stays in view. */
+@media (min-width: 1120px) and (min-height: 720px) {
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded="true"])
+    > .structure-workbench-view {
+    position: sticky;
+    top: 84px;
+  }
+
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded="true"])
+    .viewer-panel
+    .molecular-stage {
+    height: min(clamp(520px, 64vh, 760px), calc(100dvh - 235px));
+    min-height: 0;
+  }
+
+  .comparison-result-view .comparison-return-to-residue {
+    display: none;
+  }
+}
