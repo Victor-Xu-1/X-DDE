@@ -4,6 +4,9 @@ import fnmatch
 import os
 import subprocess
 
+CANDIDATE_TABLE_STYLE = "frontend/src/datasets/candidate-table.css"
+CANDIDATE_PREVIEW_STYLES = {"frontend/src/datasets/CandidateView.css", CANDIDATE_TABLE_STYLE}
+
 PATTERNS = (
     "frontend/src/datasets/BarcodeQuality*",
     "frontend/src/datasets/barcode-quality*",
@@ -12,6 +15,7 @@ PATTERNS = (
     "frontend/src/datasets/ResearchTable*",
     "frontend/src/datasets/followup-observation*",
     "frontend/src/datasets/CandidateView*",
+    CANDIDATE_TABLE_STYLE,
     "frontend/src/datasets/DELCandidateEvidence*",
     "frontend/src/datasets/useDELCandidateEvidence*",
     "frontend/src/datasets/candidate-evidence.css",
@@ -173,6 +177,7 @@ def main():
             "frontend/src/datasets/ResearchTable*",
             "frontend/src/datasets/followup-observation*",
             "frontend/src/datasets/CandidateView*",
+            CANDIDATE_TABLE_STYLE,
             "frontend/src/datasets/DELCandidateEvidence*",
             "frontend/src/datasets/useDELCandidateEvidence*",
             "frontend/src/datasets/candidate-evidence.css",
@@ -201,6 +206,7 @@ def main():
                         "frontend/src/datasets/followup-observation",
                     )
                 )
+                or name == CANDIDATE_TABLE_STYLE
                 for name in changed
             )
             and all(
@@ -252,9 +258,10 @@ def main():
         output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
         candidate_preview = (
             candidate_views
-            and "frontend/src/datasets/CandidateView.css" in changed
+            and bool(CANDIDATE_PREVIEW_STYLES.intersection(changed))
             and all(
                 name.startswith("frontend/src/datasets/CandidateView")
+                or name == CANDIDATE_TABLE_STYLE
                 for name in changed
                 if name.startswith("frontend/src/datasets/")
             )
