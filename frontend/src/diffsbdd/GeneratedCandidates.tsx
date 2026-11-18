@@ -17,6 +17,7 @@ import { GeneratedCandidatesBatch } from "./GeneratedCandidatesBatch";
 import { GeneratedCandidateDownload } from "./GeneratedCandidateDownload";
 import { OptimizationFigures } from "./OptimizationFigures";
 import type { OptimizationData } from "./optimization-model";
+import "./GeneratedCandidates.css";
 export interface GeneratedRecord {
   record: number;
   object?: ScientificObject;
@@ -61,6 +62,19 @@ export function GeneratedCandidates({
   const metric = (v: GeneratedRecord) =>
     mapping?.has(v.record) ? metrics?.[mapping.get(v.record)!] : undefined;
   const active = selected ? metric(selected) : undefined;
+  const download = generated &&
+    selected &&
+    sourceSha256 &&
+    (selected.object?.reference.conformer ?? 0) === 0 && (
+      <GeneratedCandidateDownload
+        key={JSON.stringify([url, sourceSha256, selected.record])}
+        url={url}
+        sha256={sourceSha256}
+        record={selected.record}
+        number={originalNumber(selected.record)}
+        language={language}
+      />
+    );
   return (
     <StructureWorkbench
       toolbar={
@@ -122,28 +136,18 @@ export function GeneratedCandidates({
         </div>
       }
     >
-      {generated &&
-        selected &&
-        sourceSha256 &&
-        (selected.object?.reference.conformer ?? 0) === 0 && (
-          <GeneratedCandidateDownload
-            key={JSON.stringify([url, sourceSha256, selected.record])}
-            url={url}
-            sha256={sourceSha256}
-            record={selected.record}
-            number={originalNumber(selected.record)}
-            language={language}
-          />
-        )}
-      {generated && !optimization && records.length > 0 && (
-        <GeneratedCandidatesBatch
-          records={records}
-          metrics={metrics}
-          verification={verification}
+      {active ? (
+        <GeneratedMetricsView
+          active={active}
           language={language}
+          action={download}
+          fixedRegionVerified={
+            selected ? qualified?.has(selected.record) : false
+          }
         />
+      ) : (
+        download
       )}
-      {active && <GeneratedMetricsView active={active} language={language} />}
       {selected && generated && !active && (
         <p className="field-help" role="status">
           {zh
@@ -152,7 +156,13 @@ export function GeneratedCandidates({
         </p>
       )}
       <div
-        className={optimization ? "optimization-candidate-table" : undefined}
+        className={
+          optimization
+            ? "optimization-candidate-table"
+            : generated
+              ? "generated-candidate-table"
+              : undefined
+        }
       >
         <ResearchTable
           key={url}
@@ -173,7 +183,9 @@ export function GeneratedCandidates({
           initialVisibleColumns={
             optimization
               ? ["candidate", "qed", "sa", "objective_delta"]
-              : undefined
+              : generated && mapping
+                ? ["candidate", "qed", "steric_pairs"]
+                : undefined
           }
           initialSort={
             optimization
@@ -200,6 +212,14 @@ export function GeneratedCandidates({
           })}
         />
       </div>
+      {generated && !optimization && records.length > 0 && (
+        <GeneratedCandidatesBatch
+          records={records}
+          metrics={metrics}
+          verification={verification}
+          language={language}
+        />
+      )}
       {details}
       {optimization && (
         <OptimizationFigures

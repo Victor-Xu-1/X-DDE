@@ -49,8 +49,9 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         platform(settings.state_dir, evidence / "service.log") as base,
         sync_playwright() as driver,
     ):
-        browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1050})
+        browser = driver.chromium.launch(channel="chrome")
+        height = 900 if width > 1000 else 775
+        page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.add_init_script("""window.__nativeViewerLoads = [];
             window.addEventListener('message', event => {
@@ -88,6 +89,17 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         box = stage.bounding_box()
         assert box and box["y"] < (505 if width > 1000 else 735), box
+        initial_table = table.bounding_box()
+        rail = details.bounding_box()
+        assert initial_table and rail and initial_table["width"] <= rail["width"] + 2
+        if width > 1000:
+            first_row = table.locator("tbody tr").first.bounding_box()
+            assert first_row
+            visible_row = min(height, first_row["y"] + first_row["height"])
+            assert visible_row - max(0, first_row["y"]) >= 44, first_row
+            visible_stage = min(height, box["y"] + box["height"])
+            assert visible_stage - max(0, box["y"]) >= 250, box
+        expect(table.get_by_role("columnheader", name="QED", exact=True)).to_be_visible()
         generation_details = details.get_by_text(
             "生成详情" if zh else "Generation details", exact=True
         )
@@ -105,6 +117,25 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
         )
         expect(checks).to_contain_text(str(native_row["qed"]))
+        scope_label = "近接仅检查条件口袋" if zh else "Proximity covers the conditioning pocket"
+        expect(checks.get_by_text(scope_label)).to_be_visible()
+        advanced = checks.get_by_text(
+            "更多构象指标" if zh else "More structure metrics", exact=True
+        )
+        expect(checks.get_by_text("LogP", exact=True)).to_be_hidden()
+        advanced.click()
+        expect(checks.get_by_text("LogP", exact=True)).to_be_visible()
+        advanced.click()
+        expect(selected).to_have_attribute("aria-pressed", "true")
+        compare = "对比" if zh else "Compare"
+        candidate = "候选" if zh else "Candidate"
+        for number in (1, 2):
+            table.get_by_role("checkbox", name=f"{compare} {candidate} {number}").check()
+        compare_button = details.get_by_role("button", name=f"{compare} (2)", exact=True)
+        compare_button.click()
+        comparison = details.get_by_role("region", name="结果对比" if zh else "Result comparison")
+        expect(comparison).to_contain_text(str(native_row["qed"]))
+        compare_button.click()
         expect(selected).to_have_attribute("aria-pressed", "true")
         with page.expect_download() as sdf_download:
             details.get_by_role(
@@ -117,9 +148,13 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         first, second, *_ = RECORD_END.finditer(original_sdf)
         expected_record = original_sdf[first.end() : second.end()]
         assert Path(sdf_download.value.path()).read_bytes() == expected_record
-        expect(
-            table.get_by_role("columnheader", name="输出重原子数" if zh else "Output heavy atoms")
-        ).to_be_visible()
+        heavy_atoms = "输出重原子数" if zh else "Output heavy atoms"
+        category = table.get_by_role("columnheader", name=heavy_atoms, exact=True)
+        expect(category).to_have_count(0)
+        columns = details.get_by_text("显示指标" if zh else "Columns", exact=True)
+        columns.click()
+        details.get_by_role("checkbox", name=heavy_atoms, exact=True).check()
+        expect(category).to_be_visible()
         row = table.get_by_role("row").filter(
             has=page.get_by_role("button", name="候选 2" if zh else "Candidate 2", exact=True)
         )
@@ -137,6 +172,17 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         expect(
             row.get_by_role("cell", name=str(native_row["heavy_atoms"]), exact=True)
         ).to_be_visible()
+        details.get_by_role("checkbox", name=heavy_atoms, exact=True).uncheck()
+        columns.click()
+        batch = details.get_by_role(
+            "region", name="批次结构检查" if zh else "Batch structure checks", exact=True
+        )
+        batch_summary = batch.locator("summary")
+        batch_metric = batch.locator("dt").first
+        expect(batch_metric).to_be_hidden()
+        batch_summary.click()
+        expect(batch_metric).to_be_visible()
+        batch_summary.click()
         generation_details.click()
         expect(
             details.get_by_role(
