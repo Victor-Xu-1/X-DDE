@@ -232,16 +232,18 @@ RUNTIME_CONSUMERS = {
     ),
     "frontend/src/poses/PosePlanRun.tsx": (
         "78cabb945dfc52837ba9cb5616317fa69926369f2df1d0f7a75a0951e85cf160",
-        "d6bbe57174a5e04720dd4e86b5289e45dbedbf6a2e5eeb89378b94dbeb735806",
+        "917dff5dcfe34bb8a7fda67cfcac7c7a6852a57722f3ba662c0677b1afd5c957",
     ),
     "frontend/src/viewer/PoseOptimizationControls.tsx": (
         "5664d3c54850e50269ae7857d02a6df16b52f27615e67df105cc4154c24c9f9f",
-        "31355dc39867478e22bb68edf5222a1cc3ca6944a501e1922eecb57d4e2ee9cf",
+        "83d2ef24d29d3f8a19ed8e2f3c801c32c8d4e39dfc8acd73b6036dd62172cc47",
     ),
 }
 RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
+    "frontend/src/poses/PosePlanRun.test.tsx",
+    "frontend/src/viewer/PreviewAvailability.test.tsx",
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/navigation-shell-checks.yml",
     ".github/workflows/pose-cluster-checks.yml",

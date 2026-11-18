@@ -53,10 +53,22 @@ const set = (id: string, runId: string): PoseSet => ({
   qualified_pose_count: 9,
   outcomes: [],
 });
-function source(ready = true) {
+function source(ready = true, reportOutage = false) {
   return vi.spyOn(client, "request").mockImplementation(async (path) => {
-    if (path.startsWith("/workflows/runs?"))
+    if (path === "/runtime-controls")
+      return {
+        capabilities: { "gnina.dock": "gnina" },
+        engines: [
+          { id: "gnina", name: "GNINA", ready, enabled: false, active: false },
+        ],
+      } as never;
+    if (path.startsWith("/workflows/runs?")) {
+      if (reportOutage) {
+        reportOutage = false;
+        throw new Error("Temporary source outage");
+      }
       return [run("newer"), run("older")] as never;
+    }
     if (path.startsWith("/research/pose-ensembles?"))
       return [
         set("newer-poses", "newer"),
@@ -111,8 +123,7 @@ it("keeps the visible ensemble paired to the selected run when reviewing run his
 });
 
 it("can read saved results without an installed engine and recovers a failed source read without computation", async () => {
-  const request = source(false);
-  request.mockRejectedValueOnce(new Error("Temporary source outage"));
+  source(false, true);
   const post = vi.spyOn(client.api, "post");
   const user = userEvent.setup();
   render(<PosePlanRun value={plan} language="en" />);

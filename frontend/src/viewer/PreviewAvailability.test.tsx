@@ -46,6 +46,19 @@ const saved = {
   native_score: null,
   receptor: null,
 } as SavedPose;
+const runtime = {
+  capabilities: {},
+  engines: [
+    {
+      id: "chemistry",
+      name: "RDKit",
+      ready: true,
+      enabled: true,
+      active: false,
+      operations: ["molecule_minimize"],
+    },
+  ],
+};
 let controller: ReturnType<typeof usePoseOptimization>;
 function Preview({
   available,
@@ -109,6 +122,7 @@ it.each([false, true])(
     ).toBeDisabled();
     await act(() => controller.minimize("MMFF94s", 1000));
     expect(api.post).not.toHaveBeenCalled();
+    expect(request).not.toHaveBeenCalled();
     expect(screen.getByTestId("pose-file")).toHaveTextContent(`${id}?record=2`);
     expect(screen.getByRole("status")).toHaveTextContent(
       "existing poses remain viewable",
@@ -172,10 +186,12 @@ it("retains saved downloads and undo/redo after the task service pauses", async 
   vi.mocked(api.post).mockImplementation(async (path) =>
     path.endsWith("/save") ? saved : { id: saved.job_id },
   );
-  vi.mocked(request).mockResolvedValue({
-    id: saved.job_id,
-    status: "succeeded",
-  });
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path === "/runtime-controls"
+        ? runtime
+        : { id: saved.job_id, status: "succeeded" }) as never,
+  );
   const { rerender } = render(<Preview available />);
   fireEvent.click(screen.getByRole("button", { name: "Minimize energy" }));
   await waitFor(() => expect(controller.count).toBe(2));
@@ -198,12 +214,12 @@ it("retains saved downloads and undo/redo after the task service pauses", async 
 it("keeps cancellation and progress polling available for an already running task", async () => {
   let finish!: (value: unknown) => void;
   vi.mocked(api.post).mockResolvedValue({ id: saved.job_id });
-  vi.mocked(request).mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        finish = resolve;
-      }),
-  );
+  vi.mocked(request).mockImplementation(async (path) => {
+    if (path === "/runtime-controls") return runtime as never;
+    return new Promise((resolve) => {
+      finish = resolve;
+    });
+  });
   const { rerender } = render(<Preview available />);
   await act(() => controller.minimize("MMFF94s", 1000));
   rerender(<Preview available={false} />);

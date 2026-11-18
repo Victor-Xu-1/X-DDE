@@ -55,6 +55,7 @@ export function PoseOptimizationControls({
         <TaskBackendControl
           language={language}
           scope={{ operations: [bound ? "docking" : "molecule_minimize"] }}
+          active={!disabled && state.available}
         />
         <button
           type="button"

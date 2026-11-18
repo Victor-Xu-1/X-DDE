@@ -62,28 +62,28 @@ class RuntimeControls {
     clearTimeout(this.timer);
   }
 
-  refresh = () => {
+  refresh = async () => {
     if (!this.listeners.size || this.state.busy) return;
     this.stopReading();
     const reader = new AbortController();
     this.read = reader;
     const signal = AbortSignal.any([reader.signal, AbortSignal.timeout(22000)]);
-    void request<RuntimeCatalogue>("/runtime-controls", { signal })
-      .then((catalogue) => {
-        if (reader.signal.aborted) return;
-        if (!Array.isArray(catalogue?.engines))
-          throw new Error("Invalid backend status response.");
-        this.update({ catalogue, readError: false });
-      })
-      .catch(() => {
-        if (!reader.signal.aborted) this.update({ readError: true });
-      })
-      .finally(() => {
-        if (this.read === reader) {
-          this.read = null;
-          this.timer = setTimeout(this.refresh, 5000);
-        }
+    try {
+      const catalogue = await request<RuntimeCatalogue>("/runtime-controls", {
+        signal,
       });
+      if (reader.signal.aborted) return;
+      if (!Array.isArray(catalogue?.engines))
+        throw new Error("Invalid backend status response.");
+      this.update({ catalogue, readError: false });
+    } catch {
+      if (!reader.signal.aborted) this.update({ readError: true });
+    } finally {
+      if (this.read === reader) {
+        this.read = null;
+        this.timer = setTimeout(this.refresh, 5000);
+      }
+    }
   };
 
   toggle = async (id: string) => {
