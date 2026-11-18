@@ -192,7 +192,8 @@ def verify_utilities(page, base):
 def verify_result_detail(page, base, job_id):
     page.set_viewport_size({"width": 1450, "height": 950})
     page.goto(f"{base}/#task={job_id}")
-    expect(page.get_by_text("Backend control history fixture", exact=True)).to_be_visible()
+    heading = page.get_by_role("heading", name="Backend control history fixture", exact=True)
+    expect(heading).to_be_visible()
     trigger, module = module_power(page)
     trigger.click()
     expect(module.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
