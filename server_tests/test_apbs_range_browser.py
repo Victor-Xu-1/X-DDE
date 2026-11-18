@@ -122,4 +122,3 @@ def test_edited_apbs_scale_keeps_native_geometry_camera_and_source_bytes(languag
             "width": width, "posts": posts,
         }, indent=2), encoding="utf-8")
         browser.close()
-
