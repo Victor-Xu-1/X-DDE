@@ -4,6 +4,12 @@ import type { Job, Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { PoseQualityResult } from "./types";
 
+export function qualityPreviewFiles(result: PoseQualityResult) {
+  return ["protein-preview.pdb", "molecule-preview.sdf"].filter((name) =>
+    Object.hasOwn(result.previews_sha256, name),
+  );
+}
+
 /** Inspect the exact checked pose and reference without optimisation or alignment. */
 export function QualityPreview({
   job,
@@ -16,9 +22,7 @@ export function QualityPreview({
 }) {
   const zh = language === "zh";
   const [overlay, setOverlay] = useState(false);
-  const names = ["protein-preview.pdb", "molecule-preview.sdf"].filter((name) =>
-    Object.hasOwn(result.previews_sha256, name),
-  );
+  const names = qualityPreviewFiles(result);
   const moleculeIndex = names.indexOf("molecule-preview.sdf");
   const reference = result.inputs.reference;
   const canCompare =

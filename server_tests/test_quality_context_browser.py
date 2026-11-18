@@ -43,8 +43,9 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
         platform(settings.state_dir, evidence / "service.log") as base,
         sync_playwright() as driver,
     ):
-        browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1050})
+        browser = driver.chromium.launch(channel="chrome")
+        height = 775 if zh else 850
+        page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -65,6 +66,12 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
             )
         ).to_have_count(0)
         table = panel.get_by_role("table", name="质控检查结果" if zh else "Quality check outcomes")
+        canvas = panel.locator(".molecular-stage iframe")
+        expect(canvas).to_be_visible()
+        scene_before = canvas.bounding_box()
+        assert scene_before and scene_before["width"] > (300 if zh else 500)
+        assert height - scene_before["y"] >= (180 if zh else 450)
+        page.screenshot(path=evidence / "quality-first-screen.png")
         (evidence / "native-source.json").write_text(
             json.dumps(
                 {
@@ -109,6 +116,24 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
         selector = panel.get_by_role("combobox", name="显示哪些检查？" if zh else "Which checks?")
         expect(selector).to_have_value("attention")
         expect(table.get_by_role("row")).to_have_count(7)
+        if zh:
+            jump = panel.get_by_role("button", name="查看检查", exact=True)
+            back = panel.get_by_role("button", name="返回三维", exact=True)
+            original_scene = canvas.element_handle()
+            jump.press("Space")
+            expect(panel.get_by_role("region", name="质量判读")).to_be_focused()
+            expect(selector).to_be_in_viewport()
+            selector.select_option("unassessed")
+            expect(back).to_be_in_viewport()
+            for button in (jump, back):
+                box = button.bounding_box()
+                assert box and box["height"] >= 44
+            back.press("Space")
+            expect(panel.get_by_role("region", name="姿势三维预览")).to_be_focused()
+            scene_returned = canvas.bounding_box()
+            assert scene_returned and height - scene_returned["y"] >= 340
+            assert canvas.evaluate("(current, original) => current === original", original_scene)
+            expect(selector).to_have_value("unassessed")
         selector.select_option("all")
         expect(table.get_by_role("row")).to_have_count(len(result["checks"]) + 1)
         selector.select_option("not_applicable")
@@ -128,6 +153,7 @@ def test_retained_stat6_report_distinguishes_assessed_from_missing_context(langu
         if width > 1000:
             assert preview["x"] + preview["width"] <= details["x"] + 2
             assert preview["width"] > details["width"]
+            assert abs(preview["y"] - details["y"]) < 2
         else:
             assert preview["y"] < details["y"]
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
