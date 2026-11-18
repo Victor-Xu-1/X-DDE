@@ -80,50 +80,7 @@ function PocketWorkspace({
     ) ?? false;
   return (
     <section className="operation-results pocket-result-workspace">
-      <header className="pocket-result-heading">
-        <h2>{zh ? "候选口袋" : "Candidate pockets"}</h2>
-        <span>
-          {result.native_pocket_count} {zh ? "个候选" : "candidates"}
-        </span>
-        <Hint label={zh ? "口袋评分说明" : "Pocket scoring help"}>
-          {zh
-            ? "位点概率用于比较候选口袋，不是药物结合概率。"
-            : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
-        </Hint>
-      </header>
-      {!result.pockets.length && (
-        <p role="status">
-          {zh
-            ? "此次没有返回候选口袋。请检查结构完整性、结构来源和方法适用性；没有口袋不代表该靶点无法被药物作用。"
-            : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
-        </p>
-      )}
       <StructureWorkbench
-        toolbar={
-          selected && (
-            <CandidateReviewBar
-              label={zh ? "口袋预览选择" : "Pocket preview selection"}
-              caption={zh ? "口袋" : "Pocket"}
-              candidates={result.pockets.map((site) => ({
-                id: site.rank,
-                label: (zh ? "预览口袋 " : "Preview pocket ") + site.rank,
-                short: site.rank,
-              }))}
-              selected={selected.rank}
-              language={language}
-              onSelect={setRank}
-              actions={
-                <button
-                  className="secondary-button pocket-panel-jump"
-                  type="button"
-                  onClick={() => revealPanel(details.current)}
-                >
-                  {zh ? "口袋详情" : "Pocket details"}
-                </button>
-              }
-            />
-          )
-        }
         preview={
           <div
             className="pocket-scene"
@@ -132,6 +89,29 @@ function PocketWorkspace({
             role="region"
             aria-label={zh ? "口袋三维预览" : "Pocket 3D preview"}
           >
+            {selected && (
+              <CandidateReviewBar
+                label={zh ? "口袋预览选择" : "Pocket preview selection"}
+                caption={zh ? "口袋" : "Pocket"}
+                candidates={result.pockets.map((site) => ({
+                  id: site.rank,
+                  label: (zh ? "预览口袋 " : "Preview pocket ") + site.rank,
+                  short: site.rank,
+                }))}
+                selected={selected.rank}
+                language={language}
+                onSelect={setRank}
+                actions={
+                  <button
+                    className="secondary-button pocket-panel-jump"
+                    type="button"
+                    onClick={() => revealPanel(details.current)}
+                  >
+                    {zh ? "口袋详情" : "Pocket details"}
+                  </button>
+                }
+              />
+            )}
             <StructureViewer
               key={overlay ?? "protein-only"}
               focusModel={overlay ? 1 : undefined}
@@ -148,6 +128,24 @@ function PocketWorkspace({
         }
       >
         <div className="pocket-candidates">
+          <header className="pocket-result-heading">
+            <h2>{zh ? "候选口袋" : "Candidate pockets"}</h2>
+            <span>
+              {result.native_pocket_count} {zh ? "个候选" : "candidates"}
+            </span>
+            <Hint label={zh ? "口袋评分说明" : "Pocket scoring help"}>
+              {zh
+                ? "位点概率用于比较候选口袋，不是药物结合概率。"
+                : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
+            </Hint>
+          </header>
+          {!result.pockets.length && (
+            <p role="status">
+              {zh
+                ? "此次没有返回候选口袋。请检查结构完整性、结构来源和方法适用性；没有口袋不代表该靶点无法被药物作用。"
+                : "No candidate pockets were returned. Check structure completeness, input origin and method applicability; an empty result does not establish that the target is undruggable."}
+            </p>
+          )}
           {selected && (
             <PocketSelection
               panelRef={details}

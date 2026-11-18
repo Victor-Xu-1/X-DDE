@@ -11,12 +11,27 @@
 }
 .pocket-result-heading > span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+.pocket-result-heading {
+  margin-block-end: 10px;
+}
+.pocket-result-heading h2 {
+  font-size: 15px;
+}
+.pocket-result-workspace .structure-workbench:not([data-workspace-expanded]) {
+  gap: 16px;
+}
+@media (min-width: 1001px) {
+  .pocket-result-workspace .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 32%);
+  }
 }
 .pocket-result-workspace .candidate-review-bar {
   gap: 8px;
-  padding: 4px 0;
+  padding: 0 0 6px;
+  margin-bottom: 8px;
   border-width: 0 0 1px;
   border-radius: 0;
 }
@@ -50,8 +65,87 @@
   min-width: 0;
 }
 
-.pocket-result-workspace .pocket-scene .viewer-panel {
-  padding-inline: 0;
+.studio-app .pocket-result-workspace .pocket-scene .viewer-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.pocket-result-workspace .pocket-scene .studio-heading {
+  gap: 6px 10px;
+  margin-block: 0 6px;
+}
+.pocket-result-workspace .pocket-scene .viewer-modes {
+  gap: 5px;
+  margin-block: 0 4px;
+}
+.pocket-result-workspace .viewer-heading-actions > .viewer-export-size {
+  width: 84px;
+}
+
+/* This result keeps the task header and the native canvas in the same scroll flow. */
+.studio-app .studio-content:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace) {
+  padding-block-start: 12px;
+}
+.task-history-workspace
+  .detail-panel.has-header-navigation:has(> .operation-results > .pocket-result-workspace)
+  > .task-detail-header {
+  gap: 6px 12px;
+  margin-block-end: 8px;
+}
+.task-history-workspace
+  .detail-panel.has-header-navigation:has(> .operation-results > .pocket-result-workspace)
+  .panel-heading {
+  gap: 4px 8px;
+  margin: 0;
+}
+@media (961px <= width <= 1360px) {
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar {
+    gap: 10px;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .page-context {
+    min-width: 110px;
+    white-space: normal;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .task-search {
+    flex: 1 1 110px;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .global-search {
+    width: 100%;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .top-actions {
+    flex: none;
+  }
+}
+@media (max-width: 400px) {
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .page-context {
+    flex: 1 1 0;
+    font-size: 13px;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .backend-controls > button {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
+    .studio-topbar
+    .backend-controls > button::before {
+    content: "⚙" / "";
+    font-size: 17px;
+  }
 }
 
 .pocket-selection {
@@ -114,6 +208,71 @@
   .pocket-result-workspace .candidate-review-selector nav button {
     min-width: 44px;
     min-height: 44px;
+  }
+}
+@media (max-width: 360px) {
+  .studio-app .task-result-content > .detail-panel:has(> .operation-results > .pocket-result-workspace) {
+    padding-inline: 12px;
+  }
+  .pocket-result-workspace .candidate-review-selector {
+    flex-basis: 0;
+  }
+  .pocket-result-workspace .candidate-review-selector > span {
+    display: none;
+  }
+  .studio-app .candidate-review-bar .pocket-panel-jump {
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+  .candidate-review-bar .pocket-panel-jump::before {
+    content: "↓" / "";
+    font-size: 17px;
+  }
+  .studio-app .task-result-content
+    .detail-panel:has(> .operation-results > .pocket-result-workspace) .task-actions {
+    gap: 4px 8px;
+  }
+  .studio-app .task-result-content
+    .detail-panel:has(> .operation-results > .pocket-result-workspace) .task-actions > button {
+    padding-inline: 12px;
+  }
+  .pocket-result-workspace .viewer-heading-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .pocket-result-workspace .pocket-scene .studio-heading {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .pocket-result-workspace .pocket-scene .studio-heading > h3 {
+    font-size: 0;
+  }
+  .pocket-result-workspace .viewer-heading-actions > .viewer-export-size {
+    width: 62px;
+    padding-inline: 2px;
+  }
+  .pocket-result-workspace .viewer-heading-actions > .figure-export-trigger {
+    min-width: 56px;
+    padding-inline: 3px;
+    font-size: 0;
+  }
+  .pocket-result-workspace .figure-export-trigger::before {
+    content: "Figure ↓" / "";
+    font-size: 12px;
+  }
+  .pocket-result-workspace .figure-export-trigger:lang(zh)::before {
+    content: "图件 ↓" / "";
+  }
+  .pocket-result-workspace .viewer-heading-actions > button:not(.figure-export-trigger) {
+    min-width: 28px;
+    padding-inline: 2px;
+  }
+  .pocket-result-workspace .viewer-modes > button,
+  .pocket-result-workspace .viewer-chain-menu > summary {
+    padding-inline: 6px;
+    font-size: 11px;
   }
 }
 .pocket-residues summary {
