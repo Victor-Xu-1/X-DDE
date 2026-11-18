@@ -5,12 +5,12 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
-import httpx
+import httpx2 as httpx
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from opendde_workbench.api import create_app
+from opendde_workbench import api
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
@@ -200,7 +200,13 @@ def test_harness_stop_serializes_with_campaign_start(settings, monkeypatch):
     )
 
     async def scenario():
-        probing, released, arriving = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        probing, released, waiting = asyncio.Event(), asyncio.Event(), asyncio.Event()
+
+        class ObservedLock(asyncio.Lock):
+            async def acquire(self):
+                if self.locked():
+                    waiting.set()
+                return await super().acquire()
 
         async def idle(_service):
             probing.set()
@@ -210,13 +216,10 @@ def test_harness_stop_serializes_with_campaign_start(settings, monkeypatch):
         monkeypatch.setattr(HarnessService, "runtime_busy", idle)
         launch = Mock(side_effect=AssertionError("Disabled campaign entered dispatch."))
         monkeypatch.setattr(HarnessService, "plan", launch)
-        app = create_app(settings)
-
-        @app.middleware("http")
-        async def observe_entry(request, call_next):
-            if request.url.path == start_path:
-                arriving.set()
-            return await call_next(request)
+        monkeypatch.setattr(
+            api, "asyncio", SimpleNamespace(**(vars(asyncio) | {"Lock": ObservedLock}))
+        )
+        app = api.create_app(settings)
 
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url=base
@@ -231,7 +234,7 @@ def test_harness_stop_serializes_with_campaign_start(settings, monkeypatch):
             await asyncio.wait_for(probing.wait(), 5)
             launch_task = asyncio.create_task(client.post(start_path, json={"digest": "a" * 64}))
             try:
-                await asyncio.wait_for(arriving.wait(), 5)
+                await asyncio.wait_for(waiting.wait(), 5)
             finally:
                 released.set()
             stopped, blocked = await asyncio.gather(stop_task, launch_task)
