@@ -174,7 +174,11 @@ export function DatasetResults({
           </p>
         )}
       {tableView === "series" && (
-        <DELSeriesContext key={`series:${job.id}`} job={job} language={language} />
+        <DELSeriesContext
+          key={`series:${job.id}`}
+          job={job}
+          language={language}
+        />
       )}
       {hasPrimary && charts ? (
         <ResearchTabs
