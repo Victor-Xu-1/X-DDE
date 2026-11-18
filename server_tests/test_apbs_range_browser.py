@@ -91,7 +91,9 @@ def test_edited_apbs_scale_keeps_native_geometry_camera_and_source_bytes(languag
         assert len(source_urls) == 2
         assert page.evaluate("window.__apbsLoads") == 1
 
-        scale = page.get_by_label("颜色范围" if zh else "Color range", exact=True)
+        scale = page.get_by_role(
+            "combobox", name="颜色范围" if zh else "Color range", exact=True
+        )
         ranges = (10, 2, 5, 10)
         images = [before["png"]]
         for number in ranges:
