@@ -49,8 +49,13 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         files = page.get_by_role(
             "list", name="资产与任务" if zh else "Assets and tasks", exact=True
         )
+        back = page.get_by_role(
+            "button", name="返回文件列表" if zh else "Back to files", exact=True
+        )
 
         def choose(value):
+            if back.is_visible():
+                back.click()
             files.get_by_role(
                 "button", name=("分子: " if zh else "Molecule: ") + value["label"], exact=True
             ).click()
@@ -103,10 +108,12 @@ def test_annotation_save_preserves_new_selection_and_recovers_one_exact_version(
         )
         page.screenshot(path=evidence / "delayed-reply-state.png")
         (evidence / "delayed-reply-state.txt").write_text(page.get_by_role("main").inner_text())
+        expect(page.get_by_role("heading", name=other["label"], exact=True)).to_be_visible()
+        if zh:
+            back.click()
         expect(
             files.get_by_role("button", name=("分子: " if zh else "Molecule: ") + name, exact=True)
         ).to_be_visible()
-        expect(page.get_by_role("heading", name=other["label"], exact=True)).to_be_visible()
         expect(page.get_by_role("alert")).to_have_count(0)
         page.screenshot(path=evidence / "newer-selection-retained.png")
 
@@ -259,6 +266,8 @@ def test_relationship_refresh_and_retry_preserve_earlier_versions(language, widt
             route.fulfill(status=503, json={"detail": "Controlled focus read failure"})
 
         page.route(focus_url, fail_focus)
+        if zh:
+            page.get_by_role("button", name="返回文件列表", exact=True).click()
         source_button.click()
         alert = page.get_by_role("alert")
         expect(alert).to_contain_text(

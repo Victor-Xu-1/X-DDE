@@ -1,0 +1,40 @@
+.research-file-inspection {
+  min-width: 0;
+}
+.studio-app .research-workspace .research-file-preview-actions {
+  display: none;
+}
+@media (max-width: 1000px) {
+  .research-workspace[data-file-pane="list"]
+    > .structure-workbench
+    > .structure-workbench-view,
+  .research-workspace[data-file-pane="preview"]
+    > .structure-workbench
+    > .structure-workbench-details,
+  .research-workspace[data-file-pane="preview"] > .research-file-toolbar {
+    display: none;
+  }
+  .research-file-inspection,
+  .research-workspace .research-node-list button,
+  .research-workspace input[type="search"] {
+    scroll-margin-block-start: 100px;
+  }
+  .studio-app .research-workspace .research-file-preview-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-block-end: 10px;
+    gap: 8px;
+  }
+  .studio-app .research-file-preview-actions .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .studio-app
+    .research-file-inspection
+    .research-selected-preview
+    .viewer-panel:not(:popover-open) {
+    padding-inline: 0;
+  }
+}

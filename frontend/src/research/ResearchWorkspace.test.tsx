@@ -118,7 +118,43 @@ it("does not replace the researcher’s newer material selection with a late sav
     asset_id: original.reference.asset_id,
   });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+it("returns keyboard focus to the selected file without changing the filter", async () => {
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    media,
+    matches: media === "(max-width: 1000px)",
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path === "/research/indexing" ? ([] as never) : (graph() as never),
+  );
+  render(
+    <ResearchWorkspace
+      language="en"
+      onEdit={vi.fn()}
+      onJob={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const search = await screen.findByRole("searchbox");
+  fireEvent.change(search, { target: { value: original.label } });
+  const row = screen.getByRole("button", {
+    name: "Molecule: " + original.label,
+  });
+  fireEvent.click(row);
+  expect(
+    screen.getByRole("region", { name: "Research file details" }),
+  ).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Back to files" }));
+  expect(row).toHaveFocus();
+  expect(row).toHaveAttribute("aria-current", "true");
+  expect(search).toHaveValue(original.label);
+});
 
 it("recovers from a loading failure and saves annotations as a separate version", async () => {
   let fail = true,

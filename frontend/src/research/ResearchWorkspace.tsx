@@ -17,6 +17,8 @@ import { assetContext } from "./asset-context";
 import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
+import { useResearchFileNavigation } from "./useResearchFileNavigation";
+import "./research-file-navigation.css";
 
 export function ResearchWorkspace({
   language,
@@ -69,6 +71,11 @@ export function ResearchWorkspace({
   }, []);
   const node = graph?.nodes.find((n) => n.id === selected),
     object = node?.object;
+  const navigation = useResearchFileNavigation(node?.id);
+  function openNode(id: string, button?: HTMLButtonElement) {
+    navigation.open(button);
+    void select(id);
+  }
   useEffect(() => {
     setLabel(object?.label ?? "");
     setNotes(object?.notes ?? "");
@@ -145,9 +152,9 @@ export function ResearchWorkspace({
       </section>,
     );
   return wrap(
-    <section className="research-workspace">
+    <section className="research-workspace" data-file-pane={navigation.pane}>
       <h1 className="sr-only">{zh ? "研究文件" : "Research files"}</h1>
-      <div className="editor-toolbar">
+      <div className="editor-toolbar research-file-toolbar">
         <button onClick={() => void load()} disabled={busy}>
           {zh ? "刷新" : "Refresh"}
         </button>
@@ -290,28 +297,52 @@ export function ResearchWorkspace({
         <>
           <StructureWorkbench
             preview={
-              <ObjectInspector
-                node={node}
-                graph={graph}
-                selected={selected}
-                language={language}
-                busy={busy}
-                label={label}
-                notes={notes}
-                rating={rating}
-                setLabel={setLabel}
-                setNotes={setNotes}
-                setRating={setRating}
-                onEdit={onEdit}
-                onProperties={(value) => {
-                  setPropertyOrigin(node?.id ?? null);
-                  setProperties(value);
-                }}
-                onSelect={(id) => void select(id)}
-                onJob={onJob}
-                mutate={mutate}
-                register={register}
-              />
+              <section
+                className="research-file-inspection"
+                ref={navigation.preview}
+                tabIndex={-1}
+                aria-label={zh ? "研究文件详情" : "Research file details"}
+              >
+                <div className="research-file-preview-actions">
+                  <button
+                    type="button"
+                    className="secondary-button research-file-back"
+                    onClick={navigation.back}
+                  >
+                    {zh ? "返回文件列表" : "Back to files"}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => void load()}
+                    disabled={busy}
+                  >
+                    {zh ? "刷新" : "Refresh"}
+                  </button>
+                </div>
+                <ObjectInspector
+                  node={node}
+                  graph={graph}
+                  selected={selected}
+                  language={language}
+                  busy={busy}
+                  label={label}
+                  notes={notes}
+                  rating={rating}
+                  setLabel={setLabel}
+                  setNotes={setNotes}
+                  setRating={setRating}
+                  onEdit={onEdit}
+                  onProperties={(value) => {
+                    setPropertyOrigin(node?.id ?? null);
+                    setProperties(value);
+                  }}
+                  onSelect={openNode}
+                  onJob={onJob}
+                  mutate={mutate}
+                  register={register}
+                />
+              </section>
             }
           >
             <section className="setup-card">
@@ -319,6 +350,7 @@ export function ResearchWorkspace({
                 {zh ? "查找研究文件或任务" : "Find research files or tasks"}
                 <input
                   type="search"
+                  ref={navigation.search}
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
@@ -373,6 +405,7 @@ export function ResearchWorkspace({
                 </select>
               </label>
               <ul
+                ref={navigation.list}
                 data-asset-view={assetFilter}
                 className="research-node-list"
                 aria-label={zh ? "资产与任务" : "Assets and tasks"}
@@ -382,7 +415,8 @@ export function ResearchWorkspace({
                     <button
                       className={selected === n.id ? "selected" : ""}
                       aria-label={`${objectLabels[n.kind]?.[zh ? 0 : 1]}: ${n.label}`}
-                      onClick={() => void select(n.id)}
+                      aria-current={selected === n.id ? true : undefined}
+                      onClick={(event) => openNode(n.id, event.currentTarget)}
                     >
                       <small>{objectLabels[n.kind]?.[zh ? 0 : 1]}</small>
                       <strong>{n.label}</strong>
@@ -443,7 +477,7 @@ export function ResearchWorkspace({
               graph={graph}
               selected={selected}
               language={language}
-              onSelect={(id) => void select(id)}
+              onSelect={openNode}
             />
           </details>
         </>
