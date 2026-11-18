@@ -227,6 +227,8 @@ def test_contextual_switch_scope_covers_reviewed_consumers_and_preserves_scienti
     assert selected(changed, "pull_request", shared=approved)
     assert selected(changed, "push", shared=approved)
     assert not selected(changed, "workflow_dispatch", shared=approved)
-    assert not selected(changed | {"src/opendde_workbench/backend_router.py"}, "push", shared=approved)
+    assert not selected(
+        changed | {"src/opendde_workbench/backend_router.py"}, "push", shared=approved
+    )
     assert not selected(changed, "push", shared={})
     assert not selected(approved, "push", shared=approved)
