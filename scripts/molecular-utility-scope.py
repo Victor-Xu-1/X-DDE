@@ -215,7 +215,28 @@ def main():
     changed = subprocess.check_output(
         ["git", "diff", "--name-only", base, "HEAD"], text=True
     ).splitlines() if base and set(base) != {"0"} else []
+    touch_paths = {
+        "frontend/src/utilities/image-molecule.css",
+        "server_tests/test_utility_image_browser.py",
+    }
+    touch_controls = (
+        os.environ.get("GITHUB_EVENT_NAME") in {"push", "pull_request"}
+        and bool(set(changed) & touch_paths)
+        and set(changed)
+        <= touch_paths
+        | {
+            "scripts/molecular-utility-scope.py",
+            ".github/workflows/molecular-utility-checks.yml",
+            "pyproject.toml",
+            "uv.lock",
+            "frontend/package.json",
+            "frontend/package-lock.json",
+            "install.sh",
+            "install.ps1",
+        }
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         output.write("utility_only=" + str(selected(
             changed, os.environ.get("GITHUB_EVENT_NAME", "push"),
             shared={path: (blob_digest(base, path), blob_digest("HEAD", path))
