@@ -86,9 +86,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         stage = preview.locator(".molecular-stage")
         expect(stage).to_be_visible(timeout=30000)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        if width > 1000:
-            box = stage.bounding_box()
-            assert box and box["y"] < 505, box
+        box = stage.bounding_box()
+        assert box and box["y"] < (505 if width > 1000 else 735), box
         generation_details = details.get_by_text(
             "生成详情" if zh else "Generation details", exact=True
         )
@@ -102,10 +101,13 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         )
         preview_choice.click()
         expect(preview_choice).to_have_attribute("aria-pressed", "true")
-        expect(strip).to_contain_text(str(native_row["qed"]))
+        checks = details.get_by_role(
+            "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
+        )
+        expect(checks).to_contain_text(str(native_row["qed"]))
         expect(selected).to_have_attribute("aria-pressed", "true")
         with page.expect_download() as sdf_download:
-            strip.get_by_role(
+            details.get_by_role(
                 "button",
                 name="下载所选候选 SDF" if zh else "Download selected candidate SDF",
                 exact=True,
@@ -162,9 +164,6 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             assert view_box["width"] > detail_box["width"]
         else:
             assert view_box["y"] < detail_box["y"]
-        checks = details.get_by_role(
-            "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
-        )
         expect(checks).to_be_visible()
         check_box, table_box = checks.bounding_box(), table.bounding_box()
         assert (

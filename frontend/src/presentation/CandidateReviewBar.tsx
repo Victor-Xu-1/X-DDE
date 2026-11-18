@@ -16,7 +16,7 @@ export function CandidateReviewBar({
   caption: string;
   candidates: { id: number; label: string; short: number }[];
   selected?: number;
-  metrics: { label: string; value: string | number; detail?: string }[];
+  metrics?: { label: string; value: string | number; detail?: string }[];
   language: Language;
   onSelect(id: number): void;
   actions?: ReactNode;
@@ -74,7 +74,7 @@ export function CandidateReviewBar({
           </button>
         </nav>
       </div>
-      {metrics.length > 0 && (
+      {!!metrics?.length && (
         <dl className="candidate-review-metrics">
           {metrics.map(({ label, value, detail }) => (
             <div key={label}>

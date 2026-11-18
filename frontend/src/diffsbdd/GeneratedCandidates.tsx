@@ -78,41 +78,10 @@ export function GeneratedCandidates({
             }))}
             selected={selected?.record}
             language={language}
-            metrics={
-              active
-                ? [
-                    { label: "QED", value: active.qed },
-                    {
-                      label: zh ? "结构组分" : "Components",
-                      value: active.fragments ?? "—",
-                    },
-                    {
-                      label: zh
-                        ? "口袋近接原子对（< 1.2 Å）"
-                        : "Pocket atom pairs < 1.2 Å",
-                      value: active.pocket_atom_pairs_under_1_2_angstrom,
-                    },
-                  ]
-                : []
-            }
             onSelect={(id) => {
               const candidate = records.find(({ record }) => record === id);
               if (candidate) onSelect(candidate);
             }}
-            actions={
-              selected &&
-              sourceSha256 &&
-              (selected.object?.reference.conformer ?? 0) === 0 && (
-                <GeneratedCandidateDownload
-                  key={JSON.stringify([url, sourceSha256, selected.record])}
-                  url={url}
-                  sha256={sourceSha256}
-                  record={selected.record}
-                  number={originalNumber(selected.record)}
-                  language={language}
-                />
-              )
-            }
           />
         )
       }
@@ -153,6 +122,19 @@ export function GeneratedCandidates({
         </div>
       }
     >
+      {generated &&
+        selected &&
+        sourceSha256 &&
+        (selected.object?.reference.conformer ?? 0) === 0 && (
+          <GeneratedCandidateDownload
+            key={JSON.stringify([url, sourceSha256, selected.record])}
+            url={url}
+            sha256={sourceSha256}
+            record={selected.record}
+            number={originalNumber(selected.record)}
+            language={language}
+          />
+        )}
       {generated && !optimization && records.length > 0 && (
         <GeneratedCandidatesBatch
           records={records}

@@ -291,12 +291,22 @@ RESULT_HEADER_BLOBS = {
         "18d3c93ed00da60a12f2c2f00295ccb301c42d93", "03e712863f54604e88e8a729aeceea6c2e64efd5",
     ),
     "frontend/src/diffsbdd/GeneratedCandidates.tsx": (
-        "dcab766617a2523fa8b294b9c77104e1a923911d", "134444f0a8cb6593e3513bde641e964fee9caf06",
+        "dcab766617a2523fa8b294b9c77104e1a923911d", "0ea6dc4989d0a11a4ce07e714ea6cbf78f5fb58b",
+    ),
+    "frontend/src/diffsbdd/GeneratedMetricsView.tsx": (
+        "bc0135365d77460924ea6111b414c3c8661dbd24", "a87145059e99732e1fec23f62236c4fc0f0e9ff8",
+    ),
+    "frontend/src/presentation/CandidateReviewBar.tsx": (
+        "aa11bf8016090ffa41bbdd50281b4d9e01f6e2f5", "9a9f14c6a35a6f357c3f7661e90498d518d1c8b7",
+    ),
+    "frontend/src/presentation/candidate-review-bar.css": (
+        "778b4bb22cf034c5a3e052f49c34de1a4883c265", "42f13fb28e45ff13424634a60c7c5c3cf53e375b",
     ),
 }
 RESULT_HEADER_FILES = RESULT_HEADER_BLOBS.keys() | {
     "frontend/src/studio/TaskWorkspace.test.tsx",
     "frontend/src/diffsbdd/DiffResults.test.tsx",
+    "frontend/src/diffsbdd/GeneratedCandidates.test.tsx",
     "server_tests/test_generated_quality_browser.py",
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
