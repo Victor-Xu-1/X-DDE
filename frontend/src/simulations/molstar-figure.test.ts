@@ -47,6 +47,8 @@ it.each([
           multiSample: { sampleLevel: 2 },
           transparentBackground: true,
         });
+        await Promise.resolve();
+        expect(camera.fov).toBe(fov);
         throw new Error("Native capture failed");
       }),
     };

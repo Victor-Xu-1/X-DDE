@@ -1,4 +1,5 @@
 import type { PluginContext } from "molstar/lib/mol-plugin/context";
+import { Camera } from "molstar/lib/mol-canvas3d/camera";
 import { canvasToBlob } from "molstar/lib/mol-canvas3d/util";
 import { Task } from "molstar/lib/mol-task";
 import {
@@ -51,10 +52,6 @@ export async function molecularFigure(
       const wasAnimating = plugin.animationLoop.isAnimating;
       if (wasAnimating) plugin.animationLoop.stop({ noDraw: true });
       try {
-        // ImagePass copies the source camera while rendering. A narrower field
-        // of view magnifies the projection without moving the clipping planes.
-        if (scale !== 1)
-          camera.fov = 2 * Math.atan(Math.tan(originalFov / 2) / scale);
         // Bound the cost of supersampled print output in software WebGL.
         pass.setProps({
           multiSample: { ...multiSample, mode: "on", sampleLevel: 2 },
@@ -65,9 +62,20 @@ export async function molecularFigure(
           transparentBackground: settings.transparent,
         });
         await pass.updateBackground();
-        return await pass.getImageData(runtime, size.width, size.height);
+        const render = () => pass.getImageData(runtime, size.width, size.height);
+        if (scale === 1) return await render();
+        let pixels: Promise<ImageData>;
+        try {
+          // ImagePass copies the camera synchronously before awaiting GPU work.
+          Camera.copySnapshot(camera, {
+            fov: 2 * Math.atan(Math.tan(originalFov / 2) / scale),
+          });
+          pixels = render();
+        } finally {
+          Camera.copySnapshot(camera, { fov: originalFov });
+        }
+        return await pixels;
       } finally {
-        camera.fov = originalFov;
         pass.setProps({ multiSample, postprocessing, transparentBackground });
         if (wasAnimating) plugin.animationLoop.start();
       }
