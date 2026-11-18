@@ -81,12 +81,14 @@ jobs:
           quality_checks = {"server_tests/prepare_quality_context_cases.py", "server_tests/test_quality_context_browser.py", "tests/test_pose_quality.py", "docs/frontend-layout.md", ".github/workflows/sequence-result-checks.yml", ".github/workflows/structure-layout-checks.yml", ".github/workflows/user-interface-checks.yml", ".github/workflows/task-layout-checks.yml"}
           quality_checks.update({
               ".github/workflows/reference-input-checks.yml",
+              "scripts/pose-quality-scope.py",
               "frontend/src/presentation/structure-workbench.css",
               "frontend/src/presentation/candidate-review-bar.css",
               "server_tests/reviewed_batch_preview.py", "server_tests/test_sequence_results_browser.py",
           })
           only_quality = (any(p.startswith("frontend/src/quality/") for p in changed)
                           and all(p.startswith("frontend/src/quality/") or p in mirrors | quality_checks for p in changed)
+                          and run_path("scripts/pose-quality-scope.py")["reviewed_workflow_changes"](base, changed)
                           and run_path("scripts/docking-result-scope.py")["only_version_mirrors"](base, changed & mirrors))
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write("only_humanization=" + str(only).lower() + "\n")
