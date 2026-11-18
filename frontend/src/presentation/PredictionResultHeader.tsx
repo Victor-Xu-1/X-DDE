@@ -46,17 +46,19 @@ export function PredictionResultHeader({
   return (
     <header className="prediction-result-heading">
       <div className="prediction-result-summary">
-        {onHistory && (
-          <button
-            type="button"
-            className="secondary-button prediction-result-back"
-            onClick={onHistory}
-          >
-            <ArrowLeftOutlined aria-hidden="true" />
-            {zh ? "预测记录" : "Predictions"}
-          </button>
-        )}
-        <h2 className="result-task-name">{title}</h2>
+        <div className="prediction-result-title">
+          {onHistory && (
+            <button
+              type="button"
+              className="secondary-button prediction-result-back"
+              onClick={onHistory}
+            >
+              <ArrowLeftOutlined aria-hidden="true" />
+              {zh ? "预测记录" : "Predictions"}
+            </button>
+          )}
+          <h2 className="result-task-name">{title}</h2>
+        </div>
         <div className="prediction-result-meta">
           <span className={`status ${job.status}`}>{t(job.status)}</span>
           {Number.isFinite(date.getTime()) && (
@@ -70,12 +72,12 @@ export function PredictionResultHeader({
               </time>
             </span>
           )}
+          {model && (
+            <span className="prediction-result-method">
+              {zh ? "预测模型" : "Prediction model"} <strong>{model}</strong>
+            </span>
+          )}
         </div>
-        {model && (
-          <p className="prediction-result-method">
-            {zh ? "预测模型" : "Prediction model"} <strong>{model}</strong>
-          </p>
-        )}
       </div>
       {(terminal(job.status) || children) && (
         <div className="prediction-result-actions" key={job.id}>
