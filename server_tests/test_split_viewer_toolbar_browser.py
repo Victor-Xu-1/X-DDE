@@ -88,6 +88,14 @@ def test_archived_workflow_reflows_without_remounting_its_structure(interaction_
             page.set_viewport_size({"width": 1110, "height": 740})
             expect(files).to_be_visible()
             expect(scale).not_to_be_visible()
+            expect(files).to_be_focused()
+            page.set_viewport_size({"width": 1680, "height": 900})
+            expect(files).not_to_be_visible()
+            focused_action = panel.locator(".viewer-tool-group.is-actions .viewer-tool-content")
+            expect(focused_action.locator(":focus")).to_be_visible()
+            page.set_viewport_size({"width": 1110, "height": 740})
+            expect(files).to_be_visible()
+            expect(scale).not_to_be_visible()
             assert frame.evaluate("(node, original) => node === original", original_frame)
             assert frame.evaluate(native_atoms) == atoms
             download = result.get_by_role("link", name="Download selected pose SDF", exact=True)
@@ -104,6 +112,20 @@ def test_archived_workflow_reflows_without_remounting_its_structure(interaction_
                                 configure=configure)
             inspect_png(png, dpi=300, width=1051)
             assert frame.evaluate(position) == view
+            page.set_viewport_size({"width": 390, "height": 775})
+            expand.click()
+            expect(close).to_be_visible()
+            files.click()
+            scale.focus()
+            scale.press("Escape")
+            expect(files).to_be_focused()
+            expect(scale).not_to_be_visible()
+            expect(close).to_be_visible()
+            files.press("Escape")
+            expect(expand).to_be_focused()
+            expect(close).not_to_be_visible()
+            assert frame.evaluate("(node, original) => node === original", original_frame)
+            assert frame.evaluate(native_atoms) == atoms
             assert page.request.get(base + "/api/jobs").json() == before
             assert writes == []
             browser.close()

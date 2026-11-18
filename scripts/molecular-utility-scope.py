@@ -715,12 +715,13 @@ MOBILE_VIEWER_DIFF = "ebc248ef679e664c4955441262c9e742a510df3a7edfb497363a6e0094
 SPLIT_VIEWER_FILES = {
     ".github/workflows/publication-checks.yml",
     "docs/frontend-layout.md",
+    "frontend/src/presentation/workspace-expansion.ts",
     "frontend/src/viewer/ViewerToolGroup.tsx",
     "frontend/src/viewer/viewer-tool-group.css",
     "server_tests/test_split_viewer_toolbar_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-SPLIT_VIEWER_DIFF = "04c691dbaf9e63afe062cd5db68f2d965857842da025546a9bef4fab73052e27"
+SPLIT_VIEWER_DIFF = "fcd668deeca469111005f7d56aaecb0d54dc100598bcd1f4ade24e69e216b592"
 
 
 def reviewed_selected(changed, event, base, files, digest):

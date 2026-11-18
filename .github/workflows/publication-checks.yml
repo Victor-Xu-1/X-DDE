@@ -140,6 +140,7 @@ jobs:
             frontend/src/viewer/StructureViewport.tsx frontend/src/viewer/ViewerToolGroup.tsx \
             frontend/src/viewer/ViewerExportActions.tsx frontend/src/viewer/viewer-tool-group.css \
             frontend/src/viewer/viewer.css frontend/src/publication/FigureExport.tsx \
+            frontend/src/presentation/workspace-expansion.ts \
             frontend/src/chemistry/states.css frontend/src/pockets/pocket-results.css \
             frontend/src/presentation/prediction-inspection.css \
             frontend/src/receptors/prepared-structure.css frontend/src/receptors/receptors.css \
@@ -233,6 +234,7 @@ jobs:
         run: >-
           npx vitest run src/viewer/StructureViewer.test.tsx
           src/viewer/useViewerSnapshot.test.ts src/publication/FigureExport.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx
       - run: uv sync --locked --group dev --group browser
       - name: Scope and archived native viewer with PNG export in Chrome
         env:
