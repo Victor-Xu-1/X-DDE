@@ -162,7 +162,10 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual selection, pocket geometry, exports and return navigation
         run: |
-          .venv/bin/python -m playwright install --with-deps chromium
+          google-chrome --version
+          if [[ "${{ needs.scope.outputs.handoff_only }}" != "true" ]]; then
+            .venv/bin/python -m playwright install --with-deps chromium
+          fi
           mkdir -p server_tests/evidence/pocket-results
           .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/pocket-results/service.log 2>&1 &
           server_pid=$!

@@ -9,19 +9,112 @@
 .pocket-selection h3 {
   margin: 0;
 }
-.pocket-result-heading > span,
-.pocket-selection header > span {
+.pocket-result-heading > span {
   color: var(--muted);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-.pocket-selection {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
+.pocket-result-workspace .candidate-review-bar {
+  gap: 8px;
+  padding: 4px 0;
+  border-width: 0 0 1px;
+  border-radius: 0;
 }
-.pocket-residues {
-  margin-top: 14px;
+
+.pocket-result-workspace .candidate-review-selector {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.pocket-result-workspace .candidate-review-selector > span {
+  white-space: nowrap;
+}
+
+.pocket-panel-jump {
+  display: none;
+}
+
+.pocket-result-workspace .pocket-scene,
+.pocket-result-workspace .pocket-selection {
+  scroll-margin-block-start: 130px;
+}
+
+.pocket-result-workspace [data-workspace-expanded="true"] .pocket-scene,
+.pocket-result-workspace [data-workspace-expanded="true"] .pocket-selection {
+  scroll-margin-block-start: 12px;
+}
+
+.pocket-result-workspace .pocket-scene {
+  min-width: 0;
+}
+
+.pocket-result-workspace .pocket-scene .viewer-panel {
+  padding-inline: 0;
+}
+
+.pocket-selection {
+  display: grid;
+  gap: 8px;
+  padding-block-end: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pocket-selection header {
+  justify-content: space-between;
+}
+
+.pocket-selection .candidate-review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pocket-selection .candidate-review-metrics > div {
+  min-width: 0;
+  padding: 6px 8px;
+  overflow-wrap: anywhere;
+}
+
+.pocket-selection .pocket-next-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.pocket-selection .pocket-next-actions > button {
+  min-height: 44px;
+  white-space: normal;
+}
+
+.pocket-result-workspace .pocket-candidates .research-table th,
+.pocket-result-workspace .pocket-candidates .research-table td {
+  padding-inline: 7px;
+}
+
+.pocket-result-workspace .pocket-candidates .research-table thead th {
+  white-space: normal;
+}
+
+@media (max-width: 1000px) {
+  .pocket-result-workspace .pocket-panel-jump {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .pocket-result-workspace .candidate-review-selector {
+    flex: 1 1 160px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 680px), (pointer: coarse) {
+  .pocket-result-workspace .candidate-review-selector nav button {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 .pocket-residues summary {
   cursor: pointer;

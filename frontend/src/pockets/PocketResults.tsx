@@ -1,6 +1,6 @@
 import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
 import type { Job, Language } from "../types";
@@ -27,6 +27,11 @@ interface PocketResultsProps {
   initialRank?: number;
 }
 
+function revealPanel(panel: HTMLElement | null) {
+  panel?.focus({ preventScroll: true });
+  panel?.scrollIntoView?.({ block: "start", behavior: "instant" });
+}
+
 export function PocketResults(props: PocketResultsProps) {
   return <PocketWorkspace key={props.job.id} {...props} />;
 }
@@ -48,6 +53,8 @@ function PocketWorkspace({
   const [overlay, setOverlay] = useState<string | null>(null);
   const [referenceSession, setReferenceSession] =
     useState<ReferenceSession | null>(null);
+  const scene = useRef<HTMLDivElement>(null);
+  const details = useRef<HTMLElement>(null);
   function continueWith(
     action: PocketContinuation["action"],
     origin: PocketOrigin,
@@ -72,7 +79,7 @@ function PocketWorkspace({
       sameStructure(residue.structure, result.protein),
     ) ?? false;
   return (
-    <section className="operation-results">
+    <section className="operation-results pocket-result-workspace">
       <header className="pocket-result-heading">
         <h2>{zh ? "候选口袋" : "Candidate pockets"}</h2>
         <span>
@@ -105,39 +112,60 @@ function PocketWorkspace({
               selected={selected.rank}
               language={language}
               onSelect={setRank}
-              metrics={[
-                {
-                  label: zh ? "模型概率" : "Model probability",
-                  value: selected.probability,
-                },
-                {
-                  label: zh ? "位点评分" : "Site score",
-                  value: selected.score,
-                },
-                {
-                  label: zh ? "残基数" : "Residues",
-                  value: selected.residues.length,
-                },
-              ]}
+              actions={
+                <button
+                  className="secondary-button pocket-panel-jump"
+                  type="button"
+                  onClick={() => revealPanel(details.current)}
+                >
+                  {zh ? "口袋详情" : "Pocket details"}
+                </button>
+              }
             />
           )
         }
         preview={
-          <StructureViewer
-            key={overlay ?? "protein-only"}
-            focusModel={overlay ? 1 : undefined}
-            initialMode={overlay ? "pocket" : undefined}
-            urls={[
-              artifactUrl(job.id, result.protein_artifact),
-              ...(overlay ? [overlay] : []),
-            ]}
-            comparison={false}
-            language={language}
-            residueRegion={selected?.residues}
-          />
+          <div
+            className="pocket-scene"
+            ref={scene}
+            tabIndex={-1}
+            role="region"
+            aria-label={zh ? "口袋三维预览" : "Pocket 3D preview"}
+          >
+            <StructureViewer
+              key={overlay ?? "protein-only"}
+              focusModel={overlay ? 1 : undefined}
+              initialMode={overlay ? "pocket" : undefined}
+              urls={[
+                artifactUrl(job.id, result.protein_artifact),
+                ...(overlay ? [overlay] : []),
+              ]}
+              comparison={false}
+              language={language}
+              residueRegion={selected?.residues}
+            />
+          </div>
         }
       >
         <div className="pocket-candidates">
+          {selected && (
+            <PocketSelection
+              panelRef={details}
+              site={selected}
+              proteinArtifact={result.protein_artifact}
+              protein={result.protein}
+              language={language}
+              coordinatesMatch={coordinatesMatch}
+              hasValidBox={Boolean(initialPocketBox(selected))}
+              onView={() => revealPanel(scene.current)}
+              onGenerate={() =>
+                continueWith("generate", { kind: "predicted", site: selected })
+              }
+              onDock={() =>
+                continueWith("dock", { kind: "predicted", site: selected })
+              }
+            />
+          )}
           <ResearchTable
             title={zh ? "候选口袋" : "Candidate pockets"}
             rows={result.pockets}
@@ -203,22 +231,6 @@ function PocketWorkspace({
               }
               onDock={(ligand, jobId) =>
                 continueWith("dock", { kind: "reference", ligand, jobId })
-              }
-            />
-          )}
-          {selected && (
-            <PocketSelection
-              site={selected}
-              proteinArtifact={result.protein_artifact}
-              protein={result.protein}
-              language={language}
-              coordinatesMatch={coordinatesMatch}
-              hasValidBox={Boolean(initialPocketBox(selected))}
-              onGenerate={() =>
-                continueWith("generate", { kind: "predicted", site: selected })
-              }
-              onDock={() =>
-                continueWith("dock", { kind: "predicted", site: selected })
               }
             />
           )}

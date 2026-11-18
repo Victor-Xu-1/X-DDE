@@ -112,6 +112,9 @@ on:
       - "!frontend/src/examples/ExampleJobResult.tsx"
       # Docking defaults and linked native geometry have exact pose-continuity coverage.
       - "!frontend/src/docking/DockingResults.tsx"
+      # Pocket presentation and both continuation forms have native browser coverage in pocket-result-checks.
+      - "!frontend/src/pockets/PocketResults.tsx"
+      - "!frontend/src/pockets/pocket-results.css"
       # Native ternary tabs, exact coordinates and desktop widths use proximity-checks.
       - "!frontend/src/proximity/Results.tsx"
   pull_request:

@@ -157,11 +157,21 @@ it("keeps keyboard selection, native viewer region and both research handoffs on
     JSON.stringify(sites[1].residues),
   );
   const panel = screen.getByRole("region", { name: "Selected pocket" });
+  await user.click(
+    within(strip).getByRole("button", { name: "Pocket details" }),
+  );
+  expect(panel).toHaveFocus();
   expect(
     within(panel).getByRole("heading", { name: "Pocket 2" }),
   ).toBeVisible();
+  expect(panel).toHaveTextContent(String(sites[1].probability));
+  expect(panel).toHaveTextContent(String(sites[1].score));
   await user.click(screen.getByText("Inspect pocket residues"));
   expect(within(panel).getByText("A:102")).toBeVisible();
+  await user.click(within(panel).getByRole("button", { name: "View 3D" }));
+  expect(
+    screen.getByRole("region", { name: "Pocket 3D preview" }),
+  ).toHaveFocus();
   await user.click(
     within(panel).getByRole("button", {
       name: "Generate molecules in this pocket",

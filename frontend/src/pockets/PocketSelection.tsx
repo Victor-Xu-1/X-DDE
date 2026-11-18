@@ -1,25 +1,31 @@
+import type { Ref } from "react";
 import { referenceKey } from "../diffsbdd/model";
+import { CandidateReviewMetrics } from "../presentation/CandidateReviewBar";
 import type { MoleculeRef } from "../research/types";
 import type { Language } from "../types";
 import type { Site } from "./types";
 
 /** Keep the selected native residues and the next research actions together. */
 export function PocketSelection({
+  panelRef,
   site,
   proteinArtifact,
   protein,
   coordinatesMatch,
   hasValidBox,
   language,
+  onView,
   onGenerate,
   onDock,
 }: {
+  panelRef: Ref<HTMLElement>;
   site: Site;
   proteinArtifact: string;
   protein: MoleculeRef;
   coordinatesMatch: boolean;
   hasValidBox: boolean;
   language: Language;
+  onView(): void;
   onGenerate(): void;
   onDock(): void;
 }) {
@@ -48,30 +54,32 @@ export function PocketSelection({
   return (
     <section
       className="pocket-selection"
+      ref={panelRef}
+      tabIndex={-1}
       aria-label={zh ? "所选口袋" : "Selected pocket"}
     >
       <header>
         <h3>
           {zh ? "口袋" : "Pocket"} {site.rank}
         </h3>
-        <span>
-          {site.residues.length} {zh ? "个残基" : "residues"}
-        </span>
+        <button
+          className="secondary-button pocket-panel-jump"
+          type="button"
+          onClick={onView}
+        >
+          {zh ? "查看三维" : "View 3D"}
+        </button>
       </header>
-      <details className="pocket-residues">
-        <summary>{zh ? "查看口袋残基" : "Inspect pocket residues"}</summary>
-        <ul aria-label={zh ? "口袋残基" : "Pocket residues"}>
-          {site.residues.map((r, index) => (
-            <li
-              key={`${r.model}:${r.chain}:${r.number}:${r.insertion_code}:${r.alternate_location}:${index}`}
-              title={`${zh ? "模型" : "Model"} ${r.model}${r.alternate_location ? ` · ${zh ? "替代位置" : "Alternate location"} ${r.alternate_location}` : ""}`}
-            >
-              {r.chain}:{r.number}
-              {r.insertion_code}
-            </li>
-          ))}
-        </ul>
-      </details>
+      <CandidateReviewMetrics
+        metrics={[
+          {
+            label: zh ? "模型概率" : "Model probability",
+            value: site.probability,
+          },
+          { label: zh ? "位点评分" : "Site score", value: site.score },
+          { label: zh ? "残基数" : "Residues", value: residues.length },
+        ]}
+      />
       <div className="pocket-next-actions">
         <button
           className="secondary-button"
@@ -90,6 +98,20 @@ export function PocketSelection({
           {zh ? "探索这个口袋的结合模式" : "Explore poses in this pocket"}
         </button>
       </div>
+      <details className="pocket-residues">
+        <summary>{zh ? "查看口袋残基" : "Inspect pocket residues"}</summary>
+        <ul aria-label={zh ? "口袋残基" : "Pocket residues"}>
+          {site.residues.map((r, index) => (
+            <li
+              key={`${r.model}:${r.chain}:${r.number}:${r.insertion_code}:${r.alternate_location}:${index}`}
+              title={`${zh ? "模型" : "Model"} ${r.model}${r.alternate_location ? ` · ${zh ? "替代位置" : "Alternate location"} ${r.alternate_location}` : ""}`}
+            >
+              {r.chain}:{r.number}
+              {r.insertion_code}
+            </li>
+          ))}
+        </ul>
+      </details>
       {!coordinatesMatch ? (
         <p className="field-help" role="status">
           {zh
