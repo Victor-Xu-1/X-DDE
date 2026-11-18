@@ -177,3 +177,14 @@
   margin: 0;
   padding: 0;
 }
+
+@media (width < 360px) {
+  .structure-workbench[data-workspace-expanded="true"]
+    .prediction-confidence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .structure-workbench[data-workspace-expanded="true"]
+    .prediction-confidence-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -82,6 +82,30 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
             expect(action).to_have_css("background-color", "rgb(47, 103, 178)")
             expect(action).to_have_css("color", "rgb(255, 255, 255)")
             page.screenshot(path=evidence / f"{capability}.png")
+            if width == 390 and capability == "predict":
+                expand = page.get_by_role("button", name="展开研究工作区")
+                expand.click()
+                workspace = page.locator('.structure-workbench[data-workspace-expanded="true"]')
+                metrics = workspace.locator(".prediction-confidence-metrics > div")
+                page.set_viewport_size({"width": 320, "height": 960})
+                expect(metrics).to_have_count(4)
+                assert metrics.evaluate_all(
+                    "cards => cards.every(card => card.scrollWidth <= card.clientWidth + 1)"
+                )
+                matrix = workspace.locator(".prediction-confidence-body")
+                expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
+                page.wait_for_function("""() => {
+                    const panel = document.querySelector('[data-workspace-expanded="true"]');
+                    const chart = panel?.querySelector('.prediction-confidence-body [role="application"]');
+                    const svg = chart?.querySelector('.svg-container');
+                    return svg && svg.getBoundingClientRect().width <= chart.clientWidth + 1
+                        && panel.scrollWidth <= panel.clientWidth + 1;
+                }""")
+                page.screenshot(path=evidence / "expanded-metrics-320.png")
+                page.keyboard.press("Escape")
+                expect(workspace).to_have_count(0)
+                expect(expand).to_be_focused()
+                page.set_viewport_size({"width": width, "height": 960})
             if capability == "boltz.predict":
                 endpoint = f"**/api/jobs/{job_id}/prediction-results.zip"
                 page.route(endpoint, lambda route: route.fulfill(status=503), times=1)
