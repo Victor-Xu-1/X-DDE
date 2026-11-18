@@ -180,7 +180,6 @@ def main():
             "scripts/del-ci-scope.py",
             ".github/workflows/dataset-discovery-checks.yml",
             ".github/workflows/chart-quality-checks.yml",
-            ".github/workflows/example-result-set-checks.yml",
             ".github/workflows/task-layout-checks.yml",
             ".github/workflows/user-interface-checks.yml",
             "docs/design/screening-and-del.md",
@@ -251,6 +250,16 @@ def main():
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
         output.write("series_views_only=" + str(series_views).lower() + "\n")
         output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
+        candidate_preview = (
+            candidate_views
+            and "frontend/src/datasets/CandidateView.css" in changed
+            and all(
+                name.startswith("frontend/src/datasets/CandidateView")
+                for name in changed
+                if name.startswith("frontend/src/datasets/")
+            )
+        )
+        output.write("candidate_preview_only=" + str(candidate_preview).lower() + "\n")
         # The shared dataset view controls table and chart lifecycles for all DEL result types.
         output.write(
             "dataset_result_views_changed="
