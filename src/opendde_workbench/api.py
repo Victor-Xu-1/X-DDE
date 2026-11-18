@@ -611,6 +611,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             ).fetchone()
         if active or workflows_service.records.runs({"running", "cancelling"}, limit=1):
             return True
+        if include_paused and harness_service.has_unresolved_launch():
+            return True
         if settings.harness_python and settings.harness_python.is_file():
             try:
                 return bool(await harness_service.invoke({"operation": "active"}, timeout=15))

@@ -4,13 +4,26 @@ import type { Language } from "../types";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { WorkflowPlan } from "./types";
 
+export function workflowOperations(steps: unknown): string[] {
+  if (!Array.isArray(steps)) return [];
+  return steps.flatMap((step: { request?: unknown } | null) => {
+    const selection = step?.request;
+    if (!selection || typeof selection !== "object") return [];
+    const operation =
+      ("operation" in selection ? selection.operation : undefined) ?? "predict";
+    return typeof operation === "string" && operation ? [operation] : [];
+  });
+}
+
 export function WorkflowBackendControl({
   plan,
   runPlanId,
+  draftOperations = [],
   language,
 }: {
   plan: WorkflowPlan | null | undefined;
   runPlanId?: string;
+  draftOperations?: string[];
   language: Language;
 }) {
   const missingId = runPlanId && plan?.id !== runPlanId ? runPlanId : undefined;
@@ -41,19 +54,22 @@ export function WorkflowBackendControl({
 
   const fetched = result?.id === missingId ? result : undefined;
   const current = missingId ? fetched?.plan : plan;
-  if (current)
-    return (
-      <TaskBackendControl
-        language={language}
-        scope={{
-          operations: current.body.steps.map(
-            (step) => step.request.operation ?? "predict",
-          ),
-        }}
-      />
-    );
-  if (!missingId) return null;
+  const operations = current
+    ? workflowOperations(current.body.steps)
+    : missingId
+      ? []
+      : draftOperations;
+  if (operations.length)
+    return <TaskBackendControl language={language} scope={{ operations }} />;
   const zh = language === "zh";
+  if (!missingId)
+    return (
+      <p className="task-backend-pending">
+        {zh
+          ? "选择任务后，可在这里启停所需后端。"
+          : "Select tasks to see their backend switches here."}
+      </p>
+    );
   return fetched ? (
     <p className="backend-state-message" role="alert">
       {zh

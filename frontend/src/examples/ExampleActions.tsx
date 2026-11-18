@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import type { Job } from "../types";
 import {
   useExampleTemplate,
   type ExampleTemplateOptions,
@@ -29,6 +36,23 @@ export function ExampleActions(
 ) {
   const { capability, language, onBack } = options;
   const state = useExampleTemplate(options);
+  const result = state.result;
+  const [stage, setStage] = useState<{
+    result: typeof result;
+    job: Job | null | undefined;
+  }>();
+  const reportStage = useCallback(
+    (job: Job | null | undefined) => setStage({ result, job }),
+    [result],
+  );
+  const selectedJob =
+    stage && stage.result === result ? stage.job : (result?.job ?? undefined);
+  const backendScope =
+    selectedJob === null
+      ? null
+      : selectedJob
+        ? { operations: [selectedJob.request?.operation ?? "predict"] }
+        : { capability };
   const onBusyChange = options.onBusyChange;
   useLayoutEffect(() => {
     onBusyChange?.(state.pending !== null);
@@ -65,6 +89,7 @@ export function ExampleActions(
         <ExampleToolbar
           info={state.info}
           capability={capability}
+          backendScope={backendScope}
           language={language}
           previewing={Boolean(state.result)}
           active={options.active ?? true}
@@ -116,6 +141,7 @@ export function ExampleActions(
                 supporting={state.info?.pin?.supporting_evidence ?? []}
                 stageNames={state.info?.supporting_stage_names}
                 language={language}
+                onStageChange={reportStage}
                 stageSummary={
                   receptorComparison
                     ? (onStage) => (
@@ -146,6 +172,7 @@ export function ExampleActions(
                 supporting={state.info?.record_pin?.supporting_evidence ?? []}
                 stageNames={state.info?.supporting_stage_names}
                 language={language}
+                onStageChange={reportStage}
               />
             )}
           </TemplatePreviewContext.Provider>

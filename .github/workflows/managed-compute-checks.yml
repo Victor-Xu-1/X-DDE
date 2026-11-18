@@ -32,7 +32,13 @@ concurrency:
   group: managed-compute-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   resource-boundary:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.task_power_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:

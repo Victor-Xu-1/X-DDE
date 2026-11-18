@@ -40,7 +40,12 @@ def verify_catalogue(page, base, snapshot):
         switch = row.get_by_role("switch")
         expect(switch).to_be_visible()
         expect(switch).not_to_be_checked()
-        expect(panel.get_by_role("switch")).to_have_count(1)
+        if owner == "harness":
+            service = panel.locator('[data-engine="native-compute"]').get_by_role("switch")
+            expect(service).to_be_visible()
+            expect(service).not_to_be_checked()
+            expect(service).to_be_disabled()  # The isolated platform has no native model installed.
+        expect(panel.get_by_role("switch")).to_have_count(2 if owner == "harness" else 1)
         checked.append(key)
     assert set(checked) == expected
     return checked

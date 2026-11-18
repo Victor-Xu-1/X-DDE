@@ -128,7 +128,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
-        "backend_placement_only=false\nrecognition_power_only=false\n"
+        "backend_placement_only=false\ntask_power_only=false\nrecognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
         "touch_controls_only=false\n"
         "runtime_switch_only=false\nresult_header_only=false\n"
@@ -257,9 +257,10 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         assert not selected(files, "pull_request", blobs=mixed)
 
 
-def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch):
+@pytest.mark.parametrize("key", ["BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES"])
+def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):
     select = scope["reviewed_selected"]
-    files = scope["BACKEND_PLACEMENT_FILES"]
+    files = scope[key]
     blobs = {(ref, path): f"{ref}:{path}" for path in files for ref in ("base", "HEAD")}
     monkeypatch.setitem(select.__globals__, "blob_digest", lambda ref, path: blobs[ref, path])
     payload = [[path, blobs["base", path], blobs["HEAD", path]] for path in sorted(files)]

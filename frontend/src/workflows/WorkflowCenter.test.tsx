@@ -84,6 +84,9 @@ it("loads a guided case plan and requires saving and review before running", asy
   expect(
     screen.getByRole("combobox", { name: "如何准备研究计划？" }),
   ).toHaveValue("case");
+  const power = await screen.findByRole("switch", { name: "RDKit" });
+  expect(power).not.toBeChecked();
+  expect(transport.post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   expect(screen.getByText("Protocol")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
@@ -93,8 +96,7 @@ it("loads a guided case plan and requires saving and review before running", asy
   await waitFor(() => expect(transport.post).toHaveBeenCalledTimes(1));
   expect(transport.post.mock.calls[0][0]).toBe("/workflows/plans");
   expect(transport.post.mock.calls[0][1]).toEqual(body);
-  const power = await screen.findByRole("switch", { name: "RDKit" });
-  expect(power).not.toBeChecked();
+  expect(screen.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
   const start = screen.getByRole("button", { name: "运行这个计划" });
   expect(start).toBeEnabled();
   fireEvent.click(start);
@@ -102,8 +104,8 @@ it("loads a guided case plan and requires saving and review before running", asy
   expect(
     await screen.findByRole("region", { name: "研究计划运行" }),
   ).toBeVisible();
-  expect(power).toBeVisible();
-  expect(power).not.toBeChecked();
+  expect(screen.getByRole("switch", { name: "RDKit" })).toBeVisible();
+  expect(screen.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
 });
 
 it("looks up the exact plan for a history run outside the plan list, with retry", async () => {

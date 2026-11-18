@@ -20,7 +20,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   localhost:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.task_power_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:

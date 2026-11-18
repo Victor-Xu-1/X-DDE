@@ -1,5 +1,5 @@
-import { useId } from "react";
 import type { Language } from "../types";
+import { BackendPowerSwitch } from "./BackendPowerSwitch";
 import {
   canToggle,
   type RuntimeEngine,
@@ -34,46 +34,34 @@ export function RuntimeSwitch({
 }) {
   const zh = language === "zh";
   const switching = runtime.busy === item.id;
-  const status = useId();
   return (
-    <div className="compute-switch runtime-switch" data-engine={item.id}>
-      <span className="runtime-switch-label">
-        <span title={item.name}>{item.name}</span>
-        <small id={status} aria-live="polite">
-          {runtime.readError
+    <BackendPowerSwitch
+      id={item.id}
+      name={item.name}
+      status={
+        runtime.readError
+          ? zh
+            ? "状态待确认"
+            : "State unavailable"
+          : switching
             ? zh
-              ? "状态待确认"
-              : "State unavailable"
-            : switching
-              ? zh
-                ? "正在切换…"
-                : "Switching…"
-              : engineStatus(item, zh)}
-        </small>
-      </span>
-      <button
-        type="button"
-        role="switch"
-        aria-label={item.name}
-        aria-describedby={status}
-        aria-checked={item.enabled}
-        disabled={
-          Boolean(runtime.busy) || runtime.readError || !canToggle(item)
-        }
-        title={
-          item.active
-            ? zh
-              ? "请先结束该后端的活动任务。"
-              : "Finish this backend’s active task first."
-            : zh
-              ? "开启后在提交任务时加载。"
-              : "Loads when you submit a task."
-        }
-        onClick={() => void runtime.toggle(item.id)}
-      >
-        <i aria-hidden="true" />
-      </button>
-    </div>
+              ? "正在切换…"
+              : "Switching…"
+            : engineStatus(item, zh)
+      }
+      enabled={item.enabled}
+      disabled={Boolean(runtime.busy) || runtime.readError || !canToggle(item)}
+      hint={
+        item.active
+          ? zh
+            ? "请先结束该后端的活动任务。"
+            : "Finish this backend’s active task first."
+          : zh
+            ? "开启后在提交任务时加载。"
+            : "Loads when you submit a task."
+      }
+      onToggle={() => void runtime.toggle(item.id)}
+    />
   );
 }
 

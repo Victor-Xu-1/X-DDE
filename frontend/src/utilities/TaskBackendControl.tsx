@@ -9,6 +9,7 @@ import {
   type BackendControlScope,
 } from "./backend-control-scope";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
+import { computeActivity, ComputeSwitch } from "./ComputeSwitch";
 import "./runtime-switch.css";
 
 export function TaskBackendControl({
@@ -37,6 +38,7 @@ export function TaskBackendControl({
   );
   if (catalogue && !rows.length) return null;
   const zh = language === "zh";
+  const harness = rows.find((row) => row.id === "harness");
   return (
     <div
       className="task-backend-control"
@@ -53,6 +55,12 @@ export function TaskBackendControl({
           language={language}
         />
       ))}
+      {harness && (
+        <ComputeSwitch
+          language={language}
+          activity={computeActivity(harness, readError)}
+        />
+      )}
       <BackendStateMessage
         runtime={runtime}
         language={language}

@@ -6,10 +6,12 @@ import { ExampleGuide } from "./ExampleGuide";
 import { Hint } from "../guided/Hint";
 import { templateGuide } from "./guide";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
+import type { BackendControlScope } from "../utilities/backend-control-scope";
 
 export function ExampleToolbar({
   info,
   capability,
+  backendScope,
   language,
   previewing,
   active,
@@ -25,6 +27,7 @@ export function ExampleToolbar({
 }: {
   info: ExampleInfo;
   capability: string;
+  backendScope: BackendControlScope | null;
   language: Language;
   previewing: boolean;
   active: boolean;
@@ -164,13 +167,17 @@ export function ExampleToolbar({
           </button>
         )}
         <ExampleGuide info={info} capability={capability} language={language} />
-        {previewing && active && (
-          <TaskBackendControl
-            language={language}
-            scope={{ capability }}
-            placement="example"
-          />
-        )}
+        {previewing &&
+          active &&
+          (backendScope ? (
+            <TaskBackendControl
+              language={language}
+              scope={backendScope}
+              placement="example"
+            />
+          ) : (
+            <span data-example-backend-pending aria-hidden="true" />
+          ))}
       </div>
     </div>
   );

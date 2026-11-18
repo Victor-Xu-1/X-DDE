@@ -310,7 +310,10 @@ export function App() {
     onCandidate: chooseCandidate,
   };
   return (
-    <ApplicationScope taskServiceAvailable={taskServiceAvailable}>
+    <ApplicationScope
+      taskServiceAvailable={taskServiceAvailable}
+      deployment={deployment}
+    >
       <div className="studio-app">
         <Navigation
           view={view}
@@ -324,13 +327,7 @@ export function App() {
           }
         >
           <Header
-            runtime={
-              <BackendControls
-                data={deployment.data}
-                language={language}
-                refresh={deployment.refresh}
-              />
-            }
+            runtime={<BackendControls language={language} />}
             view={view}
             language={language}
             jobs={jobs}

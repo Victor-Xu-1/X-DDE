@@ -1,23 +1,17 @@
 import { useState } from "react";
 import type { Language } from "../types";
-import type { Deployment } from "../deployment/client";
-import { ComputeSwitch } from "./ComputeSwitch";
+import { computeActivity, ComputeSwitch } from "./ComputeSwitch";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
 import "./runtime-switch.css";
 
-export function BackendControls({
-  data,
-  language,
-  refresh,
-}: {
-  data: Deployment | null;
-  language: Language;
-  refresh(): void;
-}) {
+export function BackendControls({ language }: { language: Language }) {
   const zh = language === "zh";
   const [open, setOpen] = useState(false);
   const runtime = useBackendRuntime(open, undefined, true);
+  const harness = runtime.catalogue?.engines.find(
+    (row) => row.id === "harness",
+  );
   return (
     <div className="backend-controls">
       <button
@@ -66,19 +60,12 @@ export function BackendControls({
                 runtime={runtime}
               />
             ))}
+            <ComputeSwitch
+              language={language}
+              configuredOnly
+              activity={computeActivity(harness, runtime.readError)}
+            />
           </div>
-          {data?.compute_service?.configured && (
-            <footer>
-              <span>
-                {zh ? "OpenDDE 常驻服务" : "OpenDDE persistent service"}
-              </span>
-              <ComputeSwitch
-                data={data}
-                language={language}
-                refresh={refresh}
-              />
-            </footer>
-          )}
         </section>
       )}
     </div>
