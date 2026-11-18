@@ -653,18 +653,21 @@ COMPACT_EXAMPLE_DIFF = "2818fd353d7450fa9e1c651aef9c7394eaa66eceacffb41708d602a1
 MOBILE_HEADER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/navigation-shell-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/viewer-checks.yml",
     "docs/frontend-layout.md",
     "frontend/src/chemistry/states.css",
     "frontend/src/integrations/interaction-workspace.css",
     "frontend/src/pockets/pocket-results.css",
     "frontend/src/presentation/prediction-shell.css",
     "frontend/src/receptors/receptors.css",
+    "frontend/src/studio/Header.tsx",
     "frontend/src/studio/header.css",
     "frontend/src/utilities/BackendControls.tsx",
     "server_tests/test_navigation_shell_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MOBILE_HEADER_DIFF = "0b7aea3075462e277773f2daf075d428ac55f5fec503474e5b51d9aacc6a90b8"
+MOBILE_HEADER_DIFF = "06dee94bdfc85b11323769a6edf467758ddb245af81ec01f0161673e016ff8f6"
 
 
 def reviewed_selected(changed, event, base, files, digest):

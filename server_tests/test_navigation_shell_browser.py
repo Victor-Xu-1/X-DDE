@@ -113,6 +113,11 @@ def test_compact_header_keeps_actions_and_task_navigation_reachable(shell_page):
         assert max(box["x"] + box["width"] for box in row) <= width
         assert new_task.bounding_box()["y"] >= row[0]["y"] + row[0]["height"]
         assert header.bounding_box()["height"] <= 120
+        assert header.evaluate("""bar => {
+            const items = [...bar.children];
+            return items.findIndex(e => e.matches('.task-search'))
+                < items.findIndex(e => e.matches('.module-workspace-navigation'));
+        }""")
 
         search.focus()
         page.keyboard.press("Tab")
@@ -151,10 +156,23 @@ def test_compact_header_keeps_actions_and_task_navigation_reachable(shell_page):
         expect(new_task).to_have_attribute("aria-pressed", "true")
         capture(page, f"compact-module-header-{width}")
 
+    search.click()
+    field = header.get_by_role("searchbox", name="搜索任务", exact=True)
+    field.fill("keep search while resizing")
+    page.set_viewport_size({"width": 601, "height": 775})
+    expect(field).to_have_value("keep search while resizing")
+    expect(field).to_be_focused()
+    field.press("Escape")
+    expect(search).to_be_focused()
     page.set_viewport_size({"width": 1440, "height": 900})
     expect(header.locator(".backend-controls-label")).to_be_visible()
     expect(header.get_by_role("searchbox", name="搜索任务", exact=True)).to_be_visible()
     expect(search).not_to_be_visible()
+    assert header.evaluate("""bar => {
+        const items = [...bar.children];
+        return items.findIndex(e => e.matches('.module-workspace-navigation'))
+            < items.findIndex(e => e.matches('.task-search'));
+    }""")
     assert not mutations
     assert page.request.get(base + "/api/runtime-controls").json() == initial
 
