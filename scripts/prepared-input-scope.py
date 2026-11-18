@@ -51,6 +51,9 @@ def prepared_scope(base, event):
 
 
 if __name__ == "__main__":
-    selected, only = prepared_scope(os.environ.get("BASE", ""), os.environ.get("GITHUB_EVENT_NAME", ""))
+    selected, only = prepared_scope(
+        os.environ.get("BASE", ""), os.environ.get("GITHUB_EVENT_NAME", ""),
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-        out.write(f"prepared_inputs={str(selected).lower()}\nprepared_inputs_only={str(only).lower()}\n")
+        out.write(f"prepared_inputs={str(selected).lower()}\n")
+        out.write(f"prepared_inputs_only={str(only).lower()}\n")
