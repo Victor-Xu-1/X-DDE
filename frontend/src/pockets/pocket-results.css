@@ -97,7 +97,7 @@
 }
 
 @media (max-width: 1000px) {
-  .pocket-result-workspace .pocket-panel-jump {
+  .studio-app .pocket-result-workspace .pocket-panel-jump {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
