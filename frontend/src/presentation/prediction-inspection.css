@@ -272,3 +272,22 @@ html
     width: 82px;
   }
 }
+
+@media (min-width: 1001px) and (max-height: 640px) {
+  .prediction-result .prediction-result-heading {
+    margin-bottom: 6px;
+  }
+  .prediction-result .structure-workbench:not([data-workspace-expanded]) {
+    row-gap: 8px;
+  }
+  .prediction-result
+    .structure-workbench:not([data-workspace-expanded])
+    .prediction-sample-bar {
+    padding-block: 4px 8px;
+  }
+  .prediction-result
+    .structure-workbench:not([data-workspace-expanded])
+    .viewer-panel > :is(.studio-heading, .viewer-modes) {
+    margin-bottom: 3px;
+  }
+}
