@@ -23,6 +23,9 @@ export function CandidateView({
   onCreated?(job: Job): void;
 }) {
   const sourceSnapshot = useContext(TemplatePreviewContext);
+  const screeningResult =
+    result.operation === "screening_dock" ||
+    result.operation === "drugclip_retrieve";
   const zh = language === "zh",
     initial = Math.max(
       0,
@@ -80,8 +83,8 @@ export function CandidateView({
       preview={
         <section
           className={
-            result.operation === "screening_dock"
-              ? "dataset-preview-pane screening-pose-preview"
+            screeningResult
+              ? "dataset-preview-pane screening-candidate-preview"
               : "dataset-preview-pane"
           }
         >

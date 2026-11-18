@@ -142,17 +142,23 @@ it("keeps an actual 2D SDF record in 2D instead of preparing a new 3D calculatio
   expect(probes.structure).not.toHaveBeenCalled();
 });
 
-it("offers full 2D and 3D views while retaining the selected exact native record and personal handoff", () => {
+it("retains the selected unbound screening record through 2D, 3D and handoff", () => {
   render(
     <CandidateView
       job={job}
       language="en"
-      result={result(
-        candidate("CHEMBL487451", "unbound_conformer", 0),
-        candidate("CHEMBL520539", "unbound_conformer", 2),
-      )}
+      result={{
+        ...result(
+          candidate("CHEMBL487451", "unbound_conformer", 0),
+          candidate("CHEMBL520539", "unbound_conformer", 2),
+        ),
+        operation: "drugclip_retrieve",
+      }}
     />,
   );
+  expect(
+    screen.getByText("Unbound conformer").closest(".dataset-preview-pane"),
+  ).toHaveClass("screening-candidate-preview");
   expect(probes.handoff).toHaveBeenLastCalledWith(
     expect.objectContaining({
       candidate: expect.objectContaining({ id: "CHEMBL487451" }),
@@ -163,7 +169,7 @@ it("offers full 2D and 3D views while retaining the selected exact native record
   expect(screen.getByRole("tabpanel")).toBeVisible();
   fireEvent.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(probes.structure).toHaveBeenLastCalledWith(
-    expect.objectContaining({ records: [2] }),
+    expect.objectContaining({ records: [2], nativeScore: null, focusModel: 0 }),
   );
   expect(probes.handoff).toHaveBeenLastCalledWith(
     expect.objectContaining({
