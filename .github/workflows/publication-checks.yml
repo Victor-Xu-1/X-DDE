@@ -278,10 +278,12 @@ jobs:
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-molecular-framing
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-molecular-framing/state
     steps:
       - uses: actions/checkout@v4
+      - name: Isolate the archived test state
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-molecular-framing" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-molecular-framing/state" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

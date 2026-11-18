@@ -30,13 +30,13 @@ jobs:
             capture=false
             while IFS= read -r path; do
               case "$path" in
-                frontend/src/viewer/capture.ts) capture=true ;;
+                frontend/src/viewer/capture.ts|server_tests/test_figure_framing_browser.py) capture=true ;;
                 frontend/src/viewer/StructureViewport.tsx)
                   # Leave unrelated viewer controls with their existing owners.
                   edits=$(git diff --unified=0 "$BASE" HEAD -- "$path" | sed -n '/^[+-][^+-]/p')
                   [[ "$edits" =~ ^\+[[:blank:]]+structureFraming$ ]] || only=false
                   ;;
-                frontend/src/viewer/capture.test.ts|frontend/src/publication/settings.ts|frontend/src/publication/FigureDialog.tsx|frontend/src/publication/FigureExport.tsx|frontend/src/publication/FigureExport.test.tsx|server_tests/test_figure_framing_browser.py) ;;
+                frontend/src/viewer/capture.test.ts|frontend/src/publication/settings.ts|frontend/src/publication/FigureDialog.tsx|frontend/src/publication/FigureExport.tsx|frontend/src/publication/FigureExport.test.tsx) ;;
                 .github/workflows/figure-framing-scope.yml|.github/workflows/publication-checks.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/generated-candidate-checks.yml|.github/workflows/prediction-workspace-checks.yml|.github/workflows/simulation-view-checks.yml) ;;
                 pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
                 *) only=false ;;
