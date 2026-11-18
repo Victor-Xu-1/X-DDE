@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { Job, Language } from "../types";
-import { QualityPreview } from "./QualityPreview";
+import { QualityPreview, qualityPreviewFiles } from "./QualityPreview";
 import { QualityMeasurements } from "./QualityMeasurements";
 import type { PoseQualityResult } from "./types";
 import { QualityCheckList } from "./QualityCheckList";
@@ -24,12 +24,20 @@ export function QualityResults(props: QualityResultsProps) {
   return <QualityWorkspace key={props.job.id} {...props} />;
 }
 
+function revealPanel(panel: HTMLElement | null) {
+  panel?.focus({ preventScroll: true });
+  panel?.scrollIntoView?.({ block: "start", behavior: "instant" });
+}
+
 function QualityWorkspace({ job, result, language }: QualityResultsProps) {
   const zh = language === "zh";
   const assessment = assessQuality(result);
   const [choice, setChoice] = useState<QualityFilter>();
   const filter =
     choice ?? (attentionCount(assessment.counts) ? "attention" : "all");
+  const hasPreview = qualityPreviewFiles(result).length > 0;
+  const scene = useRef<HTMLDivElement>(null);
+  const review = useRef<HTMLElement>(null);
   return (
     <section
       className="discovery-results quality-results"
@@ -37,15 +45,24 @@ function QualityWorkspace({ job, result, language }: QualityResultsProps) {
     >
       <StructureWorkbench
         toolbar={
-          <QualityAssessmentBar
-            assessment={assessment}
-            language={language}
-            filter={filter}
-            onFilter={setChoice}
-          />
+          hasPreview && (
+            <button
+              className="secondary-button quality-panel-jump"
+              type="button"
+              onClick={() => revealPanel(review.current)}
+            >
+              {zh ? "查看检查" : "Review checks"}
+            </button>
+          )
         }
         preview={
-          <div className="result-inspection-detail">
+          <div
+            className="result-inspection-detail quality-scene"
+            ref={scene}
+            tabIndex={hasPreview ? -1 : undefined}
+            role="region"
+            aria-label={zh ? "姿势三维预览" : "Pose 3D preview"}
+          >
             <QualityPreview
               key={job.id}
               job={job}
@@ -55,13 +72,35 @@ function QualityWorkspace({ job, result, language }: QualityResultsProps) {
           </div>
         }
       >
-        <QualityMeasurements result={result} language={language} />
-        <QualityCheckList
-          key={job.id}
-          checks={assessment.checks}
-          filter={filter}
-          language={language}
-        />
+        <section
+          className="quality-review"
+          ref={review}
+          tabIndex={-1}
+          aria-label={zh ? "质量判读" : "Quality review"}
+        >
+          {hasPreview && (
+            <button
+              className="secondary-button quality-panel-jump"
+              type="button"
+              onClick={() => revealPanel(scene.current)}
+            >
+              {zh ? "返回三维" : "Return to 3D"}
+            </button>
+          )}
+          <QualityAssessmentBar
+            assessment={assessment}
+            language={language}
+            filter={filter}
+            onFilter={setChoice}
+          />
+          <QualityMeasurements result={result} language={language} />
+          <QualityCheckList
+            key={job.id}
+            checks={assessment.checks}
+            filter={filter}
+            language={language}
+          />
+        </section>
       </StructureWorkbench>
       <details className="quality-method-details">
         <summary>

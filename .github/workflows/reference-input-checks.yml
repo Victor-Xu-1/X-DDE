@@ -163,6 +163,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
+      quality_layout_only: ${{ steps.quality-layout.outputs.quality_layout_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -171,6 +172,22 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
+      - name: Delegate pose-quality presentation to its retained-result gate
+        id: quality-layout
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          base = os.environ.get("BASE", "")
+          changed = set(subprocess.check_output(["git", "diff", "--name-only", base, "HEAD"], text=True).splitlines()) if base and set(base) != {"0"} else set()
+          surface = {"QualityResults.tsx", "QualityPreview.tsx", "quality-results.css", "tests/QualityResults.test.tsx"}
+          surface = {"frontend/src/quality/" + name for name in surface}
+          allowed = surface | {"server_tests/test_quality_context_browser.py", ".github/workflows/reference-input-checks.yml", ".github/workflows/sequence-result-checks.yml", "pyproject.toml", "uv.lock", "frontend/package.json", "frontend/package-lock.json", "install.sh", "install.ps1"}
+          selected = bool(changed & surface) and changed <= allowed
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"quality_layout_only={str(selected).lower()}\n")
+          PY
   coordinate-confirmation:
     if: github.event_name == 'workflow_dispatch' && inputs.coordinate_confirmation_only
     runs-on: ubuntu-24.04
@@ -197,7 +214,7 @@ jobs:
           path: outputs/coordinate-confirmation
   inputs:
     needs: [refinement-scope, material-scope, utility-scope]
-    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' && needs.material-scope.outputs.material_only != 'true' }}
+    if: ${{ needs.utility-scope.outputs.utility_only != 'true' && !inputs.coordinate_confirmation_only && needs.refinement-scope.outputs.refinement_only != 'true' && needs.refinement-scope.outputs.quality_layout_only != 'true' && needs.material-scope.outputs.material_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

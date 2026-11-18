@@ -66,6 +66,7 @@ it("keeps all check categories reachable and never treats a missing preview or c
   expect(
     screen.getByText("This quality result contains no preview structure."),
   ).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Return to 3D" })).toBeNull();
   const table = screen.getByRole("table", { name: "Quality check outcomes" });
   const filter = screen.getByRole("combobox", { name: "Which checks?" });
   expect(filter).toHaveValue("attention");
@@ -124,7 +125,8 @@ it.each(["en", "zh"] as const)(
     expect(preview).toHaveBeenLastCalledWith(
       expect.objectContaining({ sourceSnapshot: true }),
     );
-    await userEvent.setup().click(
+    const user = userEvent.setup();
+    await user.click(
       screen.getByRole("button", {
         name: language === "zh" ? "实验参考叠合" : "Experimental overlay",
       }),
@@ -143,6 +145,35 @@ it.each(["en", "zh"] as const)(
       }),
     );
     expect(result.metrics.rmsd).toBe(8.6789695619);
+    await user.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "查看检查" : "Review checks",
+      }),
+    );
+    expect(
+      screen.getByRole("region", {
+        name: language === "zh" ? "质量判读" : "Quality review",
+      }),
+    ).toHaveFocus();
+    await user.selectOptions(
+      screen.getByRole("combobox", {
+        name: language === "zh" ? "显示哪些检查？" : "Which checks?",
+      }),
+      "all",
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: language === "zh" ? "返回三维" : "Return to 3D",
+      }),
+    );
+    expect(
+      screen.getByRole("region", {
+        name: language === "zh" ? "姿势三维预览" : "Pose 3D preview",
+      }),
+    ).toHaveFocus();
+    expect(preview).toHaveBeenLastCalledWith(
+      expect.objectContaining({ comparison: true, records: [0, 0, 7] }),
+    );
   },
 );
 
