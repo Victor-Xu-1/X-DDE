@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
 import { enginesForScope } from "./backend-control-scope";
@@ -15,8 +15,10 @@ export function BackendControls({
   module?: Pick<ResearchModule, "label" | "tools">;
 }) {
   const zh = language === "zh";
-  const [open, setOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
+  const open = panel !== "closed";
+  const showAll = panel === "all";
+  const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const capabilities = showAll ? undefined : module?.tools;
@@ -38,13 +40,25 @@ export function BackendControls({
     : zh
       ? "后端启停"
       : "Backend power";
+  useEffect(() => {
+    if (!open) return;
+    function dismissOutside(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !container.current?.contains(event.target)
+      )
+        setPanel("closed");
+    }
+    document.addEventListener("pointerdown", dismissOutside);
+    return () => document.removeEventListener("pointerdown", dismissOutside);
+  }, [open]);
   function close() {
-    setOpen(false);
-    setShowAll(false);
+    setPanel("closed");
     trigger.current?.focus();
   }
   return (
     <div
+      ref={container}
       className="backend-controls"
       onKeyDown={(event) => {
         if (open && event.key === "Escape") {
@@ -59,7 +73,7 @@ export function BackendControls({
         type="button"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        onClick={() => (open ? close() : setOpen(true))}
+        onClick={() => (open ? close() : setPanel("module"))}
       >
         {zh ? "后端管理" : "Backend controls"}
       </button>
@@ -114,7 +128,7 @@ export function BackendControls({
             <button
               type="button"
               className="text-button"
-              onClick={() => setShowAll((value) => !value)}
+              onClick={() => setPanel(showAll ? "module" : "all")}
             >
               {
                 (showAll

@@ -69,13 +69,16 @@ it("shows the current module first and returns to it after closing the full cata
   });
   const user = userEvent.setup();
   render(
-    <BackendControls
-      language="en"
-      module={{
-        label: ["分子性质", "Molecular properties"],
-        tools: ["properties"],
-      }}
-    />,
+    <>
+      <BackendControls
+        language="en"
+        module={{
+          label: ["分子性质", "Molecular properties"],
+          tools: ["properties"],
+        }}
+      />
+      <button type="button">Task form</button>
+    </>,
   );
   const trigger = screen.getByRole("button", { name: "Backend controls" });
   await user.click(trigger);
@@ -104,6 +107,10 @@ it("shows the current module first and returns to it after closing the full cata
   expect(
     screen.getByRole("region", { name: "Backends in this module" }),
   ).toBeVisible();
+  const form = screen.getByRole("button", { name: "Task form" });
+  await user.click(form);
+  expect(module).not.toBeInTheDocument();
+  expect(form).toHaveFocus();
   expect(api.post).not.toHaveBeenCalled();
 });
 it("keeps failed changes off and prevents stopping active tasks", async () => {
