@@ -7,6 +7,7 @@ import {
 } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
+import { PrimaryBackendScope } from "../utilities/backend-control-scope";
 import { TaskDetail } from "../TaskDetail";
 import { isPrediction } from "../operations/types";
 import type { ToolId } from "../operations/catalog";
@@ -237,10 +238,13 @@ export function TaskWorkspace(p: Props) {
     resultView === "detail" &&
     currentJob &&
     !predictionMethodId(currentJob.request);
-  const resultBackend = currentJob && (
+  const resultBackendScope = currentJob
+    ? { operations: [currentJob.request.operation ?? "predict"] }
+    : null;
+  const resultBackend = resultBackendScope && (
     <TaskBackendControl
       language={p.language}
-      scope={{ operations: [currentJob.request.operation ?? "predict"] }}
+      scope={resultBackendScope}
       placement="result"
     />
   );
@@ -386,26 +390,28 @@ export function TaskWorkspace(p: Props) {
             )}
           </details>
           {currentJob && resultView !== "history" && (
-            <div className="task-result-content">
-              {currentJob.status === "succeeded" &&
-              isPrediction(currentJob.request) ? (
-                p.renderPrediction(returnToHistory, resultBackend)
-              ) : (
-                <TaskDetail
-                  key={currentJob.id}
-                  language={p.language}
-                  job={currentJob}
-                  detail={currentDetail}
-                  failed={p.detailError}
-                  retryAvailable={p.retryAvailable}
-                  onPredictionHistory={returnToHistory}
-                  headerNavigation={inlineHeader ? historyToolbar : undefined}
-                  headerActions={resultBackend}
-                  onChange={p.onChanged}
-                  onDraft={p.onDraft}
-                />
-              )}
-            </div>
+            <PrimaryBackendScope.Provider value={resultBackendScope}>
+              <div className="task-result-content">
+                {currentJob.status === "succeeded" &&
+                isPrediction(currentJob.request) ? (
+                  p.renderPrediction(returnToHistory, resultBackend)
+                ) : (
+                  <TaskDetail
+                    key={currentJob.id}
+                    language={p.language}
+                    job={currentJob}
+                    detail={currentDetail}
+                    failed={p.detailError}
+                    retryAvailable={p.retryAvailable}
+                    onPredictionHistory={returnToHistory}
+                    headerNavigation={inlineHeader ? historyToolbar : undefined}
+                    headerActions={resultBackend}
+                    onChange={p.onChanged}
+                    onDraft={p.onDraft}
+                  />
+                )}
+              </div>
+            </PrimaryBackendScope.Provider>
           )}
         </div>
       )}

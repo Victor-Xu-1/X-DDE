@@ -39,8 +39,12 @@ permissions:
 jobs:
   result-scope:
     uses: ./.github/workflows/docking-result-scope.yml
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   handoff:
-    needs: result-scope
+    needs: [result-scope, utility-scope]
     if: needs.result-scope.outputs.presentation_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -59,6 +63,7 @@ jobs:
           npm run build --prefix frontend
           uv sync --locked --group dev --group browser
       - name: Exact saved record, cancellation, reply loss and direct consumers
+        if: needs.utility-scope.outputs.backend_placement_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/docking/usePoseAssets.test.tsx
@@ -66,6 +71,7 @@ jobs:
           src/datasets/DatasetResults.test.tsx
           src/App.live-status.test.tsx src/App.missing-task.test.tsx
       - name: Real SQLite filtering, route validation and preserved asset contracts
+        if: needs.utility-scope.outputs.backend_placement_only != 'true'
         run: uv run --locked pytest -q tests/test_result_version_lookup.py tests/test_research_assets.py tests/ci/test_ci_browser_network.py
       - name: Restore the actual archived native source; no new scientific calculations
         env:
@@ -80,7 +86,12 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
           sudo --non-interactive env GITHUB_ACTIONS="$GITHUB_ACTIONS" RUNNER_OS="$RUNNER_OS" python scripts/ci-browser-network.py
           uv run --locked playwright install chromium --with-deps
-          uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py server_tests/test_result_status_selection_browser.py
+      - name: Bilingual result and follow-up backend switches
+        if: needs.utility-scope.outputs.backend_placement_only == 'true'
+        run: uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py
+      - name: Saved result handoff and selection
+        if: needs.utility-scope.outputs.backend_placement_only != 'true'
+        run: uv run --locked python -m pytest -q server_tests/test_result_handoff_browser.py server_tests/test_result_status_selection_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

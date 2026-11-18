@@ -3,10 +3,13 @@ import { TaskPresentationContext } from "../guided/TaskPresentation";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
 import { useBackendRuntime } from "./backend-runtime";
+import {
+  enginesForScope,
+  PrimaryBackendScope,
+  type BackendControlScope,
+} from "./backend-control-scope";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
 import "./runtime-switch.css";
-
-type Scope = { capability: string } | { operations: readonly string[] };
 
 export function TaskBackendControl({
   language,
@@ -15,10 +18,11 @@ export function TaskBackendControl({
   placement,
 }: {
   language: Language;
-  scope: Scope;
+  scope: BackendControlScope;
   active?: boolean;
   placement?: "followup" | "result" | "example";
 }) {
+  const primaryScope = useContext(PrimaryBackendScope);
   const runtime = useBackendRuntime(
     active,
     "capability" in scope ? scope.capability : undefined,
@@ -26,18 +30,11 @@ export function TaskBackendControl({
   );
   if (!active) return null;
   const { catalogue, readError } = runtime;
-  const engine =
-    "capability" in scope
-      ? catalogue?.capabilities?.[scope.capability]
-      : undefined;
-  const rows =
-    catalogue?.engines.filter((row) =>
-      "capability" in scope
-        ? row.id === engine
-        : row.operations?.some((operation) =>
-            scope.operations.includes(operation),
-          ),
-    ) ?? [];
+  const primaryEngines =
+    placement === "followup" ? enginesForScope(catalogue, primaryScope) : [];
+  const rows = enginesForScope(catalogue, scope).filter(
+    (row) => !primaryEngines.some((primary) => primary.id === row.id),
+  );
   if (catalogue && !rows.length) return null;
   const zh = language === "zh";
   return (
