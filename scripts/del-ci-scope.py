@@ -250,6 +250,12 @@ def main():
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
         output.write("series_views_only=" + str(series_views).lower() + "\n")
         output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
+        # The shared dataset view controls table and chart lifecycles for all DEL result types.
+        output.write(
+            "dataset_result_views_changed="
+            + str("frontend/src/datasets/DatasetResults.tsx" in changed).lower()
+            + "\n"
+        )
     print(
         "DEL evidence, catalogue and shared table consumers"
         if selected

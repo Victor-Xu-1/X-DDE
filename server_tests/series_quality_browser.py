@@ -11,7 +11,9 @@ def check_series_quality(page, root, base, identifier, evidence, language):
     zh = language == "zh"
     native = page.request.get(base + f"/api/datasets/{identifier}/table?view=series&limit=1").json()
     block = native["rows"][0]["block_a"]
-    root.get_by_role("button", name="结果探索" if zh else "Results", exact=True).click()
+    results_tab = root.get_by_role("tab", name="结果探索" if zh else "Results", exact=True)
+    charts_tab = root.get_by_role("tab", name="图表与质量" if zh else "Charts and quality")
+    results_tab.click()
     search = root.get_by_role("searchbox", name="搜索砌块" if zh else "Search building blocks")
     search.fill(block)
     expected = page.request.get(
@@ -31,11 +33,22 @@ def check_series_quality(page, root, base, identifier, evidence, language):
         expect(rows.nth(index)).to_contain_text("单砌块" if zh else "Monosynthon")
     search.fill("no-matching-block")
     expect(rows).to_have_count(0, timeout=30000)
-    search.fill("")
-    root.get_by_role(
-        "button", name="图表与质量" if zh else "Charts and quality", exact=True
-    ).click()
-    root.get_by_role("button", name="单砌块富集" if zh else "Monosynthons", exact=True).click()
+    search.fill(block)
+    expect(rows).to_have_count(len(expected["rows"]), timeout=30000)
+    charts_tab.click()
+    mono_view = root.get_by_role("button", name="单砌块富集" if zh else "Monosynthons", exact=True)
+    mono_view.click()
+    charts_tab.press("ArrowLeft")
+    expect(results_tab).to_be_focused()
+    expect(search).to_have_value(block)
+    expect(root.get_by_role(
+        "combobox", name="系列类型" if zh else "Series type"
+    )).to_have_value("mono")
+    expect(rows).to_have_count(len(expected["rows"]), timeout=30000)
+    results_tab.press("ArrowRight")
+    expect(charts_tab).to_be_focused()
+    expect(mono_view).to_have_attribute("aria-pressed", "true")
+    expect(root.locator(".dataset-series-context")).to_have_count(1)
     result = page.request.get(base + f"/api/jobs/{identifier}/result").json()
     artifact = next(
         item for item in result["artifacts"] if item["role"] == "del_series_visualization"
