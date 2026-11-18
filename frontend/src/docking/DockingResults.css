@@ -53,8 +53,18 @@
 
   .docking-results .candidate-review-metrics > div {
     min-width: 0;
-    padding: 6px;
+    padding: 5px 6px;
     overflow-wrap: anywhere;
+  }
+
+  .docking-results .candidate-review-metrics dt,
+  .docking-results .candidate-review-metrics dd {
+    line-height: 1.3;
+  }
+
+  .docking-results .candidate-review-metrics small {
+    display: block;
+    margin-inline-start: 0;
   }
 
   .docking-results .candidate-review-bar > a {

@@ -126,6 +126,12 @@ it.each(["en", "zh"] as const)(
     expect(box).toBeVisible();
     expect(box).toHaveTextContent("20 × 22 × 24 Å");
     expect(screen.queryByText(/resulting bounds are not recorded/)).toBeNull();
+    const download = screen.getByRole("link", {
+      name: language === "zh" ? "下载所选姿势 SDF" : "Download selected pose SDF",
+    });
+    const visibleLabel = download.textContent?.trim().toLowerCase();
+    expect(visibleLabel).toBeTruthy();
+    expect(download.getAttribute("aria-label")?.toLowerCase()).toContain(visibleLabel);
   },
 );
 it("previews only the chosen valid pose and reuses its exact saved record", async () => {

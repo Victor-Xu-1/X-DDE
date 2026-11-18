@@ -1,4 +1,5 @@
 import { scoreLabel } from "./scoreLabels";
+import { DownloadOutlined } from "@ant-design/icons";
 import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import { searchNotice } from "./searchNotice";
 import { ReceptorRefinementSummary } from "./ReceptorRefinementSummary";
@@ -228,7 +229,8 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                       download
                       aria-label={zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
                     >
-                      {zh ? "下载 SDF" : "Download SDF"}
+                      <DownloadOutlined aria-hidden="true" />{" "}
+                      {zh ? "姿势 SDF" : "Pose SDF"}
                     </a>
                   )}
                   {interpretation}
