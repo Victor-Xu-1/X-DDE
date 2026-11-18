@@ -106,6 +106,8 @@ on:
         value: ${{ jobs.scope.outputs.mobile_header_only }}
       initial_pose_power_only:
         value: ${{ jobs.scope.outputs.initial_pose_power_only }}
+      mobile_viewer_only:
+        value: ${{ jobs.scope.outputs.mobile_viewer_only }}
       recognition_power_only:
         value: ${{ jobs.scope.outputs.recognition_power_only }}
       result_header_only:
@@ -129,6 +131,7 @@ jobs:
       compact_example_only: ${{ steps.select.outputs.compact_example_only }}
       mobile_header_only: ${{ steps.select.outputs.mobile_header_only }}
       initial_pose_power_only: ${{ steps.select.outputs.initial_pose_power_only }}
+      mobile_viewer_only: ${{ steps.select.outputs.mobile_viewer_only }}
       result_header_only: ${{ steps.select.outputs.result_header_only }}
     steps:
       - uses: actions/checkout@v4
@@ -146,7 +149,8 @@ jobs:
       needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' &&
       needs.scope.outputs.potential_display_only != 'true' && needs.scope.outputs.native_state_only != 'true' &&
       needs.scope.outputs.compact_example_only != 'true' && needs.scope.outputs.mobile_header_only != 'true' &&
-      needs.scope.outputs.initial_pose_power_only != 'true'
+      needs.scope.outputs.initial_pose_power_only != 'true' &&
+      needs.scope.outputs.mobile_viewer_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

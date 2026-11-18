@@ -135,28 +135,6 @@
     white-space: normal;
     overflow-wrap: anywhere;
   }
-  .receptor-overlay-detail > .viewer-panel > .studio-heading {
-    gap: 4px;
-  }
-  .receptor-overlay-detail .viewer-heading-actions {
-    gap: 4px;
-  }
-  .receptor-overlay-detail .viewer-heading-actions > .viewer-export-size {
-    width: 64px;
-    padding-inline: 2px;
-  }
-  .receptor-overlay-detail .viewer-heading-actions > .figure-export-trigger {
-    min-width: 64px;
-    padding-inline: 3px;
-    font-size: 10px;
-    white-space: nowrap;
-  }
-  .receptor-overlay-detail
-    .viewer-heading-actions
-    > button:not(.figure-export-trigger) {
-    min-width: 28px;
-    padding-inline: 2px;
-  }
 }
 
 .studio-app

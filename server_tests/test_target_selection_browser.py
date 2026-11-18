@@ -56,8 +56,18 @@ def test_ligand_choice_and_native_preview_share_the_same_source():
             previous_contacts = contacts.inner_text()
             resolution = page.get_by_role("combobox", name="三维图片清晰度", exact=True)
             capture = page.get_by_role("button", name="生成三维视图图片", exact=True)
-            assert abs(resolution.bounding_box()["height"] - capture.bounding_box()["height"]) < 2
-            assert resolution.bounding_box()["height"] <= 34
+            if width <= 600:
+                files = page.get_by_role("button", name="结构下载与清晰度", exact=True)
+                files.click()
+                expect(resolution).to_be_visible()
+                resolution.press("Escape")
+                expect(files).to_be_focused()
+                assert capture.bounding_box()["height"] >= 44
+            else:
+                resolution_height = resolution.bounding_box()["height"]
+                capture_height = capture.bounding_box()["height"]
+                assert abs(resolution_height - capture_height) < 2
+                assert resolution_height <= 34
             expect(page.get_by_role("button", name="放大", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="展开研究工作区", exact=True)).to_be_visible()
             assert not page.evaluate("document.documentElement.scrollWidth>innerWidth+1")

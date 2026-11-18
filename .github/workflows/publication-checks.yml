@@ -34,6 +34,14 @@ on:
       - "frontend/src/viewer/useViewerSnapshot*"
       - "frontend/src/viewer/StructureViewer.tsx"
       - "frontend/src/viewer/StructureViewport.tsx"
+      - "frontend/src/viewer/ViewerExportActions.tsx"
+      - "frontend/src/viewer/ViewerToolGroup.tsx"
+      - "frontend/src/viewer/viewer-tool-group.css"
+      - "frontend/src/chemistry/states.css"
+      - "frontend/src/pockets/pocket-results.css"
+      - "frontend/src/presentation/prediction-inspection.css"
+      - "frontend/src/receptors/prepared-structure.css"
+      - "frontend/src/receptors/receptors.css"
       - "frontend/src/viewer/frame.ts"
       - "frontend/src/viewer/viewer.css"
       - "frontend/src/viewer/contact-labels.ts"
@@ -54,6 +62,8 @@ on:
       - "server_tests/*publication*"
       - "server_tests/test_figure_framing_browser.py"
       - "server_tests/test_compact_figure_dialog_browser.py"
+      - "server_tests/test_mobile_viewer_toolbar_browser.py"
+      - "server_tests/test_prediction_workspace_browser.py"
       - "server_tests/*native_annotation*"
       - "server_tests/test_workspace_fullscreen_browser.py"
       - "server_tests/fullscreen_browser_helpers.py"
@@ -104,6 +114,7 @@ jobs:
     outputs:
       native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
       research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
+      native_viewer_changed: ${{ steps.native_viewer.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -116,6 +127,26 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/research-tabs-scope.py
+      - id: native_viewer
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          changed=false
+          if ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          if git cat-file -e "${BASE}^{commit}" 2>/dev/null && ! git diff --quiet "$BASE" HEAD -- \
+            frontend/src/viewer/StructureViewport.tsx frontend/src/viewer/ViewerToolGroup.tsx \
+            frontend/src/viewer/ViewerExportActions.tsx frontend/src/viewer/viewer-tool-group.css \
+            frontend/src/viewer/viewer.css frontend/src/publication/FigureExport.tsx \
+            frontend/src/chemistry/states.css frontend/src/pockets/pocket-results.css \
+            frontend/src/presentation/prediction-inspection.css \
+            frontend/src/receptors/prepared-structure.css frontend/src/receptors/receptors.css \
+            server_tests/test_mobile_viewer_toolbar_browser.py \
+            server_tests/test_prediction_workspace_browser.py; then
+            changed=true
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
   research-tabs:
     needs: scope
     if: needs.scope.outputs.research_tabs_only == 'true'
@@ -181,6 +212,44 @@ jobs:
             outputs/research-tabs/**
             outputs/publication-browser/controls/**
           if-no-files-found: error
+  mobile-native-viewer:
+    needs: scope
+    if: needs.scope.outputs.native_viewer_changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Direct viewer and figure controls
+        working-directory: frontend
+        run: >-
+          npx vitest run src/viewer/StructureViewer.test.tsx
+          src/viewer/useViewerSnapshot.test.ts src/publication/FigureExport.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Scope and archived native viewer with PNG export in Chrome
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_mobile_viewer_toolbar_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          google-chrome --version
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}" uv run --locked python -m pytest -x -q server_tests/test_mobile_viewer_toolbar_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-native-viewer-evidence
+          path: outputs/compact-native-viewer/
   publication:
     needs: [scope, utility-scope, framing-scope]
     # Exact original-file menu bounds and real downloads use the retained-stage gate.

@@ -2,8 +2,6 @@ import { version as productVersion } from "../../package.json";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  CameraOutlined,
-  DownloadOutlined,
   LoadingOutlined,
   MinusOutlined,
   PlusOutlined,
@@ -32,7 +30,6 @@ import {
   type ContactSummary,
   type SurfaceSummary,
   surfaceSummary,
-  validSource,
 } from "./protocol";
 import type { Language } from "../types";
 import type { DisplayResidue } from "./residue-region";
@@ -40,8 +37,8 @@ import { researchError } from "../presentation/research-content";
 import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
 import { useViewerConnection } from "./useViewerConnection";
-import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
-import { FigureExport } from "../publication/FigureExport";
+import { ViewerExportActions } from "./ViewerExportActions";
+import { ViewerToolGroup } from "./ViewerToolGroup";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
 import { InitialPoseStatus } from "./InitialPoseStatus";
@@ -174,7 +171,6 @@ export function StructureViewport({
     ),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
-  const [imageScale, setImageScale] = useState(2);
   const focusKey = focusModels?.join(",") ?? "";
   const focusedModels = useRef(focusModels);
   focusedModels.current = focusModels;
@@ -572,17 +568,21 @@ export function StructureViewport({
       onRestore={() => send("selection-action", "restore")}
     />
   );
+  const title = scene.hasPolymer
+    ? zh
+      ? "三维结构"
+      : "3D structure"
+    : zh
+      ? "分子三维预览"
+      : "3D molecule";
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
-        <h3>
-          {scene.hasPolymer
-            ? zh
-              ? "三维结构"
-              : "3D structure"
-            : zh
-              ? "分子三维预览"
-              : "3D molecule"}
+        <h3 aria-label={title}>
+          <span className="viewer-title-full">{title}</span>
+          <span className="viewer-title-short" aria-hidden="true">
+            {zh ? "三维" : "3D"}
+          </span>
           <Hint label={zh ? "三维预览说明" : "3D preview help"}>
             {zh
               ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
@@ -598,90 +598,40 @@ export function StructureViewport({
             {attachmentCount} {zh ? "处连接标记" : "attachment markers"}
           </span>
         )}
-        <div className="viewer-heading-actions">
-          {channelGeometry && (
-            <button
-              type="button"
-              disabled={!loaded}
-              onClick={() => send("focus-channel")}
-            >
-              {zh ? "定位通道" : "Focus channel"}
-            </button>
-          )}
-          {urls.length > 0 && !optimization.pose.nativeArtifactSha256 && (
-            <details className="viewer-original-downloads">
-              <summary
-                aria-label={zh ? "下载结构文件" : "Download structure files"}
-                title={zh ? "下载结构文件" : "Download structure files"}
+        <ViewerExportActions
+          language={language}
+          originalUrls={optimization.pose.nativeArtifactSha256 ? [] : urls}
+          sourceKey={JSON.stringify([
+            key,
+            options,
+            focusKey,
+            focusModel,
+            siteKey,
+            attachmentKey,
+            hiddenChains,
+            selectedResidues,
+            displayRevision,
+          ])}
+          sourceReady={loaded && !displayBusy}
+          busy={snapshot.busy}
+          aspect={() => {
+            const bounds = frame.current?.getBoundingClientRect();
+            return bounds ? bounds.width / bounds.height : 1.5;
+          }}
+          render={(settings) => snapshot.figure(send, settings)}
+          capture={(scale) => snapshot.begin(send, scale)}
+          leading={
+            channelGeometry && (
+              <button
+                type="button"
+                disabled={!loaded}
+                onClick={() => send("focus-channel")}
               >
-                <DownloadOutlined />
-              </summary>
-              <div>
-                {urls
-                  .filter((url) => {
-                    try {
-                      validSource(url, location.origin);
-                      return true;
-                    } catch {
-                      return false;
-                    }
-                  })
-                  .map((url, index) => (
-                    <a key={url} href={url} download>
-                      {zh ? "结构 " : "Structure "}
-                      {index + 1}
-                    </a>
-                  ))}
-              </div>
-            </details>
-          )}
-          <select
-            className="viewer-export-size"
-            value={imageScale}
-            aria-label={zh ? "三维图片清晰度" : "3D image resolution"}
-            onChange={(e) => setImageScale(Number(e.target.value))}
-          >
-            <option value="1">{zh ? "屏幕 1×" : "Screen 1×"}</option>
-            <option value="2">{zh ? "清晰 2×" : "Clear 2×"}</option>
-            <option value="3">{zh ? "精细 3×" : "Fine 3×"}</option>
-          </select>
-          <FigureExport
-            sourceKey={JSON.stringify([
-              key,
-              options,
-              focusKey,
-              focusModel,
-              siteKey,
-              attachmentKey,
-              hiddenChains,
-              selectedResidues,
-              displayRevision,
-            ])}
-            sourceReady={loaded && !displayBusy}
-            language={language}
-            filename="X-DDE-structure"
-            format="png"
-            typography
-            molecular
-            structureFraming
-            aspect={() => {
-              const bounds = frame.current?.getBoundingClientRect();
-              return bounds ? bounds.width / bounds.height : 1.5;
-            }}
-            disabled={!loaded || displayBusy || snapshot.busy}
-            render={(settings) => snapshot.figure(send, settings)}
-          />
-          <button
-            type="button"
-            disabled={!loaded || displayBusy || snapshot.busy}
-            aria-label={zh ? "生成三维视图图片" : "Capture 3D view"}
-            title={zh ? "生成三维视图图片" : "Capture 3D view"}
-            onClick={() => snapshot.begin(send, imageScale)}
-          >
-            <CameraOutlined />
-          </button>
-          <WorkspaceFullscreenControl language={language} compact />
-        </div>
+                {zh ? "定位通道" : "Focus channel"}
+              </button>
+            )
+          }
+        />
       </div>
       {chainScope && (
         <div
@@ -713,7 +663,7 @@ export function StructureViewport({
         </div>
       )}
       {loaded && !comparison && (!overlay || scene.hasInteractionContext) && (
-        <div className="segmented viewer-modes">
+        <div className="segmented viewer-modes viewer-mode-options">
           {(
             [
               [
@@ -738,10 +688,22 @@ export function StructureViewport({
                 key={id}
                 className={options.mode === id ? "selected" : ""}
                 aria-pressed={options.mode === id}
+                aria-label={zh ? cn : en}
                 disabled={!loaded || comparison}
                 onClick={() => configure({ mode: id })}
               >
-                {zh ? cn : en}
+                {id === "pocket" && !zh ? (
+                  <>
+                    <span className="viewer-mode-short" aria-hidden="true">
+                      Pocket
+                    </span>
+                    <span className="viewer-mode-full">{en}</span>
+                  </>
+                ) : zh ? (
+                  cn
+                ) : (
+                  en
+                )}
               </button>
             ))}
           {!overlay && scene.chains.length > 0 && (
@@ -756,19 +718,24 @@ export function StructureViewport({
             />
           )}
           {!overlay && scene.hasPolymer && (
-            <StructureDisplayControls
-              language={language}
-              options={options}
-              onChange={configure}
-            />
-          )}
-          {!overlay && confidence && scene.hasPolymer && (
-            <ConfidenceControls
-              language={language}
-              ready={Boolean(currentConfidence)}
-              color={options.color}
-              onColor={(color) => configure({ color })}
-            />
+            <ViewerToolGroup
+              kind="display"
+              label={zh ? "显示选项" : "Display options"}
+            >
+              <StructureDisplayControls
+                language={language}
+                options={options}
+                onChange={configure}
+              />
+              {confidence && (
+                <ConfidenceControls
+                  language={language}
+                  ready={Boolean(currentConfidence)}
+                  color={options.color}
+                  onColor={(color) => configure({ color })}
+                />
+              )}
+            </ViewerToolGroup>
           )}
         </div>
       )}
