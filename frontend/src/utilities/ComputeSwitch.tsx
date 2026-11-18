@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -47,6 +48,10 @@ export function ComputePowerProvider({
 }) {
   const [action, setAction] = useState<Action | null>(null);
   const inFlight = useRef(false);
+  const observed = useRef(data);
+  useLayoutEffect(() => {
+    observed.current = data;
+  }, [data]);
   const [failed, setFailed] = useState(false);
   const [confirmed, setConfirmed] = useState<{
     baseline: Deployment | null;
@@ -76,7 +81,8 @@ export function ComputePowerProvider({
       );
       if (typeof result?.running !== "boolean")
         throw new Error("Invalid compute state");
-      setConfirmed({ baseline: data, service: result });
+      // Polling can deliver a newer snapshot while native startup is pending.
+      setConfirmed({ baseline: observed.current, service: result });
     } catch {
       setFailed(true);
     } finally {

@@ -571,7 +571,7 @@ TASK_POWER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-TASK_POWER_DIFF = "e0f88b0e9d20198305dbad7f3b3417a436daf4596990710b1bf13d14c016f108"
+TASK_POWER_DIFF = "c914cde8d27a790c8f60d02d688550e3984e5e163bd2a934db6a9a7997982657"
 
 
 def reviewed_selected(changed, event, base, files, digest):

@@ -262,17 +262,14 @@ it("starts and stops persistent compute from a Harness task and syncs the global
       : Promise.resolve(service),
   );
   const user = userEvent.setup();
-  render(
-    <ComputePowerProvider
-      data={{ compute_service: service } as Deployment}
-      error=""
-      refresh={refresh}
-    >
+  const view = (data: Deployment) => (
+    <ComputePowerProvider data={data} error="" refresh={refresh}>
       <TaskBackendControl language="en" scope={{ capability: "fold" }} />
       <TaskBackendControl language="en" scope={{ capability: "properties" }} />
       <BackendControls language="en" />
-    </ComputePowerProvider>,
+    </ComputePowerProvider>
   );
+  const { rerender } = render(view({ compute_service: service } as Deployment));
   const task = await screen.findByRole("switch", {
     name: "Persistent compute",
   });
@@ -284,6 +281,8 @@ it("starts and stops persistent compute from a Harness task and syncs the global
   await user.click(task);
   expect(task).toBeDisabled();
   expect(global).toBeDisabled();
+  // The app continues polling deployment while the native service starts.
+  rerender(view({ compute_service: { ...service } } as Deployment));
   confirmStart({ ...service, running: true, ready: true });
   await waitFor(() => expect(global).toBeChecked());
   expect(task).toBeChecked();
