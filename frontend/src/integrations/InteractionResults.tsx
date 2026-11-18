@@ -81,9 +81,14 @@ function InteractionWorkspace({
       ...row,
       id: String(index),
     }));
+  function returnToPreview() {
+    const region = preview.current;
+    const expanded = region?.closest('[data-workspace-expanded="true"]');
+    revealRegion(region, expanded ? region : header.current);
+  }
   return (
     <section
-      className="interaction-results contact-workspace"
+      className="interaction-results plip-result-workspace contact-workspace"
       aria-label={zh ? "配体相互作用结果" : "Ligand interaction results"}
     >
       <header className="interaction-result-method" ref={header}>
@@ -165,7 +170,7 @@ function InteractionWorkspace({
               className="secondary-button interaction-return-to-view"
               type="button"
               aria-controls={previewId}
-              onClick={() => revealRegion(preview.current, header.current)}
+              onClick={returnToPreview}
             >
               {zh ? "返回三维 ↑" : "Back to 3D ↑"}
             </button>

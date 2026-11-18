@@ -136,7 +136,17 @@ def test_saved_native_contact_workspace(interaction_workspace, language, width, 
             panel.get_by_role(
                 "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
             ).click()
-            expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_be_visible()
+            board = page.locator(".structure-workbench[data-workspace-expanded]")
+            expect(board).to_be_visible()
+            if width <= 600:
+                expanded_back = board.get_by_role(
+                    "button", name="返回三维 ↑" if zh else "Back to 3D ↑", exact=True
+                )
+                expanded_back.scroll_into_view_if_needed()
+                expanded_back.press("Enter")
+                expect(board).to_be_visible()
+                expect(board.locator(".interaction-preview-region")).to_be_focused()
+                expect(panel.locator("iframe")).to_be_in_viewport()
             page.keyboard.press("Escape")
             expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_have_count(0)
             expect(row).to_have_attribute("aria-selected", "true")

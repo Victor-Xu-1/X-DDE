@@ -204,13 +204,13 @@ html
 }
 
 @media (max-width: 600px) {
-  .interaction-results .interaction-result-method {
+  .plip-result-workspace .interaction-result-method {
     align-items: center;
     gap: 6px;
     margin-block-end: 4px;
     scroll-margin-block-start: 132px;
   }
-  .interaction-results .interaction-method-label {
+  .plip-result-workspace .interaction-method-label {
     display: none;
   }
   .interaction-narrow-actions {
@@ -242,58 +242,73 @@ html
     display: none;
   }
   .studio-app
-    .interaction-results
+    .plip-result-workspace
     .structure-workbench:not([data-workspace-expanded])
     .molecular-stage {
     min-height: 0;
     height: clamp(330px, 58dvh, 460px);
   }
-  .studio-app
-    .studio-content:has(
-      .task-result-content .detail-panel .interaction-results
-    ) {
+  .studio-app .studio-content:has(.plip-result-workspace:not([hidden] *)) {
     padding-block-start: 8px;
   }
   .task-history-workspace
-    .detail-panel.has-header-navigation:has(.interaction-results)
+    .detail-panel.has-header-navigation:has(.plip-result-workspace)
     > .task-detail-header {
     gap: 6px;
     margin-block-end: 6px;
   }
   .task-history-workspace
-    .detail-panel.has-header-navigation:has(.interaction-results)
+    .detail-panel.has-header-navigation:has(.plip-result-workspace)
     .panel-heading
     h2 {
     font-size: 16px;
   }
+  .module-template.is-preview:has(.plip-result-workspace:not([hidden] *)) {
+    margin-block-start: 0;
+  }
+  .module-template:has(.plip-result-workspace:not([hidden] *))
+    .example-preview-toolbar {
+    gap: 6px;
+    padding-block: 4px 8px;
+  }
+  .module-template:has(.plip-result-workspace:not([hidden] *))
+    .example-case-title
+    h2 {
+    font-size: 16px;
+    line-height: 1.25;
+  }
+  .module-example-result section:has(> .plip-result-workspace) > .field-help {
+    margin-block: 0 4px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 400px) {
-  .studio-app .task-result-content .detail-panel:has(.interaction-results) {
+  .studio-app .task-result-content .detail-panel:has(.plip-result-workspace) {
     padding-inline: 12px;
   }
   .studio-app
     .task-result-content
-    .detail-panel:has(.interaction-results)
+    .detail-panel:has(.plip-result-workspace)
     > .task-detail-header
     .task-actions {
     gap: 6px 8px;
   }
   .studio-app
     .task-result-content
-    .detail-panel:has(.interaction-results)
+    .detail-panel:has(.plip-result-workspace)
     > .task-detail-header
     .task-actions
     > button {
     padding-inline: 10px;
   }
-  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+  .studio-main:has(.plip-result-workspace:not([hidden] *))
     .studio-topbar
     .page-context {
     flex: 1 1 0;
     font-size: 13px;
   }
-  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+  .studio-main:has(.plip-result-workspace:not([hidden] *))
     .studio-topbar
     .backend-controls
     > button {
@@ -302,18 +317,11 @@ html
     padding: 0;
     font-size: 0;
   }
-  .studio-main:has(.task-result-content .detail-panel .interaction-results)
+  .studio-main:has(.plip-result-workspace:not([hidden] *))
     .studio-topbar
     .backend-controls
     > button::before {
     content: "⚙" / "";
     font-size: 17px;
-  }
-}
-
-@media (max-width: 360px) {
-  .module-example-result
-    :is(.interaction-result-method, .interaction-review-region) {
-    scroll-margin-block-start: 174px;
   }
 }
