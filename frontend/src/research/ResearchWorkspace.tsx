@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useEffect, useId, useRef, useState } from "react";
 import { api } from "../api";
@@ -143,6 +144,7 @@ export function ResearchWorkspace({
         >
           {zh ? "← 返回研究资产" : "← Back to assets"}
         </button>
+        <FollowupBackendControl language={language} capability={"properties"} />
         <PropertyForm
           key={properties.id}
           language={language}

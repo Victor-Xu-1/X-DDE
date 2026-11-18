@@ -150,14 +150,28 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
     },
   ];
   mocks.request.mockImplementation((path: string) =>
-    path.includes("artifact-metadata")
+    path.startsWith("/runtime-controls")
       ? {
-          job_id: "j",
-          name: "pose-002.sdf",
-          size: 123,
-          sha256: receptor.sha256,
+          capabilities: { properties: "chemistry" },
+          engines: [
+            {
+              id: "chemistry",
+              name: "RDKit",
+              enabled: false,
+              ready: true,
+              active: false,
+              operations: ["properties"],
+            },
+          ],
         }
-      : versions,
+      : path.includes("artifact-metadata")
+        ? {
+            job_id: "j",
+            name: "pose-002.sdf",
+            size: 123,
+            sha256: receptor.sha256,
+          }
+        : versions,
   );
   render(
     <DockingResults language="zh" job={{ id: "j" } as Job} result={data} />,
@@ -184,6 +198,10 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   );
   await user.click(await screen.findByRole("button", { name: "计算性质" }));
   expect(screen.getByText("property:selected")).toBeVisible();
+  const backend = within(screen.getByRole("group", { name: "此任务的后端" }));
+  expect(
+    await backend.findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
   expect(screen.queryByTestId("viewer")).toBeNull();
   await user.click(screen.getByRole("button", { name: "← 返回结果" }));
   expect(screen.getByTestId("viewer")).toHaveTextContent(

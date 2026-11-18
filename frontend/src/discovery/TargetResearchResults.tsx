@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { useState } from "react";
 import type { Job, Language, Prediction } from "../types";
 import {
@@ -41,6 +42,10 @@ export function TargetResearchResults({
         >
           {zh ? "返回靶点证据" : "Back to target evidence"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={"discovery.import"}
+        />
         <ReferenceImportForm
           key={material.identifier}
           language={language}
@@ -59,6 +64,10 @@ export function TargetResearchResults({
         >
           {zh ? "返回疾病结果" : "Back to disease results"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability="discovery.target"
+        />
         <TargetResearchForm
           key={next.id}
           entity="target"

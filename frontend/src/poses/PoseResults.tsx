@@ -1,3 +1,4 @@
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import "../presentation/ensemble-results.css";
 import { useState, type ReactNode } from "react";
@@ -119,7 +120,14 @@ function PoseResultWorkspace({
           {zh ? "← 返回姿势结果" : "← Back to pose results"}
         </button>
         {clustering ? (
-          <ClusterForm key={value.id} value={value} language={language} />
+          <>
+            <TaskBackendControl
+              language={language}
+              scope={{ operations: ["pose_cluster"] }}
+              placement="followup"
+            />
+            <ClusterForm key={value.id} value={value} language={language} />
+          </>
         ) : (
           <ClusterExample language={language} />
         )}
@@ -127,7 +135,17 @@ function PoseResultWorkspace({
     );
   if (next && input && outcome)
     return wrap(
-      <ResearchHandoff language={language} onBack={handoff.clear}>
+      <ResearchHandoff
+        language={language}
+        onBack={handoff.clear}
+        capability={
+          next === "properties"
+            ? "properties"
+            : next === "score"
+              ? "gnina.score"
+              : "posebusters.check"
+        }
+      >
         {next === "properties" ? (
           <PropertyForm
             language={language}

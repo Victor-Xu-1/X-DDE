@@ -71,7 +71,11 @@ export function ComparisonResults({
   const saved = result.derived_references?.moving;
   if (handoff && saved && onCreated)
     return (
-      <ResearchHandoff language={language} onBack={() => setHandoff(false)}>
+      <ResearchHandoff
+        language={language}
+        onBack={() => setHandoff(false)}
+        capability={"p2rank.detect"}
+      >
         <PocketForm
           language={language}
           initialProtein={saved}

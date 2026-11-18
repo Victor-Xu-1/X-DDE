@@ -49,7 +49,11 @@ function HumanizationInspection({
     row = result.rows[index] ?? result.rows[0];
   if (reuse && onCreated)
     return (
-      <ResearchHandoff language={language} onBack={() => setReuse(null)}>
+      <ResearchHandoff
+        language={language}
+        onBack={() => setReuse(null)}
+        capability={"antibody.humanize"}
+      >
         <HumanizationForm
           key={reuse.version_id ?? reuse.asset_id}
           language={language}

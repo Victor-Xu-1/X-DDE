@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { useWorkbenchDrawing } from "./useWorkbenchDrawing";
 import { useEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
@@ -345,6 +346,10 @@ export function Editors({
                   {zh ? "关闭" : "Close"}
                 </button>
               </div>
+              <FollowupBackendControl
+                language={language}
+                capability={"properties"}
+              />
               <PropertyForm
                 key={propertyObject.id}
                 initialFile={propertyObject.reference.asset_id}

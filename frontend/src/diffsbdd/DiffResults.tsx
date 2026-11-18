@@ -145,7 +145,17 @@ export function DiffResults({
   const nextInput = handoff.value?.selection.reference;
   if (nextInput && action)
     return wrap(
-      <ResearchHandoff language={language} onBack={handoff.clear}>
+      <ResearchHandoff
+        language={language}
+        onBack={handoff.clear}
+        capability={
+          action === "properties"
+            ? "properties"
+            : action === "quality"
+              ? "posebusters.check"
+              : `diffsbdd.${action}`
+        }
+      >
         <CandidateFollowup
           key={(nextInput.version_id ?? nextInput.asset_id) + action}
           action={action}
@@ -267,7 +277,8 @@ export function DiffResults({
       )}
     </>
   );
-  const showCandidateWorkbench = designing && records.length > 0 && targetArtifact;
+  const showCandidateWorkbench =
+    designing && records.length > 0 && targetArtifact;
   return wrap(
     <section
       aria-label={

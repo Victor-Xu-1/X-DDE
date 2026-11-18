@@ -241,6 +241,7 @@ export function TaskWorkspace(p: Props) {
     <TaskBackendControl
       language={p.language}
       scope={{ operations: [currentJob.request.operation ?? "predict"] }}
+      placement="result"
     />
   );
   const historyToolbar = (

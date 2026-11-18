@@ -182,14 +182,25 @@ def test_native_pose_handoff_keeps_selected_identity_and_recovers_committed_regi
         saved = Path(downloaded.path())
         assert saved.read_bytes() == before_bytes[second.artifact]
         page.screenshot(path=str(evidence / "large-history-selected-pose.png"))
+        source_backend = page.locator('[data-backend-placement="result"] [data-engine="gnina"]')
+        expect(source_backend.get_by_role("switch")).to_be_visible()
         follow.click()
         expect(page.locator(".questionnaire:visible")).to_be_visible()
+        backend = page.locator('[data-backend-placement="followup"] [data-engine="chemistry"]')
+        expect(backend.get_by_role("switch")).to_be_visible()
+        expect(backend.get_by_role("switch")).not_to_be_checked()
+        expect(source_backend).to_be_hidden()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.screenshot(path=str(evidence / "followup-backend-off.png"))
         page.get_by_role(
             "button", name="← 返回结果" if zh else "← Back to results", exact=True
         ).click()
         expect(download).to_have_attribute(
             "href", f"/api/jobs/{source.id}/download?name={second.artifact}"
         )
+
+        expect(source_backend.get_by_role("switch")).to_be_visible()
+        expect(backend).to_have_count(0)
 
         committed = []
 

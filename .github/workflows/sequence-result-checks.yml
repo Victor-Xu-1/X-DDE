@@ -41,6 +41,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   workflow-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -54,8 +58,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/workflow-quality-scope.py
   result-inspection:
-    needs: workflow-scope
-    if: needs.workflow-scope.outputs.workflow_only != 'true'
+    needs: [workflow-scope, utility-scope]
+    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -1,3 +1,4 @@
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StateForm } from "./StateForm";
@@ -28,6 +29,10 @@ export function LibraryScreenResults({
         <button type="button" onClick={() => setNext(null)}>
           {zh ? "返回分子库结果" : "Back to library results"}
         </button>
+        <FollowupBackendControl
+          language={language}
+          capability={"chemistry.states"}
+        />
         <StateForm
           language={language}
           onCreated={onCreated}
