@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { SearchOutlined } from "@ant-design/icons";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { TaskDetail } from "../TaskDetail";
 import { isPrediction } from "../operations/types";
 import type { ToolId } from "../operations/catalog";
@@ -379,6 +380,12 @@ export function TaskWorkspace(p: Props) {
           </details>
           {currentJob && resultView !== "history" && (
             <div className="task-result-content">
+              <TaskBackendControl
+                language={p.language}
+                scope={{
+                  operations: [currentJob.request.operation ?? "predict"],
+                }}
+              />
               {currentJob.status === "succeeded" &&
               isPrediction(currentJob.request) ? (
                 p.renderPrediction(returnToHistory)

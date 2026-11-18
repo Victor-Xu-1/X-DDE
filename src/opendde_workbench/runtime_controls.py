@@ -52,10 +52,16 @@ class RuntimeControls:
 
 def register_runtime_controls(app, store, engine, worker, health, mutation, harness=None):
     from .backend_router import BackendRouter
+    from .capabilities.definitions import CAPABILITIES
 
     # Explicitly injected engines retain their own lifecycle contract.
     managed = isinstance(engine, BackendRouter)
     controls = RuntimeControls(store)
+    capabilities = {
+        spec.id: spec.environment
+        for spec in CAPABILITIES.values()
+        if spec.environment in ENGINES
+    }
     if managed:
         engine.admission = controls.reason
         worker.select_queued = controls.next_queued
@@ -89,6 +95,7 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
         if native:
             active.add("harness")
         return {
+            "capabilities": capabilities,
             "engines": [
                 {
                     "id": key,
@@ -97,6 +104,7 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
                     "enabled": key in controls.enabled,
                     "active": key in active,
                     "activity_unknown": key == "harness" and native is None,
+                    "operations": ENGINES[key].operations,
                 }
                 for key, item in statuses(state["engine"]).items()
             ]

@@ -7,6 +7,7 @@ import type { Language } from "../types";
 import { PoseResults } from "./PoseResults";
 import type { Exploration, PoseSet } from "./types";
 import { PoseRunControls } from "./PoseRunControls";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function PosePlanRun({
   value,
   language,
@@ -159,6 +160,10 @@ export function PosePlanRun({
         <summary>
           {zh ? "计算设置与运行记录" : "Run settings and history"}
         </summary>
+        <TaskBackendControl
+          language={language}
+          scope={{ capability: "gnina.dock" }}
+        />
         <PoseRunControls
           value={value}
           language={language}

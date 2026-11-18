@@ -10,7 +10,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from opendde_workbench.backend_router import BackendRouter
+from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
+from opendde_workbench.engine_registry import engine_for
 from opendde_workbench.harness_service import HarnessService
 from opendde_workbench.requests import TASK_ADAPTER
 from opendde_workbench.runtime_controls import RuntimeControls, register_runtime_controls
@@ -53,9 +55,22 @@ def test_managed_engine_default_off_explicit_enable_and_restart_reset(tmp_path):
     register_runtime_controls(app, store, engine, worker, health, lambda: None)
     job = SimpleNamespace(request=SimpleNamespace(operation="properties"))
     with TestClient(app) as client:
-        assert all(
-            not item["enabled"] for item in client.get("/api/runtime-controls").json()["engines"]
-        )
+        snapshot = client.get("/api/runtime-controls").json()
+        assert all(not item["enabled"] for item in snapshot["engines"])
+        assert snapshot["capabilities"]["admet.brain"] == "admet"
+        assert snapshot["capabilities"]["gnina.minimize"] == "gnina"
+        assert snapshot["capabilities"]["campaign"] == "harness"
+        assert "experimental.evidence" not in snapshot["capabilities"]
+        engines = {row["id"]: row for row in snapshot["engines"]}
+        for capability in CAPABILITIES.values():
+            if capability.environment == "platform":
+                assert capability.id not in snapshot["capabilities"]
+                continue
+            assert snapshot["capabilities"][capability.id] == capability.environment
+            for operation in capability.operations:
+                owner = engine_for(operation).id
+                assert owner == capability.environment
+                assert operation in engines[owner]["operations"]
         assert asyncio.run(worker.gate(job))
         prior_gate.assert_not_called()
         assert client.post("/api/runtime-controls/admet/start", json={}).status_code == 409

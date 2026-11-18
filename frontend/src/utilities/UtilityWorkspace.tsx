@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { Job, Language } from "../types";
 import { ImageRecognition } from "./ImageRecognition";
-import { UtilityTask } from "./UtilityTask";
+import { UtilityTask, utilityCapability } from "./UtilityTask";
+import { TaskBackendControl } from "./TaskBackendControl";
 
 const utilityTabs = [
   ["image", "图片识别与编辑", "Image recognition & editor"],
@@ -56,6 +57,12 @@ export function UtilityWorkspace({
           ref={setImageActions}
           hidden={active !== "image"}
         />
+        {visible && active !== "image" && (
+          <TaskBackendControl
+            language={language}
+            scope={{ capability: utilityCapability(active) }}
+          />
+        )}
       </div>
       {utilityTabs.map(([id, cn, en]) => {
         if (!visited.includes(id)) return null;

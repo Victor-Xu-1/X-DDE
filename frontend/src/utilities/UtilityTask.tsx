@@ -23,6 +23,8 @@ const utilities = {
   states: { capability: "chemistry.states", Form: StateForm },
 } as const;
 export type MolecularUtility = keyof typeof utilities;
+export const utilityCapability = (id: MolecularUtility) =>
+  utilities[id].capability;
 type UtilityTaskProps = {
   tool: MolecularUtility;
   language: Language;

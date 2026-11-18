@@ -7,6 +7,7 @@ import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { referenceKey } from "../diffsbdd/model";
 import { useNativeIdentity } from "./useNativeIdentity";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { savedRegions } from "./records";
 import {
   toggleAtom,
@@ -251,24 +252,30 @@ export function RegionEditor({
         </p>
       )}
       {subject && !identity.result && (
-        <button
-          type="button"
-          disabled={!ready || identity.running || loading}
-          title={
-            zh
-              ? "读取实际原子身份后，可在预览中点击选区；保持原始分子完整。"
-              : "Read actual atom identities, then select regions in the preview; retain the intact original molecule."
-          }
-          onClick={() => void identity.inspect()}
-        >
-          {identity.running
-            ? zh
-              ? "正在读取…"
-              : "Reading…"
-            : zh
-              ? "读取可选原子"
-              : "Read selectable atoms"}
-        </button>
+        <>
+          <TaskBackendControl
+            language={language}
+            scope={{ capability: "diffsbdd.identity" }}
+          />
+          <button
+            type="button"
+            disabled={!ready || identity.running || loading}
+            title={
+              zh
+                ? "读取实际原子身份后，可在预览中点击选区；保持原始分子完整。"
+                : "Read actual atom identities, then select regions in the preview; retain the intact original molecule."
+            }
+            onClick={() => void identity.inspect()}
+          >
+            {identity.running
+              ? zh
+                ? "正在读取…"
+                : "Reading…"
+              : zh
+                ? "读取可选原子"
+                : "Read selectable atoms"}
+          </button>
+        </>
       )}
     </>
   );

@@ -6,55 +6,57 @@ import { isDatasetTool } from "../datasets/dataset-model";
 import type { ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
 import type { Language } from "../types";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function ModuleTaskPicker({
   value,
   language,
   onChange,
+  active = true,
 }: {
   value: ToolId;
   language: Language;
   onChange(tool: ToolId): void;
+  active?: boolean;
 }) {
   const [guide, setGuide] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const module = moduleForTool(value),
     zh = language === "zh";
-  if (!module)
-    return (
-      <MethodSwitch value={value} language={language} onChange={onChange} />
-    );
-  const extra = module.tools.filter((id) => !module.recommended.includes(id));
+  const extra =
+    module?.tools.filter((id) => !module.recommended.includes(id)) ?? [];
   return (
     <div
       data-dataset-task={isDatasetTool(value) || undefined}
-      className={`module-task-picker ${module.id === "binding" || module.id === "structures" ? "binding-task-picker" : ""}`}
+      className={`module-task-picker ${module?.id === "binding" || module?.id === "structures" ? "binding-task-picker" : ""}`}
     >
-      <label>
-        {zh ? "研究任务" : "Research task"}
-        <select
-          value={value}
-          title={toolLabel(value, language)}
-          onChange={(event) => onChange(event.target.value as ToolId)}
-        >
-          <optgroup label={zh ? "常用任务" : "Common tasks"}>
-            {module.recommended.map((id) => (
-              <option key={id} value={id}>
-                {toolLabel(id, language)}
-              </option>
-            ))}
-          </optgroup>
-          {extra.length > 0 && (
-            <optgroup label={zh ? "更多方法" : "Additional methods"}>
-              {extra.map((id) => (
+      {module && (
+        <label>
+          {zh ? "研究任务" : "Research task"}
+          <select
+            value={value}
+            title={toolLabel(value, language)}
+            onChange={(event) => onChange(event.target.value as ToolId)}
+          >
+            <optgroup label={zh ? "常用任务" : "Common tasks"}>
+              {module.recommended.map((id) => (
                 <option key={id} value={id}>
                   {toolLabel(id, language)}
                 </option>
               ))}
             </optgroup>
-          )}
-        </select>
-      </label>
-      {(module.id === "binding" || module.id === "structures") && (
+            {extra.length > 0 && (
+              <optgroup label={zh ? "更多方法" : "Additional methods"}>
+                {extra.map((id) => (
+                  <option key={id} value={id}>
+                    {toolLabel(id, language)}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+        </label>
+      )}
+      {(module?.id === "binding" || module?.id === "structures") && (
         <>
           <button
             ref={trigger}
@@ -77,6 +79,11 @@ export function ModuleTaskPicker({
         </>
       )}
       <MethodSwitch value={value} language={language} onChange={onChange} />
+      <TaskBackendControl
+        language={language}
+        scope={{ capability: value }}
+        active={active}
+      />
     </div>
   );
 }
