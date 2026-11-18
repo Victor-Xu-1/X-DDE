@@ -1,3 +1,15 @@
+.docking-results > .structure-workbench {
+  row-gap: 14px;
+}
+
+.docking-results .candidate-review-bar {
+  gap: 8px 12px;
+  padding: 6px 0 8px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+
 .pose-result-interpretation {
   min-width: 0;
   color: var(--muted);

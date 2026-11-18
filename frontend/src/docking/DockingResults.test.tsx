@@ -100,8 +100,8 @@ const data: DockingResult = {
   ],
 };
 it.each(["en", "zh"] as const)(
-  "shows the engine-reported box for new results in %s",
-  (language) => {
+  "reveals the engine-reported box in the interpretation disclosure in %s",
+  async (language) => {
     render(
       <DockingResults
         language={language}
@@ -118,9 +118,13 @@ it.each(["en", "zh"] as const)(
         }}
       />,
     );
-    expect(screen.getByText(/1 \/ -2 \/ 3 Å/)).toHaveTextContent(
-      "20 × 22 × 24 Å",
+    const box = screen.getByText(/1 \/ -2 \/ 3 Å/);
+    expect(box).not.toBeVisible();
+    await userEvent.click(
+      screen.getByText(language === "zh" ? "评分与搜索范围" : "Scores and search scope"),
     );
+    expect(box).toBeVisible();
+    expect(box).toHaveTextContent("20 × 22 × 24 Å");
     expect(screen.queryByText(/resulting bounds are not recorded/)).toBeNull();
   },
 );
@@ -147,10 +151,11 @@ it("previews only the chosen valid pose and reuses its exact saved record", asyn
   render(
     <DockingResults language="zh" job={{ id: "j" } as Job} result={data} />,
   );
+  const user = userEvent.setup();
+  await user.click(screen.getByText("评分与搜索范围"));
   expect(screen.getByText(/实际范围/)).toBeVisible();
   expect(screen.getByRole("button", { name: "姿势 1" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "预览姿势 1" })).toBeNull();
-  const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "姿势 2" }));
   expect(screen.getByTestId("viewer")).toHaveTextContent(
     "/artifact/j/pose-002.sdf",
