@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import { WorkflowCenter } from "./WorkflowCenter";
 import { ExampleContext } from "../examples/context";
@@ -123,17 +124,18 @@ it("looks up the exact plan for a history run outside the plan list, with retry"
     return path.startsWith("/runtime-controls") ? runtime : [];
   });
   render(<WorkflowCenter language="en" jobs={[]} />);
-  fireEvent.click(screen.getByText("Run history"));
-  await screen.findByRole("option", { name: /Run 1/ });
-  fireEvent.change(
+  const user = userEvent.setup();
+  await user.click(screen.getByText("Run history"));
+  await screen.findByRole("option", { name: /Run.*#1/ });
+  await user.selectOptions(
     screen.getByRole("combobox", { name: "Open a persisted run" }),
-    { target: { value: run.id } },
+    run.id,
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Cannot read the backends for this run.",
   );
   expect(screen.queryByRole("switch")).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await user.click(screen.getByRole("button", { name: "Retry" }));
   expect(
     await screen.findByRole("switch", { name: "RDKit" }),
   ).not.toBeChecked();
