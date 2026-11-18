@@ -75,8 +75,11 @@ function NativeHost() {
   const [file, setFile] = useState<File | null>(null),
     [graph, setGraph] = useState<typeof molecule | null>(null);
   const [count, setCount] = useState(0);
-  const current = useRef({ file, graph });
-  current.current = { file, graph };
+  const [enabled, setEnabled] = useState(
+    () => sessionStorage.getItem("fixture-recognition-enabled") === "true",
+  );
+  const current = useRef({ file, graph, enabled });
+  current.current = { file, graph, enabled };
   const changed = useRef(() => {}),
     bridge = useRef<ReturnType<typeof attachRecognitionBridge> | null>(null);
   useEffect(() => {
@@ -93,6 +96,7 @@ function NativeHost() {
         changed.current = callback;
         return () => {};
       },
+      recognitionReady: () => current.current.enabled,
       recognize: async () => {
         setCount((n) => n + 1);
         setGraph(molecule);
@@ -105,10 +109,22 @@ function NativeHost() {
   useEffect(() => {
     changed.current();
     bridge.current?.publish();
-  }, [file, graph]);
+  }, [file, graph, enabled]);
   return (
     <main>
       <h1>Controlled native host</h1>
+      <button
+        type="button"
+        role="switch"
+        aria-label="Recognition backend"
+        aria-checked={enabled}
+        onClick={() => {
+          sessionStorage.setItem("fixture-recognition-enabled", String(!enabled));
+          setEnabled(!enabled);
+        }}
+      >
+        {enabled ? "On" : "Off"}
+      </button>
       <output aria-label="OCR calls">{count}</output>
       <label>
         Graph text

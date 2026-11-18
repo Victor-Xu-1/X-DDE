@@ -182,6 +182,7 @@ export function useRecognitionBridge(
     filename,
     phase: foreground.phase,
     recognitionSupported: foreground.supported,
+    recognitionServiceReady: foreground.serviceReady,
     recognize: foreground.start,
   };
 }

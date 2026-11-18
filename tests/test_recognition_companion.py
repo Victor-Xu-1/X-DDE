@@ -229,6 +229,7 @@ def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
             item["after"] for item in changes if "recognize: (file, signal)" in item["after"]
         ]
         assert len(handlers) == 1
+        assert 'recognitionReady: () => latest.current.state.phase === "ready"' in handlers[0]
         handler = handlers[0].split("recognize:", 1)[1].split("loadMolecule:", 1)[0]
         assert handler.index('setError("")') < handler.index('foreground.current!.request')
 

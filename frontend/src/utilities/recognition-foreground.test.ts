@@ -16,7 +16,6 @@ function setup() {
     error: "",
     smiles: "",
     structureGate: { available: false },
-    setPower: vi.fn().mockResolvedValue(undefined),
     recognize: vi.fn().mockImplementation(async () => job),
   };
   const controller = createForegroundRecognition(() => work);
@@ -32,18 +31,14 @@ function setup() {
   };
 }
 
-it("waits for the committed image, enables once, and accepts only its actual job and chemical gate", async () => {
+it("waits for the committed image and accepts only its actual job and chemical gate", async () => {
   const { image, work, controller, abort } = setup();
   const result = controller.request(image, abort.signal),
     ready = vi.fn();
   void result.then(ready);
-  expect(work.setPower).not.toHaveBeenCalled();
-  work.file = image;
-  controller.update();
-  controller.update();
-  await Promise.resolve();
-  expect(work.setPower).toHaveBeenCalledExactlyOnceWith(true);
+  expect(work.recognize).not.toHaveBeenCalled();
   work.state.phase = "ready";
+  work.file = image;
   controller.update();
   controller.update();
   await Promise.resolve();
@@ -56,6 +51,19 @@ it("waits for the committed image, enables once, and accepts only its actual job
   controller.update();
   await result;
   expect(ready).toHaveBeenCalledOnce();
+});
+
+it("rejects an import if the service stopped before the image committed", async () => {
+  const { image, work, controller, abort } = setup();
+  work.state.phase = "ready";
+  const rejected = expect(controller.request(image, abort.signal)).rejects.toThrow(
+    "Recognition service is off",
+  );
+  work.file = image;
+  work.state.phase = "stopped";
+  controller.update();
+  await rejected;
+  expect(work.recognize).not.toHaveBeenCalled();
 });
 
 it.each(["cancel", "dispose", "replace"])(
@@ -74,7 +82,6 @@ it.each(["cancel", "dispose", "replace"])(
       controller.update();
     }
     await rejected;
-    expect(work.setPower).not.toHaveBeenCalled();
   },
 );
 
@@ -87,7 +94,6 @@ it("never adopts a different running job or starts while another worker is busy"
     "Another native job",
   );
   expect(work.recognize).not.toHaveBeenCalled();
-  expect(work.setPower).not.toHaveBeenCalled();
 });
 
 it("does not treat an old succeeded job as the result when native submission fails", async () => {

@@ -506,6 +506,27 @@ POTENTIAL_DISPLAY_FILES = {
 POTENTIAL_DISPLAY_DIFF = "f22988ae3083137afe51720f45f506973eb08d762e7a0579905bd53ea9a96cbf"
 
 
+RECOGNITION_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/utilities/ImageMoleculeDialog.tsx",
+    "frontend/src/utilities/image-molecule.css",
+    "frontend/src/utilities/recognition-foreground.test.ts",
+    "frontend/src/utilities/recognition-foreground.ts",
+    "frontend/src/utilities/recognition-host-bridge.ts",
+    "frontend/src/utilities/recognition-host-foreground.test.ts",
+    "frontend/src/utilities/useRecognitionBridge.ts",
+    "frontend/src/utilities/useRecognitionRequest.test.tsx",
+    "frontend/src/utilities/useRecognitionRequest.ts",
+    "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_utility_image_browser.py",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
+    "tests/fixtures/utility_image/browser.tsx",
+    "tests/test_recognition_companion.py",
+}
+RECOGNITION_POWER_DIFF = "b900c48eb1b215be826f0388597a7f5ff0c921f490107604fd23623d66857dc4"
+
+
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
         return False
@@ -568,7 +589,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         POTENTIAL_DISPLAY_FILES, POTENTIAL_DISPLAY_DIFF,
     )
+    recognition_power = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RECOGNITION_POWER_FILES, RECOGNITION_POWER_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
@@ -587,7 +613,7 @@ def main():
             path: (git_blob(base, path), git_blob("HEAD", path))
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
-        utility = potential_display or navigation or runtime or layout or selected(
+        utility = recognition_power or potential_display or navigation or runtime or layout or selected(
             changed, event, shared=shared
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

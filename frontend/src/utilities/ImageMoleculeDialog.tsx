@@ -24,14 +24,11 @@ export function ImageMoleculeDialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
-  const [editing, setEditing] = useState(
-    !automatic || Boolean(initialMolecule),
-  );
-  const compact = automatic && !editing;
+  const autoApply = automatic && !initialMolecule;
   const bridge = useRecognitionBridge(file, language, onAccept, {
-      automatic: compact,
-      initialMolecule,
-    }),
+    automatic: autoApply,
+    initialMolecule,
+  }),
     zh = language === "zh";
   const [url] = useState(() =>
     recognitionFrameUrl(bridge.origin, language, true),
@@ -48,10 +45,19 @@ export function ImageMoleculeDialog({
       dialog.current?.close();
     };
   }, []);
+  const progress = bridge.busy
+    ? zh
+      ? "正在带入分子结构…"
+      : "Applying molecular structure…"
+    : bridge.phase === "working"
+      ? zh
+        ? "正在识别结构…"
+        : "Recognizing structure…"
+      : "";
   return (
     <dialog
       ref={dialog}
-      className={"image-molecule-dialog" + (compact ? " is-automatic" : "")}
+      className="image-molecule-dialog"
       aria-labelledby={title}
       onCancel={(event) => {
         event.preventDefault();
@@ -64,13 +70,13 @@ export function ImageMoleculeDialog({
             {zh ? "从图片识别分子" : "Read molecule from image"}
           </h2>
           <p>
-            {compact
+            {autoApply
               ? zh
-                ? "识别后将直接带入当前工具，请在运行前核对结构。"
-                : "The structure will appear in this tool. Check it before Run."
+                ? "打开识别后端，结构将自动带入当前工具。运行前请核对。"
+                : "Turn on recognition to fill this tool. Check the structure before running."
               : zh
-                ? "开启识别服务，识别后核对或编辑结构，再带入当前任务。"
-                : "Enable recognition, review or edit the structure, then use it in this task."}
+                ? "核对或编辑结构后带入任务。识别新图片时可在这里开启后端。"
+                : "Review or edit the structure before applying it. Turn on the backend here to recognize a new image."}
           </p>
         </div>
         <button
@@ -93,40 +99,16 @@ export function ImageMoleculeDialog({
             : "Update the local workbench, then reconnect to enable language switching."}
         </p>
       )}
-      {compact && (
-        <div className="image-recognition-progress" role="status">
-          {!(bridge.error || bridge.recognitionSupported === false) && (
-            <span className="image-recognition-spinner" aria-hidden="true" />
-          )}
-          <span>
-            {bridge.recognitionSupported === false
-              ? zh
-                ? "可打开编辑器继续，或更新本地识别组件。"
-                : "Open the editor to continue, or update the local image component."
-              : bridge.busy
-                ? zh
-                  ? "正在带入分子结构…"
-                  : "Applying molecular structure…"
-                : bridge.phase === "working"
-                  ? zh
-                    ? "正在识别结构…"
-                    : "Recognizing structure…"
-                  : bridge.error
-                    ? zh
-                      ? "本次导入未完成。"
-                      : "This import did not complete."
-                    : zh
-                      ? "正在连接识别工具…"
-                      : "Connecting to the image tool…"}
-          </span>
-        </div>
+      {autoApply && bridge.recognitionSupported === false && (
+        <p role="status">
+          {zh
+            ? "此版本需要在编辑器内点击「开始识别」，然后使用识别出的结构。"
+            : "Use Start recognition in the editor, then apply the structure."}
+        </p>
       )}
       <iframe
         ref={bridge.frame}
         src={url}
-        className={compact ? "recognition-background-frame" : undefined}
-        tabIndex={compact ? -1 : undefined}
-        aria-hidden={compact || undefined}
         title={
           zh ? "结构图片识别与编辑" : "Structure image recognition and editing"
         }
@@ -137,7 +119,7 @@ export function ImageMoleculeDialog({
         }}
       />
       <footer>
-        <span>{bridge.filename}</span>
+        <span role="status">{progress || bridge.filename}</span>
         <button type="button" className="secondary-button" onClick={onClose}>
           {automatic
             ? zh
@@ -147,51 +129,28 @@ export function ImageMoleculeDialog({
               ? "取消"
               : "Cancel"}
         </button>
-        {compact && (
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={bridge.busy || bridge.phase === "working"}
-            onClick={() => setEditing(true)}
-          >
-            {zh ? "打开编辑器" : "Open editor"}
-          </button>
-        )}
-        {compact &&
+        {autoApply &&
           bridge.error &&
-          bridge.connected &&
-          bridge.recognitionSupported && (
+          bridge.recognitionSupported &&
+          bridge.recognitionServiceReady &&
+          !bridge.valid && (
             <button
               type="button"
               className="primary-button"
               disabled={disabled || bridge.busy || bridge.phase === "working"}
-              onClick={() =>
-                bridge.phase === "ready" && bridge.valid
-                  ? bridge.accept()
-                  : bridge.recognize()
-              }
+              onClick={bridge.recognize}
             >
               {zh ? "重试" : "Retry"}
             </button>
           )}
-        {!compact && (
-          <button
-            type="button"
-            className="primary-button"
-            disabled={
-              disabled || !bridge.connected || !bridge.valid || bridge.busy
-            }
-            onClick={() => bridge.accept()}
-          >
-            {bridge.busy
-              ? zh
-                ? "正在带入…"
-                : "Transferring…"
-              : zh
-                ? "使用此结构"
-                : "Use this molecule"}
-          </button>
-        )}
+        <button
+          type="button"
+          className="primary-button"
+          disabled={disabled || !bridge.valid || bridge.busy}
+          onClick={bridge.accept}
+        >
+          {zh ? "使用此结构" : "Use this molecule"}
+        </button>
       </footer>
     </dialog>
   );

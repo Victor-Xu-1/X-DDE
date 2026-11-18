@@ -20,7 +20,9 @@ export function useRecognitionRequest(options: Options) {
   current.current = options;
   const [phase, setPhase] = useState<Phase>("idle");
   const [supported, setSupported] = useState<boolean | null>(null);
+  const [serviceReady, setServiceReady] = useState(false);
   const available = useRef(false),
+    ready = useRef(false),
     mounted = useRef(true),
     started = useRef(false);
   const pending = useRef<string | null>(null),
@@ -51,6 +53,7 @@ export function useRecognitionRequest(options: Options) {
       current.current.onError("unsupported");
       return;
     }
+    if (!ready.current) return;
     const requestId = crypto.randomUUID();
     started.current = true;
     completed.current = null;
@@ -69,7 +72,13 @@ export function useRecognitionRequest(options: Options) {
   }
   function receive(message: Record<string, unknown>) {
     if (!mounted.current) return;
-    available.current = message.recognitionSupported === true;
+    if (typeof message.recognitionServiceReady === "boolean") {
+      ready.current = message.recognitionServiceReady;
+      setServiceReady(ready.current);
+    }
+    available.current =
+      message.recognitionSupported === true &&
+      typeof message.recognitionServiceReady === "boolean";
     setSupported(available.current);
     if (!pending.current || message.recognitionRequestId !== pending.current)
       return;
@@ -93,9 +102,16 @@ export function useRecognitionRequest(options: Options) {
     };
   }, []);
   useEffect(() => {
-    if (options.automatic && options.connected && supported && !started.current)
+    if (
+      options.automatic &&
+      options.connected &&
+      supported &&
+      serviceReady &&
+      !options.valid &&
+      !started.current
+    )
       start();
-  }, [options.automatic, options.connected, supported]);
+  }, [options.automatic, options.connected, options.valid, supported, serviceReady]);
   useEffect(() => {
     const id = completed.current;
     if (
@@ -112,6 +128,7 @@ export function useRecognitionRequest(options: Options) {
   return {
     phase,
     supported,
+    serviceReady,
     start,
     receive,
     isAutomatic: () => current.current.automatic,

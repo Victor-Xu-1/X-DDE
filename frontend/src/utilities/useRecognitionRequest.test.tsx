@@ -48,15 +48,18 @@ function setup(automatic = true) {
       new MessageEvent("message", {
         origin: recognitionOrigin(),
         source: frame.contentWindow,
-        data: { type: "xdde-image:state", id, ...data },
+        data: { type: "xdde-image:state", id, recognitionServiceReady: true, ...data },
       }),
     );
   const calls = (type: string) =>
     post.mock.calls.filter(([data]) => data.type === type);
   return { accept, view, post, id, message, calls };
 }
-it("automatically recognizes once after capability handshake, exports once, and never trusts a stale request", async () => {
+it("waits for explicit service readiness, recognizes once and never trusts a stale request", async () => {
   const h = setup();
+  expect(h.calls("xdde-image:recognize")).toHaveLength(0);
+  h.message({ recognitionSupported: true, recognitionServiceReady: false, valid: false });
+  fireEvent.click(screen.getByText("Retry"));
   expect(h.calls("xdde-image:recognize")).toHaveLength(0);
   h.message({ recognitionSupported: true, valid: false });
   h.message({ recognitionSupported: true, valid: false });
@@ -102,6 +105,16 @@ it("manual mode never automatically starts OCR", () => {
 it("an unsupported host never automatically starts OCR", () => {
   const h = setup();
   h.message({ recognitionSupported: false, valid: true });
+  expect(h.calls("xdde-image:recognize")).toHaveLength(0);
+});
+
+it("keeps older hosts manual when their bridge cannot report service readiness", () => {
+  const h = setup();
+  h.message({
+    recognitionSupported: true,
+    recognitionServiceReady: undefined,
+    valid: false,
+  });
   expect(h.calls("xdde-image:recognize")).toHaveLength(0);
 });
 it("timeout cancels the exact import, offers retry, and unmount cancels without a power command", () => {

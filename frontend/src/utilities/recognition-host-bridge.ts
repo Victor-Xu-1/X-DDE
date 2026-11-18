@@ -20,6 +20,7 @@ export interface RecognitionHost {
   available(): boolean;
   molecule(): Promise<{ smiles: string; molfile: string }>;
   subscribe(changed: () => void): () => void;
+  recognitionReady?(): boolean;
   recognize?(file: File, signal: AbortSignal): Promise<void>;
   loadMolecule?(molecule: {
     smiles: string;
@@ -80,6 +81,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
             ? (host.file()?.name ?? context.file.name)
             : context.file.name,
           recognitionSupported: typeof host.recognize === "function",
+          recognitionServiceReady: host.recognitionReady?.(),
           recognitionRequestId: context.run?.id,
           recognitionPhase: context.run?.phase,
         },
@@ -152,6 +154,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
             id: bound.id,
             valid: false,
             recognitionSupported: Boolean(host.recognize),
+            recognitionServiceReady: host.recognitionReady?.(),
             recognitionRequestId: data.requestId,
             recognitionPhase: "failed",
           },
@@ -172,6 +175,8 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
           return;
         if (!bound.accepted || !host.recognize)
           throw new Error("Recognition input unavailable");
+        if (host.recognitionReady?.() !== true)
+          throw new Error("Recognition service is not ready");
         await host.recognize(bound.file, run.controller.signal);
         if (
           mounted &&
