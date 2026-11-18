@@ -6,6 +6,8 @@ on:
       - 'frontend/src/viewer/scientific-overlay.ts'
       - 'frontend/src/viewer/scientific-overlay.test.ts'
       - 'server_tests/test_potential_sdk_browser.py'
+      - 'frontend/src/viewer/potential-range.ts'
+      - 'server_tests/test_apbs_range_browser.py'
       - '.github/workflows/potential-grid-checks.yml'
   pull_request:
     paths: *potential_paths
@@ -14,7 +16,7 @@ permissions:
 jobs:
   potential-grid:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,7 +25,10 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm run build --prefix frontend
       - working-directory: frontend
-        run: npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts
+        run: >-
+          npx vitest run src/viewer/scientific-overlay.test.ts src/viewer/source-layout.test.ts
+          src/viewer/StructureViewer.test.tsx src/viewer/display-readiness.test.ts
+          src/publication/FigureExport.test.tsx
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked --group dev --group browser
       - name: Build the exact production SDK consumer for Chromium
@@ -40,5 +45,22 @@ jobs:
         env:
           WB_POTENTIAL_SDK: ${{ runner.temp }}/potential-sdk/sdk.js
         run: |
-          .venv/bin/python -m playwright install --with-deps chromium
-          .venv/bin/python -m pytest -x -q server_tests/test_potential_sdk_browser.py
+          google-chrome --version
+          .venv/bin/python -m pytest -x -q server_tests/test_potential_sdk_browser.py tests/test_molecular_utility_scope.py
+      - name: Retained STAT6 surface, camera continuity and original APBS files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-apbs
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-apbs/state
+        run: |
+          readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_apbs_range_browser.py
+          .venv/bin/python -m pytest -x -q server_tests/test_apbs_range_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apbs-range-evidence
+          path: outputs/apbs-range/
