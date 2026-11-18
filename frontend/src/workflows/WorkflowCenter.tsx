@@ -8,7 +8,10 @@ import { RunMonitor, workflowStateLabel } from "./RunMonitor";
 import { hasExternalCalls, planFromJobs } from "./model";
 import { useWorkflowController } from "./useWorkflowController";
 import { useExample } from "../examples/context";
-import { WorkflowBackendControl } from "./WorkflowBackendControl";
+import {
+  WorkflowBackendControl,
+  workflowOperations,
+} from "./WorkflowBackendControl";
 export function WorkflowCenter({
   language,
   jobs,
@@ -385,11 +388,19 @@ export function WorkflowCenter({
     run && run.plan_id !== selected?.id
       ? plans.find((plan) => plan.id === run.plan_id)
       : selected;
+  const draftOperations = expert
+    ? workflowOperations(native.steps)
+    : source === "case"
+      ? workflowOperations(example?.workflow_plan?.steps)
+      : jobs
+          .filter((job) => ids.includes(job.id))
+          .map((job) => job.request.operation ?? "predict");
   return (
     <section>
       <WorkflowBackendControl
         plan={runtimePlan}
         runPlanId={run?.plan_id}
+        draftOperations={source === "saved" ? [] : draftOperations}
         language={language}
       />
       <GuidedSteps<WorkflowRun>

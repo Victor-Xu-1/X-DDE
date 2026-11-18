@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { request } from "../api";
 import type { Job, Language } from "../types";
 import { historyKindLabel, kindForJob } from "../studio/task-history-model";
@@ -21,6 +21,7 @@ export function ExampleResultSet(
     stageNames?: Record<string, string>;
     language: Language;
     initialCandidateId?: string;
+    onStageChange?(job: Job | null | undefined): void;
     stageSummary?(onSelect: (jobId: string) => void): ReactNode;
   },
 ) {
@@ -77,6 +78,10 @@ export function ExampleResultSet(
     return () => controller.abort();
   }, [selected, root.id, loaded, choice.attempt]);
   const current = selected === root.id ? null : loaded[selected];
+  const visibleJob = selected === root.id ? props.job : (current ?? null);
+  useLayoutEffect(() => {
+    props.onStageChange?.(visibleJob);
+  }, [props.onStageChange, visibleJob]);
   function chooseStage(id: string) {
     if (id !== root.id && !supporting.some((entry) => entry.job_id === id))
       return;

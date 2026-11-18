@@ -548,6 +548,31 @@ BACKEND_PLACEMENT_FILES = {
 }
 BACKEND_PLACEMENT_DIFF = "6b67939a29d0b15f771b924e114cacf623411a4d58c6752e5541d51959fe6352"
 
+TASK_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/App.tsx",
+    "frontend/src/examples/ExampleActions.test.tsx",
+    "frontend/src/examples/ExampleActions.tsx",
+    "frontend/src/examples/ExampleResultSet.tsx",
+    "frontend/src/examples/ExampleToolbar.tsx",
+    "frontend/src/studio/ApplicationScope.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendPowerSwitch.tsx",
+    "frontend/src/utilities/ComputeSwitch.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "frontend/src/utilities/utilities.css",
+    "frontend/src/workflows/WorkflowBackendControl.tsx",
+    "frontend/src/workflows/WorkflowCenter.test.tsx",
+    "frontend/src/workflows/WorkflowCenter.tsx",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+TASK_POWER_DIFF = "e0f88b0e9d20198305dbad7f3b3417a436daf4596990710b1bf13d14c016f108"
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -618,6 +643,9 @@ def main():
     backend_placement = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        TASK_POWER_FILES, TASK_POWER_DIFF,
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")

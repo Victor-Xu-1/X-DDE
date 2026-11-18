@@ -293,12 +293,14 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Result and utility backend switch placement
+      - name: Contextual backend, utility, workflow and example switches
         if: needs.scope.outputs.backend_placement_only == 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/utilities/BackendControls.test.tsx
           src/utilities/UtilityWorkspace.test.tsx src/studio/TaskWorkspace.test.tsx
+          src/examples/ExampleActions.test.tsx src/examples/ExampleResultSet.test.tsx
+          src/workflows/WorkflowCenter.test.tsx src/App.test.tsx
       - name: Backend switches and directly changed surfaces
         if: needs.scope.outputs.backend_placement_only != 'true'
         working-directory: frontend

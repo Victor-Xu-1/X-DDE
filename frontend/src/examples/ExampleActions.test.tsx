@@ -521,26 +521,43 @@ it.each(["en", "zh"] as const)(
     };
     transport.request.mockImplementation((path: string) =>
       Promise.resolve(
-        path === "/jobs/retained-quality"
+        path.startsWith("/runtime-controls")
           ? {
-              id: "retained-quality",
-              status: "succeeded",
-              request: {
-                operation: "pose_quality",
-                name: "Retained independent pose review",
-              },
+              engines: [
+                {
+                  id: "posebusters",
+                  name: "PoseBusters",
+                  enabled: false,
+                  ready: true,
+                  active: false,
+                  operations: ["pose_quality"],
+                },
+              ],
             }
-          : path === "/examples/regions/result"
+          : path === "/jobs/retained-quality"
             ? {
-                module: { ...info.module, capability_id: "regions" },
-                record: { kind: "regions", value: { id: pin.record_id }, pin },
+                id: "retained-quality",
+                status: "succeeded",
+                request: {
+                  operation: "pose_quality",
+                  name: "Retained independent pose review",
+                },
               }
-            : {
-                ...info,
-                module: { ...info.module, capability_id: "regions" },
-                computed_result_available: true,
-                record_pin: pin,
-              },
+            : path === "/examples/regions/result"
+              ? {
+                  module: { ...info.module, capability_id: "regions" },
+                  record: {
+                    kind: "regions",
+                    value: { id: pin.record_id },
+                    pin,
+                  },
+                }
+              : {
+                  ...info,
+                  module: { ...info.module, capability_id: "regions" },
+                  computed_result_available: true,
+                  record_pin: pin,
+                },
       ),
     );
     const onLoad = vi.fn();
@@ -557,6 +574,7 @@ it.each(["en", "zh"] as const)(
       }),
     );
     expect(await screen.findByText("Verified compound output")).toBeVisible();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByText(
         language === "zh"
@@ -575,9 +593,13 @@ it.each(["en", "zh"] as const)(
     expect(
       await screen.findByText("Native output retained-quality"),
     ).toBeVisible();
+    expect(
+      await screen.findByRole("switch", { name: "PoseBusters" }),
+    ).not.toBeChecked();
     expect(screen.getByText("Verified compound output")).not.toBeVisible();
     fireEvent.change(stage, { target: { value: primary } });
     expect(screen.getByText("Verified compound output")).toBeVisible();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
     expect(onLoad).not.toHaveBeenCalled();
     expect(transport.post).not.toHaveBeenCalled();
   },

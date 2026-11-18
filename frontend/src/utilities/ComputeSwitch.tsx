@@ -1,73 +1,164 @@
-import { useState } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { api } from "../api";
-import type { Language } from "../types";
 import type { Deployment } from "../deployment/client";
+import type { Language } from "../types";
+import { BackendPowerSwitch } from "./BackendPowerSwitch";
+import type { RuntimeEngine } from "./backend-runtime";
 
-export function ComputeSwitch({
+type ComputeService = NonNullable<Deployment["compute_service"]>;
+type Action = "start" | "stop";
+type Activity = "active" | "unknown" | "idle";
+
+export function computeActivity(
+  engine: RuntimeEngine | undefined,
+  failed: boolean,
+): Activity {
+  if (failed || !engine || engine.activity_unknown) return "unknown";
+  return engine.active ? "active" : "idle";
+}
+type ComputePower = {
+  service?: ComputeService;
+  unavailable: boolean;
+  action: Action | null;
+  failed: boolean;
+  change(): Promise<void>;
+};
+
+const ComputeContext = createContext<ComputePower | null>(null);
+const working = (service: ComputeService) =>
+  (service.active ?? 0) + (service.queued ?? 0) > 0;
+
+export function ComputePowerProvider({
   data,
-  language,
+  error,
   refresh,
+  children,
 }: {
   data: Deployment | null;
-  language: Language;
+  error: string;
   refresh(): void;
+  children: ReactNode;
 }) {
-  const zh = language === "zh",
-    service = data?.compute_service;
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  const installed = Boolean(service?.configured);
-  const running = Boolean(service?.running);
-  const label = !installed
-    ? zh
-      ? "计算后端未安装"
-      : "Compute not installed"
-    : running
-      ? zh
-        ? "计算后端已开启"
-        : "Compute enabled"
-      : zh
-        ? "计算后端已关闭"
-        : "Compute off";
+  const [action, setAction] = useState<Action | null>(null);
+  const inFlight = useRef(false);
+  const [failed, setFailed] = useState(false);
+  const [confirmed, setConfirmed] = useState<{
+    baseline: Deployment | null;
+    service: ComputeService;
+  }>();
+  const service =
+    confirmed?.baseline === data ? confirmed.service : data?.compute_service;
+  async function change() {
+    if (
+      inFlight.current ||
+      error ||
+      !service?.configured ||
+      service.cleanup_pending ||
+      working(service)
+    )
+      return;
+    inFlight.current = true;
+    const next = service.running ? "stop" : "start";
+    setAction(next);
+    setFailed(false);
+    try {
+      const result = await api.post<ComputeService>(
+        `/deployment/compute/${next}`,
+        {},
+        undefined,
+        120000,
+      );
+      if (typeof result?.running !== "boolean")
+        throw new Error("Invalid compute state");
+      setConfirmed({ baseline: data, service: result });
+    } catch {
+      setFailed(true);
+    } finally {
+      refresh();
+      inFlight.current = false;
+      setAction(null);
+    }
+  }
   return (
-    <div className="compute-switch">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={running}
-        aria-label={label}
-        disabled={busy || !installed || service?.cleanup_pending}
-        title={
-          zh
-            ? "按需启用；有活动任务时不能关闭"
-            : "Start on demand; active tasks prevent shutdown"
+    <ComputeContext.Provider
+      value={{ service, unavailable: Boolean(error), action, failed, change }}
+    >
+      {children}
+    </ComputeContext.Provider>
+  );
+}
+
+function computeStatus(power: ComputePower, activity: Activity, zh: boolean) {
+  if (power.action === "start") return zh ? "正在启动…" : "Starting…";
+  if (power.action === "stop") return zh ? "正在关闭…" : "Stopping…";
+  if (power.unavailable) return zh ? "状态待确认" : "State unavailable";
+  const { service } = power;
+  if (!service) return zh ? "正在读取…" : "Reading service…";
+  if (service.cleanup_pending) return zh ? "正在清理…" : "Cleaning up…";
+  if (!service.configured)
+    return zh ? "已关闭 · 未配置" : "Off · Not configured";
+  if (activity === "unknown")
+    return zh ? "任务状态待确认" : "Task state unavailable";
+  if (activity === "active" || working(service))
+    return zh ? "任务进行中" : "Tasks in progress";
+  if (!service.running) return zh ? "已关闭" : "Off";
+  return service.ready
+    ? zh
+      ? "已开启"
+      : "On"
+    : zh
+      ? "已开启 · 未就绪"
+      : "On · Not ready";
+}
+
+export function ComputeSwitch({
+  language,
+  configuredOnly = false,
+  activity = "idle",
+}: {
+  language: Language;
+  configuredOnly?: boolean;
+  activity?: Activity;
+}) {
+  const power = useContext(ComputeContext);
+  if (!power || (configuredOnly && !power.service?.configured)) return null;
+  const zh = language === "zh";
+  const { service } = power;
+  return (
+    <>
+      <BackendPowerSwitch
+        id="native-compute"
+        name={zh ? "常驻计算服务" : "Persistent compute"}
+        status={computeStatus(power, activity, zh)}
+        enabled={Boolean(service?.running)}
+        disabled={
+          power.unavailable ||
+          Boolean(power.action) ||
+          !service?.configured ||
+          Boolean(service.cleanup_pending) ||
+          activity !== "idle" ||
+          working(service)
         }
-        onClick={async () => {
-          setBusy(true);
-          setError("");
-          try {
-            await api.post(
-              `/deployment/compute/${running ? "stop" : "start"}`,
-              {},
-              undefined,
-              120000,
-            );
-          } catch {
-            setError(
-              zh
-                ? "操作未完成，请在安装与运行中检查状态。"
-                : "Action did not complete. Check Installation and runtime.",
-            );
-          } finally {
-            setBusy(false);
-            refresh();
-          }
-        }}
-      >
-        <span>{busy ? (zh ? "正在切换…" : "Changing…") : label}</span>
-        <i aria-hidden="true" />
-      </button>
-      {error && <span role="alert">{error}</span>}
-    </div>
+        hint={
+          zh
+            ? "关闭后释放服务占用的内存和显存。"
+            : "Stopping releases the service’s memory and GPU memory."
+        }
+        onToggle={() => void power.change()}
+      />
+      {power.failed && (
+        <p className="backend-state-message" role="alert">
+          {zh
+            ? "切换未完成。请确认没有活动任务后重试。"
+            : "Switch failed. Check for active tasks and try again."}
+        </p>
+      )}
+    </>
   );
 }

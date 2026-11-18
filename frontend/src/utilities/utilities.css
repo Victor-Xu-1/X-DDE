@@ -118,10 +118,6 @@
   font-size: 11px;
   margin-top: 4px;
 }
-.backend-controls-panel footer {
-  padding-top: 14px;
-  font-size: 12px;
-}
 .utility-tabs {
   display: flex;
   flex-wrap: nowrap;

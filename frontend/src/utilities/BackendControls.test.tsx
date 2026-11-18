@@ -9,6 +9,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { api, request } from "../api";
 import { BackendControls } from "./BackendControls";
+import { ComputePowerProvider } from "./ComputeSwitch";
+import type { Deployment } from "../deployment/client";
 import { PrimaryBackendScope } from "./backend-control-scope";
 import {
   FollowupBackendControl,
@@ -33,7 +35,7 @@ it("does not start engines on mount, offers only explicit available switches", a
     engines: [entry, { ...entry, id: "admet", name: "ADMET-AI", ready: false }],
   });
   const user = userEvent.setup();
-  render(<BackendControls data={null} language="en" refresh={vi.fn()} />);
+  render(<BackendControls language="en" />);
   expect(request).not.toHaveBeenCalled();
   expect(api.post).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Backend controls" }));
@@ -62,7 +64,7 @@ it("does not start engines on mount, offers only explicit available switches", a
 it("keeps failed changes off and prevents stopping active tasks", async () => {
   vi.mocked(request).mockResolvedValue({ engines: [entry] });
   vi.mocked(api.post).mockRejectedValue(new Error("conflict"));
-  render(<BackendControls data={null} language="en" refresh={vi.fn()} />);
+  render(<BackendControls language="en" />);
   await userEvent.click(
     screen.getByRole("button", { name: "Backend controls" }),
   );
@@ -76,7 +78,7 @@ it("keeps failed changes off and prevents stopping active tasks", async () => {
   vi.mocked(request).mockResolvedValue({
     engines: [{ ...entry, enabled: true, active: true }],
   });
-  render(<BackendControls data={null} language="en" refresh={vi.fn()} />);
+  render(<BackendControls language="en" />);
   await userEvent.click(
     screen.getByRole("button", { name: "Backend controls" }),
   );
@@ -119,7 +121,7 @@ it("shares one default-off engine across module, sibling tool and global switche
         language="en"
         scope={{ capability: "experimental.evidence" }}
       />
-      <BackendControls data={null} language="en" refresh={vi.fn()} />
+      <BackendControls language="en" />
     </>,
   );
   const toggles = await screen.findAllByRole("switch", { name: "RDKit" });
@@ -234,4 +236,100 @@ it("shows shared result and follow-up engines once, retaining different engines"
     "false",
   );
   expect(api.post).not.toHaveBeenCalled();
+});
+
+it("starts and stops persistent compute from a Harness task and syncs the global switch", async () => {
+  const service = { configured: true, running: false, ready: false };
+  const refresh = vi.fn();
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { fold: "harness", properties: "chemistry" },
+    engines: [
+      entry,
+      {
+        ...entry,
+        id: "harness",
+        name: "OpenDDE Harness",
+        operations: ["harness"],
+      },
+    ],
+  });
+  let confirmStart: (value: typeof service) => void = () => {};
+  vi.mocked(api.post).mockImplementation((path) =>
+    path.endsWith("/start")
+      ? new Promise((resolve) => {
+          confirmStart = resolve;
+        })
+      : Promise.resolve(service),
+  );
+  const user = userEvent.setup();
+  render(
+    <ComputePowerProvider
+      data={{ compute_service: service } as Deployment}
+      error=""
+      refresh={refresh}
+    >
+      <TaskBackendControl language="en" scope={{ capability: "fold" }} />
+      <TaskBackendControl language="en" scope={{ capability: "properties" }} />
+      <BackendControls language="en" />
+    </ComputePowerProvider>,
+  );
+  const task = await screen.findByRole("switch", {
+    name: "Persistent compute",
+  });
+  expect(task).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const panel = within(screen.getByRole("region", { name: "Backend power" }));
+  const global = panel.getByRole("switch", { name: "Persistent compute" });
+  await user.click(task);
+  expect(task).toBeDisabled();
+  expect(global).toBeDisabled();
+  confirmStart({ ...service, running: true, ready: true });
+  await waitFor(() => expect(global).toBeChecked());
+  expect(task).toBeChecked();
+  expect(
+    screen.getAllByRole("switch", { name: "OpenDDE Harness" })[0],
+  ).not.toBeChecked();
+  await user.click(global);
+  await waitFor(() => expect(task).not.toBeChecked());
+  expect(refresh).toHaveBeenCalledTimes(2);
+  expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
+    "/deployment/compute/start",
+    "/deployment/compute/stop",
+  ]);
+});
+
+it("preserves a running service after a rejected shutdown and blocks actively used services", async () => {
+  const service = { configured: true, running: true, ready: true };
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { fold: "harness" },
+    engines: [
+      {
+        ...entry,
+        id: "harness",
+        name: "OpenDDE Harness",
+        operations: ["harness"],
+      },
+    ],
+  });
+  vi.mocked(api.post).mockRejectedValue(new Error("busy"));
+  const view = (active: number) => (
+    <ComputePowerProvider
+      data={{ compute_service: { ...service, active } } as Deployment}
+      error=""
+      refresh={vi.fn()}
+    >
+      <TaskBackendControl language="zh" scope={{ capability: "fold" }} />
+    </ComputePowerProvider>
+  );
+  const { rerender } = render(view(1));
+  const toggle = await screen.findByRole("switch", { name: "常驻计算服务" });
+  expect(toggle).toBeChecked();
+  expect(toggle).toBeDisabled();
+  expect(api.post).not.toHaveBeenCalled();
+  rerender(view(0));
+  await userEvent.click(toggle);
+  expect(await screen.findByRole("alert")).toHaveTextContent("切换未完成");
+  expect(toggle).toBeChecked();
+  expect(api.post).toHaveBeenCalledTimes(1);
 });
