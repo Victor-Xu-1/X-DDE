@@ -37,7 +37,9 @@ def verify_catalogue(page, base, snapshot):
             continue
         panel = open_capability(page, base, key)
         row = panel.locator(f'[data-engine="{owner}"]')
-        expect(row.get_by_role("switch")).to_have_attribute("aria-checked", "false")
+        switch = row.get_by_role("switch")
+        expect(switch).to_be_visible()
+        expect(switch).not_to_be_checked()
         expect(panel.get_by_role("switch")).to_have_count(1)
         checked.append(key)
     assert set(checked) == expected
@@ -95,6 +97,7 @@ def verify_utilities(page, base):
         page.get_by_role("button", name=label, exact=True).click()
         panel = controls(page, zh=True)
         toggle = panel.locator(f'[data-engine="{engine}"]').get_by_role("switch")
+        expect(toggle).to_be_visible()
         expect(toggle).not_to_be_checked()
         expect(panel.get_by_role("switch")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

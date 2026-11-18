@@ -83,19 +83,14 @@
   }
 }
 
-/* The active preview or follow-up form owns the switch in its own header. */
+/* An example repeats its task's switch in the preview toolbar.
+   A follow-up can use a different engine and must keep the source control visible. */
 .module-task-picker:has(
     + .tool-center.is-result [data-backend-placement="example"]
   )
   > .task-backend-control,
-.task-result-content:has([data-backend-placement="followup"])
-  [data-backend-placement="result"],
 .utility-workspace:has(
-    .utility-panel:not([hidden])
-      :is(
-        [data-backend-placement="followup"],
-        [data-backend-placement="example"]
-      )
+    .utility-panel:not([hidden]) [data-backend-placement="example"]
   )
   > .utility-tabbar
   > .task-backend-control {

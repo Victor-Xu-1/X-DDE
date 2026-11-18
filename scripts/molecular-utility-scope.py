@@ -306,6 +306,7 @@ RUNTIME_CONSUMERS = {
     ),
 }
 RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
+    "server_tests/test_result_handoff_browser.py",
     "scripts/molecular-utility-scope.py",
     "tests/test_molecular_utility_scope.py",
     "frontend/src/poses/PosePlanRun.test.tsx",
