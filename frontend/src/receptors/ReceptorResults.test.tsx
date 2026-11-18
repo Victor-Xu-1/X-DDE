@@ -123,12 +123,36 @@ it("links the selected member to its actual aligned overlay and original/aligned
   expect(
     screen.getByRole("link", { name: "Download aligned structure" }),
   ).toHaveAttribute("href", client.artifactUrl(job.id, "aligned-1.pdb"));
+  const display = screen.getByRole("button", { name: "Overlay reference" });
+  const picker = screen.getByRole("combobox", { name: "Preview receptor" });
+  const viewer = screen.getByTestId("receptor-preview");
+  expect(display).toHaveAttribute("aria-pressed", "true");
+  await user.click(display);
+  expect(props("receptor-preview")).toMatchObject({
+    comparison: false,
+    urls: [client.artifactUrl(job.id, "aligned-1.pdb")],
+  });
+  expect(picker).toHaveValue("1");
+  expect(screen.getByTestId("receptor-preview")).toBe(viewer);
   await user.click(screen.getByRole("button", { name: "Receptor 1" }));
+  expect(picker).toHaveValue("0");
+  expect(display).toBeDisabled();
   expect(props("receptor-preview")).toMatchObject({
     comparison: false,
     urls: [client.artifactUrl(job.id, "aligned-0.pdb")],
   });
   expect(screen.getByText("One structure is displayed.")).toBeVisible();
+  await user.selectOptions(picker, "1");
+  expect(display).toHaveAttribute("aria-pressed", "false");
+  await user.click(display);
+  expect(display).toHaveAttribute("aria-pressed", "true");
+  expect(props("receptor-preview")).toMatchObject({
+    comparison: true,
+    urls: [
+      client.artifactUrl(job.id, "aligned-0.pdb"),
+      client.artifactUrl(job.id, "aligned-1.pdb"),
+    ],
+  });
 });
 
 it("makes rejected members inspectable without retaining another member's overlay or handoff", async () => {

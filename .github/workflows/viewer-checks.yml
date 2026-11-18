@@ -19,6 +19,8 @@ on:
       - "frontend/src/diffsbdd/interaction-results.css"
       - "frontend/src/diffsbdd/diffsbdd.css"
       - "server_tests/test_ensemble_results_browser.py"
+      - "server_tests/test_receptor_workspace_browser.py"
+      - ".github/workflows/viewer-checks.yml"
       - "server_tests/test_context_camera_browser.py"
       - "server_tests/ensemble_browser_helpers.py"
       - "server_tests/prepare_visual_components.py"
@@ -104,6 +106,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       reference_only: ${{ steps.scope.outputs.reference_only }}
+      receptor_workspace_only: ${{ steps.receptors.outputs.receptor_workspace_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,13 +115,32 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/interaction-workspace-scope.py
+      - id: receptors
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ "$GITHUB_REF_NAME" != main || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] ||
+             ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base HEAD origin/main)
+          fi
+          found=false
+          only=true
+          while IFS= read -r file; do
+            case "$file" in
+              frontend/src/receptors/ReceptorResults.tsx|frontend/src/receptors/ReceptorResults.test.tsx|frontend/src/receptors/receptors.css|server_tests/test_receptor_workspace_browser.py) found=true ;;
+              .github/workflows/viewer-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
+              *) only=false ;;
+            esac
+          done < <(git diff --name-only "$BASE" HEAD)
+          [[ "$found" = true && "$GITHUB_EVENT_NAME" != workflow_dispatch ]] || only=false
+          echo "receptor_workspace_only=$only" >> "$GITHUB_OUTPUT"
   prediction-scope:
     uses: ./.github/workflows/prediction-workspace-checks.yml
     with:
       scope_only: true
   molecular-preview:
     needs: [reference-scope, prediction-scope]
-    if: ${{ needs.reference-scope.outputs.reference_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
+    if: ${{ needs.reference-scope.outputs.receptor_workspace_only != 'true' && needs.reference-scope.outputs.reference_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.prediction-scope.outputs.utility_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -184,5 +206,51 @@ jobs:
         if: always()
         with:
           name: native-ensemble-preview-evidence
+          path: server_tests/evidence/ensemble
+          if-no-files-found: error
+  receptor-workspace:
+    needs: reference-scope
+    if: needs.reference-scope.outputs.receptor_workspace_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_BROWSER_URL: http://127.0.0.1:4330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Receptor selection, original artifacts and downstream inputs
+        working-directory: frontend
+        run: npx vitest run src/receptors/ReceptorResults.test.tsx
+      - name: Restore the exact saved STAT6 alignment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-receptor-workspace"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
+          uv sync --locked --group dev --group browser
+          version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
+          gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
+          .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
+      - name: Verify native overlay, responsive canvas and exact downloads in Chrome
+        run: |
+          google-chrome --version
+          mkdir -p server_tests/evidence/ensemble
+          .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/ensemble/service.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
+          .venv/bin/python -m pytest -q server_tests/test_receptor_workspace_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-receptor-workspace-evidence
           path: server_tests/evidence/ensemble
           if-no-files-found: error

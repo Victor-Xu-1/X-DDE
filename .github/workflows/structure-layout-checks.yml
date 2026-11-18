@@ -115,6 +115,8 @@ on:
       # Pocket presentation and both continuation forms have native browser coverage in pocket-result-checks.
       - "!frontend/src/pockets/PocketResults.tsx"
       - "!frontend/src/pockets/pocket-results.css"
+      # Receptor alignment, its direct controls and exact native sources have a focused viewer gate.
+      - "!frontend/src/receptors/ReceptorResults.tsx"
       # Native ternary tabs, exact coordinates and desktop widths use proximity-checks.
       - "!frontend/src/proximity/Results.tsx"
   pull_request:
