@@ -18,8 +18,17 @@ vi.mock("../api", () => ({
   api: { post: transport.post, submit: transport.submit },
 }));
 vi.mock("../examples/ExampleResultSet", () => ({
-  ExampleResultSet: ({ job, primary }: { job?: Job; primary?: ReactNode }) =>
-    primary ?? <p>Saved output {job?.id}</p>,
+  ExampleResultSet: ({
+    job,
+    primary,
+  }: {
+    job?: Job;
+    primary?:
+      ReactNode | ((onJobChange: (job: Job | null) => void) => ReactNode);
+  }) =>
+    typeof primary === "function"
+      ? primary(() => undefined)
+      : (primary ?? <p>Saved output {job?.id}</p>),
 }));
 vi.mock("../examples/ExampleRecordResult", () => ({
   ExampleRecordResult: () => <p>Reference input preview</p>,

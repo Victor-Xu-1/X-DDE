@@ -1,5 +1,6 @@
 """Inspect actual retained examples without running or preparing a task."""
 
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ from server_tests.interaction_workspace_case import retained_contact_workspace  
     ("plip.profile", "zh", 390, 775, "plip"),
     ("boltz.predict", "en", 1440, 900, "boltz"),
     ("workflows", "en", 1110, 740, "gnina"),
+    ("discovery.import", "zh", 390, 775, "discovery"),
 ])
 def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
     interaction_workspace, tool, lang, width, height, engine
@@ -72,6 +74,16 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             guide.press("Escape")
             expect(source).not_to_be_visible()
             expect(guide).to_be_focused()
+            if tool == "discovery.import":
+                artifact = page.request.get(base + f"/api/jobs/{root_id}/result").json()
+                original = template.get_by_role("link", name="下载源文件", exact=True)
+                expect(original).to_be_visible()
+                with page.expect_download() as transfer:
+                    original.click()
+                path = evidence / "original-structure"
+                transfer.value.save_as(path)
+                digest = sha256(path.read_bytes()).hexdigest()
+                assert digest == artifact["sha256"] == pin["artifact_sha256"][artifact["artifact"]]
             if tool == "chemistry.states":
                 plot = template.locator(".research-plot-canvas")
                 expect(plot.locator("svg.main-svg").first).to_be_attached(timeout=30000)

@@ -70,7 +70,7 @@ def test_real_structures_tables_and_sequences():
         try:
             result("导入参考结构与化合物")
             expect(page.get_by_role("heading", name="3MXF", exact=True)).to_be_visible()
-            expect(page.get_by_role("link", name="下载原始材料", exact=True)).to_be_visible()
+            expect(page.get_by_role("link", name="下载源文件", exact=True)).to_be_visible()
             record("verified-reference-import")
             result("准备 MSA 与模板")
             expect(page.locator(".prepared-research-inputs .sequence-track")).to_be_visible(
