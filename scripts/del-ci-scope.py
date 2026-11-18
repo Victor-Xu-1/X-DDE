@@ -113,7 +113,21 @@ def main():
         if base and set(base) != {"0"}
         else []
     )
-    selected = (
+    candidate_table_appearance = (
+        "frontend/src/datasets/candidate-table.css" in changed
+        and set(changed)
+        <= {
+            "frontend/src/datasets/candidate-table.css",
+            "scripts/del-ci-scope.py",
+            "pyproject.toml",
+            "uv.lock",
+            "frontend/package.json",
+            "frontend/package-lock.json",
+            "install.sh",
+            "install.ps1",
+        }
+    )
+    selected = candidate_table_appearance or (
         bool(changed)
         and any(
             name.startswith(
@@ -189,7 +203,7 @@ def main():
             "install.sh",
             "install.ps1",
         )
-        candidate_views = (
+        candidate_views = candidate_table_appearance or (
             selected
             and any(
                 name.startswith(
@@ -250,7 +264,7 @@ def main():
         output.write("native_enrichment_changed=" + str(enrichment).lower() + "\n")
         output.write("series_views_only=" + str(series_views).lower() + "\n")
         output.write("candidate_views_only=" + str(candidate_views).lower() + "\n")
-        candidate_preview = (
+        candidate_preview = candidate_table_appearance or (
             candidate_views
             and "frontend/src/datasets/CandidateView.css" in changed
             and all(
