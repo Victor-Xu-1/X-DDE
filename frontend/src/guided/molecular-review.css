@@ -41,6 +41,7 @@
 }
 .molecular-input-review .figure-preview-sheet {
   grid-area: canvas;
+  contain: size;
   align-self: stretch;
   height: auto;
   min-height: 0;

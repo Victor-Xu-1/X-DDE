@@ -86,6 +86,8 @@ def test_2d_controls_keep_distinct_targets(kind, language, width, height):
 
             zoom.click()
             expect(canvas).to_have_attribute("data-zoom", "2")
+            zoomed = canvas.bounding_box()
+            assert zoomed and abs(zoomed["height"] - sheet["height"]) <= 1
             toolbar.get_by_role(
                 "button", name="适应窗口" if zh else "Fit preview", exact=True
             ).click()

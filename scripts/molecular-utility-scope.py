@@ -486,7 +486,7 @@ UTILITY_NAVIGATION_FILES = {
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_molecular_review_controls_browser.py",
 }
-UTILITY_NAVIGATION_DIFF = "14ceea7928f076abf89fbec3b3d9d1ed1779e8424e86af666793d014ba304e7f"
+UTILITY_NAVIGATION_DIFF = "87834607b7a1155c5506c1efebdca3e027ef393f157eb895bdd5f738a362390c"
 
 
 POTENTIAL_DISPLAY_FILES = {
