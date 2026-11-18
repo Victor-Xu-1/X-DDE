@@ -13,6 +13,8 @@ on:
       - "frontend/src/receptors/ReceptorResults*"
       - "frontend/src/receptors/ReceptorMember*"
       - "frontend/src/receptors/receptors.css"
+      - "frontend/src/receptors/StructurePrepareResults*"
+      - "frontend/src/receptors/prepared-structure.css"
       - "frontend/src/presentation/ensemble-results.css"
       - "frontend/src/diffsbdd/ScientificDetails*"
       - "frontend/src/diffsbdd/InteractionResults*"
@@ -20,6 +22,7 @@ on:
       - "frontend/src/diffsbdd/diffsbdd.css"
       - "server_tests/test_ensemble_results_browser.py"
       - "server_tests/test_receptor_workspace_browser.py"
+      - "server_tests/test_prepared_structure_workspace_browser.py"
       - "scripts/receptor-workspace-scope.py"
       - ".github/workflows/viewer-checks.yml"
       - "server_tests/test_context_camera_browser.py"
@@ -108,6 +111,8 @@ jobs:
     outputs:
       reference_only: ${{ steps.scope.outputs.reference_only }}
       receptor_workspace_only: ${{ steps.receptors.outputs.receptor_workspace_only }}
+      receptor_alignment: ${{ steps.receptors.outputs.receptor_alignment }}
+      structure_preparation: ${{ steps.receptors.outputs.structure_preparation }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -196,12 +201,14 @@ jobs:
           if-no-files-found: error
   receptor-workspace:
     needs: reference-scope
-    if: needs.reference-scope.outputs.receptor_workspace_only == 'true'
+    if: needs.reference-scope.outputs.receptor_alignment == 'true' || needs.reference-scope.outputs.structure_preparation == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
+      CHECK_ALIGNMENT: ${{ needs.reference-scope.outputs.receptor_alignment }}
+      CHECK_PREPARATION: ${{ needs.reference-scope.outputs.structure_preparation }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -211,8 +218,13 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Receptor selection, original artifacts and downstream inputs
         working-directory: frontend
-        run: npx vitest run src/receptors/ReceptorResults.test.tsx
-      - name: Restore the exact saved STAT6 alignment
+        run: |
+          tests=()
+          if [[ "$CHECK_ALIGNMENT" == true ]]; then tests+=(src/receptors/ReceptorResults.test.tsx); fi
+          if [[ "$CHECK_PREPARATION" == true ]]; then tests+=(src/receptors/StructurePrepareResults.test.tsx); fi
+          [[ ${#tests[@]} -gt 0 ]]
+          npx vitest run "${tests[@]}"
+      - name: Restore the exact saved STAT6 outputs
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -224,7 +236,7 @@ jobs:
           version=$(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import VERSION; print(VERSION)')
           gh release download examples-v2 --pattern "stat6-reviewed-results-v${version}.zip" --dir "$RUNNER_TEMP"
           .venv/bin/python -c 'import os; from pathlib import Path; from opendde_workbench.examples.bundle import restore_bundle; from opendde_workbench.examples.stat6_bundle_release import SHA256, VERSION; from opendde_workbench.settings import Settings; print(restore_bundle(Path(os.environ["RUNNER_TEMP"])/f"stat6-reviewed-results-v{VERSION}.zip", Settings.from_env(), SHA256))'
-      - name: Verify native overlay, responsive canvas and exact downloads in Chrome
+      - name: Verify responsive native canvas and exact downloads in Chrome
         run: |
           google-chrome --version
           mkdir -p server_tests/evidence/ensemble
@@ -233,7 +245,11 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -q server_tests/test_receptor_workspace_browser.py
+          tests=()
+          if [[ "$CHECK_ALIGNMENT" == true ]]; then tests+=(server_tests/test_receptor_workspace_browser.py); fi
+          if [[ "$CHECK_PREPARATION" == true ]]; then tests+=(server_tests/test_prepared_structure_workspace_browser.py); fi
+          [[ ${#tests[@]} -gt 0 ]]
+          .venv/bin/python -m pytest -q "${tests[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

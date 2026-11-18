@@ -78,7 +78,6 @@ on:
       - "!frontend/src/quality/QualityResults.tsx"
       - "frontend/src/receptors/ReceptorResults.tsx"
       - "frontend/src/receptors/StructurePrepareForm.tsx"
-      - "frontend/src/receptors/StructurePrepareResults.tsx"
       - "frontend/src/receptors/SurfaceRegionPicker.tsx"
       - "frontend/src/receptors/SurfaceResults.tsx"
       - "frontend/src/receptors/surface.css"
@@ -117,6 +116,8 @@ on:
       - "!frontend/src/pockets/pocket-results.css"
       # Receptor alignment, its direct controls and exact native sources have a focused viewer gate.
       - "!frontend/src/receptors/ReceptorResults.tsx"
+      # Saved preparation views use the same native viewer gate.
+      - "!frontend/src/receptors/StructurePrepareResults*"
       # Native ternary tabs, exact coordinates and desktop widths use proximity-checks.
       - "!frontend/src/proximity/Results.tsx"
   pull_request:
