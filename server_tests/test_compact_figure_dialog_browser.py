@@ -70,7 +70,8 @@ def assert_first_screen(layout, stacked):
     assert 0 <= frame["top"] < action["top"] < action["bottom"] <= layout["viewportHeight"]
     assert action["bottom"] <= frame["bottom"] and action["height"] >= 44
     assert layout["actionReachable"] and not layout["horizontalBody"]
-    assert layout["body"]["top"] <= preview["top"] < preview["bottom"] <= layout["body"]["bottom"] + 1
+    body = layout["body"]
+    assert body["top"] <= preview["top"] < preview["bottom"] <= body["bottom"] + 1
     assert layout["previewControls"]["bottom"] <= layout["body"]["bottom"] + 1
     assert layout["scrollWindow"] == 0
     if stacked:
@@ -137,7 +138,7 @@ def check_short_body_scroll(page, dialog, before):
         ("en", "SVG", 390, 775),
     ],
 )
-def test_native_figure_action_stays_visible_when_space_is_constrained(language, format, width, height):
+def test_native_figure_stays_accessible_in_short_windows(language, format, width, height):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     key = f"{language}-{format.lower()}-{width}"
     zh = language == "zh"
@@ -158,7 +159,9 @@ def test_native_figure_action_stays_visible_when_space_is_constrained(language, 
         dialog = page.get_by_role("dialog")
         close = dialog.get_by_role("button", name="关闭" if zh else "Close", exact=True)
         expect(close).to_be_focused()
-        zoom = dialog.get_by_role("button", name="放大预览" if zh else "Zoom in preview", exact=True)
+        zoom = dialog.get_by_role(
+            "button", name="放大预览" if zh else "Zoom in preview", exact=True
+        )
         expect(zoom).to_be_enabled(timeout=45000)
         page.keyboard.press("Tab")
         expect(zoom).to_be_focused()
