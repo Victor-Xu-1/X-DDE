@@ -596,7 +596,7 @@ MODULE_BACKEND_FILES = {
     "frontend/src/utilities/UtilityTask.tsx",
     "server_tests/test_module_backend_switch_browser.py",
 }
-MODULE_BACKEND_DIFF = "e46b456b51aee565367986dbafd27b07cc98a0c0f47f25c58635fa7942d7b1f6"
+MODULE_BACKEND_DIFF = "af62076d23202e8061a8b769205d3cfc544761d3946cb97c2ad9439045954fac"
 
 NATIVE_STATE_FILES = {
     ".github/workflows/generated-candidate-checks.yml",

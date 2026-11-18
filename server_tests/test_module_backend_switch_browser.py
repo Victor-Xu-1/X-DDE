@@ -2,10 +2,10 @@
 import json
 from pathlib import Path
 
-from opendde_workbench.requests import Properties
-from opendde_workbench.store import Store
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.requests import Properties
+from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 
 EVIDENCE = Path("outputs/module-backend-switches")
@@ -190,7 +190,8 @@ def verify_result_detail(page, base, job_id):
     expect(module.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
     expect(module.locator('[data-engine="admet"]').get_by_role("switch")).to_be_visible()
     expect(module.locator('[data-engine="discovery"]')).to_have_count(0)
-    expect(page.locator('[data-backend-placement="result"] [data-engine="chemistry"]')).to_be_visible()
+    task_switch = page.locator('[data-backend-placement="result"] [data-engine="chemistry"]')
+    expect(task_switch.get_by_role("switch")).not_to_be_checked()
     page.screenshot(path=EVIDENCE / "result-power-1450.png")
 
 
