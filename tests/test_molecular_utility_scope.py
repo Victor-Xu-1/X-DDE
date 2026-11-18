@@ -128,7 +128,8 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
-        "touch_controls_only=false\nruntime_switch_only=false\nresult_header_only=false\n"
+        "utility_navigation_only=false\ntouch_controls_only=false\n"
+        "runtime_switch_only=false\nresult_header_only=false\n"
         f"utility_only={str(not mixed).lower()}\n"
     )
     assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import { ImageRecognition } from "./ImageRecognition";
 import { UtilityTask, utilityCapability } from "./UtilityTask";
@@ -13,6 +13,17 @@ const utilityTabs = [
   ["states", "质子化与互变异构", "Protonation & tautomers"],
 ] as const;
 type Utility = (typeof utilityTabs)[number][0];
+
+function revealTab(strip: HTMLElement, tab: HTMLButtonElement) {
+  if (!strip.clientWidth) return;
+  const { left, right } = strip.getBoundingClientRect();
+  const bounds = tab.getBoundingClientRect();
+  if (bounds.left < left || bounds.width > strip.clientWidth) {
+    strip.scrollLeft += bounds.left - left;
+  } else if (bounds.right > right) {
+    strip.scrollLeft += bounds.right - right;
+  }
+}
 
 export function UtilityWorkspace({
   language,
@@ -29,10 +40,30 @@ export function UtilityWorkspace({
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
   const [visited, setVisited] = useState<Utility[]>(["image"]);
   const zh = language === "zh";
+  const navigation = useRef<HTMLElement>(null);
+  const activeTab = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => {
+    const strip = navigation.current;
+    const selected = activeTab.current;
+    if (!visible || !strip || !selected) return;
+    revealTab(strip, selected);
+    if (typeof ResizeObserver === "undefined") return;
+    // Layout and text can resize independently of the window. Leave manual scrolling alone.
+    const observer = new ResizeObserver(() => {
+      const focused = document.activeElement;
+      const browsingTabs =
+        focused instanceof HTMLButtonElement && strip.contains(focused);
+      revealTab(strip, browsingTabs ? focused : selected);
+    });
+    observer.observe(strip);
+    for (const tab of strip.children) observer.observe(tab);
+    return () => observer.disconnect();
+  }, [active, language, visible]);
   return (
     <div className="utility-workspace">
       <div className="utility-tabbar">
         <nav
+          ref={navigation}
           className="utility-tabs"
           aria-label={zh ? "小工具分类" : "Utility tools"}
         >
@@ -40,6 +71,7 @@ export function UtilityWorkspace({
             <button
               key={id}
               type="button"
+              ref={active === id ? activeTab : undefined}
               aria-pressed={active === id}
               onClick={() => {
                 setActive(id);
