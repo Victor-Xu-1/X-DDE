@@ -94,8 +94,11 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         assert initial_table and rail and initial_table["width"] <= rail["width"] + 2
         if width > 1000:
             first_row = table.locator("tbody tr").first.bounding_box()
-            assert first_row and first_row["y"] + 44 <= height, first_row
-            assert box["y"] + 250 <= height, box
+            assert first_row
+            visible_row = min(height, first_row["y"] + first_row["height"])
+            assert visible_row - max(0, first_row["y"]) >= 44, first_row
+            visible_stage = min(height, box["y"] + box["height"])
+            assert visible_stage - max(0, box["y"]) >= 250, box
         expect(table.get_by_role("columnheader", name="QED", exact=True)).to_be_visible()
         generation_details = details.get_by_text(
             "生成详情" if zh else "Generation details", exact=True
@@ -114,9 +117,8 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
             "region", name="所选构象检查" if zh else "Selected structure checks", exact=True
         )
         expect(checks).to_contain_text(str(native_row["qed"]))
-        expect(
-            checks.get_by_text("近接仅检查条件口袋" if zh else "Proximity covers the conditioning pocket")
-        ).to_be_visible()
+        scope_label = "近接仅检查条件口袋" if zh else "Proximity covers the conditioning pocket"
+        expect(checks.get_by_text(scope_label)).to_be_visible()
         advanced = checks.get_by_text(
             "更多构象指标" if zh else "More structure metrics", exact=True
         )
