@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { request } from "../api";
 import type { Job, Language } from "../types";
 import { historyKindLabel, kindForJob } from "../studio/task-history-model";
@@ -9,7 +15,8 @@ type PrimaryResult =
   | { job: Job; primary?: never; primaryId?: never; primaryLabel?: never }
   | {
       job?: never;
-      primary: ReactNode;
+      primary:
+        ReactNode | ((onJobChange: (job: Job | null) => void) => ReactNode);
       primaryId: string;
       primaryLabel: string;
     };
@@ -26,6 +33,17 @@ export function ExampleResultSet(
   },
 ) {
   const { supporting, language } = props;
+  const rootId = props.job ? props.job.id : props.primaryId;
+  const [recordJob, setRecordJob] = useState<{
+    root: string;
+    job: Job | null;
+  }>();
+  const reportPrimaryJob = useCallback(
+    (job: Job | null) => {
+      setRecordJob({ root: rootId, job });
+    },
+    [rootId],
+  );
   const root = props.job
     ? {
         id: props.job.id,
@@ -40,7 +58,10 @@ export function ExampleResultSet(
       }
     : {
         id: props.primaryId,
-        content: props.primary,
+        content:
+          typeof props.primary === "function"
+            ? props.primary(reportPrimaryJob)
+            : props.primary,
       };
   const [choice, setChoice] = useState({
     root: root.id,
@@ -79,7 +100,10 @@ export function ExampleResultSet(
     return () => controller.abort();
   }, [selected, root.id, loaded, choice.attempt]);
   const current = selected === root.id ? null : loaded[selected];
-  const visibleJob = selected === root.id ? props.job : (current ?? null);
+  const visibleJob =
+    selected === root.id
+      ? (props.job ?? (recordJob?.root === root.id ? recordJob.job : undefined))
+      : (current ?? null);
   useLayoutEffect(() => {
     props.onStageChange?.(visibleJob);
   }, [props.onStageChange, visibleJob]);

@@ -47,6 +47,37 @@ beforeEach(() => {
   transport.request.mockReset();
 });
 
+it("reports a workflow step only while its primary record is selected", async () => {
+  transport.request.mockResolvedValue(refined);
+  const show = vi.fn();
+  let report!: (job: Job | null) => void;
+  render(
+    <ExampleResultSet
+      primaryId="workflow"
+      primaryLabel="Workflow results"
+      primary={(onJobChange) => {
+        report = onJobChange;
+        return <p>Workflow</p>;
+      }}
+      supporting={[{ job_id: refined.id }]}
+      language="en"
+      onStageChange={show}
+    />,
+  );
+  act(() => report(primary));
+  expect(show).toHaveBeenLastCalledWith(primary);
+  const stages = screen.getByRole("combobox", { name: "Study result stage" });
+  fireEvent.change(stages, { target: { value: refined.id } });
+  expect(await screen.findByText("Native output refined")).toBeVisible();
+  expect(show).toHaveBeenLastCalledWith(refined);
+  act(() => report(quality));
+  expect(show).toHaveBeenLastCalledWith(refined);
+  fireEvent.change(stages, { target: { value: "workflow" } });
+  expect(show).toHaveBeenLastCalledWith(quality);
+  act(() => report(null));
+  expect(show).toHaveBeenLastCalledWith(null);
+});
+
 it("lets a reviewed summary select only an existing retained stage", async () => {
   transport.request.mockResolvedValue(quality);
   render(

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { api, request } from "../api";
 import type { Job, Language } from "../types";
 import type { PreparedExample } from "./types";
@@ -15,20 +15,27 @@ import { DatasetStudyInputPreview } from "./DatasetStudyInputPreview";
 export function ExampleRecordResult({
   example,
   language,
+  onJobChange,
 }: {
   example: PreparedExample;
   language: Language;
+  onJobChange?(job: Job | null): void;
 }) {
   const record = example.record;
   const [identity, setIdentity] = useState<IdentityResult | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [selected, setSelected] = useState(0);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
   const attempt =
     record?.kind === "workflows" ? record.run.attempts[selected] : null;
+  const currentJob = attempt?.job_id === job?.id ? job : null;
+  const workflow = record?.kind === "workflows";
+  useLayoutEffect(() => {
+    if (workflow) onJobChange?.(currentJob);
+  }, [onJobChange, currentJob, workflow]);
   useEffect(() => {
     const controller = new AbortController();
-    setError("");
+    setError(false);
     setIdentity(null);
     setJob(null);
     const action =
@@ -40,14 +47,16 @@ export function ExampleRecordResult({
                 setIdentity(value as unknown as IdentityResult);
             })
         : attempt
-          ? request<Job>(`/jobs/${attempt.job_id}`, {
+          ? request<Job>(`/jobs/${encodeURIComponent(attempt.job_id)}`, {
               signal: controller.signal,
             }).then((value) => {
+              if (value.id !== attempt.job_id || value.status !== "succeeded")
+                throw new Error("This reviewed step is unavailable.");
               if (!controller.signal.aborted) setJob(value);
             })
           : Promise.resolve();
-    void action.catch((failure) => {
-      if (!controller.signal.aborted) setError(String(failure));
+    void action.catch(() => {
+      if (!controller.signal.aborted) setError(true);
     });
     return () => controller.abort();
   }, [record?.pin.record_id, attempt?.job_id]);
@@ -62,7 +71,7 @@ export function ExampleRecordResult({
     <ExampleContext.Provider value={example}>
       {error && (
         <p className="error" role="alert">
-          {error}
+          {zh ? "此示例结果暂不可用。" : "This example result is unavailable."}
         </p>
       )}
       {record.kind === "experimental.evidence" && (
@@ -107,7 +116,13 @@ export function ExampleRecordResult({
               </button>
             ))}
           </div>
-          {job && <ExampleJobResult job={job} language={language} />}
+          {currentJob && (
+            <ExampleJobResult
+              job={currentJob}
+              language={language}
+              showSource={!onJobChange}
+            />
+          )}
         </section>
       )}
     </ExampleContext.Provider>

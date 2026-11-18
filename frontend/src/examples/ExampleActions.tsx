@@ -37,6 +37,7 @@ export function ExampleActions(
   const { capability, language, onBack } = options;
   const state = useExampleTemplate(options);
   const result = state.result;
+  const recordExample = result?.example;
   const [stage, setStage] = useState<{
     result: typeof result;
     job: Job | null | undefined;
@@ -155,21 +156,22 @@ export function ExampleActions(
                 }
               />
             )}
-            {state.result.example && (
+            {recordExample && (
               <ExampleResultSet
                 primaryId={
                   "record:" +
-                  state.result.example.record?.pin.record_id +
+                  recordExample.record?.pin.record_id +
                   ":" +
-                  state.result.example.record?.pin.record_sha256
+                  recordExample.record?.pin.record_sha256
                 }
                 primaryLabel={zh ? "研究结果" : "Study results"}
-                primary={
+                primary={(onJobChange) => (
                   <ExampleRecordResult
-                    example={state.result.example}
+                    example={recordExample}
                     language={language}
+                    onJobChange={onJobChange}
                   />
-                }
+                )}
                 supporting={state.info?.record_pin?.supporting_evidence ?? []}
                 stageNames={state.info?.supporting_stage_names}
                 language={language}

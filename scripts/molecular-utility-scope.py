@@ -636,6 +636,8 @@ COMPACT_EXAMPLE_FILES = {
     "frontend/src/examples/ExampleActions.tsx",
     "frontend/src/examples/ExampleGuide.tsx",
     "frontend/src/examples/ExampleJobResult.tsx",
+    "frontend/src/examples/ExampleRecordResult.tsx",
+    "frontend/src/examples/ExampleResultSet.test.tsx",
     "frontend/src/examples/ExampleResultSet.tsx",
     "frontend/src/examples/ExampleToolbar.tsx",
     "frontend/src/examples/examples.css",
@@ -643,7 +645,7 @@ COMPACT_EXAMPLE_FILES = {
     "server_tests/test_compact_example_guide_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-COMPACT_EXAMPLE_DIFF = "2a333dc38d10efb67b57430c5c9845b98225cf6e98831ccce6bac3dd1c4b1f1c"
+COMPACT_EXAMPLE_DIFF = "f70ae1d4708d3c021037284ca149628c550b0a05a2aa2ce3955f4baf27b093c7"
 
 
 def reviewed_selected(changed, event, base, files, digest):

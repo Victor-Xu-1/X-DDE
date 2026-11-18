@@ -13,6 +13,7 @@ from server_tests.interaction_workspace_case import retained_contact_workspace  
     ("chemistry.states", "en", 320, 568, "chemistry"),
     ("plip.profile", "zh", 390, 775, "plip"),
     ("boltz.predict", "en", 1440, 900, "boltz"),
+    ("workflows", "en", 1110, 740, "gnina"),
 ])
 def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
     interaction_workspace, tool, lang, width, height, engine
@@ -28,8 +29,14 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             writes = []
             page.on("request", lambda req: writes.append(req.url)
                     if req.method in {"POST", "PUT", "PATCH", "DELETE"} else None)
-            pin = page.request.get(base + f"/api/examples/{tool}").json()["pin"]
-            root = page.request.get(base + f"/api/jobs/{pin['job_id']}").json()
+            case = page.request.get(base + f"/api/examples/{tool}").json()
+            pin = case["pin"]
+            attempts = []
+            if tool == "workflows":
+                record = page.request.get(base + f"/api/examples/{tool}/result").json()["record"]
+                attempts = record["run"]["attempts"]
+            root_id = attempts[0]["job_id"] if attempts else pin["job_id"]
+            root = page.request.get(base + f"/api/jobs/{root_id}").json()
             jobs = page.request.get(base + "/api/jobs").json()
             if tool == "chemistry.states":
                 page.goto(base + "/#view=utilities")
@@ -65,22 +72,40 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             if tool == "chemistry.states":
                 plot = template.locator(".research-plot-canvas")
                 expect(plot.locator("svg.main-svg").first).to_be_attached(timeout=30000)
-                page.set_viewport_size({"width": 390, "height": height})
-                page.set_viewport_size({"width": width, "height": height})
-                assert template.evaluate("e => e.scrollWidth <= e.clientWidth + 1")
-                page.wait_for_function("""() => {
+                sized = """() => {
                     const plot = document.querySelector(
                         '.module-template.is-preview .research-plot-canvas');
                     const svg = plot?.querySelector('svg.main-svg');
                     return svg &&
                         Math.abs(svg.getBoundingClientRect().width - plot.clientWidth) < 2;
-                }""")
+                }"""
+                page.set_viewport_size({"width": 390, "height": height})
+                page.wait_for_function(sized)
+                page.set_viewport_size({"width": width, "height": height})
+                assert template.evaluate("e => e.scrollWidth <= e.clientWidth + 1")
+                page.wait_for_function(sized)
                 chart = template.locator(".research-plot")
                 chart.get_by_role("combobox", name="Chart interaction").select_option("pan")
                 page.wait_for_function("""() =>
                     document.querySelector('.module-template.is-preview .research-plot-canvas')
                         ?._fullLayout?.dragmode === 'pan'
                 """)
+                hit = plot.locator(".nsewdrag")
+                hit.scroll_into_view_if_needed()
+                area = hit.bounding_box()
+                assert area is not None
+                x = area["x"] + area["width"] / 2
+                y = area["y"] + area["height"] / 2
+                current_range = plot.evaluate("e => JSON.stringify(e._fullLayout.xaxis.range)")
+                page.mouse.move(x, y)
+                page.mouse.down()
+                page.mouse.move(x + 25, y, steps=5)
+                page.mouse.up()
+                page.wait_for_function("""previous => {
+                    const p = document.querySelector(
+                        '.module-template.is-preview .research-plot-canvas');
+                    return JSON.stringify(p._fullLayout.xaxis.range) !== previous;
+                }""", arg=current_range)
                 chart.locator(".figure-export-trigger").click()
                 export = page.locator(".figure-export-dialog footer button")
                 expect(export).to_be_enabled(timeout=30000)
@@ -100,6 +125,16 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
                 guide.press("Escape")
                 template.get_by_role("button", name="Previous study stage", exact=True).click()
                 expect(header.locator('[data-engine="boltz"] [role="switch"]')).to_be_visible()
+            if tool == "workflows":
+                step = page.request.get(base + f"/api/jobs/{attempts[1]['job_id']}").json()
+                steps = template.get_by_role("region", name="Template workflow result")
+                steps.locator(".segmented > button").nth(1).click()
+                switch = header.locator('[data-engine="posebusters"] [role="switch"]')
+                expect(switch).to_be_visible()
+                guide.click()
+                expect(source).to_contain_text(step["request"]["name"])
+                expect(source).not_to_contain_text(root["request"]["name"])
+                guide.press("Escape")
             header.get_by_role(
                 "button", name="返回任务填写" if zh else "Return to task form", exact=True
             ).click()
