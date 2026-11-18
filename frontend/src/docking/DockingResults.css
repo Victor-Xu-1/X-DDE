@@ -33,3 +33,27 @@
   > .research-tabs > .research-tab-list {
   margin-block: 0 6px;
 }
+
+@media (max-width: 600px) {
+  .docking-results .candidate-review-selector {
+    display: flex;
+    flex: 1 0 100%;
+    align-items: center;
+  }
+
+  .docking-results .candidate-review-metrics {
+    display: grid;
+    flex-basis: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(min(88px, 100%), 1fr));
+  }
+
+  .docking-results .candidate-review-metrics > div {
+    min-width: 0;
+    padding: 6px;
+    overflow-wrap: anywhere;
+  }
+
+  .docking-results .candidate-review-bar > a {
+    margin-inline-start: 0;
+  }
+}
