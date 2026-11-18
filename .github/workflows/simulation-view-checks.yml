@@ -48,6 +48,7 @@ on:
       - "frontend/src/presentation/plots/InteractivePlot*"
       - "server_tests/test_fep_diagnostics_browser.py"
       - "server_tests/test_native_simulation_views.py"
+      - "server_tests/test_native_molstar_framing.py"
       - "server_tests/fullscreen_browser_helpers.py"
       - ".github/workflows/simulation-view-checks.yml"
   pull_request:
@@ -72,13 +73,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Select chart-export sizing or simulation-view consumers
+      - name: Select chart exports, molecular framing or simulation-view consumers
         id: export_scope
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: |
           python - <<'PY'
-          import os, subprocess
+          import os, re, subprocess
           base = os.environ.get('BASE', '')
           if os.environ.get('GITHUB_REF_NAME') != 'main':
               base = subprocess.check_output(['git','merge-base','origin/main','HEAD'], text=True).strip()
@@ -88,8 +89,26 @@ jobs:
                      'pyproject.toml', 'uv.lock', 'frontend/package.json', 'frontend/package-lock.json',
                      'install.sh', 'install.ps1'}
           only = bool(changed) and 'frontend/src/publication/plotly.ts' in changed and set(changed) <= allowed
+          simulation = 'frontend/src/simulations/'
+          framing = {simulation + 'molstar-figure.ts', simulation + 'molstar-figure.test.ts',
+                     'server_tests/test_native_molstar_framing.py'}
+          consumers = {simulation + 'MolecularViewport.tsx', simulation + 'BoundPoseComparison.tsx'}
+          versions = {'pyproject.toml', 'uv.lock', 'frontend/package.json',
+                      'frontend/package-lock.json', 'install.sh', 'install.ps1'}
+          native_only = (os.environ['GITHUB_EVENT_NAME'] in {'push', 'pull_request'}
+                         and bool(set(changed) & framing)
+                         and set(changed) <= framing | consumers | versions
+                           | {'.github/workflows/simulation-view-checks.yml'})
+          for path in set(changed) & consumers if native_only else ():
+              delta = subprocess.check_output(
+                  ['git', 'diff', '--unified=0', base, 'HEAD', '--', path], text=True
+              )
+              edits = [line for line in delta.splitlines() if re.match(r'^[+-][^+-]', line)]
+              native_only = native_only and len(edits) == 1 and bool(
+                  re.fullmatch(r'\+\s+structureFraming', edits[0]))
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('only=' + str(only).lower() + '\n')
+              output.write('native_framing=' + str(native_only).lower() + '\n')
           PY
       - uses: actions/setup-node@v4
         with:
@@ -98,7 +117,7 @@ jobs:
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Changed simulation previews and direct result consumers
-        if: steps.export_scope.outputs.only != 'true'
+        if: steps.export_scope.outputs.only != 'true' && steps.export_scope.outputs.native_framing != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/simulations/SimulationResults.test.tsx
@@ -114,6 +133,13 @@ jobs:
           src/simulations/BoundPoseComparison.test.tsx
           src/simulations/comparison-figure.test.ts src/simulations/molecular-view-state.test.ts
           src/editors/molstar-appearance.test.ts
+      - name: Offscreen molecular framing, camera restoration and comparison views
+        if: steps.export_scope.outputs.native_framing == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/simulations/molstar-figure.test.ts
+          src/simulations/MolecularViewport.test.tsx src/simulations/BoundPoseComparison.test.tsx
+          src/simulations/comparison-figure.test.ts
       - name: Native chart sizing, intervals, category/heatmap/continuous consumers only
         if: steps.export_scope.outputs.only == 'true'
         working-directory: frontend
@@ -129,11 +155,15 @@ jobs:
         run: gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
       - run: uv run --locked playwright install chromium --with-deps
       - name: Native results, controlled completed-result diagnostics and exact downloads
-        if: steps.export_scope.outputs.only != 'true'
+        if: steps.export_scope.outputs.only != 'true' && steps.export_scope.outputs.native_framing != 'true'
         run: >-
           uv run --locked python -m pytest -x -q
           server_tests/test_native_simulation_views.py
           server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
+      - name: Verify framing and actual downloads from native MD and FEP results
+        if: steps.export_scope.outputs.native_framing == 'true'
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_native_molstar_framing.py
       - name: Restore retained DEL chart results for physical export checks, without science
         if: steps.export_scope.outputs.only == 'true'
         env:

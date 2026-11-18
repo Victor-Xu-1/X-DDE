@@ -250,6 +250,7 @@ export function MolecularViewport({
           filename="X-DDE-structure"
           format="png"
           molecular
+          structureFraming
           disabled={!presentation.ready}
           label={zh ? "下载视图" : "Download view"}
           onStart={onExport}

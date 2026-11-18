@@ -90,6 +90,7 @@ export function BoundPoseComparison({
               filename={`X-DDE-${labels[0]}-${labels[1]}-poses`}
               aspect={2}
               typography
+              structureFraming
               label={zh ? "导出比较图" : "Export comparison"}
               disabled={!both}
               render={(settings) => {
