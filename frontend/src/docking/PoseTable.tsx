@@ -38,7 +38,7 @@ export function PoseTable({
   selected: number | null;
   onSelect(pose: Pose): void;
   onDiagnostic(artifact: string): void;
-  onCompare?(poses: readonly Pose[]): void;
+  onCompare?(poses: readonly Pose[], trigger: HTMLButtonElement): void;
 }) {
   const zh = language === "zh";
   const referenceReady = result.reference_comparison?.status === "ready";
@@ -248,7 +248,7 @@ export function PoseTable({
                     ? "选择两个有效姿势，在原受体坐标中叠加查看。"
                     : "Select two valid poses to overlay in their original receptor frame."
                 }
-                onClick={() => onCompare(poses)}
+                onClick={(event) => onCompare(poses, event.currentTarget)}
               >
                 {zh ? "三维比较两个姿势" : "Compare two poses in 3D"}
               </button>

@@ -1,5 +1,3 @@
-import { scoreLabel } from "./scoreLabels";
-import { DownloadOutlined } from "@ant-design/icons";
 import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import { searchNotice } from "./searchNotice";
 import { ReceptorRefinementSummary } from "./ReceptorRefinementSummary";
@@ -9,12 +7,13 @@ import { poseScore } from "./poseScore";
 import { PoseTable } from "./PoseTable";
 import { DockingResultsEvidence } from "./DockingResultsEvidence";
 import { PoseComparison } from "./PoseComparison";
+import { DockingPoseSummary } from "./DockingPoseSummary";
 import { ReferenceComparison } from "./ReferenceComparison";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
 import "./DockingResults.css";
-import { useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -44,6 +43,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const [comparison, setComparison] = useState<{
     jobId: string;
     records: number[];
+    activation: number;
   } | null>(null);
   const compared =
     comparison?.jobId === job.id
@@ -64,36 +64,23 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const nativeScore = selected ? poseScore(result, selected) : null;
   const qualified = result.poses.filter((pose) => pose.valid && pose.artifact);
   const inspectingPose = compared.length !== 2 && !diagnostic;
-  const metrics = inspectingPose
-    ? [
-        ...(nativeScore
-          ? [
-              {
-                label: zh ? "整姿势对接分数" : "Whole-pose docking score",
-                value: nativeScore.value.toFixed(3),
-                detail: nativeScore.unit,
-              },
-            ]
-          : []),
-        ...["CNNscore", "CNNaffinity"].flatMap((name) => {
-          const score = selected?.scores.find(
-            (item) =>
-              item.name === name &&
-              item.unit === "model_output" &&
-              Number.isFinite(item.value),
+  const launcher = useRef<HTMLButtonElement | null>(null);
+  const poseDetails = useRef<HTMLDivElement | null>(null);
+  const returningToTable = useRef(false);
+  useLayoutEffect(() => {
+    if (compared.length || !returningToTable.current) return;
+    returningToTable.current = false;
+    const button = launcher.current;
+    const target =
+      button?.isConnected && !button.disabled
+        ? button
+        : poseDetails.current?.querySelector<HTMLInputElement>(
+            'input[type="search"]',
           );
-          return score
-            ? [
-                {
-                  label: scoreLabel(name, language),
-                  value: score.value.toFixed(3),
-                  detail: zh ? "模型输出" : "model output",
-                },
-              ]
-            : [];
-        }),
-      ]
-    : [];
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView?.({ block: "center", behavior: "instant" });
+  }, [compared.length]);
   const target: PoseAssetTarget | null = selected?.artifact
     ? { name: selected.artifact, kind: "molecule", record: 0 }
     : null;
@@ -180,8 +167,12 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
     <details className="pose-result-interpretation">
       <summary>
         {result.mode === "dock"
-          ? zh ? "评分与搜索范围" : "Scores and search scope"
-          : zh ? "评分说明" : "Score interpretation"}
+          ? zh
+            ? "评分与搜索范围"
+            : "Scores and search scope"
+          : zh
+            ? "评分说明"
+            : "Score interpretation"}
       </summary>
       <p className="field-help">
         {zh
@@ -220,22 +211,6 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
               selected={inspectingPose ? selected?.record : undefined}
               language={language}
               onSelect={selectPose}
-              metrics={metrics}
-              actions={
-                <>
-                  {inspectingPose && selected?.artifact && (
-                    <a
-                      href={artifactUrl(job.id, selected.artifact)}
-                      download
-                      aria-label={zh ? "下载所选姿势 SDF" : "Download selected pose SDF"}
-                    >
-                      <DownloadOutlined aria-hidden="true" />{" "}
-                      {zh ? "姿势 SDF" : "Pose SDF"}
-                    </a>
-                  )}
-                  {interpretation}
-                </>
-              }
             />
           )
         }
@@ -247,7 +222,11 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 result={result}
                 poses={compared}
                 language={language}
-                onClose={() => setComparison(null)}
+                activation={comparison?.activation ?? 0}
+                onClose={() => {
+                  returningToTable.current = true;
+                  setComparison(null);
+                }}
                 onInspect={(pose) => selectPose(pose.record)}
               />
             ) : (
@@ -362,14 +341,17 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
           </div>
         }
       >
-        <div>
-          <DockingResultsEvidence
-            jobId={job.id}
-            result={result}
-            pose={compared.length === 2 ? undefined : selected}
-            language={language}
-          />
-          <ReferenceComparison result={result} language={language} />
+        <div className="docking-result-details" ref={poseDetails}>
+          {qualified.length > 0 && (
+            <DockingPoseSummary
+              jobId={job.id}
+              pose={inspectingPose ? selected : undefined}
+              nativeScore={nativeScore}
+              language={language}
+            >
+              {interpretation}
+            </DockingPoseSummary>
+          )}
           <PoseTable
             key={job.id}
             result={result}
@@ -382,7 +364,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
               handoff.clear();
               setDiagnostic(artifact);
             }}
-            onCompare={(poses) => {
+            onCompare={(poses, trigger) => {
               if (
                 poses.length !== 2 ||
                 poses.some((pose) => !pose.valid || !pose.artifact)
@@ -390,12 +372,21 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 return;
               setDiagnostic(null);
               handoff.clear();
-              setComparison({
+              launcher.current = trigger;
+              setComparison((previous) => ({
                 jobId: job.id,
                 records: poses.map((pose) => pose.record),
-              });
+                activation: (previous?.activation ?? 0) + 1,
+              }));
             }}
           />
+          <DockingResultsEvidence
+            jobId={job.id}
+            result={result}
+            pose={inspectingPose ? selected : undefined}
+            language={language}
+          />
+          <ReferenceComparison result={result} language={language} />
           <PoseViolations poses={result.poses} language={language} />
         </div>
       </StructureWorkbench>

@@ -19,25 +19,4 @@ jobs:
       - id: paths
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        shell: bash
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" != push && "$GITHUB_EVENT_NAME" != pull_request ]]; then
-            echo 'presentation_only=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [[ "$GITHUB_REF_NAME" != main || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE=$(git merge-base HEAD origin/main)
-          fi
-          only=true
-          layout=false
-          while IFS= read -r file; do
-            case "$file" in
-              frontend/src/docking/DockingResults.css) layout=true ;;
-              frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx) ;;
-              .github/workflows/docking-result-scope.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/selected-pose-checks.yml|.github/workflows/result-handoff-checks.yml) ;;
-              pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
-              *) only=false ;;
-            esac
-          done < <(git diff --name-only "$BASE" HEAD)
-          [[ "$layout" == true ]] || only=false
-          echo "presentation_only=$only" >> "$GITHUB_OUTPUT"
+        run: python scripts/docking-result-scope.py
