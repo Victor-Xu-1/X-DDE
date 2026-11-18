@@ -608,7 +608,7 @@ export function StructureViewport({
               {zh ? "定位通道" : "Focus channel"}
             </button>
           )}
-          {urls.length > 0 && (
+          {urls.length > 0 && !optimization.pose.nativeArtifactSha256 && (
             <details className="viewer-original-downloads">
               <summary
                 aria-label={zh ? "下载结构文件" : "Download structure files"}

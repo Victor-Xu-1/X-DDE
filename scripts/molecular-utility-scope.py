@@ -613,7 +613,9 @@ NATIVE_STATE_FILES = {
     "frontend/src/chemistry/StateResults.tsx",
     "frontend/src/chemistry/state-inspection.ts",
     "frontend/src/chemistry/states.css",
+    "frontend/src/diffsbdd/GeneratedCandidateDownload.tsx",
     "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/presentation/SdfArtifactDownload.tsx",
     "frontend/src/viewer/StructureViewport.tsx",
     "frontend/src/viewer/pose-plan.test.ts",
     "frontend/src/viewer/pose-plan.ts",
@@ -624,7 +626,7 @@ NATIVE_STATE_FILES = {
     "server_tests/test_state_results_workspace_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-NATIVE_STATE_DIFF = "1c9a92b7a2166321dda8a6b0d4864fcbeb528a584e74e094164aea5b94e9c9da"
+NATIVE_STATE_DIFF = "e58bc4f9efe7c24a61d6619014f3e704506bba447026b62a231765dcd69c8645"
 
 
 def reviewed_selected(changed, event, base, files, digest):

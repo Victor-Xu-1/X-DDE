@@ -63,21 +63,42 @@ def test_retained_conformers_render_and_switch_without_preparation(
             conformer = preview.get_by_role(
                 "combobox", name="游离构象" if zh else "Free conformer", exact=True
             )
-            # Substitute a valid but different SDF. The renderer must bind the selected hash
-            # instead of displaying stale/potentially unrelated native coordinates.
-            if width == 1440:
-                page.route(second_url, lambda route: route.fulfill(status=200, body=original))
-            conformer.select_option(str(second["record"]))
-            if width == 1440:
-                expect(preview.locator(".viewer-error")).to_be_visible()
-                page.unroute(second_url)
-                preview.locator(".viewer-error").get_by_role("button", name="Reload").click()
-            expect(action).to_be_enabled(timeout=30000)
             download_name = (
                 "下载所选原始构象 SDF" if zh else "Download selected original conformer SDF"
             )
+            download = preview.get_by_role("button", name=download_name, exact=True)
+            # Substitute a valid but different SDF. The renderer must bind the selected hash
+            # instead of displaying stale/potentially unrelated native coordinates.
+            if width == 1440:
+                page.route(
+                    second_url,
+                    lambda route: route.fulfill(
+                        status=200,
+                        headers={"Content-Type": "application/octet-stream",
+                                 "X-Structure-Format": "sdf"},
+                        body=original,
+                    ),
+                )
+                with page.expect_response(second_url, timeout=30000):
+                    conformer.select_option(str(second["record"]))
+            else:
+                conformer.select_option(str(second["record"]))
+            if width == 1440:
+                expect(preview.locator(".viewer-error")).to_be_visible(timeout=15000)
+                transfers = []
+                page.on("download", transfers.append)
+                expect(preview.locator(".viewer-original-downloads")).to_have_count(0)
+                download.click()
+                error = preview.locator(".state-conformer-download").get_by_role("alert")
+                expect(error).to_have_text(
+                    "Could not verify the original conformer. Try again.", timeout=15000
+                )
+                assert transfers == []
+                page.unroute(second_url)
+                preview.locator(".viewer-error").get_by_role("button", name="Reload").click()
+            expect(action).to_be_enabled(timeout=30000)
             with page.expect_download() as transfer:
-                preview.get_by_role("link", name=download_name, exact=True).click()
+                download.click()
             output = evidence / "selected.sdf"
             transfer.value.save_as(output)
             assert output.read_bytes() == selected_bytes
@@ -86,10 +107,8 @@ def test_retained_conformers_render_and_switch_without_preparation(
                 "combobox", name="化学状态" if zh else "Chemical state", exact=True
             ).select_option(str(different["state_index"]))
             expect(conformer).to_have_value(str(different["record"]))
-            expect(preview.get_by_role("link", name=download_name, exact=True)).to_have_attribute(
-                "href", re.compile(r"name=" + re.escape(different["artifact"]) + "$")
-            )
             expect(action).to_be_enabled(timeout=30000)
+            assert download.is_enabled()
             forms = page.locator(".molecular-state-results .state-result-notes")
             expect(forms).not_to_have_attribute("open", "")
             forms.get_by_text("结果说明与源文件" if zh else "Result notes and source files").click()

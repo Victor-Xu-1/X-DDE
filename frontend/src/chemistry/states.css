@@ -55,6 +55,13 @@
 .state-result-notes > .inline-fields {
   margin-block-start: 8px;
 }
+.state-conformer-download > button {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding-inline: 0;
+}
 .studio-app .state-native-preview .viewer-panel {
   padding: 0;
   background: transparent;

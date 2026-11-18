@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { MolecularPreview } from "../presentation/MolecularPreview";
+import { SdfArtifactDownload } from "../presentation/SdfArtifactDownload";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
@@ -128,12 +129,25 @@ export function StateCollectionPreview({
                   : "This conformer has no verifiable 3D file. Showing the original chemical state."}
               </p>
             )}
-            {url && (
-              <a href={url} download>
-                {zh
-                  ? "下载所选原始构象 SDF"
-                  : "Download selected original conformer SDF"}
-              </a>
+            {url && nativeConformer && (
+              <SdfArtifactDownload
+                key={url + ":" + nativeConformer.artifact_sha256}
+                className="state-conformer-download"
+                url={url}
+                sha256={nativeConformer.artifact_sha256}
+                filename={nativeConformer.artifact}
+                language={language}
+                label={
+                  zh
+                    ? "下载所选原始构象 SDF"
+                    : "Download selected original conformer SDF"
+                }
+                errorLabel={
+                  zh
+                    ? "无法核对原始构象。请重试。"
+                    : "Could not verify the original conformer. Try again."
+                }
+              />
             )}
             {original && (
               <PoseStudyInput original={original} language={language}>

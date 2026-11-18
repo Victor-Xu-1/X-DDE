@@ -28,6 +28,21 @@ vi.mock("../presentation/MoleculeImage", () => ({
     <output data-testid="native-2d-source">{JSON.stringify(source)}</output>
   ),
 }));
+vi.mock("../presentation/SdfArtifactDownload", () => ({
+  SdfArtifactDownload: ({
+    label,
+    url,
+    sha256,
+  }: {
+    label: string;
+    url: string;
+    sha256: string;
+  }) => (
+    <button type="button" data-source={url} data-source-hash={sha256}>
+      {label}
+    </button>
+  ),
+}));
 afterEach(cleanup);
 
 // Two real chemical states of an ionizable medicinal-chemistry scaffold.
@@ -124,10 +139,10 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
   );
   expect(screen.queryByTestId("native-3d-source")).toBeNull();
   expect(
-    screen.getByRole("link", {
+    screen.getByRole("button", {
       name: "Download selected original conformer SDF",
     }),
-  ).toHaveAttribute("href", expect.stringContaining("neutral-003.sdf"));
+  ).toHaveAttribute("data-source", expect.stringContaining("neutral-003.sdf"));
   await user.selectOptions(
     screen.getByRole("combobox", { name: "Chemical state" }),
     "1",
@@ -144,10 +159,10 @@ it("keeps 2D across conformers and protomers while every download and 3D source 
     screen.getByRole("tabpanel", { name: "2D structure" }),
   ).toHaveTextContent("c".repeat(64));
   expect(
-    screen.getByRole("link", {
+    screen.getByRole("button", {
       name: "Download selected original conformer SDF",
     }),
-  ).toHaveAttribute("href", expect.stringContaining("cation-010.sdf"));
+  ).toHaveAttribute("data-source-hash", "c".repeat(64));
   await user.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(screen.getByTestId("native-3d-source")).toHaveTextContent(
     "cation-010.sdf",
