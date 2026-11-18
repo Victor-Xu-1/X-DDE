@@ -20,6 +20,7 @@ on:
       - "frontend/src/diffsbdd/diffsbdd.css"
       - "server_tests/test_ensemble_results_browser.py"
       - "server_tests/test_receptor_workspace_browser.py"
+      - "scripts/receptor-workspace-scope.py"
       - ".github/workflows/viewer-checks.yml"
       - "server_tests/test_context_camera_browser.py"
       - "server_tests/ensemble_browser_helpers.py"
@@ -118,22 +119,7 @@ jobs:
       - id: receptors
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          if [[ "$GITHUB_REF_NAME" != main || ! "$BASE" =~ ^[0-9a-f]{40}$ ]] ||
-             ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE=$(git merge-base HEAD origin/main)
-          fi
-          found=false
-          only=true
-          while IFS= read -r file; do
-            case "$file" in
-              frontend/src/receptors/ReceptorResults.tsx|frontend/src/receptors/ReceptorResults.test.tsx|frontend/src/receptors/receptors.css|server_tests/test_receptor_workspace_browser.py) found=true ;;
-              .github/workflows/viewer-checks.yml|.github/workflows/structure-layout-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
-              *) only=false ;;
-            esac
-          done < <(git diff --name-only "$BASE" HEAD)
-          [[ "$found" = true && "$GITHUB_EVENT_NAME" != workflow_dispatch ]] || only=false
-          echo "receptor_workspace_only=$only" >> "$GITHUB_OUTPUT"
+        run: python scripts/receptor-workspace-scope.py
   prediction-scope:
     uses: ./.github/workflows/prediction-workspace-checks.yml
     with:

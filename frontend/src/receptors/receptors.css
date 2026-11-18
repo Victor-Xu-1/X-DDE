@@ -103,9 +103,15 @@
   }
 }
 @media (max-width: 360px) {
+  .receptor-preview-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) 44px;
+  }
+  .receptor-preview-toolbar > :is(select, button) {
+    width: 100%;
+    min-width: 0;
+  }
   .studio-app .receptor-preview-toolbar > .receptor-details-jump {
-    min-width: 44px;
-    width: 44px;
     padding-inline: 0;
     font-size: 0;
   }
@@ -113,8 +119,10 @@
     content: "↓" / "";
     font-size: 17px;
   }
-  .receptor-preview-toolbar > button {
+  .studio-app .receptor-preview-toolbar > button {
+    padding-inline: 4px;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
   .receptor-overlay-detail > .viewer-panel > .studio-heading {
     gap: 4px;

@@ -89,6 +89,12 @@ def test_retained_stat6_receptor_preview(width, height, language, visible):
         else:
             assert view["y"] + view["height"] <= details["y"]
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        if width <= 390:
+            jump = scene.get_by_role("button", name=label("Details", "详情"), exact=True)
+            expect(jump).to_be_visible()
+            button = jump.bounding_box()
+            assert button and button["height"] >= 44
+            assert button["x"] + button["width"] <= view["x"] + view["width"] + 1
         original_frame = stage.element_handle()
         assert original_frame
         picker = scene.get_by_role("combobox", name=label("Preview receptor", "预览受体"))
@@ -107,14 +113,12 @@ def test_retained_stat6_receptor_preview(width, height, language, visible):
         overlay.click()
         expect_loaded_sources(2)
         expect(overlay).to_have_attribute("aria-pressed", "true")
-        row = result.get_by_role("row").filter(has=result.get_by_role(
+        row = result.get_by_role("row").filter(has=page.get_by_role(
             "button", name=selected_name, exact=True,
         ))
         expect(row).to_contain_text(f"{aligned['transformation']['rmsd_angstrom']:.3f}")
 
         if width == 390:
-            jump = scene.get_by_role("button", name="详情", exact=True)
-            assert jump.bounding_box()["height"] >= 44
             jump.press("Enter")
             expect(result.get_by_role("region", name="对齐详情")).to_be_focused()
         if width == 1440:
