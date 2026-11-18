@@ -1,4 +1,4 @@
-"""The narrow figure dialog keeps native preview and download controls reachable."""
+"""The native figure stays in view alongside reachable close and download controls."""
 
 import json
 from pathlib import Path
@@ -51,6 +51,8 @@ def geometry(dialog):
             frame: rect(dialog), body: rect(body), preview: rect(preview), action: rect(action),
             header: rect(dialog.querySelector(':scope > header')),
             actionReachable: hit === action || action.contains(hit),
+            previewControls: rect(body.querySelector('.figure-view-toolbar')),
+            options: rect(body.querySelector('.figure-export-options')),
             documentWidth: document.documentElement.clientWidth,
             viewportHeight: innerHeight,
             horizontalBody: body.scrollWidth > body.clientWidth,
@@ -62,16 +64,23 @@ def geometry(dialog):
     )
 
 
-def assert_first_screen(layout):
+def assert_first_screen(layout, stacked):
     frame, preview, action = (layout[key] for key in ("frame", "preview", "action"))
     assert 0 <= frame["left"] < frame["right"] <= layout["documentWidth"] + 1
     assert 0 <= frame["top"] < action["top"] < action["bottom"] <= layout["viewportHeight"]
     assert action["bottom"] <= frame["bottom"] and action["height"] >= 44
-    assert action["width"] >= frame["width"] - 35
     assert layout["actionReachable"] and not layout["horizontalBody"]
-    assert preview["top"] < layout["body"]["bottom"]
+    body = layout["body"]
+    assert body["top"] <= preview["top"] < preview["bottom"] <= body["bottom"] + 1
+    assert layout["previewControls"]["bottom"] <= layout["body"]["bottom"] + 1
     assert layout["scrollWindow"] == 0
-    assert layout["labels"][0]["top"] == layout["labels"][1]["top"]
+    if stacked:
+        assert action["width"] >= frame["width"] - 35
+        assert layout["options"]["top"] >= layout["previewControls"]["bottom"]
+        assert layout["labels"][0]["top"] == layout["labels"][1]["top"]
+    else:
+        assert preview["right"] <= layout["options"]["left"]
+        assert preview["width"] >= layout["options"]["width"] * 1.3
 
 
 def assert_options_fit(dialog):
@@ -121,9 +130,15 @@ def check_short_body_scroll(page, dialog, before):
 
 @pytest.mark.parametrize(
     ("language", "format", "width", "height"),
-    [("zh", "PNG", 390, 775), ("en", "PNG", 320, 568), ("en", "SVG", 390, 775)],
+    [
+        ("zh", "PNG", 390, 775),
+        ("en", "PNG", 320, 568),
+        ("en", "PNG", 568, 320),
+        ("en", "PNG", 1110, 580),
+        ("en", "SVG", 390, 775),
+    ],
 )
-def test_native_figure_action_stays_visible_on_narrow_screens(language, format, width, height):
+def test_native_figure_stays_accessible_in_short_windows(language, format, width, height):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     key = f"{language}-{format.lower()}-{width}"
     zh = language == "zh"
@@ -144,6 +159,12 @@ def test_native_figure_action_stays_visible_on_narrow_screens(language, format, 
         dialog = page.get_by_role("dialog")
         close = dialog.get_by_role("button", name="关闭" if zh else "Close", exact=True)
         expect(close).to_be_focused()
+        zoom = dialog.get_by_role(
+            "button", name="放大预览" if zh else "Zoom in preview", exact=True
+        )
+        expect(zoom).to_be_enabled(timeout=45000)
+        page.keyboard.press("Tab")
+        expect(zoom).to_be_focused()
         page.keyboard.press("Tab")
         expect(dialog.get_by_role("combobox").first).to_be_focused()
         page.keyboard.press("Escape")
@@ -157,20 +178,20 @@ def test_native_figure_action_stays_visible_on_narrow_screens(language, format, 
                 ).select_option("300")
 
         def inspect(dialog):
+            dialog.locator(".figure-export-layout").evaluate("el => { el.scrollTop = 0; }")
             layout = geometry(dialog)
-            assert_first_screen(layout)
-            assert_options_fit(dialog)
+            assert_first_screen(layout, stacked=width <= 390)
+            if width <= 390:
+                assert_options_fit(dialog)
             if width == 320:
                 check_short_body_scroll(page, dialog, layout)
-            else:
-                assert layout["preview"]["bottom"] <= layout["body"]["bottom"] + 1
             if format == "SVG":
                 page.set_viewport_size({"width": 1440, "height": 900})
                 desktop = geometry(dialog)
-                assert desktop["preview"]["left"] > desktop["labels"][0]["right"]
-                assert desktop["actionReachable"]
+                assert_first_screen(desktop, stacked=False)
+                assert desktop["preview"]["height"] >= 480
                 page.set_viewport_size({"width": width, "height": height})
-                assert_first_screen(geometry(dialog))
+                assert_first_screen(geometry(dialog), stacked=True)
             (EVIDENCE / (key + "-layout.json")).write_text(
                 json.dumps(layout, indent=2), encoding="utf-8"
             )
