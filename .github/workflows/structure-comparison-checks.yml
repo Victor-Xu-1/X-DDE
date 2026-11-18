@@ -45,6 +45,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       layout_only: ${{ steps.scope.outputs.layout_only }}
+      receptor_workspace_only: ${{ steps.preparation.outputs.receptor_workspace_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +54,10 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/comparison-layout-scope.py
+      - id: preparation
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/receptor-workspace-scope.py
   archived-result-layout:
     needs: layout-scope
     if: needs.layout-scope.outputs.layout_only == 'true'
@@ -114,7 +119,7 @@ jobs:
         run: python scripts/antibody_template_scope.py
   contracts-and-frame:
     needs: [antibody-scope, utility-scope, layout-scope]
-    if: needs.layout-scope.outputs.layout_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
+    if: needs.layout-scope.outputs.receptor_workspace_only != 'true' && needs.layout-scope.outputs.layout_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

@@ -42,6 +42,8 @@ on:
       - "!frontend/src/poses/PoseResults*"
       - "!frontend/src/receptors/ReceptorResults*"
       - "!frontend/src/diffsbdd/InteractionResults*"
+      # Prepared receptor results use the native preparation workspace gate.
+      - "!frontend/src/diffsbdd/PreparedReceptorResults.tsx"
       # Native pocket results have a focused result/geometry gate.
       - "!frontend/src/presentation/ResearchTable*"
       - "!frontend/src/presentation/research-table.css"
@@ -401,6 +403,8 @@ on:
       - "!frontend/src/poses/PoseResults*"
       - "!frontend/src/receptors/ReceptorResults*"
       - "!frontend/src/diffsbdd/InteractionResults*"
+      # Prepared receptor results use the native preparation workspace gate.
+      - "!frontend/src/diffsbdd/PreparedReceptorResults.tsx"
       - "!frontend/src/presentation/ensemble-results.css"
       - "frontend/src/research/ResearchWorkspace*"
       - "frontend/src/operations/ToolCenter*"

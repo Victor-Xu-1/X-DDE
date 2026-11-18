@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { OperationResults } from "./OperationResults";
@@ -24,6 +25,74 @@ vi.mock("../space/ChannelResults", () => ({
   ChannelResults: () => <div>Reviewed native channels</div>,
 }));
 afterEach(cleanup);
+
+it("puts an exact prepared receptor and its report together in one result workspace", async () => {
+  transport.result.mockResolvedValue({
+    operation: "diffsbdd",
+    mode: "prepare",
+    structure: "prepared.pdb",
+    input_atoms: 100,
+    output_atoms: 97,
+    removed_atoms: 3,
+    notes: "Only the requested input records were retained.",
+  });
+  render(
+    <OperationResults
+      job={
+        {
+          id: "prepare",
+          request: { operation: "diffsbdd", payload: { mode: "prepare" } },
+        } as Job
+      }
+      language="en"
+    />,
+  );
+  const workspace = await screen.findByRole("region", {
+    name: "Structure preparation result",
+  });
+  expect(screen.getAllByText(/^Structure:/)).toHaveLength(1);
+  expect(
+    within(workspace).getByText(/prepare\/artifacts\/prepared.pdb/),
+  ).toBeVisible();
+  expect(
+    screen.getAllByRole("link", { name: "Download structure" }),
+  ).toHaveLength(1);
+  expect(
+    within(workspace).getByRole("link", { name: "Download structure" }),
+  ).toHaveAttribute("href", "/api/jobs/prepare/artifacts/prepared.pdb");
+  expect(within(workspace).getByText("97")).toBeVisible();
+  expect(
+    within(workspace).getByText(/requested input records/),
+  ).not.toBeVisible();
+  fireEvent.click(within(workspace).getByText("Method & result scope"));
+  expect(within(workspace).getByText(/requested input records/)).toBeVisible();
+});
+
+it("keeps preparation counts readable when no structure artifact was recorded", async () => {
+  transport.result.mockResolvedValue({
+    operation: "diffsbdd",
+    mode: "prepare",
+    input_atoms: 100,
+  });
+  render(
+    <OperationResults
+      job={
+        {
+          id: "prepare-without-file",
+          request: { operation: "diffsbdd", payload: { mode: "prepare" } },
+        } as Job
+      }
+      language="en"
+    />,
+  );
+  expect(
+    await screen.findByText("No structure file was saved with this result."),
+  ).toBeVisible();
+  expect(screen.getByText("100")).toBeVisible();
+  expect(screen.queryByText("Retained atoms")).toBeNull();
+  expect(screen.queryByText(/^Structure:/)).toBeNull();
+  expect(screen.queryByRole("link", { name: "Download structure" })).toBeNull();
+});
 
 it("does not relabel old result data or a late response as a newly selected job", async () => {
   let finishOld!: (value: unknown) => void;
