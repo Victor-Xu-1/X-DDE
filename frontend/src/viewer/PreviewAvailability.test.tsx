@@ -188,7 +188,7 @@ it("retains saved downloads and undo/redo after the task service pauses", async 
   );
   vi.mocked(request).mockImplementation(
     async (path) =>
-      (path === "/runtime-controls"
+      (path.startsWith("/runtime-controls")
         ? runtime
         : { id: saved.job_id, status: "succeeded" }) as never,
   );
@@ -215,7 +215,7 @@ it("keeps cancellation and progress polling available for an already running tas
   let finish!: (value: unknown) => void;
   vi.mocked(api.post).mockResolvedValue({ id: saved.job_id });
   vi.mocked(request).mockImplementation(async (path) => {
-    if (path === "/runtime-controls") return runtime as never;
+    if (path.startsWith("/runtime-controls")) return runtime as never;
     return new Promise((resolve) => {
       finish = resolve;
     });

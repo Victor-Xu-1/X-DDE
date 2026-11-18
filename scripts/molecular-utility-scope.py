@@ -232,11 +232,27 @@ RUNTIME_CONSUMERS = {
     ),
     "frontend/src/poses/PosePlanRun.tsx": (
         "78cabb945dfc52837ba9cb5616317fa69926369f2df1d0f7a75a0951e85cf160",
-        "917dff5dcfe34bb8a7fda67cfcac7c7a6852a57722f3ba662c0677b1afd5c957",
+        "32979cd160c301e1383e4ce5503acce05de414544d7cc427ead012ea482e230a",
     ),
     "frontend/src/viewer/PoseOptimizationControls.tsx": (
         "5664d3c54850e50269ae7857d02a6df16b52f27615e67df105cc4154c24c9f9f",
         "83d2ef24d29d3f8a19ed8e2f3c801c32c8d4e39dfc8acd73b6036dd62172cc47",
+    ),
+    ".github/workflows/molecular-utility-checks.yml": (
+        "7de71cac940b3fbd8d70eb6fc5faf284df93ba02d5e1c267f00291c9ed0f1680",
+        "34e2b027b00542d62b4cfbd0cd5c185f72bc5529bc1e33fe0a254d5a286626bf",
+    ),
+    ".github/workflows/navigation-shell-checks.yml": (
+        "f8f88be2979d908c91ed3e0ec11bb9a95d28637391015016729c5a31105b4714",
+        "e9a7aa46015ee3254e76ce08a5baf624af4fa1687244dda7fa4c1f2f508534cf",
+    ),
+    ".github/workflows/pose-cluster-checks.yml": (
+        "d2724846cc676161c9c60ca397aefa975cd2c2c16ee5d58fd3b14c3202bd0aa6",
+        "7c2bc6dbff82e104afefccd091e29ee5a282ad45e934bc86d00305d3a040eaf6",
+    ),
+    ".github/workflows/workflow-quality-checks.yml": (
+        "926835f53ece261bae8f45c895d8d5464f6763731f9f35041e495ed9cb509465",
+        "6be8c7e359435b8ddd678b1197f7b365bfdcb37c86d538b5e4590dbfcb525efd",
     ),
 }
 RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
@@ -244,10 +260,6 @@ RUNTIME_FILES = RUNTIME_SOURCES | RUNTIME_CONSUMERS.keys() | {
     "tests/test_molecular_utility_scope.py",
     "frontend/src/poses/PosePlanRun.test.tsx",
     "frontend/src/viewer/PreviewAvailability.test.tsx",
-    ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/navigation-shell-checks.yml",
-    ".github/workflows/pose-cluster-checks.yml",
-    ".github/workflows/workflow-quality-checks.yml",
     "pyproject.toml",
     "uv.lock",
     "frontend/package.json",

@@ -17,7 +17,7 @@ export function BackendControls({
 }) {
   const zh = language === "zh";
   const [open, setOpen] = useState(false);
-  const runtime = useBackendRuntime(open);
+  const runtime = useBackendRuntime(open, undefined, true);
   return (
     <div className="backend-controls">
       <button

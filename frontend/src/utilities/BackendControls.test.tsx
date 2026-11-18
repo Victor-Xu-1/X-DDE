@@ -137,3 +137,38 @@ it("shares one default-off engine across module, sibling tool and global switche
     "/runtime-controls/chemistry/stop",
   ]);
 });
+
+it("only probes native campaign activity when a matching tool is visible", async () => {
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      ({
+        capabilities: { properties: "chemistry", fold: "harness" },
+        engines: [
+          entry,
+          {
+            ...entry,
+            id: "harness",
+            name: "OpenDDE Harness",
+            activity_unknown: path.includes("?"),
+          },
+        ],
+      }) as never,
+  );
+  const { rerender } = render(
+    <TaskBackendControl language="en" scope={{ capability: "properties" }} />,
+  );
+  await screen.findByRole("switch", { name: "RDKit" });
+  expect(vi.mocked(request).mock.calls.map(([path]) => path)).toEqual([
+    "/runtime-controls?include_native=false",
+  ]);
+  rerender(<TaskBackendControl language="en" scope={{ capability: "fold" }} />);
+  const harness = await screen.findByRole("switch", {
+    name: "OpenDDE Harness",
+  });
+  await waitFor(() => expect(harness).toBeEnabled());
+  expect(request).toHaveBeenLastCalledWith(
+    "/runtime-controls",
+    expect.anything(),
+  );
+  expect(api.post).not.toHaveBeenCalled();
+});

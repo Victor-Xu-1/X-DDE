@@ -88,10 +88,10 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
             return None  # Unknown native activity must not disable independent engines.
 
     @app.get("/api/runtime-controls")
-    async def snapshot():
+    async def snapshot(include_native: bool = True):
         state = await health()
         active = controls.active_engines()
-        native = await native_activity()
+        native = await native_activity() if include_native else None
         if native:
             active.add("harness")
         return {

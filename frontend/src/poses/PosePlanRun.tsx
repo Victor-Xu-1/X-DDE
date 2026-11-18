@@ -168,7 +168,7 @@ export function PosePlanRun({
         <TaskBackendControl
           language={language}
           scope={{ capability: "gnina.dock" }}
-          active={settingsVisible}
+          active={settingsVisible && !loading}
         />
         <PoseRunControls
           value={value}

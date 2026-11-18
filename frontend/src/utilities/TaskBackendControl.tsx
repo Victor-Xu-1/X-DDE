@@ -14,7 +14,11 @@ export function TaskBackendControl({
   scope: Scope;
   active?: boolean;
 }) {
-  const runtime = useBackendRuntime(active);
+  const runtime = useBackendRuntime(
+    active,
+    "capability" in scope ? scope.capability : undefined,
+    "operations" in scope && scope.operations.includes("harness"),
+  );
   if (!active) return null;
   const { catalogue, readError } = runtime;
   const engine =

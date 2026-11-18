@@ -5,10 +5,12 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
+import httpx
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
+from opendde_workbench.api import create_app
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
@@ -175,6 +177,9 @@ def test_failed_native_probe_keeps_independent_controls_available(tmp_path):
     health = AsyncMock(return_value={"engine": {"backends": {"chemistry": {"ready": True}}}})
     register_runtime_controls(app, store, engine, worker, health, lambda: None, harness)
     with TestClient(app) as client:
+        lightweight = client.get("/api/runtime-controls?include_native=false")
+        assert lightweight.status_code == 200
+        harness.runtime_busy.assert_not_awaited()
         reply = client.get("/api/runtime-controls")
         assert reply.status_code == 200
         rows = {item["id"]: item for item in reply.json()["engines"]}
@@ -182,3 +187,57 @@ def test_failed_native_probe_keeps_independent_controls_available(tmp_path):
         assert rows["chemistry"]["ready"] and not rows["chemistry"]["activity_unknown"]
         assert client.post("/api/runtime-controls/chemistry/start", json={}).status_code == 200
         assert client.post("/api/runtime-controls/harness/stop", json={}).status_code == 409
+
+
+def test_harness_stop_serializes_with_campaign_start(settings, monkeypatch):
+    """The real app mutation lock spans the idle probe and admission update."""
+    base = "http://127.0.0.1:4320"
+    start_path = f"/api/harness/plans/{uuid4()}/start"
+    monkeypatch.setattr(
+        BackendRouter,
+        "readiness",
+        AsyncMock(return_value={"backends": {"harness": {"ready": True}}}),
+    )
+
+    async def scenario():
+        probing, released, arriving = asyncio.Event(), asyncio.Event(), asyncio.Event()
+
+        async def idle(_service):
+            probing.set()
+            await asyncio.wait_for(released.wait(), 5)
+            return False
+
+        monkeypatch.setattr(HarnessService, "runtime_busy", idle)
+        launch = Mock(side_effect=AssertionError("Disabled campaign entered dispatch."))
+        monkeypatch.setattr(HarnessService, "plan", launch)
+        app = create_app(settings)
+
+        @app.middleware("http")
+        async def observe_entry(request, call_next):
+            if request.url.path == start_path:
+                arriving.set()
+            return await call_next(request)
+
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url=base
+        ) as client:
+            token = (await client.get("/api/session")).json()["csrf_token"]
+            client.headers.update({"X-Workbench-CSRF": token, "Origin": base})
+            start = await client.post("/api/runtime-controls/harness/start", json={})
+            assert start.status_code == 200
+            stop_task = asyncio.create_task(
+                client.post("/api/runtime-controls/harness/stop", json={})
+            )
+            await asyncio.wait_for(probing.wait(), 5)
+            launch_task = asyncio.create_task(client.post(start_path, json={"digest": "a" * 64}))
+            try:
+                await asyncio.wait_for(arriving.wait(), 5)
+            finally:
+                released.set()
+            stopped, blocked = await asyncio.gather(stop_task, launch_task)
+            assert stopped.status_code == 200
+            assert blocked.status_code == 409
+            assert "Enable OpenDDE Harness" in blocked.json()["detail"]
+            launch.assert_not_called()
+
+    asyncio.run(scenario())

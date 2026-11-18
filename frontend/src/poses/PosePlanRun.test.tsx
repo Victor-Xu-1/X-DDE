@@ -55,7 +55,7 @@ const set = (id: string, runId: string): PoseSet => ({
 });
 function source(ready = true, reportOutage = false) {
   return vi.spyOn(client, "request").mockImplementation(async (path) => {
-    if (path === "/runtime-controls")
+    if (path.startsWith("/runtime-controls"))
       return {
         capabilities: { "gnina.dock": "gnina" },
         engines: [

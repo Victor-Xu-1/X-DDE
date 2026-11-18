@@ -29,19 +29,25 @@ const initial: RuntimeState = {
   busy: "",
   failed: "",
 };
+type Observation = { capability?: string; needsNative: boolean };
 
 /** All switches share one observation and serialize explicit permission changes. */
 class RuntimeControls {
   private state = initial;
-  private listeners = new Set<() => void>();
+  private listeners = new Map<() => void, Observation>();
   private read: AbortController | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   getSnapshot = () => this.state;
 
-  subscribe = (listener: () => void) => {
-    this.listeners.add(listener);
-    if (this.listeners.size === 1) this.refresh();
+  subscribe = (listener: () => void, observation: Observation) => {
+    const observedNative = this.nativeRequested();
+    this.listeners.set(listener, observation);
+    if (
+      this.listeners.size === 1 ||
+      (!observedNative && this.nativeRequested())
+    )
+      void this.refresh();
     return () => {
       this.listeners.delete(listener);
       if (!this.listeners.size) {
@@ -53,7 +59,19 @@ class RuntimeControls {
 
   private update(change: Partial<RuntimeState>) {
     this.state = { ...this.state, ...change };
-    this.listeners.forEach((listener) => listener());
+    for (const listener of this.listeners.keys()) listener();
+  }
+
+  private nativeRequested() {
+    for (const { capability, needsNative } of this.listeners.values()) {
+      if (
+        needsNative ||
+        (capability &&
+          this.state.catalogue?.capabilities?.[capability] === "harness")
+      )
+        return true;
+    }
+    return false;
   }
 
   private stopReading() {
@@ -67,11 +85,13 @@ class RuntimeControls {
     this.stopReading();
     const reader = new AbortController();
     this.read = reader;
+    const includeNative = this.nativeRequested();
     const signal = AbortSignal.any([reader.signal, AbortSignal.timeout(22000)]);
     try {
-      const catalogue = await request<RuntimeCatalogue>("/runtime-controls", {
-        signal,
-      });
+      const path = includeNative
+        ? "/runtime-controls"
+        : "/runtime-controls?include_native=false";
+      const catalogue = await request<RuntimeCatalogue>(path, { signal });
       if (reader.signal.aborted) return;
       if (!Array.isArray(catalogue?.engines))
         throw new Error("Invalid backend status response.");
@@ -81,7 +101,9 @@ class RuntimeControls {
     } finally {
       if (this.read === reader) {
         this.read = null;
-        this.timer = setTimeout(this.refresh, 5000);
+        if (!includeNative && !this.state.readError && this.nativeRequested())
+          void this.refresh();
+        else this.timer = setTimeout(this.refresh, 5000);
       }
     }
   };
@@ -128,11 +150,17 @@ export const canToggle = (item: RuntimeEngine) =>
   !item.active && !item.activity_unknown && (item.ready || item.enabled);
 
 const controls = new RuntimeControls();
-export function useBackendRuntime(active: boolean) {
+export function useBackendRuntime(
+  active: boolean,
+  capability?: string,
+  needsNative = false,
+) {
   const subscribe = useCallback(
     (listener: () => void) =>
-      active ? controls.subscribe(listener) : () => undefined,
-    [active],
+      active
+        ? controls.subscribe(listener, { capability, needsNative })
+        : () => undefined,
+    [active, capability, needsNative],
   );
   return {
     ...useSyncExternalStore(subscribe, controls.getSnapshot),

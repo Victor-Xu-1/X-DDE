@@ -232,3 +232,6 @@ def test_contextual_switch_scope_covers_reviewed_consumers_and_preserves_scienti
     )
     assert not selected(changed, "push", shared={})
     assert not selected(approved, "push", shared=approved)
+    handoff = ".github/workflows/workflow-quality-checks.yml"
+    unrelated_workflow_edit = {**approved, handoff: (approved[handoff][0], "changed")}
+    assert not selected(changed, "push", shared=unrelated_workflow_edit)
