@@ -64,6 +64,12 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
   const unsubscribe = host.subscribe(() => {
     version++;
   });
+  function recognitionReady(context: Context) {
+    const ready = host.recognitionReady?.();
+    return ready === undefined
+      ? undefined
+      : ready && context.bound && Boolean(host.file());
+  }
   function publish() {
     if (context?.accepted && host.file() === context.file) context.bound = true;
     if (mounted && context)
@@ -81,7 +87,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
             ? (host.file()?.name ?? context.file.name)
             : context.file.name,
           recognitionSupported: typeof host.recognize === "function",
-          recognitionServiceReady: host.recognitionReady?.(),
+          recognitionServiceReady: recognitionReady(context),
           recognitionRequestId: context.run?.id,
           recognitionPhase: context.run?.phase,
         },
@@ -154,7 +160,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
             id: bound.id,
             valid: false,
             recognitionSupported: Boolean(host.recognize),
-            recognitionServiceReady: host.recognitionReady?.(),
+            recognitionServiceReady: recognitionReady(bound),
             recognitionRequestId: data.requestId,
             recognitionPhase: "failed",
           },
@@ -170,14 +176,14 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
       bound.run = run;
       publish();
       try {
-        if (!bound.accepted) bound.accepted = await host.selectFile(bound.file);
-        if (!mounted || context !== bound || run.controller.signal.aborted)
-          return;
-        if (!bound.accepted || !host.recognize)
+        const file = bound.bound ? host.file() : null;
+        if (!file || !host.recognize)
           throw new Error("Recognition input unavailable");
         if (host.recognitionReady?.() !== true)
           throw new Error("Recognition service is not ready");
-        await host.recognize(bound.file, run.controller.signal);
+        await host.recognize(file, run.controller.signal);
+        if (host.file() !== file)
+          throw new Error("Recognition input changed");
         if (
           mounted &&
           context === bound &&

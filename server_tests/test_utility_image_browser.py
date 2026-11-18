@@ -148,6 +148,13 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(dialog.get_by_role("button", name="Use this molecule")).to_be_disabled()
         assert not uploads
         page.screenshot(path=evidence / "recognition-off.png")
+        replacement = png + b"replacement image fixture"
+        frame.get_by_label("Replace image").set_input_files({
+            "name": "replacement-transport.png", "mimeType": "image/png", "buffer": replacement,
+        })
+        expect(dialog.locator('footer [role="status"]')).to_have_text(
+            "replacement-transport.png",
+        )
         power.press("Space")
         try:
             expect(page.get_by_label("Primary input", exact=True)).to_have_text(
@@ -164,7 +171,7 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             raise
         expect(page.get_by_role("dialog")).to_have_count(0)
         assert b"Image-assisted molecular input" in uploads[0]
-        assert hashlib.sha256(png).hexdigest().encode() in uploads[0]
+        assert hashlib.sha256(replacement).hexdigest().encode() in uploads[0]
         primary.get_by_role("button", name="Edit recognized structure", exact=True).click()
         dialog = page.get_by_role("dialog")
         expect(dialog).to_be_visible()
@@ -203,5 +210,6 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             "nested_query_ownership": True, "image_digest_preserved": True,
             "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
             "off_on_entry": True, "explicit_enable_and_disable_in_import": True,
+            "replacement_source_digest": True,
         }, indent=2))
         browser.close()

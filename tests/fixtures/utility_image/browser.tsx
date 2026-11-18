@@ -127,6 +127,17 @@ function NativeHost() {
       </button>
       <output aria-label="OCR calls">{count}</output>
       <label>
+        Replace image
+        <input
+          type="file"
+          accept="image/png"
+          onChange={(event) => {
+            setGraph(null);
+            setFile(event.currentTarget.files?.[0] ?? null);
+          }}
+        />
+      </label>
+      <label>
         Graph text
         <input
           value={graph?.smiles ?? ""}

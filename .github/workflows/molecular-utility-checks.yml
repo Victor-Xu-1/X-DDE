@@ -92,6 +92,8 @@ on:
         value: ${{ jobs.scope.outputs.potential_display_only }}
       runtime_switch_only:
         value: ${{ jobs.scope.outputs.runtime_switch_only }}
+      recognition_power_only:
+        value: ${{ jobs.scope.outputs.recognition_power_only }}
       result_header_only:
         value: ${{ jobs.scope.outputs.result_header_only }}
 permissions:
@@ -255,7 +257,7 @@ jobs:
           src/utilities/useRecognitionBridge.test.tsx src/utilities/recognition-host-bridge.test.ts
           src/utilities/recognition-host-foreground.test.ts src/utilities/recognition-foreground.test.ts
           src/utilities/ImageMoleculeInput.test.tsx src/utilities/ImageMoleculeInput.action.test.tsx
-          src/utilities/UtilityImageTask.test.tsx
+          src/utilities/UtilityImageTask.test.tsx src/workflows/WorkflowCenter.test.tsx
       - name: Wheel resources and default-off task and import controls in Chrome
         run: |
           uv sync --locked --group dev --group browser

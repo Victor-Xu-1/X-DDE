@@ -507,8 +507,10 @@ POTENTIAL_DISPLAY_DIFF = "f22988ae3083137afe51720f45f506973eb08d762e7a0579905bd5
 
 
 RECOGNITION_POWER_FILES = {
+    ".github/workflows/ketcher-depiction-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
+    "frontend/src/editors/recognition-host-editor.css",
     "frontend/src/utilities/ImageMoleculeDialog.tsx",
     "frontend/src/utilities/image-molecule.css",
     "frontend/src/utilities/recognition-foreground.test.ts",
@@ -522,9 +524,10 @@ RECOGNITION_POWER_FILES = {
     "server_tests/test_utility_image_browser.py",
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "tests/fixtures/utility_image/browser.tsx",
+    "tests/test_molecular_utility_scope.py",
     "tests/test_recognition_companion.py",
 }
-RECOGNITION_POWER_DIFF = "7f74f1e1ec6bccec785e2cf8e1dd6f5105c92b0972fb86aff18cb119219428f7"
+RECOGNITION_POWER_DIFF = "e5905d1bb2b204d1f9f9f88cbd0ced93e0c45563123bdf2ff3b631d59752aaf1"
 
 
 def reviewed_selected(changed, event, base, files, digest):

@@ -111,6 +111,10 @@ function setup() {
       selected = file;
       bridge.publish();
     },
+    replace: (next: File) => {
+      selected = next;
+      bridge.publish();
+    },
     finish: () => finish(),
     signal: () => signal,
   };
@@ -165,6 +169,23 @@ it("refuses OCR when the service stops after connection and publishes its actual
       recognitionPhase: "failed",
     }),
     "http://127.0.0.1:4322",
+  );
+  h.bridge.dispose();
+});
+
+it("recognizes the image selected in the editor after a source replacement", async () => {
+  const h = setup();
+  h.deliver({ type: "xdde-image:connect", file: h.file });
+  await flush();
+  h.commit();
+  const replacement = new File(["replacement"], "replacement.png", {
+    type: "image/png",
+  });
+  h.replace(replacement);
+  h.deliver({ type: "xdde-image:recognize", requestId: h.requestId });
+  expect(h.host.recognize).toHaveBeenCalledExactlyOnceWith(
+    replacement,
+    expect.any(AbortSignal),
   );
   h.bridge.dispose();
 });
