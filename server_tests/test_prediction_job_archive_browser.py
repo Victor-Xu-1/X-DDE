@@ -96,7 +96,9 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
                 expect(matrix.get_by_role("application")).to_have_attribute("aria-busy", "false")
                 page.wait_for_function("""() => {
                     const panel = document.querySelector('[data-workspace-expanded="true"]');
-                    const chart = panel?.querySelector('.prediction-confidence-body [role="application"]');
+                    const chart = panel?.querySelector(
+                        '.prediction-confidence-body [role="application"]'
+                    );
                     const svg = chart?.querySelector('.svg-container');
                     return svg && svg.getBoundingClientRect().width <= chart.clientWidth + 1
                         && panel.scrollWidth <= panel.clientWidth + 1;
