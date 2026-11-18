@@ -87,6 +87,15 @@ def test_saved_target_evidence(target_graphical_workspace, entity, language, wid
             expect(workspace.locator(".result-summary-grid dd").first).to_have_text(
                 str(association["count"])
             )
+            header = workspace.locator(".evidence-header")
+            expect(header.locator(".questionnaire-overline")).to_be_visible()
+            expect(header.locator("h3")).to_have_text(
+                result["entity"].get("approvedSymbol") or result["entity"]["name"]
+            )
+            expect(header.locator(":scope > span")).to_be_visible()
+            if result["entity"].get("approvedName"):
+                expect(header.locator(".field-help")).to_have_text(result["entity"]["approvedName"])
+                expect(header.locator(".field-help")).to_be_visible()
             workspace.evaluate("""node => {
               for (let parent = node.parentElement; parent; parent = parent.parentElement)
                 parent.scrollTo({top: 0, left: 0, behavior: 'instant'});
@@ -98,12 +107,14 @@ def test_saved_target_evidence(target_graphical_workspace, entity, language, wid
                 return {x: box.x, y: box.y, width: box.width, height: box.height};
               };
               return {viewport: {width: innerWidth, height: innerHeight},
+                identity: rect('.evidence-header'),
                 summary: rect('.result-summary-grid'), table: rect('.research-table'),
                 firstRow: rect('.research-table tbody tr'),
                 overflow: document.documentElement.scrollWidth > innerWidth + 1};
             }""")
             assert not geometry["overflow"], geometry
             if width > 1000:
+                assert geometry["identity"]["height"] <= 44, geometry
                 assert geometry["table"]["y"] <= 500, geometry
                 assert geometry["summary"]["height"] <= 45, geometry
                 assert geometry["firstRow"]["y"] + geometry["firstRow"]["height"] < 1000, geometry
