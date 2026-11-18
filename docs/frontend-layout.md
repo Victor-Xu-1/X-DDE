@@ -802,8 +802,10 @@ selection. A residue identifier stays intact, including its insertion code.
 Rows focus only a unique observed source residue. Missing or ambiguous identities
 remain unselectable; changing task, artifact or fingerprint clears previous
 selection. Native coordinates, contact classification, distances in angstroms and
-source CSV files are unchanged. Short windows scroll without shrinking the
-scientific view below its minimum, and narrow screens stack the view and table.
+source CSV files are unchanged. On narrow screens, the view and table stack.
+The view tools disclose the original structure download, figure export and
+display controls. The interaction and 3D shortcuts move focus between the
+retained viewer and table so filtering, contact selection and the camera persist.
 
 ### Two-sided protein-interface inspection
 
