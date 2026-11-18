@@ -1,10 +1,13 @@
 .prepared-research-inputs .structure-workbench {
   gap: 12px 18px;
 }
-.prepared-research-inputs .structure-workbench-details {
+.prepared-input-materials {
+  display: grid;
   gap: 10px;
+  min-width: 0;
 }
 .prepared-input-toolbar,
+.prepared-input-toolbar-actions,
 .prepared-input-source > label {
   display: flex;
   flex-wrap: wrap;
@@ -15,6 +18,12 @@
   justify-content: space-between;
   padding-block-end: 6px;
   border-bottom: 1px solid var(--line);
+}
+.prepared-input-toolbar-actions:empty {
+  display: none;
+}
+.prepared-research-inputs .prepared-input-jump {
+  display: none;
 }
 .prepared-input-toolbar h3 {
   margin: 0;
@@ -57,8 +66,23 @@
 .prepared-research-inputs .sequence-track-scroll {
   max-height: clamp(240px, 36vh, 380px);
 }
-.prepared-research-inputs .structure-workbench-details > .field-help {
+.prepared-input-materials > .field-help {
   margin: 0;
+}
+@media (max-width: 1000px) {
+  .prepared-research-inputs
+    :is(.prepared-input-toolbar, .prepared-input-materials) {
+    scroll-margin-block-start: 132px;
+  }
+  .prepared-research-inputs .prepared-input-jump {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 44px;
+    padding: 5px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
 }
 @media (max-width: 360px) {
   .task-history-workspace

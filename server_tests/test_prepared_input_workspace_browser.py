@@ -10,6 +10,57 @@ import pytest
 from playwright.sync_api import expect, sync_playwright
 
 EVIDENCE = Path("server_tests/evidence/prepared-inputs")
+CAMERA = "frame => frame.contentDocument.querySelector('canvas')._3dmol_viewer.getView()"
+
+
+def verify_import_jumps(page, workspace, source, canvas, width, label):
+    materials = workspace.get_by_role("region", name=label("Input components", "输入组分"))
+    forward = workspace.get_by_role("button", name=label("View components", "查看组分"))
+    back = materials.get_by_role("button", name=label("Back to original 3D", "返回原始三维"))
+    if width > 1000:
+        expect(forward).to_be_hidden()
+        expect(back).to_be_hidden()
+        return
+
+    expect(forward).to_be_in_viewport(ratio=0.9)
+    frame = canvas.element_handle()
+    assert frame
+    original_url = page.url
+    initial = canvas.evaluate(CAMERA)
+    source.get_by_role("button", name=label("Zoom in", "放大"), exact=True).click()
+    page.wait_for_function("""zoom => {
+      const frame = document.querySelector('.prepared-input-source .molecular-stage iframe');
+      const view = frame?.contentDocument.querySelector('canvas')?._3dmol_viewer?.getView();
+      return view && Math.abs(view[3] - zoom) > 0.001;
+    }""", arg=initial[3])
+    zoomed = canvas.evaluate(CAMERA)
+
+    if width == 320:
+        forward.press("Enter")
+    else:
+        forward.click()
+    expect(materials).to_be_focused()
+    expect(materials.locator('[data-position="1"]')).to_be_in_viewport(ratio=0.9)
+    assert materials.evaluate("section => section.getBoundingClientRect().top") >= page.locator(
+        ".studio-topbar"
+    ).evaluate("header => header.getBoundingClientRect().bottom")
+    page.screenshot(path=EVIDENCE / f"import-components-{width}.png")
+
+    first = materials.get_by_role("tab", name=label("Component 1", "组分 1"))
+    second = materials.get_by_role("tab", name=label("Component 2", "组分 2"))
+    first.press("ArrowRight")
+    expect(second).to_be_focused()
+    back.press("Enter")
+    expect(source).to_be_focused()
+    expect(forward).to_be_in_viewport(ratio=0.9)
+    assert canvas.evaluate("(current, previous) => current === previous", frame)
+    assert canvas.evaluate(CAMERA) == pytest.approx(zoomed)
+    assert page.url == original_url
+
+    forward.click()
+    expect(materials).to_be_focused()
+    expect(second).to_have_attribute("aria-selected", "true")
+    second.press("ArrowLeft")
 
 
 @pytest.mark.parametrize("capability,width,height,language", [
@@ -18,6 +69,7 @@ EVIDENCE = Path("server_tests/evidence/prepared-inputs")
     ("features", 320, 568, "en"),
     ("import", 1440, 900, "en"),
     ("import", 390, 775, "zh"),
+    ("import", 320, 568, "en"),
 ])
 def test_saved_prediction_inputs_keep_native_materials_and_downloads(
     capability, width, height, language,
@@ -70,6 +122,9 @@ def test_saved_prediction_inputs_keep_native_materials_and_downloads(
                 "heading", name=label("Protein sequence", "蛋白序列"),
             )).to_be_visible()
             expect(workspace.get_by_role("tablist")).to_have_count(0)
+            expect(workspace.get_by_role(
+                "button", name=label("View components", "查看组分"),
+            )).to_have_count(0)
             expect(canvas).to_have_count(0)
             expect(residues.locator('[data-position="1"]')).to_be_in_viewport(ratio=0.9)
         else:
@@ -95,6 +150,8 @@ def test_saved_prediction_inputs_keep_native_materials_and_downloads(
         stem.with_suffix(".json").write_text(json.dumps({
             "job": job, "viewport": [width, height], "residue_grid": box,
         }, indent=2))
+        if capability == "import":
+            verify_import_jumps(page, workspace, source, canvas, width, label)
 
         link = workspace.get_by_role(
             "link", name=label("Prediction input 1 · JSON", "预测输入 1 · JSON"),
