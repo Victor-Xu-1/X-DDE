@@ -106,7 +106,8 @@ def test_archived_ligand_framing_preserves_live_camera(language, width):
         before, after = export_at("1"), export_at("1.5")
         assert (before["width"], before["height"]) == (1051, 701)
         assert (after["width"], after["height"]) == (1051, 701)
-        assert 0 < after["left"] < after["right"] < 1050 and 0 < after["top"] < after["bottom"] < 700
+        assert 0 < after["left"] < after["right"] < after["width"] - 1
+        assert 0 < after["top"] < after["bottom"] < after["height"] - 1
         assert after["right"] - after["left"] > 1.25 * (before["right"] - before["left"]), (
             before,
             after,
