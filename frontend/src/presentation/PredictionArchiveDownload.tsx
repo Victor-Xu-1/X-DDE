@@ -1,3 +1,4 @@
+import { DownloadOutlined } from "@ant-design/icons";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import { downloadBlob } from "./visual-export";
@@ -52,12 +53,20 @@ export function PredictionArchiveDownload({
     }
   }
 
+  const label = busy
+    ? zh
+      ? "正在准备…"
+      : "Preparing…"
+    : zh
+      ? "下载全部数据"
+      : "Download all data";
   return (
     <div className="prediction-archive-download">
       <button
         type="button"
         className="primary-button"
         disabled={busy}
+        aria-label={label}
         onClick={() => void download()}
         title={
           zh
@@ -65,13 +74,8 @@ export function PredictionArchiveDownload({
             : "Structures, confidence and retained sequence alignments"
         }
       >
-        {busy
-          ? zh
-            ? "正在准备…"
-            : "Preparing…"
-          : zh
-            ? "下载全部数据"
-            : "Download all data"}
+        <DownloadOutlined className="prediction-archive-icon" aria-hidden="true" />
+        <span className="prediction-archive-label">{label}</span>
       </button>
       {failed && (
         <p role="alert" className="field-help">
