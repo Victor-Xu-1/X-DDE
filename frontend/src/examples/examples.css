@@ -188,6 +188,31 @@
   border: 0;
   background: transparent;
 }
+.studio-app
+  .module-task-picker:has(
+    + .tool-center.is-result > .module-template.is-preview
+  ) {
+  display: none;
+}
+@media (961px <= width <= 1360px) {
+  .studio-main:has(.module-template.is-preview:not([hidden] *)) .studio-topbar {
+    gap: 10px;
+  }
+  .studio-main:has(.module-template.is-preview:not([hidden] *)) .page-context {
+    min-width: 114px;
+    white-space: normal;
+  }
+  .studio-main:has(.module-template.is-preview:not([hidden] *)) .task-search {
+    flex: 1 1 130px;
+  }
+  .studio-main:has(.module-template.is-preview:not([hidden] *)) .global-search {
+    width: 100%;
+    min-width: 0;
+  }
+  .studio-main:has(.module-template.is-preview:not([hidden] *)) .top-actions {
+    flex: none;
+  }
+}
 .example-review-highlight {
   margin: 0 0 12px;
   padding: 8px 12px;

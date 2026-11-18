@@ -11,6 +11,7 @@ import type { IdentityResult } from "../diffsbdd/types";
 import { ExampleJobResult } from "./ExampleJobResult";
 import { StudyInputPreview } from "./StudyInputPreview";
 import { DatasetStudyInputPreview } from "./DatasetStudyInputPreview";
+import { ExampleStageNavigation } from "./ExampleStageNavigation";
 
 export function ExampleRecordResult({
   example,
@@ -92,30 +93,26 @@ export function ExampleRecordResult({
       )}
       {record.kind === "workflows" && (
         <section aria-label={zh ? "模板流程结果" : "Template workflow result"}>
-          <p>
-            {record.value.body.steps.some((step) => step.quality_gate)
-              ? zh
-                ? "所选姿势通过了计划指定的质控检查，再进入后续计算。选择一步查看它的真实输出。"
-                : "The selected pose passed the plan's required quality checks before downstream calculations. Select a step to inspect its actual output."
-              : zh
-                ? "研究已按所列步骤完成。选择一步查看它的真实输出。"
-                : "The study completed the listed steps. Select a step to inspect its actual output."}
-          </p>
-          <div className="segmented">
-            {record.run.attempts.map((value, index) => (
-              <button
-                type="button"
-                key={value.job_id}
-                aria-pressed={index === selected}
-                onClick={() => setSelected(index)}
-              >
-                {index + 1}.{" "}
-                {record.value.body.steps.find(
-                  (step) => step.id === value.step_id,
-                )?.request.name ?? value.step_id}
-              </button>
-            ))}
-          </div>
+          {attempt && (
+            <ExampleStageNavigation
+              kind="workflow"
+              language={language}
+              selected={attempt.job_id}
+              stages={record.run.attempts.map((value) => ({
+                id: value.job_id,
+                label:
+                  record.value.body.steps.find(
+                    (step) => step.id === value.step_id,
+                  )?.request.name ?? value.step_id,
+              }))}
+              onSelect={(id) => {
+                const index = record.run.attempts.findIndex(
+                  (value) => value.job_id === id,
+                );
+                if (index >= 0) setSelected(index);
+              }}
+            />
+          )}
           {currentJob && (
             <ExampleJobResult
               job={currentJob}
@@ -123,6 +120,18 @@ export function ExampleRecordResult({
               showSource={!onJobChange}
             />
           )}
+          <details className="example-result-review">
+            <summary>{zh ? "工作流说明" : "Workflow notes"}</summary>
+            <p>
+              {record.value.body.steps.some((step) => step.quality_gate)
+                ? zh
+                  ? "所选姿势通过了计划指定的质控检查，再进入后续计算。"
+                  : "The selected pose passed the plan's required quality checks before downstream calculations."
+                : zh
+                  ? "研究已按所列步骤完成。"
+                  : "The study completed the listed steps."}
+            </p>
+          </details>
         </section>
       )}
     </ExampleContext.Provider>

@@ -61,6 +61,9 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
                     const r = e.getBoundingClientRect();
                     return r.top + r.height / 2 < innerHeight - 12;
                 }""")
+            if tool == "workflows":
+                assert scene.evaluate("e => innerHeight - e.getBoundingClientRect().top >= 90")
+                expect(page.locator(".module-task-picker")).not_to_be_visible()
             page.screenshot(path=evidence / "first-view.png")
             guide.press("Enter")
             expect(source).to_contain_text(root["request"]["name"])
@@ -128,7 +131,7 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
             if tool == "workflows":
                 step = page.request.get(base + f"/api/jobs/{attempts[1]['job_id']}").json()
                 steps = template.get_by_role("region", name="Template workflow result")
-                steps.locator(".segmented > button").nth(1).click()
+                steps.get_by_role("button", name="Next workflow step", exact=True).click()
                 switch = header.locator('[data-engine="posebusters"] [role="switch"]')
                 expect(switch).to_be_visible()
                 guide.click()
@@ -139,6 +142,8 @@ def test_saved_case_guide_keeps_source_current_and_the_view_in_reach(
                 "button", name="返回任务填写" if zh else "Return to task form", exact=True
             ).click()
             expect(open_result).to_be_focused()
+            if tool == "workflows":
+                expect(page.locator(".module-task-picker")).to_be_visible()
             assert page.request.get(base + "/api/jobs").json() == jobs
             assert writes == []
             browser.close()

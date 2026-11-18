@@ -44,17 +44,18 @@ function example(gated: boolean): PreparedExample {
 
 it("explains a measured handoff and loads the exact selected native child result", async () => {
   transport.request.mockImplementation((path: string) =>
-    Promise.resolve({ id: path.split("/").at(-1) }),
+    Promise.resolve({ id: path.split("/").at(-1), status: "succeeded" }),
   );
   render(<ExampleRecordResult example={example(true)} language="en" />);
+  fireEvent.click(screen.getByText("Workflow notes", { selector: "summary" }));
   expect(screen.getByText(/plan's required quality checks/)).toBeVisible();
   await screen.findByText("Native result new-dock");
-  fireEvent.click(screen.getByRole("button", { name: "2. Review pose" }));
+  fireEvent.click(screen.getByRole("button", { name: "Next workflow step" }));
   await screen.findByText("Native result new-quality");
   expect(screen.queryByText("Native result new-dock")).toBeNull();
-  fireEvent.click(
-    screen.getByRole("button", { name: "3. Compare properties" }),
-  );
+  fireEvent.change(screen.getByRole("combobox", { name: "Workflow step" }), {
+    target: { value: "new-properties" },
+  });
   await screen.findByText("Native result new-properties");
   await waitFor(() =>
     expect(transport.request).toHaveBeenLastCalledWith(
@@ -65,11 +66,10 @@ it("explains a measured handoff and loads the exact selected native child result
 });
 
 it("does not claim pose quality or a docking-to-properties chain for an ungated historical plan", () => {
-  transport.request.mockResolvedValue({ id: "new-dock" });
+  transport.request.mockResolvedValue({ id: "new-dock", status: "succeeded" });
   render(<ExampleRecordResult example={example(false)} language="zh" />);
-  expect(
-    screen.getByText("研究已按所列步骤完成。选择一步查看它的真实输出。"),
-  ).toBeVisible();
+  fireEvent.click(screen.getByText("工作流说明", { selector: "summary" }));
+  expect(screen.getByText("研究已按所列步骤完成。")).toBeVisible();
   expect(screen.queryByText(/质控检查/)).toBeNull();
   expect(screen.queryByText(/对接产物/)).toBeNull();
 });
