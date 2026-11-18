@@ -44,6 +44,8 @@ on:
 permissions:
   contents: read
 jobs:
+  docking-scope:
+    uses: ./.github/workflows/docking-result-scope.yml
   utility-scope:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
@@ -114,8 +116,8 @@ jobs:
           src/pockets/PocketResults.return.test.tsx
           src/docking/DockingForm.test.tsx src/viewer/source-layout.test.ts
   pocket-results:
-    needs: [scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true')
+    needs: [scope, utility-scope, docking-scope]
+    if: needs.docking-scope.outputs.presentation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.scope.outputs.comparison_only != 'true' && needs.scope.outputs.refinement_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -19,6 +19,9 @@ on:
       - "tests/test_research_tabs_scope.py"
       - "server_tests/test_research_tabs_browser.py"
       - "frontend/src/docking/DockingResults*"
+      - "frontend/src/docking/DockingPoseSummary.tsx"
+      - "scripts/docking-result-scope.py"
+      - "tests/test_docking_result_scope.py"
       - "frontend/src/presentation/CandidateReviewBar.tsx"
       - "frontend/src/presentation/candidate-review-bar.css"
       - "frontend/src/docking/PoseTable*"
@@ -140,7 +143,10 @@ jobs:
           DOCKING_PRESENTATION_ONLY: ${{ needs.result-scope.outputs.presentation_only }}
         run: |
           if [ "$DOCKING_PRESENTATION_ONLY" = true ]; then
-            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx
+            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx \
+              src/docking/DockingResultsEvidence.test.tsx src/docking/ReferenceComparison.test.tsx \
+              src/presentation/ResearchTable.test.tsx src/pockets/PocketResults.test.tsx \
+              src/diffsbdd/GeneratedCandidates.test.tsx
             exit
           fi
           if [ "$CHAIN_FOCUS_ONLY" = true ]; then
@@ -171,7 +177,14 @@ jobs:
           echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-pose-handoff/state" >> "$GITHUB_ENV"
           WB_HOME="$RUNNER_TEMP/x-dde-pose-handoff" WB_STATE_DIR="$RUNNER_TEMP/x-dde-pose-handoff/state" .venv/bin/python server_tests/prepare_pose_handoff.py
       - name: Prepare the ephemeral CI browser for retained-source inspection
+        if: needs.result-scope.outputs.presentation_only != 'true'
         run: uv run --locked playwright install chromium --with-deps
+      - name: Verify the selected presentation scope
+        if: needs.result-scope.outputs.presentation_only == 'true'
+        run: |
+          google-chrome --version
+          uv run --locked ruff check scripts/docking-result-scope.py tests/test_docking_result_scope.py server_tests/test_docking_table_browser.py
+          uv run --locked pytest -q tests/test_docking_result_scope.py
       - name: Real STAT6 pose, current/original versions, undo/redo, form navigation and downloads
         if: needs.result-scope.outputs.presentation_only != 'true' && needs.refinement-scope.outputs.research_tabs_only != 'true' && steps.scope.outputs.overlay_only != 'true' && steps.scope.outputs.chain_focus_only != 'true'
         run: |
