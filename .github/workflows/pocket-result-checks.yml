@@ -86,6 +86,11 @@ jobs:
               frontend/src/pockets/PocketResultsHandoff.tsx|server_tests/test_stat6_pocket_handoff_browser.py) handoff_changed=true ;;
               frontend/src/presentation/CandidateReviewBar.tsx|frontend/src/presentation/candidate-review-bar.css|frontend/src/presentation/StructureWorkbench.tsx|frontend/src/docking/DockingResults.tsx|frontend/src/docking/DockingResults.test.tsx|server_tests/test_docking_table_browser.py) ;;
               frontend/src/pockets/PocketResults*.tsx|frontend/src/pockets/PocketSelection.tsx|frontend/src/pockets/ReferenceComparison*.tsx|frontend/src/pockets/pocket-results.css) ;;
+              .github/workflows/structure-layout-checks.yml)
+                if [[ "$(git rev-parse "$BASE:$file")" != 1ca71f7661920e24dc98409486143eeb872568c2 ||
+                      "$(git rev-parse "HEAD:$file")" != 1f7314561a28b6a1311738cfd1d6457072cda3ee ]]; then
+                  handoff_only=false
+                fi ;;
               .github/workflows/pocket-result-checks.yml|.github/workflows/pose-handoff-checks.yml|.github/workflows/task-layout-checks.yml|.github/workflows/user-interface-checks.yml|pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
               *) handoff_only=false ;;
             esac
@@ -162,7 +167,10 @@ jobs:
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - name: Bilingual selection, pocket geometry, exports and return navigation
         run: |
-          .venv/bin/python -m playwright install --with-deps chromium
+          google-chrome --version
+          if [[ "${{ needs.scope.outputs.handoff_only }}" != "true" ]]; then
+            .venv/bin/python -m playwright install --with-deps chromium
+          fi
           mkdir -p server_tests/evidence/pocket-results
           .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/pocket-results/service.log 2>&1 &
           server_pid=$!

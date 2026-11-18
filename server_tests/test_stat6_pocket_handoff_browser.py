@@ -43,8 +43,8 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
         return cn if zh else en
 
     with sync_playwright() as driver:
-        browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1000})
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": width, "height": 775 if zh else 850})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         writes, errors = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -73,17 +73,58 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
         center = [site[f"center_{axis}"] for axis in "xyz"]
         jobs = data("jobs")
         page.goto(f"{base}/#task={job_id}")
+        scene = page.get_by_role("region", name=label("Pocket 3D preview", "口袋三维预览"))
+        stage = scene.locator(".molecular-stage iframe")
+        expect(scene.get_by_role(
+            "button", name=label("Export figure ↓", "文献图导出 ↓"), exact=True
+        )).to_be_enabled(timeout=30000)
+        expect(stage).to_be_in_viewport(ratio=0.25 if zh else 0.65)
+        original_scene = stage.element_handle()
+        assert original_scene
         pick = page.get_by_role(
             "button", name=f"{label('Pocket', '口袋')} {site['rank']}", exact=True
         )
         strip = page.get_by_role("region", name=label("Pocket preview selection", "口袋预览选择"))
-        strip.get_by_role(
+        preview_control = strip.get_by_role(
             "button", name=f"{label('Preview pocket', '预览口袋')} {site['rank']}", exact=True
-        ).click()
+        )
+        preview_control.click()
         expect(pick).to_have_attribute("aria-pressed", "true")
-        expect(strip).to_contain_text(str(site["probability"]))
-        expect(strip).to_contain_text(str(site["score"]))
         selected = page.get_by_role("region", name=label("Selected pocket", "所选口袋"))
+        expect(selected).to_contain_text(str(site["probability"]))
+        expect(selected).to_contain_text(str(site["score"]))
+        dock = selected.get_by_role(
+            "button", name=label("Explore poses in this pocket", "探索这个口袋的结合模式"), exact=True
+        )
+        generate = selected.get_by_role(
+            "button", name=label("Generate molecules in this pocket", "用这个口袋生成分子"), exact=True
+        )
+        if zh:
+            details_jump = strip.get_by_role("button", name="口袋详情", exact=True)
+            for control in (preview_control, details_jump):
+                target = control.bounding_box()
+                assert target and target["height"] >= 44, target
+            details_jump.press("Enter")
+            expect(selected).to_be_focused()
+        expect(dock).to_be_in_viewport(ratio=1)
+        expect(generate).to_be_in_viewport(ratio=1)
+        selected.locator(".pocket-residues summary").click()
+        labels = [f"{r['chain']}:{r['number']}{r['insertion_code']}" for r in site["residues"]]
+        assert selected.locator(".pocket-residues li").all_text_contents() == labels
+        selected.locator(".pocket-residues summary").click()
+        if zh:
+            scene_jump = selected.get_by_role("button", name="查看三维", exact=True)
+            target = scene_jump.bounding_box()
+            assert target and target["height"] >= 44, target
+            scene_jump.press("Enter")
+            expect(scene).to_be_focused()
+        expect(stage).to_be_in_viewport(ratio=0.65)
+        expect(scene.get_by_role("status").filter(
+            has_text=label("Region residues located", "已定位区域残基")
+        )).to_contain_text(f"{len(labels)} / {len(labels)}")
+        assert original_scene.evaluate("(frame) => frame.isConnected")
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        page.screenshot(path=EVIDENCE / f"stat6-{language}-pocket-workspace.png")
         name = f"{label('Predicted pocket', '预测口袋')} {site['rank']}"
         origin = page.get_by_role("region", name=label("Starting research inputs", "起始研究材料"))
 
