@@ -6,6 +6,8 @@ Permissions are deliberately not persisted across platform restarts.
 """
 
 import asyncio
+from collections import Counter
+from contextlib import contextmanager
 
 from fastapi import Depends, HTTPException
 
@@ -16,6 +18,17 @@ class RuntimeControls:
     def __init__(self, store):
         self.store = store
         self.enabled: set[str] = set()
+        self._interactive_calls: Counter[str] = Counter()
+
+    @contextmanager
+    def interactive(self, identifier):
+        if identifier not in self.enabled:
+            raise HTTPException(409, f"Enable {ENGINES[identifier].name} in this task first.")
+        self._interactive_calls[identifier] += 1
+        try:
+            yield
+        finally:
+            self._interactive_calls[identifier] -= 1
 
     def reason(self, job):
         owner = engine_for(job.request.operation)
@@ -35,7 +48,9 @@ class RuntimeControls:
             rows = db.execute(
                 "SELECT * FROM jobs WHERE status IN ('running', 'cancelling', 'paused')"
             ).fetchall()
-        return {engine_for(self.store.decode(row).request.operation).id for row in rows}
+        return {engine_for(self.store.decode(row).request.operation).id for row in rows} | {
+            key for key, count in self._interactive_calls.items() if count
+        }
 
     def change(self, identifier, action, ready):
         if identifier not in ENGINES or action not in {"start", "stop"}:
@@ -57,6 +72,7 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
     # Explicitly injected engines retain their own lifecycle contract.
     managed = isinstance(engine, BackendRouter)
     controls = RuntimeControls(store)
+    app.state.runtime_controls = controls if managed else None
     capabilities = {
         spec.id: spec.environment
         for spec in CAPABILITIES.values()

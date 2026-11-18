@@ -7,7 +7,6 @@ import type { Language } from "../types";
 import { PoseResults } from "./PoseResults";
 import type { Exploration, PoseSet } from "./types";
 import { PoseRunControls } from "./PoseRunControls";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function PosePlanRun({
   value,
   language,
@@ -31,7 +30,6 @@ export function PosePlanRun({
     [reload, setReload] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const [settingsVisible, setSettingsVisible] = useState(false);
   const updateRun = useCallback((current: WorkflowRun) => {
     setRun(current);
     setHistory((old) => [current, ...old.filter((r) => r.id !== current.id)]);
@@ -157,19 +155,10 @@ export function PosePlanRun({
       {saved && (
         <PoseResults key={saved.id} value={saved} language={language} />
       )}
-      <details
-        className="pose-run-settings"
-        open={!saved}
-        onToggle={(event) => setSettingsVisible(event.currentTarget.open)}
-      >
+      <details className="pose-run-settings" open={!saved}>
         <summary>
           {zh ? "计算设置与运行记录" : "Run settings and history"}
         </summary>
-        <TaskBackendControl
-          language={language}
-          scope={{ capability: "gnina.dock" }}
-          active={settingsVisible && !loading}
-        />
         <PoseRunControls
           value={value}
           language={language}

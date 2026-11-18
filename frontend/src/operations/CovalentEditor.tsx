@@ -9,6 +9,7 @@ import { terminal } from "../types";
 import type { BondAtom, CovalentBond, OperationResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { SelectionInfo } from "../viewer/protocol";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 
 type Atom = NonNullable<OperationResult["atoms"]>[number];
 const clean = (a: Atom): BondAtom => ({
@@ -47,6 +48,7 @@ export function CovalentEditor({
     [right, setRight] = useState(-1),
     [query, setQuery] = useState("");
   const [pollRevision, setPollRevision] = useState(0);
+  const [open, setOpen] = useState(false);
   const key = JSON.stringify(components),
     live = useRef(true),
     submission = useRef({ body: "", key: crypto.randomUUID() });
@@ -142,12 +144,20 @@ export function CovalentEditor({
     if (index >= 0) (side === "left" ? setLeft : setRight)(index);
   }
   return (
-    <details className="covalent-editor">
+    <details
+      className="covalent-editor"
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
       <summary>
         {zh
           ? "共价连接 · 从真实原子中选择"
           : "Covalent bonds · select actual atoms"}
       </summary>
+      <TaskBackendControl
+        language={language}
+        scope={{ capability: "native.inspect" }}
+        active={open}
+      />
       <p className="small">
         {zh
           ? "先检查输入，再在预览中点选两个原子，或搜索下拉列表。该预览用于编辑输入拓扑，不是结合姿势预测。"

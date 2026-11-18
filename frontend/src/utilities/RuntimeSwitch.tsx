@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { Language } from "../types";
 import {
   canToggle,
@@ -33,11 +34,12 @@ export function RuntimeSwitch({
 }) {
   const zh = language === "zh";
   const switching = runtime.busy === item.id;
+  const status = useId();
   return (
     <div className="compute-switch runtime-switch" data-engine={item.id}>
       <span className="runtime-switch-label">
         <span title={item.name}>{item.name}</span>
-        <small>
+        <small id={status} aria-live="polite">
           {runtime.readError
             ? zh
               ? "状态待确认"
@@ -53,6 +55,7 @@ export function RuntimeSwitch({
         type="button"
         role="switch"
         aria-label={item.name}
+        aria-describedby={status}
         aria-checked={item.enabled}
         disabled={
           Boolean(runtime.busy) || runtime.readError || !canToggle(item)

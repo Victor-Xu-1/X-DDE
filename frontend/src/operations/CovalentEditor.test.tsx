@@ -7,9 +7,22 @@ import * as client from "../api";
 import type { Job } from "../types";
 afterEach(() => vi.restoreAllMocks());
 it("prepares the preview only on explicit request and keeps network/template/folding controls out of the native atom task", async () => {
-  vi.spyOn(client, "request").mockResolvedValue({
-    availability: { configuration_present: true },
-  });
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path.startsWith("/runtime-controls")
+      ? ({
+          capabilities: { "native.inspect": "opendde" },
+          engines: [
+            {
+              id: "opendde",
+              name: "OpenDDE",
+              ready: true,
+              enabled: false,
+              active: false,
+            },
+          ],
+        } as never)
+      : ({ availability: { configuration_present: true } } as never),
+  );
   const submit = vi
     .spyOn(client.api, "submit")
     .mockResolvedValue({ id: "inspection", status: "succeeded" } as Job);
@@ -31,6 +44,9 @@ it("prepares the preview only on explicit request and keeps network/template/fol
     />,
   );
   await user.click(screen.getByText("Covalent bonds · select actual atoms"));
+  expect(
+    await screen.findByRole("switch", { name: "OpenDDE" }),
+  ).not.toBeChecked();
   expect(submit).not.toHaveBeenCalled();
   await waitFor(() =>
     expect(

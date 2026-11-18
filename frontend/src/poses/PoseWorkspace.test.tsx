@@ -10,13 +10,26 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+const runtime = {
+  capabilities: { "gnina.dock": "gnina" },
+  engines: [
+    { id: "gnina", name: "GNINA", ready: true, enabled: false, active: false },
+  ],
+};
+
 it("shows a real empty source state without creating synthetic plans or poses", async () => {
-  vi.spyOn(client, "request").mockResolvedValue([]);
+  vi.spyOn(client, "request").mockImplementation(
+    async (path) =>
+      (path.startsWith("/runtime-controls") ? runtime : []) as never,
+  );
   const post = vi.spyOn(client.api, "post");
   render(<PoseWorkspace language="en" />);
   expect(
     await screen.findByText(/Align receptors in Structure prediction/),
   ).toBeVisible();
+  expect(
+    await screen.findByRole("switch", { name: "GNINA" }),
+  ).not.toBeChecked();
   expect(
     screen.getByRole("radio", { name: "New search regions" }),
   ).toBeChecked();
@@ -35,9 +48,10 @@ it("shows a real empty source state without creating synthetic plans or poses", 
   expect(post).not.toHaveBeenCalled();
 });
 it("reports source loading errors with a recovery action", async () => {
-  vi.spyOn(client, "request").mockRejectedValue(
-    new Error("source API unavailable"),
-  );
+  vi.spyOn(client, "request").mockImplementation(async (path) => {
+    if (path.startsWith("/runtime-controls")) return runtime as never;
+    throw new Error("source API unavailable");
+  });
   render(<PoseWorkspace language="en" />);
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "source API unavailable",
@@ -52,6 +66,7 @@ it("makes historical source choices explicit and lets a researcher return to a g
   const user = userEvent.setup();
   const post = vi.spyOn(client.api, "post");
   vi.spyOn(client, "request").mockImplementation(async (path) => {
+    if (path.startsWith("/runtime-controls")) return runtime as never;
     if (path.startsWith("/research/site-sets")) {
       return [
         { id: "saved-sites", request: { name: "Saved search region" } },
@@ -77,6 +92,9 @@ it("makes historical source choices explicit and lets a researcher return to a g
     "retained-plan",
   );
   expect(screen.getByText("Existing study result")).toBeVisible();
+  expect(
+    await screen.findByRole("switch", { name: "GNINA" }),
+  ).not.toBeChecked();
   await user.click(screen.getByText("Study inputs and historical plans"));
   expect(
     screen.getByRole("radio", { name: "Historical pockets and regions" }),

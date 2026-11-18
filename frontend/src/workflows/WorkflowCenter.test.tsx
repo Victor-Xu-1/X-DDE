@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, expect, it, vi } from "vitest";
 import { WorkflowCenter } from "./WorkflowCenter";
 import { ExampleContext } from "../examples/context";
 import type { PreparedExample } from "../examples/types";
@@ -43,10 +44,38 @@ const example: PreparedExample = {
   workflow_plan: body,
 };
 
+const runtime = {
+  engines: [
+    {
+      id: "chemistry",
+      name: "RDKit",
+      ready: true,
+      enabled: false,
+      active: false,
+      operations: ["properties"],
+    },
+  ],
+};
+beforeEach(() => {
+  transport.request.mockReset();
+  transport.post.mockReset();
+});
+
 it("loads a guided case plan and requires saving and review before running", async () => {
-  transport.request.mockResolvedValue([]);
+  transport.request.mockImplementation(async (path) =>
+    path.startsWith("/runtime-controls") ? runtime : [],
+  );
   const saved = { id: "fixed-plan", sha256: "a".repeat(64), body };
-  transport.post.mockResolvedValue(saved);
+  transport.post.mockImplementation(async (path) =>
+    path === "/workflows/plans"
+      ? saved
+      : {
+          id: "fixed-run",
+          plan_id: saved.id,
+          state: "succeeded",
+          attempts: [],
+        },
+  );
   render(
     <ExampleContext.Provider value={example}>
       <WorkflowCenter language="zh" jobs={[]} />
@@ -64,5 +93,52 @@ it("loads a guided case plan and requires saving and review before running", asy
   await waitFor(() => expect(transport.post).toHaveBeenCalledTimes(1));
   expect(transport.post.mock.calls[0][0]).toBe("/workflows/plans");
   expect(transport.post.mock.calls[0][1]).toEqual(body);
-  expect(screen.getByRole("button", { name: "运行这个计划" })).toBeEnabled();
+  const power = await screen.findByRole("switch", { name: "RDKit" });
+  expect(power).not.toBeChecked();
+  const start = screen.getByRole("button", { name: "运行这个计划" });
+  expect(start).toBeEnabled();
+  fireEvent.click(start);
+  await waitFor(() => expect(transport.post).toHaveBeenCalledTimes(2));
+  expect(
+    await screen.findByRole("region", { name: "研究计划运行" }),
+  ).toBeVisible();
+  expect(power).toBeVisible();
+  expect(power).not.toBeChecked();
+});
+
+it("looks up the exact plan for a history run outside the plan list, with retry", async () => {
+  const run = {
+    id: "historic-run",
+    plan_id: "older-plan",
+    state: "succeeded",
+    attempts: [],
+  };
+  const older = { id: run.plan_id, sha256: "b".repeat(64), body };
+  let detailReads = 0;
+  transport.request.mockImplementation(async (path) => {
+    if (path === "/workflows/runs") return [run];
+    if (path === "/workflows/plans/older-plan") {
+      if (++detailReads === 1) throw new Error("temporary read failure");
+      return older;
+    }
+    return path.startsWith("/runtime-controls") ? runtime : [];
+  });
+  render(<WorkflowCenter language="en" jobs={[]} />);
+  const user = userEvent.setup();
+  await user.click(screen.getByText("Run history"));
+  await screen.findByRole("option", { name: /Run.*#1/ });
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Open a persisted run" }),
+    run.id,
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Cannot read the backends for this run.",
+  );
+  expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Retry" }));
+  expect(
+    await screen.findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  expect(detailReads).toBe(2);
+  expect(transport.post).not.toHaveBeenCalled();
 });
