@@ -85,9 +85,10 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
             "button", name=f"{label('Pocket', '口袋')} {site['rank']}", exact=True
         )
         strip = page.get_by_role("region", name=label("Pocket preview selection", "口袋预览选择"))
-        strip.get_by_role(
+        preview_control = strip.get_by_role(
             "button", name=f"{label('Preview pocket', '预览口袋')} {site['rank']}", exact=True
-        ).click()
+        )
+        preview_control.click()
         expect(pick).to_have_attribute("aria-pressed", "true")
         selected = page.get_by_role("region", name=label("Selected pocket", "所选口袋"))
         expect(selected).to_contain_text(str(site["probability"]))
@@ -99,7 +100,11 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
             "button", name=label("Generate molecules in this pocket", "用这个口袋生成分子"), exact=True
         )
         if zh:
-            strip.get_by_role("button", name="口袋详情", exact=True).press("Enter")
+            details_jump = strip.get_by_role("button", name="口袋详情", exact=True)
+            for control in (preview_control, details_jump):
+                target = control.bounding_box()
+                assert target and target["height"] >= 44, target
+            details_jump.press("Enter")
             expect(selected).to_be_focused()
         expect(dock).to_be_in_viewport(ratio=1)
         expect(generate).to_be_in_viewport(ratio=1)
@@ -108,7 +113,10 @@ def test_fixed_stat6_pocket_handoff_reaches_exact_downstream_reviews(language, w
         assert selected.locator(".pocket-residues li").all_text_contents() == labels
         selected.locator(".pocket-residues summary").click()
         if zh:
-            selected.get_by_role("button", name="查看三维", exact=True).press("Enter")
+            scene_jump = selected.get_by_role("button", name="查看三维", exact=True)
+            target = scene_jump.bounding_box()
+            assert target and target["height"] >= 44, target
+            scene_jump.press("Enter")
             expect(scene).to_be_focused()
         expect(stage).to_be_in_viewport(ratio=0.65)
         expect(scene.get_by_role("status").filter(
