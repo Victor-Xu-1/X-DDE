@@ -10,6 +10,7 @@ import { CandidateHandoff } from "./CandidateHandoff";
 import { CandidateTable } from "./CandidateTable";
 import { PoseSession } from "../viewer/PoseSession";
 import { DELCandidateEvidence } from "./DELCandidateEvidence";
+import "./CandidateView.css";
 export function CandidateView({
   job,
   result,
@@ -77,7 +78,13 @@ export function CandidateView({
   const content = (
     <StructureWorkbench
       preview={
-        <section className="dataset-preview-pane">
+        <section
+          className={
+            result.operation === "screening_dock"
+              ? "dataset-preview-pane screening-pose-preview"
+              : "dataset-preview-pane"
+          }
+        >
           <div className="dataset-panel-title">
             <strong>{candidate?.display_name || candidate?.id}</strong>
             <span>
