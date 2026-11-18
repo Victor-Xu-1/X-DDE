@@ -90,6 +90,13 @@ export function FigureDialog({
         </button>
       </header>
       <div className="figure-export-layout">
+        <FigurePreview
+          state={state}
+          language={language}
+          transparent={settings.transparent}
+          widthMm={settings.widthMm}
+          valid={!!size}
+        />
         <div className="figure-export-options">
           <fieldset>
             {molecular && (
@@ -212,13 +219,6 @@ export function FigureDialog({
               : "Retains the current view, structures and original values. Export settings affect the figure only."}
           </p>
         </div>
-        <FigurePreview
-          state={state}
-          language={language}
-          transparent={settings.transparent}
-          widthMm={settings.widthMm}
-          valid={!!size}
-        />
       </div>
       <footer>
         <button

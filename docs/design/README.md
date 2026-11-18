@@ -166,6 +166,9 @@ magnification, native scrolling, pointer dragging and a Fit action. Inline
 inspection has no physical print-size label. Magnification changes only the view;
 the native SVG, scientific source and explicitly selected export dimensions remain
 unchanged. Changing the displayed molecule resets its viewing magnification.
+The figure dialog puts the preview first: beside options on wide screens and
+above them in portrait. The body scrolls separately from the close and export
+controls so they remain reachable in short windows.
 
 Editor saves retain one upload and one version request across uncertain HTTP
 outcomes. A native MOL export timestamp does not define a new chemical edit;

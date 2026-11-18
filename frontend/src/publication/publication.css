@@ -1,23 +1,43 @@
 .figure-export-dialog {
-  width: min(1024px, calc(100vw - 40px));
-  max-height: calc(100svh - 40px);
-  overflow: auto;
+  box-sizing: border-box;
+  width: min(1180px, calc(100% - 24px));
+  max-width: none;
+  height: min(778px, calc(100dvh - 24px));
+  max-height: none;
+  overflow: hidden;
   border: 1px solid var(--line, #e0e5ee);
   border-radius: 16px;
-  padding: 24px;
+  padding: 0;
   color: var(--ink, #19304f);
   background: var(--surface, #fff);
   box-shadow: 0 24px 90px #263d6630;
+}
+.figure-export-dialog[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 .figure-export-dialog::backdrop {
   background: #152b4e40;
   backdrop-filter: blur(3px);
 }
-.figure-export-dialog header {
+.figure-export-dialog > header,
+.figure-preview header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+}
+.figure-export-dialog > header {
+  padding: 4px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.figure-export-dialog > header > button {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 20px;
 }
 .figure-export-dialog h2 {
   margin: 0;
@@ -32,16 +52,31 @@
 }
 .figure-export-layout {
   display: grid;
-  grid-template-columns: minmax(200px, 0.34fr) minmax(0, 1fr);
-  gap: 28px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(184px, 0.34fr);
+  gap: 18px;
+  min-height: 0;
+  padding: 14px 18px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior-y: contain;
 }
 .figure-export-options,
 .figure-preview {
   min-width: 0;
 }
+.figure-export-dialog .figure-preview {
+  display: grid;
+  grid-template-rows: auto minmax(100px, 1fr) auto auto auto;
+  min-height: 0;
+}
+.figure-export-options {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 2px 2px 4px 12px;
+  border-inline-start: 1px solid var(--line);
+}
 .figure-preview header {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   gap: 12px;
 }
 .figure-preview h3 {
@@ -62,6 +97,13 @@
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+}
+.figure-export-dialog .figure-preview-sheet {
+  height: auto;
+  min-height: 0;
+}
+.figure-export-dialog .figure-preview-sheet[data-zoom="1"] {
+  overscroll-behavior: auto;
 }
 .figure-preview-sheet[data-zoom]:not([data-zoom="1"]) {
   cursor: grab;
@@ -211,10 +253,15 @@
   color: var(--accent, #564ad8);
   font-size: 13px;
 }
-.figure-export-dialog footer {
+.figure-export-dialog > footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 24px;
+  margin: 0;
+  padding: 8px 18px;
+  border-top: 1px solid var(--line);
+}
+.figure-export-dialog > footer > .primary-button {
+  min-height: 44px;
 }
 .figure-export-dialog .text-button {
   color: var(--muted, #65748c);
@@ -222,35 +269,37 @@
 .figure-export-dialog:focus {
   outline: none;
 }
-@media (max-width: 660px) {
-  .figure-export-dialog[open] {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    box-sizing: border-box;
-    width: calc(100% - 24px);
-    max-width: none;
-    max-height: calc(100dvh - 24px);
-    padding: 0;
-    overflow: hidden;
+@media (max-height: 440px) {
+  .figure-export-dialog .figure-view-toolbar {
+    margin-top: 4px;
   }
-  .figure-export-dialog > header {
-    min-height: 54px;
-    padding: 4px 14px;
-    margin: 0;
-    border-bottom: 1px solid var(--line);
+  .figure-export-dialog .figure-preview-scale-note {
+    display: none;
   }
-  .figure-export-dialog > header > .text-button {
-    min-width: 44px;
-    min-height: 44px;
+  .figure-export-layout {
+    padding-block: 6px;
   }
-  .figure-export-dialog .figure-export-layout {
+}
+@media (max-width: 520px), (max-width: 660px) and (orientation: portrait) {
+  .figure-export-dialog > header,
+  .figure-export-dialog > footer {
+    padding-inline: 14px;
+  }
+  .figure-export-layout {
     grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
     align-content: start;
-    gap: 14px;
-    min-height: 0;
-    padding: 12px 14px 14px;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
+    gap: 18px;
+    padding: 10px 14px 14px;
+  }
+  .figure-export-dialog .figure-preview {
+    grid-template-rows: auto clamp(148px, 40dvh, 320px) auto auto auto;
+  }
+  .figure-export-options {
+    overflow: visible;
+    padding: 12px 2px 2px;
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
   }
   .figure-export-dialog fieldset {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -275,24 +324,11 @@
   .figure-export-options > .field-help {
     display: none;
   }
-  .figure-export-dialog .figure-preview-sheet {
-    min-height: 0;
-    height: clamp(164px, 30svh, 300px);
-  }
-  .figure-export-dialog .figure-preview-sheet[data-zoom="1"] {
-    overscroll-behavior: auto;
-  }
   .figure-export-dialog .figure-preview-image-space {
     padding: 12px;
   }
-  .figure-export-dialog > footer {
-    margin: 0;
-    padding: 10px 14px;
-    border-top: 1px solid var(--line);
-  }
   .figure-export-dialog > footer > .primary-button {
     width: 100%;
-    min-height: 44px;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
