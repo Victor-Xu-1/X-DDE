@@ -312,8 +312,22 @@ it("passes the selected record and version to a property task", async () => {
     },
     version: null,
   };
-  vi.spyOn(client, "request").mockImplementation(async (path) =>
-    path.startsWith("/capabilities/")
+  vi.spyOn(client, "request").mockImplementation(async (path) => {
+    if (path.startsWith("/runtime-controls"))
+      return {
+        capabilities: { properties: "chemistry" },
+        engines: [
+          {
+            id: "chemistry",
+            name: "RDKit",
+            enabled: false,
+            ready: true,
+            active: false,
+            operations: ["properties"],
+          },
+        ],
+      } as never;
+    return path.startsWith("/capabilities/")
       ? ({ availability: { configuration_present: true } } as never)
       : path === "/research/indexing"
         ? ([] as never)
@@ -327,8 +341,8 @@ it("passes the selected record and version to a property task", async () => {
             } as never)
           : path === "/assets/file/metadata"
             ? (asset as never)
-            : (graph() as never),
-  );
+            : (graph() as never);
+  });
   vi.spyOn(client.api, "assets").mockResolvedValue([
     { id: "file", kind: "ligand", name: "library.sdf" },
   ] as never);
@@ -350,6 +364,9 @@ it("passes the selected record and version to a property task", async () => {
     ),
   );
   fireEvent.click(screen.getByRole("button", { name: "用作性质计算输入" }));
+  expect(
+    await screen.findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   expect(
     await screen.findByRole("option", { name: "library.sdf" }),
@@ -365,5 +382,9 @@ it("passes the selected record and version to a property task", async () => {
     ligand_files: ["file"],
     scientific_inputs: [original.reference],
   });
-  expect(await screen.findByRole("alert")).toHaveTextContent("not installed");
+  expect(
+    await within(document.querySelector("form.questionnaire")!).findByText(
+      /not installed/,
+    ),
+  ).toBeVisible();
 });

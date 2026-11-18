@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
 import { useBackendRuntime } from "./backend-runtime";
@@ -76,11 +78,13 @@ export function FollowupBackendControl({
   capability: ToolId;
   language: Language;
 }) {
+  const active = useContext(TaskPresentationContext)?.active ?? true;
   return (
     <TaskBackendControl
       language={language}
       scope={{ capability }}
       placement="followup"
+      active={active}
     />
   );
 }

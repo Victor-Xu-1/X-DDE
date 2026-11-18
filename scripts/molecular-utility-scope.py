@@ -430,15 +430,18 @@ FOLLOWUP_FILES = {
     "frontend/src/poses/PoseResults.tsx",
     "frontend/src/receptors/ReceptorResults.tsx",
     "frontend/src/receptors/StructurePrepareResults.tsx",
+    "frontend/src/research/ResearchWorkspace.test.tsx",
     "frontend/src/research/ResearchWorkspace.tsx",
     "frontend/src/simulations/FreeEnergyResults.tsx",
     "frontend/src/structure-comparison/ComparisonResults.tsx",
     "frontend/src/studio/TaskWorkspace.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/TaskBackendControl.tsx",
     "frontend/src/utilities/runtime-switch.css",
+    "scripts/target-evidence-scope.py",
     "server_tests/test_result_handoff_browser.py",
 }
-FOLLOWUP_DIFF = "5b18a7e84572c904b31101845743af29fccf814ba08b7bec1d6f70734c852445"
+FOLLOWUP_DIFF = "c6cc1179bfb7e1a5e47f276a1f474876793b84a88b15f419dafc67a7882083bc"
 
 
 def followup_selected(changed, event, base):
