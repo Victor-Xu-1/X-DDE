@@ -772,10 +772,11 @@ INLINE_MODULE_POWER_FILES = {
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/TaskBackendControl.tsx",
     "frontend/src/utilities/runtime-switch.css",
+    "server_tests/browser_platform.py",
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-INLINE_MODULE_POWER_DIFF = "ae3c2ba9b76801ad166b81238d58e78cc471764388dbba7b6f8a1b243dc71faf"
+INLINE_MODULE_POWER_DIFF = "e924a8054bf1bd5ebb7f4ccca0e60aef01be918705939a1de7344e9ba5819807"
 MODULE_POWER_CONSUMERS = (MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES) - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
