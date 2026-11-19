@@ -88,6 +88,7 @@ on:
       - "frontend/src/utilities/RuntimeSwitch.tsx"
       - "frontend/src/utilities/TaskBackendControl.tsx"
       - "frontend/src/utilities/RecognitionBackendEntry.tsx"
+      - "frontend/src/utilities/recognition-power.ts"
       - "scripts/check-recognition-idle-power.mjs"
       - "scripts/recognition-idle-power.patch"
       - "tests/fixtures/recognition_idle_power/**"
@@ -169,6 +170,7 @@ jobs:
     outputs:
       aligned_comparison_only: ${{ steps.select.outputs.aligned_comparison_only }}
       utility_only: ${{ steps.select.outputs.utility_only }}
+      inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
       utility_desktop_only: ${{ steps.select.outputs.utility_desktop_only }}
@@ -217,6 +219,7 @@ jobs:
     if: >-
       !inputs.scope_only && needs.scope.outputs.recognition_power_only != 'true' &&
       needs.scope.outputs.recognition_access_only != 'true' &&
+      needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.recognition_entry_only != 'true' &&
       needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' &&
       needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' &&
@@ -433,7 +436,9 @@ jobs:
 
   recognition-power-in-task:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.recognition_access_only == 'true' }}
+    if: >-
+      !inputs.scope_only && (needs.scope.outputs.recognition_access_only == 'true' ||
+      needs.scope.outputs.inline_recognition_only == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -452,17 +457,21 @@ jobs:
           src/utilities/ImageMoleculeInput.action.test.tsx src/utilities/useRecognitionBridge.test.tsx
           src/utilities/useRecognitionRequest.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/utilities/BackendControls.test.tsx
+          src/admet/AdmetForm.test.tsx src/operations/PropertyForm.test.tsx
+          src/integrations/BoltzInputs.test.tsx src/presentation/PredictionEntityEditing.test.tsx
       - name: Close the recognition service without leaving the current task
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_image_browser.py
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_{utility_image,module_backend_switch}_browser.py
           uv run --locked python -m pytest -q tests/test_molecular_utility_scope.py
-          uv run --locked python -m pytest -q server_tests/test_utility_image_browser.py -k 1440 --basetemp "$RUNNER_TEMP/recognition-in-task"
+          uv run --locked python -m pytest -q server_tests/test_utility_image_browser.py server_tests/test_module_backend_switch_browser.py --basetemp "$RUNNER_TEMP/recognition-in-task"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: recognition-power-in-task-evidence
-          path: outputs/utility-image/
+          path: |
+            outputs/utility-image/
+            outputs/module-backend-switches/
           if-no-files-found: warn
 
   contextual-backends:

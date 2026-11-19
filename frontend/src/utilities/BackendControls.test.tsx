@@ -18,6 +18,9 @@ import {
   TaskBackendControl,
 } from "./TaskBackendControl";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
+import { ImageMoleculeInput } from "./ImageMoleculeInput";
+import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
+import { useRecognitionStatus } from "./recognition-power";
 
 vi.mock("../api", () => ({ request: vi.fn(), api: { post: vi.fn() } }));
 afterEach(() => {
@@ -137,6 +140,121 @@ it("requires fresh DECIMER state after a power response arrives while closed", a
   await waitFor(() => expect(control).toBeChecked());
   expect(control).toBeEnabled();
 });
+
+it("shares one explicit DECIMER toggle across the compound form and backend menu", async () => {
+  const user = userEvent.setup();
+  let power = { phase: "stopped", enabled: false };
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? { available: true, idle_power: true, power }
+        : { engines: [] }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    const enabled = path.endsWith("/start");
+    power = { phase: enabled ? "ready" : "stopped", enabled };
+    return { available: true, idle_power: true, power } as never;
+  });
+  render(
+    <>
+      <BackendControls language="en" onOpenRecognition={vi.fn()} />
+      <ImageMoleculeInput language="en" onMolecule={vi.fn()}>
+        <label>
+          Compound
+          <input defaultValue="Keep my draft" />
+        </label>
+      </ImageMoleculeInput>
+    </>,
+  );
+  const formPower = await screen.findByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(formPower).toBeEnabled());
+  expect(formPower).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  const menuPower = within(
+    screen.getByRole("region", { name: "Backend power" }),
+  ).getByRole("switch", { name: "DECIMER" });
+  expect(menuPower).toBeEnabled();
+  expect(
+    vi
+      .mocked(request)
+      .mock.calls.filter(([path]) => path.startsWith("/utilities/recognition")),
+  ).toHaveLength(1);
+  await user.click(menuPower);
+  await waitFor(() => expect(formPower).toBeChecked());
+  await user.click(formPower);
+  await waitFor(() => expect(formPower).not.toBeChecked());
+  expect(api.post).toHaveBeenCalledTimes(2);
+  expect(api.post).toHaveBeenLastCalledWith("/utilities/recognition/stop", {});
+  expect(screen.getByRole("textbox", { name: "Compound" })).toHaveValue(
+    "Keep my draft",
+  );
+  expect(document.querySelector("iframe")).toBeNull();
+});
+
+it.each([false, true])(
+  "waits for fresh power state after leaving the editor (power request pending: %s)",
+  async (changing) => {
+    const user = userEvent.setup();
+    const stopped = {
+      available: true,
+      idle_power: true,
+      power: { phase: "stopped", enabled: false },
+    };
+    const ready = { ...stopped, power: { phase: "ready", enabled: true } };
+    let resolveRead: (value: typeof ready) => void = () => {};
+    const pending = new Promise<typeof ready>((resolve) => {
+      resolveRead = resolve;
+    });
+    vi.mocked(request)
+      .mockResolvedValueOnce(stopped)
+      .mockReturnValueOnce(pending)
+      .mockResolvedValue(stopped);
+    vi.mocked(api.post).mockResolvedValue(stopped);
+    let resolveChange: (value: typeof ready) => void = () => {};
+    if (changing)
+      vi.mocked(api.post).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveChange = resolve;
+        }),
+      );
+    function Form() {
+      const power = useRecognitionStatus(true);
+      return (
+        <>
+          <button type="button" onClick={() => void power.refresh(true)}>
+            Return from editor
+          </button>
+          <RecognitionBackendEntry language="en" powerControl={power} />
+        </>
+      );
+    }
+    render(<Form />);
+    const toggle = screen.getByRole("switch", { name: "DECIMER" });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    if (changing) await user.click(toggle);
+    await user.click(
+      screen.getByRole("button", { name: "Return from editor" }),
+    );
+    expect(toggle).toBeDisabled();
+    if (changing) await act(async () => resolveChange(ready));
+    expect(toggle).toBeDisabled();
+    await user.click(toggle);
+    expect(api.post).toHaveBeenCalledTimes(Number(changing));
+    await act(async () => resolveRead(ready));
+    expect(toggle).toBeEnabled();
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    expect(api.post).toHaveBeenCalledTimes(1 + Number(changing));
+    expect(api.post).toHaveBeenLastCalledWith(
+      "/utilities/recognition/stop",
+      {},
+    );
+  },
+);
 
 it("does not start engines on mount, offers only explicit available switches", async () => {
   vi.mocked(request).mockResolvedValue({

@@ -10,10 +10,8 @@ import {
 } from "./ComputeSwitch";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
-import {
-  RecognitionBackendEntry,
-  useRecognitionStatus,
-} from "./RecognitionBackendEntry";
+import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
+import { useRecognitionStatus } from "./recognition-power";
 import "./runtime-switch.css";
 
 export function BackendControls({

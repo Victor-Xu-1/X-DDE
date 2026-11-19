@@ -40,31 +40,49 @@ def compiled_image(tmp_path_factory):
 
 
 @contextmanager
-def image_hosts(root):
+def image_hosts(root, idle_power=True):
     uploads = []
+    power_commands = []
+    power_enabled = False
+
+    def power_state():
+        return json.dumps({
+            "available": True, "port": 8940,
+            **({"idle_power": True} if idle_power else {}),
+            "power": {"enabled": power_enabled, "phase": "ready" if power_enabled else "stopped"},
+        }).encode()
 
     class Handler(SimpleHTTPRequestHandler):
+        def write_json(self, body):
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_GET(self):
             replies = {
                 "/api/session": b'{"csrf_token":"controlled-test-session"}',
                 "/api/utilities/recognition": b'{"available":true,"port":8940}',
+                "/api/utilities/recognition?include_power=true": power_state(),
             }
             if reply := replies.get(self.path):
-                self.send_response(200)
-                self.send_header("content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(reply)
+                self.write_json(reply)
             else:
                 super().do_GET()
 
         def do_POST(self):
+            nonlocal power_enabled
+            if self.path in {"/api/utilities/recognition/start", "/api/utilities/recognition/stop"}:
+                if self.server.server_port == 4322:
+                    assert self.headers["X-Workbench-CSRF"] == "controlled-test-session"
+                power_enabled = self.path.endswith("/start")
+                power_commands.append((self.server.server_port, power_enabled))
+                self.write_json(power_state())
+                return
             assert self.path.startswith("/api/assets?")
             body = self.rfile.read(int(self.headers["content-length"]))
             uploads.append(body)
-            self.send_response(200)
-            self.send_header("content-type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({
+            self.write_json(json.dumps({
                 "id": f"controlled-image-{len(uploads)}", "name": "image-structure.sdf",
                 "kind": "ligand",
                 "suffix": ".sdf", "size": len(body), "sha256": hashlib.sha256(body).hexdigest(),
@@ -80,7 +98,7 @@ def image_hosts(root):
             server = ThreadingHTTPServer(("127.0.0.1", port), partial(Handler, directory=str(root)))
             servers.append(server)
             threading.Thread(target=server.serve_forever, daemon=True).start()
-        yield uploads
+        yield uploads, power_commands
     finally:
         for server in servers:
             server.shutdown()
@@ -95,7 +113,7 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
         "AwMCAO+a9XcAAAAASUVORK5CYII="
     )
-    with image_hosts(compiled_image) as uploads, sync_playwright() as driver:
+    with image_hosts(compiled_image) as (uploads, power_commands), sync_playwright() as driver:
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": 900})
         errors, research_posts, console, failed_requests = [], [], [], []
@@ -115,19 +133,31 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         actions = primary.locator(":scope > .image-molecule-actions")
         upload = actions.get_by_role("button", name="Upload structure image", exact=True)
         paste = actions.get_by_role("button", name="Paste screenshot", exact=True)
+        primary_power = actions.get_by_role("switch", name="DECIMER", exact=True)
         draft = page.get_by_label("Primary draft", exact=True)
+        expect(primary_power).to_be_enabled()
+        expect(primary_power).not_to_be_checked()
+        assert not power_commands and not uploads
+        assert page.locator("iframe").count() == 0
         page.get_by_role("button", name="Toggle active tool").focus()
-        for element in (upload, paste, draft):
+        for element in (upload, paste, primary_power, draft):
             page.keyboard.press("Tab")
             expect(element).to_be_focused()
         assert upload.bounding_box()["y"] < draft.bounding_box()["y"]
         page.keyboard.press("Shift+Tab")
-        expect(paste).to_be_focused()
+        expect(primary_power).to_be_focused()
         if width == 390:
             for button in (upload, paste):
                 box = button.bounding_box()
                 assert box and box["height"] >= 44 and box["width"] >= 44
         query = page.locator(".utility-query-image-entry")
+        query_power = query.get_by_role("switch", name="DECIMER", exact=True)
+        primary_power.press("Space")
+        expect(query_power).to_be_checked()
+        query_power.click()
+        expect(primary_power).not_to_be_checked()
+        assert power_commands == [(4322, True), (4322, False)]
+        assert page.locator("iframe").count() == 0
         page.get_by_label("Query draft", exact=True).focus()
         page.keyboard.press("Tab")
         expect(query.get_by_role(
@@ -148,10 +178,6 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         power = frame.get_by_role("switch", name="Recognition backend")
         expect(power).to_be_visible()
         expect(power).not_to_be_checked()
-        dialog.locator("iframe").evaluate("(node) => window.initialImageFrame = node")
-        power_sessions = []
-        page.on("framenavigated", lambda frame: power_sessions.append(frame.url)
-                if frame.url.startswith("http://127.0.0.1:8940/") else None)
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
         expect(dialog.get_by_role("button", name="Use this molecule")).to_be_disabled()
         assert not uploads
@@ -180,21 +206,14 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(page.get_by_role("dialog")).to_have_count(0)
         assert b"Image-assisted molecular input" in uploads[0]
         assert hashlib.sha256(replacement).hexdigest().encode() in uploads[0]
-        power_entry = actions.get_by_role("button", name="Recognition power", exact=True)
-        power_entry.press("Space")
-        management = page.get_by_role("dialog", name="Recognition power")
-        power_frame = management.frame_locator("iframe")
-        power = power_frame.get_by_role("switch", name="Recognition backend")
-        expect(power).to_be_checked()
-        expect(power_frame.get_by_label("OCR calls")).to_have_text("1")
-        assert management.locator("iframe").evaluate("(node) => window.initialImageFrame === node")
-        assert not power_sessions
-        power.click()
-        expect(power).not_to_be_checked()
+        expect(primary_power).to_be_checked()
+        expect(page.locator("iframe")).to_have_count(0)
+        primary_power.press("Space")
+        expect(primary_power).not_to_be_checked()
+        expect(query_power).not_to_be_checked()
         page.screenshot(path=evidence / "recognition-power-in-task.png")
-        management.get_by_role("button", name="Back to task").press("Escape")
-        expect(management).to_have_count(0)
-        expect(power_entry).to_be_focused()
+        expect(page.get_by_role("dialog")).to_have_count(0)
+        expect(primary_power).to_be_focused()
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-1")
         assert len(uploads) == 1
         primary.get_by_role("button", name="Edit recognized structure", exact=True).click()
@@ -219,6 +238,9 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
         power.click()
         expect(page.get_by_label("Query input", exact=True)).to_have_text("controlled-image-3")
+        expect(query_power).to_be_checked()
+        query_power.click()
+        expect(primary_power).not_to_be_checked()
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
         page.get_by_role("button", name="Toggle active tool").click()
         expect(page.locator(".image-molecule-dialog iframe")).to_have_count(0)
@@ -227,6 +249,10 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(page.get_by_label("Query draft", exact=True)).to_have_value("Keep query draft")
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         assert not errors and not research_posts
+        assert power_commands == [
+            (4322, True), (4322, False), (8940, True), (4322, False),
+            (8940, True), (4322, False),
+        ]
         page.screenshot(path=evidence / "image-import.png", full_page=True)
         (evidence / "acceptance.json").write_text(json.dumps({
             "width": width, "controlled_native_host": True, "actual_ocr": False,
@@ -234,8 +260,49 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             "nested_query_ownership": True, "image_digest_preserved": True,
             "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
             "off_on_entry": True, "explicit_recognition_enable_and_disable": True,
-            "power_panel_retains_input_and_focus": True,
-            "power_panel_reuses_native_frame": True,
+            "inline_power_retains_input_and_focus": True,
+            "inline_power_before_input_without_native_frame": True,
             "replacement_source_digest": True,
         }, indent=2))
+        browser.close()
+
+
+def test_legacy_recognition_power_keeps_the_import_and_draft(compiled_image):
+    with (
+        image_hosts(compiled_image, idle_power=False) as (uploads, power_commands),
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto("http://127.0.0.1:4322/")
+        actions = page.locator(".utility-image-entry > .image-molecule-actions")
+        inline = actions.get_by_role("switch", name="DECIMER")
+        expect(inline).to_be_disabled()
+        page.locator('.utility-image-entry > input[type="file"]').set_input_files({
+            "name": "legacy.png", "mimeType": "image/png",
+            "buffer": base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+                "AwMCAO+a9XcAAAAASUVORK5CYII="
+            ),
+        })
+        dialog = page.get_by_role("dialog")
+        dialog.frame_locator("iframe").get_by_role("switch").click()
+        draft = page.get_by_label("Primary draft", exact=True)
+        selected = page.get_by_label("Primary input", exact=True)
+        expect(selected).to_have_text("controlled-image-1")
+        expect(dialog).to_have_count(0)
+        expect(inline).to_be_disabled()
+        with page.expect_popup() as opened:
+            actions.get_by_role("link", name="Manage recognition in a new tab").click()
+        popup = opened.value
+        expect(popup).to_have_url("http://127.0.0.1:8940/?lang=en")
+        toggle = popup.get_by_role("switch", name="Recognition backend")
+        expect(toggle).to_be_checked()
+        toggle.click()
+        expect(toggle).not_to_be_checked()
+        popup.close()
+        expect(draft).to_have_value("Keep my draft")
+        expect(selected).to_have_text("controlled-image-1")
+        assert page.locator("iframe").count() == 0
+        assert len(uploads) == 1 and power_commands == [(8940, True), (8940, False)]
         browser.close()

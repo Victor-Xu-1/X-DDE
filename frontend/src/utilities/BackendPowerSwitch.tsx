@@ -7,6 +7,7 @@ export function BackendPowerSwitch({
   showName = true,
   enabled,
   disabled,
+  pending = false,
   hint,
   setup,
   onToggle,
@@ -17,6 +18,7 @@ export function BackendPowerSwitch({
   showName?: boolean;
   enabled: boolean;
   disabled: boolean;
+  pending?: boolean;
   hint?: string;
   setup?: ReactNode;
   onToggle(): void;
@@ -39,9 +41,10 @@ export function BackendPowerSwitch({
         aria-label={name}
         aria-describedby={description}
         aria-checked={enabled}
+        aria-disabled={pending || undefined}
         disabled={disabled}
         title={hint}
-        onClick={onToggle}
+        onClick={pending ? undefined : onToggle}
       >
         <i aria-hidden="true" />
       </button>
