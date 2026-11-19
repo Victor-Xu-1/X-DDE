@@ -55,10 +55,14 @@ import {
   type ConfidenceInspection,
 } from "./confidence-types";
 import type { SearchBoxGeometry } from "./search-box";
+import type { StructureCameraHandle } from "./structure-camera";
+import { useStructureCamera } from "./useStructureCamera";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   showWorkspaceControls?: boolean;
+  onCameraReady?(handle: StructureCameraHandle | null): void;
+  figureFilename?: string;
   expectedStructureSha256?: string;
   nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
@@ -97,6 +101,8 @@ export interface StructureViewerProps {
 export function StructureViewport({
   sourceSnapshot = false,
   showWorkspaceControls = true,
+  onCameraReady,
+  figureFilename,
   expectedStructureSha256,
   onStructureVerification,
   trajectoryKey,
@@ -499,6 +505,7 @@ export function StructureViewport({
     send("options", value);
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
+  useStructureCamera(frame, sceneKey, loaded, onCameraReady);
   const displayBusy =
     displayPending ||
     (loaded && requestedPotentialRange !== appliedPotentialRange);
@@ -602,6 +609,7 @@ export function StructureViewport({
         )}
         <ViewerExportActions
           language={language}
+          filename={figureFilename}
           showWorkspaceControls={showWorkspaceControls}
           originalUrls={optimization.pose.nativeArtifactSha256 ? [] : urls}
           sourceKey={JSON.stringify([
@@ -881,7 +889,7 @@ export function StructureViewport({
               <a
                 className="secondary-button"
                 href={snapshot.downloadUrl}
-                download="X-DDE-structure-view.png"
+                download={`${figureFilename ?? "X-DDE-structure"}-view.png`}
               >
                 {zh ? "下载视图 PNG" : "Download view PNG"}
               </a>

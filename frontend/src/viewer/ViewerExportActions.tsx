@@ -10,6 +10,7 @@ import { ViewerToolGroup } from "./ViewerToolGroup";
 export function ViewerExportActions({
   language,
   originalUrls,
+  filename = "X-DDE-structure",
   sourceKey,
   sourceReady,
   busy,
@@ -21,6 +22,7 @@ export function ViewerExportActions({
 }: {
   language: Language;
   originalUrls: readonly string[];
+  filename?: string;
   sourceKey: string;
   sourceReady: boolean;
   busy: boolean;
@@ -79,7 +81,7 @@ export function ViewerExportActions({
         sourceKey={sourceKey}
         sourceReady={sourceReady}
         language={language}
-        filename="X-DDE-structure"
+        filename={filename}
         format="png"
         typography
         molecular

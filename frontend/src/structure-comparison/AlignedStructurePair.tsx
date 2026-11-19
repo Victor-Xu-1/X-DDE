@@ -1,0 +1,110 @@
+import { artifactUrl } from "../api";
+import type { Language } from "../types";
+import type { SelectionInfo } from "../viewer/protocol";
+import type { StructureCameraHandle } from "../viewer/structure-camera";
+import { StructureViewer } from "../viewer/StructureViewer";
+import type { Displacement } from "./types";
+
+export const alignedArtifacts = {
+  reference: "reference-selected.cif",
+  moving: "moving-aligned.cif",
+} as const;
+export type ComparisonSide = keyof typeof alignedArtifacts;
+export const comparisonSides = ["reference", "moving"] as const;
+
+export function comparisonResidues(
+  selection: Displacement | null,
+  sides: readonly ComparisonSide[],
+) {
+  return selection
+    ? sides.map((side, model) => ({
+        ...selection[side],
+        model,
+        alternate_location: "",
+      }))
+    : [];
+}
+
+export function matchedResidue(
+  rows: readonly Displacement[],
+  side: ComparisonSide,
+  picked: SelectionInfo | null,
+) {
+  const identity = picked?.identity;
+  if (!identity || identity.is_ligand) return undefined;
+  return rows.find((row) => {
+    const residue = row[side];
+    return (
+      residue.chain === identity.chain &&
+      residue.number === identity.number &&
+      residue.insertion_code === identity.insertion_code
+    );
+  });
+}
+
+export function AlignedStructurePair({
+  jobId,
+  language,
+  hashes,
+  selection,
+  onPick,
+  publish,
+}: {
+  jobId: string;
+  language: Language;
+  hashes: Readonly<Record<string, string>>;
+  selection: Displacement | null;
+  onPick(side: ComparisonSide, atom: SelectionInfo | null): void;
+  publish: Record<
+    `pair-${ComparisonSide}`,
+    (handle: StructureCameraHandle | null) => void
+  >;
+}) {
+  const zh = language === "zh";
+  return (
+    <div className="aligned-structure-pair" data-structure-focus-group>
+      {comparisonSides.map((side, index) => {
+        const label =
+          index === 0
+            ? zh
+              ? "参照结构"
+              : "Reference structure"
+            : zh
+              ? "已对齐比较结构"
+              : "Aligned comparison";
+        const name = alignedArtifacts[side];
+        const url = artifactUrl(jobId, name);
+        const badge = index === 0 ? "A" : "B";
+        return (
+          <section key={side} aria-label={`${badge} · ${label}`}>
+            <header className="aligned-structure-heading">
+              <h4>
+                <span>{badge}</span> {label}
+              </h4>
+              <a
+                href={url}
+                download
+                aria-label={zh ? `下载${label} CIF` : `Download ${label} CIF`}
+              >
+                CIF ↓
+              </a>
+            </header>
+            <StructureViewer
+              urls={[url]}
+              expectedStructureSha256={hashes[name]}
+              sourceSnapshot
+              ligandContext={false}
+              sequenceHost={null}
+              language={language}
+              residueRegion={comparisonResidues(selection, [side])}
+              onAtomSelected={(atom) => onPick(side, atom)}
+              onCameraReady={publish[`pair-${side}`]}
+              showWorkspaceControls={false}
+              figureFilename={`X-DDE-aligned-${side}`}
+            />
+          </section>
+        );
+      })}
+    </div>
+  );
+}

@@ -13,6 +13,92 @@ from opendde_workbench.examples.stat6.catalogue import MODULES
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
+from server_tests.publication_browser_helpers import export_figure, inspect_png
+
+
+def read_camera(frame):
+    return frame.evaluate("""frame => new Promise((resolve, reject) => {
+      const id = crypto.randomUUID();
+      const target = frame.contentWindow;
+      const timeout = setTimeout(() => finish(), 4000);
+      function receive(event) {
+        if (event.source === target && event.origin === location.origin &&
+            event.data?.channel === "opendde-viewer" &&
+            event.data.type === "camera" && event.data.detail?.id === id) {
+          finish(event.data.detail.camera);
+        }
+      }
+      function finish(camera) {
+        clearTimeout(timeout);
+        window.removeEventListener("message", receive);
+        if (Array.isArray(camera) && camera.length === 8) resolve(camera);
+        else reject(Error("The loaded structure did not return a camera"));
+      }
+      window.addEventListener("message", receive);
+      target.postMessage({channel: "opendde-viewer", type: "camera-read", value: id}, location.origin);
+    })""")
+
+
+def verify_aligned_pair(page, panel, result, evidence):
+    overlay = panel.get_by_role("button", name="Aligned overlay", exact=True)
+    pair = panel.get_by_role("button", name="Aligned side by side", exact=True)
+    match = panel.get_by_role("button", name="Match views", exact=True)
+    pair.click()
+    expect(match).to_be_enabled(timeout=45000)
+    left = panel.get_by_role("region", name="A · Reference structure", exact=True)
+    right = panel.get_by_role("region", name="B · Aligned comparison", exact=True)
+    for section, label, filename in (
+        (left, "Reference structure", "reference-selected.cif"),
+        (right, "Aligned comparison", "moving-aligned.cif"),
+    ):
+        expect(section.get_by_role("status").filter(
+            has_text="Region residues located: 1 / 1"
+        )).to_be_visible(timeout=15000)
+        with page.expect_download() as downloaded:
+            section.get_by_role("link", name=f"Download {label} CIF", exact=True).click()
+        sha256 = hashlib.sha256(Path(downloaded.value.path()).read_bytes()).hexdigest()
+        assert sha256 == result["artifact_sha256"][filename]
+
+    a = left.locator(".molecular-stage iframe")
+    b = right.locator(".molecular-stage iframe")
+    a_bounds, b_bounds = a.bounding_box(), b.bounding_box()
+    assert a_bounds and b_bounds
+    assert a_bounds["x"] + a_bounds["width"] < b_bounds["x"]
+    assert abs(a_bounds["y"] - b_bounds["y"]) < 2
+    a_handle, b_handle = a.element_handle(), b.element_handle()
+    panel.get_by_role("button", name="Expand research workspace", exact=True).click()
+    focus = panel.get_by_role("button", name="Focus structure", exact=True)
+    focus.click()
+    expect(panel.locator(".structure-workbench-details")).to_be_hidden()
+    assert a.bounding_box()["width"] > a_bounds["width"]
+    assert a_handle.evaluate("(node) => node.isConnected")
+    assert b_handle.evaluate("(node) => node.isConnected")
+    panel.get_by_role("button", name="Show analysis panel", exact=True).click()
+    panel.get_by_role("button", name="Close expanded view", exact=True).click()
+    expect(panel.locator(".structure-workbench-details")).to_be_visible()
+
+    left.get_by_role("button", name="Zoom in", exact=True).click()
+    match.click()
+    expect(match).to_be_enabled()
+    matched = read_camera(a)
+    assert read_camera(b) == pytest.approx(matched, abs=1e-6)
+    overlay.click()
+    expect(overlay).to_have_attribute("aria-pressed", "true")
+    pair.click()
+    expect(match).to_be_enabled(timeout=45000)
+    assert read_camera(a) == pytest.approx(matched, abs=1e-6)
+    assert read_camera(b) == pytest.approx(matched, abs=1e-6)
+    page.screenshot(path=evidence / "aligned-pair.png")
+
+    figures = []
+    for section, filename in ((left, "aligned-reference"), (right, "aligned-moving")):
+        figure = export_figure(
+            page, section.get_by_role("button", name="Export figure ↓", exact=True),
+            evidence, filename, "en",
+        )
+        inspect_png(figure)
+        figures.append(hashlib.sha256(figure.read_bytes()).hexdigest())
+    assert len(set(figures)) == 2
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
@@ -96,5 +182,7 @@ def test_archived_comparison_keeps_scene_and_residue_selection_linked(language, 
         assert hashlib.sha256(Path(downloaded.value.path()).read_bytes()).hexdigest() == (
             result["artifact_sha256"]["residue-displacements.csv"]
         )
+        if not zh:
+            verify_aligned_pair(page, panel, result, evidence)
         assert not writes, writes
         browser.close()

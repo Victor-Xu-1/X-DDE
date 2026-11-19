@@ -294,6 +294,7 @@ jobs:
       needs.utility-scope.outputs.desktop_header_only != 'true' &&
       needs.utility-scope.outputs.spatial_desktop_only != 'true' &&
       needs.utility-scope.outputs.proximity_desktop_only != 'true' &&
+      needs.utility-scope.outputs.aligned_comparison_only != 'true' &&
       needs.utility-scope.outputs.desktop_structure_focus_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12

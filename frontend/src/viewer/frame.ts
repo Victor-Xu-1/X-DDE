@@ -21,6 +21,7 @@ import { searchBoxGeometry } from "./search-box";
 import "./frame.css";
 import { captureView, captureFigure } from "./capture";
 import { validFigure } from "../publication/settings";
+import { isStructureCamera } from "./structure-camera";
 import { potentialData } from "./scientific-overlay";
 import { defaultPotentialRange, isPotentialRange } from "./potential-range";
 import {
@@ -338,6 +339,24 @@ window.addEventListener("message", (event) => {
     return;
   const { type, value, requestId } = event.data;
   if (type === "ready-request") notify("ready", { instanceId });
+  if (
+    loadedSourceIdentity &&
+    type === "camera-read" &&
+    typeof value === "string" &&
+    /^[0-9a-f-]{36}$/.test(value)
+  ) {
+    const camera = viewer.getView();
+    notify("camera", {
+      id: value,
+      camera: isStructureCamera(camera) ? camera : null,
+    });
+  }
+  if (
+    loadedSourceIdentity &&
+    type === "camera-apply" &&
+    isStructureCamera(value)
+  )
+    viewer.setView([...value]);
   if (type === "clear") {
     confidenceSource = null;
     confidenceRevision++;

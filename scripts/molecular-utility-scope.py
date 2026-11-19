@@ -1102,6 +1102,29 @@ PROXIMITY_PAIR_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 PROXIMITY_PAIR_DIFF = "ec4abb3394b7f7290a6dcecba8cf2cdcbc0a3f6a525e097669049b763504ff03"
+ALIGNED_COMPARISON_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/structure-comparison-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/structure-comparison/AlignedStructurePair.tsx",
+    "frontend/src/structure-comparison/ComparisonPreview.tsx",
+    "frontend/src/structure-comparison/ComparisonResults.tsx",
+    "frontend/src/structure-comparison/ComparisonScene.test.ts",
+    "frontend/src/structure-comparison/comparison-result-view.css",
+    "frontend/src/structure-comparison/useComparisonView.ts",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/ViewerExportActions.tsx",
+    "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/structure-camera.test.tsx",
+    "frontend/src/viewer/structure-camera.ts",
+    "frontend/src/viewer/useStructureCamera.ts",
+    "scripts/comparison-layout-scope.py",
+    "server_tests/test_archived_comparison_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+ALIGNED_COMPARISON_DIFF = "0000000000000000000000000000000000000000000000000000000000000000"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
@@ -1212,6 +1235,13 @@ def reviewed_selected(changed, event, base, files, digest, *, scope_pin=None):
 
 def followup_selected(changed, event, base):
     return reviewed_selected(changed, event, base, FOLLOWUP_FILES, FOLLOWUP_DIFF)
+
+
+def aligned_comparison_selected(changed, event, base):
+    return reviewed_selected(
+        changed, event, base, ALIGNED_COMPARISON_FILES, ALIGNED_COMPARISON_DIFF,
+        scope_pin="ALIGNED_COMPARISON_DIFF",
+    )
 
 
 def main():
@@ -1406,6 +1436,10 @@ def main():
         scope_pin="RESULT_HANDOFF_DESKTOP_DIFF",
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        aligned_comparison = aligned_comparison_selected(
+            set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        )
+        output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
@@ -1472,6 +1506,7 @@ def main():
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
             or utility_result_desktop or runtime_entry or result_handoff_desktop
             or desktop_structure_focus
+            or aligned_comparison
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

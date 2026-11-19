@@ -4,6 +4,7 @@ import os
 import subprocess
 import tomllib
 from pathlib import Path
+from runpy import run_path
 
 REVIEWED_BLOBS = {
     ".github/workflows/structure-comparison-checks.yml": (
@@ -81,6 +82,9 @@ def layout_only(base, event):
     if branch_push or not base or not base.strip("0"):
         base = git("merge-base", "origin/main", "HEAD").decode().strip()
     changed = set(git("diff", "--name-only", base, "HEAD").decode().splitlines())
+    shared = run_path(str(Path(__file__).with_name("molecular-utility-scope.py")))
+    if shared["aligned_comparison_selected"](changed, event, base):
+        return True
     blobs = {
         path: (git_blob(base, path), git_blob("HEAD", path))
         for path in changed & REVIEWED_BLOBS.keys()

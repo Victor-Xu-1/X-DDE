@@ -24,6 +24,68 @@
   margin: 0;
 }
 
+.comparison-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+
+.studio-app .comparison-view-actions > button {
+  min-height: 32px;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
+.aligned-structure-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aligned-structure-pair > section {
+  min-width: 0;
+}
+
+.aligned-structure-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block: 2px 6px;
+}
+
+.aligned-structure-heading h4 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.aligned-structure-heading h4 > span {
+  margin-inline-end: 4px;
+  color: var(--accent);
+}
+
+.aligned-structure-heading > a {
+  flex: none;
+  font-size: 12px;
+}
+
+@media (max-width: 940px) {
+  .aligned-structure-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1180px) {
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded="true"]):has(
+      .aligned-structure-pair
+    ) {
+    grid-template-columns: minmax(0, 2.2fr) minmax(295px, 1fr);
+  }
+}
+
 .comparison-result-view
   > .structure-workbench:not([data-workspace-expanded="true"])
   .viewer-panel {
@@ -32,6 +94,10 @@
 
 /* The header names both sources and their exact overlay colors. */
 .comparison-result-view .viewer-comparison {
+  display: none;
+}
+
+.aligned-structure-pair .viewer-original-downloads {
   display: none;
 }
 
