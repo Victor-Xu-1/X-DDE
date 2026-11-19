@@ -9,7 +9,7 @@ import type {
   MolecularViewHandle,
   SavedMolecularView,
 } from "./molecular-view-state";
-import { comparisonFigure } from "./comparison-figure";
+import { comparisonFigure } from "../publication/paired-molecular-figure";
 import "./pose-comparison.css";
 
 export function BoundPoseComparison({

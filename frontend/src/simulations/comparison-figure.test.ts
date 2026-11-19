@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { comparisonFigure } from "./comparison-figure";
+import { comparisonFigure } from "../publication/paired-molecular-figure";
 import { defaultFigure } from "../publication/settings";
 import type { MolecularViewHandle } from "./molecular-view-state";
 afterEach(() => vi.restoreAllMocks());
@@ -13,6 +13,8 @@ function setup() {
     fillRect: vi.fn(),
     fillText: text,
     drawImage: drawn,
+    getImageData:
+      vi.fn<(_x: number, _y: number, w: number, h: number) => ImageData>(),
     font: "",
     textBaseline: "",
     fillStyle: "",
@@ -34,7 +36,7 @@ function setup() {
     "createImageBitmap",
     vi.fn(async (blob: Blob) => {
       const index = Number(await blob.text());
-      return { ...calls[index], close };
+      return { ...calls[index], index, close };
     }),
   );
   return { handle, calls, drawn, close, text, context };
@@ -98,3 +100,41 @@ it("does not encode a partial comparison if the second native panel fails", asyn
   expect(HTMLCanvasElement.prototype.toBlob).not.toHaveBeenCalled();
   expect(native.close).toHaveBeenCalledOnce();
 });
+
+it.each([false, true])(
+  "fits both panels at one scale or retains both if clipping is detected (%s)",
+  async (clipped) => {
+    const native = setup();
+    native.context.getImageData.mockImplementation((_x, _y, width, height) => {
+      const data = new Uint8ClampedArray(width * height * 4);
+      const draw = native.drawn.mock.lastCall!;
+      if (draw.length === 5) {
+        data[
+          (Math.floor(height * 0.33) * width + Math.floor(width * 0.33)) * 4 + 3
+        ] = 255;
+      } else if (clipped && draw[0].index === 3) {
+        // A single translucent edge pixel would disappear from the sampled estimate.
+        data[3] = 1;
+      }
+      return { data } as ImageData;
+    });
+    await comparisonFigure(
+      defaultFigure,
+      [native.handle, native.handle],
+      ["A", "B"],
+      true,
+    );
+    expect(native.handle.capture).toHaveBeenCalledTimes(4);
+    expect(
+      vi
+        .mocked(native.handle.capture)
+        .mock.calls.map(([settings]) => settings.structureScale),
+    ).toEqual([undefined, undefined, 2, 2]);
+    expect(
+      native.drawn.mock.calls
+        .filter((args) => args.length === 3)
+        .map(([bitmap]) => bitmap.index),
+    ).toEqual(clipped ? [0, 1] : [2, 3]);
+    expect(native.close).toHaveBeenCalledTimes(4);
+  },
+);

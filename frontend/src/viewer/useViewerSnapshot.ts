@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FigureSettings } from "../publication/settings";
 import { dataUrlBlob } from "../publication/png-resolution";
+import type { FigurePixels } from "../publication/figure-panels";
 export function validSnapshot(
   value: unknown,
 ): value is { id: string; png: string } {
@@ -117,6 +118,7 @@ export function useViewerSnapshot(key: string) {
   function figure(
     send: (type: string, value?: unknown) => void,
     settings: FigureSettings,
+    pixels?: FigurePixels,
   ): Promise<Blob> {
     if (pending.current)
       return Promise.reject(new Error("A figure is already being rendered."));
@@ -134,7 +136,7 @@ export function useViewerSnapshot(key: string) {
         setFailed(true);
         reject(new Error("Native figure export timed out."));
       }, 30000);
-      send("snapshot", { id, figure: settings });
+      send("snapshot", { id, figure: settings, ...(pixels && { pixels }) });
     });
   }
   const downloadUrl = download?.image === image ? download.url : "";

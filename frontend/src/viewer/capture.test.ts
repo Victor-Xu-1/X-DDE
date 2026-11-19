@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { GLViewer } from "3dmol";
 import { captureDimensions, captureView, captureFigure } from "./capture";
 import { defaultFigure } from "../publication/settings";
+import { nativeFigurePixels } from "../publication/figure-panels";
 // The native WebGL worker has no JSDOM canvas. Browser gates use the real SDK;
 // this isolated test checks capture dimensions and exact restoration on failure.
 vi.mock("3dmol", () => ({
@@ -63,20 +64,29 @@ it.each([
   },
   { dpi: 300 as const, shape: "landscape" as const, width: 1051, height: 701 },
   { dpi: 300 as const, shape: "portrait" as const, width: 1051, height: 1401 },
+  {
+    dpi: 600 as const,
+    widthMm: 183 as const,
+    pixels: { width: 2114, height: 2001 },
+    width: 2114,
+    height: 2001,
+  },
 ])(
   "renders $dpi dpi at exact print pixels and restores the native camera on failure",
   ({
     dpi,
+    widthMm = 89,
     shape,
     structureScale,
+    pixels,
     width: expectedWidth,
     height: expectedHeight,
   }) => {
     const element = document.createElement("div");
     element.style.width = "100%";
     vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-      width: 400,
-      height: 300,
+      width: pixels ? 368 : 400,
+      height: pixels ? 576 : 300,
     } as DOMRect);
     let width = 800,
       height = 600;
@@ -115,12 +125,18 @@ it.each([
       },
     } as unknown as GLViewer;
     expect(() =>
-      captureFigure(viewer, element, {
-        ...defaultFigure,
-        dpi,
-        shape,
-        structureScale,
-      }),
+      captureFigure(
+        viewer,
+        element,
+        {
+          ...defaultFigure,
+          dpi,
+          widthMm: widthMm as 89 | 183,
+          shape,
+          structureScale,
+        },
+        pixels,
+      ),
     ).toThrow("native capture failed");
     expect(element.style.width).toBe("100%");
     expect(element.style.height).toBe("");
@@ -128,4 +144,13 @@ it.each([
     expect(setView).toHaveBeenLastCalledWith(camera);
     expect(background).toHaveBeenLastCalledWith("white", 1);
   },
+);
+
+it.each([
+  null,
+  {},
+  { width: "128", height: 250 },
+  { width: 8192, height: 8192 },
+])("refuses unsafe native panel dimensions", (value) =>
+  expect(() => nativeFigurePixels(value)).toThrow(),
 );

@@ -648,6 +648,43 @@ EDITOR_DRAWING_FILES = {
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
 
 
+PAIRED_FIGURE_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/property-model-review-checks.yml",
+    ".github/workflows/proximity-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/structure-comparison-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/proximity/AssemblyComparison.tsx",
+    "frontend/src/proximity/Results.tsx",
+    "frontend/src/publication/FigureDialog.tsx",
+    "frontend/src/publication/FigureExport.tsx",
+    "frontend/src/publication/figure-panels.ts",
+    "frontend/src/publication/paired-framing.ts",
+    "frontend/src/publication/paired-molecular-figure.ts",
+    "frontend/src/simulations/BoundPoseComparison.tsx",
+    "frontend/src/simulations/comparison-figure.test.ts",
+    "frontend/src/simulations/comparison-figure.ts",
+    "frontend/src/simulations/molstar-figure.ts",
+    "frontend/src/structure-comparison/AlignedStructurePair.tsx",
+    "frontend/src/structure-comparison/ComparisonPreview.tsx",
+    "frontend/src/viewer/StructurePairFigure.tsx",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/capture.test.ts",
+    "frontend/src/viewer/capture.ts",
+    "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/useStructureFigure.test.ts",
+    "frontend/src/viewer/useStructureFigure.ts",
+    "frontend/src/viewer/useViewerSnapshot.ts",
+    "server_tests/test_archived_comparison_browser.py",
+    "server_tests/test_proximity_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+PAIRED_FIGURE_DIFF = "b40d94a71f29d82fe33fd3f8860530dc71fb63dfbf1d536dc0e204f67264fa59"
+
+
 # Only this exact presentation patch takes the narrower browser gate.
 BACKEND_PLACEMENT_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
@@ -1501,6 +1538,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         EDITOR_DRAWING_FILES, EDITOR_DRAWING_DIFF, scope_pin="EDITOR_DRAWING_DIFF",
     )
+    paired_figure = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        PAIRED_FIGURE_FILES, PAIRED_FIGURE_DIFF, scope_pin="PAIRED_FIGURE_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         aligned_comparison = aligned_comparison_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
@@ -1508,6 +1549,7 @@ def main():
         output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
+        output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
@@ -1578,6 +1620,7 @@ def main():
             or aligned_comparison
             or inline_recognition
             or editor_drawing
+            or paired_figure
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

@@ -19,6 +19,7 @@ export function FigureExport({
   typography = format === "svg",
   molecular = false,
   structureFraming = false,
+  autoStructureFraming = false,
   compactTrigger = false,
 }: {
   language: Language;
@@ -34,6 +35,7 @@ export function FigureExport({
   typography?: boolean;
   molecular?: boolean;
   structureFraming?: boolean;
+  autoStructureFraming?: boolean;
   compactTrigger?: boolean;
 }) {
   const [open, setOpen] = useState(false),
@@ -118,6 +120,7 @@ export function FigureExport({
           typography={typography}
           molecular={molecular}
           structureFraming={structureFraming}
+          autoStructureFraming={autoStructureFraming}
           onClose={close}
         />
       )}

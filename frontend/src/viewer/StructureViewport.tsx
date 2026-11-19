@@ -63,11 +63,16 @@ import {
 import type { SearchBoxGeometry } from "./search-box";
 import type { StructureCameraHandle } from "./structure-camera";
 import { useStructureCamera } from "./useStructureCamera";
+import {
+  useStructureFigure,
+  type StructureFigureHandle,
+} from "./useStructureFigure";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   showWorkspaceControls?: boolean;
   onCameraReady?(handle: StructureCameraHandle | null): void;
+  onFigureReady?(handle: StructureFigureHandle | null): void;
   figureFilename?: string;
   heading?: ReactNode;
   expectedStructureSha256?: string;
@@ -111,6 +116,7 @@ export function StructureViewport({
   sourceSnapshot = false,
   showWorkspaceControls = true,
   onCameraReady,
+  onFigureReady,
   figureFilename,
   heading,
   expectedStructureSha256,
@@ -189,7 +195,7 @@ export function StructureViewport({
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const focusedLigand = useRef<string | null>(null);
   const snapshot = useViewerSnapshot(
-      JSON.stringify([key, requestedPotentialRange]),
+      JSON.stringify([sceneKey, requestedPotentialRange]),
     ),
     snapshotReceiver = useRef(snapshot.receive);
   snapshotReceiver.current = snapshot.receive;
@@ -525,6 +531,23 @@ export function StructureViewport({
   const displayBusy =
     displayPending ||
     (loaded && requestedPotentialRange !== appliedPotentialRange);
+  const figureKey = JSON.stringify([
+    sceneKey,
+    options,
+    focusKey,
+    focusModel,
+    siteKey,
+    attachmentKey,
+    hiddenChains,
+    selectedResidues,
+    displayRevision,
+  ]);
+  useStructureFigure(
+    figureKey,
+    loaded && !displayBusy,
+    (settings, pixels) => snapshot.figure(send, settings, pixels),
+    onFigureReady,
+  );
   useEffect(() => {
     if (
       loaded &&
@@ -634,17 +657,7 @@ export function StructureViewport({
               ? []
               : urls
           }
-          sourceKey={JSON.stringify([
-            key,
-            options,
-            focusKey,
-            focusModel,
-            siteKey,
-            attachmentKey,
-            hiddenChains,
-            selectedResidues,
-            displayRevision,
-          ])}
+          sourceKey={figureKey}
           sourceReady={loaded && !displayBusy}
           busy={snapshot.busy}
           aspect={() => {

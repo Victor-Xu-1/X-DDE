@@ -5,6 +5,10 @@ import type { Language } from "../types";
 import type { SelectionInfo } from "../viewer/protocol";
 import { StructureViewer } from "../viewer/StructureViewer";
 import {
+  StructurePairFigure,
+  useStructurePairFigure,
+} from "../viewer/StructurePairFigure";
+import {
   AlignedStructurePair,
   alignedArtifacts,
   comparisonResidues,
@@ -35,6 +39,7 @@ export function ComparisonPreview({
 }) {
   const zh = language === "zh";
   const camera = useComparisonView();
+  const figure = useStructurePairFigure();
   const { view } = camera;
   const modes: ComparisonView[] = ["overlay", "reference", "moving"];
   const hasChecksum = (side: ComparisonSide) =>
@@ -67,14 +72,27 @@ export function ComparisonPreview({
           ))}
           <div className="comparison-view-actions">
             {view === "pair" && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={!camera.pairReady || camera.busy}
-                onClick={camera.matchViews}
-              >
-                {zh ? "匹配视角" : "Match views"}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={!camera.pairReady || camera.busy}
+                  onClick={camera.matchViews}
+                >
+                  {zh ? "匹配视角" : "Match views"}
+                </button>
+                <StructurePairFigure
+                  figure={figure}
+                  labels={
+                    zh
+                      ? ["参照结构", "已对齐比较结构"]
+                      : ["Reference structure", "Aligned comparison"]
+                  }
+                  filename={`X-DDE-alignment-${jobId.slice(0, 8)}`}
+                  language={language}
+                  disabled={camera.busy}
+                />
+              </>
             )}
             <WorkspaceFullscreenControl
               language={language}
@@ -124,6 +142,7 @@ export function ComparisonPreview({
           selection={selection}
           onPick={onPick}
           publish={camera.publish}
+          publishFigure={figure.publish}
         />
       ) : (
         <StructureViewer

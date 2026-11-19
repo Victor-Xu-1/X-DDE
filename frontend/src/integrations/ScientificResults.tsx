@@ -188,6 +188,7 @@ export function ScientificResults({
       <ProximityResults
         job={job}
         result={result.proximity}
+        hashes={result.artifact_sha256}
         language={language}
       />
     );

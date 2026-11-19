@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -116,12 +117,17 @@ def inspect_pair(page, table, preview, rows, result, language, evidence):
         figures = []
         for index, slot in enumerate(("a", "b")):
             png = export_figure(
-                page, pair.locator(".figure-export-trigger").nth(index), evidence,
+                page, pair.locator(".proximity-compare-panels .figure-export-trigger").nth(index),
+                evidence,
                 f"assembly-{slot}-view", language,
             )
             inspect_png(png)
             figures.append(png.read_bytes())
         assert figures[0] != figures[1]
+        combined = pair.get_by_role("button", name="Export comparison ↓", exact=True)
+        png = export_figure(page, combined, evidence, "assembly-pair-print", language)
+        inspect_png(png)
+        assert struct.unpack(">I", png.read_bytes()[20:24])[0] == 1051
     page.screenshot(path=evidence / "focused-assembly-comparison.png")
     pair.get_by_role(
         "button", name="返回单个装配" if zh else "Return to single assembly", exact=True,

@@ -7,24 +7,11 @@ import {
   figureDimensions,
   type FigureSettings,
 } from "../publication/settings";
-
-export interface FigurePixels {
-  width: number;
-  height: number;
-}
-export function nativeFigurePixels(size: FigurePixels): FigurePixels {
-  if (
-    !Number.isInteger(size.width) ||
-    !Number.isInteger(size.height) ||
-    size.width < 128 ||
-    size.height < 128 ||
-    size.width > 8192 ||
-    size.height > 8192 ||
-    size.width * size.height > 24 * 1024 ** 2
-  )
-    throw new Error("Unsupported native panel dimensions.");
-  return size;
-}
+import {
+  nativeFigurePixels,
+  type FigurePixels,
+} from "../publication/figure-panels";
+export type { FigurePixels } from "../publication/figure-panels";
 
 /** Native offscreen rendering preserves the live scene, camera and screenshot settings. */
 export async function molecularFigure(
@@ -37,11 +24,13 @@ export async function molecularFigure(
   const canvas = plugin.canvas3d;
   if (!helper || !canvas) throw new Error("The molecular view is not ready.");
   const bounds = viewport.getBoundingClientRect();
-  const whole = figureDimensions(
-    settings,
-    figureAspect(settings, bounds.width / bounds.height),
-  );
-  const size = panel ? nativeFigurePixels(panel) : whole;
+  const size =
+    panel === undefined
+      ? figureDimensions(
+          settings,
+          figureAspect(settings, bounds.width / bounds.height),
+        )
+      : nativeFigurePixels(panel);
   const pass = helper.imagePass;
   const { multiSample, postprocessing, transparentBackground } = pass.props;
   const image = await plugin.runTask(
@@ -62,7 +51,8 @@ export async function molecularFigure(
           transparentBackground: settings.transparent,
         });
         await pass.updateBackground();
-        const render = () => pass.getImageData(runtime, size.width, size.height);
+        const render = () =>
+          pass.getImageData(runtime, size.width, size.height);
         if (scale === 1) return await render();
         let pixels: Promise<ImageData>;
         try {

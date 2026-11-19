@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 from pathlib import Path
 
 import pytest
@@ -137,6 +138,18 @@ def verify_aligned_pair(page, panel, result, evidence):
         inspect_png(figure)
         figures.append(hashlib.sha256(figure.read_bytes()).hexdigest())
     assert len(set(figures)) == 2
+    combined = panel.get_by_role("button", name="Export comparison ↓", exact=True)
+
+    def double_column(dialog):
+        expect(dialog.get_by_label("Structure size")).to_have_value("auto")
+        dialog.get_by_label("Figure width").select_option("183")
+
+    png = export_figure(
+        page, combined, evidence, "aligned-pair-print", "en", configure=double_column,
+    )
+    inspect_png(png, width=4323)
+    assert struct.unpack(">I", png.read_bytes()[20:24])[0] == 2162
+    assert read_camera(a) == pytest.approx(narrow_camera, abs=1e-6)
 
 
 def viewport_fit(frame):
@@ -159,6 +172,7 @@ def verify_changed_source_is_rejected(page, panel):
     panel.get_by_role("button", name="Aligned side by side", exact=True).click()
     right = panel.get_by_role("region", name="B · Aligned comparison", exact=True)
     expect(right.locator(".viewer-error")).to_be_visible(timeout=15000)
+    expect(panel.get_by_role("button", name="Export comparison ↓", exact=True)).to_be_disabled()
     right.get_by_role("button", name="Download Aligned comparison CIF", exact=True).click()
     expect(right.locator(".verified-artifact-download").get_by_role("alert")).to_contain_text(
         "Could not verify the saved file."

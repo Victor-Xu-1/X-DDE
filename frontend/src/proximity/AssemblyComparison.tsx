@@ -3,12 +3,17 @@ import { artifactUrl } from "../api";
 import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import type { Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
+import {
+  StructurePairFigure,
+  useStructurePairFigure,
+} from "../viewer/StructurePairFigure";
 import { AssemblyFiles } from "./AssemblyFiles";
 import type { AssemblyProposal } from "./types";
 
 export function AssemblyComparison({
   jobId,
   assemblies,
+  hashes,
   labels,
   language,
   activation,
@@ -17,6 +22,7 @@ export function AssemblyComparison({
 }: {
   jobId: string;
   assemblies: readonly [AssemblyProposal, AssemblyProposal];
+  hashes?: Readonly<Record<string, string>>;
   labels: readonly [string, string];
   language: Language;
   activation: number;
@@ -24,6 +30,16 @@ export function AssemblyComparison({
   onInspect(id: string): void;
 }) {
   const zh = language === "zh";
+  const figure = useStructurePairFigure();
+  const statuses = assemblies.map((assembly) =>
+    assembly.quality.accepted
+      ? zh
+        ? "基本几何通过"
+        : "Basic geometry passed"
+      : zh
+        ? "诊断结构 · 几何待复核"
+        : "Diagnostic · Review geometry",
+  );
   const heading = useRef<HTMLHeadingElement>(null);
   useLayoutEffect(() => {
     heading.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
@@ -47,6 +63,15 @@ export function AssemblyComparison({
           </p>
         </div>
         <div className="proximity-compare-actions">
+          <StructurePairFigure
+            figure={figure}
+            labels={[
+              `${labels[0]} · ${statuses[0]}`,
+              `${labels[1]} · ${statuses[1]}`,
+            ]}
+            filename={`X-DDE-assemblies-${jobId.slice(0, 8)}`}
+            language={language}
+          />
           <button type="button" className="secondary-button" onClick={onBack}>
             {zh ? "返回单个装配" : "Return to single assembly"}
           </button>
@@ -63,6 +88,8 @@ export function AssemblyComparison({
           const complex = artifactUrl(jobId, assembly.complex_artifact);
           const ligand = artifactUrl(jobId, assembly.ligand_artifact);
           const accepted = assembly.quality.accepted;
+          const hash = hashes?.[assembly.complex_artifact];
+          const verified = hash && /^[0-9a-f]{64}$/.test(hash);
           const label = labels[index];
           return (
             <section key={assembly.id} aria-label={`${slot} · ${label}`}>
@@ -76,13 +103,7 @@ export function AssemblyComparison({
                       accepted ? "proximity-check-pass" : "proximity-check-fail"
                     }
                   >
-                    {accepted
-                      ? zh
-                        ? "基本几何通过"
-                        : "Basic geometry passed"
-                      : zh
-                        ? "诊断结构 · 几何待复核"
-                        : "Diagnostic · Review geometry"}
+                    {statuses[index]}
                   </small>
                 </div>
                 <div className="proximity-compare-actions">
@@ -105,6 +126,8 @@ export function AssemblyComparison({
                 sourceSnapshot
                 initialMode="cartoon"
                 urls={[complex]}
+                expectedStructureSha256={verified ? hash : undefined}
+                onFigureReady={verified ? figure.publish[index] : undefined}
                 molecularSource={{ url: ligand, record: 0 }}
                 language={language}
                 showWorkspaceControls={false}
