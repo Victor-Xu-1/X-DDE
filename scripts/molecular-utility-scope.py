@@ -542,6 +542,16 @@ RECOGNITION_POWER_FILES = {
     "tests/test_recognition_companion.py",
 }
 RECOGNITION_POWER_DIFF = "931c66f515c294674f933f2833a6c77a3c22d178c72839bf782ca9b284548af4"
+RECOGNITION_ACCESS_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/RecognitionPowerAccess.tsx",
+    "frontend/src/utilities/image-molecule.css",
+    "server_tests/test_utility_image_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+RECOGNITION_ACCESS_DIFF = "81224db4c4096c07ffa4eca4db4fdb315d9ad9d4b5820fcb85f2baaa3bbad98c"
 RECOGNITION_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1163,6 +1173,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_POWER_FILES, RECOGNITION_POWER_DIFF,
     )
+    recognition_access = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RECOGNITION_ACCESS_FILES, RECOGNITION_ACCESS_DIFF, scope_pin="RECOGNITION_ACCESS_DIFF",
+    )
     recognition_entry = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_ENTRY_FILES, RECOGNITION_ENTRY_DIFF, scope_pin="RECOGNITION_ENTRY_DIFF",
@@ -1315,6 +1329,7 @@ def main():
         output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
         output.write("print_labels_only=" + str(print_labels).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
+        output.write("recognition_access_only=" + str(recognition_access).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
         output.write("utility_desktop_only=" + str(utility_desktop).lower() + "\n")
@@ -1341,7 +1356,8 @@ def main():
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
         utility = (
-            recognition_entry or recognition_power or potential_display or navigation
+            recognition_entry or recognition_power or recognition_access
+            or potential_display or navigation
             or runtime or layout
             or native_state or compact_example or mobile_header or desktop_header
             or initial_pose_power

@@ -1,7 +1,8 @@
-import { useContext, useRef, type ReactNode } from "react";
+import { useContext, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
+import { RecognitionPowerAccess } from "./RecognitionPowerAccess";
 import type { ImageMolecule } from "./image-molecule";
 import { useImageInputSession } from "./useImageInputSession";
 import "./image-molecule.css";
@@ -49,12 +50,16 @@ export function ImageMoleculeInput({
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDivElement>(null);
+  const [usedRecognition, setUsedRecognition] = useState(false);
   const session = useImageInputSession({
     enabled,
     disabled,
     onMolecule,
     trigger,
-    onImageSelected,
+    onImageSelected(editing) {
+      setUsedRecognition(true);
+      onImageSelected?.(editing);
+    },
   });
   function owns(target: EventTarget) {
     return (
@@ -125,6 +130,12 @@ export function ImageMoleculeInput({
           >
             {zh ? "编辑识别的结构" : "Edit recognized structure"}
           </button>
+        )}
+        {enabled && usedRecognition && (
+          <RecognitionPowerAccess
+            language={language}
+            disabled={session.disabled}
+          />
         )}
       </div>
       <input

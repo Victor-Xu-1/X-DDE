@@ -45,11 +45,15 @@ def image_hosts(root):
 
     class Handler(SimpleHTTPRequestHandler):
         def do_GET(self):
-            if self.path == "/api/session":
+            replies = {
+                "/api/session": b'{"csrf_token":"controlled-test-session"}',
+                "/api/utilities/recognition": b'{"available":true,"port":8940}',
+            }
+            if reply := replies.get(self.path):
                 self.send_response(200)
                 self.send_header("content-type", "application/json")
                 self.end_headers()
-                self.wfile.write(b'{"csrf_token":"controlled-test-session"}')
+                self.wfile.write(reply)
             else:
                 super().do_GET()
 
@@ -172,6 +176,21 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(page.get_by_role("dialog")).to_have_count(0)
         assert b"Image-assisted molecular input" in uploads[0]
         assert hashlib.sha256(replacement).hexdigest().encode() in uploads[0]
+        power_entry = actions.get_by_role("button", name="Recognition power", exact=True)
+        power_entry.press("Space")
+        management = page.get_by_role("dialog", name="Recognition power")
+        power_frame = management.frame_locator("iframe")
+        power = power_frame.get_by_role("switch", name="Recognition backend")
+        expect(power).to_be_checked()
+        expect(power_frame.get_by_label("OCR calls")).to_have_text("0")
+        power.click()
+        expect(power).not_to_be_checked()
+        page.screenshot(path=evidence / "recognition-power-in-task.png")
+        management.get_by_role("button", name="Back to task").press("Escape")
+        expect(management).to_have_count(0)
+        expect(power_entry).to_be_focused()
+        expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-1")
+        assert len(uploads) == 1
         primary.get_by_role("button", name="Edit recognized structure", exact=True).click()
         dialog = page.get_by_role("dialog")
         expect(dialog).to_be_visible()
@@ -179,8 +198,6 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(frame.get_by_label("Graph text")).to_have_value("Nc1ccccc1")
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
         power = frame.get_by_role("switch", name="Recognition backend")
-        expect(power).to_be_checked()
-        power.click()
         expect(power).not_to_be_checked()
         frame.get_by_label("Graph text").fill("NCCc1ccccc1")
         dialog.get_by_role("button", name="Use this molecule", exact=True).click()
@@ -210,6 +227,7 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             "nested_query_ownership": True, "image_digest_preserved": True,
             "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
             "off_on_entry": True, "explicit_enable_and_disable_in_import": True,
+            "power_panel_retains_input_and_focus": True,
             "replacement_source_digest": True,
         }, indent=2))
         browser.close()

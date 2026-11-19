@@ -265,7 +265,7 @@ If a switch shows **Off · Setup required**, **Set up** opens Installation and r
 
 配体首次需要计算三维构象时，预览会就地显示 RDKit 开关。开启后点击「生成三维构象」。已计算的构象在关闭后端时仍可查看。
 
-Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Reopen the image or its editor to turn recognition off from the same tool.
+Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Use **Recognition power** next to the image controls to switch the service on or off while keeping the current task open.
 
 粘贴或拖入结构图后，可在导入窗口打开或关闭识别后端。若后端已关闭，图片会等待你手动开启。服务就绪后，小工具会自动识别并填入结构。重新打开图片或结构编辑窗口，即可在当前工具关闭识别后端。
 
