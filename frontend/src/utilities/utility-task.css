@@ -295,7 +295,7 @@
     margin-bottom: 0;
   }
   .single-page-preview .molecule-image {
-    min-height: clamp(320px, calc(100dvh - 295px), 760px);
+    min-height: clamp(320px, calc(100dvh - 310px), 760px);
   }
   .single-page-inputs:has(.molecular-input-review) > .single-page-options {
     grid-column: 2;

@@ -498,7 +498,7 @@ UTILITY_DESKTOP_FILES = {
     "server_tests/test_utility_navigation_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-UTILITY_DESKTOP_DIFF = "4523dc63b0d3c884a170b8cae9dcc2442d3bfab83ce61fc62fc52219780eff4f"
+UTILITY_DESKTOP_DIFF = "f3d715c2b4b04389835e3476e105e16921b80d08c88cc367779c5e0422f871da"
 
 
 POTENTIAL_DISPLAY_FILES = {

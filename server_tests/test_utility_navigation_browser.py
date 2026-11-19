@@ -174,14 +174,16 @@ def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(tmp_path, language
             properties = "分子性质" if zh else "Molecular properties"
             strip.get_by_role("button", name=properties, exact=True).click()
             form = page.locator('[data-utility="properties"]')
-            source = "粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)"
+            source = (
+                "粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)"
+            )
             form.get_by_role("radio", name=source, exact=True).check()
             draft = form.get_by_role("textbox", name="SMILES", exact=True)
             draft.fill(DRAFT)
             drawing = form.locator('.molecule-image[data-drawing-state="ready"]')
             expect(drawing).to_be_visible(timeout=60000)
             area = work_area(form)
-            assert drawing.bounding_box()["height"] >= height - 295
+            assert drawing.bounding_box()["height"] >= height - 310
             assert area["preview"]["right"] < area["input"]["left"]
             assert area["run"]["bottom"] <= height, area
             expect(draft).to_be_focused()
