@@ -122,6 +122,8 @@ on:
         value: ${{ jobs.scope.outputs.utility_only }}
       editor_drawing_only:
         value: ${{ jobs.scope.outputs.editor_drawing_only }}
+      paired_figure_only:
+        value: ${{ jobs.scope.outputs.paired_figure_only }}
       potential_display_only:
         value: ${{ jobs.scope.outputs.potential_display_only }}
       runtime_switch_only:
@@ -174,6 +176,7 @@ jobs:
       utility_only: ${{ steps.select.outputs.utility_only }}
       inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
+      paired_figure_only: ${{ steps.select.outputs.paired_figure_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
       utility_desktop_only: ${{ steps.select.outputs.utility_desktop_only }}
@@ -224,6 +227,7 @@ jobs:
       needs.scope.outputs.recognition_access_only != 'true' &&
       needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.editor_drawing_only != 'true' &&
+      needs.scope.outputs.paired_figure_only != 'true' &&
       needs.scope.outputs.recognition_entry_only != 'true' &&
       needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' &&
       needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' &&

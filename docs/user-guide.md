@@ -175,6 +175,10 @@ ssh -L 4320:127.0.0.1:4320 USER@SERVER
 
 In a docking result, mark two valid poses and choose **Compare two poses in 3D**. The overlay distinguishes poses by orange and purple carbon. **A / B side by side** gives each pose its own receptor view and SDF download. **Match views** copies the camera from A to B. **Export comparison** creates a labelled PNG. In the expanded workspace, **Focus structure** enlarges the canvases. Metric comparison supports up to four records.
 
+Aligned proteins and ternary assemblies also offer **Export comparison** in the side-by-side view. The PNG uses the two current views, adds A/B captions and retains each assembly's geometry review status. **Fit both panels** uses a common magnification for the figure while preserving the two viewing directions. Preview the figure and choose its width, resolution and background before downloading.
+
+蛋白对齐和三元装配的并列视图均可「导出比较图」。导出使用两侧当前视角并标注 A/B，三元装配图还会保留各自的几何复核状态。「自动适配 A/B」只在图件中尝试按同一比例放大两侧结构。下载前可预览并设置图宽、分辨率和背景。
+
 在诱导邻近设计的结果表勾选两个装配，再点「三维比较两个装配」。每幅视图独立显示原始复合物和几何检查状态，支持下载原始 PDB、SDF 或导出当前视图。展开工作区后可点「专注结构」同时放大两幅视图。点击「单独检查」可进入该装配的二维、三维和连接位点视图。
 
 In an induced proximity result, mark two assemblies and choose **Compare two assemblies in 3D**. Each view shows the original complex and recorded geometry status. Download the PDB or SDF or export a single view from its panel. In the expanded workspace, **Focus structure** enlarges both panels. **Inspect** opens one assembly's 2D, 3D, and attachment-site views.

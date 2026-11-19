@@ -1,6 +1,7 @@
 """Review the archived STAT6 comparison in Chrome without dispatching an engine."""
 
 import hashlib
+import struct
 import json
 import os
 import re
@@ -137,6 +138,11 @@ def verify_aligned_pair(page, panel, result, evidence):
         inspect_png(figure)
         figures.append(hashlib.sha256(figure.read_bytes()).hexdigest())
     assert len(set(figures)) == 2
+    combined = panel.get_by_role("button", name="Export comparison ↓", exact=True)
+    png = export_figure(page, combined, evidence, "aligned-pair-print", "en")
+    inspect_png(png)
+    assert struct.unpack(">I", png.read_bytes()[20:24])[0] == 1051
+    assert read_camera(a) == pytest.approx(narrow_camera, abs=1e-6)
 
 
 def viewport_fit(frame):
@@ -159,6 +165,7 @@ def verify_changed_source_is_rejected(page, panel):
     panel.get_by_role("button", name="Aligned side by side", exact=True).click()
     right = panel.get_by_role("region", name="B · Aligned comparison", exact=True)
     expect(right.locator(".viewer-error")).to_be_visible(timeout=15000)
+    expect(panel.get_by_role("button", name="Export comparison ↓", exact=True)).to_be_disabled()
     right.get_by_role("button", name="Download Aligned comparison CIF", exact=True).click()
     expect(right.locator(".verified-artifact-download").get_by_role("alert")).to_contain_text(
         "Could not verify the saved file."

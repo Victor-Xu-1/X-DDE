@@ -24,6 +24,7 @@ export function FigureDialog({
   typography,
   molecular,
   structureFraming,
+  autoStructureFraming = false,
 }: {
   language: Language;
   sourceKey: string;
@@ -37,6 +38,7 @@ export function FigureDialog({
   typography: boolean;
   molecular: boolean;
   structureFraming: boolean;
+  autoStructureFraming?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
@@ -121,7 +123,10 @@ export function FigureDialog({
               <label>
                 {zh ? "结构大小" : "Structure size"}
                 <select
-                  value={settings.structureScale ?? 1}
+                  value={
+                    settings.structureScale ??
+                    (autoStructureFraming ? "auto" : 1)
+                  }
                   onChange={(event) =>
                     update({
                       structureScale: structureScales.find(
@@ -130,6 +135,11 @@ export function FigureDialog({
                     })
                   }
                 >
+                  {autoStructureFraming && (
+                    <option value="auto">
+                      {zh ? "自动适配 A/B" : "Fit both panels"}
+                    </option>
+                  )}
                   {structureScales.map((scale) => (
                     <option key={scale} value={scale}>
                       {scale}×

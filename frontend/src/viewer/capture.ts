@@ -7,6 +7,10 @@ import {
 import { nativeLabelLayer } from "./native-labels";
 import { figureOccupancy } from "./figure-occupancy";
 import { figureWithLabelLeaders } from "./figure-label-leaders";
+import {
+  nativeFigurePixels,
+  type FigurePixels,
+} from "../publication/figure-panels";
 export function captureDimensions(
   width: number,
   height: number,
@@ -39,15 +43,17 @@ export function captureFigure(
   viewer: GLViewer,
   element: HTMLElement,
   settings: FigureSettings,
+  panel?: FigurePixels,
 ) {
   const bounds = element.getBoundingClientRect(),
     ratio = viewer.getRenderer().devicePixelRatio;
   if (!Number.isFinite(ratio) || ratio <= 0)
     throw new Error("The native canvas is not ready.");
-  const size = figureDimensions(
+  const whole = figureDimensions(
     settings,
     figureAspect(settings, bounds.width / bounds.height),
   );
+  const size = panel === undefined ? whole : nativeFigurePixels(panel);
   const previousWidth = element.style.width,
     previousHeight = element.style.height,
     view = viewer.getView();

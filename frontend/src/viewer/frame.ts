@@ -446,6 +446,7 @@ window.addEventListener("message", (event) => {
               viewer,
               document.getElementById("molecule")!,
               capture.figure,
+              capture.pixels,
             )
           : captureView(
               viewer,

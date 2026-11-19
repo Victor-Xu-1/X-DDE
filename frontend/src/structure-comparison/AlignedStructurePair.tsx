@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import type { SelectionInfo } from "../viewer/protocol";
 import type { StructureCameraHandle } from "../viewer/structure-camera";
 import { StructureViewer } from "../viewer/StructureViewer";
+import type { StructureFigureHandle } from "../viewer/useStructureFigure";
 import type { Displacement } from "./types";
 
 export const alignedArtifacts = {
@@ -50,6 +51,7 @@ export function AlignedStructurePair({
   selection,
   onPick,
   publish,
+  publishFigure,
 }: {
   jobId: string;
   language: Language;
@@ -60,6 +62,10 @@ export function AlignedStructurePair({
     `pair-${ComparisonSide}`,
     (handle: StructureCameraHandle | null) => void
   >;
+  publishFigure: readonly [
+    (handle: StructureFigureHandle | null) => void,
+    (handle: StructureFigureHandle | null) => void,
+  ];
 }) {
   const zh = language === "zh";
   return (
@@ -107,6 +113,7 @@ export function AlignedStructurePair({
               residueRegion={comparisonResidues(selection, [side])}
               onAtomSelected={(atom) => onPick(side, atom)}
               onCameraReady={publish[`pair-${side}`]}
+              onFigureReady={publishFigure[index]}
               showWorkspaceControls={false}
               figureFilename={`X-DDE-aligned-${side}`}
             />

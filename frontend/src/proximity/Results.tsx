@@ -31,6 +31,7 @@ function assemblyLabel(id: string, zh: boolean, selected = false) {
 type ProximityResultProps = {
   job: Job;
   result: TernaryResult;
+  hashes?: Readonly<Record<string, string>>;
   language: Language;
 };
 
@@ -41,6 +42,7 @@ export function ProximityResults(props: ProximityResultProps) {
 function ProximityResultWorkspace({
   job,
   result,
+  hashes,
   language,
 }: ProximityResultProps) {
   const zh = language === "zh",
@@ -194,6 +196,7 @@ function ProximityResultWorkspace({
                   key={JSON.stringify(pair.map((row) => row.id))}
                   jobId={job.id}
                   assemblies={pair}
+                  hashes={hashes}
                   labels={[
                     assemblyLabel(pair[0].id, zh),
                     assemblyLabel(pair[1].id, zh),
