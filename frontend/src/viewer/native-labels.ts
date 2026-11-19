@@ -1,8 +1,7 @@
 import type { GLViewer, Label, LabelSpec, XYZ } from "3dmol";
-import type { GeometryOccupancy } from "./contact-label-layout";
+import type { GeometryOccupancy, LabelPlacement } from "./contact-label-layout";
 import {
   layoutNativeLabels,
-  type LabelPlacement,
   type NativeAnnotation,
 } from "./native-label-layout";
 

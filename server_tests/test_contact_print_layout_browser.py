@@ -103,9 +103,11 @@ def test_print_labels_use_clear_space_at_both_resolutions(
             camera = "f => f.contentDocument.querySelector('canvas')._3dmol_viewer.getView()"
             before = frame.evaluate(camera)
             coordinates = """f => f.contentDocument.querySelector('canvas')._3dmol_viewer
-                .getModel(0).selectedAtoms({}).map(atom => [atom.index, atom.x, atom.y, atom.z])"""
+                .selectedAtoms({}).map(atom => [atom.model, atom.index, atom.x, atom.y, atom.z])"""
             atoms = frame.evaluate(coordinates)
             assert len(atoms) > 100
+            if capability == "workflows":
+                assert len({atom[0] for atom in atoms}) >= 2
 
             def save(name, dpi, transparent=False):
                 def configure(dialog):

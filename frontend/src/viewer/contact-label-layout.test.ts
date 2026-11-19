@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { contactLabelLayout, type LabelBox } from "./contact-label-layout";
+import {
+  contactLabelLayout,
+  labelLeaderEndpoint,
+  type LabelBox,
+} from "./contact-label-layout";
 const overlap = (a: LabelBox, b: LabelBox) =>
   a.x < b.x + b.width &&
   a.x + a.width > b.x &&
@@ -90,4 +94,24 @@ it.each([1, 2])("uses clear print margins at raster scale %i", (scale) => {
     expect(occupied(box!)).toBe(0);
     expect(overlap(box!, ligand)).toBe(false);
   }
+  for (const [index, anchor] of anchors.entries()) {
+    const endpoint = labelLeaderEndpoint(anchor, boxes[index]!);
+    for (let fraction = 0; fraction < 1; fraction += 0.02) {
+      const x = anchor.x + fraction * (endpoint.x - anchor.x);
+      const y = anchor.y + fraction * (endpoint.y - anchor.y);
+      for (const other of boxes.filter((_, row) => row !== index)) {
+        expect(overlap({ x, y, width: 0, height: 0 }, other!)).toBe(false);
+      }
+    }
+  }
+});
+
+it("gives a measurement in empty space a visible leader and protects its anchor", () => {
+  const anchor = { x: 300, y: 200, width: 120, height: 25 };
+  const [box] = contactLabelLayout(
+    [anchor], { width: 600, height: 400 }, null, () => 0,
+  );
+  expect(box).not.toBeNull();
+  const end = labelLeaderEndpoint(anchor, box!);
+  expect(Math.hypot(end.x - anchor.x, end.y - anchor.y)).toBeGreaterThanOrEqual(3);
 });

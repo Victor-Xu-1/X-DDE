@@ -2,17 +2,13 @@ import { Vector2, type GLViewer, type Label, type XYZ } from "3dmol";
 import {
   contactLabelLayout,
   type GeometryOccupancy,
-  type LabelAnchor,
+  type LabelPlacement,
   type LabelBox,
 } from "./contact-label-layout";
 
 export interface NativeAnnotation {
   label: Label;
   layoutHidden: boolean;
-}
-export interface LabelPlacement {
-  anchor: LabelAnchor;
-  box: LabelBox;
 }
 /** Screen-space placement preserves the native molecular anchor. */
 export function layoutNativeLabels(

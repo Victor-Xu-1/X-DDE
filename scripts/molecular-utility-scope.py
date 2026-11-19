@@ -739,7 +739,7 @@ PRINT_LABEL_FILES = {
     "server_tests/test_contact_print_layout_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-PRINT_LABEL_DIFF = "fdf4d7fbc4f1c9975dc2ce981ee994341ed3bd4e9f28d05a30024914c161128b"
+PRINT_LABEL_DIFF = "a3f60c60a904cb869ee6c9bd5ea71066ab186950a1ff87bbac9c393fbd0b421e"
 
 MODULE_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",

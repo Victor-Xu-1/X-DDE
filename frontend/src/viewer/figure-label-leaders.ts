@@ -1,7 +1,4 @@
-import type { LabelPlacement } from "./native-label-layout";
-
-const clamp = (value: number, low: number, high: number) =>
-  Math.max(low, Math.min(high, value));
+import { labelLeaderEndpoint, type LabelPlacement } from "./contact-label-layout";
 
 /** Add print callouts over the existing molecular rendering, outside the label boxes. */
 export function figureWithLabelLeaders(
@@ -26,9 +23,8 @@ export function figureWithLabelLeaders(
   context.clip("evenodd");
   context.beginPath();
   for (const { anchor, box } of labels) {
-    const fromX = clamp(anchor.x, box.x, box.x + box.width) * x;
-    const fromY = clamp(anchor.y, box.y, box.y + box.height) * y;
-    context.moveTo(fromX, fromY);
+    const end = labelLeaderEndpoint(anchor, box);
+    context.moveTo(end.x * x, end.y * y);
     context.lineTo(anchor.x * x, anchor.y * y);
   }
   context.lineWidth = (0.3 * dpi) / 72;
