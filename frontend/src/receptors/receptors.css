@@ -152,30 +152,6 @@
   gap: 6px 12px;
   margin-block-end: 8px;
 }
-@media (961px <= width <= 1360px) {
-  .studio-main:has(
-      .task-result-content
-        > .detail-panel
-        > .operation-results
-        > .receptor-results
-    )
-    .studio-topbar {
-    gap: 10px;
-    .page-context {
-      min-width: 110px;
-      white-space: normal;
-    }
-    .task-search {
-      flex: 1 1 110px;
-    }
-    .global-search {
-      width: 100%;
-    }
-    .top-actions {
-      flex: none;
-    }
-  }
-}
 .receptor-results .receptor-actions {
   display: flex;
   gap: 0.5rem;

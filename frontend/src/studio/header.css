@@ -64,6 +64,49 @@
 .studio-topbar .backend-controls-icon {
   display: none;
 }
+@media (min-width: 961px) {
+  .studio-app .studio-topbar {
+    gap: clamp(10px, 1vw, 16px);
+  }
+  .studio-topbar > .page-context {
+    white-space: normal;
+    line-height: 1.25;
+  }
+  .studio-topbar > .task-search {
+    flex: 0 1 auto;
+    min-width: 150px;
+  }
+  .task-search .global-search {
+    max-width: 100%;
+  }
+  .task-search .global-search:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .task-search .search-results {
+    left: auto;
+    width: 100%;
+    min-width: 260px;
+  }
+  .studio-topbar > .top-actions {
+    flex: none;
+  }
+}
+@media (961px <= width <= 1100px) {
+  .studio-topbar > .page-context {
+    flex: none;
+    max-width: 150px;
+    font-size: 15px;
+  }
+  .studio-topbar .backend-controls-trigger:has(.backend-module-status) {
+    position: relative;
+  }
+  .studio-topbar .backend-module-status {
+    position: absolute;
+    inset: 6px 6px auto auto;
+    margin-inline-start: 0;
+  }
+}
 @media (max-width: 960px) {
   .studio-app .studio-topbar {
     height: 64px;
@@ -109,7 +152,7 @@
     gap: 0;
   }
 }
-@media (max-width: 760px) {
+@media (max-width: 760px), (961px <= width <= 1100px) {
   .studio-app .studio-topbar .backend-controls-trigger {
     display: grid;
     place-items: center;

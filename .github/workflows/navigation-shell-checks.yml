@@ -50,12 +50,14 @@ jobs:
     if: >-
       needs.appearance-scope.outputs.appearance_only != 'true' &&
       (needs.utility-scope.outputs.utility_only != 'true' ||
-      needs.utility-scope.outputs.mobile_header_only == 'true')
+      needs.utility-scope.outputs.mobile_header_only == 'true' ||
+      needs.utility-scope.outputs.desktop_header_only == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       WB_AUTO_DEPLOY: "0"
       WB_BROWSER_URL: http://127.0.0.1:4330
+      DESKTOP_HEADER_ONLY: ${{ needs.utility-scope.outputs.desktop_header_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,6 +66,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Navigation, header and direct application consumers
+        if: env.DESKTOP_HEADER_ONLY != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/studio/Navigation.test.tsx
@@ -74,6 +77,12 @@ jobs:
           src/studio/research-modules.test.ts src/studio/InterfaceSettings.test.tsx
           src/App.test.tsx src/studio/TaskWorkspace.test.tsx
           src/theme.test.ts src/guided/Questionnaire.test.tsx
+      - name: Desktop search, task navigation and backend controls
+        if: env.DESKTOP_HEADER_ONLY == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/Header.test.tsx
+          src/studio/ModuleWorkspaceNavigation.test.tsx src/utilities/BackendControls.test.tsx
       - name: Restore reviewed public state without inference
         env:
           GH_TOKEN: ${{ github.token }}
@@ -83,7 +92,7 @@ jobs:
           uv sync --locked --group dev --group browser
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Verify the approved header-only CI scope
-        if: needs.utility-scope.outputs.mobile_header_only == 'true'
+        if: needs.utility-scope.outputs.mobile_header_only == 'true' || env.DESKTOP_HEADER_ONLY == 'true'
         run: |
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
@@ -98,7 +107,9 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" > /dev/null
-          .venv/bin/python -m pytest -q server_tests/test_navigation_shell_browser.py
+          args=()
+          if [ "$DESKTOP_HEADER_ONLY" = true ]; then args+=(-k desktop_header); fi
+          .venv/bin/python -m pytest -q server_tests/test_navigation_shell_browser.py "${args[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

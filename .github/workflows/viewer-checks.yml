@@ -206,6 +206,7 @@ jobs:
     needs: [reference-scope, prediction-scope]
     if: >-
       needs.prediction-scope.outputs.mobile_header_only != 'true' &&
+      needs.prediction-scope.outputs.desktop_header_only != 'true' &&
       (needs.reference-scope.outputs.receptor_alignment == 'true' ||
       needs.reference-scope.outputs.structure_preparation == 'true')
     runs-on: ubuntu-24.04

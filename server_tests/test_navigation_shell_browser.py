@@ -87,6 +87,104 @@ def capture(page, name):
     page.screenshot(path=EVIDENCE / (name + ".png"))
 
 
+def desktop_header_geometry(header):
+    return header.evaluate("""bar => {
+        const selectors = [
+            '.page-context', '.module-workspace-navigation', '.global-search', '.top-actions',
+        ];
+        const parts = selectors.map(selector => bar.querySelector(selector))
+            .filter(Boolean).map(node => node.getBoundingClientRect())
+            .filter(rect => rect.width > 0 && rect.height > 0);
+        const bounds = bar.getBoundingClientRect();
+        const search = bar.querySelector('.global-search').getBoundingClientRect();
+        const title = bar.querySelector('.page-context-title');
+        const titleBounds = title.getBoundingClientRect();
+        const text = document.createRange();
+        text.selectNodeContents(title);
+        return {
+            separated: parts.every((rect, index) => !index || rect.left >= parts[index-1].right),
+            inside: parts.every(rect => rect.left >= bounds.left && rect.right <= bounds.right),
+            titleFits: Array.from(text.getClientRects()).every(rect =>
+                rect.left >= titleBounds.left - 1 && rect.right <= titleBounds.right + 1),
+            headerHeight: bounds.height,
+            searchWidth: search.width,
+        };
+    }""")
+
+
+@pytest.mark.parametrize("language", ["zh", "en"])
+def test_desktop_header_keeps_search_and_actions_separate(shell_page, language):
+    page = shell_page
+    base = os.environ["WB_BROWSER_URL"]
+    if language == "en":
+        page.locator("#settings-language").select_option("en")
+    nav = open_navigation(page, language)
+    header = page.locator(".studio-topbar")
+    field = header.get_by_role(
+        "searchbox", name="搜索任务" if language == "zh" else "Search tasks", exact=True
+    )
+    backend = header.get_by_role(
+        "button", name="后端管理" if language == "zh" else "Backend controls", exact=True
+    )
+    history = json.loads((EVIDENCE / "searchable-native-history.json").read_text())
+    runtime = page.request.get(base + "/api/runtime-controls").json()
+    mutations = []
+    page.on("request", lambda request: mutations.append(request.url)
+            if request.method not in {"GET", "HEAD", "OPTIONS"} else None)
+    measurements = []
+    for width in (961, 1280, 1600):
+        page.set_viewport_size({"width": width, "height": 800})
+        for labels in [("小工具", "Utilities"), *DESTINATIONS]:
+            title = labels[0 if language == "zh" else 1]
+            nav.get_by_role("button", name=title, exact=True).click()
+            expect(header.locator(".page-context-title")).to_have_text(title)
+            expect(field).to_be_visible()
+            geometry = desktop_header_geometry(header)
+            assert geometry["separated"] and geometry["inside"], (width, title, geometry)
+            assert geometry["titleFits"] and geometry["searchWidth"] >= 149, (width, title)
+            assert geometry["headerHeight"] <= 90, (width, title, geometry)
+            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+            measurements.append({"width": width, "title": title, **geometry})
+
+    page.set_viewport_size({"width": 961, "height": 800})
+    nav.get_by_role("button", name="高通量筛选" if language == "zh"
+                    else "High-throughput screening", exact=True).click()
+    backend.click()
+    panel = header.get_by_role(
+        "region", name="本模块的后端" if language == "zh"
+        else "Backends in this module", exact=True
+    )
+    expect(panel).to_be_visible()
+    backend.press("Escape")
+    expect(backend).to_be_focused()
+    expect(panel).to_have_count(0)
+
+    field.click()
+    expect(header.locator(".global-search")).not_to_have_css("box-shadow", "none")
+    field.fill(history["job_id"])
+    matches = header.get_by_role(
+        "region", name="任务搜索结果" if language == "zh" else "Task search results", exact=True
+    )
+    expect(matches.get_by_role("button")).to_have_count(1)
+    bounds = matches.bounding_box()
+    assert bounds and 0 <= bounds["x"] and bounds["x"] + bounds["width"] <= 961
+    capture(page, f"desktop-search-{language}-961")
+    page.set_viewport_size({"width": 1280, "height": 800})
+    expect(field).to_have_value(history["job_id"])
+    expect(field).to_be_focused()
+    field.press("ArrowDown")
+    expect(matches.get_by_role("button")).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page).to_have_url(base + "/#view=results&module=biologics&task=" + history["job_id"])
+    expect(page.locator(".sequence-score-results")).to_be_visible(timeout=30000)
+    assert desktop_header_geometry(header)["separated"]
+    assert page.request.get(base + "/api/runtime-controls").json() == runtime
+    assert not mutations
+    (EVIDENCE / f"desktop-header-{language}.json").write_text(
+        json.dumps(measurements, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
 def test_compact_header_keeps_actions_and_task_navigation_reachable(shell_page):
     page = shell_page
     base = os.environ["WB_BROWSER_URL"]
