@@ -64,11 +64,13 @@ def test_managed_engine_default_off_explicit_enable_and_restart_reset(tmp_path):
         assert snapshot["capabilities"]["admet.brain"] == "admet"
         assert snapshot["capabilities"]["gnina.minimize"] == "gnina"
         assert snapshot["capabilities"]["campaign"] == "harness"
+        assert snapshot["capabilities"]["regions"] == engine_for("diffsbdd").id
+        assert snapshot["capabilities"]["pose_exploration"] == engine_for("docking").id
         assert "experimental.evidence" not in snapshot["capabilities"]
+        assert "workflows" not in snapshot["capabilities"]
         engines = {row["id"]: row for row in snapshot["engines"]}
         for capability in CAPABILITIES.values():
             if capability.environment == "platform":
-                assert capability.id not in snapshot["capabilities"]
                 continue
             assert snapshot["capabilities"][capability.id] == capability.environment
             for operation in capability.operations:

@@ -40,17 +40,16 @@ def verify_catalogue(page, base, snapshot):
     catalogue = page.request.get(base + "/api/capabilities").json()["capabilities"]
     expected = {
         spec["id"] for spec in catalogue
-        if spec["frontend_form"] and spec["environment"] != "platform"
-    } - {"resources"}
+        if spec["frontend_form"]
+    } - {"resources", "workflows", "experimental.evidence"}
     checked = []
     for spec in catalogue:
         key = spec["id"]
         if not spec.get("frontend_form") or key == "resources":
             continue
-        owner = snapshot["capabilities"].get(key)
-        if owner is None:
-            assert key in {"experimental.evidence", "regions", "workflows", "pose_exploration"}
+        if key not in expected:
             continue
+        owner = snapshot["capabilities"][key]
         panel = open_capability(page, base, key)
         row = panel.locator(f'[data-engine="{owner}"]')
         switch = row.get_by_role("switch")
@@ -68,11 +67,16 @@ def verify_catalogue(page, base, snapshot):
 
 
 def verify_composite_tools(page, base):
+    page.set_viewport_size({"width": 1280, "height": 800})
     for tool, owner in (("regions", "diffsbdd"), ("pose_exploration", "gnina")):
-        page.goto(f"{base}/#view=new&tool={tool}")
-        panel = controls(page, zh=True)
-        expect(panel.locator(f'[data-engine="{owner}"]').get_by_role("switch")).not_to_be_checked()
-        expect(panel.get_by_role("switch")).to_have_count(1)
+        panel = open_capability(page, base, tool)
+        switch = panel.locator(f'[data-engine="{owner}"]').get_by_role("switch")
+        expect(switch).to_be_visible()
+        expect(switch).not_to_be_checked()
+        expect(controls(page, zh=True).get_by_role("switch")).to_have_count(1)
+        bounds = switch.bounding_box()
+        assert bounds and bounds["x"] > 640 and bounds["y"] < 230
+        page.screenshot(path=EVIDENCE / f"{tool}-power-1280.png")
 
     page.goto(f"{base}/#view=new&tool=experimental.evidence")
     expect(page.get_by_role("button", name="下一步")).to_be_visible()

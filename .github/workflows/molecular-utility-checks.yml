@@ -151,6 +151,7 @@ jobs:
       task_power_only: ${{ steps.select.outputs.task_power_only }}
       module_backend_only: ${{ steps.select.outputs.module_backend_only }}
       module_power_only: ${{ steps.select.outputs.module_power_only }}
+      composed_power_only: ${{ steps.select.outputs.composed_power_only }}
       module_power_changed: ${{ steps.select.outputs.module_power_changed }}
       native_state_only: ${{ steps.select.outputs.native_state_only }}
       compact_example_only: ${{ steps.select.outputs.compact_example_only }}
@@ -430,17 +431,39 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Shared switches and selected screening stages
+        if: needs.scope.outputs.composed_power_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/utilities/BackendControls.test.tsx
           src/datasets/ScreeningForm.test.tsx src/datasets/screening-readiness.test.ts
           src/studio/ModuleWorkspaceNavigation.test.tsx src/studio/TaskWorkspace.test.tsx
+      - name: Backend switches for compound tools, example previews and selected workflow steps
+        if: needs.scope.outputs.composed_power_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/utilities/BackendControls.test.tsx
+          src/examples/ExampleActions.test.tsx src/operations/ToolCenter.test.tsx
+          src/poses/PoseWorkspace.test.tsx src/regions/RegionWorkspace.test.tsx
+          src/workflows/WorkflowCenter.test.tsx
+      - name: Default-off behavior and operation-to-engine mapping
+        if: needs.scope.outputs.composed_power_only == 'true'
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check src/opendde_workbench/runtime_controls.py tests/test_utility_tools.py
+          uv run --locked pytest -q tests/test_utility_tools.py
       - name: Contextual power controls in Chrome without scientific execution
+        if: needs.scope.outputs.composed_power_only != 'true'
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/browser_platform.py server_tests/test_{module_backend_switch,screening_power}_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           uv run --locked python -m pytest -x -q server_tests/test_{module_backend_switch,screening_power}_browser.py
+      - name: Verify every research module and task switch in Chrome
+        if: needs.scope.outputs.composed_power_only == 'true'
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_module_backend_switch_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          uv run --locked python -m pytest -x -q server_tests/test_module_backend_switch_browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

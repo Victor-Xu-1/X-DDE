@@ -819,6 +819,22 @@ BACKEND_SETUP_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
 }
 BACKEND_SETUP_DIFF = "c8347a8e009067581feb1cb0247d6e742e78bc327b7c7eeb82cd126ce1758738"
+COMPOSED_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/examples/ExampleActions.test.tsx",
+    "frontend/src/operations/ToolCenter.tsx",
+    "frontend/src/poses/PoseWorkspace.test.tsx",
+    "frontend/src/poses/PoseWorkspace.tsx",
+    "frontend/src/regions/RegionWorkspace.tsx",
+    "frontend/src/workflows/WorkflowBackendControl.tsx",
+    "frontend/src/workflows/WorkflowCenter.test.tsx",
+    "server_tests/test_module_backend_switch_browser.py",
+    "src/opendde_workbench/runtime_controls.py",
+    "tests/test_molecular_utility_scope.py",
+    "tests/test_utility_tools.py",
+}
+COMPOSED_POWER_DIFF = "ebbafb3a14d65227e823ebbebeca383cdd7bfef868721c347dec73efe3875a8b"
 DESKTOP_HELP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
@@ -961,7 +977,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_SETUP_FILES, BACKEND_SETUP_DIFF, scope_pin="BACKEND_SETUP_DIFF",
     )
-    module_power = backend_setup or reviewed_selected(
+    composed_power = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        COMPOSED_POWER_FILES, COMPOSED_POWER_DIFF, scope_pin="COMPOSED_POWER_DIFF",
+    )
+    module_power = backend_setup or composed_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,
     ) or reviewed_selected(
@@ -1029,6 +1049,7 @@ def main():
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("module_power_only=" + str(module_power).lower() + "\n")
+        output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed))
         )

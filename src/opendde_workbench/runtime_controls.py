@@ -13,6 +13,13 @@ from fastapi import Depends, HTTPException
 
 from .engine_registry import ENGINES, engine_for, statuses
 
+# These platform forms delegate their calculation to registered operations.
+# Workflows resolve their engines from the selected steps instead.
+_COMPOSED_CAPABILITIES = {
+    "regions": "diffsbdd",
+    "pose_exploration": "docking",
+}
+
 
 class RuntimeControls:
     def __init__(self, store):
@@ -78,6 +85,12 @@ def register_runtime_controls(app, store, engine, worker, health, mutation, harn
         for spec in CAPABILITIES.values()
         if spec.environment in ENGINES
     }
+    capabilities.update(
+        {
+            capability: engine_for(operation).id
+            for capability, operation in _COMPOSED_CAPABILITIES.items()
+        }
+    )
     if managed:
         engine.admission = controls.reason
         worker.select_queued = controls.next_queued

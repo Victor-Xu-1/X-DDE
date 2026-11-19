@@ -200,7 +200,7 @@ export function ToolCenter({
                   onCreated={onCreated}
                 />
               ) : selected === "pose_exploration" ? (
-                <PoseWorkspace language={language} />
+                <PoseWorkspace language={language} showBackend={false} />
               ) : selected === "rmsd" ? (
                 <ComparisonForm language={language} onCreated={onCreated} />
               ) : selected === "biopython.ensemble" ? (
