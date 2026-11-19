@@ -224,7 +224,7 @@ def verify_modules(page, base):
     return groups
 
 
-def verify_utilities(page, base, companion):
+def verify_utilities(page, base, companion, companion_loads):
     page.goto(base + "/#view=utilities")
     trigger, module = module_power(page)
     trigger.click()
@@ -256,13 +256,12 @@ def verify_utilities(page, base, companion):
         expect(panel.get_by_role("switch")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
-    # Prove the panel reflects its companion and leads back to its native
-    # control without a lifecycle write or discarding the current utility.
+    # Opening the workbench rechecks its connection before moving focus.
     page.set_viewport_size({"width": 1280, "height": 800})
     trigger.click()
     recognition = module.locator('[data-engine="decimer"]')
     expect(recognition).to_contain_text("工作台未连接", timeout=12000)
-    recognition.get_by_role("button", name="前往启停").press("Enter")
+    recognition.get_by_role("button", name="打开识别工作台").press("Enter")
     expect(module).to_have_count(0)
     expect(page.get_by_role("button", name="图片识别与编辑")).to_have_attribute(
         "aria-pressed", "true"
@@ -270,6 +269,23 @@ def verify_utilities(page, base, companion):
     expect(page.get_by_role("button", name="重新连接")).to_be_focused()
     expect(page.get_by_text("图片识别工作台尚未打开")).to_be_visible()
     page.screenshot(path=EVIDENCE / "recognition-power-offline-1280.png")
+
+    previous_loads = len(companion_loads)
+    page.get_by_role("button", name="分子性质", exact=True).click()
+    companion.update(available=True, power={"phase": "stopped", "enabled": False})
+    trigger.click()
+    expect(recognition).to_contain_text("已关闭", timeout=12000)
+    recognition.get_by_role("button", name="打开识别工作台").press("Enter")
+    frame = page.locator("iframe.utility-recognition-frame")
+    expect(frame).to_be_focused()
+    switch = page.frame_locator("iframe.utility-recognition-frame").get_by_role("switch")
+    expect(switch).to_be_visible()
+    expect(switch).not_to_be_checked()
+    page.get_by_role("button", name="分子性质", exact=True).click()
+    trigger.click()
+    recognition.get_by_role("button", name="打开识别工作台").press("Enter")
+    expect(frame).to_be_focused()
+    assert len(companion_loads) == previous_loads + 1
 
 
 def verify_result_toolbar_power(page, base, groups):
@@ -383,13 +399,26 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             "port": 8940,
             "power": {"phase": "stopped", "enabled": False},
         }
+        companion_loads = []
+        page.route(
+            "http://127.0.0.1:8940/**",
+            lambda route: route.fulfill(
+                content_type="text/html",
+                body='<button role="switch" aria-checked="false">Recognition</button>',
+            ),
+        )
         page.route(
             "**/api/utilities/recognition*",
             lambda route: route.fulfill(
-                json=companion if "include_power=true" in route.request.url
-                else {"available": False, "port": 8940}
+                json=companion if "include_power=true" in route.request.url else
+                {"available": companion["available"], "port": 8940}
             ),
         )
+        def record_companion_load(frame):
+            if frame.url.startswith("http://127.0.0.1:8940/"):
+                companion_loads.append(frame.url)
+
+        page.on("framenavigated", record_companion_load)
         page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
@@ -411,7 +440,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         assert posts == []
         verify_shared_power(page, base)
         verify_inline_switch_lifecycle(page, base)
-        verify_utilities(page, base, companion)
+        verify_utilities(page, base, companion, companion_loads)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
         assert page.request.get(base + "/api/jobs").json() == before

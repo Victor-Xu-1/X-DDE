@@ -557,7 +557,7 @@ RECOGNITION_ENTRY_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_utility_tools.py",
 }
-RECOGNITION_ENTRY_DIFF = "5f858a5b7ebd7034d1bbd904d16d924368843083dd996b96cb836510292d795c"
+RECOGNITION_ENTRY_DIFF = "cac849f9ca1589c2878ce789af25b092ed6ae25b710a14c62fd9774d7072cf46"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

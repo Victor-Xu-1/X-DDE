@@ -83,7 +83,7 @@ export function RecognitionBackendEntry({
         </span>
       </span>
       <button type="button" className="secondary-button" onClick={onOpen}>
-        {zh ? "前往启停" : "Go to switch"}
+        {zh ? "打开识别工作台" : "Open image workbench"}
       </button>
     </div>
   );

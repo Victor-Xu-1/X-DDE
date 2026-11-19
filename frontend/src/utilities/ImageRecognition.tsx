@@ -21,9 +21,11 @@ export function ImageRecognition({
 }) {
   const zh = language === "zh";
   const [attempt, setAttempt] = useState(0);
-  const [status, setStatus] = useState<"checking" | "ready" | "offline">(
-    "checking",
-  );
+  const [connection, setConnection] = useState<{
+    status: "checking" | "ready" | "offline";
+    focusRequest: number;
+  }>({ status: "checking", focusRequest: 0 });
+  const { status } = connection;
   const hostname =
     location.hostname === "localhost" ? "localhost" : "127.0.0.1";
   const origin = `http://${hostname}:8940`;
@@ -38,9 +40,13 @@ export function ImageRecognition({
     status === "ready",
   );
   useEffect(() => {
+    if (!visible) return;
     const controller = new AbortController();
     const deadline = window.setTimeout(() => controller.abort(), 5000);
-    setStatus("checking");
+    let disposed = false;
+    function settle(status: "ready" | "offline") {
+      if (!disposed) setConnection({ status, focusRequest });
+    }
     fetch("/api/utilities/recognition", {
       signal: controller.signal,
       cache: "no-store",
@@ -48,23 +54,26 @@ export function ImageRecognition({
       .then(async (response) => {
         if (!response.ok) throw new Error("Unavailable");
         const value = await response.json();
-        if (!controller.signal.aborted)
-          setStatus(value.available === true ? "ready" : "offline");
+        settle(
+          value.available === true && !controller.signal.aborted
+            ? "ready"
+            : "offline",
+        );
       })
       .catch(() => {
-        if (!disposed) setStatus("offline");
+        settle("offline");
       })
       .finally(() => window.clearTimeout(deadline));
-    let disposed = false;
     return () => {
       disposed = true;
       controller.abort();
       window.clearTimeout(deadline);
     };
-  }, [attempt]);
+  }, [attempt, focusRequest, visible]);
   useEffect(() => {
     if (
       !visible ||
+      connection.focusRequest !== focusRequest ||
       focusRequest <= lastFocusedRequest.current ||
       status === "checking"
     )
@@ -74,7 +83,7 @@ export function ImageRecognition({
       lastFocusedRequest.current = focusRequest;
       target.focus();
     }
-  }, [focusRequest, status, visible]);
+  }, [connection, focusRequest, status, visible]);
   const actions = (
     <div className="utility-editor-tools">
       <Hint label={zh ? "图片输入帮助" : "Image input help"}>

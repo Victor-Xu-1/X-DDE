@@ -239,13 +239,13 @@ Availability checks inspect the installed environment and its complete model-res
 
 The first navigation entry opens Utilities: image-to-SMILES recognition and editing, ADMET prediction, molecular descriptors, similarity/structural-alert screening, and protonation/tautomer preparation. These entries reuse the existing task forms and result authorities. Switching utility tabs retains unfinished inputs. Accepted tasks stay in their form with an explicit result link; New task resets only that completed tool. Late responses never change the page you are using. ADMET and other scientific calculations require their separately installed environments; opening an input form does not install them.
 
-小工具是首个入口，提供图片转 SMILES 与结构编辑、ADMET、分子性质、相似性与结构警报、质子化与互变异构。图片识别复用已安装的 DECIMER 工作台（本机 8940），支持粘贴、上传、拖入、编辑及 SMILES/MOL/SDF 复制导出。「后端管理」显示 DECIMER 的实时状态，点击「前往启停」可回到图片识别页的原有开关。识别服务默认关闭，闲置后按工作台策略释放模型。
+小工具是首个入口，提供图片转 SMILES 与结构编辑、ADMET、分子性质、相似性与结构警报、质子化与互变异构。图片识别复用已安装的 DECIMER 工作台（本机 8940），支持粘贴、上传、拖入、编辑及 SMILES/MOL/SDF 复制导出。「后端管理」显示 DECIMER 的实时状态，点击「打开识别工作台」后可在工作台右上角启停。识别服务默认关闭，闲置后按工作台策略释放模型。
 
 The editor fills the available window height below the utility tabs. Help, reconnect and separate-window actions sit beside those tabs; input guidance opens on demand. At narrow widths the tabs scroll horizontally, while a short window or phone scrolls within the work area to reach the editor and export controls. Other research pages retain their normal document layout.
 
 编辑区填满工具标签下方的可用高度；帮助、重新连接和独立窗口入口集中在标签右侧。窄屏可横向浏览工具标签，矮屏和手机可在工作区滚动到编辑及导出操作。其他研究页面保持原有布局。
 
-Backend controls reports the DECIMER state. Select **Go to switch** to return to the original power switch in Image recognition & editor. The companion defaults to off and releases its model when idle.
+Backend controls reports the DECIMER state. Select **Open image workbench** to return to Image recognition & editor, then use its top-right power switch. The companion defaults to off and releases its model when idle.
 
 To embed an existing DECIMER workbench, its HTTP host must explicitly permit only `http://127.0.0.1:4322` and `http://localhost:4322` in `frame-ancestors`; retain its host/origin/session checks. X-DDE permits only the two corresponding local 8940 frame origins. The read-only discovery route checks the fixed `/health` endpoint and optionally returns the phase and enabled flag from `/api/state`. Power changes remain in the authenticated companion.
 
