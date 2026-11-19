@@ -16,11 +16,57 @@ def observe_native_label_pixels(page):
         if(events.length>24) events.shift();
       };
       window.__nativeLabelCaptures=[];
+      const figureCopies=new WeakMap(), lastMove=new WeakMap();
+      const copy=CanvasRenderingContext2D.prototype.drawImage;
+      CanvasRenderingContext2D.prototype.drawImage=function(image,...args) {
+        const result=copy.call(this,image,...args), rows=frames.get(image);
+        const viewer=image._3dmol_viewer;
+        if(viewer && rows?.length && this.canvas.width===image.width &&
+            this.canvas.height===image.height) {
+          frames.set(this.canvas,[...rows]);
+          const bounds=image.getBoundingClientRect();
+          const labels=viewer.labels.filter(label=>label.sprite.visible);
+          const points=viewer.modelToScreen(labels.map(label=>label.sprite.position));
+          const anchors=points.map((point,index)=>({
+            text:labels[index].text,
+            x:(point.x-bounds.left)*image.width/bounds.width,
+            y:(point.y-bounds.top)*image.height/bounds.height,
+          }));
+          figureCopies.set(this.canvas,{anchors,segments:[],context:this});
+        }
+        return result;
+      };
+      const move=CanvasRenderingContext2D.prototype.moveTo;
+      CanvasRenderingContext2D.prototype.moveTo=function(x,y) {
+        if(figureCopies.has(this.canvas)) lastMove.set(this,{x,y});
+        return move.call(this,x,y);
+      };
+      const line=CanvasRenderingContext2D.prototype.lineTo;
+      CanvasRenderingContext2D.prototype.lineTo=function(x,y) {
+        const figure=figureCopies.get(this.canvas), from=lastMove.get(this);
+        if(figure && from) {
+          const length=Math.hypot(from.x-x,from.y-y);
+          const offset=Math.min(0.5,2/Math.max(1,length));
+          const px=Math.round(x+offset*(from.x-x))-1;
+          const py=Math.round(y+offset*(from.y-y))-1;
+          const before=this.getImageData(px,py,3,3).data;
+          figure.segments.push({x,y,length,px,py,before});
+        }
+        return line.call(this,x,y);
+      };
       const encode=HTMLCanvasElement.prototype.toDataURL;
       HTMLCanvasElement.prototype.toDataURL=function(...args) {
-        const rows=frames.get(this);
+        const rows=frames.get(this), figure=figureCopies.get(this);
+        const leaders=figure?.segments.map(({x,y,length,px,py,before},index)=>{
+          const after=figure.context.getImageData(px,py,3,3).data;
+          const anchor=figure.anchors[index];
+          return {text:anchor?.text,length,
+            anchorError:anchor ? Math.hypot(x-anchor.x,y-anchor.y) : null,
+            visible:after.some((value,i)=>Math.abs(value-before[i])>8)};
+        }) || [];
         window.__nativeLabelCaptures.push({
           width:this.width,height:this.height,rows:rows ? [...rows] : [],
+          leaders,
           stats:{...stats},events:[...events]});
         return encode.apply(this,args);
       };
@@ -149,7 +195,7 @@ def observe_native_label_pixels(page):
 
 
 def inspect_native_label_pixels(
-    panel, evidence, filename, dpi=600, width=2102, pt=7, required_text=None
+    panel, evidence, filename, dpi=600, width=2102, pt=7, required_text=None, leaders=None
 ):
     captures = panel.locator("iframe").first.evaluate(
         "frame => frame.contentWindow.__nativeLabelCaptures || []"
@@ -162,6 +208,14 @@ def inspect_native_label_pixels(
     assert matching, {"message": "Native PNG capture was not observed", "captures": captures[-2:]}
     selected = matching[-1]["rows"]
     assert selected, "The encoded PNG had no native annotation text"
+    if leaders is not None:
+        segments = matching[-1]["leaders"]
+        assert len(segments) == leaders
+        assert {segment["text"] for segment in segments} == {row["text"] for row in selected}
+        assert all(
+            segment["length"] > 2 and segment["anchorError"] < 1 and segment["visible"]
+            for segment in segments
+        ), segments
     if required_text:
         assert any(required_text in row["text"] for row in selected), {
             "required": required_text,

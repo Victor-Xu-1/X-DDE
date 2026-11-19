@@ -723,6 +723,24 @@ SPLIT_VIEWER_FILES = {
 }
 SPLIT_VIEWER_DIFF = "fcd668deeca469111005f7d56aaecb0d54dc100598bcd1f4ade24e69e216b592"
 
+PRINT_LABEL_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/viewer/capture.ts",
+    "frontend/src/viewer/contact-label-layout.test.ts",
+    "frontend/src/viewer/contact-label-layout.ts",
+    "frontend/src/viewer/figure-label-leaders.ts",
+    "frontend/src/viewer/figure-occupancy.ts",
+    "frontend/src/viewer/native-label-layout.ts",
+    "frontend/src/viewer/native-labels.test.ts",
+    "frontend/src/viewer/native-labels.ts",
+    "server_tests/publication_raster_metrics.py",
+    "server_tests/test_contact_print_layout_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+PRINT_LABEL_DIFF = "a3f60c60a904cb869ee6c9bd5ea71066ab186950a1ff87bbac9c393fbd0b421e"
+
 MODULE_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -848,6 +866,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SPLIT_VIEWER_FILES, SPLIT_VIEWER_DIFF,
     )
+    print_labels = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        PRINT_LABEL_FILES, PRINT_LABEL_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -860,6 +882,7 @@ def main():
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
         output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
+        output.write("print_labels_only=" + str(print_labels).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
@@ -883,7 +906,7 @@ def main():
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
             or native_state or compact_example or mobile_header or initial_pose_power
-            or mobile_viewer
+            or mobile_viewer or print_labels
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

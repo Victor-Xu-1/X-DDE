@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { contactLabelLayout, type LabelBox } from "./contact-label-layout";
+import {
+  contactLabelLayout,
+  labelLeaderEndpoint,
+  type LabelBox,
+} from "./contact-label-layout";
 const overlap = (a: LabelBox, b: LabelBox) =>
   a.x < b.x + b.width &&
   a.x + a.width > b.x &&
@@ -57,4 +61,57 @@ it("does not invent positions for invalid projection or zero-size viewports", ()
       null,
     ),
   ).toEqual([null]);
+});
+
+it.each([1, 2])("uses clear print margins at raster scale %i", (scale) => {
+  const ribbon = {
+    x: 190 * scale,
+    y: 28 * scale,
+    width: 225 * scale,
+    height: 305 * scale,
+  };
+  const ligand = {
+    x: 296 * scale,
+    y: 180 * scale,
+    width: 40 * scale,
+    height: 44 * scale,
+  };
+  const anchors = [156, 184, 209, 235, 260].map((y) => ({
+    x: 294 * scale,
+    y: y * scale,
+    width: 145 * scale,
+    height: 24 * scale,
+  }));
+  const occupied = (box: LabelBox) => Number(overlap(box, ribbon));
+  const boxes = contactLabelLayout(
+    anchors,
+    { width: 600 * scale, height: 400 * scale },
+    ligand,
+    occupied,
+  );
+  expect(boxes.filter(Boolean)).toHaveLength(anchors.length);
+  for (const box of boxes) {
+    expect(occupied(box!)).toBe(0);
+    expect(overlap(box!, ligand)).toBe(false);
+  }
+  for (const [index, anchor] of anchors.entries()) {
+    const endpoint = labelLeaderEndpoint(anchor, boxes[index]!);
+    for (let fraction = 0; fraction < 1; fraction += 0.02) {
+      const x = anchor.x + fraction * (endpoint.x - anchor.x);
+      const y = anchor.y + fraction * (endpoint.y - anchor.y);
+      for (const other of boxes.filter((_, row) => row !== index)) {
+        expect(overlap({ x, y, width: 0, height: 0 }, other!)).toBe(false);
+      }
+    }
+  }
+});
+
+it("gives a measurement in empty space a visible leader and protects its anchor", () => {
+  const anchor = { x: 300, y: 200, width: 120, height: 25 };
+  const [box] = contactLabelLayout(
+    [anchor], { width: 600, height: 400 }, null, () => 0,
+  );
+  expect(box).not.toBeNull();
+  const end = labelLeaderEndpoint(anchor, box!);
+  expect(Math.hypot(end.x - anchor.x, end.y - anchor.y)).toBeGreaterThanOrEqual(3);
 });
