@@ -818,7 +818,7 @@ BACKEND_SETUP_FILES = {
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
 }
-BACKEND_SETUP_DIFF = "cb5c8c2636d094792290ca3e683492e614f777451996d1ce25d8534e340b7b79"
+BACKEND_SETUP_DIFF = "88907b5d875fa445f2f2ac672bc3d376a6714de9e660eefa15f13d1c0c611583"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -969,7 +969,9 @@ def main():
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("module_power_only=" + str(module_power).lower() + "\n")
-        power_changed = not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        power_changed = (
+            not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        )
         output.write("module_power_changed=" + str(power_changed).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
