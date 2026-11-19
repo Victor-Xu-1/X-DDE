@@ -57,10 +57,25 @@ VERSION_FILES = {
     "install.sh",
     "install.ps1",
 }
-ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | {
+SCOPE_FILES = {
     "scripts/docking-result-scope.py",
     "tests/test_docking_result_scope.py",
 }
+DESKTOP_LAYOUT_BLOBS = {
+    ".github/workflows/docking-result-scope.yml": (
+        "4cda438b82d2d4c24bfcee123eaebe7858088928", "1ba44b1022dd339c7cdd97ca28dd5a320d9f17d3",
+    ),
+    ".github/workflows/pose-handoff-checks.yml": (
+        "55b88727a239821aac958bebe304534bd01aebb6", "90c77020a4717e73d2072c1940fc6c300519a7a5",
+    ),
+    "frontend/src/docking/DockingResults.css": (
+        "9bc4fda4c8acee01473ed87660892ceba72b3d30", "0e7294e931160f244ced5948c09b5b73087d7d79",
+    ),
+    "server_tests/test_docking_table_browser.py": (
+        "18f31218adf99d3caeb94af9113dbde71930ea14", "54388cd9e6854763656232cdf7b3e489616670be",
+    ),
+}
+ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | SCOPE_FILES
 
 
 def git(*args):
@@ -75,10 +90,10 @@ def git_blob(revision, path):
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def exact_presentation(paths, blobs):
+def exact_presentation(paths, blobs, reviewed=REVIEWED_BLOBS):
     return (
-        REVIEWED_BLOBS.keys() <= paths <= ALLOWED
-        and all(blobs.get(path) == pair for path, pair in REVIEWED_BLOBS.items())
+        reviewed.keys() <= paths <= reviewed.keys() | VERSION_FILES | SCOPE_FILES
+        and all(blobs.get(path) == pair for path, pair in reviewed.items())
     )
 
 
@@ -92,23 +107,29 @@ def only_version_mirrors(base, paths):
     )
 
 
-def presentation_only(base, event):
+def presentation_scope(base, event):
     if event not in {"push", "pull_request"}:
-        return False
+        return None
     branch_push = event == "push" and os.environ.get("GITHUB_REF_NAME", "main") != "main"
     if branch_push or not base or not base.strip("0"):
         base = git("merge-base", "origin/main", "HEAD").decode().strip()
     paths = set(git("diff", "--name-only", base, "HEAD").decode().splitlines())
     blobs = {
         path: (git_blob(base, path), git_blob("HEAD", path))
-        for path in paths & REVIEWED_BLOBS.keys()
+        for path in paths & (REVIEWED_BLOBS.keys() | DESKTOP_LAYOUT_BLOBS.keys())
     }
-    return exact_presentation(paths, blobs) and only_version_mirrors(base, paths & VERSION_FILES)
+    for name, reviewed in (("desktop", DESKTOP_LAYOUT_BLOBS), ("presentation", REVIEWED_BLOBS)):
+        if exact_presentation(paths, blobs, reviewed) and only_version_mirrors(
+            base, paths & VERSION_FILES
+        ):
+            return name
+    return None
 
 
 if __name__ == "__main__":
-    selected = presentation_only(
+    selected = presentation_scope(
         os.environ.get("BASE", ""), os.environ.get("GITHUB_EVENT_NAME", "")
     )
     with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
-        output.write(f"presentation_only={str(selected).lower()}\n")
+        output.write(f"presentation_only={str(selected is not None).lower()}\n")
+        output.write(f"desktop_layout_only={str(selected == 'desktop').lower()}\n")

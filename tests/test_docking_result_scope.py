@@ -20,3 +20,15 @@ def test_unreviewed_shared_or_scientific_changes_keep_the_original_checks():
     for path, (before, _) in approved.items():
         assert not select(files, {**approved, path: (before, "different")})
     assert not select(files | {"src/opendde_workbench/asset_records.py"}, approved)
+
+
+def test_desktop_rail_requires_the_reviewed_style_and_browser_changes():
+    select = scope["exact_presentation"]
+    approved = scope["DESKTOP_LAYOUT_BLOBS"]
+    files = approved.keys() | scope["VERSION_FILES"] | scope["SCOPE_FILES"]
+    css = "frontend/src/docking/DockingResults.css"
+    assert select(files, approved, approved)
+    assert not select(files - {css}, approved, approved)
+    mixed = files | {"frontend/src/presentation/StructureWorkbench.tsx"}
+    assert not select(mixed, approved, approved)
+    assert not select(files, {**approved, css: (approved[css][0], "different")}, approved)

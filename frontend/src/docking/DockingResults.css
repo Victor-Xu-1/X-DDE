@@ -14,6 +14,36 @@
   white-space: nowrap;
 }
 
+@media (min-width: 1180px) {
+  .docking-results
+    > .structure-workbench:not(.is-text-only, [data-workspace-expanded]):has(
+      > .structure-workbench-toolbar
+    ) {
+    grid-template-rows: auto minmax(0, 1fr);
+
+    > .structure-workbench-toolbar {
+      grid-area: 1 / 2;
+    }
+
+    > .structure-workbench-details {
+      grid-area: 2 / 2;
+    }
+
+    > .structure-workbench-view {
+      grid-area: 1 / 1 / span 2;
+    }
+  }
+
+  .docking-results .structure-workbench-view .viewer-panel,
+  .docking-results .structure-workbench-view .viewer-panel .molecular-stage {
+    border-radius: 10px;
+  }
+
+  .docking-results .research-table .numeric-cell .evidence-description {
+    white-space: normal;
+  }
+}
+
 .docking-result-details {
   display: grid;
   gap: 12px;
