@@ -192,6 +192,10 @@ export function ScientificResults({
       />
     );
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
+  const structureArtifact =
+    active?.artifact && /\.(pdb|cif)$/.test(active.artifact)
+      ? active.artifact
+      : undefined;
   const refinement =
     url &&
     result.operation === "structure_refine" &&
@@ -223,7 +227,7 @@ export function ScientificResults({
       urls={complexUrl ? [complexUrl] : url ? [url] : []}
       defaultView={active.geometry === "none" ? "2d" : "3d"}
     />
-  ) : url && /\.(pdb|cif)$/.test(active?.artifact ?? "") ? (
+  ) : url && structureArtifact ? (
     sequence ? (
       <ResearchTabs
         label={zh ? "候选预览" : "Candidate preview"}
@@ -305,7 +309,7 @@ export function ScientificResults({
     result.sequence_design && active
       ? [
           {
-            artifact: active.artifact,
+            artifact: structureArtifact,
             label: zh ? "所选结构" : "Structure",
           },
           {

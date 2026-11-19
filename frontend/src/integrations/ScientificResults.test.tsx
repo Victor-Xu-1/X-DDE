@@ -114,6 +114,61 @@ it("offers the restored scientific structure and sequence without transport alia
   ).toBeNull();
 });
 
+it("offers sequence-only LigandMPNN outputs once and does not label FASTA as structure", () => {
+  const result: NativeResult = {
+    operation: "ligandmpnn_design",
+    program: "ligandmpnn",
+    version: "fixed-native-version",
+    candidates: [
+      {
+        id: "sequence-001",
+        sequence: "STQ",
+        artifact: "designed-sequences.fasta",
+        geometry: "none",
+        metrics: [],
+      },
+    ],
+    metrics: [],
+    interactions: [],
+    validation_points: [],
+    artifact_sha256: {
+      "designed-sequences.fasta": "a".repeat(64),
+      "sequences.csv": "b".repeat(64),
+    },
+    sequence_design: {
+      original_sequence: "SNQ",
+      selected_residues: [],
+      native_ligand_scored_residues: 0,
+      native_ligand_score_cutoff_A: 8,
+      sample_count: 1,
+      unique_sequence_count: 1,
+      wild_type_samples: 0,
+      candidates: [],
+      scope: "conditional_sequence_likelihood_not_binding_probability",
+    },
+  };
+  render(
+    <ScientificResults
+      job={{ id: "unpacked-result" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const files = screen.getByRole("navigation", {
+    name: "Original sequence design files",
+  });
+  expect(
+    within(files)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href")),
+  ).toEqual([
+    "/api/jobs/unpacked-result/download?name=designed-sequences.fasta",
+    "/api/jobs/unpacked-result/download?name=sequences.csv",
+  ]);
+  expect(screen.getByText("STQ")).toBeVisible();
+  expect(screen.queryByRole("link", { name: "Structure" })).toBeNull();
+});
+
 it("shows native energy units and never pools equal metric names across incompatible units", () => {
   const method = "OpenMM vacuum potential with backbone positional restraints";
   const result: NativeResult = {
@@ -193,18 +248,23 @@ it("puts one archived refined structure and its native values in a compact resul
     operation: "structure_refine",
     program: "openmm",
     version: "8.6.1",
-    candidates: [{
-      id: "refined-structure",
-      artifact: "refined-structure.pdb",
-      geometry: "source_frame",
-      metrics: [{
-        name: "Final potential energy",
-        value: -58503.15506459447,
-        unit: "kJ/mol",
-        method: "OpenMM vacuum potential with backbone positional restraints",
-        meaning: "energy",
-      }],
-    }],
+    candidates: [
+      {
+        id: "refined-structure",
+        artifact: "refined-structure.pdb",
+        geometry: "source_frame",
+        metrics: [
+          {
+            name: "Final potential energy",
+            value: -58503.15506459447,
+            unit: "kJ/mol",
+            method:
+              "OpenMM vacuum potential with backbone positional restraints",
+            meaning: "energy",
+          },
+        ],
+      },
+    ],
     metrics: [],
     artifact_sha256: {
       "refined-structure.pdb": "a".repeat(64),
@@ -213,18 +273,34 @@ it("puts one archived refined structure and its native values in a compact resul
     interactions: [],
     validation_points: [],
   };
-  render(<ScientificResults job={{ id: "native-refinement" } as Job} result={result} language="en" />);
-  const summary = within(screen.getByRole("region", { name: "Refinement result" }));
-  expect(summary.getByRole("rowheader", { name: "Final energy" })).toBeVisible();
+  render(
+    <ScientificResults
+      job={{ id: "native-refinement" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const summary = within(
+    screen.getByRole("region", { name: "Refinement result" }),
+  );
+  expect(
+    summary.getByRole("rowheader", { name: "Final energy" }),
+  ).toBeVisible();
   expect(summary.getByRole("cell")).toHaveTextContent("-58,503.155");
   expect(summary.getByRole("cell")).toHaveTextContent("kJ/mol");
-  expect(summary.getByRole("link", { name: "Download refined structure" })).toHaveAttribute(
+  expect(
+    summary.getByRole("link", { name: "Download refined structure" }),
+  ).toHaveAttribute(
     "href",
     "/api/jobs/native-refinement/download?name=refined-structure.pdb",
   );
-  expect(summary.getByRole("button", { name: "Export metrics CSV" })).toBeVisible();
+  expect(
+    summary.getByRole("button", { name: "Export metrics CSV" }),
+  ).toBeVisible();
   expect(screen.queryByRole("searchbox")).toBeNull();
-  expect(screen.queryByRole("link", { name: "refined-structure.pdb" })).toBeNull();
+  expect(
+    screen.queryByRole("link", { name: "refined-structure.pdb" }),
+  ).toBeNull();
 });
 
 it("keeps declared stereochemistry separate from unbound 3D geometry when selecting a candidate", () => {

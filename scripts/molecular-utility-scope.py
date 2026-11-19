@@ -888,6 +888,7 @@ SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
     "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/integrations/ScientificResults.test.tsx",
     "frontend/src/integrations/SequenceDesignOverview.test.tsx",
     "frontend/src/integrations/SequenceDesignOverview.tsx",
     "frontend/src/operations/CandidateSequenceResults.tsx",
@@ -897,7 +898,7 @@ SEQUENCE_DESKTOP_FILES = {
     "server_tests/test_sequence_review_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-SEQUENCE_DESKTOP_DIFF = "40fb038c87e9e88b160d73d8495f6055a16c2ec0e2faf2147c39de8d676b256a"
+SEQUENCE_DESKTOP_DIFF = "1f0d4a0305ae85437282452f0633240097a270761bb509da4e98da0b9bc98830"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
