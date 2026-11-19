@@ -114,6 +114,13 @@ function Controls({
 it.each([false, true])(
   "blocks both the minimization control and handler while paused (bound=%s)",
   async (bound) => {
+    const engine = bound
+      ? { id: "gnina", name: "GNINA", operations: ["docking"] }
+      : runtime.engines[0];
+    vi.mocked(request).mockResolvedValue({
+      ...runtime,
+      engines: [{ ready: true, active: false, ...engine, enabled: false }],
+    });
     render(<Preview available={false} bound={bound} />);
     expect(
       screen.getByRole("button", {
@@ -122,7 +129,9 @@ it.each([false, true])(
     ).toBeDisabled();
     await act(() => controller.minimize("MMFF94s", 1000));
     expect(api.post).not.toHaveBeenCalled();
-    expect(request).not.toHaveBeenCalled();
+    expect(
+      await screen.findByRole("switch", { name: engine.name }),
+    ).not.toBeChecked();
     expect(screen.getByTestId("pose-file")).toHaveTextContent(`${id}?record=2`);
     expect(screen.getByRole("status")).toHaveTextContent(
       "existing poses remain viewable",
@@ -131,6 +140,7 @@ it.each([false, true])(
 );
 
 it("resolves a calculated pose while paused using cache-only admission, without a new native job", async () => {
+  vi.mocked(request).mockResolvedValue(runtime);
   vi.mocked(api.post).mockResolvedValue({ state: "ready", pose: saved.pose });
   render(<Preview available={false} />);
   await act(() => controller.prepareInitial());
@@ -148,7 +158,11 @@ it("resolves a calculated pose while paused using cache-only admission, without 
   expect(screen.getByTestId("pose-file")).toHaveTextContent(
     `${savedAsset}?record=0`,
   );
-  expect(request).not.toHaveBeenCalled();
+  expect(
+    vi
+      .mocked(request)
+      .mock.calls.every(([path]) => path.startsWith("/runtime-controls")),
+  ).toBe(true);
 });
 
 it("offers backend power before the first 3D pose and waits for explicit preparation", async () => {
@@ -195,6 +209,7 @@ it("offers backend power before the first 3D pose and waits for explicit prepara
 it.each([false, true])(
   "shows a paused preparation, blocks explicit retry, and recovers after service return (zh=%s)",
   async (zh) => {
+    vi.mocked(request).mockResolvedValue(runtime);
     vi.mocked(api.post).mockRejectedValue(
       new Error("Task service is unavailable"),
     );
@@ -202,6 +217,7 @@ it.each([false, true])(
     await act(() => controller.prepareInitial());
     const retry = () =>
       screen.getByRole("button", { name: zh ? "重试" : "Retry" });
+    expect(await screen.findByRole("switch", { name: "RDKit" })).toBeChecked();
     expect(retry()).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent(
       zh ? "计算服务恢复后可重试" : "Retry when the task service recovers",
@@ -222,6 +238,61 @@ it.each([false, true])(
     });
   },
 );
+
+it("keeps failed preparation on the same page until its backend and retry are explicitly chosen", async () => {
+  let enabled = false;
+  vi.mocked(request).mockImplementation(async () => ({
+    ...runtime,
+    engines: [{ ...runtime.engines[0], enabled }],
+  }));
+  vi.mocked(api.post).mockImplementation(async (path, body) => {
+    if (path === "/runtime-controls/chemistry/start") {
+      enabled = true;
+      return { enabled };
+    }
+    if (path === "/runtime-controls/chemistry/stop") {
+      enabled = false;
+      return { enabled };
+    }
+    if (
+      path === "/research/poses/initial" &&
+      enabled &&
+      (body as { method: string }).method === "UFF"
+    )
+      return { state: "ready", pose: saved.pose };
+    throw new Error("Initial conformer failed.");
+  });
+  render(<Preview available initial />);
+  await act(() => controller.prepareInitial());
+  const toggle = await screen.findByRole("switch", { name: "RDKit" });
+  const retry = screen.getByRole("button", { name: "Retry" });
+  expect(retry).toBeDisabled();
+  fireEvent.click(toggle);
+  await waitFor(() => expect(retry).toBeEnabled());
+  fireEvent.click(toggle);
+  await waitFor(() => expect(retry).toBeDisabled());
+  expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
+    "/research/poses/initial",
+    "/runtime-controls/chemistry/start",
+    "/runtime-controls/chemistry/stop",
+  ]);
+  expect(controller.pose.urls).toEqual(base.urls);
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "3D preparation force field" }),
+    {
+      target: { value: "UFF" },
+    },
+  );
+  fireEvent.click(toggle);
+  await waitFor(() => expect(retry).toBeEnabled());
+  fireEvent.click(retry);
+  await waitFor(() => expect(controller.initialReady).toBe(true));
+  expect(api.post).toHaveBeenLastCalledWith(
+    "/research/poses/initial",
+    { source: base.source, method: "UFF", retry: true },
+    expect.any(String),
+  );
+});
 
 it("retains saved downloads and undo/redo after the task service pauses", async () => {
   vi.mocked(api.post).mockImplementation(async (path) =>

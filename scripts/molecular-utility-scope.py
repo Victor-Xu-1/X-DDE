@@ -753,6 +753,15 @@ INITIAL_POSE_POWER_FILES = {
     "tests/test_pose_preview_availability.py",
 }
 INITIAL_POSE_POWER_DIFF = "566ba740c85bef4302d9e11087585eb3141571049e0123b06356d5e6ee616afc"
+INITIAL_POSE_RECOVERY_FILES = {
+    "docs/user-guide.md",
+    "frontend/src/viewer/InitialPoseStatus.tsx",
+    "frontend/src/viewer/PoseOptimizationControls.tsx",
+    "frontend/src/viewer/PreviewAvailability.test.tsx",
+    "server_tests/test_initial_pose_power_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+INITIAL_POSE_RECOVERY_DIFF = "941212085abc08aa841a1e322e196bdd6da196900f4140807a83167e914b0d96"
 
 MOBILE_VIEWER_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
@@ -1280,6 +1289,10 @@ def main():
     initial_pose_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         INITIAL_POSE_POWER_FILES, INITIAL_POSE_POWER_DIFF,
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        INITIAL_POSE_RECOVERY_FILES, INITIAL_POSE_RECOVERY_DIFF,
+        scope_pin="INITIAL_POSE_RECOVERY_DIFF",
     )
     mobile_viewer = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
