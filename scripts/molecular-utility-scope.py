@@ -1022,6 +1022,20 @@ PROXIMITY_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
+UTILITY_RESULT_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/guided/Questionnaire.tsx",
+    "frontend/src/guided/TaskPresentation.tsx",
+    "frontend/src/utilities/UtilitySinglePage.test.tsx",
+    "frontend/src/utilities/UtilityTask.tsx",
+    "frontend/src/utilities/UtilityTaskResult.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_result_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+UTILITY_RESULT_DESKTOP_DIFF = "a62bd939d66ef6d350c3dfecdb2f87da7bc6fbe17937bb23c5c5fc589f4488f5"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -1213,7 +1227,13 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PROXIMITY_DESKTOP_FILES, PROXIMITY_DESKTOP_DIFF, scope_pin="PROXIMITY_DESKTOP_DIFF",
     )
+    utility_result_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        UTILITY_RESULT_DESKTOP_FILES, UTILITY_RESULT_DESKTOP_DIFF,
+        scope_pin="UTILITY_RESULT_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("utility_result_desktop_only=" + str(utility_result_desktop).lower() + "\n")
         output.write("proximity_desktop_only=" + str(proximity_desktop).lower() + "\n")
         output.write("simulation_desktop_only=" + str(simulation_desktop).lower() + "\n")
         output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
@@ -1271,6 +1291,7 @@ def main():
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
+            or utility_result_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

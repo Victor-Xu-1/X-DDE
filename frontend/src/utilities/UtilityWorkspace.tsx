@@ -15,8 +15,18 @@ const utilityTabs = [
   ["admet", "ADMET 预测", "ADMET prediction", "ADMET"],
   ["brain", "透脑评估", "Brain penetration"],
   ["properties", "分子性质", "Molecular properties", "Properties"],
-  ["screen", "相似性与结构筛查", "Similarity & structural alerts"],
-  ["states", "质子化与互变异构", "Protonation & tautomers"],
+  [
+    "screen",
+    "相似性与结构筛查",
+    "Similarity & structural alerts",
+    "Similarity & alerts",
+  ],
+  [
+    "states",
+    "质子化与互变异构",
+    "Protonation & tautomers",
+    "States & tautomers",
+  ],
 ] as const;
 type Utility = (typeof utilityTabs)[number][0];
 
@@ -91,6 +101,7 @@ export function UtilityWorkspace({
               key={id}
               type="button"
               aria-label={zh ? cn : en}
+              title={zh ? cn : en}
               ref={active === id ? activeTab : undefined}
               aria-pressed={active === id}
               onClick={() => {
