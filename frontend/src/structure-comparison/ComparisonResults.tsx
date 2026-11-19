@@ -1,5 +1,5 @@
 import { ComparisonPreview } from "./ComparisonPreview";
-import { ComparisonDownloads, ComparisonSources } from "./ComparisonFiles";
+import { comparisonResultFiles, ComparisonSources } from "./ComparisonFiles";
 import { useRef, useState } from "react";
 import { Hint } from "../guided/Hint";
 import { ResearchHandoff } from "../guided/ResearchHandoff";
@@ -9,6 +9,7 @@ import {
   type ResearchColumn,
 } from "../presentation/ResearchTable";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import { SpatialResultSummary } from "../presentation/SpatialResultSummary";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Job, Language } from "../types";
 import { CoverageTable, InterfaceTable } from "./ComparisonEvidenceTables";
@@ -86,7 +87,7 @@ export function ComparisonResults({
     );
   return (
     <section
-      className="comparison-result-view"
+      className="comparison-result-view spatial-results"
       aria-label={
         zh ? "蛋白结构比较结果" : "Protein structure comparison results"
       }
@@ -103,37 +104,54 @@ export function ComparisonResults({
           />
         }
       >
-        <dl className="comparison-result-metrics">
-          <div>
-            <dt>{zh ? "靶蛋白对齐 RMSD" : "Target-fit RMSD"}</dt>
-            <dd>{data.target_rmsd_angstrom.toFixed(3)} Å</dd>
-            <small>
-              {data.matched_target_ca} {zh ? "个匹配 Cα" : "matched Cα"}
-            </small>
-          </div>
-          <div>
-            <dt>
-              {zh
+        <SpatialResultSummary
+          jobId={job.id}
+          language={language}
+          title={zh ? "结构对齐摘要" : "Alignment summary"}
+          className="comparison-summary"
+          hint={
+            <Hint
+              label={
+                zh ? "结构比较的解释" : "Interpreting structural comparisons"
+              }
+            >
+              {result.options.purpose === "conformational_comparison"
+                ? zh
+                  ? "不同功能状态之间的几何差异不等于预测错误；这些指标不代表亲和力或活性。"
+                  : "Geometric differences between functional states do not imply prediction error. These metrics do not measure affinity or activity."
+                : zh
+                  ? "结果只适用于所选参照、链对应和观测残基；不能代替实验验证。"
+                  : "Results are conditioned on the selected reference, mapping and observed residues; they do not replace experimental validation."}
+            </Hint>
+          }
+          metrics={[
+            {
+              label: zh ? "靶蛋白对齐 RMSD" : "Target-fit RMSD",
+              value: (
+                <>
+                  {data.target_rmsd_angstrom.toFixed(3)} Å
+                  <small>
+                    {data.matched_target_ca} {zh ? "个匹配 Cα" : "matched Cα"}
+                  </small>
+                </>
+              ),
+            },
+            {
+              label: zh
                 ? "靶蛋白对齐后的伙伴 RMSD"
-                : "Target-conditioned partner RMSD"}
-            </dt>
-            <dd>{data.partner_rmsd_angstrom.toFixed(3)} Å</dd>
-            <small>
-              {data.matched_partner_ca} {zh ? "个匹配 Cα" : "matched Cα"}
-            </small>
-          </div>
-        </dl>
-        <Hint
-          label={zh ? "结构比较的解释" : "Interpreting structural comparisons"}
-        >
-          {result.options.purpose === "conformational_comparison"
-            ? zh
-              ? "不同功能状态之间的几何差异不等于预测错误；这些指标不代表亲和力或活性。"
-              : "Geometric differences between functional states do not imply prediction error. These metrics do not measure affinity or activity."
-            : zh
-              ? "结果只适用于所选参照、链对应和观测残基；不能代替实验验证。"
-              : "Results are conditioned on the selected reference, mapping and observed residues; they do not replace experimental validation."}
-        </Hint>
+                : "Target-conditioned partner RMSD",
+              value: (
+                <>
+                  {data.partner_rmsd_angstrom.toFixed(3)} Å
+                  <small>
+                    {data.matched_partner_ca} {zh ? "个匹配 Cα" : "matched Cα"}
+                  </small>
+                </>
+              ),
+            },
+          ]}
+          files={comparisonResultFiles(result, language)}
+        />
         {selection && (
           <button
             type="button"
@@ -210,7 +228,6 @@ export function ComparisonResults({
             ]}
           />
         </div>
-        <ComparisonDownloads jobId={job.id} language={language} />
       </StructureWorkbench>
     </section>
   );

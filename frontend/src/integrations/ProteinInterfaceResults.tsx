@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
+import { Hint } from "../guided/Hint";
+import { SpatialResultSummary } from "../presentation/SpatialResultSummary";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Job, Language } from "../types";
@@ -32,10 +34,8 @@ function InterfaceSelector({ job, interfaces, language }: Props) {
       className="protein-interface-results contact-workspace"
       aria-label={zh ? "蛋白界面结果" : "Protein interface results"}
     >
-      <div className="interaction-result-method">
-        <span>{zh ? "分析方法" : "Analysis method"}</span>
-        <strong>PLIP</strong>
-        {interfaces.length > 1 && (
+      {interfaces.length > 1 && (
+        <div className="interaction-result-method">
           <label className="interface-complex-choice">
             {zh ? "复合物" : "Complex"}
             <select
@@ -50,8 +50,8 @@ function InterfaceSelector({ job, interfaces, language }: Props) {
               ))}
             </select>
           </label>
-        )}
-      </div>
+        </div>
+      )}
       <InterfaceWorkspace
         key={selected}
         job={job}
@@ -101,16 +101,59 @@ function InterfaceWorkspace({
         />
       }
     >
-      <div className="interface-contact-context">
-        <h3>{active.name}</h3>
-        <p>
-          {active.interactions.length} {zh ? "个原生接触" : "native contacts"} ·{" "}
-          {active.polymer_residues}{" "}
-          {zh ? "个已核对的聚合物残基" : "verified polymer residues"}
-        </p>
-      </div>
+      <SpatialResultSummary
+        jobId={job.id}
+        language={language}
+        title={active.name}
+        className="interface-summary"
+        hint={
+          <>
+            <span className="interface-method">PLIP</span>
+            <Hint
+              label={
+                zh ? "作用与距离说明" : "Interpreting contacts and distances"
+              }
+            >
+              {zh
+                ? "原生化学分类，不是结合能或亲和力；水桥距离表示两侧端点的距离。"
+                : "Native chemical classifications, not binding energy or affinity. Water-bridge distances refer to the two endpoint atoms."}
+            </Hint>
+          </>
+        }
+        metrics={[
+          {
+            label: zh ? "原生接触" : "Native contacts",
+            value: active.interactions.length,
+          },
+          {
+            label: zh ? "已核对的聚合物残基" : "Verified polymer residues",
+            value: active.polymer_residues,
+          },
+        ]}
+        files={[
+          {
+            artifact: active.table_artifact,
+            label: "CSV",
+            downloadLabel: zh ? "接触表 CSV" : "Contacts CSV",
+          },
+          {
+            artifact: active.text_artifact,
+            label: "TXT",
+            downloadLabel: zh ? "原生报告 TXT" : "Native report TXT",
+          },
+          {
+            artifact: active.xml_artifact,
+            label: "XML",
+            downloadLabel: zh ? "原生报告 XML" : "Native report XML",
+          },
+          {
+            artifact: active.structure_artifact,
+            label: zh ? "原始结构" : "Structure",
+            downloadLabel: zh ? "原始结构" : "Source structure",
+          },
+        ]}
+      />
       <ProteinInterfaceContacts
-        job={job}
         active={active}
         language={language}
         scene={scene}
