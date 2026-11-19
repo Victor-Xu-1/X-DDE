@@ -992,7 +992,7 @@ PERSISTENT_TASK_POWER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "server_tests/test_screening_power_browser.py",
 }
-PERSISTENT_TASK_POWER_DIFF = "38e49ee15d9458e79797214375edfba530b06bf80243ceb4b828f52572afa745"
+PERSISTENT_TASK_POWER_DIFF = "87226c0271dfef85edc5dd8805259b20495f5d63e5c3adce846d90ba2c6c203f"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",

@@ -100,10 +100,19 @@ def verify_setup_entry(page, base):
         expect(page).to_have_url(f"{base}/#view=new&tool=p2rank.detect")
     finally:
         target.close()
-    page.set_viewport_size({"width": 390, "height": 775})
-    expect(panel.get_by_text("P2Rank", exact=True)).to_be_visible()
-    expect(panel.get_by_text("已关闭 · 待配置", exact=True)).to_be_visible()
-    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    for width in (390, 1024):
+        page.set_viewport_size({"width": width, "height": 775})
+        expect(panel.get_by_text("P2Rank", exact=True)).to_be_visible()
+        status = panel.locator(".runtime-switch-status")
+        expect(status).to_have_text("已关闭 · 待配置")
+        assert status.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    search = page.get_by_role("button", name="搜索任务", exact=True)
+    search.click()
+    field = page.get_by_role("searchbox", name="搜索任务", exact=True)
+    expect(field).to_be_focused()
+    field.press("Escape")
+    expect(search).to_be_focused()
 
 
 def verify_shared_power(page, base):

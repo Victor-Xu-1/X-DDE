@@ -186,7 +186,7 @@
   .studio-topbar
     .task-backend-control[data-backend-placement="entry"]
     .runtime-switch-label {
-    max-width: 108px;
+    max-width: 130px;
   }
   .studio-topbar
     .task-backend-control[data-backend-placement="entry"]
@@ -206,6 +206,30 @@
     border-inline-end: 0;
   }
 }
+@media (961px <= width <= 1100px) {
+  .studio-app
+    .studio-topbar:has(.task-backend-control[data-backend-placement="entry"]) {
+    > .task-search {
+      position: static;
+      flex: none;
+      min-width: 0;
+    }
+    :is(.compact-search-trigger, .compact-search-close) {
+      display: grid;
+    }
+    .task-search .global-search {
+      display: none;
+    }
+    .task-search .global-search.is-expanded {
+      display: flex;
+      position: absolute;
+      inset: 12px 24px auto;
+      width: auto;
+      height: 44px;
+      z-index: 2;
+    }
+  }
+}
 @media (max-width: 600px) {
   .studio-topbar:has(> .module-workspace-navigation)
     .backend-controls:has(> [data-backend-placement="entry"]) {
@@ -220,7 +244,15 @@
   .studio-topbar
     .task-backend-control[data-backend-placement="entry"]
     .runtime-switch-label {
-    max-width: clamp(50px, calc(100vw - 260px), 140px);
+    max-width: 140px;
+  }
+}
+@media (max-width: 480px) {
+  .studio-app
+    .studio-topbar:has(> .module-workspace-navigation):has(
+      [data-backend-placement="entry"]
+    ) {
+    padding-block-end: 52px;
   }
 }
 .studio-topbar .task-backend-control .backend-state-message {
