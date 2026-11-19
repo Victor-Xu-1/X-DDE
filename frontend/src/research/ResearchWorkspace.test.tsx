@@ -391,6 +391,9 @@ it("passes the selected record and version to a property task", async () => {
       { name: "分子: ethanol" },
     ),
   );
+  fireEvent.change(screen.getByRole("combobox", { name: "材料类型" }), {
+    target: { value: "structure" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "用作性质计算输入" }));
   expect(
     await screen.findByRole("switch", { name: "RDKit" }),
@@ -415,4 +418,7 @@ it("passes the selected record and version to a property task", async () => {
       /not installed/,
     ),
   ).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: /返回研究资产/ }));
+  expect(screen.getByRole("combobox", { name: "材料类型" })).toHaveValue("structure");
+  expect(screen.getByLabelText("上传材料")).toHaveAttribute("accept", ".pdb,.cif");
 });

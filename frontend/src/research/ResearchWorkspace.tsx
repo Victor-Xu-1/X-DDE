@@ -18,7 +18,10 @@ import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
 import { useResearchFileNavigation } from "./useResearchFileNavigation";
-import { ResearchWorkspaceFileToolbar } from "./ResearchWorkspaceFileToolbar";
+import {
+  ResearchWorkspaceFileToolbar,
+  type ResearchUploadKind,
+} from "./ResearchWorkspaceFileToolbar";
 import "./research-file-navigation.css";
 
 export function ResearchWorkspace({
@@ -58,6 +61,7 @@ export function ResearchWorkspace({
   const rows = visibleAssetNodes(graph?.nodes ?? [], assetFilter, query),
     pageSize = 30;
   const [properties, setProperties] = useState<ScientificObject | null>(null);
+  const [uploadKind, setUploadKind] = useState<ResearchUploadKind>("molecule");
   const [propertyOrigin, setPropertyOrigin] = useState<string | null>(null);
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
@@ -295,6 +299,8 @@ export function ResearchWorkspace({
           <ResearchWorkspaceFileToolbar
             language={language}
             busy={busy}
+            kind={uploadKind}
+            onKindChange={setUploadKind}
             onUpload={uploadFile}
             onRefresh={() => void load()}
             onClear={selected ? () => setSelected(null) : undefined}

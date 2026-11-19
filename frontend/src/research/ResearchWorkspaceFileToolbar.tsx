@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { CloseOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { AssetKind } from "../operations/types";
 import { FileSelect } from "../presentation/FileSelect";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import type { Language } from "../types";
 import { objectLabels, type ObjectKind } from "./types";
 
@@ -10,23 +10,26 @@ const formats = {
   structure: { accept: ".pdb,.cif", assetKind: "structure" },
   sequence: { accept: ".fasta,.fa", assetKind: "sequences" },
 } satisfies Partial<Record<ObjectKind, { accept: string; assetKind: AssetKind }>>;
-type UploadKind = keyof typeof formats;
-const uploadKinds = Object.keys(formats) as UploadKind[];
+export type ResearchUploadKind = keyof typeof formats;
+const uploadKinds = Object.keys(formats) as ResearchUploadKind[];
 
 export function ResearchWorkspaceFileToolbar({
   language,
   busy,
+  kind,
+  onKindChange,
   onUpload,
   onRefresh,
   onClear,
 }: {
   language: Language;
   busy: boolean;
-  onUpload(file: File, kind: UploadKind, assetKind: AssetKind): void;
+  kind: ResearchUploadKind;
+  onKindChange(value: ResearchUploadKind): void;
+  onUpload(file: File, kind: ResearchUploadKind, assetKind: AssetKind): void;
   onRefresh(): void;
   onClear?: () => void;
 }) {
-  const [kind, setKind] = useState<UploadKind>("molecule");
   const zh = language === "zh";
   const typeLabel = zh ? "材料类型" : "Upload type";
   const upload = zh ? "上传材料" : "Upload material";
@@ -41,7 +44,9 @@ export function ResearchWorkspaceFileToolbar({
             aria-label={typeLabel}
             value={kind}
             disabled={busy}
-            onChange={(event) => setKind(event.currentTarget.value as UploadKind)}
+            onChange={(event) =>
+              onKindChange(event.currentTarget.value as ResearchUploadKind)
+            }
           >
             {uploadKinds.map((option) => (
               <option key={option} value={option}>
@@ -84,6 +89,9 @@ export function ResearchWorkspaceFileToolbar({
             <span className="research-file-action-label">{clear}</span>
           </button>
         )}
+        <div className="research-expanded-exit">
+          <WorkspaceFullscreenControl language={language} compact />
+        </div>
       </div>
     </div>
   );

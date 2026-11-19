@@ -46,19 +46,19 @@ _NAVIGATION = {
 _DESKTOP_BLOBS = {
     "frontend/src/research/ResearchWorkspaceFileToolbar.tsx": (
         None,
-        "3da585776ec6ab0892984614d96cf6161d1e1c1c",
+        "4c68a30fbe92215569943b59524242ffab282c12",
     ),
     "frontend/src/research/ResearchWorkspace.test.tsx": (
         "1f8d731715777b7d31d3fc9c225e70ad570580e3",
-        "c47adb1820db58f993143566d3f74352f2f3b163",
+        "dc5a899bc0db020df8e0b26542c3adb607a0901f",
     ),
     "frontend/src/research/ResearchWorkspace.tsx": (
         "c6967f858394254815617030bc87ba5b51e5715d",
-        "e44e59d4c9f8ef8079553370b01be6fe45441235",
+        "6a93a6fa1ffa7dd57e53e5e9128d2ba6b31b153f",
     ),
     "frontend/src/research/research-file-navigation.css": (
         "86fd03960b16b935ed36e60d525838fb84f92709",
-        "d3835d4262c077ed7d4cc9adcbb9702155875e87",
+        "e7ddcbc04f2e87317cd125bf1a57f47b88690934",
     ),
     "frontend/src/research/research.css": (
         "20a242f615e62c6885783a82271c9d6277aa97ae",
@@ -66,10 +66,10 @@ _DESKTOP_BLOBS = {
     ),
     "server_tests/test_workspace_preview_browser.py": (
         "d7f5e981687b3307fbb26b31cac1094653fbfc80",
-        "a9191a877d394a47d36f625eaf240d9c783472b0",
+        "9e13aac888f7ef54b7e3db4467ae0b69d31c0656",
     ),
 }
-_DESKTOP_SELECTOR_SHA = "eb8d047b29a611381e05bbf1c19ae65ce4ed0b12ca34a12a5cf98f15ffeba2a8"
+_DESKTOP_SELECTOR_SHA = "b54b0a0666b6e74e6fd025f9e62d281928abaf755a84a785aa74df4d5b4dcf73"
 
 
 def desktop_only(paths, base, support):

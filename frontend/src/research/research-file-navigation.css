@@ -17,6 +17,20 @@
 .research-file-actions .anticon {
   display: none;
 }
+.research-expanded-exit {
+  display: none;
+}
+/* The library outlives its selected preview. Keep an exit when the viewer is removed. */
+.research-workspace
+  .structure-workbench[data-workspace-expanded="true"]:not(:has(
+    .research-file-inspection button[aria-haspopup="dialog"][aria-pressed="true"]
+  ))
+  .research-expanded-exit {
+  display: flex;
+}
+.research-file-actions .research-expanded-exit .anticon {
+  display: inline-flex;
+}
 .studio-app .research-file-inspection .research-inspector:not(.is-empty) {
   padding-block-start: 10px;
 }
