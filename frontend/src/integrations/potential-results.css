@@ -1,0 +1,59 @@
+.apbs-result-summary {
+  padding: 14px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.apbs-result-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 13px;
+}
+.apbs-result-summary table {
+  width: 100%;
+  margin-block: 10px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.apbs-result-summary :is(th, td) {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.apbs-result-summary th {
+  text-align: start;
+  font-weight: 500;
+}
+.apbs-result-summary td {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.apbs-result-summary small {
+  margin-inline-start: 4px;
+  color: var(--muted);
+}
+.apbs-result-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.apbs-result-downloads a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+@media (min-width: 1001px) {
+  .apbs-result > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 2.25fr) minmax(280px, 1fr);
+    gap: 16px;
+  }
+  .studio-app .apbs-result .structure-workbench-view > .viewer-panel:not(:popover-open) {
+    padding: 0;
+  }
+  .studio-app .apbs-result .viewer-panel:not(:popover-open) > .molecular-stage {
+    border-radius: 10px;
+  }
+}

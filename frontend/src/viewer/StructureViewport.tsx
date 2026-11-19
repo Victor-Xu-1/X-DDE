@@ -773,6 +773,15 @@ export function StructureViewport({
           src={`/viewer.html?v=${encodeURIComponent(productVersion)}`}
           title={zh ? "可交互分子结构" : "Interactive molecular structure"}
         />
+        {loaded && options.mode === "surface" &&
+          appliedPotentialRange !== undefined && (
+            <div className="potential-legend" role="status">
+              <span>{zh ? "APBS 电势" : "APBS potential"}</span>
+              <span>−{appliedPotentialRange}</span>
+              <i aria-hidden="true" />
+              <span>+{appliedPotentialRange} kBT/e</span>
+            </div>
+          )}
         {(status === "loading" || (!ready && urls.length > 0)) &&
           !connection.failed && (
             <div className="viewer-message" role="status">
@@ -888,15 +897,6 @@ export function StructureViewport({
           {options.mode === "surface" && !comparison && !electrostaticMap && (
             <SurfaceLegend summary={surface} language={language} />
           )}
-          {options.mode === "surface" &&
-            appliedPotentialRange !== undefined && (
-              <div className="potential-legend">
-                <span>{zh ? "APBS 电势" : "APBS potential"}</span>
-                <span>−{appliedPotentialRange}</span>
-                <i />
-                <span>+{appliedPotentialRange} kBT/e</span>
-              </div>
-            )}
           {siteStatus && siteStatus.requested > 0 && (
             <p className="field-help" role="status">
               {zh ? "已定位区域残基：" : "Region residues located: "}
