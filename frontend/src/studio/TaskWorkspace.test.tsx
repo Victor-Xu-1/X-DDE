@@ -221,7 +221,12 @@ it.each(["en", "zh"] as const)(
       level: 2,
       name: language === "zh" ? "任务结果" : "Task results",
     });
-    expect(screen.getByRole("heading", { name: "Task results" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toHaveFocus();
     expect(document.querySelector(".task-result-content")).toBeNull();
   },
 );
@@ -282,7 +287,12 @@ it.each(["en", "zh"] as const)(
       }),
     );
     await screen.findByRole("button", { name: "STAT6 descriptors" });
-    expect(screen.getByRole("heading", { name: "Task results" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toHaveFocus();
     expect(document.querySelector(".task-result-content")).toBeNull();
   },
 );
