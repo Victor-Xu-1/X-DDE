@@ -17,6 +17,100 @@ from server_tests.workspace_preview_viewing import inspect_molecular_viewing
 EVIDENCE = Path("outputs/workspace-preview")
 
 
+def exit_expanded_files(page, language):
+    exit_label = "退出文件展开视图" if language == "zh" else "Exit expanded file view"
+    expanded = page.locator(".research-workspace [data-workspace-expanded]")
+    exit_button = expanded.get_by_role("button", name=exit_label, exact=True)
+    expect(exit_button).to_be_visible()
+    exit_button.click()
+    expect(expanded).to_have_count(0)
+    search_label = "查找研究文件或任务" if language == "zh" else "Find research files or tasks"
+    expect(page.get_by_role("searchbox", name=search_label, exact=True)).to_be_focused()
+    assert not page.locator(".studio-topbar").evaluate("el => Boolean(el.closest('[inert]'))")
+
+
+def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
+    zh = language == "zh"
+    frame = preview.locator(".molecular-stage iframe")
+    toolbar = page.locator(".research-file-library .research-file-toolbar")
+    measurements = []
+    for width, height in ((1280, 720), (1600, 775)):
+        page.set_viewport_size({"width": width, "height": height})
+        page.evaluate("window.scrollTo(0, 0)")
+        viewer_box = frame.bounding_box()
+        rail = toolbar.bounding_box()
+        assert viewer_box and rail
+        assert viewer_box["x"] + viewer_box["width"] <= rail["x"]
+        assert viewer_box["height"] >= 520
+        assert height - viewer_box["y"] >= 350, viewer_box
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        upload = toolbar.locator("input[type=file]")
+        expect(upload).to_be_enabled()
+        expect(upload).to_be_in_viewport()
+        refresh = toolbar.get_by_role("button", name="刷新" if zh else "Refresh", exact=True)
+        expect(refresh).to_be_enabled()
+        assert rail["height"] <= 78, rail
+        expect(preview.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
+        page.screenshot(path=evidence / f"desktop-file-{width}.png")
+        measurements.append({"width": width, "height": height, "viewer": viewer_box})
+
+    page.set_viewport_size({"width": 1280, "height": 800})
+    original = frame.element_handle()
+    assert original
+    expand = preview.get_by_role(
+        "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
+    )
+    expand.click()
+    close = preview.get_by_role(
+        "button", name="关闭展开视图" if zh else "Close expanded view", exact=True
+    )
+    expect(close).to_be_visible()
+    assert frame.evaluate("(current, previous) => current === previous", original)
+    close.click()
+    expect(expand).to_be_focused()
+    assert frame.evaluate("(current, previous) => current === previous", original)
+    link = page.get_by_role(
+        "link", name="下载此版本" if zh else "Download version", exact=True
+    )
+    with page.expect_download() as download:
+        link.click()
+    assert hashlib.sha256(download.value.path().read_bytes()).hexdigest() == source_sha256
+
+    def configure(dialog):
+        layout = dialog.get_by_role("combobox", name="图件比例" if zh else "Panel layout")
+        layout.select_option("landscape")
+        dialog.get_by_role("combobox", name="清晰度" if zh else "Resolution").select_option("300")
+
+    figure = export_figure(
+        page,
+        preview.get_by_role("button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True),
+        evidence,
+        "desktop-receptor-300",
+        language,
+        configure=configure,
+    )
+    inspect_png(figure, dpi=300, width=1051)
+
+    expand.click()
+    page.set_viewport_size({"width": 900, "height": 800})
+    page.get_by_role(
+        "button", name="返回文件列表" if zh else "Back to files", exact=True
+    ).click()
+    expect(preview).not_to_be_visible()
+    exit_expanded_files(page, language)
+    page.set_viewport_size({"width": 1280, "height": 800})
+
+    expand.click()
+    toolbar.get_by_role(
+        "button", name="取消选择" if zh else "Clear selection", exact=True
+    ).click()
+    expect(frame).to_have_count(0)
+    exit_expanded_files(page, language)
+    (evidence / "desktop-file-layout.json").write_text(
+        json.dumps(measurements, indent=2), encoding="utf-8"
+    )
+
+
 @pytest.mark.parametrize("language", ["en", "zh"])
 def test_native_selected_file_previews_and_exact_record_switching(language):
     cases = json.loads((EVIDENCE / "cases.json").read_text())
@@ -119,6 +213,14 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         )
         inspect_png(native)
         page.screenshot(path=evidence / "warhead-3d.png", full_page=True)
+        warhead.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
+        ).click()
+        warhead.get_by_role(
+            "tab", name="二维结构" if zh else "2D structure", exact=True
+        ).click()
+        expect(warhead.locator(".molecular-stage iframe")).not_to_be_visible()
+        exit_expanded_files(page, language)
         _, second = drawing("study_protac")
         assert first != second, "File switching retained the wrong molecular drawing"
         selected, restored = drawing("study_ligand")
@@ -126,7 +228,7 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         library, record = drawing("series_second")
         assert record == second, "Record 2 did not depict its exact source molecule"
         expect(library.get_by_text("记录 2" if zh else "Record 2", exact=True)).to_be_visible()
-        select("stat6_receptor")
+        receptor = select("stat6_receptor")
         expect(
             page.get_by_role(
                 "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
@@ -134,6 +236,8 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         ).to_be_enabled(timeout=45000)
         expect(page.locator(".research-selected-preview .viewer-panel")).to_have_count(1)
         expect(page.locator(".research-workspace > .viewer-panel")).to_have_count(0)
+        inspect_desktop_structure(page, receptor, evidence, language, original["stat6_receptor"])
+        page.set_viewport_size({"width": 1440, "height": 1000})
         drawing("study_protac")
         page.get_by_text(
             "查看文件之间的关系" if zh else "Show file relationships", exact=True

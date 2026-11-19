@@ -1,8 +1,32 @@
 .research-file-inspection {
   min-width: 0;
 }
-.studio-app .research-workspace > .research-file-toolbar {
-  padding-block: 6px;
+.studio-app .research-file-library > .research-file-toolbar {
+  padding: 0 0 12px;
+  margin-block-end: 12px;
+  gap: 8px;
+}
+.research-file-upload {
+  display: contents;
+}
+.research-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.research-file-actions .anticon {
+  display: none;
+}
+/* The exit lives above both panes, even when the active file has no visible viewer. */
+.research-workspace > .structure-workbench:not([data-workspace-expanded="true"])
+  > .structure-workbench-toolbar {
+  display: none;
+}
+.research-workspace
+  > .structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 .studio-app .research-file-inspection .research-inspector:not(.is-empty) {
   padding-block-start: 10px;
@@ -20,14 +44,92 @@
 .studio-app .research-workspace .research-file-preview-actions {
   display: none;
 }
+@media (min-width: 1001px) {
+  .studio-app .research-workspace :is(.research-file-library, .research-inspector) {
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-toolbar {
+    justify-content: space-between;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-upload {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) :is(
+    .research-upload-label,
+    .research-file-action-label
+  ) {
+    display: none;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions {
+    gap: 4px;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    min-height: 38px;
+    padding: 0;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions .anticon {
+    display: inline-flex;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-upload :is(
+    select,
+    .file-select.is-compact
+  ) {
+    padding-inline: 9px;
+  }
+  .research-file-library > .field {
+    gap: 4px;
+    margin-block-end: 10px;
+  }
+  .studio-app .research-file-library > .field :is(input[type="search"], select) {
+    min-height: 34px;
+    padding-block: 6px;
+  }
+  .research-file-library .research-node-list {
+    max-height: clamp(260px, calc(100dvh - 400px), 520px);
+  }
+  .research-inspector:has(> .research-selected-preview > .viewer-panel) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: center;
+
+    > * {
+      grid-column: 1 / -1;
+    }
+    > h2 {
+      grid-area: 1 / 1;
+      margin: 0;
+    }
+    > .editor-toolbar {
+      grid-area: 1 / 2;
+      border: 0;
+    }
+  }
+  .research-file-inspection .research-selected-preview {
+    margin-block-start: 8px;
+  }
+  .studio-app .research-selected-preview .viewer-panel:not(:popover-open) {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .studio-app .research-selected-preview .viewer-panel .molecular-stage {
+    border-radius: 10px;
+  }
+}
 @media (max-width: 1000px) {
   .research-workspace[data-file-pane="list"]
     > .structure-workbench
     > .structure-workbench-view,
   .research-workspace[data-file-pane="preview"]
     > .structure-workbench
-    > .structure-workbench-details,
-  .research-workspace[data-file-pane="preview"] > .research-file-toolbar {
+    > .structure-workbench-details {
     display: none;
   }
   .research-file-inspection,

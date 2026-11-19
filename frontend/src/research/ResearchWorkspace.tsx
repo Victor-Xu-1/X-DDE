@@ -13,12 +13,16 @@ import { useResearchGraph } from "./useResearchGraph";
 import { researchGraphForDisplay } from "../presentation/research-graph";
 import { isResearchFile } from "../presentation/research-files";
 import { visibleAssetNodes, type AssetFilter } from "./asset-list";
-import { FileSelect } from "../presentation/FileSelect";
 import { assetContext } from "./asset-context";
 import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
 import { useResearchFileNavigation } from "./useResearchFileNavigation";
+import { ResearchWorkspaceExpansionExit } from "./ResearchWorkspaceExpansionExit";
+import {
+  ResearchWorkspaceFileToolbar,
+  type ResearchUploadKind,
+} from "./ResearchWorkspaceFileToolbar";
 import "./research-file-navigation.css";
 
 export function ResearchWorkspace({
@@ -34,6 +38,7 @@ export function ResearchWorkspace({
 }) {
   const zh = language === "zh";
   const fileContext = useId();
+  const fileLibrary = useRef<HTMLElement>(null);
   const {
     graph: sourceGraph,
     selected,
@@ -57,8 +62,8 @@ export function ResearchWorkspace({
     [page, setPage] = useState(0);
   const rows = visibleAssetNodes(graph?.nodes ?? [], assetFilter, query),
     pageSize = 30;
-  const [uploadKind, setUploadKind] = useState<ObjectKind>("molecule"),
-    [properties, setProperties] = useState<ScientificObject | null>(null);
+  const [properties, setProperties] = useState<ScientificObject | null>(null);
+  const [uploadKind, setUploadKind] = useState<ResearchUploadKind>("molecule");
   const [propertyOrigin, setPropertyOrigin] = useState<string | null>(null);
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
@@ -154,70 +159,21 @@ export function ResearchWorkspace({
         />
       </section>,
     );
+  function uploadFile(file: File, kind: ObjectKind, assetKind: AssetKind) {
+    void mutate(async () => {
+      const intent = selectionIntent();
+      const asset = await api.upload(file, assetKind);
+      await register(asset.id, kind, file.name, undefined, {
+        intent,
+        reveal: () => {
+          if (mounted.current) navigation.open();
+        },
+      });
+    });
+  }
   return wrap(
     <section className="research-workspace" data-file-pane={navigation.pane}>
       <h1 className="sr-only">{zh ? "研究文件" : "Research files"}</h1>
-      <div className="editor-toolbar research-file-toolbar">
-        <button onClick={() => void load()} disabled={busy}>
-          {zh ? "刷新" : "Refresh"}
-        </button>
-        {selected && (
-          <button onClick={() => setSelected(null)}>
-            {zh ? "取消选择" : "Clear selection"}
-          </button>
-        )}
-        <label>
-          {zh ? "材料类型" : "Upload type"}{" "}
-          <select
-            value={uploadKind}
-            disabled={busy}
-            onChange={(e) => setUploadKind(e.target.value as ObjectKind)}
-          >
-            {(["molecule", "structure", "sequence"] as const).map((kind) => (
-              <option key={kind} value={kind}>
-                {objectLabels[kind][zh ? 0 : 1]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="file-choice">
-          {zh ? "上传材料" : "Upload material"}
-          <FileSelect
-            language={language}
-            variant="compact"
-            aria-label={zh ? "上传材料" : "Upload material"}
-            disabled={busy}
-            accept={
-              uploadKind === "molecule"
-                ? ".sdf,.mol,.mol2"
-                : uploadKind === "structure"
-                  ? ".pdb,.cif"
-                  : ".fasta,.fa"
-            }
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file)
-                void mutate(async () => {
-                  const intent = selectionIntent();
-                  const kind: AssetKind =
-                    uploadKind === "molecule"
-                      ? "ligand"
-                      : uploadKind === "structure"
-                        ? "structure"
-                        : "sequences";
-                  const asset = await api.upload(file, kind);
-                  await register(asset.id, uploadKind, file.name, undefined, {
-                    intent,
-                    reveal: () => {
-                      if (mounted.current) navigation.open();
-                    },
-                  });
-                });
-              e.target.value = "";
-            }}
-          />
-        </label>
-      </div>
       {error && (
         <p role="alert" className="error-box">
           {error ===
@@ -288,73 +244,85 @@ export function ResearchWorkspace({
           {zh ? "正在读取资产关系…" : "Loading asset relationships…"}
         </p>
       )}
-      {graph && !graph.nodes.length && (
-        <div className="editor-empty">
-          <h2>
-            {zh
-              ? "从第一份研究资产开始"
-              : "Start with your first research asset"}
-          </h2>
-          <p>
-            {zh
-              ? "上传已有结构或分子，或者将计算结果保存为资产，关系会自动出现。"
-              : "Upload a structure or molecule, or save a task result as an asset. Its relationships appear automatically."}
-          </p>
-        </div>
-      )}
-      {graph && graph.nodes.length > 0 && (
-        <>
-          <StructureWorkbench
-            preview={
-              <section
-                className="research-file-inspection"
-                ref={navigation.preview}
-                tabIndex={-1}
-                aria-label={zh ? "研究文件详情" : "Research file details"}
-              >
-                <div className="research-file-preview-actions">
-                  <button
-                    type="button"
-                    className="secondary-button research-file-back"
-                    onClick={navigation.back}
-                  >
-                    {zh ? "返回文件列表" : "Back to files"}
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => void load()}
-                    disabled={busy}
-                  >
-                    {zh ? "刷新" : "Refresh"}
-                  </button>
-                </div>
-                <ObjectInspector
-                  node={node}
-                  graph={graph}
-                  selected={selected}
-                  language={language}
-                  busy={busy}
-                  label={label}
-                  notes={notes}
-                  rating={rating}
-                  setLabel={setLabel}
-                  setNotes={setNotes}
-                  setRating={setRating}
-                  onEdit={onEdit}
-                  onProperties={(value) => {
-                    setPropertyOrigin(node?.id ?? null);
-                    setProperties(value);
-                  }}
-                  onSelect={openNode}
-                  onJob={onJob}
-                  mutate={mutate}
-                  register={register}
-                />
-              </section>
-            }
+      <StructureWorkbench
+        toolbar={
+          <ResearchWorkspaceExpansionExit
+            language={language}
+            onClose={() => {
+              const visible = [
+                navigation.search.current,
+                navigation.preview.current,
+                fileLibrary.current?.querySelector("select"),
+              ].find((control) => control?.getClientRects().length);
+              visible?.focus({ preventScroll: true });
+            }}
+          />
+        }
+        preview={graph?.nodes.length ? (
+          <section
+            className="research-file-inspection"
+            ref={navigation.preview}
+            tabIndex={-1}
+            aria-label={zh ? "研究文件详情" : "Research file details"}
           >
-            <section className="setup-card">
+            <div className="research-file-preview-actions">
+              <button
+                type="button"
+                className="secondary-button research-file-back"
+                onClick={navigation.back}
+              >
+                {zh ? "返回文件列表" : "Back to files"}
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void load()}
+                disabled={busy}
+              >
+                {zh ? "刷新" : "Refresh"}
+              </button>
+            </div>
+            <ObjectInspector
+              node={node}
+              graph={graph}
+              selected={selected}
+              language={language}
+              busy={busy}
+              label={label}
+              notes={notes}
+              rating={rating}
+              setLabel={setLabel}
+              setNotes={setNotes}
+              setRating={setRating}
+              onEdit={onEdit}
+              onProperties={(value) => {
+                setPropertyOrigin(node?.id ?? null);
+                setProperties(value);
+              }}
+              onSelect={openNode}
+              onJob={onJob}
+              mutate={mutate}
+              register={register}
+            />
+          </section>
+        ) : null}
+      >
+        <section
+          className="setup-card research-file-library"
+          aria-label={zh ? "研究文件库" : "Research file library"}
+          ref={fileLibrary}
+        >
+          <ResearchWorkspaceFileToolbar
+            language={language}
+            busy={busy}
+            kind={uploadKind}
+            onKindChange={setUploadKind}
+            onUpload={uploadFile}
+            onRefresh={() => void load()}
+            onClear={selected ? () => setSelected(null) : undefined}
+          />
+          {graph?.nodes.length ? (
+            <>
               <label className="field">
                 {zh ? "查找研究文件或任务" : "Find research files or tasks"}
                 <input
@@ -477,20 +445,35 @@ export function ResearchWorkspace({
                   {zh ? "加载更早资产" : "Load older assets"}
                 </button>
               )}
-            </section>
-          </StructureWorkbench>
-          <details className="research-relationships">
-            <summary>
-              {zh ? "查看文件之间的关系" : "Show file relationships"}
-            </summary>
-            <RelationshipGraph
-              graph={graph}
-              selected={selected}
-              language={language}
-              onSelect={openNode}
-            />
-          </details>
-        </>
+            </>
+          ) : graph ? (
+            <div className="editor-empty">
+              <h2>
+                {zh
+                  ? "从第一份研究资产开始"
+                  : "Start with your first research asset"}
+              </h2>
+              <p>
+                {zh
+                  ? "上传已有结构或分子，或者将计算结果保存为资产，关系会自动出现。"
+                  : "Upload a structure or molecule, or save a task result as an asset. Its relationships appear automatically."}
+              </p>
+            </div>
+          ) : null}
+        </section>
+      </StructureWorkbench>
+      {graph && graph.nodes.length > 0 && (
+        <details className="research-relationships">
+          <summary>
+            {zh ? "查看文件之间的关系" : "Show file relationships"}
+          </summary>
+          <RelationshipGraph
+            graph={graph}
+            selected={selected}
+            language={language}
+            onSelect={openNode}
+          />
+        </details>
       )}
     </section>,
   );
