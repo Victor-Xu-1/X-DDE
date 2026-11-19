@@ -29,6 +29,7 @@ export function MaterialInput<T extends string>({
   onSource,
   options,
   selection,
+  compactLanguage,
   children,
 }: {
   label: string;
@@ -40,27 +41,51 @@ export function MaterialInput<T extends string>({
     key: string;
     name: string;
     detail?: string;
-    language: Language;
   };
+  compactLanguage?: Language;
   children: ReactNode;
 }) {
   const desktop = useSyncExternalStore(
-    selection ? subscribeToDesktop : subscribeToNothing,
-    selection ? isDesktop : neverDesktop,
+    compactLanguage ? subscribeToDesktop : subscribeToNothing,
+    compactLanguage ? isDesktop : neverDesktop,
     neverDesktop,
   );
   const selected = desktop ? selection : undefined;
   const key = selected?.key;
-  const zh = selected?.language === "zh";
+  const zh = compactLanguage === "zh";
   const [editingKey, setEditingKey] = useState<string>();
   const [collapsed, setCollapsed] = useState(false);
   const hideEditor = Boolean(key && key !== editingKey);
   const picker = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
+  const focusedHere = useRef(false);
   const headingId = useId();
   const bodyId = useId();
   useLayoutEffect(() => {
-    if (hideEditor && picker.current?.contains(document.activeElement)) {
+    if (!desktop) return;
+    function leave(event: Event) {
+      if (
+        event.target instanceof Node &&
+        !picker.current?.contains(event.target)
+      )
+        focusedHere.current = false;
+    }
+    document.addEventListener("focusin", leave, true);
+    document.addEventListener("pointerdown", leave, true);
+    return () => {
+      document.removeEventListener("focusin", leave, true);
+      document.removeEventListener("pointerdown", leave, true);
+      focusedHere.current = false;
+    };
+  }, [desktop]);
+  useLayoutEffect(() => {
+    const active = document.activeElement;
+    // A pending verification can disable or replace the focused control.
+    if (
+      hideEditor &&
+      (picker.current?.contains(active) ||
+        (active === document.body && focusedHere.current))
+    ) {
       toggle.current?.focus();
     }
     if (key && key !== editingKey) setEditingKey(undefined);
@@ -73,6 +98,13 @@ export function MaterialInput<T extends string>({
   return (
     <div
       ref={picker}
+      onFocusCapture={
+        desktop
+          ? () => {
+              focusedHere.current = true;
+            }
+          : undefined
+      }
       className="reference-material"
       data-material-kind={kind}
       data-source-count={options.length}

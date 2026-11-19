@@ -40,8 +40,8 @@ export function ReferencePicker({
   uploadKey?: string;
 }) {
   const zh = language === "zh";
-  const utility =
-    useContext(TaskPresentationContext)?.imageEntry === "workspace";
+  const presentation = useContext(TaskPresentationContext);
+  const utility = presentation?.imageEntry === "workspace";
   const formats =
     allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
   const [source, setSource] = useState<"saved" | "file">(() =>
@@ -179,6 +179,9 @@ export function ReferencePicker({
         label={label}
         kind={kind}
         source={source}
+        compactLanguage={
+          utility && presentation.active !== false ? language : undefined
+        }
         selection={
           value && verified
             ? {
@@ -195,7 +198,6 @@ export function ReferencePicker({
                       ? `第 ${value.record + 1} 条记录`
                       : `Record ${value.record + 1}`
                     : undefined,
-                language,
               }
             : undefined
         }

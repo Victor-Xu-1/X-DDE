@@ -57,8 +57,9 @@ function AssetPickerBody({
   maxBytes: number;
 }) {
   const zh = language === "zh";
+  const presentation = useContext(TaskPresentationContext);
   const utility =
-    useContext(TaskPresentationContext)?.imageEntry === "workspace";
+    presentation?.imageEntry === "workspace" && presentation.active !== false;
   const sources = useAssetSources(value, showHistory, onChange, uploadKey);
   const { source } = sources;
   const [knownBySource, setKnownBySource] = useState<
@@ -228,6 +229,7 @@ function AssetPickerBody({
           kind={kind}
           label={label}
           source={source}
+          compactLanguage={utility ? language : undefined}
           selection={
             utility && selected.asset && !history.error
               ? {
@@ -235,7 +237,6 @@ function AssetPickerBody({
                     ":",
                   ),
                   name: selected.asset.name,
-                  language,
                 }
               : undefined
           }
