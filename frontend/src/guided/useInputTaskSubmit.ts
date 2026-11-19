@@ -5,8 +5,8 @@ import { useInputActionScope } from "./InputActionScope";
 
 /** Keep native submission/idempotency while protecting an explicitly scoped input. */
 export function useInputTaskSubmit(onCreated: (job: Job) => void) {
-  const task = useTaskSubmit(onCreated);
   const scope = useInputActionScope();
+  const task = useTaskSubmit(onCreated, scope?.onDetachedAccept);
   async function submit(value: TaskRequest) {
     const finish = scope?.begin("submission");
     if (scope && !finish) return;

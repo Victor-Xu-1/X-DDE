@@ -56,6 +56,12 @@
   flex-shrink: 0;
   margin-bottom: 10px;
 }
+.admet-candidates .research-tab-list {
+  gap: 8px;
+}
+.admet-candidates .research-tab-list button {
+  font-size: 13px;
+}
 .admet-selected-molecule > .research-tabs > [role="tabpanel"]:not([hidden]),
 .admet-candidates > .research-tabs > [role="tabpanel"]:not([hidden]) {
   display: flex;

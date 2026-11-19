@@ -68,9 +68,19 @@ it("shows reasons in Chinese and hands off the saved output record rather than i
   );
   await user.click(screen.getByRole("checkbox", { name: "只看选中分子" }));
   expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
-  await user.click(screen.getByRole("button", { name: "准备分子" }));
+  await user.click(screen.getByRole("button", { name: "原始分子 #5" }));
+  expect(screen.getByRole("heading", { name: "原始分子 #5" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "准备分子" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "原始分子 #4" }));
+  const prepare = screen.getByRole("button", { name: "准备分子" });
+  await user.click(prepare);
   expect(screen.getByText("Exact handoff: selected-version / 0")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "返回分子库结果" }));
+  expect(prepare).toHaveFocus();
+  expect(screen.getByRole("button", { name: "原始分子 #4" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
 });
 it("presents zero hits without a molecule download or invented reusable reference", () => {
@@ -113,7 +123,7 @@ it("shows native matched rules and scaffold families without implying safety or 
   };
   const result = {
     options: { mode: "scaffold", alert_policy: "warn" },
-    rows: [row],
+    rows: [row, { record: 1, selected: false, available: false }],
     selected_records: [0],
     artifact: "selected.sdf",
     report_artifact: "library-report.csv",
@@ -128,7 +138,9 @@ it("shows native matched rules and scaffold families without implying safety or 
       language="zh"
     />,
   );
-  expect(screen.getByRole("status")).toHaveTextContent("1 个分子需核查");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "已检查 1 / 2 个分子，1 个需核查",
+  );
   expect(screen.getByText(/不是药效排名/)).toBeVisible();
   await userEvent.click(screen.getByText("需核查：1 条"));
   expect(screen.getByText("Brenk · review_pattern")).toBeVisible();

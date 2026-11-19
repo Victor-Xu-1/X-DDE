@@ -1,6 +1,10 @@
 import "./presentation/result-layout.css";
 import { useEffect, useRef, useState } from "react";
 import { ApplicationScope } from "./studio/ApplicationScope";
+import {
+  InputActionProvider,
+  useInputActionController,
+} from "./guided/InputActionScope";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import {
@@ -52,6 +56,8 @@ import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
 export function App() {
+  const actions = useInputActionController();
+  const [detachedReceipt, setDetachedReceipt] = useState<Job | null>(null);
   const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
   const [imageRequest, setImageRequest] = useState(0);
@@ -158,6 +164,11 @@ export function App() {
       ? viewForResults(moduleForKind(kindForJob(job)))
       : requestedView;
   const scopedResults = resultModule(view);
+  const resultSubmissionPending = Boolean(
+    scopedResults && actions.action === "submission",
+  );
+  const hasPendingResult = () =>
+    Boolean(scopedResults && actions.isLocked("submission"));
   const showingResults = Boolean(scopedResults) || view === "tasks";
   const predictionLayout =
     view === "home" ||
@@ -214,6 +225,7 @@ export function App() {
     setFocusResidue(null);
   }
   function showJob(id: string) {
+    if (hasPendingResult()) return;
     inspectJob(id);
     setResultsVersion((n) => n + 1);
     const next =
@@ -244,6 +256,11 @@ export function App() {
     setCompared([]);
     setFocusResidue(null);
   }
+  function retainAcceptedTask(next: Job) {
+    work.confirmJob(next);
+    setDetachedReceipt(next);
+    refresh();
+  }
   function changed(next: Job) {
     work.confirmJob(next);
     setSubmitted(next);
@@ -259,6 +276,7 @@ export function App() {
     return created;
   }
   function prepareDraft(value: Prediction) {
+    if (hasPendingResult()) return;
     chooseJob("", {
       pushHash: taskEntryHash("predict", value.project_id ?? null),
     });
@@ -289,6 +307,7 @@ export function App() {
     navigate("utilities");
   }
   function navigate(next: View) {
+    if (hasPendingResult()) return;
     if (next === "deployment") {
       openEnvironment("components");
       return;
@@ -374,6 +393,7 @@ export function App() {
               <ModuleWorkspaceNavigation
                 view={view}
                 language={language}
+                disabled={resultSubmissionPending}
                 onView={navigate}
               />
             }
@@ -389,6 +409,30 @@ export function App() {
               job?.request,
             )}
           >
+            {detachedReceipt && (
+              <div className="notice" role="status">
+                {zh ? "任务已提交。" : "Task submitted."}{" "}
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={resultSubmissionPending}
+                  onClick={() => {
+                    if (hasPendingResult()) return;
+                    showJob(detachedReceipt.id);
+                    setDetachedReceipt(null);
+                  }}
+                >
+                  {zh ? "查看已提交任务" : "View submitted task"}
+                </button>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => setDetachedReceipt(null)}
+                >
+                  {zh ? "关闭提示" : "Dismiss"}
+                </button>
+              </div>
+            )}
             {view === "settings" && (
               <InterfaceSettings
                 language={language}
@@ -598,42 +642,48 @@ export function App() {
               </section>
             )}
             {scopedResults && (
-              <TaskWorkspace
-                key={scopedResults}
-                scopedModule={scopedResults}
-                {...common}
-                selected={selected}
-                selectedError={work.selectedJobError}
-                selectedLoading={work.selectedJobLoading}
-                onRefresh={refresh}
-                onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
-                onJob={(id) => {
-                  // Keep the resolved module when clearing a legacy task link.
-                  setView(view);
-                  chooseJob(id);
-                }}
-                projectId={projectId}
-                onProject={chooseProject}
-                onDraft={prepareDraft}
-                renderPrediction={(onHistory, headerActions) => (
-                  <PredictionResults
-                    {...common}
-                    onHistory={onHistory}
-                    headerActions={headerActions}
-                    urls={urls}
-                    compared={compared}
-                    onCompare={(ids) => {
-                      setCompared(ids);
-                      setFocusResidue(null);
-                    }}
-                    focusResidue={focusResidue}
-                    onResidue={(residue) => {
-                      setCompared([]);
-                      setFocusResidue({ residue, nonce: Date.now() });
-                    }}
-                  />
-                )}
-              />
+              <InputActionProvider
+                value={{ ...actions, onDetachedAccept: retainAcceptedTask }}
+              >
+                <TaskWorkspace
+                  key={scopedResults}
+                  scopedModule={scopedResults}
+                  {...common}
+                  selected={selected}
+                  selectedError={work.selectedJobError}
+                  selectedLoading={work.selectedJobLoading}
+                  onRefresh={refresh}
+                  onStart={(tool) =>
+                    tool ? openTool(tool) : navigate("tools")
+                  }
+                  onJob={(id) => {
+                    // Keep the resolved module when clearing a legacy task link.
+                    setView(view);
+                    chooseJob(id);
+                  }}
+                  projectId={projectId}
+                  onProject={chooseProject}
+                  onDraft={prepareDraft}
+                  renderPrediction={(onHistory, headerActions) => (
+                    <PredictionResults
+                      {...common}
+                      onHistory={onHistory}
+                      headerActions={headerActions}
+                      urls={urls}
+                      compared={compared}
+                      onCompare={(ids) => {
+                        setCompared(ids);
+                        setFocusResidue(null);
+                      }}
+                      focusResidue={focusResidue}
+                      onResidue={(residue) => {
+                        setCompared([]);
+                        setFocusResidue({ residue, nonce: Date.now() });
+                      }}
+                    />
+                  )}
+                />
+              </InputActionProvider>
             )}
           </main>
         </div>

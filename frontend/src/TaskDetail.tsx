@@ -1,3 +1,4 @@
+import { useInputActionScope } from "./guided/InputActionScope";
 import { ConstraintReceipt } from "./constraints/ConstraintReceipt";
 import { BinderContinuation } from "./integrations/BinderContinuation";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -49,6 +50,8 @@ export function TaskDetail({
   onDraft,
 }: Props) {
   const t = translator(language);
+  const scope = useInputActionScope();
+  const submitting = scope?.action === "submission";
   const taskLabel = useTaskLabel(job, language);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set()),
     [actionErrors, setActionErrors] = useState<Record<string, string>>({});
@@ -72,10 +75,13 @@ export function TaskDetail({
     if (
       !job ||
       actionPending.current.has(job.id) ||
+      scope?.isLocked() ||
       (kind === "retry" && !retryAvailable)
     )
       return;
     if (kind === "cancel" && !window.confirm(t("cancelConfirm"))) return;
+    const finish = scope?.begin("submission");
+    if (scope && !finish) return;
     const generation = actionView.current.generation;
     const ownsView = () =>
       actionView.current.mounted &&
@@ -122,6 +128,7 @@ export function TaskDetail({
               : t("error"),
       }));
     } finally {
+      finish?.();
       actionPending.current.delete(job.id);
       if (actionView.current.mounted)
         setPendingIds(new Set(actionPending.current));
@@ -156,7 +163,7 @@ export function TaskDetail({
     <button
       className="secondary-button"
       onClick={() => void action("retry")}
-      disabled={busy || !retryAvailable}
+      disabled={busy || submitting || !retryAvailable}
     >
       {t("retry")}
     </button>
@@ -166,6 +173,7 @@ export function TaskDetail({
       onClick={() => void action("cancel")}
       disabled={
         busy ||
+        submitting ||
         job.status === "cancelling" ||
         (job.status === "running" &&
           job.request.operation === "harness" &&

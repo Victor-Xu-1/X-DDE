@@ -20,6 +20,35 @@ import {
 import * as i18n from "./i18n";
 import type { Health, Job } from "./types";
 
+vi.mock("./chemistry/StateForm", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("./chemistry/StateForm")>();
+  const { useInputTaskSubmit } = await import("./guided/useInputTaskSubmit");
+  const { defaults: options } = await import("./chemistry/generated");
+  return {
+    StateForm: (props: Parameters<typeof original.StateForm>[0]) => {
+      const { initialMolecule, onCreated } = props;
+      const task = useInputTaskSubmit(onCreated);
+      if (!initialMolecule) return <original.StateForm {...props} />;
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            void task.submit({
+              name: "Prepare the selected record",
+              operation: "molecular_states",
+              molecule: initialMolecule,
+              options: { ...options, force_field: "MMFF94s" },
+            })
+          }
+        >
+          Submit preparation
+        </button>
+      );
+    },
+  };
+});
+
 function job(id: string, name: string, projectId: string | null): Job {
   return {
     id,
@@ -718,3 +747,99 @@ it("restores a newly typed history query after immediately opening a new task", 
     vi.useRealTimers();
   }
 });
+
+it.each([false, true])(
+  "retains the accepted preparation when browser Back is used: %s",
+  async (historyBack) => {
+    const reference = {
+      asset_id: "selected-sdf",
+      sha256: "a".repeat(64),
+      record: 0,
+      conformer: 0,
+    };
+    const library = {
+      ...jobs[0],
+      status: "succeeded",
+      request: { operation: "library_screen", name: "Library selection" },
+    } as Job;
+    const receipt = {
+      ...jobs[1],
+      request: { operation: "molecular_states", name: "Accepted preparation" },
+    } as Job;
+    const fetch = vi.mocked(apiClient.request).getMockImplementation()!;
+    vi.mocked(apiClient.request).mockImplementation(async (path, options) => {
+      if (path === "/jobs/" + library.id) return library as never;
+      if (path === "/jobs/" + receipt.id) return receipt as never;
+      return fetch(path, options);
+    });
+    vi.mocked(api.jobs).mockResolvedValue([library]);
+    vi.spyOn(api, "result").mockResolvedValue({
+      operation: "library_screen",
+      complete: true,
+      selected_records: [4],
+      artifact: "selected.sdf",
+      rows: [{ record: 4, selected: true, available: true, reference }],
+    });
+    let accept!: (job: Job) => void;
+    const submit = vi.spyOn(api, "submit").mockImplementation(
+      () =>
+        new Promise<Job>((resolve) => {
+          accept = resolve;
+        }),
+    );
+    const retry = vi.spyOn(api, "retry");
+    const newTask = "/#view=new&tool=chemistry.states";
+    window.history.replaceState(null, "", newTask);
+    window.history.pushState(null, "", "/#task=" + library.id);
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Prepare molecule" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Submit preparation" }));
+    const workspace = within(
+      screen.getByRole("navigation", { name: "Module workspace" }),
+    );
+    const navigation = [
+      workspace.getByRole("button", { name: "Task results" }),
+      workspace.getByRole("button", { name: "New task" }),
+      screen.getByRole("button", { name: "Back to task results" }),
+      screen.getByRole("button", { name: "Back to library results" }),
+      screen.getByRole("button", { name: "Run again" }),
+    ];
+    expect(submit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        operation: "molecular_states",
+        molecule: reference,
+      }),
+      expect.any(String),
+    );
+    for (const button of navigation) {
+      expect(button).toBeDisabled();
+      fireEvent.click(button);
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Target research" }));
+    expect(window.location.hash).toContain(library.id);
+    expect(retry).not.toHaveBeenCalled();
+    if (historyBack) {
+      window.history.back();
+      await waitFor(() => expect(window.location.hash).toBe(newTask.slice(1)));
+      expect(
+        screen.queryByRole("button", { name: "Submit preparation" }),
+      ).toBeNull();
+    }
+    await act(async () => {
+      vi.mocked(api.jobs).mockResolvedValue([library, receipt]);
+      accept(receipt);
+    });
+    if (historyBack) {
+      expect(window.location.hash).toBe(newTask.slice(1));
+      fireEvent.click(
+        await screen.findByRole("button", { name: "View submitted task" }),
+      );
+    }
+    expect(window.location.hash).toContain(receipt.id);
+    expect(
+      await screen.findByRole("heading", { name: "Accepted preparation" }),
+    ).toBeVisible();
+  },
+);

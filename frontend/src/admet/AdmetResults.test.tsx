@@ -179,17 +179,22 @@ it("retains invalid/duplicate original indices and switches exact previews and r
   expect(
     screen.getByRole("button", { name: /#3 · Candidate 3/ }),
   ).toHaveTextContent("Same representation as record #2");
-  await user.click(
-    screen.getByRole("button", { name: "Prepare this molecule" }),
-  );
+  const prepare = screen.getByRole("button", { name: "Prepare this molecule" });
+  const preview = screen.getByLabelText("Selected structure");
+  await user.click(prepare);
+  expect(
+    screen.getByRole("heading", { name: "Molecule preparation" }),
+  ).toHaveFocus();
   expect(
     JSON.parse(screen.getByLabelText("Reused source").textContent!),
   ).toEqual(result.rows[2].reference);
   await user.click(screen.getByRole("button", { name: "Back to predictions" }));
-  await user.click(screen.getByRole("tab", { name: "3D structure" }));
-  expect(screen.getByLabelText("Selected structure")).toHaveTextContent(
-    "source-record-3.sdf",
+  expect(prepare).toHaveFocus();
+  expect(screen.getByRole("tab", { name: "3D structure" })).toHaveAttribute(
+    "aria-selected",
+    "true",
   );
+  expect(screen.getByLabelText("Selected structure")).toBe(preview);
 });
 it("honors the requested full panel and offers a compact common-endpoint view", async () => {
   const user = userEvent.setup();

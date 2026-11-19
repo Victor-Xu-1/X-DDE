@@ -3,7 +3,10 @@ import { api } from "../api";
 import type { Job } from "../types";
 import type { TaskRequest } from "./types";
 
-export function useTaskSubmit(onCreated: (job: Job) => void) {
+export function useTaskSubmit(
+  onCreated: (job: Job) => void,
+  onDetachedAccept?: (job: Job) => void,
+) {
   const [busy, setBusy] = useState(false),
     [failure, setFailure] = useState<{
       message: string;
@@ -34,7 +37,10 @@ export function useTaskSubmit(onCreated: (job: Job) => void) {
     try {
       const job = intent.accepted ?? (await api.submit(snapshot, intent.key));
       intent.accepted = job;
-      if (!mounted.current) return job;
+      if (!mounted.current) {
+        onDetachedAccept?.(job);
+        return job;
+      }
       try {
         onCreated(job);
         request.current = { body: "", key: crypto.randomUUID() };
