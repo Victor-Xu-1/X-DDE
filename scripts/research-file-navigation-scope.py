@@ -44,13 +44,9 @@ _NAVIGATION = {
     "server_tests/test_workspace_versions_browser.py",
 }
 _DESKTOP_BLOBS = {
-    ".github/workflows/workspace-preview-checks.yml": (
-        "f9a5a7e9063544f923e1cd74a962a7bf3d99542f",
-        "d362041e314b5c13fd7add249c7429a625aee5d0",
-    ),
-    "frontend/src/research/ResearchFileToolbar.tsx": (
+    "frontend/src/research/ResearchWorkspaceFileToolbar.tsx": (
         None,
-        "0e2b567bfd28b6eac7577e2c8b5ba04b971f7ce0",
+        "3da585776ec6ab0892984614d96cf6161d1e1c1c",
     ),
     "frontend/src/research/ResearchWorkspace.test.tsx": (
         "1f8d731715777b7d31d3fc9c225e70ad570580e3",
@@ -58,7 +54,7 @@ _DESKTOP_BLOBS = {
     ),
     "frontend/src/research/ResearchWorkspace.tsx": (
         "c6967f858394254815617030bc87ba5b51e5715d",
-        "435c17ca9f1a8fbf27b988115c1a5484ee492d6b",
+        "e44e59d4c9f8ef8079553370b01be6fe45441235",
     ),
     "frontend/src/research/research-file-navigation.css": (
         "86fd03960b16b935ed36e60d525838fb84f92709",
@@ -73,7 +69,7 @@ _DESKTOP_BLOBS = {
         "a9191a877d394a47d36f625eaf240d9c783472b0",
     ),
 }
-_DESKTOP_SELECTOR_SHA = "f52adf8e18143d8a03614075f3c32bb2ab428996d1e1b4f9ef18ae949e6866f0"
+_DESKTOP_SELECTOR_SHA = "eb8d047b29a611381e05bbf1c19ae65ce4ed0b12ca34a12a5cf98f15ffeba2a8"
 
 
 def desktop_only(paths, base, support):

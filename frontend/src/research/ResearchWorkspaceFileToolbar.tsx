@@ -13,7 +13,7 @@ const formats = {
 type UploadKind = keyof typeof formats;
 const uploadKinds = Object.keys(formats) as UploadKind[];
 
-export function ResearchFileToolbar({
+export function ResearchWorkspaceFileToolbar({
   language,
   busy,
   onUpload,

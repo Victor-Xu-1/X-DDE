@@ -13,7 +13,6 @@ on:
     paths: &workspace_paths
       - "frontend/src/research/SelectedAssetPreview*"
       - "frontend/src/research/ResearchWorkspace*"
-      - "frontend/src/research/ResearchFileToolbar.tsx"
       - "frontend/src/research/useResearchFileNavigation.ts"
       - "frontend/src/research/research-file-navigation.css"
       - "scripts/research-file-navigation-scope.py"

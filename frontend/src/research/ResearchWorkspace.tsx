@@ -18,7 +18,7 @@ import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
 import { useResearchFileNavigation } from "./useResearchFileNavigation";
-import { ResearchFileToolbar } from "./ResearchFileToolbar";
+import { ResearchWorkspaceFileToolbar } from "./ResearchWorkspaceFileToolbar";
 import "./research-file-navigation.css";
 
 export function ResearchWorkspace({
@@ -292,7 +292,7 @@ export function ResearchWorkspace({
           className="setup-card research-file-library"
           aria-label={zh ? "研究文件库" : "Research file library"}
         >
-          <ResearchFileToolbar
+          <ResearchWorkspaceFileToolbar
             language={language}
             busy={busy}
             onUpload={uploadFile}
