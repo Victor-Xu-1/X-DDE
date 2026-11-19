@@ -14,6 +14,8 @@ import {
 import "./utility-task.css";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { UtilityTaskResult } from "./UtilityTaskResult";
+import { UtilityDrawingContext } from "./UtilityDrawingContext";
+import type { EditorDrawing } from "./useRecognitionDrawing";
 
 const utilities = {
   admet: { capability: "admet.predict", Form: AdmetForm },
@@ -34,6 +36,8 @@ type UtilityTaskProps = {
   onCreated(job: Job): void;
   jobs?: readonly Job[];
   active?: boolean;
+  drawing?: EditorDrawing;
+  onDrawingHandled?(id: string): void;
 };
 
 /** New tasks replace the whole session, including outstanding template intent. */
@@ -56,6 +60,8 @@ function UtilityTaskSession({
   onCreated,
   onReset,
   focusInputOnStart,
+  drawing,
+  onDrawingHandled,
   jobs = [],
   active = true,
 }: UtilityTaskProps & { onReset(): void; focusInputOnStart: boolean }) {
@@ -91,6 +97,22 @@ function UtilityTaskSession({
     focusNext.current = null;
   }, [active, previewing, visibleResult]);
   const actions = useInputActionScope()!;
+  const shownDrawing = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (
+      !drawing ||
+      !active ||
+      previewing ||
+      actions.action ||
+      shownDrawing.current === drawing.id
+    )
+      return;
+    shownDrawing.current = drawing.id;
+    if (visibleResult) {
+      focusNext.current = "inputs";
+      setView("inputs");
+    } else inputWorkspace.current?.focus();
+  }, [drawing, active, previewing, actions.action, visibleResult]);
   const finishExample = useRef<(() => void) | null>(null);
   const exampleBusy = useCallback(
     (pending: boolean) => {
@@ -165,7 +187,10 @@ function UtilityTaskSession({
         )}
         <fieldset
           className="utility-task-fields"
-          disabled={actions.action === "example"}
+          disabled={
+            actions.action === "example" ||
+            actions.action === "structure-import"
+          }
         >
           <legend className="sr-only">
             {language === "zh" ? "任务材料与设置" : "Task inputs and settings"}
@@ -184,15 +209,23 @@ function UtilityTaskSession({
                 onMatchingResult: setMatched,
               }}
             >
-              <Form
-                language={language}
-                {...(tool === "brain" ? { focus: "brain" as const } : {})}
-                onCreated={(job) => {
-                  setCompleted(true);
-                  open("results");
-                  onCreated(job);
-                }}
-              />
+              <UtilityDrawingContext.Provider
+                value={
+                  drawing && onDrawingHandled
+                    ? { ...drawing, dismiss: onDrawingHandled }
+                    : null
+                }
+              >
+                <Form
+                  language={language}
+                  {...(tool === "brain" ? { focus: "brain" as const } : {})}
+                  onCreated={(job) => {
+                    setCompleted(true);
+                    open("results");
+                    onCreated(job);
+                  }}
+                />
+              </UtilityDrawingContext.Provider>
             </TaskPresentationContext.Provider>
           </ExampleContext.Provider>
         </fieldset>

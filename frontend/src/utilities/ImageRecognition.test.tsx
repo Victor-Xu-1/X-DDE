@@ -1,10 +1,81 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { ImageRecognition } from "./ImageRecognition";
+import { recognitionOrigin } from "./image-molecule";
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+});
+it("routes only the explicitly requested current drawing and drops late replies on tab changes", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ available: true }),
+    }),
+  );
+  const onHandoff = vi.fn();
+  const view = render(<ImageRecognition language="en" onHandoff={onHandoff} />);
+  const iframe = (await screen.findByTitle(
+    "Image recognition and molecular editor",
+  )) as HTMLIFrameElement;
+  expect(iframe.src).toContain("xdde-drawing=1");
+  expect(iframe.src).not.toContain("xdde-input=1");
+  const sender = iframe.contentWindow!;
+  const send = vi.spyOn(sender, "postMessage").mockImplementation(() => {});
+  const origin = recognitionOrigin();
+  function native(data: object, source: Window = sender) {
+    act(() =>
+      window.dispatchEvent(
+        new MessageEvent("message", { source, origin, data }),
+      ),
+    );
+  }
+  native({ type: "xdde-drawing:ready" });
+  const id = send.mock.calls.at(-1)![0].id;
+  native({ type: "xdde-drawing:state", id, available: true }, window);
+  expect(
+    screen.queryByRole("combobox", { name: "Use structure in a task" }),
+  ).toBeNull();
+  native({ type: "xdde-drawing:state", id, available: true });
+  const choice = screen.getByRole("combobox", {
+    name: "Use structure in a task",
+  });
+  await userEvent.selectOptions(choice, "properties");
+  const first = send.mock.calls.at(-1)![0];
+  expect(first.type).toBe("xdde-drawing:export");
+  expect(choice).toBeDisabled();
+  const molecule = { smiles: "CCO", molfile: "M  END\n" };
+  native({
+    type: "xdde-drawing:result",
+    id,
+    requestId: crypto.randomUUID(),
+    molecule,
+  });
+  expect(onHandoff).not.toHaveBeenCalled();
+  native({
+    type: "xdde-drawing:result",
+    id,
+    requestId: first.requestId,
+    molecule,
+  });
+  expect(onHandoff).toHaveBeenCalledExactlyOnceWith("properties", {
+    id: first.requestId,
+    molecule,
+  });
+  await userEvent.selectOptions(choice, "brain");
+  const late = send.mock.calls.at(-1)![0];
+  view.rerender(
+    <ImageRecognition language="en" visible={false} onHandoff={onHandoff} />,
+  );
+  native({
+    type: "xdde-drawing:result",
+    id,
+    requestId: late.requestId,
+    molecule,
+  });
+  expect(onHandoff).toHaveBeenCalledTimes(1);
 });
 it("connects to the existing local editor without starting recognition", async () => {
   const fetcher = vi

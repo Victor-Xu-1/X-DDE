@@ -25,6 +25,16 @@ export function validImageMolecule(value: unknown): value is ImageMolecule {
     !item.molfile.includes("$$$$")
   );
 }
+export function editorMoleculeFile(value: ImageMolecule) {
+  if (!validImageMolecule(value)) throw new Error("Invalid editor molecule.");
+  return new File(
+    [
+      `${value.molfile.trimEnd()}\n> <XDDE_INPUT_METHOD>\nMolecular editor drawing\n\n$$$$\n`,
+    ],
+    "editor-structure.sdf",
+    { type: "chemical/x-mdl-sdfile" },
+  );
+}
 export async function imageMoleculeFile(
   value: ImageMolecule,
   image: File,

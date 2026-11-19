@@ -6,6 +6,12 @@ import { ExportOutlined, ReloadOutlined } from "@ant-design/icons";
 import "./utilities.css";
 import { recognitionFrameUrl } from "./recognition-locale";
 import { useRecognitionLocale } from "./useRecognitionLocale";
+import {
+  drawingDestinations,
+  useRecognitionDrawing,
+  type DrawingDestination,
+  type EditorDrawing,
+} from "./useRecognitionDrawing";
 
 /** Reuse the installed editor and its own authenticated lifecycle authority. */
 export function ImageRecognition({
@@ -13,11 +19,13 @@ export function ImageRecognition({
   actionsTarget,
   visible = true,
   focusRequest = 0,
+  onHandoff,
 }: {
   language: Language;
   actionsTarget?: HTMLElement | null;
   visible?: boolean;
   focusRequest?: number;
+  onHandoff?(destination: DrawingDestination, value: EditorDrawing): void;
 }) {
   const zh = language === "zh";
   const [attempt, setAttempt] = useState(0);
@@ -32,12 +40,20 @@ export function ImageRecognition({
   const frame = useRef<HTMLIFrameElement>(null);
   const reconnect = useRef<HTMLButtonElement>(null);
   const lastFocusedRequest = useRef(0);
-  const [url] = useState(() => recognitionFrameUrl(origin, language));
+  const [url] = useState(() =>
+    recognitionFrameUrl(origin, language, onHandoff ? "drawing" : false),
+  );
   const locale = useRecognitionLocale(
     frame,
     origin,
     language,
     status === "ready",
+  );
+  const drawing = useRecognitionDrawing(
+    frame,
+    origin,
+    visible && status === "ready",
+    onHandoff,
   );
   useEffect(() => {
     if (!visible) return;
@@ -86,6 +102,34 @@ export function ImageRecognition({
   }, [connection, focusRequest, status, visible]);
   const actions = (
     <div className="utility-editor-tools">
+      {drawing.available !== null && (
+        <select
+          className="utility-drawing-destination"
+          aria-label={zh ? "将结构用于计算" : "Use structure in a task"}
+          value=""
+          disabled={!drawing.available || drawing.busy}
+          onChange={(e) => {
+            const destination = e.target.value;
+            if (Object.hasOwn(drawingDestinations, destination))
+              drawing.send(destination as DrawingDestination);
+          }}
+        >
+          <option value="">
+            {drawing.busy
+              ? zh
+                ? "正在读取结构…"
+                : "Reading structure…"
+              : zh
+                ? "将结构用于…"
+                : "Use structure in…"}
+          </option>
+          {Object.entries(drawingDestinations).map(([value, labels]) => (
+            <option key={value} value={value}>
+              {labels[zh ? 0 : 1]}
+            </option>
+          ))}
+        </select>
+      )}
       <Hint label={zh ? "图片输入帮助" : "Image input help"}>
         {zh
           ? "粘贴或拖入结构图，识别后编辑、复制 SMILES 或导出。"
@@ -144,6 +188,13 @@ export function ImageRecognition({
       )}
       {status === "ready" && (
         <>
+          {drawing.failed && (
+            <p className="utility-drawing-error" role="alert">
+              {zh
+                ? "未能读取当前绘图。请核对后重试。"
+                : "Could not read the current drawing. Review it and retry."}
+            </p>
+          )}
           {locale.supported === false && (
             <p role="status">
               {zh
@@ -162,7 +213,10 @@ export function ImageRecognition({
                 : "Image recognition and molecular editor"
             }
             allow="clipboard-read; clipboard-write"
-            onLoad={locale.connect}
+            onLoad={() => {
+              locale.connect();
+              drawing.connect();
+            }}
           />
         </>
       )}

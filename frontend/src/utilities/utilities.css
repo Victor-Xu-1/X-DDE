@@ -54,6 +54,36 @@
   min-height: 30px;
   font-size: 12px;
 }
+.utility-drawing-destination {
+  max-width: 190px;
+  min-height: 32px;
+  padding-inline: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 12px;
+}
+.utility-drawing-error {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: var(--danger);
+}
+.utility-drawing-offer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 4px 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.utility-drawing-offer > span {
+  margin-inline-end: auto;
+  font-weight: 600;
+}
 .utility-editor-tools a {
   display: grid;
   place-items: center;

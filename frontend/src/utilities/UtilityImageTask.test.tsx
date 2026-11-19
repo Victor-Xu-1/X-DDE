@@ -86,6 +86,57 @@ it.each([
   ["admet", "Predict properties"],
   ["brain", "Assess brain penetration"],
   ["properties", "Calculate properties"],
+  ["states", "Prepare states and conformers"],
+] as const)(
+  "%s attaches the offered drawing only on explicit acceptance",
+  async (tool, run) => {
+    const attached = {
+      ...asset,
+      id: "editor-input",
+      name: "editor-structure.sdf",
+    };
+    vi.spyOn(client, "request").mockImplementation(async (url) => {
+      if (String(url).endsWith("/metadata")) return attached as never;
+      return { items: [], files: [], total: 0 } as never;
+    });
+    const upload = vi.spyOn(client.api, "upload").mockResolvedValue(attached);
+    const submit = vi
+      .spyOn(client.api, "submit")
+      .mockResolvedValue({ id: "not-used" } as never);
+    const onDrawingHandled = vi.fn();
+    const drawing = {
+      id: "offer",
+      molecule: { smiles: "CN", molfile: "M  END\n" },
+    };
+    const { rerender } = render(
+      <UtilityTask
+        tool={tool}
+        language="en"
+        onCreated={vi.fn()}
+        drawing={drawing}
+        onDrawingHandled={onDrawingHandled}
+      />,
+    );
+    expect(screen.getByRole("group", { name: "Drawing ready" })).toBeVisible();
+    expect(upload).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Use as input" }));
+    expect(upload).toHaveBeenCalledOnce();
+    expect(upload.mock.calls[0][0].name).toBe("editor-structure.sdf");
+    await waitFor(() =>
+      expect(onDrawingHandled).toHaveBeenCalledExactlyOnceWith("offer"),
+    );
+    rerender(<UtilityTask tool={tool} language="en" onCreated={vi.fn()} />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: run })).toBeEnabled(),
+    );
+    expect(submit).not.toHaveBeenCalled();
+  },
+);
+
+it.each([
+  ["admet", "Predict properties"],
+  ["brain", "Assess brain penetration"],
+  ["properties", "Calculate properties"],
   ["screen", "Run library selection"],
   ["states", "Prepare states and conformers"],
 ] as const)(
