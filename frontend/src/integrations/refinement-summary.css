@@ -46,7 +46,8 @@
 }
 
 @media (min-width: 1001px) {
-  .scientific-results.is-refinement-result > .structure-workbench {
+  .scientific-results.is-refinement-result
+    > .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 2.35fr) minmax(275px, 1fr);
     gap: 16px;
   }

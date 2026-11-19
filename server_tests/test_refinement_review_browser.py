@@ -73,6 +73,28 @@ def downloads(page, evidence, zh):
     page.get_by_role("button", name="关闭图片" if zh else "Close image", exact=True).click()
 
 
+def verify_expansion(actual, canvas, zh):
+    button = actual.get_by_role(
+        "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True,
+    )
+    iframe = actual.locator(".molecular-stage iframe")
+    frame = iframe.element_handle()
+    assert frame
+    button.click()
+    expect(actual.locator(".structure-workbench")).to_have_attribute(
+        "data-workspace-expanded", "true"
+    )
+    expanded = iframe.bounding_box()
+    assert expanded and expanded["width"] > canvas["width"]
+    assert frame.evaluate("frame => frame.isConnected")
+    actual.get_by_role(
+        "button", name="关闭展开视图" if zh else "Close expanded view", exact=True,
+    ).press("Escape")
+    expect(button).to_be_focused()
+    assert frame.evaluate("frame => frame.isConnected")
+    return expanded
+
+
 @pytest.mark.parametrize(("language", "width", "height"), [
     ("en", 1280, 720), ("zh", 1600, 900),
 ])
@@ -146,6 +168,7 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
         assert canvas["width"] >= 600 and canvas["height"] >= 500
         assert viewport["y"] + viewport["height"] < height and viewport["height"] <= 230
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        expanded = verify_expansion(actual, canvas, zh)
         downloads(page, evidence, zh)
         actual.locator(".structure-workbench-view").scroll_into_view_if_needed()
         page.screenshot(path=str(evidence / "native-refinement-example.png"))
@@ -172,6 +195,7 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
                     "full_precision_csv_and_byte_identical_pdb": True,
                     "native_png_export": True,
                     "desktop_native_canvas": canvas,
+                    "expanded_native_canvas": expanded,
                     "blank_upload_draft_preserved": True,
                     "api_writes": writes,
                     "new_refinement_dynamics_fep": 0,
