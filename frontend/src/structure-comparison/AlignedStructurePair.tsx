@@ -77,20 +77,24 @@ export function AlignedStructurePair({
         const badge = index === 0 ? "A" : "B";
         return (
           <section key={side} aria-label={`${badge} · ${label}`}>
-            <header className="aligned-structure-heading">
-              <h4>
-                <span>{badge}</span> {label}
-              </h4>
-              <a
-                href={url}
-                download
-                aria-label={zh ? `下载${label} CIF` : `Download ${label} CIF`}
-              >
-                CIF ↓
-              </a>
-            </header>
             <StructureViewer
               urls={[url]}
+              heading={
+                <div className="aligned-structure-heading">
+                  <h3>
+                    <span>{badge}</span> {label}
+                  </h3>
+                  <a
+                    href={url}
+                    download
+                    aria-label={
+                      zh ? `下载${label} CIF` : `Download ${label} CIF`
+                    }
+                  >
+                    CIF ↓
+                  </a>
+                </div>
+              }
               expectedStructureSha256={hashes[name]}
               sourceSnapshot
               ligandContext={false}

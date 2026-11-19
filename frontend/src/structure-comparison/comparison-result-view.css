@@ -13,6 +13,14 @@
   margin-bottom: 5px;
 }
 
+.comparison-preview-actions button {
+  scroll-margin-block-start: 110px;
+}
+
+[data-workspace-expanded="true"] .comparison-preview-actions button {
+  scroll-margin-block-start: 12px;
+}
+
 .comparison-preview-context {
   display: flex;
   align-items: baseline;
@@ -38,6 +46,18 @@
   font-size: 12px;
 }
 
+.comparison-view-actions [data-workspace-expand] {
+  min-width: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.comparison-view-actions [data-workspace-expand]:hover {
+  background: var(--surface-hover);
+}
+
 .aligned-structure-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -51,17 +71,16 @@
 .aligned-structure-heading {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   gap: 8px;
-  margin-block: 2px 6px;
+  min-width: 0;
 }
 
-.aligned-structure-heading h4 {
+.aligned-structure-heading h3 {
   margin: 0;
   font-size: 13px;
 }
 
-.aligned-structure-heading h4 > span {
+.aligned-structure-heading h3 > span {
   margin-inline-end: 4px;
   color: var(--accent);
 }
@@ -119,6 +138,10 @@
   font-size: 12px;
   min-height: 34px;
   padding-block: 6px;
+}
+
+.comparison-analysis .research-table :is(th, td) {
+  padding-inline: 9px;
 }
 
 .comparison-return-to-residue {

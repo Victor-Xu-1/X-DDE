@@ -59,9 +59,15 @@ function ComparisonResultWorkspace({
     },
     {
       key: "displacement",
-      label: zh ? "位移（Å）" : "Displacement (Å)",
+      label: zh ? "位移（Å）" : "Δ (Å)",
+      exportLabel: zh ? "位移（Å）" : "Displacement (Å)",
       numeric: true,
       value: (r) => r.displacement_angstrom,
+      render: (r) => (
+        <span title={String(r.displacement_angstrom)}>
+          {r.displacement_angstrom.toFixed(3)}
+        </span>
+      ),
     },
     {
       key: "role",

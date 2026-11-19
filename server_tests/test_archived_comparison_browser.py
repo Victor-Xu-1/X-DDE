@@ -61,6 +61,12 @@ def verify_aligned_pair(page, panel, result, evidence):
 
     a = left.locator(".molecular-stage iframe")
     b = right.locator(".molecular-stage iframe")
+    b.evaluate("""frame => frame.contentWindow.postMessage(
+      {channel: "opendde-viewer", type: "residue", value: "A:LEU198"}, location.origin
+    )""")
+    expect(panel.locator(".comparison-preview-header output")).to_contain_text(
+        "A:198 → A:198", timeout=15000,
+    )
     a_bounds, b_bounds = a.bounding_box(), b.bounding_box()
     assert a_bounds and b_bounds
     assert a_bounds["x"] + a_bounds["width"] < b_bounds["x"]
@@ -73,11 +79,18 @@ def verify_aligned_pair(page, panel, result, evidence):
     assert a.bounding_box()["width"] > a_bounds["width"]
     assert a_handle.evaluate("(node) => node.isConnected")
     assert b_handle.evaluate("(node) => node.isConnected")
+    overlay.click()
+    expect(overlay).to_have_attribute("aria-pressed", "true")
+    expect(panel.locator(".structure-workbench-details")).to_be_hidden()
+    pair.click()
+    expect(match).to_be_enabled(timeout=45000)
+    expect(panel.locator(".structure-workbench-details")).to_be_hidden()
     panel.get_by_role("button", name="Show analysis panel", exact=True).click()
     panel.get_by_role("button", name="Close expanded view", exact=True).click()
     expect(panel.locator(".structure-workbench-details")).to_be_visible()
 
     left.get_by_role("button", name="Zoom in", exact=True).click()
+    assert read_camera(a) != pytest.approx(read_camera(b), abs=1e-6)
     match.click()
     expect(match).to_be_enabled()
     matched = read_camera(a)

@@ -1,5 +1,11 @@
 import { version as productVersion } from "../../package.json";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   LoadingOutlined,
@@ -63,6 +69,7 @@ export interface StructureViewerProps {
   showWorkspaceControls?: boolean;
   onCameraReady?(handle: StructureCameraHandle | null): void;
   figureFilename?: string;
+  heading?: ReactNode;
   expectedStructureSha256?: string;
   nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
@@ -103,6 +110,7 @@ export function StructureViewport({
   showWorkspaceControls = true,
   onCameraReady,
   figureFilename,
+  heading,
   expectedStructureSha256,
   onStructureVerification,
   trajectoryKey,
@@ -587,17 +595,19 @@ export function StructureViewport({
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
-        <h3 aria-label={title}>
-          <span className="viewer-title-full">{title}</span>
-          <span className="viewer-title-short" aria-hidden="true">
-            {zh ? "三维" : "3D"}
-          </span>
-          <Hint label={zh ? "三维预览说明" : "3D preview help"}>
-            {zh
-              ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
-              : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
-          </Hint>
-        </h3>
+        {heading ?? (
+          <h3 aria-label={title}>
+            <span className="viewer-title-full">{title}</span>
+            <span className="viewer-title-short" aria-hidden="true">
+              {zh ? "三维" : "3D"}
+            </span>
+            <Hint label={zh ? "三维预览说明" : "3D preview help"}>
+              {zh
+                ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
+                : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
+            </Hint>
+          </h3>
+        )}
         {attachmentGeometry !== undefined && (
           <span
             className="viewer-attachment-count"
