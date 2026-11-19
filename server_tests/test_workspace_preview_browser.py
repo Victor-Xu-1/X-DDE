@@ -256,7 +256,7 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         def replace_bytes(route):
             route.fulfill(response=receptor_response, body=original_bytes[:-1] + replacement)
 
-        page.on("download", tampered_downloads.append)
+        page.on("download", lambda download: tampered_downloads.append(download))
         page.route(url, replace_bytes)
         suspect = select("stat6_receptor")
         expect(suspect.get_by_role("alert")).to_be_visible(timeout=45000)

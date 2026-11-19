@@ -95,7 +95,7 @@ _INSPECTION_FILES = {
     "frontend/src/research/research.css",
     "server_tests/test_workspace_preview_browser.py",
 }
-_INSPECTION_SHA = "48f2030d6d0d3e275a326d68376a612d7643cbaab2d18c266542c5b782ee5f7a"
+_INSPECTION_SHA = "e430fb9f79b23edfca3f11c9dcd4adf82710075bb60921c0ebe90f54f7e0d329"
 
 
 def inspection_digest(base, head):
