@@ -29,5 +29,6 @@ def test_desktop_rail_requires_the_reviewed_style_and_browser_changes():
     css = "frontend/src/docking/DockingResults.css"
     assert select(files, approved, approved)
     assert not select(files - {css}, approved, approved)
-    assert not select(files | {"frontend/src/presentation/StructureWorkbench.tsx"}, approved, approved)
+    mixed = files | {"frontend/src/presentation/StructureWorkbench.tsx"}
+    assert not select(mixed, approved, approved)
     assert not select(files, {**approved, css: (approved[css][0], "different")}, approved)
