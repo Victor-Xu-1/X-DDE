@@ -836,6 +836,21 @@ COMPOSED_POWER_FILES = {
     "tests/test_utility_tools.py",
 }
 COMPOSED_POWER_DIFF = "e48229fc371a5fe9b8c39affd81e4e4be455f23e252d32b797f10af9204b3248"
+BACKEND_STATE_FILES = {
+    # Pin the root version bump without replacing matching dependency versions.
+    "frontend/package-lock.json",
+    "frontend/src/examples/ExampleActions.test.tsx",
+    "frontend/src/examples/ExampleActions.tsx",
+    "frontend/src/examples/ExampleToolbar.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/ComputeSwitch.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "frontend/src/workflows/WorkflowBackendControl.tsx",
+    "frontend/src/workflows/WorkflowCenter.tsx",
+    "frontend/src/workflows/model.ts",
+}
+BACKEND_STATE_DIFF = "c36351a0b5e77c43b53b08621064b69e06eace45a2acfa7d028c2b2a2978a21e"
 DESKTOP_HELP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
@@ -1013,6 +1028,9 @@ def main():
     composed_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         COMPOSED_POWER_FILES, COMPOSED_POWER_DIFF, scope_pin="COMPOSED_POWER_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        BACKEND_STATE_FILES, BACKEND_STATE_DIFF, scope_pin="BACKEND_STATE_DIFF",
     )
     module_power = backend_setup or composed_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

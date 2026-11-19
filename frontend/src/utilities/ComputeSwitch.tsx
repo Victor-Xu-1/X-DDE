@@ -32,6 +32,10 @@ type ComputePower = {
 };
 
 const ComputeContext = createContext<ComputePower | null>(null);
+
+export function useComputePower() {
+  return useContext(ComputeContext);
+}
 const working = (service: ComputeService) =>
   (service.active ?? 0) + (service.queued ?? 0) > 0;
 
@@ -132,7 +136,7 @@ export function ComputeSwitch({
   configuredOnly?: boolean;
   activity?: Activity;
 }) {
-  const power = useContext(ComputeContext);
+  const power = useComputePower();
   if (!power || (configuredOnly && !power.service?.configured)) return null;
   const zh = language === "zh";
   const { service } = power;

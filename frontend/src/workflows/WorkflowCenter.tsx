@@ -5,13 +5,10 @@ import type { WorkflowRun } from "./types";
 import type { Job, Language } from "../types";
 import { JsonEditor } from "../operations/ScientificInputs";
 import { RunMonitor, workflowStateLabel } from "./RunMonitor";
-import { hasExternalCalls, planFromJobs } from "./model";
+import { hasExternalCalls, planFromJobs, workflowOperations } from "./model";
 import { useWorkflowController } from "./useWorkflowController";
 import { useExample } from "../examples/context";
-import {
-  WorkflowBackendControl,
-  workflowOperations,
-} from "./WorkflowBackendControl";
+import { WorkflowBackendControl } from "./WorkflowBackendControl";
 export function WorkflowCenter({
   language,
   jobs,
