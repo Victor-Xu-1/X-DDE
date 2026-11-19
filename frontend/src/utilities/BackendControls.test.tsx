@@ -126,6 +126,65 @@ it("shows the current module first and returns to it after closing the full cata
   expect(form).toHaveFocus();
   expect(api.post).not.toHaveBeenCalled();
 });
+it("reports persistent compute only when the module has a confirmed status", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { fold: "harness", properties: "chemistry" },
+    engines: [
+      entry,
+      {
+        ...entry,
+        id: "harness",
+        name: "OpenDDE Harness",
+        operations: ["harness"],
+      },
+    ],
+  });
+  const running = {
+    compute_service: { configured: true, running: true, ready: true },
+  } as Deployment;
+  const stopped = {
+    compute_service: { configured: true, running: false, ready: false },
+  } as Deployment;
+  const view = (data: Deployment | null, error = "") => (
+    <ComputePowerProvider data={data} error={error} refresh={vi.fn()}>
+      <BackendControls
+        language="en"
+        module={{ label: ["生物药", "Biologics"], tools: ["fold"] }}
+      />
+      <BackendControls
+        language="en"
+        module={{ label: ["性质", "Properties"], tools: ["properties"] }}
+      />
+    </ComputePowerProvider>
+  );
+  const { rerender } = render(view(null));
+  const [biologics, properties] = screen.getAllByRole("button", {
+    name: "Backend controls",
+  });
+  await waitFor(() =>
+    expect(properties).toHaveAccessibleDescription("Task engines off"),
+  );
+  expect(biologics).toHaveAccessibleDescription("Reading…");
+  rerender(view(running));
+  expect(biologics).toHaveAccessibleDescription("1 on");
+  await userEvent.click(biologics);
+  expect(
+    screen.getByRole("switch", { name: "Persistent compute" }),
+  ).toBeChecked();
+  expect(
+    screen.getByRole("switch", { name: "OpenDDE Harness" }),
+  ).not.toBeChecked();
+  rerender(view(running, "Deployment read failed"));
+  expect(biologics).toHaveAccessibleDescription("State unavailable");
+  expect(properties).toHaveAccessibleDescription("Task engines off");
+  expect(
+    screen.getByRole("switch", { name: "Persistent compute" }),
+  ).toHaveAccessibleDescription("State unavailable");
+  rerender(view(stopped));
+  expect(biologics).toHaveAccessibleDescription("Task engines off");
+  expect(api.post).not.toHaveBeenCalled();
+});
+
 it("keeps failed changes off and prevents stopping active tasks", async () => {
   vi.mocked(request).mockResolvedValue({ engines: [entry] });
   vi.mocked(api.post).mockRejectedValue(new Error("conflict"));
@@ -196,7 +255,10 @@ it("shares one default-off engine across module, sibling tool and global switche
       />
       <BackendControls
         language="en"
-        module={{ label: ["分子性质", "Molecular properties"], tools: ["properties"] }}
+        module={{
+          label: ["分子性质", "Molecular properties"],
+          tools: ["properties"],
+        }}
       />
     </>,
   );
@@ -254,9 +316,13 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   const trigger = screen.getByRole("button", { name: "Module backends" });
   expect(trigger).toHaveAccessibleDescription("Task engines off");
   await user.click(trigger);
-  const region = screen.getByRole("region", { name: "Backends for these task results" });
+  const region = screen.getByRole("region", {
+    name: "Backends for these task results",
+  });
   const panel = within(region);
-  expect(panel.getByRole("button", { name: "Close backend panel" })).toHaveFocus();
+  expect(
+    panel.getByRole("button", { name: "Close backend panel" }),
+  ).toHaveFocus();
   const chemistry = panel.getByRole("switch", { name: "RDKit" });
   const missing = panel.getByRole("switch", { name: "ADMET-AI" });
   expect(chemistry).not.toBeChecked();
@@ -270,7 +336,9 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   expect(missing).not.toBeChecked();
   await user.click(taskSwitch);
   expect(region).not.toBeInTheDocument();
-  await waitFor(() => expect(trigger).toHaveAccessibleDescription("Task engines off"));
+  await waitFor(() =>
+    expect(trigger).toHaveAccessibleDescription("Task engines off"),
+  );
   expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
     "/runtime-controls/chemistry/start",
     "/runtime-controls/chemistry/stop",

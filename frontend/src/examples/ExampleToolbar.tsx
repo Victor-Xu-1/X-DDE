@@ -175,16 +175,13 @@ export function ExampleToolbar({
           <div className="example-result-context">
             <span className="example-result-kind">{kind}</span>
             {guide}
-            {active &&
-              (backendScope ? (
-                <TaskBackendControl
-                  language={language}
-                  scope={backendScope}
-                  placement="example"
-                />
-              ) : (
-                <span data-example-backend-pending aria-hidden="true" />
-              ))}
+            {active && backendScope && (
+              <TaskBackendControl
+                language={language}
+                scope={backendScope}
+                placement="example"
+              />
+            )}
           </div>
         ) : (
           guide

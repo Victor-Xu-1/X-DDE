@@ -1,6 +1,18 @@
 import type { Job } from "../types";
 import type { WorkflowPlanInput, WorkflowStep } from "./types";
 import { poseGateChecks } from "../quality/generated";
+
+export function workflowOperations(steps: unknown): string[] {
+  if (!Array.isArray(steps)) return [];
+  return steps.flatMap((step: { request?: unknown } | null) => {
+    const selection = step?.request;
+    if (!selection || typeof selection !== "object") return [];
+    const operation =
+      ("operation" in selection ? selection.operation : undefined) ?? "predict";
+    return typeof operation === "string" && operation ? [operation] : [];
+  });
+}
+
 function moleculeOutput(
   job: Job,
 ):

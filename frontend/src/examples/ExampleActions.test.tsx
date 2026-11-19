@@ -377,6 +377,67 @@ describe("module templates", () => {
       expect(transport.post).not.toHaveBeenCalled();
     },
   );
+  it("shows the workflow's engines while a reviewed step is still loading", async () => {
+    const pin = { record_id: "workflow", computed_result_available: true };
+    const metadata = {
+      ...info,
+      module: { ...info.module, capability_id: "workflows" },
+      record_pin: pin,
+    };
+    const result = {
+      module: metadata.module,
+      record: {
+        kind: "workflows",
+        value: {
+          body: {
+            steps: [
+              { request: { operation: "docking" } },
+              { request: { operation: "pose_quality" } },
+            ],
+          },
+        },
+        pin,
+      },
+    };
+    transport.request.mockImplementation(async (path: string) => {
+      if (path.startsWith("/runtime-controls"))
+        return {
+          capabilities: {},
+          engines: [
+            {
+              id: "gnina",
+              name: "GNINA",
+              operations: ["docking"],
+              ready: true,
+              enabled: false,
+              active: false,
+            },
+            {
+              id: "posebusters",
+              name: "PoseBusters",
+              operations: ["pose_quality"],
+              ready: true,
+              enabled: false,
+              active: false,
+            },
+          ],
+        };
+      return path.endsWith("/result") ? result : metadata;
+    });
+    render(
+      <ExampleActions capability="workflows" language="en" onLoad={vi.fn()} />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Example results" }),
+    );
+    expect(
+      await screen.findByRole("switch", { name: "GNINA" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "PoseBusters" }),
+    ).not.toBeChecked();
+    expect(transport.post).not.toHaveBeenCalled();
+  });
   it("lets the user explicitly return to a new blank task", async () => {
     transport.post.mockResolvedValue({ module: info.module, case: info.case });
     const clear = vi.fn();

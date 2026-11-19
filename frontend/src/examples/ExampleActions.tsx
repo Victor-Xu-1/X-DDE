@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import type { Job } from "../types";
+import { workflowOperations } from "../workflows/model";
 import {
   useExampleTemplate,
   type ExampleTemplateOptions,
@@ -48,11 +49,18 @@ export function ExampleActions(
   );
   const selectedJob =
     stage && stage.result === result ? stage.job : (result?.job ?? undefined);
-  const backendScope =
-    selectedJob === null
-      ? null
-      : selectedJob
-        ? { operations: [selectedJob.request?.operation ?? "predict"] }
+  const workflow = recordExample?.record;
+  const workflowPlan =
+    workflow?.kind === "workflows"
+      ? workflow.value.body
+      : recordExample?.workflow_plan;
+  const planOperations = workflowOperations(workflowPlan?.steps);
+  const backendScope = selectedJob
+    ? { operations: [selectedJob.request?.operation ?? "predict"] }
+    : planOperations.length
+      ? { operations: planOperations }
+      : selectedJob === null
+        ? null
         : { capability };
   const onBusyChange = options.onBusyChange;
   useLayoutEffect(() => {

@@ -26,12 +26,17 @@ export function computeActivity(
 type ComputePower = {
   service?: ComputeService;
   unavailable: boolean;
+  loading: boolean;
   action: Action | null;
   failed: boolean;
   change(): Promise<void>;
 };
 
 const ComputeContext = createContext<ComputePower | null>(null);
+
+export function useComputePower() {
+  return useContext(ComputeContext);
+}
 const working = (service: ComputeService) =>
   (service.active ?? 0) + (service.queued ?? 0) > 0;
 
@@ -93,7 +98,14 @@ export function ComputePowerProvider({
   }
   return (
     <ComputeContext.Provider
-      value={{ service, unavailable: Boolean(error), action, failed, change }}
+      value={{
+        service,
+        unavailable: Boolean(error),
+        loading: !data && !error,
+        action,
+        failed,
+        change,
+      }}
     >
       {children}
     </ComputeContext.Provider>
@@ -132,7 +144,7 @@ export function ComputeSwitch({
   configuredOnly?: boolean;
   activity?: Activity;
 }) {
-  const power = useContext(ComputeContext);
+  const power = useComputePower();
   if (!power || (configuredOnly && !power.service?.configured)) return null;
   const zh = language === "zh";
   const { service } = power;

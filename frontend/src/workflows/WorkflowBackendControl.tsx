@@ -3,17 +3,7 @@ import { request } from "../api";
 import type { Language } from "../types";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { WorkflowPlan } from "./types";
-
-export function workflowOperations(steps: unknown): string[] {
-  if (!Array.isArray(steps)) return [];
-  return steps.flatMap((step: { request?: unknown } | null) => {
-    const selection = step?.request;
-    if (!selection || typeof selection !== "object") return [];
-    const operation =
-      ("operation" in selection ? selection.operation : undefined) ?? "predict";
-    return typeof operation === "string" && operation ? [operation] : [];
-  });
-}
+import { workflowOperations } from "./model";
 
 export function WorkflowBackendControl({
   plan,

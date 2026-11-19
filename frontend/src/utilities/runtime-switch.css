@@ -29,15 +29,15 @@
 .runtime-switch-status > small::before {
   content: "";
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   margin-inline-end: 6px;
   border-radius: 2px;
   background: currentColor;
   opacity: 0.65;
   vertical-align: 1px;
 }
-.runtime-switch:has([aria-checked="true"]:enabled)
+.runtime-switch:has([aria-checked="true"])
   .runtime-switch-status
   > small::before {
   background: var(--accent);
@@ -56,11 +56,23 @@
   flex: none;
   justify-content: center;
 }
+.runtime-switch > button i {
+  width: 38px;
+  height: 22px;
+}
+.runtime-switch > button i::after {
+  width: 16px;
+  height: 16px;
+}
+.runtime-switch > button[aria-checked="true"] i::after {
+  left: 19px;
+}
 .runtime-switch > button[aria-checked="false"] i {
-  background: color-mix(in srgb, var(--muted) 38%, var(--line));
+  background: color-mix(in srgb, var(--muted) 47%, var(--line));
 }
 .runtime-switch > button:disabled {
-  opacity: 0.72;
+  cursor: not-allowed;
+  opacity: 0.76;
 }
 .runtime-switch > button:focus-visible {
   outline: 2px solid var(--accent);
@@ -178,13 +190,11 @@
 /* An example repeats its task's switch in the preview toolbar.
    A follow-up can use a different engine and must keep the source control visible. */
 .module-task-picker:has(
-    + .tool-center.is-result
-      :is([data-backend-placement="example"], [data-example-backend-pending])
+    + .tool-center.is-result [data-backend-placement="example"]
   )
   > .task-backend-control,
 .utility-workspace:has(
-    .utility-panel:not([hidden])
-      :is([data-backend-placement="example"], [data-example-backend-pending])
+    .utility-panel:not([hidden]) [data-backend-placement="example"]
   )
   > .utility-tabbar
   > .task-backend-control {

@@ -3,7 +3,11 @@ import { ControlOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
 import { enginesForScope } from "./backend-control-scope";
-import { computeActivity, ComputeSwitch } from "./ComputeSwitch";
+import {
+  computeActivity,
+  ComputeSwitch,
+  useComputePower,
+} from "./ComputeSwitch";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
 import "./runtime-switch.css";
@@ -20,8 +24,12 @@ export function BackendControls({
   const zh = language === "zh";
   const local = placement === "module";
   const triggerLabel = local
-    ? zh ? "本模块后端" : "Module backends"
-    : zh ? "后端管理" : "Backend controls";
+    ? zh
+      ? "本模块后端"
+      : "Module backends"
+    : zh
+      ? "后端管理"
+      : "Backend controls";
   const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
   const open = panel !== "closed";
   const showAll = panel === "all";
@@ -43,16 +51,31 @@ export function BackendControls({
   const moduleRows = module
     ? enginesForScope(runtime.catalogue, { capabilities: module.tools })
     : [];
-  const enabledCount = moduleRows.filter((row) => row.enabled).length;
-  const power = runtime.readError || !moduleRows.length
-    ? "unknown"
-    : enabledCount ? "on" : "off";
+  const compute = useComputePower();
+  const moduleUsesCompute = moduleRows.some((row) => row.id === "harness");
+  const activeCompute = moduleUsesCompute && Boolean(compute?.service?.running);
+  const reading = !runtime.catalogue || (moduleUsesCompute && compute?.loading);
+  const unavailable =
+    runtime.readError || (moduleUsesCompute && compute?.unavailable);
+  const activeCount =
+    moduleRows.filter((row) => row.enabled).length + Number(activeCompute);
+  const power =
+    unavailable || reading || !moduleRows.length
+      ? "unknown"
+      : activeCount
+        ? "on"
+        : "off";
   const status = {
-    on: zh ? `${enabledCount} 个任务引擎已开启` : `${enabledCount} on`,
+    on: zh ? `${activeCount} 个后端已开启` : `${activeCount} on`,
     off: zh ? "任务引擎已关闭" : "Task engines off",
-    unknown: runtime.readError || runtime.catalogue
-      ? zh ? "状态待确认" : "State unavailable"
-      : zh ? "正在读取…" : "Reading…",
+    unknown:
+      reading && !unavailable
+        ? zh
+          ? "正在读取…"
+          : "Reading…"
+        : zh
+          ? "状态待确认"
+          : "State unavailable",
   }[power];
   const index = zh ? 0 : 1;
   const heading = capabilities
@@ -61,14 +84,16 @@ export function BackendControls({
       ? "所有后端"
       : "All backends";
   const label = local
-    ? zh ? "任务结果后端" : "Backends for these task results"
-    : capabilities
     ? zh
-      ? "本模块的后端"
-      : "Backends in this module"
-    : zh
-      ? "后端启停"
-      : "Backend power";
+      ? "任务结果后端"
+      : "Backends for these task results"
+    : capabilities
+      ? zh
+        ? "本模块的后端"
+        : "Backends in this module"
+      : zh
+        ? "后端启停"
+        : "Backend power";
   useEffect(() => {
     if (!open) return;
     function dismissOutside(event: PointerEvent) {
