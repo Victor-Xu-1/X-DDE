@@ -9,6 +9,7 @@ import {
 import { TaskPresentationContext } from "../../../frontend/src/guided/TaskPresentation";
 import {
   attachRecognitionBridge,
+  inputBridgeOrigin,
   type RecognitionHost,
 } from "../../../frontend/src/utilities/recognition-host-bridge";
 const molecule = {
@@ -93,6 +94,8 @@ function NativeHost() {
   const changed = useRef(() => {}),
     bridge = useRef<ReturnType<typeof attachRecognitionBridge> | null>(null);
   useEffect(() => {
+    const origin = inputBridgeOrigin();
+    if (!origin) return;
     const host: RecognitionHost = {
       selectFile: async (next) => {
         setGraph(null);
@@ -113,7 +116,7 @@ function NativeHost() {
       },
       loadMolecule: (value) => setGraph(value),
     };
-    bridge.current = attachRecognitionBridge(host, "http://127.0.0.1:4322");
+    bridge.current = attachRecognitionBridge(host, origin);
     return () => bridge.current?.dispose();
   }, []);
   useEffect(() => {

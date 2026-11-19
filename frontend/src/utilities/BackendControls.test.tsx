@@ -195,50 +195,66 @@ it("shares one explicit DECIMER toggle across the compound form and backend menu
   expect(document.querySelector("iframe")).toBeNull();
 });
 
-it("waits for fresh power state after leaving the native editor", async () => {
-  const user = userEvent.setup();
-  const stopped = {
-    available: true,
-    idle_power: true,
-    power: { phase: "stopped", enabled: false },
-  };
-  const ready = { ...stopped, power: { phase: "ready", enabled: true } };
-  let resolveRead: (value: typeof ready) => void = () => {};
-  const pending = new Promise<typeof ready>((resolve) => {
-    resolveRead = resolve;
-  });
-  vi.mocked(request)
-    .mockResolvedValueOnce(stopped)
-    .mockReturnValueOnce(pending)
-    .mockResolvedValue(stopped);
-  vi.mocked(api.post).mockResolvedValue(stopped);
-  function Form() {
-    const power = useRecognitionStatus(true);
-    return (
-      <>
-        <button type="button" onClick={() => void power.refresh(true)}>
-          Return from editor
-        </button>
-        <RecognitionBackendEntry language="en" powerControl={power} />
-      </>
+it.each([false, true])(
+  "waits for fresh power state after leaving the editor (power request pending: %s)",
+  async (changing) => {
+    const user = userEvent.setup();
+    const stopped = {
+      available: true,
+      idle_power: true,
+      power: { phase: "stopped", enabled: false },
+    };
+    const ready = { ...stopped, power: { phase: "ready", enabled: true } };
+    let resolveRead: (value: typeof ready) => void = () => {};
+    const pending = new Promise<typeof ready>((resolve) => {
+      resolveRead = resolve;
+    });
+    vi.mocked(request)
+      .mockResolvedValueOnce(stopped)
+      .mockReturnValueOnce(pending)
+      .mockResolvedValue(stopped);
+    vi.mocked(api.post).mockResolvedValue(stopped);
+    let resolveChange: (value: typeof ready) => void = () => {};
+    if (changing)
+      vi.mocked(api.post).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveChange = resolve;
+        }),
+      );
+    function Form() {
+      const power = useRecognitionStatus(true);
+      return (
+        <>
+          <button type="button" onClick={() => void power.refresh(true)}>
+            Return from editor
+          </button>
+          <RecognitionBackendEntry language="en" powerControl={power} />
+        </>
+      );
+    }
+    render(<Form />);
+    const toggle = screen.getByRole("switch", { name: "DECIMER" });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    if (changing) await user.click(toggle);
+    await user.click(
+      screen.getByRole("button", { name: "Return from editor" }),
     );
-  }
-  render(<Form />);
-  const toggle = screen.getByRole("switch", { name: "DECIMER" });
-  await waitFor(() => expect(toggle).toBeEnabled());
-  await user.click(screen.getByRole("button", { name: "Return from editor" }));
-  expect(toggle).toBeDisabled();
-  await user.click(toggle);
-  expect(api.post).not.toHaveBeenCalled();
-  await act(async () => resolveRead(ready));
-  expect(toggle).toBeEnabled();
-  expect(toggle).toBeChecked();
-  await user.click(toggle);
-  expect(api.post).toHaveBeenCalledExactlyOnceWith(
-    "/utilities/recognition/stop",
-    {},
-  );
-});
+    expect(toggle).toBeDisabled();
+    if (changing) await act(async () => resolveChange(ready));
+    expect(toggle).toBeDisabled();
+    await user.click(toggle);
+    expect(api.post).toHaveBeenCalledTimes(Number(changing));
+    await act(async () => resolveRead(ready));
+    expect(toggle).toBeEnabled();
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    expect(api.post).toHaveBeenCalledTimes(1 + Number(changing));
+    expect(api.post).toHaveBeenLastCalledWith(
+      "/utilities/recognition/stop",
+      {},
+    );
+  },
+);
 
 it("does not start engines on mount, offers only explicit available switches", async () => {
   vi.mocked(request).mockResolvedValue({

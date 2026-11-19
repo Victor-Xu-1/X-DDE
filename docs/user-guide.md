@@ -271,9 +271,9 @@ If a switch shows **Off · Setup required**, **Set up** opens Installation and r
 
 配体首次需要计算三维构象时，预览会就地显示 RDKit 开关。开启后点击「生成三维构象」。如果准备失败，开关仍在原处，可选力场后点击「重试」。已计算的构象在关闭后端时仍可查看。
 
-Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Use **Recognition power** next to the image controls to switch the service on or off while keeping the current task open.
+If recognition is off, a pasted or dropped image waits for you to enable it. Use **DECIMER** beside the image input or the switch in the import window. Quick tools fill the input when recognition succeeds. With an older workbench, use **Manage recognition in a new tab** to keep the form and the imported structure open in X-DDE.
 
-粘贴或拖入结构图后，可在导入窗口打开或关闭识别后端。若后端已关闭，图片会等待你手动开启。服务就绪后，小工具会自动识别并填入结构。重新打开图片或结构编辑窗口，即可在当前工具关闭识别后端。
+识别服务关闭时，粘贴或拖入的图片会等待你手动开启。可用图片输入旁的「DECIMER」或导入窗口里的开关。小工具识别成功后会自动填入结构。使用旧版工作台时，点击「在新标签页管理识别服务」，X-DDE 会保留当前表单和已导入的结构。
 
 ### Images as task input / 结构图片直接输入任务
 

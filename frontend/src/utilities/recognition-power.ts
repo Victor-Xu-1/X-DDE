@@ -69,7 +69,10 @@ class RecognitionPower {
   }
 
   refresh = async (invalidate = false) => {
-    if (invalidate) this.update({ status: null });
+    if (invalidate) {
+      this.generation++;
+      this.update({ status: null });
+    }
     if (!this.listeners.size || this.state.changing) return;
     this.stopReading();
     const reader = new AbortController();

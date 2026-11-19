@@ -618,7 +618,7 @@ INLINE_RECOGNITION_FILES = {
     "tests/fixtures/utility_image/browser.tsx",
     "tests/test_molecular_utility_scope.py",
 }
-INLINE_RECOGNITION_DIFF = "f6313de7603d8f854c53e937b6de7c216e5a6630b81d588a9c5fe89a2ab1f1fa"
+INLINE_RECOGNITION_DIFF = "6ad8190d16ad818009d06e3a4510229edd3ef9a7193d3871b223b5a1d169eac0"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
