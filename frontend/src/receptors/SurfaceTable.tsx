@@ -26,29 +26,26 @@ export function SurfaceTable({
     [view, setView] = useState<"regions" | "atoms">(
       result.residues.length === 1 ? "atoms" : "regions",
     );
-  const areas: ResearchColumn<SurfaceRow>[] = [
-    {
-      key: "assembly",
-      label: zh ? "暴露（Å²）" : "Exposed (Å²)",
-      value: (r) => r.assembly_area,
+  const fields = [
+    ["assembly", zh ? "暴露" : "Exposed", "assembly_area"],
+    ["buried", zh ? "遮挡" : "Occluded", "buried_area"],
+    ["isolated", zh ? "独立" : "Isolated", "isolated_area"],
+  ] as const;
+  const areas: ResearchColumn<SurfaceRow>[] = fields.map(
+    ([key, name, field]) => ({
+      key,
+      label: (
+        <span className="surface-area-column">
+          {name}
+          <small>Å²</small>
+        </span>
+      ),
+      exportLabel: name + (zh ? "（Å²）" : " (Å²)"),
+      value: (row) => row[field],
       numeric: true,
-      render: (r) => r.assembly_area.toFixed(2),
-    },
-    {
-      key: "buried",
-      label: zh ? "遮挡（Å²）" : "Occluded (Å²)",
-      value: (r) => r.buried_area,
-      numeric: true,
-      render: (r) => r.buried_area.toFixed(2),
-    },
-    {
-      key: "isolated",
-      label: zh ? "独立（Å²）" : "Isolated (Å²)",
-      value: (r) => r.isolated_area,
-      numeric: true,
-      render: (r) => r.isolated_area.toFixed(2),
-    },
-  ];
+      render: (row) => row[field].toFixed(2),
+    }),
+  );
   return (
     <>
       <div

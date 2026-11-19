@@ -299,15 +299,25 @@
   background: #b1b7c1;
 }
 .potential-legend {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
+  max-width: calc(100% - 54px);
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
   font-size: 12px;
-  padding: 8px 0;
+  pointer-events: none;
 }
 .potential-legend i {
   width: 120px;
+  min-width: 24px;
   height: 8px;
   border-radius: 4px;
   background: linear-gradient(90deg, #e25358, #fff, #406ad1);

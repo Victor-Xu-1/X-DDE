@@ -18,7 +18,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   surface-contracts:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.spatial_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:

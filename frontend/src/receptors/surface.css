@@ -11,8 +11,7 @@
   flex: 1;
 }
 .surface-selected,
-.surface-context-chains,
-.surface-downloads {
+.surface-context-chains {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -29,68 +28,48 @@
   color: var(--ink);
   padding: 6px 10px;
 }
-.surface-result-heading {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.surface-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  margin: 20px 0 14px;
-}
-.surface-summary div {
-  border-left: 2px solid var(--line);
-  padding-left: 14px;
-}
-.surface-summary dt {
-  font-size: 13px;
-  color: var(--muted);
-}
-.surface-summary dd {
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  margin: 6px 0 0;
-}
-.surface-summary small {
-  font-size: 13px;
-  color: var(--muted);
-}
 .surface-area-bar {
   height: 7px;
   background: #e5ecf5;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 20px;
 }
 .surface-area-bar span {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, #5586df, #41b9af);
 }
-.surface-downloads {
-  margin: 16px 0;
-}
-.surface-results > details {
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-  margin-top: 20px;
-}
 @media (max-width: 600px) {
-  .surface-summary {
-    gap: 14px;
-    grid-template-columns: 1fr;
-  }
-  .surface-summary dd {
-    font-size: 23px;
-  }
   .surface-region-toolbar {
     align-items: flex-end;
   }
-  .surface-downloads {
-    gap: 12px 20px;
-  }
+}
+
+.surface-results .research-table :is(th, td) {
+  padding: 8px 6px;
+}
+.surface-results .research-table thead th {
+  white-space: normal;
+  overflow-wrap: normal;
+}
+.surface-results .research-table-toolbar {
+  padding-block: 8px;
+}
+.surface-results .result-search {
+  flex-basis: 100%;
+  max-width: none;
+}
+.surface-results .column-sort,
+.surface-results .column-header-content {
+  gap: 3px;
+}
+.surface-area-column {
+  display: inline-grid;
+  gap: 2px;
+  white-space: nowrap;
+}
+.surface-area-column small {
+  font-weight: normal;
 }
 
 .surface-detail-tabs {

@@ -1,0 +1,11 @@
+.apbs-result {
+  --spatial-detail-min: 280px;
+}
+.apbs-result-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 13px;
+}

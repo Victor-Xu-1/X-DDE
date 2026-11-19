@@ -25,6 +25,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -90,8 +94,8 @@ jobs:
           name: channel-runtime-evidence
           path: ${{ runner.temp }}/channel-runtime/acceptance.json
   native:
-    needs: scope
-    if: needs.scope.outputs.runtime_only != 'true'
+    needs: [scope, utility-scope]
+    if: needs.scope.outputs.runtime_only != 'true' && needs.utility-scope.outputs.spatial_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
