@@ -821,6 +821,7 @@ BACKEND_SETUP_FILES = {
 BACKEND_SETUP_DIFF = "c8347a8e009067581feb1cb0247d6e742e78bc327b7c7eeb82cd126ce1758738"
 COMPOSED_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/template-controls-checks.yml",
     "docs/user-guide.md",
     "frontend/src/examples/ExampleActions.test.tsx",
     "frontend/src/operations/ToolCenter.tsx",
@@ -834,7 +835,7 @@ COMPOSED_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_utility_tools.py",
 }
-COMPOSED_POWER_DIFF = "ebbafb3a14d65227e823ebbebeca383cdd7bfef868721c347dec73efe3875a8b"
+COMPOSED_POWER_DIFF = "e48229fc371a5fe9b8c39affd81e4e4be455f23e252d32b797f10af9204b3248"
 DESKTOP_HELP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",

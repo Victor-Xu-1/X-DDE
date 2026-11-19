@@ -109,6 +109,8 @@ on:
         value: ${{ jobs.scope.outputs.runtime_switch_only }}
       backend_placement_only:
         value: ${{ jobs.scope.outputs.backend_placement_only }}
+      composed_power_only:
+        value: ${{ jobs.scope.outputs.composed_power_only }}
       task_power_only:
         value: ${{ jobs.scope.outputs.task_power_only }}
       native_state_only:
