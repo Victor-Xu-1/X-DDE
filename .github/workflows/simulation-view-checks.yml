@@ -111,14 +111,17 @@ jobs:
             outputs/simulation-diagnostics/**
   framing-scope:
     uses: ./.github/workflows/figure-framing-scope.yml
+  docking-scope:
+    uses: ./.github/workflows/docking-result-scope.yml
   prediction-scope:
     uses: ./.github/workflows/prediction-workspace-checks.yml
     with:
       scope_only: true
   previews:
-    needs: [prediction-scope, framing-scope, utility-scope]
+    needs: [prediction-scope, framing-scope, utility-scope, docking-scope]
     if: >-
       needs.utility-scope.outputs.simulation_desktop_only != 'true' &&
+      needs.docking-scope.outputs.paired_comparison_only != 'true' &&
       needs.framing-scope.outputs.framing_only != 'true' &&
       needs.framing-scope.outputs.compact_only != 'true' &&
       needs.prediction-scope.outputs.confidence_frame != 'true' &&

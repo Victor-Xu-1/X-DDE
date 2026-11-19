@@ -36,6 +36,19 @@ vi.mock("../viewer/StructureViewer", () => ({
     </div>
   ),
 }));
+vi.mock("../simulations/MolecularViewport", () => ({
+  MolecularViewport: ({
+    sources,
+    fixedLigand,
+  }: {
+    sources: unknown;
+    fixedLigand?: "a" | "b";
+  }) => (
+    <div data-testid="paired-viewport" data-ligand={fixedLigand}>
+      {JSON.stringify(sources)}
+    </div>
+  ),
+}));
 vi.mock("../operations/PropertyForm", () => ({
   PropertyForm: ({ initialFile }: { initialFile: string }) => (
     <div>property:{initialFile}</div>
@@ -322,7 +335,7 @@ it("hands the actually selected saved pose and its receptor to the existing qual
 });
 
 it.each(["en", "zh"] as const)(
-  "%s overlays two exact native poses and returns to single-pose inspection without writes",
+  "%s compares the same native poses in both layouts and returns to inspection without writes",
   async (language) => {
     mocks.request.mockResolvedValue([]);
     const result: DockingResult = {
@@ -390,9 +403,11 @@ it.each(["en", "zh"] as const)(
       }),
     ).toBeNull();
     await user.click(open);
-    const comparison = screen.getByRole("region", {
-      name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
-    });
+    const comparisonRegion = () =>
+      screen.getByRole("region", {
+        name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
+      });
+    let comparison = comparisonRegion();
     expect(within(comparison).getByTestId("viewer")).toHaveTextContent(
       "/artifact/j/receptor.pdb;/artifact/j/pose-001.sdf;/artifact/j/pose-002.sdf",
     );
@@ -429,16 +444,69 @@ it.each(["en", "zh"] as const)(
     expect(open).toHaveFocus();
     expect(download()).toHaveAttribute("href", "/artifact/j/pose-002.sdf");
     await user.click(open);
+    comparison = comparisonRegion();
     expect(
       screen.queryByRole("button", {
         name: zh ? "检查姿势质量" : "Check pose quality",
       }),
     ).toBeNull();
     await user.click(
-      screen.getByRole("button", {
-        name: zh ? "姿势 2 · 紫色碳" : "Pose 2 · Purple carbon",
+      within(comparison).getByRole("button", {
+        name: zh ? "A / B 并列" : "A / B side by side",
       }),
     );
+    expect(within(comparison).queryByTestId("viewer")).toBeNull();
+    for (const [index, slot] of ["a", "b"].entries()) {
+      const label = (zh ? "姿势 " : "Pose ") + (index + 1);
+      const panel = within(comparison).getByRole("region", {
+        name: slot.toUpperCase() + " · " + label,
+      });
+      const viewport = within(panel).getByTestId("paired-viewport");
+      expect(viewport).toHaveAttribute("data-ligand", slot);
+      expect(JSON.parse(viewport.textContent!)).toEqual([
+        { url: "/artifact/j/receptor.pdb", format: "pdb", role: "protein" },
+        {
+          url: "/artifact/j/pose-001.sdf",
+          format: "sdf",
+          role: "ligand",
+          label: zh ? "姿势 1" : "Pose 1",
+        },
+        {
+          url: "/artifact/j/pose-002.sdf",
+          format: "sdf",
+          role: "ligand",
+          label: zh ? "姿势 2" : "Pose 2",
+        },
+      ]);
+      expect(
+        within(panel).getByRole("link", {
+          name: zh ? `下载${label} SDF` : `Download ${label} SDF`,
+        }),
+      ).toHaveAttribute("href", `/artifact/j/pose-00${index + 1}.sdf`);
+    }
+    await user.click(
+      within(comparison).getByRole("button", {
+        name: zh ? "叠加查看" : "Overlay",
+      }),
+    );
+    expect(within(comparison).getByTestId("viewer")).toHaveTextContent(
+      "/artifact/j/receptor.pdb;/artifact/j/pose-001.sdf;/artifact/j/pose-002.sdf",
+    );
+    await user.click(
+      within(comparison).getByRole("button", {
+        name: zh ? "A / B 并列" : "A / B side by side",
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: zh ? "检查姿势 2" : "Inspect Pose 2",
+      }),
+    );
+    expect(
+      screen.getByRole("group", {
+        name: zh ? "结合姿势预览" : "Binding pose preview",
+      }),
+    ).toHaveFocus();
     expect(
       screen.queryByRole("region", {
         name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",

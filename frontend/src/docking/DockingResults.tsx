@@ -66,20 +66,33 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   const inspectingPose = compared.length !== 2 && !diagnostic;
   const launcher = useRef<HTMLButtonElement | null>(null);
   const poseDetails = useRef<HTMLDivElement | null>(null);
-  const returningToTable = useRef(false);
+  const posePreview = useRef<HTMLDivElement | null>(null);
+  const comparisonReturn = useRef<"table" | "preview" | null>(null);
   useLayoutEffect(() => {
-    if (compared.length || !returningToTable.current) return;
-    returningToTable.current = false;
+    const destination = comparisonReturn.current;
+    if (compared.length || !destination) return;
+    comparisonReturn.current = null;
+    const preview = posePreview.current;
+    const focused = preview?.closest('[data-workspace-focus="true"]');
+    const previewControl =
+      preview?.querySelector<HTMLElement>("[data-workspace-expand]") ?? preview;
     const button = launcher.current;
-    const target =
+    const tableControl =
       button?.isConnected && !button.disabled
         ? button
         : poseDetails.current?.querySelector<HTMLInputElement>(
             'input[type="search"]',
           );
+    const target =
+      destination === "preview" || focused
+        ? previewControl
+        : (tableControl ?? previewControl);
     if (!target) return;
     target.focus({ preventScroll: true });
-    target.scrollIntoView?.({ block: "center", behavior: "instant" });
+    target.scrollIntoView?.({
+      block: target === tableControl ? "center" : "nearest",
+      behavior: "instant",
+    });
   }, [compared.length]);
   const target: PoseAssetTarget | null = selected?.artifact
     ? { name: selected.artifact, kind: "molecule", record: 0 }
@@ -225,7 +238,13 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
           )
         }
         preview={
-          <div className="result-inspector">
+          <div
+            className="result-inspector"
+            ref={posePreview}
+            tabIndex={-1}
+            role="group"
+            aria-label={zh ? "结合姿势预览" : "Binding pose preview"}
+          >
             {compared.length === 2 ? (
               <PoseComparison
                 jobId={job.id}
@@ -234,10 +253,13 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
                 language={language}
                 activation={comparison?.activation ?? 0}
                 onClose={() => {
-                  returningToTable.current = true;
+                  comparisonReturn.current = "table";
                   setComparison(null);
                 }}
-                onInspect={(pose) => selectPose(pose.record)}
+                onInspect={(pose) => {
+                  comparisonReturn.current = "preview";
+                  selectPose(pose.record);
+                }}
               />
             ) : (
               <>

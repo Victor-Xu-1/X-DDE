@@ -10,9 +10,63 @@ from playwright.sync_api import expect, sync_playwright
 
 from server_tests.browser_platform import platform
 from server_tests.fullscreen_browser_helpers import inspect_full_workspace
+from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_workspace_fullscreen_browser import (
     restored_workspace as restored_workspace,
 )
+
+PAIRED_STAGE = '.simulation-webgl[data-loaded="true"][aria-busy="false"]'
+
+
+def inspect_paired_poses(page, workspace, comparison, opener, sources, hashes, evidence):
+    pair = comparison.get_by_role("button", name="A / B side by side", exact=True)
+    overlay = comparison.get_by_role("button", name="Overlay", exact=True)
+    controls = comparison.locator("[data-workspace-expand]")
+    stages = comparison.locator(PAIRED_STAGE)
+    pair.click()
+    expect(stages).to_have_count(2, timeout=45000)
+    for index, slot in enumerate(("A", "B"), start=1):
+        pane = comparison.get_by_role("region", name=f"{slot} · Pose {index}", exact=True)
+        viewport = pane.get_by_test_id("molstar-viewport")
+        expect(viewport).to_have_attribute("data-ligand", slot.lower())
+        link = pane.get_by_role("link", name=f"Download Pose {index} SDF", exact=True)
+        expect(link).to_have_attribute("href", sources[index])
+        with page.expect_download() as pending:
+            link.click()
+        path = evidence / f"paired-pose-{index}.sdf"
+        pending.value.save_as(path)
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == hashes[index - 1]
+    expect(controls).to_have_count(1)
+    controls.click()
+    before = stages.first.bounding_box()
+    assert before
+    comparison.get_by_role("button", name="Focus structure", exact=True).click()
+    details = workspace.locator(":scope > .structure-workbench-details")
+    expect(details).to_be_hidden()
+    rects = [stage.bounding_box() for stage in stages.all()]
+    assert all(rect and rect["width"] > before["width"] * 1.25 for rect in rects)
+    assert abs(rects[0]["y"] - rects[1]["y"]) < 2
+    assert abs(rects[0]["height"] - rects[1]["height"]) < 2
+    overlay.click()
+    expect(comparison.locator(".molecular-stage")).to_be_visible()
+    expect(workspace).to_have_attribute("data-workspace-focus", "true")
+    pair.click()
+    expect(stages).to_have_count(2, timeout=45000)
+    expect(workspace).to_have_attribute("data-workspace-focus", "true")
+    comparison.get_by_role("button", name="Match views", exact=True).click()
+    export = comparison.get_by_role("button", name="Export comparison ↓", exact=True)
+    inspect_png(export_figure(page, export, evidence, "focused-docking-comparison", "en"))
+    expect(controls).to_have_count(1)
+    page.screenshot(path=evidence / "focused-a-b.png")
+    comparison.get_by_role("button", name="Return to single pose", exact=True).click()
+    expect(comparison).to_have_count(0)
+    single = workspace.locator(".viewer-panel [data-workspace-expand]")
+    expect(single).to_be_focused()
+    expect(workspace).to_have_attribute("data-workspace-focus", "true")
+    page.keyboard.press("Escape")
+    expect(details).to_be_visible()
+    opener.press("Enter")
+    expect(overlay).to_have_attribute("aria-pressed", "true")
 
 
 def inspect_desktop_rail(page, workspace):
@@ -269,6 +323,12 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         overlay_geometry = inspect_full_workspace(
             page, viewer, evidence, language, "two-pose-overlay"
         )
+        if width >= 1180:
+            inspect_paired_poses(
+                page, workspace, overlay, opener, load["urls"],
+                [pin.artifact_sha256[pose["artifact"]] for pose in original["poses"][:2]],
+                evidence,
+            )
         overlay.get_by_role(
             "button",
             name="返回单个姿势" if language == "zh" else "Return to single pose",
