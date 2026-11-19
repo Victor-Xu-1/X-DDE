@@ -386,8 +386,6 @@ jobs:
     timeout-minutes: 14
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-native-color-key
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-native-color-key/state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -407,6 +405,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          export WB_HOME="$RUNNER_TEMP/x-dde-native-color-key"
+          export WB_STATE_DIR="$WB_HOME/state"
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_native_color_key_publication_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')

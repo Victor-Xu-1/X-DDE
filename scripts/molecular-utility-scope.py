@@ -698,7 +698,7 @@ NATIVE_COLOR_FIGURE_FILES = {
     "server_tests/test_native_color_key_publication_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-NATIVE_COLOR_FIGURE_DIFF = "19362bb0480ba23d6125a53e990ae689de75780cc74ab74075f9f711fe43f533"
+NATIVE_COLOR_FIGURE_DIFF = "2bacf9407229694eeae81b3464cfa77691b3239c0efc0c7e275ccca47ed6da34"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
