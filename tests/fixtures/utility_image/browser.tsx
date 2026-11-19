@@ -75,9 +75,19 @@ function NativeHost() {
   const [file, setFile] = useState<File | null>(null),
     [graph, setGraph] = useState<typeof molecule | null>(null);
   const [count, setCount] = useState(0);
-  const [enabled, setEnabled] = useState(
-    () => sessionStorage.getItem("fixture-recognition-enabled") === "true",
-  );
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const read = new AbortController();
+    void fetch("/api/utilities/recognition?include_power=true", {
+      signal: read.signal,
+    })
+      .then((response) => response.json())
+      .then((state) => setEnabled(state.power.enabled))
+      .catch((error) => {
+        if (!read.signal.aborted) throw error;
+      });
+    return () => read.abort();
+  }, []);
   const current = useRef({ file, graph, enabled });
   current.current = { file, graph, enabled };
   const changed = useRef(() => {}),
@@ -118,9 +128,13 @@ function NativeHost() {
         role="switch"
         aria-label="Recognition backend"
         aria-checked={enabled}
-        onClick={() => {
-          sessionStorage.setItem("fixture-recognition-enabled", String(!enabled));
-          setEnabled(!enabled);
+        onClick={async () => {
+          const action = enabled ? "stop" : "start";
+          const response = await fetch(`/api/utilities/recognition/${action}`, {
+            method: "POST",
+          });
+          const state = await response.json();
+          setEnabled(state.power.enabled);
         }}
       >
         {enabled ? "On" : "Off"}

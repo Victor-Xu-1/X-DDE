@@ -229,6 +229,12 @@ def verify_utilities(page, base, companion, companion_loads):
     page.goto(base + "/#view=utilities")
     admet = page.get_by_role("button", name="ADMET 预测", exact=True)
     admet.click()
+    inline = page.locator(".utility-image-entry > .image-molecule-actions").get_by_role(
+        "switch", name="DECIMER", exact=True,
+    )
+    expect(inline).not_to_be_checked()
+    expect(inline).to_be_enabled()
+    expect(page.get_by_role("dialog")).to_have_count(0)
     trigger, module = module_power(page)
     trigger.click()
     expect(module.get_by_role("switch")).to_have_count(3)
@@ -246,10 +252,12 @@ def verify_utilities(page, base, companion, companion_loads):
     assert decimer and admet_power and abs(decimer["x"] - admet_power["x"]) < 1
     toggle.press("Space")
     expect(toggle).to_be_checked()
+    expect(inline).to_be_checked()
     expect(trigger).to_have_accessible_description("1 个后端已开启")
     expect(admet).to_have_attribute("aria-pressed", "true")
     toggle.press("Space")
     expect(toggle).not_to_be_checked()
+    expect(inline).not_to_be_checked()
     expect(trigger).to_have_accessible_description("任务引擎已关闭")
     expect(admet).to_have_attribute("aria-pressed", "true")
     assert page.locator("iframe.utility-recognition-frame:visible").count() == 0

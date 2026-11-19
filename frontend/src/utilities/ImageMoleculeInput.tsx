@@ -1,9 +1,11 @@
-import { useContext, useRef, useState, type ReactNode } from "react";
+import { useContext, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
 import type { ImageMolecule } from "./image-molecule";
 import { useImageInputSession } from "./useImageInputSession";
+import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
+import { useRecognitionStatus } from "./recognition-power";
 import "./image-molecule.css";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 
@@ -49,7 +51,7 @@ export function ImageMoleculeInput({
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDivElement>(null);
-  const [powerFrame, setPowerFrame] = useState<number | null>(null);
+  const recognition = useRecognitionStatus(enabled);
   const session = useImageInputSession({
     enabled,
     disabled,
@@ -57,13 +59,7 @@ export function ImageMoleculeInput({
     trigger,
     onImageSelected,
   });
-  const retained = session.retained;
-  const image = enabled ? (session.selection ?? retained) : null;
-  const mode = session.selection
-    ? "import"
-    : image && powerFrame === image.token.id
-      ? "power"
-      : "hidden";
+  const image = enabled ? session.selection : null;
   function owns(target: EventTarget) {
     return (
       target instanceof Element &&
@@ -134,16 +130,11 @@ export function ImageMoleculeInput({
             {zh ? "编辑识别的结构" : "Edit recognized structure"}
           </button>
         )}
-        {enabled && retained && (
-          <button
-            className="text-button"
-            type="button"
-            aria-haspopup="dialog"
-            disabled={session.disabled}
-            onClick={() => setPowerFrame(retained.token.id)}
-          >
-            {zh ? "识别服务开关" : "Recognition power"}
-          </button>
+        {enabled && (
+          <RecognitionBackendEntry
+            language={language}
+            powerControl={recognition}
+          />
         )}
       </div>
       <input
@@ -214,15 +205,16 @@ export function ImageMoleculeInput({
             file={image.file}
             language={language}
             disabled={session.disabled}
-            mode={mode}
             automatic={automatic && !image.initialMolecule}
             initialMolecule={image.initialMolecule}
-            onClose={(keepFrame) =>
-              mode === "power"
-                ? setPowerFrame(null)
-                : session.dismiss(keepFrame)
-            }
-            onAccept={(value, source) => session.accept(image, value, source)}
+            onClose={() => {
+              session.close();
+              void recognition.refresh();
+            }}
+            onAccept={async (value, source) => {
+              await session.accept(image, value, source);
+              void recognition.refresh();
+            }}
           />,
           document.body,
         )}

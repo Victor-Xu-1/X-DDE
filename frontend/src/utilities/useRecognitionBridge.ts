@@ -187,11 +187,5 @@ export function useRecognitionBridge(
     recognitionSupported: foreground.supported,
     recognitionServiceReady: foreground.serviceReady,
     recognize: foreground.start,
-    // The dialog can close before React paints the pending request or upload.
-    canRetain: () =>
-      connected &&
-      !request.current &&
-      !applying.current &&
-      !foreground.hasPending(),
   };
 }

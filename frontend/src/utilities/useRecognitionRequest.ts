@@ -137,7 +137,6 @@ export function useRecognitionRequest(options: Options) {
     serviceReady,
     start,
     receive,
-    hasPending: () => pending.current !== null,
     isAutomatic: () => current.current.automatic,
   };
 }

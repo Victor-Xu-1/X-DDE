@@ -20,10 +20,15 @@ afterEach(() => {
 it.each(["en", "zh"] as const)(
   "rechecks the environment while preserving the complete molecular draft in %s",
   async (language) => {
-    const request = vi
-      .spyOn(client, "request")
+    const readiness = vi
+      .fn()
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
       .mockResolvedValueOnce({ availability: { configuration_present: true } });
+    vi.spyOn(client, "request").mockImplementation(async (path) =>
+      path.startsWith("/utilities/recognition")
+        ? ({ available: false } as never)
+        : readiness(path),
+    );
     vi.spyOn(api, "assets").mockResolvedValue([]);
     const submit = vi.spyOn(api, "submit"),
       user = userEvent.setup(),
@@ -70,7 +75,7 @@ it.each(["en", "zh"] as const)(
     );
     expect(screen.getByLabelText("SMILES")).toHaveValue(smiles);
     expect(submit).not.toHaveBeenCalled();
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(readiness).toHaveBeenCalledTimes(2);
   },
 );
 it("keeps the exact source version and sends no hidden SMILES after selecting file-only input", async () => {

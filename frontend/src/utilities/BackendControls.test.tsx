@@ -18,6 +18,7 @@ import {
   TaskBackendControl,
 } from "./TaskBackendControl";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
+import { ImageMoleculeInput } from "./ImageMoleculeInput";
 
 vi.mock("../api", () => ({ request: vi.fn(), api: { post: vi.fn() } }));
 afterEach(() => {
@@ -136,6 +137,60 @@ it("requires fresh DECIMER state after a power response arrives while closed", a
   });
   await waitFor(() => expect(control).toBeChecked());
   expect(control).toBeEnabled();
+});
+
+it("shares one explicit DECIMER toggle across the compound form and backend menu", async () => {
+  const user = userEvent.setup();
+  let power = { phase: "stopped", enabled: false };
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? { available: true, idle_power: true, power }
+        : { engines: [] }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    const enabled = path.endsWith("/start");
+    power = { phase: enabled ? "ready" : "stopped", enabled };
+    return { available: true, idle_power: true, power } as never;
+  });
+  render(
+    <>
+      <BackendControls language="en" onOpenRecognition={vi.fn()} />
+      <ImageMoleculeInput language="en" onMolecule={vi.fn()}>
+        <label>
+          Compound
+          <input defaultValue="Keep my draft" />
+        </label>
+      </ImageMoleculeInput>
+    </>,
+  );
+  const formPower = await screen.findByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(formPower).toBeEnabled());
+  expect(formPower).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  const menuPower = within(
+    screen.getByRole("region", { name: "Backend power" }),
+  ).getByRole("switch", { name: "DECIMER" });
+  expect(menuPower).toBeEnabled();
+  expect(
+    vi
+      .mocked(request)
+      .mock.calls.filter(([path]) => path.startsWith("/utilities/recognition")),
+  ).toHaveLength(1);
+  await user.click(menuPower);
+  await waitFor(() => expect(formPower).toBeChecked());
+  await user.click(formPower);
+  await waitFor(() => expect(formPower).not.toBeChecked());
+  expect(api.post).toHaveBeenCalledTimes(2);
+  expect(api.post).toHaveBeenLastCalledWith("/utilities/recognition/stop", {});
+  expect(screen.getByRole("textbox", { name: "Compound" })).toHaveValue(
+    "Keep my draft",
+  );
+  expect(document.querySelector("iframe")).toBeNull();
 });
 
 it("does not start engines on mount, offers only explicit available switches", async () => {

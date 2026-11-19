@@ -15,14 +15,11 @@ const file = new File(["transport fixture"], "stat6.png", {
 function Harness({
   accept,
   automatic = true,
-  observe,
 }: {
   accept(value: ImageMolecule, source: File): void;
   automatic?: boolean;
-  observe(canRetain: () => boolean): void;
 }) {
   const bridge = useRecognitionBridge(file, "en", accept, { automatic });
-  observe(bridge.canRetain);
   return (
     <>
       <iframe title="Native image input" ref={bridge.frame} />
@@ -39,14 +36,8 @@ afterEach(() => {
   vi.useRealTimers();
 });
 function setup(automatic = true) {
-  let retainedCheck = () => false;
-  const observe = (canRetain: () => boolean) => {
-    retainedCheck = canRetain;
-  };
   const accept = vi.fn(),
-    view = render(
-      <Harness accept={accept} automatic={automatic} observe={observe} />,
-    );
+    view = render(<Harness accept={accept} automatic={automatic} />);
   const frame = screen.getByTitle("Native image input") as HTMLIFrameElement;
   const post = vi.spyOn(frame.contentWindow!, "postMessage");
   fireEvent.click(screen.getByText("Connect"));
@@ -74,20 +65,12 @@ function setup(automatic = true) {
     id,
     message,
     calls,
-    canRetain: () => retainedCheck(),
   };
 }
-it("rejects retaining a frame as soon as its recognition request is sent", () => {
+it("cancels the active recognition request when the editor closes", () => {
   const h = setup(false);
   h.message({ recognitionSupported: true, valid: false });
-  expect(h.canRetain()).toBe(true);
-  const retainingWhileSending: boolean[] = [];
-  h.post.mockImplementation((data) => {
-    if (data.type === "xdde-image:recognize")
-      retainingWhileSending.push(h.canRetain());
-  });
   fireEvent.click(screen.getByText("Retry"));
-  expect(retainingWhileSending).toEqual([false]);
   const requestId = h.calls("xdde-image:recognize")[0][0].requestId;
   h.view.unmount();
   expect(h.calls("xdde-image:cancel")[0][0].requestId).toBe(requestId);

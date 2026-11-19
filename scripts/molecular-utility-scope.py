@@ -596,6 +596,27 @@ RECOGNITION_PANEL_POWER_FILES = {
     "tests/test_utility_tools.py",
 } | NATIVE_RECOGNITION_POWER_FILES
 RECOGNITION_PANEL_POWER_DIFF = "4d42bb33efc7ee5e23f96a572897d59ea7c7d1e746f331e1efc947c4047c450a"
+INLINE_RECOGNITION_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/operations/PropertyForm.test.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/ImageMoleculeDialog.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/RecognitionBackendEntry.tsx",
+    "frontend/src/utilities/image-molecule.css",
+    "frontend/src/utilities/recognition-power.ts",
+    "frontend/src/utilities/useImageInputSession.ts",
+    "frontend/src/utilities/useRecognitionBridge.ts",
+    "frontend/src/utilities/useRecognitionRequest.test.tsx",
+    "frontend/src/utilities/useRecognitionRequest.ts",
+    "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_utility_image_browser.py",
+    "tests/fixtures/utility_image/browser.tsx",
+    "tests/test_molecular_utility_scope.py",
+}
+INLINE_RECOGNITION_DIFF = "93fee302b48bd1909a69ee3e2a9f103ea94703f46165981f7efcf3bbb09d61e9"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1442,11 +1463,17 @@ def main():
         RESULT_HANDOFF_DESKTOP_FILES, RESULT_HANDOFF_DESKTOP_DIFF,
         scope_pin="RESULT_HANDOFF_DESKTOP_DIFF",
     )
+    inline_recognition = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        INLINE_RECOGNITION_FILES, INLINE_RECOGNITION_DIFF,
+        scope_pin="INLINE_RECOGNITION_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         aligned_comparison = aligned_comparison_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         )
         output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
+        output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
@@ -1465,6 +1492,7 @@ def main():
             not history_desktop
             and not result_handoff_desktop
             and not recognition_entry
+            and not inline_recognition
             and (not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed)))
         )
         output.write("module_power_changed=" + str(power_changed).lower() + "\n")
@@ -1514,6 +1542,7 @@ def main():
             or utility_result_desktop or runtime_entry or result_handoff_desktop
             or desktop_structure_focus
             or aligned_comparison
+            or inline_recognition
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
