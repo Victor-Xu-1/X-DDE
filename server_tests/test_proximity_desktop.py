@@ -20,8 +20,9 @@ ARCHIVE_SHA = "5652cba9a0628b31d0a8bb9791dc87984754d7df976dbce7c3834bd080389bb8"
 
 
 def check_downloads(page, region, row, result, zh):
+    complex_label = "PDB · 下载完整复合物" if zh else "PDB · Download complete complex"
     links = (
-        ("PDB · 下载完整复合物" if zh else "PDB · Download complete complex", row["complex_artifact"]),
+        (complex_label, row["complex_artifact"]),
         ("下载分子 SDF" if zh else "Download molecule SDF", row["ligand_artifact"]),
     )
     for name, artifact in links:
