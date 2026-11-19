@@ -277,6 +277,10 @@ If recognition is off, a pasted or dropped image waits for you to enable it. Use
 
 ### Images as task input / 结构图片直接输入任务
 
+In **Image recognition & editor**, use **Use structure in…** to send the drawing currently in Ketcher to ADMET, brain penetration, molecular properties, or protonation and tautomer preparation. **Use as input** applies the drawing to the selected form. **Dismiss** keeps its existing input.
+
+在「图片识别与编辑」里，可用「将结构用于…」把 Ketcher 当前绘图带到 ADMET、透脑评估、分子性质或质子化与互变异构工具。点击「用作输入」才会应用绘图，点击「忽略」会保留原表单输入。
+
 Ligand file inputs and the shared small-molecule text fields offer **Input from structure image** and **Paste screenshot**. Paste with Ctrl+V in the input area, drop an image, or choose a PNG/JPEG/WebP/BMP file up to 10 MB. The installed local recognition workbench opens inside the task. Enable its model explicitly, recognize the image, review/edit the structure, and choose **Use this molecule**. This does not submit a research task automatically. Continue the task's existing review and submission steps.
 
 ADMET、分子性质及其他接受 SDF/MOL 的小分子任务共用这个入口；结构预测的 SMILES 输入也支持图片。识别后的结构经过确认才会替换当前输入；取消不改动原输入。SDF 通过现有资产上传和分子记录校验保存，附带原图 SHA-256。识别服务和具体研究模型分别启停，缺少 ADMET 等环境时仍不能执行其计算。

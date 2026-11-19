@@ -161,6 +161,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     assert destination.read_text() == (
         "aligned_comparison_only=false\n"
         "inline_recognition_only=false\n"
+        "editor_drawing_only=false\n"
         "result_handoff_desktop_only=false\n"
         "desktop_structure_focus_only=false\n"
         "runtime_entry_only=false\n"

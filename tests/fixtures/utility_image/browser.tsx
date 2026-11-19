@@ -9,9 +9,11 @@ import {
 import { TaskPresentationContext } from "../../../frontend/src/guided/TaskPresentation";
 import {
   attachRecognitionBridge,
+  drawingBridgeOrigin,
   inputBridgeOrigin,
   type RecognitionHost,
 } from "../../../frontend/src/utilities/recognition-host-bridge";
+import { UtilityWorkspace } from "../../../frontend/src/utilities/UtilityWorkspace";
 const molecule = {
   smiles: "Nc1ccccc1",
   molfile: "Controlled protocol fixture\nM  END\n",
@@ -94,7 +96,8 @@ function NativeHost() {
   const changed = useRef(() => {}),
     bridge = useRef<ReturnType<typeof attachRecognitionBridge> | null>(null);
   useEffect(() => {
-    const origin = inputBridgeOrigin();
+    const drawing = drawingBridgeOrigin();
+    const origin = drawing ?? inputBridgeOrigin();
     if (!origin) return;
     const host: RecognitionHost = {
       selectFile: async (next) => {
@@ -116,7 +119,11 @@ function NativeHost() {
       },
       loadMolecule: (value) => setGraph(value),
     };
-    bridge.current = attachRecognitionBridge(host, origin);
+    bridge.current = attachRecognitionBridge(
+      host,
+      origin,
+      drawing ? "drawing" : "input",
+    );
     return () => bridge.current?.dispose();
   }, []);
   useEffect(() => {
@@ -171,5 +178,16 @@ function NativeHost() {
   );
 }
 createRoot(document.getElementById("root")!).render(
-  location.port === "8940" ? <NativeHost /> : <Parent />,
+  location.port === "8940" ? (
+    <NativeHost />
+  ) : new URLSearchParams(location.search).get("audit") === "drawing" ? (
+    <UtilityWorkspace
+      language="en"
+      onCreated={() => {
+        throw Error("Unexpected task");
+      }}
+    />
+  ) : (
+    <Parent />
+  ),
 );
