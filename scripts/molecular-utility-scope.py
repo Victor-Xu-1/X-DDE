@@ -734,7 +734,7 @@ MODULE_POWER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MODULE_POWER_DIFF = "35f75e9c967ffd98a50b71cb8a1370678d76e7a923acc1e7a5ef35df871d7e6a"
+MODULE_POWER_DIFF = "05ecb419609898d21319abb2c61c513c4e491a6a8968957b0ef24f04e682881f"
 
 
 def reviewed_selected(changed, event, base, files, digest):
