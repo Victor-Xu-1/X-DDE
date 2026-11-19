@@ -145,7 +145,8 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
         expect(cuts.locator("tbody tr").first).to_be_in_viewport(ratio=0.75)
         marker_label = "连接位点标记" if zh else "Attachment markers"
         selected_marker = preview.get_by_label(marker_label, exact=True)
-        cuts.get_by_role("button", name="查看连接" if zh else "Inspect bond", exact=False).first.click()
+        bond = cuts.get_by_role("button", name="查看连接" if zh else "Inspect bond", exact=False)
+        bond.first.click()
         expect(selected_marker).to_have_text("1 处连接标记" if zh else "1 attachment markers")
         page.evaluate("window.scrollTo(0, 0)")
         page.screenshot(path=evidence / "selected-attachment.png")
