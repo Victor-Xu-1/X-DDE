@@ -35,7 +35,8 @@ def read_camera(frame):
         else reject(Error("The loaded structure did not return a camera"));
       }
       window.addEventListener("message", receive);
-      target.postMessage({channel: "opendde-viewer", type: "camera-read", value: id}, location.origin);
+      const request = {channel: "opendde-viewer", type: "camera-read", value: id};
+      target.postMessage(request, location.origin);
     })""")
 
 

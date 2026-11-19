@@ -1124,7 +1124,7 @@ ALIGNED_COMPARISON_FILES = {
     "server_tests/test_archived_comparison_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-ALIGNED_COMPARISON_DIFF = "26f46fba64e07bb2a484155ae9e842aa2ea8d861e6d3f0db3a219da9bc2b7bd5"
+ALIGNED_COMPARISON_DIFF = "a0c8f0affba59d70b2dd680b236f83a880d2c46a48dd414e11f68a3f514f5fbe"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
