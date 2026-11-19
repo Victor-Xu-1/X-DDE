@@ -159,6 +159,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
     monkeypatch.setattr(scope["subprocess"], "check_output", output)
     scope["main"]()
     assert destination.read_text() == (
+        "utility_result_desktop_only=false\n"
         "proximity_desktop_only=false\nsimulation_desktop_only=false\n"
         "candidate_desktop_only=false\n"
         "history_desktop_only=false\n"

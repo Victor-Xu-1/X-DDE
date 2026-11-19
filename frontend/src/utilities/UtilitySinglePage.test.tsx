@@ -134,12 +134,52 @@ it.each([
     expect(send).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: run }));
     expect(await screen.findByText("Native computed output")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Results" })).toHaveFocus();
     expect(onCreated).toHaveBeenCalledOnce();
     expect(send).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ operation }),
       expect.any(String),
     );
+    expect(screen.queryByRole("button", { name: input })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Edit inputs" }));
+    expect(screen.getByRole("region", { name: "Task inputs" })).toHaveFocus();
     expect(screen.getByRole("button", { name: input })).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "View current results" }),
+    );
+    expect(screen.getByRole("heading", { name: "Results" })).toHaveFocus();
+    expect(send).toHaveBeenCalledOnce();
     expect(document.querySelector("form form")).toBeNull();
   },
 );
+
+it("withdraws the result action when the edited inputs no longer match its task", async () => {
+  vi.spyOn(client, "request").mockResolvedValue(asset);
+  vi.spyOn(client.api, "submit").mockResolvedValue({
+    id: "accepted-properties",
+    status: "succeeded",
+    request: { operation: "properties" },
+  } as never);
+  const user = userEvent.setup();
+  render(<UtilityTask tool="properties" language="en" onCreated={vi.fn()} />);
+  await user.click(
+    screen.getByRole("button", { name: "Choose molecular file" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Calculate properties" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Edit inputs" }));
+  expect(
+    screen.getByRole("button", { name: "View current results" }),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole("radio", {
+      name: "Paste molecular structure text (SMILES)",
+    }),
+  );
+  await user.type(screen.getByRole("textbox", { name: "SMILES" }), "c1ccccc1");
+  expect(
+    screen.queryByRole("button", { name: "View current results" }),
+  ).toBeNull();
+  expect(screen.queryByText("Native computed output")).not.toBeInTheDocument();
+});

@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useId,
   useRef,
   useState,
@@ -42,6 +43,7 @@ export function GuidedSteps<T extends { id: string }>({
   resultTitle,
   initialResult = null,
   inputKey,
+  onMatchingResult,
 }: {
   language: Language;
   steps: readonly QuestionStep[];
@@ -61,6 +63,7 @@ export function GuidedSteps<T extends { id: string }>({
   initialResult?: T | null;
   /** Exact native request identity for an inline utility's displayed result. */
   inputKey?: string;
+  onMatchingResult?(result: T | null): void;
 }) {
   const preview = useContext(TemplatePreviewContext);
   const singlePage = useContext(TaskPresentationContext)?.layout === "single";
@@ -81,6 +84,11 @@ export function GuidedSteps<T extends { id: string }>({
   const activePanel = useRef<HTMLFieldSetElement | null>(null);
   const stepTrack = useRef<HTMLElement>(null);
   const acceptedInput = useRef(inputKey);
+  const matchingResult =
+    singlePage && acceptedInput.current === inputKey ? job : null;
+  useLayoutEffect(() => {
+    onMatchingResult?.(matchingResult);
+  }, [matchingResult, onMatchingResult]);
   useReveal(activePanel, current);
   useEffect(() => {
     mounted.current = true;
@@ -307,24 +315,25 @@ export function GuidedSteps<T extends { id: string }>({
             },
           })}
       </form>
-      {singlePage &&
-        job &&
-        acceptedInput.current === inputKey &&
-        renderResult(job)}
+      {!onMatchingResult && matchingResult && renderResult(matchingResult)}
     </>
   );
 }
 
 export function Questionnaire(
-  props: Omit<Parameters<typeof GuidedSteps<Job>>[0], "renderResult">,
+  props: Omit<
+    Parameters<typeof GuidedSteps<Job>>[0],
+    "renderResult" | "onMatchingResult"
+  >,
 ) {
   const zh = props.language === "zh";
   const presentation = useContext(TaskPresentationContext);
   return (
     <GuidedSteps<Job>
       {...props}
+      onMatchingResult={presentation?.onMatchingResult}
       renderResult={(job) =>
-        presentation ? (
+        presentation?.renderResult ? (
           presentation.renderResult(job)
         ) : (
           <section aria-label={zh ? "已提交的任务" : "Submitted task"}>

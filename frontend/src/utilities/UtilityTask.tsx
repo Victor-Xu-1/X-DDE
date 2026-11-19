@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Job, Language } from "../types";
 import { ExampleActions } from "../examples/ExampleActions";
 import { ExampleContext } from "../examples/context";
@@ -43,6 +43,7 @@ export function UtilityTask(props: UtilityTaskProps) {
     <InputActionScope key={props.tool + ":" + generation}>
       <UtilityTaskSession
         {...props}
+        focusInputOnStart={generation > 0}
         onReset={() => setGeneration((current) => current + 1)}
       />
     </InputActionScope>
@@ -54,14 +55,41 @@ function UtilityTaskSession({
   language,
   onCreated,
   onReset,
+  focusInputOnStart,
   jobs = [],
   active = true,
-}: UtilityTaskProps & { onReset(): void }) {
+}: UtilityTaskProps & { onReset(): void; focusInputOnStart: boolean }) {
   const { capability, Form } = utilities[tool];
   const [example, setExample] = useState<PreparedExample | null>(null);
   const [revision, setRevision] = useState(0);
   const [previewing, setPreviewing] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [matched, setMatched] = useState<Job | null>(null);
+  const [view, setView] = useState<"inputs" | "results">("inputs");
+  const zh = language === "zh";
+  const visibleResult = view === "results" && !previewing ? matched : null;
+  const resultHeading = useRef<HTMLHeadingElement>(null);
+  const inputWorkspace = useRef<HTMLDivElement>(null);
+  const focusNext = useRef<"inputs" | "results" | null>(
+    focusInputOnStart ? "inputs" : null,
+  );
+  function open(target: "inputs" | "results") {
+    focusNext.current = active ? target : null;
+    setView(target);
+  }
+  useLayoutEffect(() => {
+    if (!active || previewing) {
+      focusNext.current = null;
+      return;
+    }
+    const section = visibleResult ? "results" : "inputs";
+    if (focusNext.current !== section) return;
+    const target = visibleResult
+      ? resultHeading.current
+      : inputWorkspace.current;
+    target?.focus();
+    focusNext.current = null;
+  }, [active, previewing, visibleResult]);
   const actions = useInputActionScope()!;
   const finishExample = useRef<(() => void) | null>(null);
   const exampleBusy = useCallback(
@@ -78,11 +106,14 @@ function UtilityTaskSession({
     setExample(value);
     setRevision((current) => current + 1);
     setCompleted(false);
+    setMatched(null);
+    setView("inputs");
   }
   return (
     <section className="molecular-utility">
       <fieldset
         className="utility-template-controls"
+        hidden={Boolean(visibleResult)}
         disabled={actions.action === "submission"}
       >
         <legend className="sr-only">
@@ -94,23 +125,42 @@ function UtilityTaskSession({
           onLoad={replace}
           onClear={() => replace(null)}
           onPreviewChange={setPreviewing}
-          active={active}
+          active={active && !visibleResult}
           onBusyChange={exampleBusy}
         />
       </fieldset>
-      <div className="utility-task-form" hidden={previewing}>
-        {completed && !example && (
+      <div
+        ref={inputWorkspace}
+        className="utility-task-form"
+        hidden={previewing || Boolean(visibleResult)}
+        tabIndex={-1}
+        role="region"
+        aria-label={zh ? "任务输入" : "Task inputs"}
+      >
+        {completed && (
           <div className="utility-toolbar">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={actions.action === "submission"}
-              onClick={() => {
-                if (!actions.isLocked("submission")) onReset();
-              }}
-            >
-              {language === "zh" ? "新建任务" : "New task"}
-            </button>
+            {matched && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={actions.action === "submission"}
+                onClick={() => open("results")}
+              >
+                {zh ? "查看本次结果" : "View current results"}
+              </button>
+            )}
+            {!example && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={actions.action === "submission"}
+                onClick={() => {
+                  if (!actions.isLocked("submission")) onReset();
+                }}
+              >
+                {zh ? "新建任务" : "New task"}
+              </button>
+            )}
           </div>
         )}
         <fieldset
@@ -129,17 +179,9 @@ function UtilityTaskSession({
             <TaskPresentationContext.Provider
               value={{
                 layout: "single",
-                active: active && !previewing,
+                active: active && !previewing && !visibleResult,
                 imageEntry: "workspace",
-                renderResult: (job) => (
-                  <UtilityTaskResult
-                    accepted={job}
-                    jobs={jobs}
-                    active={active}
-                    language={language}
-                    onCreated={onCreated}
-                  />
-                ),
+                onMatchingResult: setMatched,
               }}
             >
               <Form
@@ -147,6 +189,7 @@ function UtilityTaskSession({
                 {...(tool === "brain" ? { focus: "brain" as const } : {})}
                 onCreated={(job) => {
                   setCompleted(true);
+                  open("results");
                   onCreated(job);
                 }}
               />
@@ -154,6 +197,19 @@ function UtilityTaskSession({
           </ExampleContext.Provider>
         </fieldset>
       </div>
+      {matched && (
+        <UtilityTaskResult
+          accepted={matched}
+          jobs={jobs}
+          active={active && !previewing}
+          hidden={!visibleResult}
+          language={language}
+          onCreated={onCreated}
+          headingRef={resultHeading}
+          onEdit={() => open("inputs")}
+          onNewTask={onReset}
+        />
+      )}
     </section>
   );
 }

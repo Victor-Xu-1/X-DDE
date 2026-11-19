@@ -208,9 +208,7 @@
   font-size: 12px;
 }
 .utility-task-result {
-  border-top: 1px solid var(--line);
-  margin-top: 24px;
-  padding-top: 20px;
+  flex: 1;
   min-width: 0;
 }
 .utility-task-result > header {
@@ -218,13 +216,49 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 6px 0 8px;
+  border-bottom: 1px solid var(--line);
 }
 .utility-task-result > header h2 {
   margin: 0;
   font-size: 18px;
 }
-.utility-task-result > header a {
-  margin-left: auto;
+.utility-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+.utility-result-actions .secondary-button {
+  min-height: 32px;
+  padding: 4px 10px;
+}
+.utility-task-result .structure-workbench {
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .utility-task-form > .utility-toolbar {
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 4px 0 8px;
+  }
+  .utility-task-result .structure-workbench-view :is(.molecular-preview, .molecule-image),
+  .studio-app .utility-task-result .viewer-panel .molecular-stage {
+    border-radius: var(--utility-surface-radius);
+  }
+  .utility-task-result .properties-results .molecule-record {
+    min-width: 128px;
+    gap: 4px;
+  }
+  .utility-task-result .properties-results .molecule-image.is-thumbnail {
+    width: 120px;
+    height: 66px;
+    border-radius: 6px;
+  }
+  .utility-task-result .properties-results .molecule-image.is-thumbnail > img {
+    height: 58px;
+  }
 }
 @media (max-width: 520px) {
   /* Case identity remains in the guide and in the open example's heading. */

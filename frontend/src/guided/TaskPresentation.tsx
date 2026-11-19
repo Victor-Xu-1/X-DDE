@@ -6,5 +6,6 @@ export const TaskPresentationContext = createContext<{
   layout: "single";
   active?: boolean;
   imageEntry?: "workspace";
-  renderResult(job: Job): ReactNode;
+  renderResult?(job: Job): ReactNode;
+  onMatchingResult?(job: Job | null): void;
 } | null>(null);
