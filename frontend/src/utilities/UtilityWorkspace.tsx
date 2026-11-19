@@ -19,14 +19,9 @@ const utilityTabs = [
     "screen",
     "相似性与结构筛查",
     "Similarity & structural alerts",
-    "Similarity & alerts",
+    "Similarity",
   ],
-  [
-    "states",
-    "质子化与互变异构",
-    "Protonation & tautomers",
-    "States & tautomers",
-  ],
+  ["states", "质子化与互变异构", "Protonation & tautomers", "Protonation"],
 ] as const;
 type Utility = (typeof utilityTabs)[number][0];
 
