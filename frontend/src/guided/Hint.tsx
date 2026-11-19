@@ -12,12 +12,26 @@ export function Hint({
   const [position, setPosition] = useState<{
     left: number;
     top: number;
+    host: HTMLElement;
   } | null>(null);
   function open(target: HTMLElement) {
     const r = target.getBoundingClientRect();
+    const workspace = target.closest<HTMLElement>(
+      '[data-workspace-expanded="true"]',
+    );
+    const bounds = workspace?.getBoundingClientRect() ?? {
+      left: 0,
+      top: 0,
+      right: window.innerWidth,
+      bottom: window.innerHeight,
+    };
     setPosition({
-      left: Math.max(8, Math.min(r.left, window.innerWidth - 288)),
-      top: Math.max(8, Math.min(r.bottom + 8, window.innerHeight - 145)),
+      left: Math.max(bounds.left + 8, Math.min(r.left, bounds.right - 288)),
+      top: Math.max(
+        bounds.top + 8,
+        Math.min(r.bottom + 8, bounds.bottom - 145),
+      ),
+      host: workspace ?? document.body,
     });
   }
   return (
@@ -48,11 +62,11 @@ export function Hint({
             role="tooltip"
             id={id}
             className="help-tooltip"
-            style={position}
+            style={{ left: position.left, top: position.top }}
           >
             {children}
           </span>,
-          document.body,
+          position.host,
         )}
     </span>
   );

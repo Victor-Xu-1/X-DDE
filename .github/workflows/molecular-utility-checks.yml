@@ -533,6 +533,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/ProteinInterfaceResults.test.tsx
+          src/guided/Hint.test.tsx
           src/structure-comparison/ComparisonScene.test.ts
           src/presentation/ResearchTable.test.tsx src/presentation/ResearchTabs.test.tsx
       - name: Verify both retained protein workspaces in Chrome

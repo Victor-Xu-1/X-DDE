@@ -79,6 +79,28 @@ def check_interface(workspace, zh):
     assert table.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
 
 
+def verify_expanded_help(page, workspace, frame, capability, zh):
+    language = {
+        "rmsd": ("结构比较的解释", "Interpreting structural comparisons"),
+        "structure": ("作用与距离说明", "Interpreting contacts and distances"),
+    }
+    workspace.get_by_role(
+        "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True,
+    ).click()
+    dialog = workspace.get_by_role("dialog")
+    expect(dialog).to_have_attribute("data-workspace-expanded", "true")
+    help_button = dialog.get_by_role("button", name=language[capability][0 if zh else 1])
+    before = frame.element_handle()
+    help_button.press("Enter")
+    identity = help_button.get_attribute("aria-describedby")
+    tip = dialog.locator(f'[id="{identity}"]')
+    expect(tip).to_be_in_viewport(ratio=1)
+    expect(tip).to_contain_text("亲和力" if zh else "affinity")
+    page.keyboard.press("Escape")
+    expect(dialog).to_have_count(0)
+    assert frame.evaluate("(node, previous) => node === previous", before)
+
+
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1280, 720),
     ("zh", "dark", 1600, 900),
@@ -133,6 +155,7 @@ def test_retained_protein_desktop_workspaces(language, theme, width, height):
             else:
                 check_interface(workspace, zh)
             assert frame.evaluate("(node, previous) => node === previous", original)
+            verify_expanded_help(page, workspace, frame, capability, zh)
             if not zh:
                 path = export_figure(
                     page, workspace.locator(".viewer-panel .figure-export-trigger"),

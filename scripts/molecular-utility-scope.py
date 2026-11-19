@@ -902,6 +902,7 @@ SEQUENCE_DESKTOP_DIFF = "837cec103f0a77a977f32810bd325992192533c6fc16b18a271a083
 PROTEIN_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
+    "frontend/src/guided/Hint.tsx",
     "frontend/src/integrations/ProteinInterfaceContacts.tsx",
     "frontend/src/integrations/ProteinInterfaceResults.test.tsx",
     "frontend/src/integrations/ProteinInterfaceResults.tsx",
@@ -914,7 +915,7 @@ PROTEIN_DESKTOP_FILES = {
     "server_tests/test_protein_review_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-PROTEIN_DESKTOP_DIFF = "8a9b6678672744bd8f020866449e953ea68cf5c6408bc4758f86c3eda30901e5"
+PROTEIN_DESKTOP_DIFF = "384e184627cc2c834334f8333b981262eb09c46d4e6ca83d73b20255a0fd5120"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
