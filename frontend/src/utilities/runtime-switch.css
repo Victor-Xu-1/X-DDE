@@ -149,30 +149,40 @@
 .task-backend-control .runtime-switch {
   max-width: 100%;
 }
-.task-history-heading-actions > .task-backend-control {
-  margin-inline: 0 10px;
-  padding-inline-end: 8px;
-  border-inline-end: 1px solid var(--line);
-}
-.task-history-heading-actions:has(> .backend-controls) {
-  position: relative;
-}
-.task-history-heading-actions > .backend-controls {
-  position: static;
-}
-.task-history-heading-actions .backend-controls-trigger {
-  display: inline-flex;
+.studio-topbar .backend-controls.has-inline-switch {
+  display: flex;
   align-items: center;
   gap: 6px;
 }
-.task-history-heading-actions .backend-module-status {
-  margin-inline-start: 0;
+.studio-topbar .backend-controls.has-inline-switch > .task-backend-control {
+  margin: 0;
+  padding-inline-end: 8px;
+  border-inline-end: 1px solid var(--line);
 }
-@media (min-width: 761px) {
-  .task-history-heading-actions .backend-controls-panel {
-    top: calc(100% + 6px);
-    width: min(350px, calc(100vw - 40px));
-  }
+.studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--muted);
+}
+.studio-topbar .has-inline-switch .backend-controls-icon {
+  display: inline-flex;
+}
+.studio-topbar .has-inline-switch .backend-controls-label {
+  display: none;
+}
+.studio-topbar .task-backend-control .backend-state-message {
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-start: calc(100% + 2px);
+  z-index: 1;
+  max-width: min(300px, calc(100vw - 24px));
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
 }
 .backend-state-message {
   margin: 0;

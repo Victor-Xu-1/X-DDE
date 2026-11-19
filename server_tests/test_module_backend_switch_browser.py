@@ -28,14 +28,6 @@ def module_power(page):
     return trigger, panel
 
 
-def result_power(page):
-    toolbar = page.locator(".task-history-heading")
-    return (
-        toolbar.get_by_role("button", name="本模块后端", exact=True),
-        toolbar.get_by_role("region", name="任务结果后端", exact=True),
-    )
-
-
 def verify_catalogue(page, base, snapshot):
     catalogue = page.request.get(base + "/api/capabilities").json()["capabilities"]
     expected = {
@@ -141,7 +133,7 @@ def verify_shared_power(page, base):
     expect(module).to_have_count(0)
     nav = page.get_by_role("navigation", name="模块工作区")
     nav.get_by_role("button", name="任务结果", exact=True).click()
-    result_trigger, result_panel = result_power(page)
+    result_trigger, result_panel = module_power(page)
     result_trigger.press("Space")
     close = result_panel.get_by_role("button", name="关闭后端面板")
     expect(close).to_be_focused()
@@ -182,7 +174,7 @@ def verify_modules(page, base):
     groups = {
         "targets": {"discovery", "harness"},
         "structures": {"opendde", "mol1", "boltz", "biopython", "diffsbdd"},
-        "binding": {"apbs", "biopython", "caver", "diffsbdd", "gnina", "p2rank",
+        "binding": {"apbs", "biopython", "caver", "chemistry", "diffsbdd", "gnina", "p2rank",
                     "plip", "posebusters"},
         "screening": {"chemistry", "drugclip", "gnina"},
         "del": {"deli"},
@@ -317,14 +309,16 @@ def verify_utilities(page, base, companion, companion_loads):
     assert len(companion_loads) == previous_loads + 1
 
 
-def verify_result_toolbar_power(page, base, groups):
-    toolbar = page.locator(".task-history-heading")
+def verify_desktop_module_power(page, base, groups):
+    toolbar = page.locator(".studio-topbar")
     inline = toolbar.get_by_role("group", name="本模块后端开关", exact=True)
-    local_trigger, local_panel = result_power(page)
+    local_trigger, local_panel = module_power(page)
     for index, (module, engines) in enumerate(groups.items()):
         width = 1280 if index % 2 == 0 else 1600
         page.set_viewport_size({"width": width, "height": 800})
         page.goto(f"{base}/#view=results&module={module}")
+        duplicate = page.locator(".task-history-heading [data-backend-placement=module]")
+        expect(duplicate).to_have_count(0)
         if len(engines) == 1:
             switch = inline.get_by_role("switch")
             expect(switch).to_be_visible()
@@ -353,41 +347,55 @@ def verify_result_toolbar_power(page, base, groups):
         assert bounds["x"] + bounds["width"] <= width and bounds["y"] < 280
         nav = page.get_by_role("navigation", name="模块工作区")
         nav.get_by_role("button", name="新建任务", exact=True).click()
-        expect(inline).to_have_count(0)
-        expect(local_trigger).to_have_count(0)
+        if len(engines) == 1:
+            expect(inline.get_by_role("switch")).to_be_visible()
+            expect(inline.get_by_role("switch")).not_to_be_checked()
+        else:
+            expect(local_trigger).to_be_visible()
+            expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
 
 
 def verify_inline_switch_lifecycle(page, base):
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(f"{base}/#view=results&module=del")
-    inline = page.locator('[data-backend-placement="module"]').get_by_role("switch")
+    toolbar = page.locator(".studio-topbar")
+    inline = toolbar.get_by_role("group", name="本模块后端开关").get_by_role("switch")
     trigger, panel = module_power(page)
     menu_switch = panel.locator('[data-engine="deli"]').get_by_role("switch")
     nav = page.get_by_role("navigation", name="模块工作区")
     root = f"{base}/api/runtime-controls/deli"
     expect(inline).to_be_enabled()
     expect(inline).not_to_be_checked()
+    trigger.click()
+    panel.get_by_role("button", name="查看全部后端", exact=True).click()
+    all_engines = page.get_by_role("region", name="后端启停", exact=True)
+    expect(all_engines.locator('[data-engine="deli"]').get_by_role("switch")).not_to_be_checked()
+    expect(all_engines.locator('[data-engine="decimer"]').get_by_role("switch")).to_be_visible()
+    trigger.press("Escape")
+    expect(trigger).to_be_focused()
     with page.expect_response(f"{root}/start") as started:
         inline.press("Space")
     assert started.value.ok and started.value.json() == {"enabled": True}
     expect(inline).to_be_checked()
+    page.set_viewport_size({"width": 390, "height": 775})
     trigger.click()
     expect(menu_switch).to_be_checked()
+    page.set_viewport_size({"width": 1280, "height": 800})
     trigger.press("Escape")
+    expect(trigger).to_be_focused()
+    expect(inline).to_be_visible()
     nav.get_by_role("button", name="新建任务", exact=True).click()
     child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
     expect(child.get_by_role("switch")).to_be_checked()
-    nav.get_by_role("button", name="任务结果", exact=True).click()
+    page.set_viewport_size({"width": 1280, "height": 800})
     expect(inline).to_be_checked()
     with page.expect_response(f"{root}/stop") as stopped:
-        inline.click()
+        child.get_by_role("switch").click()
     assert stopped.value.ok and stopped.value.json() == {"enabled": False}
     expect(inline).not_to_be_checked()
-    trigger.click()
-    expect(menu_switch).not_to_be_checked()
-    trigger.press("Escape")
-    nav.get_by_role("button", name="新建任务", exact=True).click()
     expect(child.get_by_role("switch")).not_to_be_checked()
+    nav.get_by_role("button", name="任务结果", exact=True).click()
+    expect(inline).not_to_be_checked()
 
 
 def verify_result_detail(page, base, job_id):
@@ -472,7 +480,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
-        verify_result_toolbar_power(page, base, modules)
+        verify_desktop_module_power(page, base, modules)
         verify_result_detail(page, base, fixture.id)
         verify_setup_entry(page, base)
         assert posts == []

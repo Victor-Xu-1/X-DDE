@@ -7,7 +7,6 @@ import type { RefObject } from "react";
 import { useInputActionScope } from "../guided/InputActionScope";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
-import { BackendControls } from "../utilities/BackendControls";
 import { researchModules } from "./research-modules";
 import type { HistoryModule } from "./task-history-model";
 
@@ -58,14 +57,6 @@ export function TaskHistoryToolbar({
             )}
           </div>
           <div className="task-history-heading-actions">
-            {researchModule && (
-              <BackendControls
-                key={researchModule.id}
-                language={language}
-                module={researchModule}
-                placement="module"
-              />
-            )}
             <button
               type="button"
               className="secondary-button"

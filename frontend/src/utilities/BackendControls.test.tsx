@@ -477,14 +477,7 @@ it("shares one default-off engine across module, sibling tool and global switche
           label: ["分子性质", "Molecular properties"],
           tools: ["properties", "chemistry.states"],
         }}
-        placement="module"
-      />
-      <BackendControls
-        language="en"
-        module={{
-          label: ["分子性质", "Molecular properties"],
-          tools: ["properties"],
-        }}
+        inlineSingle
       />
     </>,
   );
@@ -514,6 +507,44 @@ it("shares one default-off engine across module, sibling tool and global switche
   ]);
 });
 
+it("keeps the module menu and its focus target when a recovered engine appears", async () => {
+  const user = userEvent.setup();
+  let online = false;
+  vi.mocked(request).mockImplementation(async () => {
+    if (!online) throw new Error("Temporarily unavailable");
+    return {
+      capabilities: { properties: "chemistry" },
+      engines: [entry],
+    };
+  });
+  render(
+    <BackendControls
+      language="en"
+      inlineSingle
+      module={{
+        label: ["分子性质", "Molecular properties"],
+        tools: ["properties"],
+      }}
+    />,
+  );
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
+  await waitFor(() =>
+    expect(trigger).toHaveAccessibleDescription("State unavailable"),
+  );
+  await user.click(trigger);
+  const retry = await screen.findByRole("button", { name: "Retry" });
+  online = true;
+  await user.click(retry);
+  const direct = await screen.findByRole("group", {
+    name: "Backend switch for this module",
+  });
+  expect(within(direct).getByRole("switch")).not.toBeChecked();
+  await user.keyboard("{Escape}");
+  expect(trigger).toHaveFocus();
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(api.post).not.toHaveBeenCalled();
+});
+
 it("switches one engine at a time in the multi-engine module toolbar", async () => {
   const module = {
     label: ["性质与安全性", "Properties and safety"] as const,
@@ -533,17 +564,17 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   });
   render(
     <>
-      <BackendControls language="en" module={module} placement="module" />
+      <BackendControls language="en" module={module} inlineSingle />
       <TaskBackendControl language="en" scope={{ capability: "properties" }} />
     </>,
   );
   const user = userEvent.setup();
   const taskSwitch = await screen.findByRole("switch", { name: "RDKit" });
-  const trigger = screen.getByRole("button", { name: "Module backends" });
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
   expect(trigger).toHaveAccessibleDescription("Task engines off");
   await user.click(trigger);
   const region = screen.getByRole("region", {
-    name: "Backends for these task results",
+    name: "Backends in this module",
   });
   const panel = within(region);
   expect(
@@ -554,7 +585,6 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   expect(chemistry).not.toBeChecked();
   expect(missing).not.toBeChecked();
   expect(missing).toBeDisabled();
-  expect(panel.queryByRole("button", { name: "View all backends" })).toBeNull();
   expect(api.post).not.toHaveBeenCalled();
   await user.click(chemistry);
   await waitFor(() => expect(taskSwitch).toBeChecked());

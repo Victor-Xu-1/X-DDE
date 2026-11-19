@@ -98,10 +98,12 @@ export function BackendStateMessage({
   runtime,
   language,
   failed,
+  focusAfterRetry,
 }: {
   runtime: Runtime;
   language: Language;
   failed: boolean;
+  focusAfterRetry?(): void;
 }) {
   if (!runtime.readError && !failed) return null;
   const zh = language === "zh";
@@ -114,7 +116,14 @@ export function BackendStateMessage({
         : zh
           ? "切换未完成，请检查后端及活动任务。"
           : "Switch failed. Check the backend and active tasks."}
-      <button type="button" className="text-button" onClick={runtime.retry}>
+      <button
+        type="button"
+        className="text-button"
+        onClick={() => {
+          runtime.retry();
+          focusAfterRetry?.();
+        }}
+      >
         {zh ? "重试" : "Retry"}
       </button>
     </p>
