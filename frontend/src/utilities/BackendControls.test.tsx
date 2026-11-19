@@ -920,12 +920,16 @@ it("starts and stops persistent compute from a Harness task and syncs the global
     screen.getByRole("switch", { name: "OpenDDE Harness" }),
   ).not.toBeChecked();
   expect(api.post).not.toHaveBeenCalled();
-  await user.click(task);
-  expect(task).toBeDisabled();
+  task.focus();
+  await user.keyboard(" ");
+  expect(task).toHaveFocus();
+  expect(task).toHaveAttribute("aria-disabled", "true");
+  await user.keyboard(" ");
+  expect(api.post).toHaveBeenCalledTimes(1);
   await user.click(screen.getByRole("button", { name: "Backend controls" }));
   const panel = within(screen.getByRole("region", { name: "Backend power" }));
   const global = panel.getByRole("switch", { name: "Persistent compute" });
-  expect(global).toBeDisabled();
+  expect(global).toHaveAttribute("aria-disabled", "true");
   // The app continues polling deployment while the native service starts.
   rerender(view({ compute_service: { ...service } } as Deployment));
   confirmStart({ ...service, running: true, ready: true });
