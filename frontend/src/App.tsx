@@ -63,6 +63,7 @@ export function App() {
   const [requestedView, setView] = useState<View>(() => {
       if (location.hash === "#view=utilities" || !location.hash)
         return "utilities";
+      if (location.hash === "#view=deployment") return "deployment";
       const entry = taskEntryRoute(location.hash);
       if (entry) return entry.tool ? viewForTool(entry.tool) : "tools";
       const history = taskHistoryRoute(location.hash);
@@ -82,6 +83,10 @@ export function App() {
     function navigate() {
       if (window.location.hash === "#view=utilities" || !window.location.hash) {
         setView("utilities");
+        return;
+      }
+      if (window.location.hash === "#view=deployment") {
+        setView("deployment");
         return;
       }
       const entry = taskEntryRoute(window.location.hash);

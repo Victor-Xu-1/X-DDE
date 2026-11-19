@@ -41,7 +41,16 @@ it("does not start engines on mount, offers only explicit available switches", a
   await user.click(screen.getByRole("button", { name: "Backend controls" }));
   const toggle = await screen.findByRole("switch", { name: "RDKit" });
   expect(toggle).toHaveAttribute("aria-checked", "false");
-  expect(screen.getByRole("switch", { name: "ADMET-AI" })).toBeDisabled();
+  const unavailable = screen.getByRole("switch", { name: "ADMET-AI" });
+  expect(unavailable).toBeDisabled();
+  expect(unavailable).toHaveAccessibleDescription("Off · Setup required");
+  const setup = screen.getByRole("link", {
+    name: "Set up ADMET-AI (opens in a new tab)",
+  });
+  expect(setup).toHaveAttribute("href", "#view=deployment");
+  expect(setup).toHaveAttribute("target", "_blank");
+  expect(screen.queryByRole("link", { name: /Set up RDKit/ })).toBeNull();
+  expect(api.post).not.toHaveBeenCalled();
   vi.mocked(api.post).mockResolvedValue({ enabled: true });
   vi.mocked(request).mockResolvedValue({
     engines: [{ ...entry, enabled: true }],

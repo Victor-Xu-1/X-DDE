@@ -17,8 +17,8 @@ function engineStatus(item: RuntimeEngine, zh: boolean) {
         ? "当前不可用"
         : "Unavailable"
       : zh
-        ? "已关闭 · 未就绪"
-        : "Off · Not ready";
+        ? "已关闭 · 待配置"
+        : "Off · Setup required";
   if (item.enabled) return zh ? "已开启 · 按需加载" : "On · Loads on demand";
   return zh ? "已关闭" : "Off";
 }
@@ -34,6 +34,12 @@ export function RuntimeSwitch({
 }) {
   const zh = language === "zh";
   const switching = runtime.busy === item.id;
+  const needsSetup =
+    !runtime.readError &&
+    !item.ready &&
+    !item.enabled &&
+    !item.active &&
+    !item.activity_unknown;
   return (
     <BackendPowerSwitch
       id={item.id}
@@ -51,18 +57,33 @@ export function RuntimeSwitch({
       }
       enabled={item.enabled}
       disabled={Boolean(runtime.busy) || runtime.readError || !canToggle(item)}
+      setup={
+        needsSetup && (
+          <a
+            className="runtime-switch-setup"
+            href="#view=deployment"
+            target="_blank"
+            rel="noopener"
+            aria-label={
+              zh
+                ? `配置 ${item.name}（在新标签页打开）`
+                : `Set up ${item.name} (opens in a new tab)`
+            }
+          >
+            {zh ? "配置" : "Set up"}
+          </a>
+        )
+      }
       hint={
         item.active
           ? zh
             ? "请先结束该后端的活动任务。"
             : "Finish this backend’s active task first."
-          : !item.ready && !item.enabled
+          : item.ready
             ? zh
-              ? "请在「安装与运行」中检查此组件。"
-              : "Check this component under Installation and runtime."
-            : zh
               ? "开启后在执行任务时加载。"
               : "Loads when a task runs."
+            : undefined
       }
       onToggle={() => void runtime.toggle(item.id)}
     />

@@ -79,6 +79,28 @@ def verify_composite_tools(page, base):
     expect(controls(page, zh=True)).to_have_count(0)
 
 
+def verify_setup_entry(page, base):
+    page.set_viewport_size({"width": 1280, "height": 800})
+    panel = open_capability(page, base, "p2rank.detect")
+    switch = panel.get_by_role("switch", name="P2Rank", exact=True)
+    expect(switch).not_to_be_checked()
+    expect(switch).to_be_disabled()
+    expect(switch).to_have_accessible_description("已关闭 · 待配置")
+    setup = panel.get_by_role("link", name="配置 P2Rank（在新标签页打开）", exact=True)
+    expect(setup).to_be_visible()
+    page.screenshot(path=EVIDENCE / "unavailable-power-1280.png")
+    with page.expect_popup() as popup:
+        setup.press("Enter")
+    target = popup.value
+    try:
+        expect(target).to_have_url(f"{base}/#view=deployment")
+        expect(target.get_by_role("button", name="组件安装", exact=True)).to_be_visible()
+        expect(switch).to_be_visible()
+        expect(page).to_have_url(f"{base}/#view=new&tool=p2rank.detect")
+    finally:
+        target.close()
+
+
 def verify_shared_power(page, base):
     page.set_viewport_size({"width": 390, "height": 775})
     tool = open_capability(page, base, "discovery.target")
@@ -123,7 +145,13 @@ def verify_shared_power(page, base):
     expect(result_toggle).to_be_checked()
     page.keyboard.press("Tab")
     expect(result_toggle).to_be_focused()
-    page.keyboard.press("Tab")
+    # Return through the trigger before tabbing outside. Unavailable engines
+    # can now provide additional focusable setup links after this switch.
+    page.keyboard.press("Shift+Tab")
+    expect(close).to_be_focused()
+    page.keyboard.press("Shift+Tab")
+    expect(result_trigger).to_be_focused()
+    page.keyboard.press("Shift+Tab")
     expect(result_panel).to_have_count(0)
     result_trigger.press("Space")
     expect(close).to_be_focused()
@@ -341,6 +369,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         modules = verify_modules(page, base)
         verify_result_toolbar_power(page, base, modules)
         verify_result_detail(page, base, fixture.id)
+        verify_setup_entry(page, base)
         assert posts == []
         verify_shared_power(page, base)
         verify_inline_switch_lifecycle(page, base)

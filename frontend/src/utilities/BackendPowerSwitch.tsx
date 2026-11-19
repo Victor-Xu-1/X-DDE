@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 
 export function BackendPowerSwitch({
   id,
@@ -7,6 +7,7 @@ export function BackendPowerSwitch({
   enabled,
   disabled,
   hint,
+  setup,
   onToggle,
 }: {
   id: string;
@@ -15,6 +16,7 @@ export function BackendPowerSwitch({
   enabled: boolean;
   disabled: boolean;
   hint?: string;
+  setup?: ReactNode;
   onToggle(): void;
 }) {
   const description = useId();
@@ -22,9 +24,12 @@ export function BackendPowerSwitch({
     <div className="compute-switch runtime-switch" data-engine={id}>
       <span className="runtime-switch-label">
         <span title={name}>{name}</span>
-        <small id={description} aria-live="polite">
-          {status}
-        </small>
+        <span className="runtime-switch-status">
+          <small id={description} aria-live="polite">
+            {status}
+          </small>
+          {setup}
+        </span>
       </span>
       <button
         type="button"

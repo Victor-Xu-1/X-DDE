@@ -253,6 +253,10 @@ Use the backend switch at the top of each calculation page, including nested too
 
 For a ligand that still needs its first calculated 3D conformer, the preview shows its RDKit switch while the engine is off. Turn it on and choose **Prepare 3D conformer**. Previously calculated conformers can still open while the engine is off.
 
+If a switch shows **Off · Setup required**, **Set up** opens Installation and runtime in a separate tab so you can keep the current form open.
+
+开关旁显示「已关闭 · 待配置」时，点击「配置」会在新标签页打开「安装与运行」，当前填写页仍可保留。
+
 配体首次需要计算三维构象时，预览会就地显示 RDKit 开关。开启后点击「生成三维构象」。已计算的构象在关闭后端时仍可查看。
 
 Pasting or dropping a structure image keeps recognition off until you turn it on with the switch in the import dialog. Once the service is ready, quick tools recognize and fill the input automatically. Reopen the image or its editor to turn recognition off from the same tool.
