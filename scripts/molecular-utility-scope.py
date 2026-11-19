@@ -1105,6 +1105,7 @@ PROXIMITY_PAIR_DIFF = "ec4abb3394b7f7290a6dcecba8cf2cdcbc0a3f6a525e097669049b763
 ALIGNED_COMPARISON_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/protein-interface-checks.yml",
     ".github/workflows/publication-checks.yml",
     ".github/workflows/structure-comparison-checks.yml",
     "docs/frontend-layout.md",
@@ -1130,7 +1131,7 @@ ALIGNED_COMPARISON_FILES = {
     "server_tests/test_archived_comparison_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-ALIGNED_COMPARISON_DIFF = "d2e2fe7622548335a4b99c9d260a3164da041c9c497a703d987131be80b146e5"
+ALIGNED_COMPARISON_DIFF = "db75f166d880ed3fda310cb3de3bdd3cdf4c759e7fc75a0f47d55a23f63f6e18"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",

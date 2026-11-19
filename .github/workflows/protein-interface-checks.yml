@@ -46,6 +46,7 @@ jobs:
     needs: [native-scope, utility-scope]
     if: >-
       needs.native-scope.outputs.interaction_only != 'true' &&
+      needs.utility-scope.outputs.aligned_comparison_only != 'true' &&
       needs.utility-scope.outputs.protein_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
