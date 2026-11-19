@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import type { Language } from "../types";
 import type { Asset, AssetKind } from "./types";
 import { ArtifactPicker } from "./ArtifactPicker";
@@ -56,6 +57,8 @@ function AssetPickerBody({
   maxBytes: number;
 }) {
   const zh = language === "zh";
+  const utility =
+    useContext(TaskPresentationContext)?.imageEntry === "workspace";
   const sources = useAssetSources(value, showHistory, onChange, uploadKey);
   const { source } = sources;
   const [knownBySource, setKnownBySource] = useState<
@@ -225,6 +228,17 @@ function AssetPickerBody({
           kind={kind}
           label={label}
           source={source}
+          selection={
+            utility && selected.asset && !history.error
+              ? {
+                  key: [source, selected.asset.id, selected.asset.sha256].join(
+                    ":",
+                  ),
+                  name: selected.asset.name,
+                  language,
+                }
+              : undefined
+          }
           onSource={(next) => {
             setEditingResult(false);
             sources.changeSource(next);

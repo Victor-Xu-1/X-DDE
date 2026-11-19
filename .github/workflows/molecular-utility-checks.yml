@@ -18,6 +18,7 @@ on:
       - "frontend/src/diffsbdd/ReferencePicker.tsx"
       - "frontend/src/diffsbdd/useReferenceSelection.ts"
       - "frontend/src/operations/AssetPicker.tsx"
+      - "frontend/src/research/MaterialInput.tsx"
       - "frontend/src/operations/AssetPickerSources.ts"
       - "frontend/src/operations/AssetPickerUpload.tsx"
       - "frontend/src/utilities/ImageMoleculeInput*"
@@ -182,6 +183,7 @@ jobs:
       inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
       utility_query_only: ${{ steps.select.outputs.utility_query_only }}
+      compact_material_only: ${{ steps.select.outputs.compact_material_only }}
       paired_figure_only: ${{ steps.select.outputs.paired_figure_only }}
       native_color_figure_only: ${{ steps.select.outputs.native_color_figure_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
@@ -235,6 +237,7 @@ jobs:
       needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.editor_drawing_only != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&
+      needs.scope.outputs.compact_material_only != 'true' &&
       needs.scope.outputs.paired_figure_only != 'true' &&
       needs.scope.outputs.native_color_figure_only != 'true' &&
       needs.scope.outputs.recognition_entry_only != 'true' &&
@@ -483,6 +486,42 @@ jobs:
         if: always()
         with:
           name: utility-query-browser-evidence
+          path: outputs/utility-image/
+          if-no-files-found: warn
+
+  compact-utility-materials:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.compact_material_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Verified file identity and utility input ownership
+        working-directory: frontend
+        run: >-
+          npx vitest run src/operations/AssetPicker.test.tsx
+          src/diffsbdd/ReferencePicker.test.tsx src/diffsbdd/ReferencePickerUpload.test.tsx
+          src/diffsbdd/ReferencePickerLifecycle.test.tsx src/utilities/ImageMoleculeInput.action.test.tsx
+          src/chemistry/LibraryScreenForm.test.tsx src/chemistry/MolecularToolReview.test.tsx
+          src/operations/PropertyForm.test.tsx src/admet/AdmetForm.test.tsx
+      - name: Check selection disclosure and query handoff in Chrome
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_utility_image_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          uv run --locked python -m pytest -xq server_tests/test_utility_image_browser.py \
+            -k 'similarity_query or 1440' --basetemp "$RUNNER_TEMP/compact-material"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-utility-material-browser-evidence
           path: outputs/utility-image/
           if-no-files-found: warn
 

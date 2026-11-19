@@ -163,6 +163,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "inline_recognition_only=false\n"
         "editor_drawing_only=false\n"
         "utility_query_only=false\n"
+        "compact_material_only=false\n"
         "paired_figure_only=false\n"
         "native_color_figure_only=false\n"
         "result_handoff_desktop_only=false\n"
@@ -326,6 +327,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "MODULE_POWER_FILES",
         "MODULE_POWER_ENTRY_FILES",
         "CONTEXTUAL_BACKEND_PANEL_FILES",
+        "COMPACT_MATERIAL_FILES",
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",

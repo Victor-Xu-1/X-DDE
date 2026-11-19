@@ -129,6 +129,33 @@ it("rejects a div drop while replacement disables native controls", () => {
   expect(screen.getByRole("dialog")).toBeVisible();
 });
 
+it("opening the file disclosure keeps the screenshot review intact", () => {
+  const onSourceEdit = vi.fn();
+  render(
+    <ImageMoleculeInput
+      language="en"
+      cancelOnEdit
+      onSourceEdit={onSourceEdit}
+      onMolecule={vi.fn()}
+      review={{
+        molecule: { smiles: "Nc1ccccc1", molfile: "M  END" },
+        image: image(),
+      }}
+    >
+      <div className="asset-picker">
+        <button type="button" data-material-disclosure>
+          Change file
+        </button>
+        <button type="button">Choose another file</button>
+      </div>
+    </ImageMoleculeInput>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Change file" }));
+  expect(onSourceEdit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Choose another file" }));
+  expect(onSourceEdit).toHaveBeenCalledOnce();
+});
+
 it("ignores clipboard read that crosses a complete replacement action", async () => {
   const read = deferred<ClipboardItem[]>();
   clipboard(() => read.promise);

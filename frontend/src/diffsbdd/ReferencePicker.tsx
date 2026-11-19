@@ -1,5 +1,12 @@
 import { MaterialInput } from "../research/MaterialInput";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { HistoricalFileSelect } from "../research/HistoricalFileSelect";
 import { AssetPicker } from "../operations/AssetPicker";
 import type { MoleculeRef } from "../research/types";
@@ -33,6 +40,8 @@ export function ReferencePicker({
   uploadKey?: string;
 }) {
   const zh = language === "zh";
+  const utility =
+    useContext(TaskPresentationContext)?.imageEntry === "workspace";
   const formats =
     allowedSuffixes ?? (kind === "structure" ? [".pdb"] : [".sdf"]);
   const [source, setSource] = useState<"saved" | "file">(() =>
@@ -57,6 +66,7 @@ export function ReferencePicker({
     [search, setSearch] = useState(""),
     [page, setPage] = useState(0);
   const [invalidRecord, setInvalidRecord] = useState(false);
+  const [uploadedAsset, setUploadedAsset] = useState<Asset | null>(null);
   const knownFormats = useRef(new Map<string, string>());
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -145,12 +155,50 @@ export function ReferencePicker({
           : formats.length === 1
             ? formats[0]
             : null));
+  const verified =
+    utility &&
+    value &&
+    !invalidRecord &&
+    !selection.loading &&
+    !selection.error &&
+    !history.error
+      ? [
+          selection.asset,
+          source === "saved" ? history.selected?.asset : uploadedAsset,
+        ].find(
+          (asset) =>
+            asset?.id === value.asset_id &&
+            asset.sha256 === value.sha256 &&
+            asset.kind === kind &&
+            formats.includes(asset.suffix),
+        )
+      : undefined;
   return (
     <section className="diff-reference">
       <MaterialInput
         label={label}
         kind={kind}
         source={source}
+        selection={
+          value && verified
+            ? {
+                key: [
+                  source,
+                  verified.id,
+                  verified.sha256,
+                  value.version_id,
+                ].join(":"),
+                name: verified.name,
+                detail:
+                  !wholeFile && verified.suffix === ".sdf"
+                    ? zh
+                      ? `第 ${value.record + 1} 条记录`
+                      : `Record ${value.record + 1}`
+                    : undefined,
+                language,
+              }
+            : undefined
+        }
         onSource={changeSource}
         options={[
           { value: "file", title: zh ? "上传新文件" : "Upload a new file" },
@@ -217,6 +265,7 @@ export function ReferencePicker({
                 (invalidRecord ? (recordBase?.asset_id ?? "") : "")
               }
               onChange={(id) => void selection.choose(id)}
+              onSelectedAsset={utility ? setUploadedAsset : undefined}
               language={language}
               label={label}
             />

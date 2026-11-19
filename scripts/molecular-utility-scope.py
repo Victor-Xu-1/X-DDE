@@ -660,6 +660,20 @@ UTILITY_QUERY_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 UTILITY_QUERY_DIFF = "3e4afa4c99c61dd9446469052ab8916e7394452efd14613597e020a66f41abac"
+COMPACT_MATERIAL_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/diffsbdd/ReferencePicker.test.tsx",
+    "frontend/src/diffsbdd/ReferencePicker.tsx",
+    "frontend/src/operations/AssetPicker.test.tsx",
+    "frontend/src/operations/AssetPicker.tsx",
+    "frontend/src/research/MaterialInput.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.action.test.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_image_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+COMPACT_MATERIAL_DIFF = "8870d4a976e305b3af2066ef1be74825f57ea236800885cb237d23ceb6d7ac64"
 
 
 PAIRED_FIGURE_FILES = {
@@ -1641,6 +1655,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         UTILITY_QUERY_FILES, UTILITY_QUERY_DIFF, scope_pin="UTILITY_QUERY_DIFF",
     )
+    compact_material = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        COMPACT_MATERIAL_FILES, COMPACT_MATERIAL_DIFF, scope_pin="COMPACT_MATERIAL_DIFF",
+    )
     paired_figure = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PAIRED_FIGURE_FILES, PAIRED_FIGURE_DIFF, scope_pin="PAIRED_FIGURE_DIFF",
@@ -1658,6 +1676,7 @@ def main():
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
+        output.write("compact_material_only=" + str(compact_material).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
@@ -1731,6 +1750,7 @@ def main():
             or inline_recognition
             or editor_drawing
             or utility_query
+            or compact_material
             or paired_figure
             or native_color_figure
             or selected(changed, event, shared=shared)

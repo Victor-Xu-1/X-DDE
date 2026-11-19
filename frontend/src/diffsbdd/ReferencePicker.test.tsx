@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { ReferencePicker } from "./ReferencePicker";
@@ -6,7 +6,79 @@ import { useState } from "react";
 import type { MoleculeRef } from "../research/types";
 import * as client from "../api";
 import { catalogFixture } from "./input-catalog.test-fixtures";
-afterEach(() => vi.restoreAllMocks());
+import { TaskPresentationContext } from "../guided/TaskPresentation";
+import type { Asset } from "../operations/types";
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+it("shows a verified desktop utility file and retains its editor while changing the SDF record", async () => {
+  vi.stubGlobal("matchMedia", () => ({
+    matches: true,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+  const asset: Asset = {
+    id: "stat6-library",
+    kind: "ligand",
+    name: "stat6-library.sdf",
+    suffix: ".sdf",
+    sha256: "b".repeat(64),
+    size: 5000,
+    created_at: "2026-10-01",
+  };
+  const read = vi
+    .spyOn(client, "request")
+    .mockImplementation(async (path) =>
+      path.endsWith("/metadata")
+        ? asset
+        : catalogFixture([], [asset], "file:" + asset.id),
+    );
+  function Task() {
+    const [value, setValue] = useState<MoleculeRef | null>(null);
+    return (
+      <TaskPresentationContext.Provider
+        value={{ layout: "single", imageEntry: "workspace" }}
+      >
+        <ReferencePicker
+          kind="ligand"
+          label="Query"
+          value={value}
+          onChange={setValue}
+          language="en"
+        />
+        <output aria-label="Selected record">{value?.record ?? "None"}</output>
+      </TaskPresentationContext.Provider>
+    );
+  }
+  const user = userEvent.setup();
+  render(<Task />);
+  await user.click(screen.getByRole("radio", { name: "Historical files" }));
+  const chooser = screen.getByRole("combobox", {
+    name: "Query · Historical files",
+  });
+  await waitFor(() => expect(chooser).toBeEnabled());
+  await user.selectOptions(chooser, "file:" + asset.id);
+  const change = await screen.findByRole("button", { name: "Change Query" });
+  expect(change).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByText("Record 1")).toBeVisible();
+  expect(chooser).not.toBeVisible();
+  await user.click(change);
+  expect(chooser).toHaveValue("file:" + asset.id);
+  const record = screen.getByRole("spinbutton");
+  fireEvent.change(record, { target: { value: "" } });
+  expect(screen.getByRole("alert")).toHaveTextContent("Enter a whole number");
+  fireEvent.change(record, { target: { value: "2" } });
+  expect(record).toBeVisible();
+  expect(screen.getByLabelText("Selected record")).toHaveTextContent("1");
+  await user.click(screen.getByRole("button", { name: "Done Query" }));
+  expect(screen.getByText("Record 2")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Change Query" })).toHaveFocus();
+  expect(
+    read.mock.calls.filter(([path]) => path.endsWith("/metadata")),
+  ).toHaveLength(1);
+});
 it("clears the hidden route selection and restores the exact saved version on returning", async () => {
   const ref = {
     asset_id: "file",
