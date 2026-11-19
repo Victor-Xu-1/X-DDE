@@ -40,8 +40,13 @@ def _recognition_document(path):
         return {}
 
 
+def _recognition_health():
+    state = _recognition_document("health")
+    return state if state.get("app") == "decimer-workbench" else {}
+
+
 def recognition_available():
-    return _recognition_document("health").get("app") == "decimer-workbench"
+    return bool(_recognition_health())
 
 
 def _public_power(state):
@@ -52,19 +57,25 @@ def _public_power(state):
 
 
 def _recognition_status(include_power):
-    available = recognition_available()
+    health = _recognition_health()
+    available = bool(health)
     result = {"available": available, "port": 8940}
     if include_power and available:
         if power := _public_power(_recognition_document("api/state")):
             result["power"] = power
+        if health.get("idlePower") is True:
+            result["idle_power"] = True
     return result
 
 
 def _change_recognition_power(enabled):
     # Use a fresh companion session for this request. No browser cookies, URLs
     # or companion credentials travel between the two applications.
-    if not recognition_available():
+    health = _recognition_health()
+    if not health:
         raise HTTPException(503, "The local recognition workbench is offline.")
+    if health.get("idlePower") is not True:
+        raise HTTPException(409, "Use the switch in the recognition workbench.")
     opener = _recognition_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
     try:
         session = _read_document(opener, _RECOGNITION_URL + "api/session")
@@ -74,7 +85,7 @@ def _change_recognition_power(enabled):
         if previous["phase"] in {"busy", "stopping"}:
             raise HTTPException(409, "Wait for recognition to finish before switching the service.")
         request = urllib.request.Request(
-            _RECOGNITION_URL + "api/power",
+            _RECOGNITION_URL + "api/power/idle",
             data=json.dumps({"enabled": enabled}).encode(),
             headers={"Content-Type": "application/json", "X-CSRF-Token": token},
             method="POST",
@@ -82,9 +93,13 @@ def _change_recognition_power(enabled):
         power = _public_power(_read_document(opener, request))
         if power is None or power["enabled"] != enabled:
             raise ValueError("Invalid recognition power reply")
+    except urllib.error.HTTPError as exc:
+        if exc.code == 409:
+            raise HTTPException(409, "Wait for current recognition to finish.") from exc
+        raise HTTPException(502, "Could not confirm the recognition power change.") from exc
     except (OSError, ValueError) as exc:
         raise HTTPException(502, "Could not confirm the recognition power change.") from exc
-    return {"available": True, "port": 8940, "power": power}
+    return {"available": True, "port": 8940, "idle_power": True, "power": power}
 
 
 def register_utilities(app: FastAPI):

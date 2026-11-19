@@ -37,7 +37,7 @@ it("switches DECIMER from a utility without leaving the current tab", async () =
   vi.mocked(request).mockImplementation(
     async (path) =>
       (path.startsWith("/utilities/recognition")
-        ? { available: true, power: recognition }
+        ? { available: true, idle_power: true, power: recognition }
         : {
             capabilities: { properties: "chemistry" },
             engines: [entry],
@@ -46,7 +46,7 @@ it("switches DECIMER from a utility without leaving the current tab", async () =
   vi.mocked(api.post).mockImplementation(async (path) => {
     const on = path.endsWith("/start");
     recognition = { phase: on ? "ready" : "stopped", enabled: on };
-    return { available: true, power: recognition } as never;
+    return { available: true, idle_power: true, power: recognition } as never;
   });
   render(
     <BackendControls
@@ -81,6 +81,47 @@ it("switches DECIMER from a utility without leaving the current tab", async () =
     {},
   );
   expect(onOpen).not.toHaveBeenCalled();
+});
+
+it("requires fresh DECIMER state when reopening the global panel", async () => {
+  const user = userEvent.setup();
+  const stopped = {
+    available: true,
+    idle_power: true,
+    power: { phase: "stopped", enabled: false },
+  };
+  let hold = false;
+  let resolveStatus: (value: unknown) => void = () => {};
+  const fresh = new Promise((resolve) => {
+    resolveStatus = resolve;
+  });
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? hold
+          ? fresh
+          : stopped
+        : { engines: [] }) as never,
+  );
+  render(<BackendControls language="en" onOpenRecognition={vi.fn()} />);
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  await waitFor(() =>
+    expect(screen.getByRole("switch", { name: "DECIMER" })).toBeEnabled(),
+  );
+  await user.keyboard("{Escape}");
+  hold = true;
+  await user.click(menu);
+  const control = screen.getByRole("switch", { name: "DECIMER" });
+  expect(control).toBeDisabled();
+  expect(control).toHaveAccessibleDescription("State unavailable");
+  expect(api.post).not.toHaveBeenCalled();
+  resolveStatus({
+    ...stopped,
+    power: { phase: "ready", enabled: true },
+  });
+  await waitFor(() => expect(control).toBeChecked());
+  expect(control).toBeEnabled();
 });
 
 it("does not start engines on mount, offers only explicit available switches", async () => {

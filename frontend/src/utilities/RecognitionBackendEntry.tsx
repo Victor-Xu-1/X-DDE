@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api, request } from "../api";
 import { BackendPowerSwitch } from "./BackendPowerSwitch";
 import type { Language } from "../types";
@@ -15,6 +15,7 @@ const phaseLabels = {
 
 type RecognitionStatus = {
   available: boolean;
+  idle_power?: boolean;
   power?: { phase: keyof typeof phaseLabels; enabled: boolean };
 };
 
@@ -24,6 +25,9 @@ export function useRecognitionStatus(observe: boolean) {
   const [failed, setFailed] = useState(false);
   const pending = useRef(false);
   const reading = useRef<AbortController | null>(null);
+  useLayoutEffect(() => {
+    if (!observe) setStatus(null);
+  }, [observe]);
   useEffect(() => {
     if (!observe || changing) return;
     const controller = new AbortController();
@@ -57,7 +61,14 @@ export function useRecognitionStatus(observe: boolean) {
 
   async function toggle() {
     const power = status?.power;
-    if (!observe || !power || pending.current || blocked(power.phase)) return;
+    if (
+      !observe ||
+      !status?.idle_power ||
+      !power ||
+      pending.current ||
+      blocked(power.phase)
+    )
+      return;
     pending.current = true;
     reading.current?.abort();
     setChanging(true);
@@ -69,6 +80,7 @@ export function useRecognitionStatus(observe: boolean) {
       );
       if (
         !next.available ||
+        next.idle_power !== true ||
         !next.power ||
         next.power.enabled !== !power.enabled ||
         !Object.hasOwn(phaseLabels, next.power.phase)
@@ -118,7 +130,7 @@ export function RecognitionBackendEntry({
         name="DECIMER"
         status={changing ? (zh ? "正在切换…" : "Switching…") : description}
         enabled={status?.power?.enabled === true}
-        disabled={changing || !phase || blocked(phase)}
+        disabled={changing || !status?.idle_power || !phase || blocked(phase)}
         onToggle={() => void toggle()}
         setup={
           <button type="button" className="text-button" onClick={onOpen}>

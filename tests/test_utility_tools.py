@@ -88,6 +88,8 @@ def test_recognition_power_relays_only_explicit_authorized_actions(monkeypatch):
     state = {"phase": "stopped", "enabled": False}
     token = "a" * 64
     native_calls = []
+    idle_power = False
+    accepting = False
 
     class Companion(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -104,7 +106,7 @@ def test_recognition_power_relays_only_explicit_authorized_actions(monkeypatch):
         def do_GET(self):
             native_calls.append(("GET", self.path))
             if self.path == "/health":
-                self.send_json(200, {"app": "decimer-workbench"})
+                self.send_json(200, {"app": "decimer-workbench", "idlePower": idle_power})
             elif self.path == "/api/state":
                 self.send_json(200, state)
             else:
@@ -113,11 +115,14 @@ def test_recognition_power_relays_only_explicit_authorized_actions(monkeypatch):
         def do_POST(self):
             native_calls.append(("POST", self.path))
             if (
-                self.path != "/api/power"
+                self.path != "/api/power/idle"
                 or self.headers.get("Cookie") != f"dw-session={token}"
                 or self.headers.get("X-CSRF-Token") != token
             ):
                 self.send_json(403, {})
+                return
+            if accepting:
+                self.send_json(409, {})
                 return
             data = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             state.update(enabled=data["enabled"], phase="ready" if data["enabled"] else "stopped")
@@ -143,18 +148,27 @@ def test_recognition_power_relays_only_explicit_authorized_actions(monkeypatch):
                 assert native_calls == []
                 assert client.get(route, params={"include_power": True}).json()["power"] == state
                 assert native_calls == [("GET", "/health"), ("GET", "/api/state")]
+                assert client.post(f"{route}/start").status_code == 409
+                assert ("GET", "/api/session") not in native_calls
+                idle_power = True
                 on = client.post(f"{route}/start")
                 assert on.status_code == 200
-                assert on.json() == {"available": True, "port": 8940, "power": state}
+                assert on.json() == {
+                    "available": True, "port": 8940, "idle_power": True, "power": state,
+                }
                 assert on.json()["power"]["enabled"] is True
                 state.update(phase="busy")
                 assert client.post(f"{route}/stop").status_code == 409
-                assert native_calls.count(("POST", "/api/power")) == 1
+                assert native_calls.count(("POST", "/api/power/idle")) == 1
                 state.update(phase="ready")
+                accepting = True
+                assert client.post(f"{route}/stop").status_code == 409
+                assert state == {"phase": "ready", "enabled": True}
+                accepting = False
                 off = client.post(f"{route}/stop")
                 assert off.status_code == 200
                 assert off.json()["power"] == {"phase": "stopped", "enabled": False}
-                assert native_calls.count(("POST", "/api/power")) == 2
+                assert native_calls.count(("POST", "/api/power/idle")) == 3
         finally:
             native.shutdown()
             thread.join(timeout=3)

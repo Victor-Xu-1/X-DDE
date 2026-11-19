@@ -582,12 +582,14 @@ RECOGNITION_PANEL_POWER_FILES = {
     "frontend/src/utilities/BackendControls.tsx",
     "frontend/src/utilities/RecognitionBackendEntry.tsx",
     "frontend/src/utilities/runtime-switch.css",
+    "scripts/check-recognition-idle-power.mjs",
+    "scripts/recognition-idle-power.patch",
     "server_tests/test_module_backend_switch_browser.py",
     "src/opendde_workbench/runtime_controls.py",
     "src/opendde_workbench/utility_routes.py",
     "tests/test_utility_tools.py",
 }
-RECOGNITION_PANEL_POWER_DIFF = "8751af344d8c6b4f32c90212e688edee61fa760a95e9353deffb02b987deb85e"
+RECOGNITION_PANEL_POWER_DIFF = "35f176c9de08f262a8bfa05e6c364e05ceec6e8093e13ac31363e00d1734858e"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

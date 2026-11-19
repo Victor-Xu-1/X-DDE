@@ -1,0 +1,85 @@
+diff --git a/desktop/server.mjs b/desktop/server.mjs
+index 2a44626..b2163ae 100644
+--- a/desktop/server.mjs
++++ b/desktop/server.mjs
+@@ -29,5 +29,6 @@ const types = {
+ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+   const sessions = new Sessions();
++  let admitting = false;
+   const json = (res, status, body, headers = {}) => {
+     res.writeHead(status, {
+       "content-type": "application/json; charset=utf-8",
+@@ -51,6 +52,7 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+         return json(res, 200, {
+           app: "decimer-workbench",
+           version: config.version,
++          idlePower: true,
+         });
+       if (path === "/api/session" && req.method === "GET") {
+         const token = sessions.issue();
+@@ -67,7 +69,8 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+         return json(res, 200, lifecycle.state());
+       if (path.startsWith("/api/")) {
+         sessions.verify(req);
+-        if (path === "/api/power" && req.method === "POST") {
++        const idlePower = path === "/api/power/idle";
++        if ((path === "/api/power" || idlePower) && req.method === "POST") {
+           if (!req.headers["content-type"]?.startsWith("application/json"))
+             throw new HttpError(415, "JSON required");
+           let body;
+@@ -79,29 +82,39 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+           }
+           if (typeof body.enabled !== "boolean")
+             throw new HttpError(422, "enabled must be boolean");
++          if (
++            idlePower &&
++            (admitting || lifecycle.phase === "busy" || lifecycle.phase === "stopping")
++          )
++            throw new HttpError(409, "Wait for the current recognition request.");
+           return json(res, 202, lifecycle.setEnabled(body.enabled));
+         }
+         if (path === "/api/jobs" && req.method === "POST") {
+-          if (lifecycle.phase !== "ready")
++          if (admitting || lifecycle.phase !== "ready")
+             throw new HttpError(409, "识别服务尚未就绪或正在处理其他图片。");
+           if (!req.headers["content-type"]?.startsWith("multipart/form-data;"))
+             throw new HttpError(415, "Image form required");
+-          const body = await readBody(req);
+-          const generation = lifecycle.generation;
+-          const response = await lifecycle.worker("/api/jobs", {
+-            method: "POST",
+-            headers: { "content-type": req.headers["content-type"] },
+-            body,
+-          });
+-          const data = await response.json();
+-          if (generation !== lifecycle.generation || !lifecycle.desired)
+-            throw new HttpError(409, "识别任务已取消，后端正在关闭。");
+-          if (response.ok) {
+-            lifecycle.job = data;
+-            lifecycle.phase = "busy";
+-            lifecycle.lastActivity = Date.now();
++          admitting = true;
++          try {
++            const body = await readBody(req);
++            const generation = lifecycle.generation;
++            const response = await lifecycle.worker("/api/jobs", {
++              method: "POST",
++              headers: { "content-type": req.headers["content-type"] },
++              body,
++            });
++            const data = await response.json();
++            if (generation !== lifecycle.generation || !lifecycle.desired)
++              throw new HttpError(409, "识别任务已取消，后端正在关闭。");
++            if (response.ok) {
++              lifecycle.job = data;
++              lifecycle.phase = "busy";
++              lifecycle.lastActivity = Date.now();
++            }
++            return json(res, response.status, data);
++          } finally {
++            admitting = false;
+           }
+-          return json(res, response.status, data);
+         }
+         if (
+           /^\/api\/jobs\/[a-f0-9-]{36}$/.test(path) &&

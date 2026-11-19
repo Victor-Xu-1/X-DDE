@@ -293,7 +293,7 @@ def verify_utilities(page, base, companion, companion_loads):
 
     previous_loads = len(companion_loads)
     page.get_by_role("button", name="分子性质", exact=True).click()
-    companion.update(available=True, power={"phase": "stopped", "enabled": False})
+    companion.update(available=True, idle_power=True, power={"phase": "stopped", "enabled": False})
     trigger.click()
     expect(recognition).to_contain_text("已关闭", timeout=12000)
     recognition.get_by_role("button", name="打开识别工作台").press("Enter")
@@ -418,6 +418,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         companion = {
             "available": True,
             "port": 8940,
+            "idle_power": True,
             "power": {"phase": "stopped", "enabled": False},
         }
         companion_loads = []
