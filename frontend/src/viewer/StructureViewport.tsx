@@ -773,7 +773,8 @@ export function StructureViewport({
           src={`/viewer.html?v=${encodeURIComponent(productVersion)}`}
           title={zh ? "可交互分子结构" : "Interactive molecular structure"}
         />
-        {loaded && options.mode === "surface" &&
+        {loaded &&
+          options.mode === "surface" &&
           appliedPotentialRange !== undefined && (
             <div className="potential-legend" role="status">
               <span>{zh ? "APBS 电势" : "APBS potential"}</span>

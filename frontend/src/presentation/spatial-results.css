@@ -1,0 +1,71 @@
+.spatial-result-summary {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.spatial-summary-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spatial-summary-heading h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.spatial-summary-metrics {
+  margin: 0;
+  font-size: 13px;
+}
+.spatial-summary-metrics > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  padding-block: 7px;
+  border-top: 1px solid var(--line);
+}
+.spatial-summary-metrics dt {
+  color: var(--muted);
+}
+.spatial-summary-metrics dd {
+  margin: 0;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.spatial-summary-metrics small {
+  margin-inline-start: 4px;
+  color: var(--muted);
+}
+.spatial-summary-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.studio-app .spatial-summary-downloads > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-decoration: none;
+}
+.spatial-results .structure-workbench-details > details {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+@media (min-width: 1001px) {
+  .spatial-results > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1.95fr) minmax(var(--spatial-detail-min, 322px), 1fr);
+    gap: 16px;
+  }
+  .studio-app .spatial-results .structure-workbench-view > .viewer-panel:not(:popover-open) {
+    padding: 0;
+  }
+  .studio-app .spatial-results .viewer-panel:not(:popover-open) > .molecular-stage {
+    border-radius: 10px;
+  }
+}

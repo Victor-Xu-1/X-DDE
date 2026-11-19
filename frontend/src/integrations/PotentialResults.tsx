@@ -1,4 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import { SpatialResultSummary } from "../presentation/SpatialResultSummary";
 import { artifactUrl } from "../api";
 import { StructureViewer } from "../viewer/StructureViewer";
 import type { Job, Language } from "../types";
@@ -24,7 +25,7 @@ export function PotentialResults({
   const [range, setRange] = useState(5);
   if (!result.structure_artifact || !result.potential_artifact) return null;
   return (
-    <section className="apbs-result">
+    <section className="spatial-results apbs-result">
       <StructureWorkbench
         preview={
           <StructureViewer
@@ -38,10 +39,36 @@ export function PotentialResults({
           />
         }
       >
-        <section className="apbs-result-summary" aria-label={zh ? "电势结果" : "Potential result"}>
+        <SpatialResultSummary
+          jobId={job.id}
+          language={language}
+          title={zh ? "电势结果" : "Potential result"}
+          metrics={result.metrics.map(({ name, value, unit }) => ({
+            label: zh ? (metricLabels.get(name) ?? name) : name,
+            value,
+            unit: unit === name ? undefined : unit,
+          }))}
+          files={[
+            {
+              artifact: result.potential_artifact,
+              label: zh ? "电势网格" : "Potential grid",
+              downloadLabel: zh ? "下载电势网格" : "Download potential grid",
+            },
+            {
+              artifact: result.structure_artifact,
+              label: zh ? "对应结构" : "Structure",
+              downloadLabel: zh
+                ? "下载对应结构"
+                : "Download calculated structure",
+            },
+          ]}
+        >
           <label className="apbs-result-range">
             {zh ? "颜色范围" : "Color range"}
-            <select value={range} onChange={(e) => setRange(Number(e.target.value))}>
+            <select
+              value={range}
+              onChange={(e) => setRange(Number(e.target.value))}
+            >
               {[2, 5, 10].map((n) => (
                 <option key={n} value={n}>
                   −{n} … +{n} kBT/e
@@ -49,37 +76,7 @@ export function PotentialResults({
               ))}
             </select>
           </label>
-          {result.metrics.length > 0 && (
-            <table aria-label={zh ? "计算条件" : "Calculation conditions"}>
-              <tbody>
-                {result.metrics.map(({ name, value, unit }) => (
-                  <tr key={name}>
-                    <th scope="row">{zh ? (metricLabels.get(name) ?? name) : name}</th>
-                    <td>{value}{unit && unit !== name && <small> {unit}</small>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <div className="apbs-result-downloads">
-            <a
-              className="secondary-button"
-              href={artifactUrl(job.id, result.potential_artifact)}
-              aria-label={zh ? "下载电势网格" : "Download potential grid"}
-              download
-            >
-              {zh ? "电势网格" : "Potential grid"}
-            </a>
-            <a
-              className="secondary-button"
-              href={artifactUrl(job.id, result.structure_artifact)}
-              aria-label={zh ? "下载对应结构" : "Download calculated structure"}
-              download
-            >
-              {zh ? "对应结构" : "Structure"}
-            </a>
-          </div>
-        </section>
+        </SpatialResultSummary>
       </StructureWorkbench>
     </section>
   );
