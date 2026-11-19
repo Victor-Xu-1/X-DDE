@@ -31,6 +31,7 @@ export function MolecularViewport({
   savedView,
   onViewHandle,
   onRememberView,
+  workspaceControls = "expand",
 }: {
   sources?: StructureSource[];
   frames?: string[];
@@ -45,6 +46,7 @@ export function MolecularViewport({
   savedView?: SavedMolecularView;
   onViewHandle?(handle: MolecularViewHandle | null): void;
   onRememberView?(state: SavedMolecularView): void;
+  workspaceControls?: "expand" | "focus" | "hidden";
 }) {
   const container = useRef<HTMLDivElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
@@ -267,7 +269,12 @@ export function MolecularViewport({
             return controller.current.figure(settings);
           }}
         />
-        <WorkspaceFullscreenControl language={language} />
+        {workspaceControls !== "hidden" && (
+          <WorkspaceFullscreenControl
+            language={language}
+            structureFocus={workspaceControls === "focus"}
+          />
+        )}
       </div>
       <div
         ref={container}

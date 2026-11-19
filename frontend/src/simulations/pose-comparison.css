@@ -5,10 +5,17 @@
   gap: 12px;
   margin-block: 12px 18px;
 }
-.pose-comparison-toolbar > div {
-  margin-right: auto;
+.pose-comparison-toolbar > [role="group"] {
+  margin-inline-end: auto;
   display: flex;
-  gap: 8px;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.pose-comparison-toolbar button {
+  padding: 4px 7px;
+  border-radius: 6px;
 }
 .pose-comparison-toolbar button[aria-pressed="true"] {
   color: var(--accent);

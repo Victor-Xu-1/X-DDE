@@ -1027,6 +1027,21 @@ SIMULATION_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SIMULATION_DESKTOP_DIFF = "46cab4e0f2275f0565306b469a7691bc4834f9159298cb93aac58c88bf5a6533"
+SIMULATION_FOCUS_FILES = {
+    ".github/workflows/simulation-view-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/presentation/WorkspaceFullscreenControl.test.tsx",
+    "frontend/src/presentation/WorkspaceFullscreenControl.tsx",
+    "frontend/src/presentation/workspace-fullscreen.css",
+    "frontend/src/presentation/workspace-structure-focus.ts",
+    "frontend/src/simulations/BoundPoseComparison.tsx",
+    "frontend/src/simulations/DynamicsResults.tsx",
+    "frontend/src/simulations/MolecularViewport.tsx",
+    "frontend/src/simulations/pose-comparison.css",
+    "server_tests/test_native_simulation_views.py",
+    "server_tests/test_simulation_structure_focus.py",
+}
+SIMULATION_FOCUS_DIFF = "30d08f539a843ad3ea00d209b1e4f0c06e15d2166607e37fdef9cceb209cd329"
 PROXIMITY_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/proximity-checks.yml",
@@ -1160,7 +1175,11 @@ def main():
     changed = subprocess.check_output(
         ["git", "diff", "--name-only", base, "HEAD"], text=True
     ).splitlines() if base and set(base) != {"0"} else []
-    desktop_structure_focus = reviewed_selected(
+    simulation_focus = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SIMULATION_FOCUS_FILES, SIMULATION_FOCUS_DIFF, scope_pin="SIMULATION_FOCUS_DIFF",
+    )
+    desktop_structure_focus = simulation_focus or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_STRUCTURE_FOCUS_FILES, DESKTOP_STRUCTURE_FOCUS_DIFF,
         scope_pin="DESKTOP_STRUCTURE_FOCUS_DIFF",
@@ -1305,7 +1324,7 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
     )
-    simulation_desktop = reviewed_selected(
+    simulation_desktop = simulation_focus or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
     )

@@ -82,6 +82,7 @@ export function DynamicsResults({
               onToggle={() => setPlaying((value) => !value)}
             />
             <MolecularViewport
+              workspaceControls="focus"
               onExport={() => setPlaying(false)}
               onReady={(ready) => {
                 frameReady.current = ready;
