@@ -1051,7 +1051,7 @@ RUNTIME_ENTRY_FILES = {
     "server_tests/test_runtime_entry_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-RUNTIME_ENTRY_DIFF = "2a1d526c1a38bf866bf956d8d5d2d173b0b0ab744744063a98e6d6ccf289f768"
+RUNTIME_ENTRY_DIFF = "36c46e01103946be2ab2400daaacdccb76e179b40bae2f5c2da860eecf780458"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {

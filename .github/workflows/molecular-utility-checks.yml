@@ -815,7 +815,7 @@ jobs:
       - name: Scoped contracts and explicit backend actions in Chrome
         run: |
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_runtime_entry_browser.py
-          uv run --locked pytest -x -q tests/test_molecular_utility_scope.py server_tests/test_runtime_entry_browser.py server_tests/test_module_backend_switch_browser.py
+          uv run --locked python -m pytest -x -q tests/test_molecular_utility_scope.py server_tests/test_runtime_entry_browser.py server_tests/test_module_backend_switch_browser.py
 
   utility-result-desktop:
     needs: scope
