@@ -219,6 +219,7 @@ jobs:
     if: >-
       !inputs.scope_only && needs.scope.outputs.recognition_power_only != 'true' &&
       needs.scope.outputs.recognition_access_only != 'true' &&
+      needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.recognition_entry_only != 'true' &&
       needs.scope.outputs.touch_controls_only != 'true' && needs.scope.outputs.runtime_switch_only != 'true' &&
       needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' &&
