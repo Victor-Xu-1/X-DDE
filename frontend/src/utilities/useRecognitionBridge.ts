@@ -53,6 +53,7 @@ export function useRecognitionBridge(
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<keyof typeof messages | "">("");
   const request = useRef<{ id: string; automatic: boolean } | null>(null),
+    applying = useRef(false),
     mounted = useRef(true);
   const callback = useRef(onAccept);
   callback.current = onAccept;
@@ -138,10 +139,12 @@ export function useRecognitionBridge(
         return;
       }
       try {
+        applying.current = true;
         await callback.current(message.molecule, message.source);
       } catch {
         if (mounted.current) setError("transfer");
       } finally {
+        applying.current = false;
         if (mounted.current) setBusy(false);
       }
     }
@@ -184,5 +187,11 @@ export function useRecognitionBridge(
     recognitionSupported: foreground.supported,
     recognitionServiceReady: foreground.serviceReady,
     recognize: foreground.start,
+    // The dialog can close before React paints the pending request or upload.
+    canRetain: () =>
+      connected &&
+      !request.current &&
+      !applying.current &&
+      !foreground.hasPending(),
   };
 }

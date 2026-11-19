@@ -36,6 +36,7 @@ export function useImageInputSession(options: Options) {
   const applying = useRef<AbortController | null>(null);
   const pickerToken = useRef<Token | undefined>(undefined);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [retained, setRetained] = useState<Selection | null>(null);
   const [error, setError] = useState<"format" | "empty" | "clipboard" | null>(
     null,
   );
@@ -88,6 +89,7 @@ export function useImageInputSession(options: Options) {
     const next = begin();
     if (next) {
       current.current.onImageSelected?.(Boolean(initialMolecule));
+      setRetained(null);
       setSelection({ file, token: next, initialMolecule });
     }
   }
@@ -125,13 +127,18 @@ export function useImageInputSession(options: Options) {
     try {
       await current.current.onMolecule(value, source, controller.signal);
       // Uploading this accepted image may itself disable the source controls.
-      if (valid(selected.token) && !controller.signal.aborted) close();
+      if (valid(selected.token) && !controller.signal.aborted) dismiss(true);
     } catch (error) {
       // A deliberately cancelled import has no current UI to report a failure to.
       if (!controller.signal.aborted) throw error;
     } finally {
       selected.token.signal?.removeEventListener("abort", cancel);
     }
+  }
+  function dismiss(keepFrame = false) {
+    if (keepFrame && selection && valid(selection.token))
+      setRetained(selection);
+    close();
   }
   useLayoutEffect(() => {
     mounted.current = true;
@@ -142,7 +149,10 @@ export function useImageInputSession(options: Options) {
     };
   }, []);
   useLayoutEffect(() => {
-    if (!options.enabled) close(false);
+    if (!options.enabled) {
+      setRetained(null);
+      close(false);
+    }
   }, [options.enabled]);
   useLayoutEffect(() => {
     const signal = selection?.token.signal;
@@ -155,11 +165,13 @@ export function useImageInputSession(options: Options) {
 
   return {
     selection,
+    retained,
     error,
     select,
     paste,
     accept,
     close,
+    dismiss,
     disabled: !options.enabled || options.disabled || Boolean(scope?.action),
     review(value: ImageMolecule, file: File) {
       if (validImageMolecule(value)) select(file, undefined, value);

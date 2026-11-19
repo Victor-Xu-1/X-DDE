@@ -1,4 +1,4 @@
-import { useContext, useRef, type ReactNode } from "react";
+import { useContext, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
@@ -49,6 +49,7 @@ export function ImageMoleculeInput({
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDivElement>(null);
+  const [powerFrame, setPowerFrame] = useState<number | null>(null);
   const session = useImageInputSession({
     enabled,
     disabled,
@@ -56,6 +57,13 @@ export function ImageMoleculeInput({
     trigger,
     onImageSelected,
   });
+  const retained = session.retained;
+  const image = enabled ? (session.selection ?? retained) : null;
+  const mode = session.selection
+    ? "import"
+    : image && powerFrame === image.token.id
+      ? "power"
+      : "hidden";
   function owns(target: EventTarget) {
     return (
       target instanceof Element &&
@@ -126,6 +134,17 @@ export function ImageMoleculeInput({
             {zh ? "编辑识别的结构" : "Edit recognized structure"}
           </button>
         )}
+        {enabled && retained && (
+          <button
+            className="text-button"
+            type="button"
+            aria-haspopup="dialog"
+            disabled={session.disabled}
+            onClick={() => setPowerFrame(retained.token.id)}
+          >
+            {zh ? "识别服务开关" : "Recognition power"}
+          </button>
+        )}
       </div>
       <input
         ref={picker}
@@ -188,19 +207,22 @@ export function ImageMoleculeInput({
       {controlsFirst && controls}
       {children}
       {!controlsFirst && controls}
-      {session.selection &&
+      {image &&
         createPortal(
           <ImageMoleculeDialog
-            key={session.selection.token.id}
-            file={session.selection.file}
+            key={image.token.id}
+            file={image.file}
             language={language}
             disabled={session.disabled}
-            automatic={automatic && !session.selection.initialMolecule}
-            initialMolecule={session.selection.initialMolecule}
-            onClose={() => session.close()}
-            onAccept={(value, source) =>
-              session.accept(session.selection!, value, source)
+            mode={mode}
+            automatic={automatic && !image.initialMolecule}
+            initialMolecule={image.initialMolecule}
+            onClose={(keepFrame) =>
+              mode === "power"
+                ? setPowerFrame(null)
+                : session.dismiss(keepFrame)
             }
+            onAccept={(value, source) => session.accept(image, value, source)}
           />,
           document.body,
         )}

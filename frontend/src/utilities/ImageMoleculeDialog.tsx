@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import type { ImageMolecule } from "./image-molecule";
 import { useRecognitionBridge } from "./useRecognitionBridge";
@@ -10,6 +10,7 @@ export function ImageMoleculeDialog({
   language,
   disabled = false,
   automatic = false,
+  mode = "import",
   initialMolecule,
   onAccept,
   onClose,
@@ -18,33 +19,42 @@ export function ImageMoleculeDialog({
   language: Language;
   disabled?: boolean;
   automatic?: boolean;
+  mode?: "import" | "power" | "hidden";
   initialMolecule?: ImageMolecule;
   onAccept(value: ImageMolecule, source: File): Promise<void> | void;
-  onClose(): void;
+  onClose(keepFrame?: boolean): void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     title = useId();
-  const autoApply = automatic && !initialMolecule;
+  const importing = mode === "import";
+  const power = mode === "power";
+  const autoApply = importing && automatic && !initialMolecule;
   const bridge = useRecognitionBridge(file, language, onAccept, {
-    automatic: autoApply,
-    initialMolecule,
-  }),
+      automatic: autoApply,
+      initialMolecule,
+    }),
     zh = language === "zh";
   const [url] = useState(() =>
     recognitionFrameUrl(bridge.origin, language, true),
   );
   const locale = useRecognitionLocale(bridge.frame, bridge.origin, language);
+  useLayoutEffect(() => {
+    if (mode === "hidden") return;
+    const panel = dialog.current;
+    panel?.showModal();
+    return () => panel?.close();
+  }, [mode]);
   useEffect(() => {
-    dialog.current?.showModal();
-    const close = () => onClose();
+    if (mode === "hidden") return;
+    const close = () => onClose(false);
     window.addEventListener("hashchange", close);
     window.addEventListener("popstate", close);
     return () => {
       window.removeEventListener("hashchange", close);
       window.removeEventListener("popstate", close);
-      dialog.current?.close();
     };
-  }, []);
+  }, [mode, onClose]);
+  const dismiss = () => onClose(importing && bridge.canRetain());
   const progress = bridge.busy
     ? zh
       ? "正在带入分子结构…"
@@ -57,37 +67,50 @@ export function ImageMoleculeDialog({
   return (
     <dialog
       ref={dialog}
-      className="image-molecule-dialog"
+      className={
+        "image-molecule-dialog" + (power ? " recognition-power-dialog" : "")
+      }
+      hidden={mode === "hidden"}
       aria-labelledby={title}
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        dismiss();
       }}
     >
       <header>
         <div>
           <h2 id={title}>
-            {zh ? "从图片识别分子" : "Read molecule from image"}
-          </h2>
-          <p>
-            {autoApply
+            {power
               ? zh
-                ? "打开识别后端，结构将自动带入当前工具。运行前请核对。"
-                : "Turn on recognition to fill this tool. Check the structure before running."
+                ? "识别服务开关"
+                : "Recognition power"
               : zh
-                ? "核对或编辑结构后带入任务。识别新图片时可在这里开启后端。"
-                : "Review or edit the structure before applying it. Turn on the backend here to recognize a new image."}
-          </p>
+                ? "从图片识别分子"
+                : "Read molecule from image"}
+          </h2>
+          {importing && (
+            <p>
+              {autoApply
+                ? zh
+                  ? "打开识别后端，结构将自动带入当前工具。运行前请核对。"
+                  : "Turn on recognition to fill this tool. Check the structure before running."
+                : zh
+                  ? "核对或编辑结构后带入任务。识别新图片时可在这里开启后端。"
+                  : "Review or edit the structure before applying it. Turn on the backend here to recognize a new image."}
+            </p>
+          )}
         </div>
         <button
           type="button"
-          aria-label={zh ? "关闭图片识别" : "Close image recognition"}
-          onClick={onClose}
+          aria-label={
+            power ? undefined : zh ? "关闭图片识别" : "Close image recognition"
+          }
+          onClick={dismiss}
         >
-          ×
+          {power ? (zh ? "返回任务" : "Back to task") : "×"}
         </button>
       </header>
-      {bridge.error && (
+      {importing && bridge.error && (
         <p role="alert" className="error-box">
           {bridge.error}
         </p>
@@ -115,43 +138,45 @@ export function ImageMoleculeDialog({
         allow="clipboard-read; clipboard-write"
         onLoad={() => {
           locale.connect();
-          bridge.connect();
+          if (importing) bridge.connect();
         }}
       />
-      <footer>
-        <span role="status">{progress || bridge.filename}</span>
-        <button type="button" className="secondary-button" onClick={onClose}>
-          {automatic
-            ? zh
-              ? "取消导入"
-              : "Cancel import"
-            : zh
-              ? "取消"
-              : "Cancel"}
-        </button>
-        {autoApply &&
-          bridge.error &&
-          bridge.recognitionSupported &&
-          bridge.recognitionServiceReady &&
-          !bridge.valid && (
-            <button
-              type="button"
-              className="primary-button"
-              disabled={disabled || bridge.busy || bridge.phase === "working"}
-              onClick={bridge.recognize}
-            >
-              {zh ? "重试" : "Retry"}
-            </button>
-          )}
-        <button
-          type="button"
-          className="primary-button"
-          disabled={disabled || !bridge.valid || bridge.busy}
-          onClick={bridge.accept}
-        >
-          {zh ? "使用此结构" : "Use this molecule"}
-        </button>
-      </footer>
+      {importing && (
+        <footer>
+          <span role="status">{progress || bridge.filename}</span>
+          <button type="button" className="secondary-button" onClick={dismiss}>
+            {automatic
+              ? zh
+                ? "取消导入"
+                : "Cancel import"
+              : zh
+                ? "取消"
+                : "Cancel"}
+          </button>
+          {autoApply &&
+            bridge.error &&
+            bridge.recognitionSupported &&
+            bridge.recognitionServiceReady &&
+            !bridge.valid && (
+              <button
+                type="button"
+                className="primary-button"
+                disabled={disabled || bridge.busy || bridge.phase === "working"}
+                onClick={bridge.recognize}
+              >
+                {zh ? "重试" : "Retry"}
+              </button>
+            )}
+          <button
+            type="button"
+            className="primary-button"
+            disabled={disabled || !bridge.valid || bridge.busy}
+            onClick={bridge.accept}
+          >
+            {zh ? "使用此结构" : "Use this molecule"}
+          </button>
+        </footer>
+      )}
     </dialog>
   );
 }

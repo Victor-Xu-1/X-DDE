@@ -74,6 +74,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.recognition-power-dialog {
+  width: min(1120px, calc(100vw - 40px));
+  height: min(720px, calc(100dvh - 40px));
+  color: var(--ink);
+}
 @media (max-width: 600px) {
   .image-molecule-dialog {
     width: calc(100vw - 12px);

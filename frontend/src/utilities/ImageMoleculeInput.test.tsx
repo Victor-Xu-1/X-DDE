@@ -11,31 +11,34 @@ import { ImageMoleculeInput } from "./ImageMoleculeInput";
 vi.mock("./ImageMoleculeDialog", () => ({
   ImageMoleculeDialog: ({
     file,
+    mode,
     onClose,
     onAccept,
   }: {
     file: File;
+    mode: string;
     onClose(): void;
     onAccept(
       molecule: { smiles: string; molfile: string },
       source: File,
     ): Promise<void>;
-  }) => (
-    <div role="dialog">
-      {file.name}
-      <button onClick={onClose}>Cancel</button>
-      <button
-        onClick={() =>
-          void onAccept(
-            { smiles: "CC(=O)Oc1ccccc1C(=O)O", molfile: "M  END" },
-            file,
-          )
-        }
-      >
-        Use
-      </button>
-    </div>
-  ),
+  }) =>
+    mode === "hidden" ? null : (
+      <div role="dialog">
+        {file.name}
+        <button onClick={() => onClose()}>Cancel</button>
+        <button
+          onClick={() =>
+            void onAccept(
+              { smiles: "CC(=O)Oc1ccccc1C(=O)O", molfile: "M  END" },
+              file,
+            )
+          }
+        >
+          Use
+        </button>
+      </div>
+    ),
 }));
 afterEach(cleanup);
 it("opens a pasted or dropped image without changing the existing task input", async () => {
