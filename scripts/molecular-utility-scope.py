@@ -645,7 +645,7 @@ EDITOR_DRAWING_FILES = {
     "tests/fixtures/utility_image/browser.tsx",
     "tests/test_molecular_utility_scope.py",
 }
-EDITOR_DRAWING_DIFF = "0d8742f4014d63b76aa76b94d868b20ed60e8c4e4fdaa1fcc477e7f1dfe08f01"
+EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
