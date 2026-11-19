@@ -25,6 +25,7 @@ def test_native_property_files_drive_the_exact_selected_2d_and_3d(language):
                 if request.method == "POST" and request.url.endswith("/api/jobs") else None)
         page.goto(base + "#task=" + case["job_id"])
         before = page.request.get(base + "/api/jobs").json()
+        page.get_by_role("tab", name="记录与导出" if zh else "Records & export").click()
         table = page.locator(".properties-results .research-table")
         expect(table.locator("tbody tr")).to_have_count(2)
         for index, source in enumerate(case["sources"]):

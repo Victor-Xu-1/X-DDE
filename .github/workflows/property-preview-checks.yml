@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "frontend/src/operations/PropertyResults*"
+      - "frontend/src/operations/PropertyResultViews.tsx"
+      - "frontend/src/operations/property-result-views.css"
       - "frontend/src/operations/property-source*"
       - "server_tests/prepare_property_preview_case.py"
       - "server_tests/test_property_preview_browser.py"
@@ -18,7 +20,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   property-preview:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.molecule_results_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

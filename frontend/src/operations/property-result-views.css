@@ -1,0 +1,29 @@
+.properties-results .result-inspector {
+  gap: 8px;
+}
+.properties-results .result-inspector > header h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.property-descriptors table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.property-descriptors :is(th, td) {
+  padding: 7px 8px;
+  border-block-end: 1px solid var(--line);
+  vertical-align: baseline;
+}
+.property-descriptors th {
+  text-align: start;
+  font-weight: 500;
+  color: var(--muted);
+}
+.property-descriptors td {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.property-descriptors .field-help {
+  margin-block: 10px 0;
+}

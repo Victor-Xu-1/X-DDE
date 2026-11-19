@@ -53,6 +53,17 @@ export function CandidateReviewBar({
   const current = candidates.findIndex(
     (candidate) => candidate.id === selected,
   );
+  function move(offset: -1 | 1) {
+    const index = current + offset;
+    const target = candidates[index];
+    if (!target) return;
+    // At an endpoint the arrow loses its enabled state. Keep focus on its record.
+    if (index === 0 || index === candidates.length - 1)
+      track.current
+        ?.querySelectorAll("button")
+        [index]?.focus({ preventScroll: true });
+    onSelect(target.id);
+  }
 
   useLayoutEffect(() => {
     const list = track.current;
@@ -74,7 +85,7 @@ export function CandidateReviewBar({
             type="button"
             aria-label={zh ? "上一个候选" : "Previous candidate"}
             disabled={current < 1}
-            onClick={() => onSelect(candidates[current - 1].id)}
+            onClick={() => move(-1)}
           >
             ‹
           </button>
@@ -95,7 +106,7 @@ export function CandidateReviewBar({
             type="button"
             aria-label={zh ? "下一个候选" : "Next candidate"}
             disabled={current >= candidates.length - 1}
-            onClick={() => onSelect(candidates[current + 1].id)}
+            onClick={() => move(1)}
           >
             ›
           </button>

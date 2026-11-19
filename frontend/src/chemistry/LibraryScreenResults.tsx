@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { artifactUrl } from "../api";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import { CandidateReviewBar } from "../presentation/CandidateReviewBar";
 import type { Job, Language } from "../types";
-import {
-  screenReason,
-  type LibraryScreenResult,
-  type ScreenRow,
-} from "./screen-types";
+import { screenReason, type LibraryScreenResult } from "./screen-types";
 import { LibraryScreenSelection } from "./LibraryScreenSelection";
+import { LibraryScreenRecords } from "./LibraryScreenRecords";
 import {
   StatePreparationHandoff,
   useStatePreparation,
@@ -36,6 +34,22 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
   const rows = result.rows.filter((row) => !selectedOnly || row.selected);
   const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const active = visible.find((row) => row.record === record) ?? visible[0];
+  const position = rows.indexOf(active);
+  const nearby = rows.slice(Math.max(0, position - 2), position + 3);
+  const activeReason = active ? screenReason(active, zh) : null;
+  function select(id: number) {
+    const index = rows.findIndex((row) => row.record === id);
+    if (index < 0) return;
+    setRecord(id);
+    setPage(Math.floor(index / PAGE_SIZE));
+  }
+  function filter(onlySelected: boolean) {
+    const next = result.rows.filter((row) => !onlySelected || row.selected);
+    const index = next.findIndex((row) => row.record === active?.record);
+    setSelectedOnly(onlySelected);
+    setRecord(index >= 0 ? next[index].record : null);
+    setPage(Math.floor(Math.max(0, index) / PAGE_SIZE));
+  }
   const handoff = onCreated && preparation.input;
   const alertsRequested = Boolean(
     result.options?.alert_policy && result.options.alert_policy !== "off",
@@ -95,10 +109,7 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
               <input
                 type="checkbox"
                 checked={selectedOnly}
-                onChange={(event) => {
-                  setSelectedOnly(event.target.checked);
-                  setPage(0);
-                }}
+                onChange={(event) => filter(event.target.checked)}
               />
               {zh ? "只看选中分子" : "Show selected molecules only"}
             </label>
@@ -123,49 +134,30 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
                   : "No molecules selected in this range; revise the criteria."}
               </p>
             ) : (
-              <div className="table-scroll library-screen-records">
-                <table aria-label={zh ? "筛选条目" : "Screening records"}>
-                  <thead>
-                    <tr>
-                      <th scope="col">{zh ? "原始编号" : "Input record"}</th>
-                      <th scope="col">{zh ? "分子量" : "MW"}</th>
-                      <th scope="col">LogP</th>
-                      <th scope="col">
-                        {zh ? "选择依据" : "Selection evidence"}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visible.map((row) => (
-                      <tr
-                        key={row.record}
-                        data-selected={
-                          active.record === row.record || undefined
-                        }
-                      >
-                        <th scope="row">
-                          <button
-                            className="text-button library-screen-record"
-                            type="button"
-                            aria-label={`${zh ? "原始分子" : "Input molecule"} #${row.record + 1}`}
-                            aria-pressed={active.record === row.record}
-                            onClick={() => setRecord(row.record)}
-                          >
-                            #{row.record + 1}
-                          </button>
-                        </th>
-                        <td>{row.descriptors?.mw.toFixed(1) ?? "—"}</td>
-                        <td>{row.descriptors?.logp.toFixed(2) ?? "—"}</td>
-                        <td>
-                          <span title={row.reason ?? undefined}>
-                            {selectionEvidence(row, zh)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {rows.length > 1 && (
+                  <CandidateReviewBar
+                    label={
+                      zh ? "筛选分子导航" : "Screening molecule navigation"
+                    }
+                    caption={`${position + 1} / ${rows.length}`}
+                    language={language}
+                    selected={active.record}
+                    candidates={nearby.map(({ record }) => ({
+                      id: record,
+                      short: record + 1,
+                      label: `${zh ? "预览原始分子" : "Preview input molecule"} #${record + 1}`,
+                    }))}
+                    onSelect={select}
+                  />
+                )}
+                <LibraryScreenRecords
+                  rows={visible}
+                  selected={active.record}
+                  language={language}
+                  onSelect={select}
+                />
+              </>
             )}
             {rows.length > PAGE_SIZE && (
               <nav
@@ -191,6 +183,11 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
                 </button>
               </nav>
             )}
+            {activeReason && (
+              <p className="field-help library-screen-selected-reason">
+                {activeReason}
+              </p>
+            )}
           </div>
         </StructureWorkbench>
       </div>
@@ -205,18 +202,4 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
       )}
     </section>
   );
-}
-
-function selectionEvidence(row: ScreenRow, zh: boolean) {
-  if (row.similarity != null) return row.similarity.toFixed(3);
-  if (row.substructure_match != null)
-    return row.substructure_match
-      ? zh
-        ? "匹配片段"
-        : "Substructure match"
-      : zh
-        ? "不匹配"
-        : "No match";
-  if (row.selected) return zh ? "已选中" : "Selected";
-  return screenReason(row, zh);
 }

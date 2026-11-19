@@ -68,6 +68,7 @@ it("selects the source file's exact native record for 2D and 3D instead of rebui
     urls: ["/api/assets/" + id],
     records: [1],
   });
+  await userEvent.click(screen.getByRole("tab", { name: "Records & export" }));
   await userEvent.click(
     screen.getByRole("button", { name: "Native first record" }),
   );
@@ -108,8 +109,10 @@ it("shows native compound identities in the table, selector and selected structu
       language="en"
     />,
   );
+  await userEvent.click(screen.getByRole("tab", { name: "Landscape" }));
   expect(screen.getByRole("option", { name: "CHEMBL123" })).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "CHEMBL123" })).toBeVisible();
+  await userEvent.click(screen.getByRole("tab", { name: "Records & export" }));
   expect(screen.getByRole("table")).toHaveTextContent("CHEMBL123");
   expect(JSON.stringify(molecules)).toBe(original);
 });
@@ -159,6 +162,7 @@ it("links keyboard plot selection, original molecular identity and a reviewed ne
       onDraft={onDraft}
     />,
   );
+  await userEvent.click(screen.getByRole("tab", { name: "Landscape" }));
   await userEvent.selectOptions(
     screen.getByRole("combobox", { name: "Inspect record" }),
     "1",
@@ -174,4 +178,35 @@ it("links keyboard plot selection, original molecular identity and a reviewed ne
     molecules[1].smiles,
   );
   expect(JSON.stringify(molecules)).toBe(original);
+});
+
+it("shows current numeric values without requiring the wide comparison table", async () => {
+  render(
+    <PropertyResults
+      job={{ id: "job", request: { name: "One result" } } as Job}
+      molecules={[
+        {
+          input: "compound",
+          available: true,
+          smiles: "CC(=O)Oc1ccccc1C(=O)O",
+          mw: 180.042259,
+          logp: 1.31,
+          hbd: 0,
+        },
+      ]}
+      language="en"
+    />,
+  );
+  const descriptors = screen.getByRole("table", {
+    name: "Calculated properties for the selected molecule",
+  });
+  expect(descriptors).toHaveTextContent("180.042");
+  expect(screen.getByTitle("180.042259")).toBeVisible();
+  expect(screen.getByTitle("0")).toBeVisible();
+  expect(screen.queryByRole("tab", { name: "Landscape" })).toBeNull();
+  expect(screen.queryByRole("searchbox")).toBeNull();
+  await userEvent.click(screen.getByRole("tab", { name: "Records & export" }));
+  expect(
+    screen.getByRole("button", { name: "Export filtered rows" }),
+  ).toBeEnabled();
 });
