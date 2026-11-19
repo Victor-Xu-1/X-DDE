@@ -1037,6 +1037,24 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 UTILITY_RESULT_DESKTOP_DIFF = "fb5f54ef07da82c9a1d62e451534535e8c0f735ff99ea82f65a741a05286da1a"
+RESULT_HANDOFF_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/admet/AdmetResults.test.tsx",
+    "frontend/src/admet/AdmetResults.tsx",
+    "frontend/src/admet/AdmetSelectedMolecule.tsx",
+    "frontend/src/admet/admet.css",
+    "frontend/src/chemistry/LibraryScreenResults.test.tsx",
+    "frontend/src/chemistry/LibraryScreenResults.tsx",
+    "frontend/src/chemistry/LibraryScreenSelection.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.test.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.tsx",
+    "frontend/src/chemistry/library-screen-results.css",
+    "frontend/src/chemistry/result-preparation.css",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_result_handoffs_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+RESULT_HANDOFF_DESKTOP_DIFF = "61bc66839e4be37e9ba811ede4432777f83e0dc5d81621694734636813dcd65d"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
@@ -1252,7 +1270,13 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RUNTIME_ENTRY_FILES, RUNTIME_ENTRY_DIFF, scope_pin="RUNTIME_ENTRY_DIFF",
     )
+    result_handoff_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RESULT_HANDOFF_DESKTOP_FILES, RESULT_HANDOFF_DESKTOP_DIFF,
+        scope_pin="RESULT_HANDOFF_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
         output.write("utility_result_desktop_only=" + str(utility_result_desktop).lower() + "\n")
         output.write("proximity_desktop_only=" + str(proximity_desktop).lower() + "\n")
@@ -1312,7 +1336,7 @@ def main():
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
-            or utility_result_desktop or runtime_entry
+            or utility_result_desktop or runtime_entry or result_handoff_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
