@@ -13,6 +13,42 @@
   background: #ffffffed;
   z-index: 5;
 }
+@media (min-width: 1000px) {
+  .application.is-embedded[data-xdde-drawing] {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 12px 8px;
+  }
+  [data-xdde-drawing] .app-header {
+    flex: 0 0 46px;
+    height: 46px;
+  }
+  [data-xdde-drawing] .brand-icon {
+    width: 30px;
+    height: 30px;
+  }
+  [data-xdde-drawing] .brand h1 {
+    font-size: 16px;
+  }
+  [data-xdde-drawing] :is(.brand span, .app-footer, .step-number) {
+    display: none;
+  }
+  [data-xdde-drawing] .workbench {
+    flex: 1 1 auto;
+    grid-template-columns: minmax(290px, 0.85fr) minmax(0, 1.55fr);
+    border-radius: 10px;
+  }
+  [data-xdde-drawing] :is(.input-panel, .output-panel) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  [data-xdde-drawing] :is(.image-stage, .editor-canvas) {
+    flex: 1 1 auto;
+    height: clamp(300px, calc(100dvh - 214px), 1000px);
+  }
+}
 @media (max-width: 680px), (pointer: coarse) {
   .app-header .power-switch {
     flex: none;

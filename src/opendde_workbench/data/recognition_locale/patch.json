@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "f66195fb9c0c5cf5cd71deb0beb0e31c90d7b9b530669c9de87bbde6bca2f5e2",
+      "after_sha256": "ed847ffc8a90d75500ae7629426e8b8067f544b08e893fe5fb87d8ef019e6404",
       "changes": [
         {
           "before": "const labels = {",
@@ -198,6 +198,29 @@
         {
           "before": "aria-label={text(\"下载 SDF\")}\n                disabled={!smiles.trim()}",
           "after": "aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}"
+        },
+        {
+          "before": "import { useXddeBridge } from \"./useXddeBridge\";",
+          "after": "import { useXddeBridge } from \"./useXddeBridge\";\nimport { drawingBridgeOrigin } from \"./recognition-host-bridge\";"
+        },
+        {
+          "before": "    <div\n      className={\n        window.parent",
+          "after": "    <div\n      data-xdde-drawing={drawingBridgeOrigin() ? \"\" : undefined}\n      className={\n        window.parent"
+        }
+      ],
+      "upgrades": [
+        {
+          "before_sha256": "f66195fb9c0c5cf5cd71deb0beb0e31c90d7b9b530669c9de87bbde6bca2f5e2",
+          "changes": [
+            {
+              "before": "import { useXddeBridge } from \"./useXddeBridge\";",
+              "after": "import { useXddeBridge } from \"./useXddeBridge\";\nimport { drawingBridgeOrigin } from \"./recognition-host-bridge\";"
+            },
+            {
+              "before": "    <div\n      className={\n        window.parent",
+              "after": "    <div\n      data-xdde-drawing={drawingBridgeOrigin() ? \"\" : undefined}\n      className={\n        window.parent"
+            }
+          ]
         }
       ]
     },
@@ -474,7 +497,7 @@
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "7d61226e7a2f4f8738fb2642dabca1d9d55c23690c07b86fd8a984c9abea1433",
+      "after_sha256": "2b62318446422f3e645b2add9e8aee1d69074a20522080f333d74e6a8b3c286a",
       "changes": [
         {
           "before": "          const molfile = await editor.getMolfile();",
@@ -511,6 +534,26 @@
         {
           "before": "  useEffect(() => {\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]);",
           "after": "  useEffect(() => {\n    foreground.current?.update();\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file, work.error, work.state.phase, work.state.job?.id, work.state.job?.status]);"
+        },
+        {
+          "before": "  attachRecognitionBridge,\n  inputBridgeOrigin,",
+          "after": "  attachRecognitionBridge,\n  drawingBridgeOrigin,\n  inputBridgeOrigin,"
+        },
+        {
+          "before": "  const origin = inputBridgeOrigin();",
+          "after": "  const drawingOrigin = drawingBridgeOrigin();\n  const origin = inputBridgeOrigin() ?? drawingOrigin;"
+        },
+        {
+          "before": "(!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))",
+          "after": "(!latest.current.busy || Boolean(!drawingOrigin && latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))"
+        },
+        {
+          "before": "      origin,\n    );",
+          "after": "      origin,\n      drawingOrigin ? \"drawing\" : \"input\",\n    );"
+        },
+        {
+          "before": "  }, [origin, work.editorReady]);",
+          "after": "  }, [origin, drawingOrigin, work.editorReady]);"
         }
       ],
       "upgrades": [
@@ -536,6 +579,26 @@
             {
               "before": "  useEffect(() => {\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file]);",
               "after": "  useEffect(() => {\n    foreground.current?.update();\n    bridge.current?.publish();\n  }, [origin, work.smiles, work.busy, work.editorReady, work.structureReady, work.file, work.error, work.state.phase, work.state.job?.id, work.state.job?.status]);"
+            },
+            {
+              "before": "  attachRecognitionBridge,\n  inputBridgeOrigin,",
+              "after": "  attachRecognitionBridge,\n  drawingBridgeOrigin,\n  inputBridgeOrigin,"
+            },
+            {
+              "before": "  const origin = inputBridgeOrigin();",
+              "after": "  const drawingOrigin = drawingBridgeOrigin();\n  const origin = inputBridgeOrigin() ?? drawingOrigin;"
+            },
+            {
+              "before": "(!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))",
+              "after": "(!latest.current.busy || Boolean(!drawingOrigin && latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))"
+            },
+            {
+              "before": "      origin,\n    );",
+              "after": "      origin,\n      drawingOrigin ? \"drawing\" : \"input\",\n    );"
+            },
+            {
+              "before": "  }, [origin, work.editorReady]);",
+              "after": "  }, [origin, drawingOrigin, work.editorReady]);"
             }
           ]
         },
@@ -545,6 +608,47 @@
             {
               "before": "        selectFile: (file) => latest.current.selectFile(file),\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },",
               "after": "        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },"
+            },
+            {
+              "before": "  attachRecognitionBridge,\n  inputBridgeOrigin,",
+              "after": "  attachRecognitionBridge,\n  drawingBridgeOrigin,\n  inputBridgeOrigin,"
+            },
+            {
+              "before": "  const origin = inputBridgeOrigin();",
+              "after": "  const drawingOrigin = drawingBridgeOrigin();\n  const origin = inputBridgeOrigin() ?? drawingOrigin;"
+            },
+            {
+              "before": "(!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))",
+              "after": "(!latest.current.busy || Boolean(!drawingOrigin && latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id))"
+            },
+            {
+              "before": "      origin,\n    );",
+              "after": "      origin,\n      drawingOrigin ? \"drawing\" : \"input\",\n    );"
+            },
+            {
+              "before": "  }, [origin, work.editorReady]);",
+              "after": "  }, [origin, drawingOrigin, work.editorReady]);"
+            }
+          ]
+        },
+        {
+          "before_sha256": "7d61226e7a2f4f8738fb2642dabca1d9d55c23690c07b86fd8a984c9abea1433",
+          "changes": [
+            {
+              "before": "  attachRecognitionBridge,\n  inputBridgeOrigin,",
+              "after": "  attachRecognitionBridge,\n  drawingBridgeOrigin,\n  inputBridgeOrigin,"
+            },
+            {
+              "before": "  const origin = inputBridgeOrigin();",
+              "after": "  const drawingOrigin = drawingBridgeOrigin();\n  const origin = inputBridgeOrigin() ?? drawingOrigin;"
+            },
+            {
+              "before": "    bridge.current = attachRecognitionBridge(\n      {\n        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },\n        file: () => latest.current.file,\n        available: () =>\n          latest.current.editorReady &&\n          latest.current.structureGate.available &&\n          (!latest.current.busy || Boolean(latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id)) &&\n          Boolean(latest.current.smiles.trim()),\n        molecule: async () => {\n          const checkpoint = latest.current.structureGate.checkpoint();\n          const molfile = await editor.getMolfile(\"v3000\");\n          const converted = await editor.structService.convert({\n            struct: molfile,\n            output_format: ChemicalMimeType.DaylightSmiles,\n          });\n          latest.current.structureGate.verify(checkpoint);\n          return { smiles: converted.struct, molfile };\n        },\n        subscribe: (change) => {\n          const subscription = editor.editor.subscribe(\"change\", change);\n          return () => {\n            editor.editor.unsubscribe(\"change\", subscription);\n          };\n        },\n      },\n      origin,\n    );",
+              "after": "    bridge.current = attachRecognitionBridge(\n      {\n        selectFile: (file) => latest.current.selectFile(file),\n        recognitionReady: () => latest.current.state.phase === \"ready\",\n        recognize: (file, signal) => {\n          // An explicit retry owns a new attempt, not the previous UI error.\n          flushSync(() => latest.current.setError(\"\"));\n          return foreground.current!.request(file, signal);\n        },\n        loadMolecule: (molecule) => {\n          // Commit the empty import first so an identical molfile still reloads.\n          flushSync(() => {\n            latest.current.setStructureReady(false);\n            latest.current.setSmiles(\"\");\n            latest.current.setMolfile(\"\");\n          });\n          latest.current.setMolfile(molecule.molfile);\n        },\n        file: () => latest.current.file,\n        available: () =>\n          latest.current.editorReady &&\n          latest.current.structureGate.available &&\n          (!latest.current.busy || Boolean(!drawingOrigin && latest.current.state.job && latest.current.activeJob.current !== latest.current.state.job.id)) &&\n          Boolean(latest.current.smiles.trim()),\n        molecule: async () => {\n          const checkpoint = latest.current.structureGate.checkpoint();\n          const molfile = await editor.getMolfile(\"v3000\");\n          const converted = await editor.structService.convert({\n            struct: molfile,\n            output_format: ChemicalMimeType.DaylightSmiles,\n          });\n          latest.current.structureGate.verify(checkpoint);\n          return { smiles: converted.struct, molfile };\n        },\n        subscribe: (change) => {\n          const subscription = editor.editor.subscribe(\"change\", change);\n          return () => {\n            editor.editor.unsubscribe(\"change\", subscription);\n          };\n        },\n      },\n      origin,\n      drawingOrigin ? \"drawing\" : \"input\",\n    );"
+            },
+            {
+              "before": "  }, [origin, work.editorReady]);",
+              "after": "  }, [origin, drawingOrigin, work.editorReady]);"
             }
           ]
         }
@@ -555,13 +659,18 @@
     "recognition-host-bridge.ts": [
       "16f4156052bf98fdf8ac0e697dfee5a6f34f1ce7386f111c35e1c8e190cb7ecb",
       "db899bf156c8192310882c3d8e4b526e1d23cae9be5e31985d3e193c0266f7f0",
-      "db2e0692f0b0623f4e636b78b04982db3546e2ea2450300bdcae66302fa87172"
+      "db2e0692f0b0623f4e636b78b04982db3546e2ea2450300bdcae66302fa87172",
+      "8debd8625a4da1aca2311bdefdbedc0175cf0f098f1e3207c76b47cc6ae4a87f"
     ],
     "recognition-foreground.ts": [
       "abffd7e0d991d0d5d442d857b7dff2475e0bea7b6f93bb81bd089b9eac5346f8"
     ],
     "recognition-host-editor.css": [
-      "ad4f65c41edea5c7f91205960e125c3732701007a4ee0420d2a6318f2f90823a"
+      "ad4f65c41edea5c7f91205960e125c3732701007a4ee0420d2a6318f2f90823a",
+      "9392566b885eaa5c596f4e25f22c6e492402ff9f88cfeaeddf39e246551e8981"
+    ],
+    "recognition-locale.ts": [
+      "a4605d349eef207de2ad4b66ed4aaeae460b25fa10cf12d30a397c6d5b5d9f13"
     ]
   }
 }

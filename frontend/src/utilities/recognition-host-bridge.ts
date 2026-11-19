@@ -6,9 +6,16 @@ const origins = new Set([
 ]);
 const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 export function inputBridgeOrigin() {
+  return embeddedOrigin("xdde-input");
+}
+export function drawingBridgeOrigin() {
+  return embeddedOrigin("xdde-drawing");
+}
+function embeddedOrigin(mode: "xdde-input" | "xdde-drawing") {
   const query = new URLSearchParams(location.search),
     origin = query.get("parent") ?? "";
-  return query.get("xdde-input") === "1" &&
+  return query.get(mode) === "1" &&
+    !query.has(mode === "xdde-input" ? "xdde-drawing" : "xdde-input") &&
     window.parent !== window &&
     origins.has(origin)
     ? origin
@@ -54,9 +61,14 @@ function validMolecule(
     !item.molfile.includes("$$$$")
   );
 }
-export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
+export function attachRecognitionBridge(
+  host: RecognitionHost,
+  origin: string,
+  mode: "input" | "drawing" = "input",
+) {
   if (!origins.has(origin) || window.parent === window)
     throw new Error("Unsupported embedding origin");
+  if (mode === "drawing") return attachDrawingBridge(host, origin);
   let context: Context | null = null;
   let version = 0,
     exporting = false,
@@ -182,8 +194,7 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
         if (host.recognitionReady?.() !== true)
           throw new Error("Recognition service is not ready");
         await host.recognize(file, run.controller.signal);
-        if (host.file() !== file)
-          throw new Error("Recognition input changed");
+        if (host.file() !== file) throw new Error("Recognition input changed");
         if (
           mounted &&
           context === bound &&
@@ -244,27 +255,15 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
       return;
     }
     exporting = true;
-    let deadline: ReturnType<typeof setTimeout> | undefined;
-    let timedOut = false;
     try {
-      const molecule = await Promise.race([
-        host.molecule(),
-        new Promise<never>((_resolve, reject) => {
-          deadline = setTimeout(() => {
-            timedOut = true;
-            reject(new Error("Native molecular export timed out"));
-          }, 12000);
-        }),
-      ]);
+      const { molecule, error } = await readMolecule(host);
       respond(
         revision === version && host.file() === source && host.available()
           ? molecule
           : null,
+        error,
       );
-    } catch {
-      respond(null, timedOut ? "timeout" : undefined);
     } finally {
-      clearTimeout(deadline);
       exporting = false;
     }
   }
@@ -281,3 +280,101 @@ export function attachRecognitionBridge(host: RecognitionHost, origin: string) {
     },
   };
 }
+
+/** The embedded drawing workspace exposes a snapshot only on explicit request. */
+function attachDrawingBridge(host: RecognitionHost, origin: string) {
+  let session: string | null = null;
+  let revision = 0;
+  let exporting = false;
+  let mounted = true;
+  function publish() {
+    if (mounted && session)
+      window.parent.postMessage(
+        {
+          type: "xdde-drawing:state",
+          id: session,
+          available: host.available(),
+        },
+        origin,
+      );
+  }
+  const unsubscribe = host.subscribe(() => {
+    revision++;
+    publish();
+  });
+  async function receive(event: MessageEvent) {
+    if (event.origin !== origin || event.source !== window.parent) return;
+    const data = event.data;
+    if (!data || typeof data.id !== "string" || !uuid.test(data.id)) return;
+    if (data.type === "xdde-drawing:connect") {
+      session = data.id;
+      publish();
+      return;
+    }
+    if (
+      data.type !== "xdde-drawing:export" ||
+      data.id !== session ||
+      typeof data.requestId !== "string" ||
+      !uuid.test(data.requestId) ||
+      exporting
+    )
+      return;
+    const id = session;
+    const before = revision;
+    exporting = true;
+    try {
+      const result = host.available()
+        ? await readMolecule(host)
+        : { molecule: null };
+      if (mounted && session === id)
+        window.parent.postMessage(
+          {
+            type: "xdde-drawing:result",
+            id,
+            requestId: data.requestId,
+            molecule:
+              before === revision && host.available() ? result.molecule : null,
+          },
+          origin,
+        );
+    } finally {
+      exporting = false;
+    }
+  }
+  window.addEventListener("message", receive);
+  window.parent.postMessage({ type: "xdde-drawing:ready" }, origin);
+  return {
+    publish,
+    dispose() {
+      mounted = false;
+      unsubscribe();
+      window.removeEventListener("message", receive);
+    },
+  };
+}
+
+async function readMolecule(host: RecognitionHost): Promise<{
+  molecule: ImageMoleculeSnapshot | null;
+  error?: "timeout";
+}> {
+  let deadline: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  try {
+    const value = await Promise.race([
+      host.molecule(),
+      new Promise<never>((_resolve, reject) => {
+        deadline = setTimeout(() => {
+          timedOut = true;
+          reject(new Error("Native molecular export timed out"));
+        }, 12000);
+      }),
+    ]);
+    return { molecule: validMolecule(value) ? value : null };
+  } catch {
+    return { molecule: null, error: timedOut ? "timeout" : undefined };
+  } finally {
+    clearTimeout(deadline);
+  }
+}
+
+type ImageMoleculeSnapshot = { smiles: string; molfile: string };

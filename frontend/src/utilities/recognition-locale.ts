@@ -16,13 +16,17 @@ export function recognitionLanguage(
 export function recognitionFrameUrl(
   origin: string,
   language: RecognitionLanguage,
-  input = false,
+  mode: boolean | "drawing" = false,
 ) {
   const url = new URL("/", origin);
   url.searchParams.set("xdde-locale", "1");
   url.searchParams.set("parent", location.origin);
   url.searchParams.set("lang", language);
-  if (input) url.searchParams.set("xdde-input", "1");
+  if (mode)
+    url.searchParams.set(
+      mode === "drawing" ? "xdde-drawing" : "xdde-input",
+      "1",
+    );
   return url.href;
 }
 

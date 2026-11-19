@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { Job } from "../types";
 
-type Action = "example" | "submission";
+type Action = "example" | "submission" | "structure-import";
 type Scope = {
   action: Action | null;
   begin(action: Action): (() => void) | null;

@@ -621,6 +621,33 @@ INLINE_RECOGNITION_FILES = {
 INLINE_RECOGNITION_DIFF = "6ad8190d16ad818009d06e3a4510229edd3ef9a7193d3871b223b5a1d169eac0"
 
 
+EDITOR_DRAWING_FILES = {
+    ".github/workflows/ketcher-depiction-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/editors/recognition-host-editor.css",
+    "frontend/src/guided/InputActionScope.tsx",
+    "frontend/src/utilities/ImageRecognition.test.tsx",
+    "frontend/src/utilities/ImageRecognition.tsx",
+    "frontend/src/utilities/UtilityDrawingContext.ts",
+    "frontend/src/utilities/UtilityImageInput.tsx",
+    "frontend/src/utilities/UtilityImageTask.test.tsx",
+    "frontend/src/utilities/UtilityTask.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/image-molecule.ts",
+    "frontend/src/utilities/recognition-host-bridge.test.ts",
+    "frontend/src/utilities/recognition-host-bridge.ts",
+    "frontend/src/utilities/recognition-locale.ts",
+    "frontend/src/utilities/useRecognitionDrawing.ts",
+    "frontend/src/utilities/utilities.css",
+    "server_tests/test_utility_image_browser.py",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
+    "tests/fixtures/utility_image/browser.tsx",
+    "tests/test_molecular_utility_scope.py",
+}
+EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
+
+
 # Only this exact presentation patch takes the narrower browser gate.
 BACKEND_PLACEMENT_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
@@ -1470,12 +1497,17 @@ def main():
         INLINE_RECOGNITION_FILES, INLINE_RECOGNITION_DIFF,
         scope_pin="INLINE_RECOGNITION_DIFF",
     )
+    editor_drawing = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        EDITOR_DRAWING_FILES, EDITOR_DRAWING_DIFF, scope_pin="EDITOR_DRAWING_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         aligned_comparison = aligned_comparison_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         )
         output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
+        output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
@@ -1545,6 +1577,7 @@ def main():
             or desktop_structure_focus
             or aligned_comparison
             or inline_recognition
+            or editor_drawing
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

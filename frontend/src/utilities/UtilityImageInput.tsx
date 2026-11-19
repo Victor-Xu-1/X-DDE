@@ -2,6 +2,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -11,9 +12,18 @@ import type { MoleculeRef } from "../research/types";
 import { useAssetUpload } from "../operations/useAssetUpload";
 import { ImageMoleculeInput } from "./ImageMoleculeInput";
 import { ImageInputSourceContext } from "./ImageInputSource";
-import { imageMoleculeFile, type ImageMolecule } from "./image-molecule";
+import {
+  editorMoleculeFile,
+  imageMoleculeFile,
+  type ImageMolecule,
+} from "./image-molecule";
 import { researchError } from "../presentation/research-content";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
+import { useInputActionScope } from "../guided/InputActionScope";
+import {
+  UtilityDrawingContext,
+  type UtilityDrawingOffer,
+} from "./UtilityDrawingContext";
 
 export type UtilityImageValue = { reference: MoleculeRef; key: string };
 const formats = [".sdf"] as const;
@@ -27,6 +37,7 @@ export function UtilityFormImage({
   children(value: UtilityImageValue | null): ReactNode;
 }) {
   const presentation = useContext(TaskPresentationContext);
+  const drawing = useContext(UtilityDrawingContext);
   const [value, setValue] = useState<UtilityImageValue | null>(null);
   if (presentation?.imageEntry !== "workspace") return children(null);
   return (
@@ -35,6 +46,7 @@ export function UtilityFormImage({
       active={presentation.active !== false}
       value={value?.reference.asset_id ?? ""}
       onLoaded={setValue}
+      drawing={drawing}
     >
       {children(value)}
     </UtilityImageInput>
@@ -48,6 +60,7 @@ export function UtilityImageInput({
   value,
   onLoaded,
   query = false,
+  drawing,
   children,
 }: {
   language: Language;
@@ -55,9 +68,12 @@ export function UtilityImageInput({
   value: string;
   onLoaded(value: UtilityImageValue): void;
   query?: boolean;
+  drawing?: UtilityDrawingOffer | null;
   children: ReactNode;
 }) {
   const source = useRef(new AbortController());
+  const scope = useInputActionScope();
+  const importAttempt = useRef<AbortController | null>(null);
   const getSourceSignal = useCallback(() => source.current.signal, []);
   const replaceSource = useCallback(() => {
     source.current.abort();
@@ -90,6 +106,32 @@ export function UtilityImageInput({
     if (source.current.signal.aborted) source.current = new AbortController();
     return () => source.current.abort();
   }, []);
+  useLayoutEffect(
+    () => () => importAttempt.current?.abort(),
+    [active, drawing?.id],
+  );
+  async function importDrawing(offer: UtilityDrawingOffer) {
+    if (!active || upload.busy || importAttempt.current) return;
+    const finish = scope?.begin("structure-import");
+    if (scope && !finish) return;
+    const attempt = new AbortController();
+    importAttempt.current = attempt;
+    try {
+      if (
+        await upload.upload(editorMoleculeFile(offer.molecule), {
+          preserveSelection: true,
+          signal: attempt.signal,
+        })
+      ) {
+        setReview(null);
+        offer.dismiss(offer.id);
+      }
+    } finally {
+      if (importAttempt.current === attempt) importAttempt.current = null;
+      finish?.();
+    }
+  }
+  const zh = language === "zh";
   return (
     <ImageInputSourceContext.Provider value={getSourceSignal}>
       <ImageMoleculeInput
@@ -114,6 +156,44 @@ export function UtilityImageInput({
           if (!signal.aborted) setReview({ molecule, image });
         }}
       >
+        {drawing && (
+          <div
+            className="utility-drawing-offer"
+            role="group"
+            aria-label={zh ? "待用绘图" : "Drawing ready"}
+          >
+            <span>
+              {zh
+                ? "来自分子编辑器的绘图"
+                : "Drawing from the molecular editor"}
+            </span>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!active || upload.busy || Boolean(scope?.action)}
+              onClick={() => void importDrawing(drawing)}
+            >
+              {upload.busy
+                ? zh
+                  ? "正在添加…"
+                  : "Adding…"
+                : zh
+                  ? "用作输入"
+                  : "Use as input"}
+            </button>
+            <button
+              className="text-button"
+              type="button"
+              disabled={!active || upload.busy || Boolean(scope?.action)}
+              onClick={() => {
+                drawing.dismiss(drawing.id);
+                upload.clearError();
+              }}
+            >
+              {zh ? "忽略" : "Dismiss"}
+            </button>
+          </div>
+        )}
         {upload.error && (
           <p role="alert" className="error-box">
             {researchError(upload.error, language === "zh")}

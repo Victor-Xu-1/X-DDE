@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -42,6 +43,7 @@ def compiled_image(tmp_path_factory):
 @contextmanager
 def image_hosts(root, idle_power=True):
     uploads = []
+    assets = []
     power_commands = []
     power_enabled = False
 
@@ -65,6 +67,14 @@ def image_hosts(root, idle_power=True):
                 "/api/utilities/recognition": b'{"available":true,"port":8940}',
                 "/api/utilities/recognition?include_power=true": power_state(),
             }
+            path = urlsplit(self.path).path
+            if path == "/api/assets":
+                self.write_json(json.dumps(assets).encode())
+                return
+            for asset in assets:
+                if path == f"/api/assets/{asset['id']}/metadata":
+                    self.write_json(json.dumps(asset).encode())
+                    return
             if reply := replies.get(self.path):
                 self.write_json(reply)
             else:
@@ -82,12 +92,15 @@ def image_hosts(root, idle_power=True):
             assert self.path.startswith("/api/assets?")
             body = self.rfile.read(int(self.headers["content-length"]))
             uploads.append(body)
-            self.write_json(json.dumps({
-                "id": f"controlled-image-{len(uploads)}", "name": "image-structure.sdf",
+            asset = {
+                "id": f"controlled-image-{len(uploads)}",
+                "name": parse_qs(urlsplit(self.path).query)["name"][0],
                 "kind": "ligand",
                 "suffix": ".sdf", "size": len(body), "sha256": hashlib.sha256(body).hexdigest(),
                 "created_at": "2026-11-17",
-            }).encode())
+            }
+            assets.append(asset)
+            self.write_json(json.dumps(asset).encode())
 
         def log_message(self, *_):
             pass
@@ -305,4 +318,36 @@ def test_legacy_recognition_power_keeps_the_import_and_draft(compiled_image):
         expect(selected).to_have_text("controlled-image-1")
         assert page.locator("iframe").count() == 0
         assert len(uploads) == 1 and power_commands == [(8940, True), (8940, False)]
+        browser.close()
+
+
+def test_editor_drawing_reaches_the_selected_utility_only_on_acceptance(compiled_image):
+    with image_hosts(compiled_image) as (uploads, power_commands), sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        posts = []
+        page.on("request", lambda req: posts.append(req.url) if req.method == "POST" else None)
+        page.goto("http://127.0.0.1:4322/?audit=drawing")
+        frame = page.frame_locator(".utility-recognition-frame")
+        destination = page.get_by_role("combobox", name="Use structure in a task")
+        drawing = frame.get_by_label("Graph text")
+        expect(destination).to_be_disabled()
+        drawing.fill("Nc1ccccc1")
+        expect(destination).to_be_enabled()
+        destination.select_option("properties")
+        offer = page.get_by_role("group", name="Drawing ready")
+        expect(offer).to_be_visible()
+        assert not uploads and not posts
+        offer.get_by_role("button", name="Dismiss").click()
+        expect(offer).to_have_count(0)
+        page.get_by_role("button", name="Image recognition & editor", exact=True).click()
+        expect(drawing).to_have_value("Nc1ccccc1")
+        destination.select_option("properties")
+        offer.get_by_role("button", name="Use as input").click()
+        expect(offer).to_have_count(0)
+        assert len(uploads) == 1 and len(posts) == 1
+        assert "/api/assets?kind=ligand&name=editor-structure.sdf" in posts[0]
+        assert b"Nc1ccccc1" in uploads[0]
+        assert b"Molecular editor drawing" in uploads[0] and b"XDDE_IMAGE_SHA256" not in uploads[0]
+        assert not power_commands
         browser.close()

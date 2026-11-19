@@ -4,6 +4,10 @@ import { ImageRecognition } from "./ImageRecognition";
 import { UtilityTask, utilityCapability } from "./UtilityTask";
 import { TaskBackendControl } from "./TaskBackendControl";
 import { PrimaryBackendScope } from "./backend-control-scope";
+import type {
+  DrawingDestination,
+  EditorDrawing,
+} from "./useRecognitionDrawing";
 
 const utilityTabs = [
   [
@@ -59,6 +63,9 @@ export function UtilityWorkspace({
   const active = selection.request === imageRequest ? selection.tab : "image";
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
   const [visited, setVisited] = useState<Utility[]>(["image"]);
+  const [drawings, setDrawings] = useState<
+    Partial<Record<DrawingDestination, EditorDrawing>>
+  >({});
   const zh = language === "zh";
   const navigation = useRef<HTMLElement>(null);
   const activeTab = useRef<HTMLButtonElement>(null);
@@ -83,6 +90,19 @@ export function UtilityWorkspace({
     visible && active !== "image"
       ? { capability: utilityCapability(active) }
       : null;
+  function selectUtility(tab: Utility) {
+    setSelection({ tab, request: imageRequest });
+    setVisited((previous) =>
+      previous.includes(tab) ? previous : [...previous, tab],
+    );
+  }
+  function receiveDrawing(
+    destination: DrawingDestination,
+    drawing: EditorDrawing,
+  ) {
+    setDrawings((previous) => ({ ...previous, [destination]: drawing }));
+    selectUtility(destination);
+  }
   return (
     <div className="utility-workspace">
       <div className="utility-tabbar">
@@ -99,12 +119,7 @@ export function UtilityWorkspace({
               title={zh ? cn : en}
               ref={active === id ? activeTab : undefined}
               aria-pressed={active === id}
-              onClick={() => {
-                setSelection({ tab: id, request: imageRequest });
-                setVisited((previous) =>
-                  previous.includes(id) ? previous : [...previous, id],
-                );
-              }}
+              onClick={() => selectUtility(id)}
             >
               {short && !zh ? (
                 <>
@@ -150,6 +165,15 @@ export function UtilityWorkspace({
                     onCreated={onCreated}
                     jobs={jobs}
                     active={visible && active === id}
+                    drawing={id === "screen" ? undefined : drawings[id]}
+                    onDrawingHandled={(token) => {
+                      if (id !== "screen")
+                        setDrawings((previous) =>
+                          previous[id]?.id === token
+                            ? { ...previous, [id]: undefined }
+                            : previous,
+                        );
+                    }}
                   />
                 </PrimaryBackendScope.Provider>
               </>
@@ -159,6 +183,7 @@ export function UtilityWorkspace({
                 actionsTarget={imageActions}
                 visible={visible && active === id}
                 focusRequest={imageRequest}
+                onHandoff={receiveDrawing}
               />
             )}
           </section>

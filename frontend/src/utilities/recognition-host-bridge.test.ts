@@ -53,11 +53,62 @@ it("never enables recognition and rejects a molecular export changed during seri
   deliver({ type: "xdde-image:export", id, requestId });
   changed();
   complete({ smiles: "CC(=O)Oc1ccccc1C(=O)O", molfile: "M  END" });
-  await Promise.resolve();
-  await Promise.resolve();
+  await vi.waitFor(() =>
+    expect(send).toHaveBeenLastCalledWith(
+      expect.objectContaining({ type: "xdde-image:result", molecule: null }),
+      "http://127.0.0.1:4322",
+    ),
+  );
+  bridge.dispose();
+});
+
+it("exports the current valid drawing on request without opening the recognition path", async () => {
+  const frame = document.createElement("iframe");
+  document.body.appendChild(frame);
+  const parent = frame.contentWindow!;
+  Object.defineProperty(window, "parent", {
+    configurable: true,
+    value: parent,
+  });
+  const send = vi.spyOn(parent, "postMessage").mockImplementation(() => {});
+  const origin = "http://127.0.0.1:4322";
+  const id = crypto.randomUUID();
+  const requestId = crypto.randomUUID();
+  const molecule = { smiles: "CCO", molfile: "M  END\n" };
+  const host: RecognitionHost = {
+    selectFile: vi.fn(),
+    file: () => null,
+    available: () => true,
+    molecule: vi.fn().mockResolvedValue(molecule),
+    recognize: vi.fn(),
+    subscribe: () => () => {},
+  };
+  const bridge = attachRecognitionBridge(host, origin, "drawing");
+  const deliver = (data: object) => {
+    window.dispatchEvent(
+      new MessageEvent("message", { origin, source: parent, data }),
+    );
+  };
+  deliver({ type: "xdde-drawing:connect", id });
   expect(send).toHaveBeenLastCalledWith(
-    expect.objectContaining({ type: "xdde-image:result", molecule: null }),
-    "http://127.0.0.1:4322",
+    { type: "xdde-drawing:state", id, available: true },
+    origin,
+  );
+  deliver({
+    type: "xdde-image:connect",
+    id,
+    file: new File(["png"], "image.png", { type: "image/png" }),
+  });
+  deliver({ type: "xdde-image:recognize", id, requestId });
+  expect(host.selectFile).not.toHaveBeenCalled();
+  expect(host.recognize).not.toHaveBeenCalled();
+  expect(host.molecule).not.toHaveBeenCalled();
+  deliver({ type: "xdde-drawing:export", id, requestId });
+  await vi.waitFor(() =>
+    expect(send).toHaveBeenLastCalledWith(
+      { type: "xdde-drawing:result", id, requestId, molecule },
+      origin,
+    ),
   );
   bridge.dispose();
 });
