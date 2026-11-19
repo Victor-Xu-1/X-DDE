@@ -123,7 +123,7 @@ it("shows native matched rules and scaffold families without implying safety or 
   };
   const result = {
     options: { mode: "scaffold", alert_policy: "warn" },
-    rows: [row],
+    rows: [row, { record: 1, selected: false, available: false }],
     selected_records: [0],
     artifact: "selected.sdf",
     report_artifact: "library-report.csv",
@@ -138,7 +138,9 @@ it("shows native matched rules and scaffold families without implying safety or 
       language="zh"
     />,
   );
-  expect(screen.getByRole("status")).toHaveTextContent("1 个分子需核查");
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "已检查 1 / 2 个分子，1 个需核查",
+  );
   expect(screen.getByText(/不是药效排名/)).toBeVisible();
   await userEvent.click(screen.getByText("需核查：1 条"));
   expect(screen.getByText("Brenk · review_pattern")).toBeVisible();

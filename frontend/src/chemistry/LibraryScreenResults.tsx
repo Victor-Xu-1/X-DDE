@@ -40,9 +40,8 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
   const alertsRequested = Boolean(
     result.options?.alert_policy && result.options.alert_policy !== "off",
   );
-  const flagged = result.rows.filter(
-    (row) => (row.structural_alerts?.length ?? 0) > 0,
-  );
+  const inspected = result.rows.filter((row) => row.structural_alerts != null);
+  const flagged = inspected.filter((row) => row.structural_alerts!.length > 0);
   const grouped = result.scaffold_groups != null;
   return (
     <section
@@ -106,8 +105,8 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
             {alertsRequested && (
               <p role="status">
                 {zh
-                  ? `${flagged.length} 个分子需核查；结构规则命中仅提示需复核。`
-                  : `${flagged.length} molecules need review. Structural rules flag records for further review.`}
+                  ? `已检查 ${inspected.length} / ${result.rows.length} 个分子，${flagged.length} 个需核查。`
+                  : `Structural rules evaluated for ${inspected.length} / ${result.rows.length} molecules. Review ${flagged.length} flagged.`}
               </p>
             )}
             {grouped && (

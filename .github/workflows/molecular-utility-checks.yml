@@ -839,7 +839,8 @@ jobs:
         run: >-
           npx vitest run src/admet/AdmetResults.test.tsx
           src/chemistry/LibraryScreenResults.test.tsx src/chemistry/StatePreparationHandoff.test.tsx
-          src/utilities/UtilityImageTask.test.tsx
+          src/utilities/UtilityImageTask.test.tsx src/studio/TaskWorkspace.test.tsx
+          src/TaskDetail.actions.test.tsx
       - name: Verify native results and exact retained selection in Chrome
         env:
           GH_TOKEN: ${{ github.token }}

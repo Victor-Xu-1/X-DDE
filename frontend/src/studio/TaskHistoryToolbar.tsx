@@ -4,6 +4,7 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import type { RefObject } from "react";
+import { useInputActionScope } from "../guided/InputActionScope";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
 import { BackendControls } from "../utilities/BackendControls";
@@ -36,6 +37,7 @@ export function TaskHistoryToolbar({
   onClearProject(): void;
 }) {
   const zh = language === "zh";
+  const submitting = useInputActionScope()?.action === "submission";
   const researchModule = researchModules.find((value) => value.id === module);
   return (
     <>
@@ -91,6 +93,7 @@ export function TaskHistoryToolbar({
             type="button"
             className="secondary-button"
             onClick={onHistory}
+            disabled={submitting}
           >
             <ArrowLeftOutlined aria-hidden="true" />
             {zh ? "返回任务结果" : "Back to task results"}
@@ -118,7 +121,7 @@ export function TaskHistoryToolbar({
             {zh ? "项目：" : "Project: "}
             {projectName ?? (zh ? "当前项目" : "Selected project")}
           </span>
-          <button type="button" onClick={onClearProject}>
+          <button type="button" onClick={onClearProject} disabled={submitting}>
             {zh ? "清除筛选" : "Clear filter"}
           </button>
         </div>

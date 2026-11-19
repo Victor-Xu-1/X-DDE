@@ -12,9 +12,40 @@ import { api } from "../api";
 import * as client from "../api";
 import { defaults } from "../form-model";
 import type { Job } from "../types";
+import type { MoleculeRef } from "../research/types";
 import { TaskWorkspace } from "./TaskWorkspace";
 import { PredictionResultHeader } from "../presentation/PredictionResultHeader";
 import { historyFixture, identityFixture } from "./task-history.test-fixtures";
+vi.mock("../chemistry/StateForm", async () => {
+  const { useInputTaskSubmit } = await import("../guided/useInputTaskSubmit");
+  const { defaults: options } = await import("../chemistry/generated");
+  return {
+    StateForm: ({
+      initialMolecule,
+      onCreated,
+    }: {
+      initialMolecule: MoleculeRef;
+      onCreated(job: Job): void;
+    }) => {
+      const task = useInputTaskSubmit(onCreated);
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            void task.submit({
+              name: "Prepare the selected record",
+              operation: "molecular_states",
+              molecule: initialMolecule,
+              options: { ...options, force_field: "MMFF94s" },
+            })
+          }
+        >
+          Submit preparation
+        </button>
+      );
+    },
+  };
+});
 const job: Job = {
   id: "00000000-0000-0000-0000-000000000001",
   request: {
@@ -171,6 +202,67 @@ it("keeps retry availability and the matched backend inside a module header", as
   expect(toggle).not.toBeChecked();
   view.rerender(<TaskWorkspace {...p} retryAvailable />);
   expect(screen.getByRole("button", { name: "Run again" })).toBeEnabled();
+});
+it("protects a submitted preparation from the outer history and rerun actions", async () => {
+  const reference = {
+    asset_id: "selected-sdf",
+    sha256: "a".repeat(64),
+    record: 0,
+    conformer: 0,
+  };
+  const library = {
+    ...descriptors,
+    status: "succeeded",
+    request: { operation: "library_screen", name: "Library selection" },
+  } as Job;
+  const receipt = {
+    ...library,
+    id: "accepted-preparation",
+    status: "queued",
+  } as Job;
+  vi.spyOn(api, "result").mockResolvedValue({
+    operation: "library_screen",
+    complete: true,
+    selected_records: [4],
+    artifact: "selected.sdf",
+    rows: [{ record: 4, selected: true, available: true, reference }],
+  });
+  let accept!: (job: Job) => void;
+  const submit = vi.spyOn(api, "submit").mockImplementation(
+    () =>
+      new Promise<Job>((resolve) => {
+        accept = resolve;
+      }),
+  );
+  const onJob = vi.fn();
+  const onChanged = vi.fn();
+  const retry = vi.spyOn(api, "retry");
+  render(<TaskWorkspace {...props({ job: library, onJob, onChanged })} />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Prepare molecule" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Submit preparation" }));
+  const back = screen.getByRole("button", { name: "Back to task results" });
+  const rerun = screen.getByRole("button", { name: "Run again" });
+  expect(submit).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      operation: "molecular_states",
+      molecule: reference,
+    }),
+    expect.any(String),
+  );
+  expect(back).toBeDisabled();
+  expect(rerun).toBeDisabled();
+  fireEvent.click(back);
+  fireEvent.click(rerun);
+  expect(onJob).not.toHaveBeenCalled();
+  expect(retry).not.toHaveBeenCalled();
+  await act(async () => accept(receipt));
+  expect(onChanged).toHaveBeenCalledExactlyOnceWith(receipt);
+  expect(back).toBeEnabled();
+  expect(rerun).toBeEnabled();
+  fireEvent.click(back);
+  expect(onJob).toHaveBeenCalledExactlyOnceWith("");
 });
 it.each(["en", "zh"] as const)(
   "leads directly into the selected %s prediction and returns through its native header",

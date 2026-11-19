@@ -6,6 +6,10 @@ import {
   type ReactNode,
 } from "react";
 import { SearchOutlined } from "@ant-design/icons";
+import {
+  InputActionScope,
+  useInputActionScope,
+} from "../guided/InputActionScope";
 import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { PrimaryBackendScope } from "../utilities/backend-control-scope";
 import { TaskDetail } from "../TaskDetail";
@@ -59,8 +63,17 @@ interface Props {
   onDraft?(request: Prediction): void;
   renderPrediction(onHistory: () => void, headerActions: ReactNode): ReactNode;
 }
-export function TaskWorkspace(p: Props) {
+export function TaskWorkspace(props: Props) {
+  return (
+    <InputActionScope>
+      <TaskWorkspaceContent {...props} />
+    </InputActionScope>
+  );
+}
+
+function TaskWorkspaceContent(p: Props) {
   const zh = p.language === "zh";
+  const scope = useInputActionScope()!;
   const restored = taskHistoryRoute(window.location.hash);
   const initialRoute = useRef(
     restored?.module === p.scopedModule ? restored : null,
@@ -208,6 +221,7 @@ export function TaskWorkspace(p: Props) {
     p.onJob("");
   }
   function returnToHistory() {
+    if (scope.isLocked("submission")) return;
     returnFocus.current = true;
     setChoosing(true);
     p.onJob("");
@@ -260,7 +274,9 @@ export function TaskWorkspace(p: Props) {
       onHistory={returnToHistory}
       onRefresh={refresh}
       onStart={p.onStart}
-      onClearProject={() => p.onProject(null)}
+      onClearProject={() => {
+        if (!scope.isLocked("submission")) p.onProject(null);
+      }}
     />
   );
   const filtered =
