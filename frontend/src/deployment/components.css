@@ -332,3 +332,145 @@
 .component-additions .component-grid {
   margin-top: 16px;
 }
+
+@media (min-width: 1200px) {
+  .deployment-workspace:has(> .compute-service-panel) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-areas:
+      "alert alert"
+      "location compute"
+      "confirmation confirmation"
+      "catalogue catalogue"
+      "activity activity";
+    gap: 0 12px;
+  }
+  .deployment-workspace > [role="alert"] {
+    grid-area: alert;
+    margin-block: 0 12px;
+  }
+  .deployment-workspace > .install-location {
+    grid-area: location;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label confirmation"
+      "directory directory"
+      "custom custom"
+      "hint hint";
+    align-content: center;
+    align-items: center;
+    gap: 0 8px;
+  }
+  .deployment-workspace > .compute-service-panel {
+    grid-area: compute;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "state controls"
+      "help help";
+    align-content: center;
+    gap: 8px;
+  }
+  .deployment-workspace > .field-help {
+    grid-area: confirmation;
+    margin-block: 8px 0;
+  }
+  .deployment-workspace > .component-library {
+    grid-area: catalogue;
+  }
+  .deployment-workspace > .deployment-progress {
+    grid-area: activity;
+  }
+  .deployment-workspace:has(> .compute-service-panel) > :is(.component-library, .deployment-progress) {
+    margin-block-start: 14px;
+  }
+  .deployment-workspace > :is(.install-location, .compute-service-panel) {
+    min-width: 0;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .install-location-choice {
+    display: contents;
+  }
+  .install-location-choice strong {
+    grid-area: label;
+  }
+  .install-location select {
+    grid-area: directory;
+    margin-block-start: 4px;
+  }
+  .install-location input {
+    grid-area: custom;
+    margin-block-start: 8px;
+  }
+  .install-location > button {
+    grid-area: confirmation;
+  }
+  .install-location .field-help {
+    grid-area: hint;
+    margin-block-start: 8px;
+  }
+  .deployment-workspace > :is(.install-location, .compute-service-panel) button {
+    flex-shrink: 0;
+    padding: 6px 10px;
+  }
+  .compute-service-panel .section-heading {
+    grid-area: state;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .deployment-workspace > .compute-service-panel .section-heading h2 {
+    font-size: 16px;
+  }
+  .compute-service-panel .status-pill {
+    padding: 3px 6px;
+    font-size: 12px;
+  }
+  .compute-service-panel .component-actions {
+    grid-area: controls;
+    justify-content: flex-end;
+    max-inline-size: 240px;
+  }
+  .compute-service-panel .field-help {
+    grid-area: help;
+  }
+}
+
+@container (min-width: 940px) {
+  .component-filters {
+    gap: 6px;
+    margin: 10px 0 14px;
+  }
+  .deployment-workspace .component-filters button {
+    padding: 6px 10px;
+  }
+  .deployment-workspace .component-library:not(:has(> .component-group-heading)) .component-grid {
+    grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+    gap: 12px;
+  }
+  .deployment-workspace .component-card {
+    gap: 8px;
+    min-height: 248px;
+    aspect-ratio: auto;
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .component-icon {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+  }
+  .component-title {
+    min-height: 0;
+  }
+  .deployment-workspace .component-card p {
+    flex: 1 0 auto;
+    min-height: 0;
+  }
+  .deployment-workspace .component-card .component-actions {
+    padding-top: 8px;
+  }
+}
