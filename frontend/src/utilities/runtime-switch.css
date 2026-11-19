@@ -119,6 +119,26 @@
   padding-inline-end: 8px;
   border-inline-end: 1px solid var(--line);
 }
+.task-history-heading-actions:has(> .backend-controls) {
+  position: relative;
+}
+.task-history-heading-actions > .backend-controls {
+  position: static;
+}
+.task-history-heading-actions .backend-controls-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-history-heading-actions .backend-module-status {
+  margin-inline-start: 0;
+}
+@media (min-width: 761px) {
+  .task-history-heading-actions .backend-controls-panel {
+    top: calc(100% + 6px);
+    width: min(350px, calc(100vw - 40px));
+  }
+}
 .backend-state-message {
   margin: 0;
   color: var(--danger);

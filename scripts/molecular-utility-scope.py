@@ -414,13 +414,15 @@ def selected(changed, event="push", *, shared=None):
     return event in {"push", "pull_request"} and bool(paths & SOURCES) and paths <= FILES
 
 
-def blob_digest(revision, path):
+def blob_digest(revision, path, *, mask=b""):
     try:
         value = subprocess.check_output(
             ["git", "show", f"{revision}:{path}"], stderr=subprocess.DEVNULL
         )
     except subprocess.CalledProcessError:
         return None
+    if mask:
+        value = value.replace(mask, b"", 1)
     return hashlib.sha256(value).hexdigest()
 
 
@@ -796,18 +798,32 @@ INLINE_MODULE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 INLINE_MODULE_POWER_DIFF = "43c5e70f0b7e8ef2be169ffacb47265fb2a47a39473242daf0fdf64b5d260301"
-MODULE_POWER_CONSUMERS = (MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES) - {
+RESULT_MODULE_POWER_FILES = {
+    "docs/user-guide.md",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+RESULT_MODULE_POWER_DIFF = "56c58e6f54a21958473e43c220f49de94141a3556bee8030c5c8837147fb93ba"
+MODULE_POWER_CONSUMERS = (
+    MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
+) - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
     "tests/test_molecular_utility_scope.py",
 }
 
 
-def reviewed_selected(changed, event, base, files, digest):
+def reviewed_selected(changed, event, base, files, digest, *, scope_pin=None):
     if event not in {"push", "pull_request"} or not files <= changed:
         return False
     scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
-    remaining = changed - files - {"scripts/molecular-utility-scope.py"}
+    selector = "scripts/molecular-utility-scope.py"
+    remaining = changed - files - {selector}
     if not remaining <= scope["VERSION_FILES"]:
         return False
     if remaining and not scope["only_version_mirrors"](base, remaining):
@@ -816,6 +832,12 @@ def reviewed_selected(changed, event, base, files, digest):
         [path, blob_digest(base, path), blob_digest("HEAD", path)]
         for path in sorted(files)
     ]
+    if scope_pin:
+        # Mask the digest assignment so the selector itself can be pinned.
+        mask = f'{scope_pin} = "{digest}"'.encode()
+        reviewed.append([
+            selector, blob_digest(base, selector), blob_digest("HEAD", selector, mask=mask),
+        ])
     return hashlib.sha256(
         json.dumps(reviewed, separators=(",", ":")).encode()
     ).hexdigest() == digest
@@ -883,6 +905,10 @@ def main():
     ) or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         INLINE_MODULE_POWER_FILES, INLINE_MODULE_POWER_DIFF,
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RESULT_MODULE_POWER_FILES, RESULT_MODULE_POWER_DIFF,
+        scope_pin="RESULT_MODULE_POWER_DIFF",
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

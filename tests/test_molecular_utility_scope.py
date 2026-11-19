@@ -1,5 +1,7 @@
 """Keep scientific execution and shared-viewer changes in their original gates."""
 
+import hashlib
+import json
 import re
 import runpy
 from fnmatch import fnmatchcase
@@ -89,6 +91,35 @@ def test_exact_profile_paths_and_version_mirrors():
     assert not scope["selected"]([])
     assert not scope["selected"](["pyproject.toml"])
     assert not scope["selected"](scope["FILES"], "workflow_dispatch")
+
+
+def test_reviewed_result_toolbar_profile_rejects_edits_to_the_selector(monkeypatch):
+    selector = "scripts/molecular-utility-scope.py"
+    toolbar = "frontend/src/studio/TaskHistoryToolbar.tsx"
+    bodies = {
+        f"base:{toolbar}": b"old toolbar",
+        f"HEAD:{toolbar}": b"new toolbar",
+        f"base:{selector}": b"old selector",
+        f"HEAD:{selector}": b"\nnew selector",
+    }
+    pairs = [
+        [path, *[hashlib.sha256(bodies[f"{ref}:{path}"]).hexdigest() for ref in ("base", "HEAD")]]
+        for path in (toolbar, selector)
+    ]
+    pin = hashlib.sha256(json.dumps(pairs, separators=(",", ":")).encode()).hexdigest()
+    assignment = f'RESULT_MODULE_POWER_DIFF = "{pin}"'.encode()
+    bodies[f"HEAD:{selector}"] = assignment + bodies[f"HEAD:{selector}"]
+    monkeypatch.setattr(scope["subprocess"], "check_output", lambda args, **_: bodies[args[-1]])
+
+    def reviewed():
+        return scope["reviewed_selected"](
+            {toolbar, selector}, "pull_request", "base", {toolbar}, pin,
+            scope_pin="RESULT_MODULE_POWER_DIFF",
+        )
+
+    assert reviewed()
+    bodies[f"HEAD:{selector}"] += b"\nunreviewed edit"
+    assert not reviewed()
 
 
 def test_shared_example_changes_alone_keep_the_original_consumer_gates():
