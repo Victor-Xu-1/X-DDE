@@ -5,18 +5,24 @@ import hashlib
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.examples.bundle import restore_bundle
 from opendde_workbench.examples.bundle_release import SHA256
+from opendde_workbench.examples.stat6_bundle_release import SHA256 as STAT6_SHA256
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 
 ADMET = "9699cfec-c574-40da-8ede-cec190d199c5"
 LIBRARY = "b4db0db0-c238-42b3-8ee9-6ca0e4cb1f40"
 PROPERTIES = "5c35e148-cb26-4e46-b5ab-2231e228ccea"
+RETAINED_3D_PROPERTIES = (
+    "b9cbb1ad-1d0d-4c87-802d-9a2d2f775504",
+    "d5aba1ec-246a-4226-96b8-92648597c38b",
+)
 DRAWING_TIMEOUT_MS = 35000
 
 
@@ -201,3 +207,57 @@ def property_record_bytes(page, base, input_id):
     assert hashlib.sha256(body).hexdigest() == metadata["sha256"]
     records = re.split(r"(?m)^[ \t]*\$\$\$\$[ \t]*\r?\n", body.decode("utf-8-sig"))
     return records[int(one_based) - 1]
+
+
+def test_reviewed_property_poses_open_without_new_calculation(tmp_path, monkeypatch):
+    monkeypatch.setenv("WB_HOME", str(tmp_path))
+    monkeypatch.setenv("WB_STATE_DIR", str(tmp_path / "state"))
+    settings = Settings.from_env()
+    restore_bundle(Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, STAT6_SHA256)
+    configuration = Path(os.environ["WB_UTILITY_GRAPHICS"]).read_bytes()
+    (settings.state_dir / "deployment.json").write_bytes(configuration)
+    evidence = Path("outputs/result-handoffs-desktop/reviewed-3d")
+    evidence.mkdir(parents=True, exist_ok=True)
+    with platform(settings.state_dir, evidence / "server.log") as base, sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome", args=["--enable-unsafe-swiftshader"])
+        page = browser.new_page(viewport={"width": 1400, "height": 880})
+        page.add_init_script("localStorage.setItem('opendde-workbench.language', 'en')")
+        blocked, qualified = [], []
+
+        def retained_only(route):
+            req = route.request
+            if req.method in {"GET", "HEAD"}:
+                route.continue_()
+            elif req.method == "POST" and urlsplit(req.url).path == "/api/research/poses/initial":
+                body = {**req.post_data_json, "allow_compute": False}
+                response = route.fetch(post_data=body)
+                qualified.append((body["source"], response.json()))
+                route.fulfill(response=response)
+            else:
+                blocked.append((req.method, req.url))
+                route.abort()
+
+        page.route("**/api/**", retained_only)
+        before = page.request.get(f"{base}/api/jobs").json()
+        for job in RETAINED_3D_PROPERTIES:
+            native = page.request.get(f"{base}/api/jobs/{job}/result").json()["molecules"][0]
+            asset, one_based = native["input"].split(":")
+            expected = page.request.get(f"{base}/api/assets/{asset}/metadata").json()["sha256"]
+            assert "3D" in property_record_bytes(page, base, native["input"]).splitlines()[1]
+            page.goto(f"{base}/#task={job}")
+            inspector = page.locator(".properties-results .result-inspector")
+            inspector.get_by_role("tab", name="3D structure", exact=True).click()
+            expect(inspector.get_by_role("button", name="Capture 3D view")).to_be_enabled(
+                timeout=DRAWING_TIMEOUT_MS
+            )
+            source, response = qualified[-1]
+            assert source == {"kind": "asset", "asset_id": asset, "record": int(one_based) - 1}
+            assert response["state"] == "ready"
+            reference = response["pose"]["reference"]
+            assert reference["asset_id"] == asset and reference["sha256"] == expected
+            assert reference["record"] == int(one_based) - 1
+            expect(page.locator(".property-descriptors table")).to_be_visible()
+            page.screenshot(path=evidence / f"{job}-native-3d.png")
+        assert len(qualified) == len(RETAINED_3D_PROPERTIES)
+        assert not blocked and page.request.get(f"{base}/api/jobs").json() == before
+        browser.close()

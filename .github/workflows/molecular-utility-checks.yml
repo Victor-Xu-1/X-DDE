@@ -1063,6 +1063,11 @@ jobs:
             --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
           export WB_RETAINED_UTILITY="$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           export WB_UTILITY_GRAPHICS="$RUNNER_TEMP/utility-graphics/state/deployment.json"
+          readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          [[ "${source[0]}" == examples-v2 || "${source[0]}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          export WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}"
           WB_HOME="$RUNNER_TEMP/utility-graphics" WB_STATE_DIR="$RUNNER_TEMP/utility-graphics/state" \
             uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_result_handoffs_desktop.py
