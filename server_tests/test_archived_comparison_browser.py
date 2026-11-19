@@ -152,7 +152,7 @@ def verify_changed_source_is_rejected(page, panel):
         body="data_changed", headers={"X-Structure-Format": "cif"}, status=200,
     ))
     observed_downloads = []
-    page.on("download", observed_downloads.append)
+    page.on("download", lambda download: observed_downloads.append(download))
     panel.get_by_role("button", name="Aligned overlay", exact=True).click()
     expect(panel.locator(".viewer-error")).to_be_visible(timeout=15000)
     expect(panel.get_by_role("button", name="Export figure ↓", exact=True)).to_be_disabled()
