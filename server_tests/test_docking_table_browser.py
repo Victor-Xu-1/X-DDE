@@ -27,7 +27,8 @@ def inspect_paired_poses(page, workspace, comparison, sources, hashes, evidence)
     expect(stages).to_have_count(2, timeout=45000)
     for index, slot in enumerate(("A", "B"), start=1):
         pane = comparison.get_by_role("region", name=f"{slot} · Pose {index}", exact=True)
-        expect(pane.get_by_test_id("molstar-viewport")).to_have_attribute("data-ligand", slot.lower())
+        viewport = pane.get_by_test_id("molstar-viewport")
+        expect(viewport).to_have_attribute("data-ligand", slot.lower())
         link = pane.get_by_role("link", name=f"Download Pose {index} SDF", exact=True)
         expect(link).to_have_attribute("href", sources[index])
         with page.expect_download() as pending:

@@ -104,7 +104,7 @@ PAIRED_COMPARISON_BLOBS = {
         "52057742078e7d1d20c9d0cd44bda87f04d03950", "d3a2688fdf7f15a8489fa15dcd448596f9b350ee",
     ),
     "server_tests/test_docking_table_browser.py": (
-        "54388cd9e6854763656232cdf7b3e489616670be", "eb8f2bc22cdfbac04ab6b287aa3ff0d2563c3dce",
+        "54388cd9e6854763656232cdf7b3e489616670be", "9b4c892a67ddeccc540d7f857f7209c495c46c14",
     ),
 }
 ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | SCOPE_FILES

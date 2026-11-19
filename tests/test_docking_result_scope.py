@@ -42,5 +42,7 @@ def test_paired_comparison_limits_exclusion_to_the_reviewed_cross_module_present
     expected = "frontend/src/simulations/BoundPoseComparison.tsx"
     assert select(files, approved, approved)
     assert not select(files - {browser}, approved, approved)
-    assert not select(files | {"frontend/src/simulations/molstar-controller.ts"}, approved, approved)
-    assert not select(files, {**approved, expected: (approved[expected][0], "unreviewed")}, approved)
+    mixed = files | {"frontend/src/simulations/molstar-controller.ts"}
+    assert not select(mixed, approved, approved)
+    unreviewed = {**approved, expected: (approved[expected][0], "unreviewed")}
+    assert not select(files, unreviewed, approved)
