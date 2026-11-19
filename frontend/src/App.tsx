@@ -2,8 +2,8 @@ import "./presentation/result-layout.css";
 import { useEffect, useRef, useState } from "react";
 import { ApplicationScope } from "./studio/ApplicationScope";
 import {
-  InputActionScope,
-  useInputActionScope,
+  InputActionProvider,
+  useInputActionController,
 } from "./guided/InputActionScope";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
@@ -56,15 +56,8 @@ import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
 export function App() {
-  return (
-    <InputActionScope>
-      <WorkspaceApp />
-    </InputActionScope>
-  );
-}
-
-function WorkspaceApp() {
-  const actions = useInputActionScope()!;
+  const actions = useInputActionController();
+  const [detachedReceipt, setDetachedReceipt] = useState<Job | null>(null);
   const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
   const [imageRequest, setImageRequest] = useState(0);
@@ -263,6 +256,11 @@ function WorkspaceApp() {
     setCompared([]);
     setFocusResidue(null);
   }
+  function retainAcceptedTask(next: Job) {
+    work.confirmJob(next);
+    setDetachedReceipt(next);
+    refresh();
+  }
   function changed(next: Job) {
     work.confirmJob(next);
     setSubmitted(next);
@@ -411,6 +409,30 @@ function WorkspaceApp() {
               job?.request,
             )}
           >
+            {detachedReceipt && (
+              <div className="notice" role="status">
+                {zh ? "任务已提交。" : "Task submitted."}{" "}
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={resultSubmissionPending}
+                  onClick={() => {
+                    if (hasPendingResult()) return;
+                    showJob(detachedReceipt.id);
+                    setDetachedReceipt(null);
+                  }}
+                >
+                  {zh ? "查看已提交任务" : "View submitted task"}
+                </button>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => setDetachedReceipt(null)}
+                >
+                  {zh ? "关闭提示" : "Dismiss"}
+                </button>
+              </div>
+            )}
             {view === "settings" && (
               <InterfaceSettings
                 language={language}
@@ -620,42 +642,48 @@ function WorkspaceApp() {
               </section>
             )}
             {scopedResults && (
-              <TaskWorkspace
-                key={scopedResults}
-                scopedModule={scopedResults}
-                {...common}
-                selected={selected}
-                selectedError={work.selectedJobError}
-                selectedLoading={work.selectedJobLoading}
-                onRefresh={refresh}
-                onStart={(tool) => (tool ? openTool(tool) : navigate("tools"))}
-                onJob={(id) => {
-                  // Keep the resolved module when clearing a legacy task link.
-                  setView(view);
-                  chooseJob(id);
-                }}
-                projectId={projectId}
-                onProject={chooseProject}
-                onDraft={prepareDraft}
-                renderPrediction={(onHistory, headerActions) => (
-                  <PredictionResults
-                    {...common}
-                    onHistory={onHistory}
-                    headerActions={headerActions}
-                    urls={urls}
-                    compared={compared}
-                    onCompare={(ids) => {
-                      setCompared(ids);
-                      setFocusResidue(null);
-                    }}
-                    focusResidue={focusResidue}
-                    onResidue={(residue) => {
-                      setCompared([]);
-                      setFocusResidue({ residue, nonce: Date.now() });
-                    }}
-                  />
-                )}
-              />
+              <InputActionProvider
+                value={{ ...actions, onDetachedAccept: retainAcceptedTask }}
+              >
+                <TaskWorkspace
+                  key={scopedResults}
+                  scopedModule={scopedResults}
+                  {...common}
+                  selected={selected}
+                  selectedError={work.selectedJobError}
+                  selectedLoading={work.selectedJobLoading}
+                  onRefresh={refresh}
+                  onStart={(tool) =>
+                    tool ? openTool(tool) : navigate("tools")
+                  }
+                  onJob={(id) => {
+                    // Keep the resolved module when clearing a legacy task link.
+                    setView(view);
+                    chooseJob(id);
+                  }}
+                  projectId={projectId}
+                  onProject={chooseProject}
+                  onDraft={prepareDraft}
+                  renderPrediction={(onHistory, headerActions) => (
+                    <PredictionResults
+                      {...common}
+                      onHistory={onHistory}
+                      headerActions={headerActions}
+                      urls={urls}
+                      compared={compared}
+                      onCompare={(ids) => {
+                        setCompared(ids);
+                        setFocusResidue(null);
+                      }}
+                      focusResidue={focusResidue}
+                      onResidue={(residue) => {
+                        setCompared([]);
+                        setFocusResidue({ residue, nonce: Date.now() });
+                      }}
+                    />
+                  )}
+                />
+              </InputActionProvider>
             )}
           </main>
         </div>

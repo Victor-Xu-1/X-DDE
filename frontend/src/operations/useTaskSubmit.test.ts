@@ -96,7 +96,7 @@ it("returns the accepted job when result navigation fails and retries only navig
   expect(view.result.current.error).toBe("");
 });
 
-it("does not open a result page after its form is unmounted", async () => {
+it("reports a detached receipt without opening a result page after unmount", async () => {
   let resolve!: (job: Job) => void;
   vi.spyOn(api, "submit").mockImplementation(
     () =>
@@ -105,7 +105,8 @@ it("does not open a result page after its form is unmounted", async () => {
       }),
   );
   const created = vi.fn(),
-    view = renderHook(() => useTaskSubmit(created));
+    detached = vi.fn(),
+    view = renderHook(() => useTaskSubmit(created, detached));
   let waiting!: Promise<Job | undefined>;
   act(() => {
     waiting = view.result.current.submit(input());
@@ -116,6 +117,7 @@ it("does not open a result page after its form is unmounted", async () => {
     expect(await waiting).toEqual(accepted());
   });
   expect(created).not.toHaveBeenCalled();
+  expect(detached).toHaveBeenCalledExactlyOnceWith(accepted());
 });
 
 it("clears a corrected validation error without resetting the retry identity", async () => {

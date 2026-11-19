@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { Job } from "../types";
 
 type Action = "example" | "submission";
 type Scope = {
@@ -15,11 +16,12 @@ type Scope = {
   begin(action: Action): (() => void) | null;
   isLocked(action?: Action): boolean;
   currentSignal(): AbortSignal;
+  onDetachedAccept?(job: Job): void;
 };
 const Context = createContext<Scope | null>(null);
 
 /** Serialize input replacement and submission within one form, not the job queue. */
-export function InputActionScope({ children }: { children: ReactNode }) {
+export function useInputActionController() {
   const [action, setAction] = useState<Action | null>(null);
   const owner = useRef<{ token: symbol; action: Action } | null>(null),
     mounted = useRef(true);
@@ -55,11 +57,25 @@ export function InputActionScope({ children }: { children: ReactNode }) {
     [],
   );
   const currentSignal = useCallback(() => generation.current.signal, []);
-  const scope = useMemo(
+  return useMemo(
     () => ({ action, begin, isLocked, currentSignal }),
     [action, begin, isLocked, currentSignal],
   );
-  return <Context.Provider value={scope}>{children}</Context.Provider>;
+}
+
+export function InputActionScope({ children }: { children: ReactNode }) {
+  const scope = useInputActionController();
+  return <InputActionProvider value={scope}>{children}</InputActionProvider>;
+}
+
+export function InputActionProvider({
+  value,
+  children,
+}: {
+  value: Scope;
+  children: ReactNode;
+}) {
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
 export function useInputActionScope() {

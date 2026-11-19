@@ -1040,6 +1040,10 @@ UTILITY_RESULT_DESKTOP_DIFF = "fb5f54ef07da82c9a1d62e451534535e8c0f735ff99ea82f6
 RESULT_HANDOFF_DESKTOP_FILES = {
     "frontend/src/App.tsx",
     "frontend/src/App.test.tsx",
+    "frontend/src/guided/InputActionScope.tsx",
+    "frontend/src/guided/useInputTaskSubmit.ts",
+    "frontend/src/operations/useTaskSubmit.ts",
+    "frontend/src/operations/useTaskSubmit.test.ts",
     "frontend/src/studio/ModuleWorkspaceNavigation.tsx",
     ".github/workflows/task-action-checks.yml",
     "frontend/src/TaskDetail.tsx",
@@ -1061,7 +1065,7 @@ RESULT_HANDOFF_DESKTOP_FILES = {
     "server_tests/test_result_handoffs_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-RESULT_HANDOFF_DESKTOP_DIFF = "f5916f217b4e142ab1e885048b02062e365e9c7ce9256714cb1ffc0288a7853c"
+RESULT_HANDOFF_DESKTOP_DIFF = "6772a9ca4bfb448068e72e9d4ea121c0d2028c5f7cb55bdc28446f51d2edd567"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
