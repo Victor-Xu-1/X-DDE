@@ -38,6 +38,10 @@
   .docking-results .structure-workbench-view .viewer-panel .molecular-stage {
     border-radius: 10px;
   }
+
+  .docking-results .research-table .numeric-cell .evidence-description {
+    white-space: normal;
+  }
 }
 
 .docking-result-details {

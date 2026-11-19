@@ -29,6 +29,8 @@ def inspect_desktop_rail(page, workspace):
     assert view_box["x"] + view_box["width"] <= rail_box["x"]
     assert view_box["width"] > details_box["width"]
     expect(view.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
+    unit = details.locator(".numeric-cell .evidence-description").first
+    expect(unit).to_have_css("white-space", "normal")
     next_pose = rail.get_by_role("button", name="Next candidate").bounding_box()
     assert next_pose and next_pose["x"] + next_pose["width"] <= rail_box["x"] + rail_box["width"]
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

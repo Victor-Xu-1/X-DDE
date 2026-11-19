@@ -69,10 +69,10 @@ DESKTOP_LAYOUT_BLOBS = {
         "55b88727a239821aac958bebe304534bd01aebb6", "90c77020a4717e73d2072c1940fc6c300519a7a5",
     ),
     "frontend/src/docking/DockingResults.css": (
-        "9bc4fda4c8acee01473ed87660892ceba72b3d30", "e8c96f9bab57721e9ec95a8e1965e71f8c934993",
+        "9bc4fda4c8acee01473ed87660892ceba72b3d30", "0e7294e931160f244ced5948c09b5b73087d7d79",
     ),
     "server_tests/test_docking_table_browser.py": (
-        "18f31218adf99d3caeb94af9113dbde71930ea14", "7777578822ddd374458b4e9b5fcb768b97e7ffe3",
+        "18f31218adf99d3caeb94af9113dbde71930ea14", "79af029d738d6a5620b59a3528ef209a26b94ce7",
     ),
 }
 ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | SCOPE_FILES
