@@ -25,6 +25,24 @@ it("retains a bounded trajectory group while source snapshots remain exact", () 
     "Invalid trajectory identity",
   );
 });
+it("keeps separately checked inputs in their declared comparison order", () => {
+  const input = {
+    urls: ["/api/assets/reference", "/api/assets/moving"],
+    comparison: true,
+    structureChecksums: ["a".repeat(64), "b".repeat(64)],
+    cifAuthorResidues: true,
+  };
+  expect(viewerLoad(input)).toEqual(input);
+  expect(() =>
+    viewerLoad({ ...input, structureChecksums: ["a".repeat(64)] }),
+  ).toThrow("Invalid reviewed source checksums");
+  expect(() =>
+    viewerLoad({
+      ...input,
+      structureChecksums: [...input.structureChecksums, ""],
+    }),
+  ).toThrow("Invalid reviewed source checksums");
+});
 it("separates protein-interface presentation from incidental ligand proximity without changing source identity", () => {
   const input = {
     urls: ["/api/assets/antibody-complex"],

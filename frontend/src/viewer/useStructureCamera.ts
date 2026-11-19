@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from "react";
 import {
-  isStructureCamera,
-  type StructureCamera,
+  isCameraSnapshot,
+  type StructureCameraSnapshot,
   type StructureCameraHandle,
 } from "./structure-camera";
 
@@ -19,9 +19,9 @@ export function useStructureCamera(
     let pending: {
       id: string;
       timer: ReturnType<typeof setTimeout>;
-      resolve(view: StructureCamera | null): void;
+      resolve(view: StructureCameraSnapshot | null): void;
     } | null = null;
-    function settle(camera: StructureCamera | null) {
+    function settle(camera: StructureCameraSnapshot | null) {
       if (!pending) return;
       clearTimeout(pending.timer);
       const { resolve } = pending;
@@ -38,8 +38,10 @@ export function useStructureCamera(
       )
         return;
       const reply = event.data.detail;
-      if (pending && reply?.id === pending.id)
-        settle(isStructureCamera(reply.camera) ? reply.camera : null);
+      if (pending && reply?.id === pending.id) {
+        const snapshot = { camera: reply.camera, viewport: reply.viewport };
+        settle(isCameraSnapshot(snapshot) ? snapshot : null);
+      }
     }
     function post(type: string, value: unknown) {
       target?.postMessage(
@@ -62,7 +64,7 @@ export function useStructureCamera(
         });
       },
       apply(camera) {
-        if (!closed && isStructureCamera(camera)) post("camera-apply", camera);
+        if (!closed && isCameraSnapshot(camera)) post("camera-apply", camera);
       },
     });
     return () => {

@@ -1,3 +1,5 @@
+import type { ViewportSize } from "./camera-resize";
+
 export type StructureCamera = readonly [
   number,
   number,
@@ -9,9 +11,30 @@ export type StructureCamera = readonly [
   number,
 ];
 
+export type StructureCameraSnapshot = {
+  camera: StructureCamera;
+  viewport: ViewportSize;
+};
+
 export interface StructureCameraHandle {
-  read(): Promise<StructureCamera | null>;
-  apply(camera: StructureCamera): void;
+  read(): Promise<StructureCameraSnapshot | null>;
+  apply(snapshot: StructureCameraSnapshot): void;
+}
+
+export function isCameraSnapshot(
+  value: unknown,
+): value is StructureCameraSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const { camera, viewport } = value as StructureCameraSnapshot;
+  return (
+    isStructureCamera(camera) &&
+    Boolean(
+      viewport &&
+      [viewport.width, viewport.height].every(
+        (size) => Number.isFinite(size) && size > 0 && size <= 100000,
+      ),
+    )
+  );
 }
 
 export function isStructureCamera(value: unknown): value is StructureCamera {

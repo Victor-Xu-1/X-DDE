@@ -1,4 +1,5 @@
 import { artifactUrl } from "../api";
+import { VerifiedArtifactDownload } from "../presentation/VerifiedArtifactDownload";
 import type { Language } from "../types";
 import type { SelectionInfo } from "../viewer/protocol";
 import type { StructureCameraHandle } from "../viewer/structure-camera";
@@ -84,18 +85,21 @@ export function AlignedStructurePair({
                   <h3>
                     <span>{badge}</span> {label}
                   </h3>
-                  <a
-                    href={url}
-                    download
-                    aria-label={
+                  <VerifiedArtifactDownload
+                    url={url}
+                    sha256={hashes[name]}
+                    filename={name}
+                    language={language}
+                    label="CIF ↓"
+                    downloadLabel={
                       zh ? `下载${label} CIF` : `Download ${label} CIF`
                     }
-                  >
-                    CIF ↓
-                  </a>
+                    className="text-button"
+                  />
                 </div>
               }
-              expectedStructureSha256={hashes[name]}
+              structureChecksums={[hashes[name]]}
+              cifAuthorResidues
               sourceSnapshot
               ligandContext={false}
               sequenceHost={null}

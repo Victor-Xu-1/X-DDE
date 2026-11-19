@@ -12,6 +12,9 @@ import {
   type AtomStyleSpec,
 } from "3dmol";
 import { MolecularScene } from "../viewer/scene";
+import { retainModifiedPolymer } from "../viewer/modified-polymer";
+import { scientificSelectionIdentity } from "../viewer/geometry";
+import { modelResidueRegion } from "../viewer/residue-region";
 import { comparisonResidues, matchedResidue } from "./AlignedStructurePair";
 import type { Displacement } from "./types";
 
@@ -59,6 +62,54 @@ it("links an author-numbered residue with its exact insertion code in either pan
   expect(comparisonResidues(row, ["moving"])).toEqual([
     { ...moving, model: 0, alternate_location: "" },
   ]);
+});
+
+it("keeps author residue A:33 and A:33B distinct after real CIF rendering parses them", async () => {
+  const source = `data_insertions
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.auth_atom_id
+_atom_site.auth_comp_id
+_atom_site.auth_asym_id
+_atom_site.auth_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+ATOM 1 C CA ALA A 33 ? 1.000 2.000 3.000
+ATOM 2 C CA ALA A 33 B 4.800 2.000 3.000
+#`;
+  const model = new GLModel(0);
+  model.addMolData(source, "cif");
+  const atoms = model.selectedAtoms({});
+  const coordinates = atoms.map((atom) => [atom.x, atom.y, atom.z]);
+  await retainModifiedPolymer(model, source, "cif", true);
+  expect(
+    atoms.map((atom) => scientificSelectionIdentity(atom).insertion_code),
+  ).toEqual(["", "B"]);
+  expect(atoms.map((atom) => [atom.x, atom.y, atom.z])).toEqual(coordinates);
+  for (const [index, insertion_code] of ["", "B"].entries()) {
+    expect(
+      modelResidueRegion(
+        [
+          {
+            model: 0,
+            chain: "A",
+            number: 33,
+            insertion_code,
+            alternate_location: "",
+          },
+        ],
+        [{ model: 0, atoms }],
+      ),
+    ).toEqual({
+      selections: [{ model: 0, indices: [index] }],
+      requested: 1,
+      matched: 1,
+    });
+  }
 });
 
 it("selects both native overlay models without merging local indices or inventing contacts", async () => {

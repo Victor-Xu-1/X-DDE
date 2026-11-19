@@ -79,6 +79,7 @@ jobs:
           npx vitest run src/structure-comparison/ComparisonForm.test.tsx
           src/structure-comparison/ComparisonScene.test.ts
           src/viewer/structure-camera.test.tsx src/viewer/StructureViewer.test.tsx
+          src/viewer/source-layout.test.ts src/viewer/modified-polymer.test.ts
           src/presentation/WorkspaceFullscreenControl.test.tsx
           src/operations/StructureComparisonResults.test.tsx
           src/presentation/ResearchTabs.test.tsx

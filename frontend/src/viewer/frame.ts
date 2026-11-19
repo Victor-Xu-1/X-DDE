@@ -21,7 +21,7 @@ import { searchBoxGeometry } from "./search-box";
 import "./frame.css";
 import { captureView, captureFigure } from "./capture";
 import { validFigure } from "../publication/settings";
-import { isStructureCamera } from "./structure-camera";
+import { isCameraSnapshot } from "./structure-camera";
 import { potentialData } from "./scientific-overlay";
 import { defaultPotentialRange, isPotentialRange } from "./potential-range";
 import {
@@ -106,6 +106,7 @@ async function load(input: ViewerLoad) {
     urls,
     records: input.records,
     comparison: input.comparison,
+    checksums: input.structureChecksums,
   });
   const retainedView =
     ((input.channelGeometry || input.searchBox) &&
@@ -139,10 +140,10 @@ async function load(input: ViewerLoad) {
       });
       const { text, sha256 } = await structureBytes(response);
       if (current !== generation) return;
-      if (
-        input.expectedStructureSha256 &&
-        sha256 !== input.expectedStructureSha256
-      )
+      const expected =
+        input.structureChecksums?.[sourceIndex] ??
+        input.expectedStructureSha256;
+      if (expected && sha256 !== expected)
         throw new Error("Reviewed structure checksum mismatch.");
       const source = validSource(raw, location.origin);
       const suffix =
@@ -169,7 +170,12 @@ async function load(input: ViewerLoad) {
       }
       inputCharges.push(inputChargesDeclared(record, format));
       const model = viewer.addModel(record, format);
-      await retainModifiedPolymer(model, record, format);
+      await retainModifiedPolymer(
+        model,
+        record,
+        format,
+        input.cifAuthorResidues,
+      );
       if (current !== generation) return;
       if (
         ["sdf", "mol", "mol2"].includes(format) &&
@@ -345,18 +351,25 @@ window.addEventListener("message", (event) => {
     typeof value === "string" &&
     /^[0-9a-f-]{36}$/.test(value)
   ) {
-    const camera = viewer.getView();
-    notify("camera", {
-      id: value,
-      camera: isStructureCamera(camera) ? camera : null,
-    });
+    const { width, height } = document
+      .getElementById("molecule")!
+      .getBoundingClientRect();
+    const snapshot = { camera: viewer.getView(), viewport: { width, height } };
+    notify(
+      "camera",
+      isCameraSnapshot(snapshot) ? { id: value, ...snapshot } : { id: value },
+    );
   }
   if (
     loadedSourceIdentity &&
     type === "camera-apply" &&
-    isStructureCamera(value)
-  )
-    viewer.setView([...value]);
+    isCameraSnapshot(value)
+  ) {
+    const bounds = document.getElementById("molecule")!.getBoundingClientRect();
+    const factor = resizeZoomFactor(value.viewport, bounds);
+    viewer.setView([...value.camera]);
+    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
+  }
   if (type === "clear") {
     confidenceSource = null;
     confidenceRevision++;

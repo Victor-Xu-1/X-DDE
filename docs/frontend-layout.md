@@ -851,8 +851,9 @@ the author chain, residue number, and insertion code.
 
 **Match views** copies the reference camera to the moving panel for visual
 comparison. Each layout restores its previous camera after switching.
-The expanded workspace can give both panels the full width. Each side
-downloads its own original CIF and exports its own named research figure.
+The expanded workspace can give both panels the full width. Restoring a view
+adapts its zoom to the current viewport. Each side checks its original CIF
+before rendering or downloading, and exports its own named research figure.
 
 ## ADMET inspection
 

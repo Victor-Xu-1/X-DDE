@@ -37,12 +37,9 @@ export function ComparisonPreview({
   const camera = useComparisonView();
   const { view } = camera;
   const modes: ComparisonView[] = ["overlay", "reference", "moving"];
-  if (
-    comparisonSides.every((side) =>
-      /^[0-9a-f]{64}$/i.test(hashes[alignedArtifacts[side]] ?? ""),
-    )
-  )
-    modes.splice(1, 0, "pair");
+  const hasChecksum = (side: ComparisonSide) =>
+    /^[0-9a-f]{64}$/.test(hashes[alignedArtifacts[side]] ?? "");
+  if (comparisonSides.every(hasChecksum)) modes.splice(1, 0, "pair");
   const sides =
     view === "overlay" || view === "pair" ? comparisonSides : [view];
   return (
@@ -90,8 +87,8 @@ export function ComparisonPreview({
           <p className="field-help">
             {view === "overlay"
               ? zh
-                ? "蓝色参照 · 橙色比较 · 同一已验证坐标系"
-                : "Blue reference · Orange comparison · Verified shared frame"
+                ? "蓝色参照 · 橙色比较 · 同一对齐坐标系"
+                : "Blue reference · Orange comparison · Shared alignment frame"
               : view === "pair"
                 ? zh
                   ? "同一已对齐坐标系 · 点选查看对应残基"
@@ -134,6 +131,12 @@ export function ComparisonPreview({
           urls={sides.map((side) => artifactUrl(jobId, alignedArtifacts[side]))}
           language={language}
           comparison={view === "overlay"}
+          structureChecksums={
+            sides.every(hasChecksum)
+              ? sides.map((side) => hashes[alignedArtifacts[side]])
+              : undefined
+          }
+          cifAuthorResidues
           showWorkspaceControls={false}
           sourceSnapshot
           residueRegion={comparisonResidues(selection, sides)}

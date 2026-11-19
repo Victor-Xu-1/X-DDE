@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -56,7 +57,7 @@ def verify_aligned_pair(page, panel, result, evidence):
             has_text="Region residues located: 1 / 1"
         )).to_be_visible(timeout=15000)
         with page.expect_download() as downloaded:
-            section.get_by_role("link", name=f"Download {label} CIF", exact=True).click()
+            section.get_by_role("button", name=f"Download {label} CIF", exact=True).click()
         sha256 = hashlib.sha256(Path(downloaded.value.path()).read_bytes()).hexdigest()
         assert sha256 == result["artifact_sha256"][filename]
 
@@ -102,6 +103,29 @@ def verify_aligned_pair(page, panel, result, evidence):
     expect(match).to_be_enabled(timeout=45000)
     assert read_camera(a) == pytest.approx(matched, abs=1e-6)
     assert read_camera(b) == pytest.approx(matched, abs=1e-6)
+
+    expanded = panel.get_by_role("button", name="Expand research workspace", exact=True)
+    expanded.click()
+    focus.click()
+    expect(panel.locator(".structure-workbench-details")).to_be_hidden()
+    wide_camera = read_camera(a)
+    wide_fit = viewport_fit(a)
+    overlay.click()
+    expect(overlay).to_have_attribute("aria-pressed", "true")
+    panel.get_by_role("button", name="Close expanded view", exact=True).click()
+    pair.click()
+    expect(match).to_be_enabled(timeout=45000)
+    narrow_camera = read_camera(a)
+    narrow_fit = viewport_fit(a)
+    assert abs(wide_fit - narrow_fit) > 0.05
+    assert narrow_camera[:3] + narrow_camera[4:] == pytest.approx(
+        wide_camera[:3] + wide_camera[4:], abs=1e-6,
+    )
+    # The pinned renderer places its perspective camera at z=150.
+    assert 150 - narrow_camera[3] == pytest.approx(
+        (150 - wide_camera[3]) * wide_fit / narrow_fit,
+        abs=1e-5,
+    )
     page.screenshot(path=evidence / "aligned-pair.png")
 
     figures = []
@@ -113,6 +137,37 @@ def verify_aligned_pair(page, panel, result, evidence):
         inspect_png(figure)
         figures.append(hashlib.sha256(figure.read_bytes()).hexdigest())
     assert len(set(figures)) == 2
+
+
+def viewport_fit(frame):
+    return frame.evaluate("""frame => {
+      const box = frame.contentDocument.getElementById("molecule").getBoundingClientRect();
+      return Math.min(1, box.width / box.height);
+    }""")
+
+
+def verify_changed_source_is_rejected(page, panel):
+    moving = re.compile(r"/download\?name=moving-aligned\.cif$")
+    page.route(moving, lambda route: route.fulfill(
+        body="data_changed", headers={"X-Structure-Format": "cif"}, status=200,
+    ))
+    observed_downloads = []
+    page.on("download", observed_downloads.append)
+    panel.get_by_role("button", name="Aligned overlay", exact=True).click()
+    expect(panel.locator(".viewer-error")).to_be_visible(timeout=15000)
+    expect(panel.get_by_role("button", name="Export figure ↓", exact=True)).to_be_disabled()
+    panel.get_by_role("button", name="Aligned side by side", exact=True).click()
+    right = panel.get_by_role("region", name="B · Aligned comparison", exact=True)
+    expect(right.locator(".viewer-error")).to_be_visible(timeout=15000)
+    right.get_by_role("button", name="Download Aligned comparison CIF", exact=True).click()
+    expect(right.locator(".verified-artifact-download").get_by_role("alert")).to_contain_text(
+        "Could not verify the saved file."
+    )
+    summary = panel.get_by_role("region", name="Alignment summary", exact=True)
+    summary.get_by_role("button", name="Aligned structure mmCIF", exact=True).click()
+    expect(summary.get_by_role("alert")).to_contain_text("Could not verify the saved file.")
+    assert not observed_downloads
+    page.unroute(moving)
 
 
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
@@ -191,12 +246,13 @@ def test_archived_comparison_keeps_scene_and_residue_selection_linked(language, 
 
         with page.expect_download() as downloaded:
             panel.get_by_role(
-                "link", name="完整位移 CSV" if zh else "Full displacement CSV", exact=True
+                "button", name="完整位移 CSV" if zh else "Full displacement CSV", exact=True
             ).click()
         assert hashlib.sha256(Path(downloaded.value.path()).read_bytes()).hexdigest() == (
             result["artifact_sha256"]["residue-displacements.csv"]
         )
         if not zh:
             verify_aligned_pair(page, panel, result, evidence)
+            verify_changed_source_is_rejected(page, panel)
         assert not writes, writes
         browser.close()

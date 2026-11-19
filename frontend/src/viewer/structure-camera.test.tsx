@@ -2,11 +2,13 @@ import { renderHook } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import {
   isStructureCamera,
+  isCameraSnapshot,
   type StructureCameraHandle,
 } from "./structure-camera";
 import { useStructureCamera } from "./useStructureCamera";
 
 const view = [1, 2, 3, -725, 0, 0, 0, 1] as const;
+const snapshot = { camera: view, viewport: { width: 640, height: 480 } };
 
 it("admits only finite camera values with a unit rotation", () => {
   expect(isStructureCamera(view)).toBe(true);
@@ -14,6 +16,10 @@ it("admits only finite camera values with a unit rotation", () => {
   expect(isStructureCamera([1, 2, 3, 0, 0, 0, 0, Infinity])).toBe(false);
   expect(isStructureCamera([1, 2, 3, 0, 0, 0, 0, "1"])).toBe(false);
   expect(isStructureCamera([1e20, 2, 3, 0, 0, 0, 0, 1])).toBe(false);
+  expect(isCameraSnapshot(snapshot)).toBe(true);
+  expect(
+    isCameraSnapshot({ ...snapshot, viewport: { width: 0, height: 1 } }),
+  ).toBe(false);
 });
 
 it("accepts only the pending camera reply for the loaded scene", async () => {
@@ -47,7 +53,7 @@ it("accepts only the pending camera reply for the loaded scene", async () => {
           data: {
             channel: "opendde-viewer",
             type: "camera",
-            detail: { id: requestId, camera: view },
+            detail: { id: requestId, ...snapshot },
           },
         }),
       );
@@ -57,10 +63,10 @@ it("accepts only the pending camera reply for the loaded scene", async () => {
     reply(target, location.origin, "unrelated");
     expect(await current.read()).toBeNull();
     reply(target, location.origin, id);
-    expect(await reading).toEqual(view);
-    current.apply(view);
+    expect(await reading).toEqual(snapshot);
+    current.apply(snapshot);
     expect(post).toHaveBeenLastCalledWith(
-      { channel: "opendde-viewer", type: "camera-apply", value: view },
+      { channel: "opendde-viewer", type: "camera-apply", value: snapshot },
       location.origin,
     );
 

@@ -85,8 +85,11 @@
   color: var(--accent);
 }
 
-.aligned-structure-heading > a {
+.aligned-structure-heading .verified-artifact-download {
   flex: none;
+}
+
+.aligned-structure-heading .verified-artifact-download > button {
   font-size: 12px;
 }
 
@@ -113,10 +116,6 @@
 
 /* The header names both sources and their exact overlay colors. */
 .comparison-result-view .viewer-comparison {
-  display: none;
-}
-
-.aligned-structure-pair .viewer-original-downloads {
   display: none;
 }
 

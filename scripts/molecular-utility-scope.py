@@ -1108,7 +1108,10 @@ ALIGNED_COMPARISON_FILES = {
     ".github/workflows/publication-checks.yml",
     ".github/workflows/structure-comparison-checks.yml",
     "docs/frontend-layout.md",
+    "frontend/src/presentation/SpatialResultSummary.tsx",
+    "frontend/src/presentation/VerifiedArtifactDownload.tsx",
     "frontend/src/structure-comparison/AlignedStructurePair.tsx",
+    "frontend/src/structure-comparison/ComparisonFiles.tsx",
     "frontend/src/structure-comparison/ComparisonPreview.tsx",
     "frontend/src/structure-comparison/ComparisonResults.tsx",
     "frontend/src/structure-comparison/ComparisonScene.test.ts",
@@ -1117,6 +1120,9 @@ ALIGNED_COMPARISON_FILES = {
     "frontend/src/viewer/StructureViewport.tsx",
     "frontend/src/viewer/ViewerExportActions.tsx",
     "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/modified-polymer.ts",
+    "frontend/src/viewer/source-layout.test.ts",
+    "frontend/src/viewer/source-layout.ts",
     "frontend/src/viewer/structure-camera.test.tsx",
     "frontend/src/viewer/structure-camera.ts",
     "frontend/src/viewer/useStructureCamera.ts",
@@ -1124,7 +1130,7 @@ ALIGNED_COMPARISON_FILES = {
     "server_tests/test_archived_comparison_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-ALIGNED_COMPARISON_DIFF = "a0c8f0affba59d70b2dd680b236f83a880d2c46a48dd414e11f68a3f514f5fbe"
+ALIGNED_COMPARISON_DIFF = "d2e2fe7622548335a4b99c9d260a3164da041c9c497a703d987131be80b146e5"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",

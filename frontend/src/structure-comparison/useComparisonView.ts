@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type {
-  StructureCamera,
+  StructureCameraSnapshot,
   StructureCameraHandle,
 } from "../viewer/structure-camera";
 
@@ -22,7 +22,7 @@ export function useComparisonView() {
   const [ready, setReady] = useState<Partial<Record<Panel, boolean>>>({});
   const working = useRef(false);
   const handles = useRef<Partial<Record<Panel, StructureCameraHandle>>>({});
-  const saved = useRef<Partial<Record<Panel, StructureCamera>>>({});
+  const saved = useRef<Partial<Record<Panel, StructureCameraSnapshot>>>({});
   const publish = useMemo(
     () =>
       Object.fromEntries(

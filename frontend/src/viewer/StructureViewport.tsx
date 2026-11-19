@@ -71,6 +71,8 @@ export interface StructureViewerProps {
   figureFilename?: string;
   heading?: ReactNode;
   expectedStructureSha256?: string;
+  structureChecksums?: readonly string[];
+  cifAuthorResidues?: boolean;
   nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
   trajectoryKey?: string;
@@ -112,6 +114,8 @@ export function StructureViewport({
   figureFilename,
   heading,
   expectedStructureSha256,
+  structureChecksums,
+  cifAuthorResidues,
   onStructureVerification,
   trajectoryKey,
   ligandContext = true,
@@ -164,6 +168,8 @@ export function StructureViewport({
       ":" +
       JSON.stringify({
         expectedStructureSha256: structureSha256,
+        structureChecksums,
+        cifAuthorResidues,
         nativeInteractions,
         potentialSource: electrostaticMap && [
           electrostaticMap.url,
@@ -256,6 +262,8 @@ export function StructureViewport({
     return {
       urls,
       expectedStructureSha256: structureSha256,
+      structureChecksums,
+      cifAuthorResidues,
       ...(trajectoryKey ? { trajectoryKey } : {}),
       ...(optimization.initialReady || sourceSnapshot
         ? { initialPosePrepared: true }
@@ -621,7 +629,11 @@ export function StructureViewport({
           language={language}
           filename={figureFilename}
           showWorkspaceControls={showWorkspaceControls}
-          originalUrls={optimization.pose.nativeArtifactSha256 ? [] : urls}
+          originalUrls={
+            optimization.pose.nativeArtifactSha256 || structureChecksums
+              ? []
+              : urls
+          }
           sourceKey={JSON.stringify([
             key,
             options,
