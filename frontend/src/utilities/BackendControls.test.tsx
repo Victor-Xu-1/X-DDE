@@ -126,7 +126,7 @@ it("shows the current module first and returns to it after closing the full cata
   expect(form).toHaveFocus();
   expect(api.post).not.toHaveBeenCalled();
 });
-it("includes running persistent compute in the module status that owns it", async () => {
+it("reports persistent compute only when the module has a confirmed status", async () => {
   vi.mocked(request).mockResolvedValue({
     capabilities: { fold: "harness", properties: "chemistry" },
     engines: [
@@ -139,16 +139,14 @@ it("includes running persistent compute in the module status that owns it", asyn
       },
     ],
   });
-  render(
-    <ComputePowerProvider
-      data={
-        {
-          compute_service: { configured: true, running: true, ready: true },
-        } as Deployment
-      }
-      error=""
-      refresh={vi.fn()}
-    >
+  const running = {
+    compute_service: { configured: true, running: true, ready: true },
+  } as Deployment;
+  const stopped = {
+    compute_service: { configured: true, running: false, ready: false },
+  } as Deployment;
+  const view = (data: Deployment | null, error = "") => (
+    <ComputePowerProvider data={data} error={error} refresh={vi.fn()}>
       <BackendControls
         language="en"
         module={{ label: ["生物药", "Biologics"], tools: ["fold"] }}
@@ -157,13 +155,18 @@ it("includes running persistent compute in the module status that owns it", asyn
         language="en"
         module={{ label: ["性质", "Properties"], tools: ["properties"] }}
       />
-    </ComputePowerProvider>,
+    </ComputePowerProvider>
   );
+  const { rerender } = render(view(null));
   const [biologics, properties] = screen.getAllByRole("button", {
     name: "Backend controls",
   });
-  await waitFor(() => expect(biologics).toHaveAccessibleDescription("1 on"));
-  expect(properties).toHaveAccessibleDescription("Task engines off");
+  await waitFor(() =>
+    expect(properties).toHaveAccessibleDescription("Task engines off"),
+  );
+  expect(biologics).toHaveAccessibleDescription("Reading…");
+  rerender(view(running));
+  expect(biologics).toHaveAccessibleDescription("1 on");
   await userEvent.click(biologics);
   expect(
     screen.getByRole("switch", { name: "Persistent compute" }),
@@ -171,6 +174,14 @@ it("includes running persistent compute in the module status that owns it", asyn
   expect(
     screen.getByRole("switch", { name: "OpenDDE Harness" }),
   ).not.toBeChecked();
+  rerender(view(running, "Deployment read failed"));
+  expect(biologics).toHaveAccessibleDescription("State unavailable");
+  expect(properties).toHaveAccessibleDescription("Task engines off");
+  expect(
+    screen.getByRole("switch", { name: "Persistent compute" }),
+  ).toHaveAccessibleDescription("State unavailable");
+  rerender(view(stopped));
+  expect(biologics).toHaveAccessibleDescription("Task engines off");
   expect(api.post).not.toHaveBeenCalled();
 });
 

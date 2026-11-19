@@ -850,7 +850,7 @@ BACKEND_STATE_FILES = {
     "frontend/src/workflows/WorkflowCenter.tsx",
     "frontend/src/workflows/model.ts",
 }
-BACKEND_STATE_DIFF = "c36351a0b5e77c43b53b08621064b69e06eace45a2acfa7d028c2b2a2978a21e"
+BACKEND_STATE_DIFF = "b97ca8835094bcb464cd1ed7505068b93fbc60b7ebc36df6617f20a82a1a77bf"
 DESKTOP_HELP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",

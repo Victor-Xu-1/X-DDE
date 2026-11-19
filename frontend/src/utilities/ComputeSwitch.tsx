@@ -26,6 +26,7 @@ export function computeActivity(
 type ComputePower = {
   service?: ComputeService;
   unavailable: boolean;
+  loading: boolean;
   action: Action | null;
   failed: boolean;
   change(): Promise<void>;
@@ -97,7 +98,14 @@ export function ComputePowerProvider({
   }
   return (
     <ComputeContext.Provider
-      value={{ service, unavailable: Boolean(error), action, failed, change }}
+      value={{
+        service,
+        unavailable: Boolean(error),
+        loading: !data && !error,
+        action,
+        failed,
+        change,
+      }}
     >
       {children}
     </ComputeContext.Provider>

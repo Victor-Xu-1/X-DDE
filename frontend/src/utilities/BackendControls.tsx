@@ -54,28 +54,28 @@ export function BackendControls({
   const compute = useComputePower();
   const moduleUsesCompute = moduleRows.some((row) => row.id === "harness");
   const activeCompute = moduleUsesCompute && Boolean(compute?.service?.running);
-  const computeUnknown = moduleUsesCompute && compute?.unavailable;
-  const enabledCount = moduleRows.filter((row) => row.enabled).length;
-  const activeCount = enabledCount + Number(activeCompute);
+  const reading = !runtime.catalogue || (moduleUsesCompute && compute?.loading);
+  const unavailable =
+    runtime.readError || (moduleUsesCompute && compute?.unavailable);
+  const activeCount =
+    moduleRows.filter((row) => row.enabled).length + Number(activeCompute);
   const power =
-    runtime.readError || !moduleRows.length
+    unavailable || reading || !moduleRows.length
       ? "unknown"
       : activeCount
         ? "on"
-        : computeUnknown
-          ? "unknown"
-          : "off";
+        : "off";
   const status = {
     on: zh ? `${activeCount} 个后端已开启` : `${activeCount} on`,
     off: zh ? "任务引擎已关闭" : "Task engines off",
     unknown:
-      runtime.readError || runtime.catalogue
+      reading && !unavailable
         ? zh
-          ? "状态待确认"
-          : "State unavailable"
-        : zh
           ? "正在读取…"
-          : "Reading…",
+          : "Reading…"
+        : zh
+          ? "状态待确认"
+          : "State unavailable",
   }[power];
   const index = zh ? 0 : 1;
   const heading = capabilities
