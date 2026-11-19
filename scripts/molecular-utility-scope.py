@@ -673,7 +673,7 @@ COMPACT_MATERIAL_FILES = {
     "server_tests/test_utility_image_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-COMPACT_MATERIAL_DIFF = "d215a7cc946ce16c245137c45ce3b3216a0ac7b2b26f990e9da9abbd5ec8b150"
+COMPACT_MATERIAL_DIFF = "cc68067d25e467d58255f67d6bcdb27f7435e86595ca9d4e9ce323749dbd9e13"
 
 
 PAIRED_FIGURE_FILES = {

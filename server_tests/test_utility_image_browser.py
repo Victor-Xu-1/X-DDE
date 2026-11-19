@@ -361,7 +361,9 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         page.get_by_role("button", name="Similarity & structural alerts", exact=True).click()
         library = page.locator('[data-image-target="library"]:visible')
         query = page.locator('[data-image-target="query"]:visible')
-        retained_library = library.locator('[data-material-selection="summary"] .reference-material-summary')
+        retained_library = library.locator(
+            '[data-material-selection="summary"] .reference-material-summary'
+        )
         mode = page.get_by_label("What should this selection do?")
         original_mode = mode.input_value()
         expect(library.get_by_role("switch", name="DECIMER")).not_to_be_checked()
