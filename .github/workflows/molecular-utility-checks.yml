@@ -530,8 +530,6 @@ jobs:
     timeout-minutes: 13
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/x-dde-candidate-inspection
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-candidate-inspection/state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -551,6 +549,8 @@ jobs:
       - name: Restore reviewed retained candidates into isolated scope
         env:
           GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-candidate-inspection
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-candidate-inspection/state
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_candidate_inspection_desktop.py
@@ -565,6 +565,9 @@ jobs:
           done
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher
       - name: Native Chrome selection, original bytes and research figure
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-candidate-inspection
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-candidate-inspection/state
         run: |
           google-chrome --version
           uv run --locked pytest -x -q server_tests/test_candidate_inspection_desktop.py

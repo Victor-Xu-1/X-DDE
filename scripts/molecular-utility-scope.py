@@ -974,7 +974,7 @@ CANDIDATE_DESKTOP_FILES = {
     "server_tests/test_candidate_inspection_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-CANDIDATE_DESKTOP_DIFF = "34e1241686cd1feeed48028a4d34d11de6efa3b3dfe61259c8245ccb5280ff81"
+CANDIDATE_DESKTOP_DIFF = "f02fb8fd28848b449f62149dd8ace1074ae5d8ee3877c1218c78c44e88484ed4"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
