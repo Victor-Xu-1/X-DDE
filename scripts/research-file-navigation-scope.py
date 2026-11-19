@@ -78,7 +78,10 @@ _INSPECTION_FILES = {
     ".github/workflows/example-result-set-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/ketcher-depiction-checks.yml",
+    ".github/workflows/restraint-guidance-checks.yml",
     ".github/workflows/simulation-questionnaire-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
     ".github/workflows/workspace-preview-checks.yml",
     "frontend/src/presentation/MolecularPreview.tsx",
     "frontend/src/presentation/VerifiedArtifactDownload.test.tsx",
@@ -92,7 +95,7 @@ _INSPECTION_FILES = {
     "frontend/src/research/research.css",
     "server_tests/test_workspace_preview_browser.py",
 }
-_INSPECTION_SHA = "8a201db6b4ecdbd112f89cfdce936b3f55dcacd18e598658f0aeca6dd342d6cf"
+_INSPECTION_SHA = "48f2030d6d0d3e275a326d68376a612d7643cbaab2d18c266542c5b782ee5f7a"
 
 
 def inspection_digest(base, head):
