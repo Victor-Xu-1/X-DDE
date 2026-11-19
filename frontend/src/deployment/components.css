@@ -351,8 +351,16 @@
   }
   .deployment-workspace > .install-location {
     grid-area: location;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label confirmation"
+      "directory directory"
+      "custom custom"
+      "hint hint";
     align-content: center;
-    gap: 8px;
+    align-items: center;
+    gap: 0 8px;
   }
   .deployment-workspace > .compute-service-panel {
     grid-area: compute;
@@ -383,9 +391,25 @@
     padding: 12px 14px;
   }
   .install-location-choice {
-    display: grid;
-    flex: 1 1 200px;
-    gap: 4px;
+    display: contents;
+  }
+  .install-location-choice strong {
+    grid-area: label;
+  }
+  .install-location select {
+    grid-area: directory;
+    margin-block-start: 4px;
+  }
+  .install-location input {
+    grid-area: custom;
+    margin-block-start: 8px;
+  }
+  .install-location > button {
+    grid-area: confirmation;
+  }
+  .install-location .field-help {
+    grid-area: hint;
+    margin-block-start: 8px;
   }
   .deployment-workspace > :is(.install-location, .compute-service-panel) button {
     flex-shrink: 0;

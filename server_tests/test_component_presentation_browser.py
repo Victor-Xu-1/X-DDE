@@ -71,9 +71,11 @@ def test_desktop_catalogue_keeps_first_row_actions_visible(
             assert all(box["textFits"] for box in boxes)
             expect(cards.first).to_have_css("border-top-left-radius", "10px")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            selector = location.get_by_role("combobox")
+            selector_box = selector.bounding_box()
+            assert selector_box and selector_box["width"] >= 0.85 * location_box["width"]
             page.screenshot(path=evidence / f"{prefix}.png")
 
-            selector = location.get_by_role("combobox")
             original = selector.input_value()
             selector.select_option("custom")
             expect(location.get_by_role("textbox")).to_be_visible()
