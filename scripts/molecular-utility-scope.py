@@ -866,7 +866,7 @@ SPATIAL_DESKTOP_FILES = {
     "server_tests/test_spatial_results_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-SPATIAL_DESKTOP_DIFF = "b3b14d15775531febb7903f718b992cf69936a7041528bf9bef2c724636e402a"
+SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
