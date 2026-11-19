@@ -82,7 +82,7 @@ def test_native_result_views_and_downloads(case, language):
         atomic_json(component_root / "installed.json", installed)
     with platform(source / "state", evidence / (language + ".log")) as base, sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page = browser.new_page(viewport={"width": 1280, "height": 800})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -111,9 +111,14 @@ def test_native_result_views_and_downloads(case, language):
             expect(viewer).to_be_visible()
             expect(viewer.locator("canvas")).to_be_visible(timeout=30000)
             loaded(viewer)
+            expect(root.locator(".trajectory-controls")).to_be_in_viewport(ratio=1)
+            expect(root.get_by_role(
+                "link", name="Download frame" if language == "en" else "下载当前结构"
+            )).to_be_in_viewport(ratio=1)
             page.get_by_role(
                 "slider", name="Trajectory time" if language == "en" else "轨迹时间"
             ).fill("3")
+            root.get_by_role("tab", name="RMSF", exact=True).click()
             expect(
                 root.get_by_role(
                     "link", name="Download frame" if language == "en" else "下载当前结构"
@@ -135,6 +140,7 @@ def test_native_result_views_and_downloads(case, language):
                     exact=True,
                 )
             ).to_be_visible()
+            root.get_by_role("tab", name="Backbone" if language == "en" else "骨架").click()
             expect(root.locator(".js-plotly-plot").first).to_be_visible(timeout=30000)
             # Actual plotted points select the exact native trajectory frame.
             plot = root.locator(".js-plotly-plot").first
@@ -249,6 +255,18 @@ def test_native_result_views_and_downloads(case, language):
             root.get_by_role(
                 "tab", name="Binding poses" if language == "en" else "结合姿势", exact=True
             ).click()
+            overlay = root.get_by_role(
+                "button", name="Overlay" if language == "en" else "叠加查看", exact=True
+            )
+            expect(overlay).to_have_attribute("aria-pressed", "true")
+            single = root.locator('[data-testid="molstar-viewport"]:visible')
+            expect(single).to_have_count(1)
+            loaded(single)
+            expect(single).to_have_attribute("data-ligand", "all")
+            root.get_by_role(
+                "button", name="A / B side by side" if language == "en" else "A / B 并列",
+                exact=True,
+            ).click()
             panels = root.locator(".pose-comparison-panels > section")
             expect(panels).to_have_count(2)
             for index, slot in enumerate(("a", "b")):
@@ -256,6 +274,11 @@ def test_native_result_views_and_downloads(case, language):
                 loaded(viewer)
                 expect(viewer).to_have_attribute("data-ligand", slot)
                 expect(viewer.get_by_role("combobox")).to_have_count(0)
+            first = panels.nth(0).locator(".simulation-webgl").bounding_box()
+            second = panels.nth(1).locator(".simulation-webgl").bounding_box()
+            assert first and second
+            assert first["x"] + first["width"] < second["x"]
+            assert abs(first["y"] - second["y"]) <= 4
             root.get_by_role(
                 "button", name="Match views" if language == "en" else "匹配视角", exact=True
             ).click()

@@ -101,6 +101,7 @@ def test_molstar_framing_uses_native_outputs(case, language):
             viewer.get_by_role("button", name="Overview", exact=True).click()
         else:
             root.get_by_role("tab", name="结合姿势", exact=True).click()
+            root.get_by_role("button", name="A / B 并列", exact=True).click()
             expect(viewer).to_have_count(2)
             ready(viewer.nth(0))
             ready(viewer.nth(1))

@@ -240,32 +240,6 @@
   min-width: 0;
   padding: 0;
 }
-.trajectory-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-block: 12px;
-  flex-wrap: wrap;
-}
-.trajectory-controls input {
-  flex: 1;
-  min-width: 120px;
-}
-.simulation-readouts {
-  display: flex;
-  gap: 24px;
-  margin: 18px 0 0;
-  flex-wrap: wrap;
-}
-.simulation-readouts dt {
-  font-size: 12px;
-  color: var(--text-muted, #6b7588);
-}
-.simulation-readouts dd {
-  font-size: 20px;
-  font-variant-numeric: tabular-nums;
-  margin: 4px 0 0;
-}
 .simulation-occupancy {
   display: flex;
   gap: 9px;
@@ -320,20 +294,12 @@
     align-items: flex-start;
     flex-direction: column;
   }
-  .simulation-readouts {
-    gap: 16px;
-  }
   .simulation-molecule-pair {
     grid-template-columns: minmax(0, 1fr);
   }
   .simulation-plot header {
     flex-wrap: wrap;
   }
-}
-.simulation-time-plots {
-  display: grid;
-  gap: 22px;
-  min-width: 0;
 }
 .simulation-webgl {
   position: relative;

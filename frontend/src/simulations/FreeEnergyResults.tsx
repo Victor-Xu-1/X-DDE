@@ -14,6 +14,7 @@ import { FreeEnergyForest } from "./FreeEnergyForest";
 import { SimulationFiles } from "./SimulationFiles";
 import { SimulationForm } from "./SimulationForm";
 import "./simulations.css";
+import "./result-workspace.css";
 
 export function FreeEnergyResults({
   job,
@@ -67,7 +68,10 @@ export function FreeEnergyResults({
   const a = result.nodes.find((n) => n.id === edge.a)!,
     b = result.nodes.find((n) => n.id === edge.b)!;
   return (
-    <div className="simulation-results" data-testid="free-energy-results">
+    <div
+      className="simulation-results simulation-result-workspace simulation-fep-workspace"
+      data-testid="free-energy-results"
+    >
       <StructureWorkbench
         preview={
           <ResearchTabs
@@ -81,6 +85,7 @@ export function FreeEnergyResults({
                       content: (
                         <BoundPoseComparison
                           key={edge.id}
+                          initialMode="overlay"
                           labels={[a.id, b.id]}
                           sources={[
                             {
@@ -136,7 +141,7 @@ export function FreeEnergyResults({
           />
         }
       >
-        <div className="simulation-result-toolbar">
+        <div className="simulation-result-toolbar fep-result-context">
           <h2>{zh ? "FEP 结合自由能" : "FEP binding free energy"}</h2>
           <span className="status-badge">
             {result.stage === "plan"
@@ -159,6 +164,7 @@ export function FreeEnergyResults({
               {zh ? "确认并执行 FEP" : "Review and run FEP"}
             </button>
           )}
+        <SimulationFiles job={job} files={files} language={language} />
         <div
           className={
             result.stage === "calculate" ? "simulation-secondary-grid" : ""
@@ -249,7 +255,6 @@ export function FreeEnergyResults({
               : "For congeneric, same-net-charge small molecules in one protein frame. A planned network has no calculated free energy. Completed calculations still require sampling, uncertainty and applicability review."}
           </p>
         </details>
-        <SimulationFiles job={job} files={files} language={language} />
       </StructureWorkbench>
     </div>
   );

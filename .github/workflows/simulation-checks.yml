@@ -34,6 +34,9 @@ on:
       # Routing-only workflow edits do not re-run scientific contracts.
       # Print export and shared entry motion use publication-checks.yml.
       - "!frontend/src/simulations/DynamicsResults.tsx"
+      - "!frontend/src/simulations/DynamicsAnalysis.tsx"
+      - "!frontend/src/simulations/TrajectoryControls.tsx"
+      - "!frontend/src/simulations/result-workspace.css"
       - "!frontend/src/simulations/FreeEnergyNetwork.tsx"
       - "!frontend/src/simulations/InteractivePlot.tsx"
       - "!frontend/src/simulations/MolecularViewport.tsx"

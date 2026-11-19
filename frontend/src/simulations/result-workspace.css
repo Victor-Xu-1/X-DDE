@@ -1,0 +1,153 @@
+.simulation-result-workspace .structure-workbench-details {
+  gap: 12px;
+}
+
+.simulation-result-workspace .simulation-webgl {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trajectory-heading,
+.trajectory-heading label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trajectory-heading {
+  min-height: 26px;
+  justify-content: space-between;
+}
+
+.trajectory-heading h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.trajectory-heading label {
+  font-size: 12px;
+}
+
+.trajectory-heading select {
+  min-height: 31px;
+  padding: 3px 8px;
+}
+
+.trajectory-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-block: 6px 3px;
+  padding: 5px 0;
+}
+
+.trajectory-controls .secondary-button {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+.trajectory-controls .trajectory-play {
+  justify-content: center;
+  min-width: 34px;
+}
+
+.trajectory-controls input[type="range"] {
+  flex: 1;
+  min-width: 86px;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.trajectory-controls output {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.trajectory-controls output span,
+.trajectory-readouts dt {
+  color: var(--muted);
+}
+
+.trajectory-analysis {
+  display: grid;
+  gap: 10px;
+}
+
+.trajectory-readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 9px 10px;
+  margin: 0;
+  background: var(--surface-muted);
+  border-radius: 8px;
+}
+
+.trajectory-readouts dt {
+  font-size: 11px;
+}
+
+.trajectory-readouts dd {
+  margin: 3px 0 0;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trajectory-analysis .simulation-method {
+  padding-top: 6px;
+}
+
+.trajectory-analysis-tabs .research-tab-list {
+  gap: 9px;
+  margin-block: 0 9px;
+}
+
+.trajectory-analysis-tabs .research-tab-list button {
+  padding-inline: 2px;
+  font-size: 12px;
+}
+
+.simulation-result-workspace
+  .simulation-view-controls
+  button[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
+}
+
+.simulation-fep-workspace .pose-comparison-toolbar {
+  gap: 6px 10px;
+  margin-block: 3px 8px;
+}
+
+.simulation-fep-workspace .fep-result-context {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+@media (min-width: 1180px) {
+  .simulation-fep-workspace .structure-workbench-view .pose-comparison-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .simulation-fep-workspace .pose-comparison-panels .simulation-webgl {
+    height: clamp(338px, 46vh, 490px);
+  }
+
+  .simulation-fep-workspace .pose-comparison-panels h3 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+  }
+}

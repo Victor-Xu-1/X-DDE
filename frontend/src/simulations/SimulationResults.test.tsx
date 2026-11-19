@@ -169,8 +169,8 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
     "false",
   );
   expect(screen.queryByText("Ligand RMSD")).toBeNull();
-  expect(screen.queryByRole("tab", { name: "Ligand stability" })).toBeNull();
-  expect(screen.getByRole("tab", { name: "Rg" })).toHaveAttribute(
+  expect(screen.queryByRole("tab", { name: "Ligand" })).toBeNull();
+  expect(screen.getByRole("tab", { name: "Backbone" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -190,6 +190,11 @@ it("links a sampled time to the exact downloadable snapshot and retains Å/ns un
     "href",
     expect.stringContaining("frame-2.pdb"),
   );
+  expect(timeline).toHaveAttribute(
+    "aria-valuetext",
+    "0.02000 ns, Sampled frame 2 / 2",
+  );
+  await user.click(screen.getByRole("tab", { name: "RMSF" }));
   expect(
     screen.getByRole("application", { name: /Residue fluctuations/ }),
   ).toBeVisible();
