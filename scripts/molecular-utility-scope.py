@@ -557,7 +557,7 @@ RECOGNITION_ENTRY_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_utility_tools.py",
 }
-RECOGNITION_ENTRY_DIFF = "e3499e188a3d34d9f615510fe1f5a76a6fd1e232964c2bffdccb033ef4b23347"
+RECOGNITION_ENTRY_DIFF = "5f858a5b7ebd7034d1bbd904d16d924368843083dd996b96cb836510292d795c"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1247,7 +1247,8 @@ def main():
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
         utility = (
-            recognition_entry or recognition_power or potential_display or navigation or runtime or layout
+            recognition_entry or recognition_power or potential_display or navigation
+            or runtime or layout
             or native_state or compact_example or mobile_header or desktop_header
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
