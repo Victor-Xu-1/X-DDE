@@ -56,7 +56,7 @@ export function ResultsPreview({
     {
       href: complex,
       format: "PDB",
-      label: zh ? "下载完整复合物" : "Download complete complex",
+      label: zh ? "PDB · 下载完整复合物" : "PDB · Download complete complex",
     },
     {
       href: ligand,

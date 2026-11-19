@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,7 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.examples.bundle import restore_bundle
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
-from server_tests.publication_browser_helpers import export_figure, inspect_png, inspect_svg
+from server_tests.publication_browser_helpers import export_figure, inspect_png
 
 JOB = "65e194f0-649c-4c8a-b414-de8d0b74758d"
 ARCHIVE_SHA = "5652cba9a0628b31d0a8bb9791dc87984754d7df976dbce7c3834bd080389bb8"
@@ -20,7 +21,7 @@ ARCHIVE_SHA = "5652cba9a0628b31d0a8bb9791dc87984754d7df976dbce7c3834bd080389bb8"
 
 def check_downloads(page, region, row, result, zh):
     links = (
-        ("下载完整复合物" if zh else "Download complete complex", row["complex_artifact"]),
+        ("PDB · 下载完整复合物" if zh else "PDB · Download complete complex", row["complex_artifact"]),
         ("下载分子 SDF" if zh else "Download molecule SDF", row["ligand_artifact"]),
     )
     for name, artifact in links:
@@ -50,6 +51,21 @@ def inspect_layout(page, frame, width, height):
     assert canvas["height"] >= 500 and (height - canvas["y"]) >= 320
     assert 0 < canvas["y"] < 480 and canvas["x"] + canvas["width"] < details["x"]
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+
+
+def double_column(dialog):
+    expect(dialog.get_by_text("This structure needs more space.", exact=False)).to_be_visible(
+        timeout=20000
+    )
+    dialog.get_by_role("combobox", name="Figure width").select_option("183")
+
+
+def inspect_molecular_vector(path):
+    root = ET.fromstring(path.read_bytes())
+    assert root.tag == "{http://www.w3.org/2000/svg}svg"
+    assert root.attrib["width"] == "183mm"
+    assert len(root.findall(".//{http://www.w3.org/2000/svg}path")) > 10
+    assert not root.findall(".//{http://www.w3.org/2000/svg}image")
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
@@ -131,9 +147,9 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
         if not zh:
             vector = export_figure(
                 page, drawing.locator(".figure-export-trigger"), evidence,
-                "selected-ligand", language, format="SVG",
+                "selected-ligand", language, format="SVG", configure=double_column,
             )
-            inspect_svg(vector, "O")
+            inspect_molecular_vector(vector)
         preview.get_by_role("tab", name="连接位点" if zh else "Attachment sites").press("Enter")
         frame, _ = native_view(preview, rows[1]["complex_artifact"])
         canvas = frame.bounding_box()

@@ -98,7 +98,7 @@ it.each<Language>(["en", "zh"])(
       );
       expect(
         screen.getByRole("link", {
-          name: zh ? "下载完整复合物" : "Download complete complex",
+          name: zh ? "PDB · 下载完整复合物" : "PDB · Download complete complex",
         }),
       ).toHaveAttribute(
         "href",
