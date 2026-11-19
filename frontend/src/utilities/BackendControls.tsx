@@ -23,12 +23,31 @@ export function BackendControls({
   const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
+  const statusId = useId();
   const capabilities = showAll ? undefined : module?.tools;
-  const runtime = useBackendRuntime(open, capabilities, !capabilities);
+  const runtime = useBackendRuntime(
+    Boolean(module) || open,
+    open ? capabilities : undefined,
+    open && !capabilities,
+  );
   const rows = capabilities
     ? enginesForScope(runtime.catalogue, { capabilities })
     : (runtime.catalogue?.engines ?? []);
   const harness = rows.find((row) => row.id === "harness");
+  const moduleRows = module
+    ? enginesForScope(runtime.catalogue, { capabilities: module.tools })
+    : [];
+  const enabledCount = moduleRows.filter((row) => row.enabled).length;
+  const power = runtime.readError || !moduleRows.length
+    ? "unknown"
+    : enabledCount ? "on" : "off";
+  const status = {
+    on: zh ? `${enabledCount} 个任务引擎已开启` : `${enabledCount} on`,
+    off: zh ? "任务引擎已关闭" : "Task engines off",
+    unknown: runtime.readError || runtime.catalogue
+      ? zh ? "状态待确认" : "State unavailable"
+      : zh ? "正在读取…" : "Reading…",
+  }[power];
   const index = zh ? 0 : 1;
   const heading = capabilities
     ? module?.label[zh ? 0 : 1]
@@ -74,12 +93,24 @@ export function BackendControls({
         className="secondary-button backend-controls-trigger"
         type="button"
         aria-label={triggerLabel}
+        aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => (open ? close() : setPanel("module"))}
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
         <span className="backend-controls-label">{triggerLabel}</span>
+        {module && (
+          <span
+            id={statusId}
+            className="backend-module-status"
+            data-power={power}
+            aria-live="polite"
+            title={status}
+          >
+            <span>{status}</span>
+          </span>
+        )}
       </button>
       {open && (
         <section

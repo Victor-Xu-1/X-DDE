@@ -81,6 +81,9 @@ it("shows the current module first and returns to it after closing the full cata
     </>,
   );
   const trigger = screen.getByRole("button", { name: "Backend controls" });
+  await waitFor(() =>
+    expect(trigger).toHaveAccessibleDescription("Task engines off"),
+  );
   await user.click(trigger);
   const module = screen.getByRole("region", {
     name: "Backends in this module",
@@ -174,7 +177,10 @@ it("shares one default-off engine across module, sibling tool and global switche
         language="en"
         scope={{ capability: "experimental.evidence" }}
       />
-      <BackendControls language="en" />
+      <BackendControls
+        language="en"
+        module={{ label: ["分子性质", "Molecular properties"], tools: ["properties"] }}
+      />
     </>,
   );
   const toggles = await screen.findAllByRole("switch", { name: "RDKit" });
@@ -184,12 +190,16 @@ it("shares one default-off engine across module, sibling tool and global switche
   expect(api.post).not.toHaveBeenCalled();
   await user.click(toggles[0]);
   await waitFor(() => expect(toggles[0]).toBeChecked());
-  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
+  expect(trigger).toHaveAccessibleDescription("1 on");
+  await user.click(trigger);
+  await user.click(screen.getByRole("button", { name: "View all backends" }));
   const global = within(screen.getByRole("region", { name: "Backend power" }));
   expect(global.getByRole("switch", { name: "RDKit" })).toBeChecked();
   toggles.forEach((toggle) => expect(toggle).toBeChecked());
   await user.click(global.getByRole("switch", { name: "RDKit" }));
   await waitFor(() => expect(toggles[0]).not.toBeChecked());
+  expect(trigger).toHaveAccessibleDescription("Task engines off");
   expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
     "/runtime-controls/chemistry/start",
     "/runtime-controls/chemistry/stop",

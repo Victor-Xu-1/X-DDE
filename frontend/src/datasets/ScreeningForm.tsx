@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GuidedSteps } from "../guided/Questionnaire";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import { Hint } from "../guided/Hint";
@@ -25,6 +25,7 @@ import { useDatasetExample } from "./useDatasetExample";
 import type { ShortlistSettings } from "./ShortlistChoices";
 import { ScreeningReview } from "./ScreeningReview";
 import type { PublicLibraryFile } from "./PublicLibraryFiles";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 
 export function ScreeningForm({
   language,
@@ -113,10 +114,24 @@ export function ScreeningForm({
     focused: { topK: 300, retain: 40, dock: true },
     broad: { topK: 1000, retain: 100, dock: true },
   }[profile];
+  const importLibrary = source === "new";
+  const supplementalBackends = useMemo(
+    () => [
+      ...(importLibrary ? ["library.import"] : []),
+      ...(preset.dock ? ["screening.dock"] : []),
+    ],
+    [importLibrary, preset.dock],
+  );
   const readiness = screeningReadiness(retrieval, docking, chemistry, {
     dock: preset.dock,
-    importLibrary: source === "new",
+    importLibrary,
   });
+  const planPower = supplementalBackends.length > 0 && (
+    <TaskBackendControl
+      language={language}
+      scope={{ capabilities: supplementalBackends }}
+    />
+  );
   async function submit() {
     if (!pocket.pocket) return;
     return run.submit(
@@ -171,11 +186,14 @@ export function ScreeningForm({
         submitLabel={zh ? "提交筛选" : "Submit screening"}
         onSubmit={submit}
         renderResult={(value) => (
-          <ExecutionView
-            execution={value}
-            language={language}
-            onCreated={onCreated}
-          />
+          <>
+            {planPower}
+            <ExecutionView
+              execution={value}
+              language={language}
+              onCreated={onCreated}
+            />
+          </>
         )}
         steps={[
           {
@@ -198,6 +216,12 @@ export function ScreeningForm({
           },
           {
             title: zh ? "选择分子库" : "Choose library",
+            actions: importLibrary && (
+              <TaskBackendControl
+                language={language}
+                scope={{ capability: "library.import" }}
+              />
+            ),
             valid:
               source === "new"
                 ? !!library &&
@@ -287,6 +311,7 @@ export function ScreeningForm({
           },
           {
             title: zh ? "选择方案并提交" : "Choose plan and submit",
+            actions: planPower,
             valid:
               !!pocket.pocket &&
               (source === "new" ? !!library : !!indexes.length),

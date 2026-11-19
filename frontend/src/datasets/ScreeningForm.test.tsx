@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { api } from "../api";
+import * as network from "../api";
 import type { Asset } from "../operations/types";
 import type {
   WorkflowPlan,
@@ -133,7 +133,21 @@ vi.mock("./ExecutionView", () => ({
   ),
 }));
 const original = structuredClone(fixture);
-beforeEach(() => Object.assign(fixture, structuredClone(original)));
+const { api, request } = network;
+beforeEach(() => {
+  Object.assign(fixture, structuredClone(original));
+  vi.spyOn(network, "request").mockImplementation((path, options) =>
+    path.startsWith("/runtime-controls")
+      ? Promise.resolve({
+          capabilities: { "library.import": "chemistry", "screening.dock": "gnina" },
+          engines: [
+            { id: "chemistry", name: "RDKit", ready: true, enabled: false, active: false },
+            { id: "gnina", name: "GNINA", ready: true, enabled: false, active: false },
+          ],
+        })
+      : request(path, options),
+  );
+});
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -215,6 +229,31 @@ async function loseResponse(user: ReturnType<typeof userEvent.setup>) {
     "Task submission could not be confirmed. Submit again to continue the same request.",
   );
 }
+
+it.each([false, true])(
+  "exposes only engines for the selected library and docking stages, historical=%s",
+  async (historical) => {
+    const server = transport();
+    render(<ScreeningForm language="en" onCreated={vi.fn()} />);
+    const user = await review(historical);
+    if (historical)
+      expect(screen.queryByRole("switch", { name: "RDKit" })).toBeNull();
+    else
+      expect(await screen.findByRole("switch", { name: "RDKit" })).not.toBeChecked();
+    expect(screen.queryByRole("switch", { name: "GNINA" })).toBeNull();
+    await user.click(screen.getByRole("radio", { name: /Screen and dock/ }));
+    expect(await screen.findByRole("switch", { name: "GNINA" })).not.toBeChecked();
+    await user.click(screen.getByRole("radio", { name: /Quick exploration/ }));
+    expect(screen.queryByRole("switch", { name: "GNINA" })).toBeNull();
+    expect(server.calls).toHaveLength(0);
+    await user.click(screen.getByRole("radio", { name: /Screen and dock/ }));
+    await loseResponse(user);
+    await user.click(screen.getByRole("button", { name: "Submit screening" }));
+    expect(await screen.findByText("Accepted workflow run-1")).toBeVisible();
+    expect(await screen.findByRole("switch", { name: "GNINA" })).not.toBeChecked();
+    expect(Boolean(screen.queryByRole("switch", { name: "RDKit" }))).toBe(!historical);
+  },
+);
 
 it.each([
   [false, false, "run"],

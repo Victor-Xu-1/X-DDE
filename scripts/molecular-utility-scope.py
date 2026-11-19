@@ -723,6 +723,25 @@ SPLIT_VIEWER_FILES = {
 }
 SPLIT_VIEWER_DIFF = "fcd668deeca469111005f7d56aaecb0d54dc100598bcd1f4ade24e69e216b592"
 
+MODULE_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/datasets/ScreeningForm.tsx",
+    "frontend/src/datasets/ScreeningForm.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_screening_power_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+MODULE_POWER_DIFF = "74a5a31f3fd8474142e1acfb00a2ba16ca63551890a519aa3778721eb784377d"
+MODULE_POWER_CONSUMERS = MODULE_POWER_FILES - {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "tests/test_molecular_utility_scope.py",
+}
+
 
 def reviewed_selected(changed, event, base, files, digest):
     if event not in {"push", "pull_request"} or not files <= changed:
@@ -798,7 +817,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_BACKEND_FILES, MODULE_BACKEND_DIFF,
     )
-    backend_placement = task_power or module_backend or reviewed_selected(
+    module_power = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        MODULE_POWER_FILES, MODULE_POWER_DIFF,
+    )
+    backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_PLACEMENT_FILES, BACKEND_PLACEMENT_DIFF,
     )
@@ -830,6 +853,9 @@ def main():
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
+        output.write("module_power_only=" + str(module_power).lower() + "\n")
+        power_changed = not changed or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        output.write("module_power_changed=" + str(power_changed).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
