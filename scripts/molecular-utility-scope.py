@@ -1412,7 +1412,7 @@ DESKTOP_LIGAND_CAMERA_FILES = {
     "server_tests/test_result_handoffs_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_LIGAND_CAMERA_DIFF = "09cb6cb46e9a12d94462c363cbeb1e17f4cac8fae1e8a6ac99286c8444d77711"
+DESKTOP_LIGAND_CAMERA_DIFF = "b75bee113da22ac302f3217269e0bc9608d5f4ac1c859f4c5d702ea889e0a9f5"
 DESKTOP_STRUCTURE_FOCUS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",

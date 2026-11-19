@@ -49,6 +49,15 @@ new MutationObserver(() => {
 });
 let previousViewport: ViewportSize | null = null;
 let ligandFraming: LigandFraming | undefined;
+function adaptCameraSize(previous: ViewportSize, next: ViewportSize) {
+  const factor = resizeZoomFactor(
+    previous,
+    next,
+    ligandFraming?.resizeAspect(),
+  );
+  const tolerance = ligandFraming ? 0 : 0.001;
+  if (Math.abs(factor - 1) > tolerance) viewer.zoom(factor);
+}
 new ResizeObserver(([entry]) => {
   const next = {
     width: entry.contentRect.width,
@@ -60,14 +69,8 @@ new ResizeObserver(([entry]) => {
     next.width > 0 &&
     next.height > 0 &&
     viewer.getModel(0)
-  ) {
-    const factor = resizeZoomFactor(
-      previousViewport,
-      next,
-      ligandFraming?.resizeAspect(),
-    );
-    if (factor !== 1) viewer.zoom(factor);
-  }
+  )
+    adaptCameraSize(previousViewport, next);
   if (next.width > 0 && next.height > 0) previousViewport = next;
   viewer.render();
 }).observe(document.getElementById("molecule")!);
@@ -388,12 +391,7 @@ window.addEventListener("message", (event) => {
   ) {
     const bounds = document.getElementById("molecule")!.getBoundingClientRect();
     viewer.setView([...value.camera]);
-    const factor = resizeZoomFactor(
-      value.viewport,
-      bounds,
-      ligandFraming?.resizeAspect(),
-    );
-    if (factor !== 1) viewer.zoom(factor);
+    adaptCameraSize(value.viewport, bounds);
   }
   if (type === "clear") {
     confidenceSource = null;
