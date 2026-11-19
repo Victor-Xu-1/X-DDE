@@ -224,14 +224,22 @@ def verify_modules(page, base):
     return groups
 
 
-def verify_utilities(page, base):
+def verify_utilities(page, base, companion):
     page.goto(base + "/#view=utilities")
     trigger, module = module_power(page)
     trigger.click()
     expect(module.get_by_role("switch")).to_have_count(2)
     assert set(module.locator("[data-engine]").evaluate_all(
         "(rows) => rows.map((row) => row.dataset.engine)"
-    )) == {"admet", "chemistry"}
+    )) == {"admet", "chemistry", "decimer"}
+    recognition = module.locator('[data-engine="decimer"]')
+    expect(recognition).to_contain_text("已关闭")
+    expect(trigger).to_have_accessible_description("任务引擎已关闭")
+    companion["power"] = {"phase": "ready", "enabled": True}
+    expect(recognition).to_contain_text("已开启", timeout=12000)
+    expect(trigger).to_have_accessible_description("1 个后端已开启")
+    companion.clear()
+    companion.update(available=False, port=8940)
     trigger.press("Escape")
     for label, engine in (
         ("ADMET 预测", "admet"),
@@ -248,6 +256,20 @@ def verify_utilities(page, base):
         expect(panel.get_by_role("switch")).to_have_count(1)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
+    # Prove the panel reflects its companion and leads back to its native
+    # control without a lifecycle write or discarding the current utility.
+    page.set_viewport_size({"width": 1280, "height": 800})
+    trigger.click()
+    recognition = module.locator('[data-engine="decimer"]')
+    expect(recognition).to_contain_text("工作台未连接", timeout=12000)
+    recognition.get_by_role("button", name="前往启停").press("Enter")
+    expect(module).to_have_count(0)
+    expect(page.get_by_role("button", name="图片识别与编辑")).to_have_attribute(
+        "aria-pressed", "true"
+    )
+    expect(page.get_by_role("button", name="重新连接")).to_be_focused()
+    expect(page.get_by_text("图片识别工作台尚未打开")).to_be_visible()
+    page.screenshot(path=EVIDENCE / "recognition-power-offline-1280.png")
 
 
 def verify_result_toolbar_power(page, base, groups):
@@ -356,6 +378,18 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
     ):
         chromium = driver.chromium.launch(channel="chrome")
         page = chromium.new_page(viewport={"width": 1450, "height": 950})
+        companion = {
+            "available": True,
+            "port": 8940,
+            "power": {"phase": "stopped", "enabled": False},
+        }
+        page.route(
+            "**/api/utilities/recognition*",
+            lambda route: route.fulfill(
+                json=companion if "include_power=true" in route.request.url
+                else {"available": False, "port": 8940}
+            ),
+        )
         page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
         page.goto(base)
         before = page.request.get(base + "/api/jobs").json()
@@ -377,7 +411,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         assert posts == []
         verify_shared_power(page, base)
         verify_inline_switch_lifecycle(page, base)
-        verify_utilities(page, base)
+        verify_utilities(page, base, companion)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
         assert page.request.get(base + "/api/jobs").json() == before

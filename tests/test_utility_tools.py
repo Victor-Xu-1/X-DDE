@@ -21,7 +21,7 @@ from opendde_workbench.harness_service import HarnessService
 from opendde_workbench.requests import TASK_ADAPTER
 from opendde_workbench.runtime_controls import RuntimeControls, register_runtime_controls
 from opendde_workbench.store import ConflictError, Store
-from opendde_workbench.utility_routes import recognition_available
+from opendde_workbench.utility_routes import recognition_available, register_utilities
 
 
 def test_discovery_only_reads_fixed_bounded_frontend_health():
@@ -40,6 +40,48 @@ def test_discovery_failure_is_not_model_readiness():
     with patch("urllib.request.build_opener") as build:
         build.return_value.open.side_effect = OSError("offline")
         assert recognition_available() is False
+
+
+@pytest.mark.parametrize(
+    ("health", "state", "expected"),
+    [
+        ({"app": "decimer-workbench"}, {"phase": "stopped", "enabled": False},
+         {"available": True, "power": {"phase": "stopped", "enabled": False}}),
+        ({"app": "decimer-workbench"}, {"phase": "busy", "enabled": True, "job": "private"},
+         {"available": True, "power": {"phase": "busy", "enabled": True}}),
+        ({"app": "decimer-workbench"}, {"phase": "stopped", "enabled": "false"},
+         {"available": True}),
+        ({"app": "decimer-workbench"}, {"phase": ["stopped"], "enabled": False},
+         {"available": True}),
+        ({"app": "another-service"}, {}, {"available": False}),
+    ],
+)
+def test_recognition_status_only_reads_bounded_native_power(health, state, expected):
+    import json
+
+    app = FastAPI()
+    register_utilities(app)
+    opener = Mock()
+    for_route = {"health": health, "api/state": state}
+
+    def response(url, *, timeout):
+        assert timeout == 2
+        path = url.removeprefix("http://127.0.0.1:8940/")
+        result = Mock()
+        result.read.return_value = json.dumps(for_route[path]).encode()
+        stream = Mock()
+        stream.__enter__ = Mock(return_value=result)
+        stream.__exit__ = Mock(return_value=False)
+        return stream
+
+    opener.open.side_effect = response
+    with patch("urllib.request.build_opener", return_value=opener), TestClient(app) as client:
+        legacy = client.get("/api/utilities/recognition").json()
+        assert legacy == {"available": expected["available"], "port": 8940}
+        assert opener.open.call_count == 1
+        found = client.get("/api/utilities/recognition?include_power=true").json()
+    assert found == {"port": 8940, **expected}
+    assert opener.open.call_count == (3 if found["available"] else 2)
 
 
 def test_platform_boot_never_starts_saved_automatic_compute(tmp_path):

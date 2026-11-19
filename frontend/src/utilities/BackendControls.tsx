@@ -10,16 +10,24 @@ import {
 } from "./ComputeSwitch";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
+import {
+  RecognitionBackendEntry,
+  useRecognitionStatus,
+} from "./RecognitionBackendEntry";
 import "./runtime-switch.css";
 
 export function BackendControls({
   language,
   module,
   placement,
+  moduleHasRecognition = false,
+  onOpenRecognition,
 }: {
   language: Language;
   module?: Pick<ResearchModule, "label" | "tools">;
   placement?: "module";
+  moduleHasRecognition?: boolean;
+  onOpenRecognition?(): void;
 }) {
   const zh = language === "zh";
   const local = placement === "module";
@@ -39,6 +47,12 @@ export function BackendControls({
   const panelId = useId();
   const statusId = useId();
   const capabilities = showAll ? undefined : module?.tools;
+  const showRecognition = Boolean(
+    onOpenRecognition && (moduleHasRecognition || !capabilities),
+  );
+  const recognition = useRecognitionStatus(
+    showRecognition && (moduleHasRecognition || open),
+  );
   const runtime = useBackendRuntime(
     Boolean(module) || open,
     open ? capabilities : undefined,
@@ -56,9 +70,15 @@ export function BackendControls({
   const activeCompute = moduleUsesCompute && Boolean(compute?.service?.running);
   const reading = !runtime.catalogue || (moduleUsesCompute && compute?.loading);
   const unavailable =
-    runtime.readError || (moduleUsesCompute && compute?.unavailable);
+    runtime.readError ||
+    (moduleUsesCompute && compute?.unavailable) ||
+    (moduleHasRecognition &&
+      recognition?.available !== false &&
+      !recognition?.power);
   const activeCount =
-    moduleRows.filter((row) => row.enabled).length + Number(activeCompute);
+    moduleRows.filter((row) => row.enabled).length +
+    Number(activeCompute) +
+    Number(moduleHasRecognition && recognition?.power?.enabled === true);
   const power =
     unavailable || reading || !moduleRows.length
       ? "unknown"
@@ -210,6 +230,16 @@ export function BackendControls({
             <p role="status">{zh ? "正在读取…" : "Loading…"}</p>
           )}
           <div className="backend-controls-list">
+            {showRecognition && onOpenRecognition && (
+              <RecognitionBackendEntry
+                language={language}
+                status={recognition}
+                onOpen={() => {
+                  setPanel("closed");
+                  onOpenRecognition();
+                }}
+              />
+            )}
             {rows.map((item) => (
               <RuntimeSwitch
                 key={item.id}

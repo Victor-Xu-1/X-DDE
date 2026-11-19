@@ -11,9 +11,13 @@ import { useRecognitionLocale } from "./useRecognitionLocale";
 export function ImageRecognition({
   language,
   actionsTarget,
+  visible = true,
+  focusRequest = 0,
 }: {
   language: Language;
   actionsTarget?: HTMLElement | null;
+  visible?: boolean;
+  focusRequest?: number;
 }) {
   const zh = language === "zh";
   const [attempt, setAttempt] = useState(0);
@@ -24,6 +28,8 @@ export function ImageRecognition({
     location.hostname === "localhost" ? "localhost" : "127.0.0.1";
   const origin = `http://${hostname}:8940`;
   const frame = useRef<HTMLIFrameElement>(null);
+  const reconnect = useRef<HTMLButtonElement>(null);
+  const lastFocusedRequest = useRef(0);
   const [url] = useState(() => recognitionFrameUrl(origin, language));
   const locale = useRecognitionLocale(
     frame,
@@ -56,6 +62,19 @@ export function ImageRecognition({
       window.clearTimeout(deadline);
     };
   }, [attempt]);
+  useEffect(() => {
+    if (
+      !visible ||
+      focusRequest <= lastFocusedRequest.current ||
+      status === "checking"
+    )
+      return;
+    const target = status === "ready" ? frame.current : reconnect.current;
+    if (target) {
+      lastFocusedRequest.current = focusRequest;
+      target.focus();
+    }
+  }, [focusRequest, status, visible]);
   const actions = (
     <div className="utility-editor-tools">
       <Hint label={zh ? "图片输入帮助" : "Image input help"}>
@@ -65,6 +84,7 @@ export function ImageRecognition({
       </Hint>
       <div className="utility-actions">
         <button
+          ref={reconnect}
           type="button"
           className="secondary-button"
           aria-label={zh ? "重新连接" : "Reconnect"}

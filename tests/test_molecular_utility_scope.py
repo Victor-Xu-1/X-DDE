@@ -167,6 +167,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "module_power_only=false\n"
         "composed_power_only=false\n"
         "module_power_changed=false\n"
+        "recognition_entry_only=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "desktop_header_only=false\n"
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"

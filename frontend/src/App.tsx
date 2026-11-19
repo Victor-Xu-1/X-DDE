@@ -43,7 +43,6 @@ import { isPrediction } from "./operations/types";
 import { useDeployment } from "./deployment/client";
 import { InterfaceSettings } from "./studio/InterfaceSettings";
 import { UtilityWorkspace } from "./utilities/UtilityWorkspace";
-import { BackendControls } from "./utilities/BackendControls";
 import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
@@ -264,6 +263,10 @@ export function App() {
     if (tool === "predict") setInputVersion((n) => n + 1);
     setView(tool ? viewForTool(tool) : "tools");
   }
+  function openRecognition() {
+    setImageRequest((value) => value + 1);
+    navigate("utilities");
+  }
   function navigate(next: View) {
     if (next === "utilities") {
       chooseJob("", { pushHash: "#view=utilities" });
@@ -336,7 +339,7 @@ export function App() {
           }
         >
           <Header
-            runtime={<BackendControls language={language} />}
+            onOpenRecognition={openRecognition}
             view={view}
             language={language}
             jobs={jobs}
@@ -455,10 +458,7 @@ export function App() {
               <HelpWorkspace
                 language={language}
                 onStart={() => navigate("tools")}
-                onScreenshot={() => {
-                  setImageRequest((value) => value + 1);
-                  navigate("utilities");
-                }}
+                onScreenshot={openRecognition}
               />
             )}
             {view !== "deployment" && (
