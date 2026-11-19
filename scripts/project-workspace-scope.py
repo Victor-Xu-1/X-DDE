@@ -19,6 +19,10 @@ _WORKFLOW_BLOBS = {
         None,
         "f34dc7151f6c0a348daa3bc873d10c31a0fd5c73",
     ),
+    ".github/workflows/restraint-guidance-checks.yml": (
+        "34abbaf13842766a6be845410754153c786b2f33",
+        "3c16ee9a68a9454369214460dbd0d881d14384b1",
+    ),
     ".github/workflows/stat6-template-checks.yml": (
         "01ea0d0abdfc31917b88185427b961ca8889c395",
         "62dafff1b9474bf1b63f94046cbdc898f0be182b",
@@ -28,7 +32,7 @@ _WORKFLOW_BLOBS = {
         "acc063083caf0c65121ee94ded714847bc73916a",
     ),
 }
-_SELECTOR_SHA = "949843e6f0ae6cc7b2a4b3418be7694d78611f4f4cf69ae47793e6378956214b"
+_SELECTOR_SHA = "76fbac797180e583b752c3318b774fe4d039903fff21b3b5af30a88a7815ed1f"
 
 
 def project_only(base, event, ref):
