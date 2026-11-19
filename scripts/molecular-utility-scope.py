@@ -845,7 +845,7 @@ REFINEMENT_DESKTOP_FILES = {
     "server_tests/test_refinement_review_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-REFINEMENT_DESKTOP_DIFF = "9e501bcb48fad392de6525fe8f38cd7e1fabf0a3408e6b84470c8a0620821ddb"
+REFINEMENT_DESKTOP_DIFF = "de642697bdf1ed450f220f9aeb76aab29f723b06c3e5240a0715770afacf2990"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
