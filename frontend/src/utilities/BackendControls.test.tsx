@@ -177,9 +177,12 @@ it("shares one default-off engine across module, sibling tool and global switche
         language="en"
         scope={{ capability: "experimental.evidence" }}
       />
-      <TaskBackendControl
+      <BackendControls
         language="en"
-        scope={{ capabilities: ["properties", "chemistry.states"] }}
+        module={{
+          label: ["分子性质", "Molecular properties"],
+          tools: ["properties", "chemistry.states"],
+        }}
         placement="module"
       />
       <BackendControls
@@ -214,38 +217,54 @@ it("shares one default-off engine across module, sibling tool and global switche
   ]);
 });
 
-it("keeps multiple module engines in the management panel", async () => {
-  vi.mocked(request).mockResolvedValue({
+it("switches one engine at a time in the multi-engine module toolbar", async () => {
+  const module = {
+    label: ["性质与安全性", "Properties and safety"] as const,
+    tools: ["properties", "admet.predict"] as const,
+  };
+  let enabled = false;
+  vi.mocked(request).mockImplementation(async () => ({
     capabilities: { properties: "chemistry", "admet.predict": "admet" },
-    engines: [entry, { ...entry, id: "admet", name: "ADMET-AI" }],
+    engines: [
+      { ...entry, enabled },
+      { ...entry, id: "admet", name: "ADMET-AI", ready: false },
+    ],
+  }));
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    enabled = path === "/runtime-controls/chemistry/start";
+    return { enabled };
   });
   render(
     <>
-      <BackendControls
-        language="en"
-        module={{
-          label: ["性质与安全性", "Properties and safety"],
-          tools: ["properties", "admet.predict"],
-        }}
-      />
-      <TaskBackendControl
-        language="en"
-        scope={{ capabilities: ["properties", "admet.predict"] }}
-        placement="module"
-      />
+      <BackendControls language="en" module={module} placement="module" />
+      <TaskBackendControl language="en" scope={{ capability: "properties" }} />
     </>,
   );
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const taskSwitch = await screen.findByRole("switch", { name: "RDKit" });
+  const trigger = screen.getByRole("button", { name: "Module backends" });
+  expect(trigger).toHaveAccessibleDescription("Task engines off");
+  await user.click(trigger);
   const panel = within(
-    screen.getByRole("region", { name: "Backends in this module" }),
+    screen.getByRole("region", { name: "Backends for these task results" }),
   );
-  expect(await panel.findByRole("switch", { name: "RDKit" })).not.toBeChecked();
-  expect(panel.getByRole("switch", { name: "ADMET-AI" })).not.toBeChecked();
-  expect(
-    screen.queryByRole("group", { name: "Backend switch for this module" }),
-  ).toBeNull();
+  const chemistry = panel.getByRole("switch", { name: "RDKit" });
+  const missing = panel.getByRole("switch", { name: "ADMET-AI" });
+  expect(chemistry).not.toBeChecked();
+  expect(missing).not.toBeChecked();
+  expect(missing).toBeDisabled();
+  expect(panel.queryByRole("button", { name: "View all backends" })).toBeNull();
   expect(api.post).not.toHaveBeenCalled();
+  await user.click(chemistry);
+  await waitFor(() => expect(taskSwitch).toBeChecked());
+  expect(trigger).toHaveAccessibleDescription("1 on");
+  expect(missing).not.toBeChecked();
+  await user.click(taskSwitch);
+  await waitFor(() => expect(trigger).toHaveAccessibleDescription("Task engines off"));
+  expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
+    "/runtime-controls/chemistry/start",
+    "/runtime-controls/chemistry/stop",
+  ]);
 });
 
 it("only probes native campaign activity when a matching tool is visible", async () => {

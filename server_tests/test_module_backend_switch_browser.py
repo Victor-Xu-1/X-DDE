@@ -28,6 +28,14 @@ def module_power(page):
     return trigger, panel
 
 
+def result_power(page):
+    toolbar = page.locator(".task-history-heading")
+    return (
+        toolbar.get_by_role("button", name="本模块后端", exact=True),
+        toolbar.get_by_role("region", name="任务结果后端", exact=True),
+    )
+
+
 def verify_catalogue(page, base, snapshot):
     catalogue = page.request.get(base + "/api/capabilities").json()["capabilities"]
     expected = {
@@ -107,9 +115,17 @@ def verify_shared_power(page, base):
     expect(module).to_have_count(0)
     nav = page.get_by_role("navigation", name="模块工作区")
     nav.get_by_role("button", name="任务结果", exact=True).click()
+    result_trigger, result_panel = result_power(page)
+    result_trigger.click()
+    result_toggle = result_panel.locator('[data-engine="discovery"]').get_by_role("switch")
+    expect(result_toggle).to_be_checked()
+    with page.expect_response(f"{base}/api/runtime-controls/discovery/stop") as stopped:
+        result_toggle.click()
+    assert stopped.value.ok and stopped.value.json() == {"enabled": False}
+    expect(result_toggle).not_to_be_checked()
+    result_toggle.press("Escape")
+    expect(result_trigger).to_be_focused()
     trigger.click()
-    expect(local_toggle).to_be_checked()
-    local_toggle.click()
     expect(local_toggle).not_to_be_checked()
     page.get_by_role("button", name="查看全部后端", exact=True).click()
     expect(global_toggle).not_to_be_checked()
@@ -165,7 +181,7 @@ def verify_modules(page, base):
         panel.get_by_role("button", name="关闭后端面板", exact=True).press("Escape")
         expect(panel).to_have_count(0)
         expect(trigger).to_be_focused()
-    return list(groups)
+    return groups
 
 
 def verify_utilities(page, base):
@@ -194,33 +210,44 @@ def verify_utilities(page, base):
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
 
 
-def verify_inline_module_power(page, base):
+def verify_result_toolbar_power(page, base, groups):
     toolbar = page.locator(".task-history-heading")
     inline = toolbar.get_by_role("group", name="本模块后端开关", exact=True)
-    checked = []
-    for module, engine, width in (("del", "deli", 1280), ("proximity", "deepternary", 1600)):
+    local_trigger, local_panel = result_power(page)
+    for index, (module, engines) in enumerate(groups.items()):
+        width = 1280 if index % 2 == 0 else 1600
         page.set_viewport_size({"width": width, "height": 800})
         page.goto(f"{base}/#view=results&module={module}")
-        switch = inline.locator(f'[data-engine="{engine}"]').get_by_role("switch")
-        expect(switch).to_be_visible()
-        expect(switch).not_to_be_checked()
+        if len(engines) == 1:
+            switch = inline.get_by_role("switch")
+            expect(switch).to_be_visible()
+            expect(switch).not_to_be_checked()
+            assert inline.locator("[data-engine]").get_attribute("data-engine") in engines
+            bounds = switch.bounding_box()
+        else:
+            expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
+            expect(local_panel).to_have_count(0)
+            local_trigger.press("Space")
+            expected = engines | ({"native-compute"} if "harness" in engines else set())
+            expect(local_panel.get_by_role("switch")).to_have_count(len(expected))
+            assert set(local_panel.locator("[data-engine]").evaluate_all(
+                "(rows) => rows.map((row) => row.dataset.engine)"
+            )) == expected
+            for switch in local_panel.get_by_role("switch").all():
+                expect(switch).not_to_be_checked()
+            bounds = local_panel.bounding_box()
+            if module in {"binding", "simulations"}:
+                page.screenshot(path=EVIDENCE / f"{module}-power-{width}.png")
+            local_panel.get_by_role("button", name="关闭后端面板").press("Escape")
+            expect(local_panel).to_have_count(0)
+            expect(local_trigger).to_be_focused()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        bounds = switch.bounding_box()
-        assert bounds and bounds["x"] + bounds["width"] <= width and bounds["y"] < 240
-        page.screenshot(path=EVIDENCE / f"{module}-power-{width}.png")
+        assert bounds and bounds["x"] >= 0
+        assert bounds["x"] + bounds["width"] <= width and bounds["y"] < 280
         nav = page.get_by_role("navigation", name="模块工作区")
         nav.get_by_role("button", name="新建任务", exact=True).click()
         expect(inline).to_have_count(0)
-        task_switch = controls(page, zh=True).locator(f'[data-engine="{engine}"]')
-        expect(task_switch.get_by_role("switch")).not_to_be_checked()
-        checked.append(module)
-    page.goto(f"{base}/#view=results&module=simulations")
-    expect(toolbar.get_by_role("heading", name="任务结果", exact=True)).to_be_visible()
-    trigger, panel = module_power(page)
-    trigger.click()
-    expect(panel.get_by_role("switch")).to_have_count(3)
-    expect(inline).to_have_count(0)
-    return checked
+        expect(local_trigger).to_have_count(0)
 
 
 def verify_inline_switch_lifecycle(page, base):
@@ -304,7 +331,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
-        inline_modules = verify_inline_module_power(page, base)
+        verify_result_toolbar_power(page, base, modules)
         verify_result_detail(page, base, fixture.id)
         assert posts == []
         verify_shared_power(page, base)
@@ -322,8 +349,8 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         (EVIDENCE / "coverage.json").write_text(
             json.dumps({
                 "task_forms": checked,
-                "modules": modules,
-                "inline_modules": inline_modules,
+                "modules": list(modules),
+                "result_toolbar_modules": list(modules),
                 "posts": posts,
             }, indent=2),
             encoding="utf-8",

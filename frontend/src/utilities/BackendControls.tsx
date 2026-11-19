@@ -11,12 +11,17 @@ import "./runtime-switch.css";
 export function BackendControls({
   language,
   module,
+  placement,
 }: {
   language: Language;
   module?: Pick<ResearchModule, "label" | "tools">;
+  placement?: "module";
 }) {
   const zh = language === "zh";
-  const triggerLabel = zh ? "后端管理" : "Backend controls";
+  const local = placement === "module";
+  const triggerLabel = local
+    ? zh ? "本模块后端" : "Module backends"
+    : zh ? "后端管理" : "Backend controls";
   const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
   const open = panel !== "closed";
   const showAll = panel === "all";
@@ -54,7 +59,9 @@ export function BackendControls({
     : zh
       ? "所有后端"
       : "All backends";
-  const label = capabilities
+  const label = local
+    ? zh ? "任务结果后端" : "Backends for these task results"
+    : capabilities
     ? zh
       ? "本模块的后端"
       : "Backends in this module"
@@ -77,10 +84,29 @@ export function BackendControls({
     setPanel("closed");
     trigger.current?.focus();
   }
+  if (local && moduleRows.length === 1 && !harness) {
+    const [item] = moduleRows;
+    return (
+      <div
+        className="task-backend-control"
+        data-backend-placement={placement}
+        role="group"
+        aria-label={zh ? "本模块后端开关" : "Backend switch for this module"}
+      >
+        <RuntimeSwitch item={item} language={language} runtime={runtime} />
+        <BackendStateMessage
+          runtime={runtime}
+          language={language}
+          failed={runtime.failed === item.id}
+        />
+      </div>
+    );
+  }
   return (
     <div
       ref={container}
       className="backend-controls"
+      data-backend-placement={placement}
       onKeyDown={(event) => {
         if (open && event.key === "Escape") {
           event.stopPropagation();
@@ -96,6 +122,7 @@ export function BackendControls({
         aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
+        disabled={local && !runtime.catalogue && !runtime.readError}
         onClick={() => (open ? close() : setPanel("module"))}
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
@@ -129,11 +156,11 @@ export function BackendControls({
               ×
             </button>
           </header>
-          <p>
+          {!local && <p>
             {zh
               ? "默认关闭。各任务页共用同一后端状态。"
               : "Off by default. Tasks that use the same backend share its switch."}
-          </p>
+          </p>}
           <BackendStateMessage
             runtime={runtime}
             language={language}
@@ -159,7 +186,7 @@ export function BackendControls({
               />
             )}
           </div>
-          {module && (
+          {module && !local && (
             <button
               type="button"
               className="text-button"
