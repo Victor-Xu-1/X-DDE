@@ -58,3 +58,36 @@ it("does not invent positions for invalid projection or zero-size viewports", ()
     ),
   ).toEqual([null]);
 });
+
+it.each([1, 2])("uses clear print margins at raster scale %i", (scale) => {
+  const ribbon = {
+    x: 190 * scale,
+    y: 28 * scale,
+    width: 225 * scale,
+    height: 305 * scale,
+  };
+  const ligand = {
+    x: 296 * scale,
+    y: 180 * scale,
+    width: 40 * scale,
+    height: 44 * scale,
+  };
+  const anchors = [156, 184, 209, 235, 260].map((y) => ({
+    x: 294 * scale,
+    y: y * scale,
+    width: 145 * scale,
+    height: 24 * scale,
+  }));
+  const occupied = (box: LabelBox) => Number(overlap(box, ribbon));
+  const boxes = contactLabelLayout(
+    anchors,
+    { width: 600 * scale, height: 400 * scale },
+    ligand,
+    occupied,
+  );
+  expect(boxes.filter(Boolean)).toHaveLength(anchors.length);
+  for (const box of boxes) {
+    expect(occupied(box!)).toBe(0);
+    expect(overlap(box!, ligand)).toBe(false);
+  }
+});

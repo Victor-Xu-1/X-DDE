@@ -43,9 +43,28 @@ it("does not relayout intermediate SDK font updates and releases the guard after
   });
   layer.add("A:GLN590", { fontSize: 12 });
   const restore = layer.printFont((7 * 600) / 72, 2);
+  layer.layout();
   restore();
   expect(canvas).not.toHaveBeenCalled();
   expect(() => layer.layout()).toThrow("Intermediate label layout");
+});
+
+it("restores exact visibility if measuring the unlabelled print frame fails", () => {
+  const { layer } = fixture();
+  const shown = layer.add("A:GLN590", { fontSize: 11 });
+  const hidden = layer.add("A:ASP565", { fontSize: 11 });
+  hidden.sprite.visible = false;
+  const restore = layer.printFont((7 * 300) / 72, 1);
+  expect(() =>
+    layer.arrangeForPrint(() => {
+      expect(shown.sprite.visible).toBe(false);
+      expect(hidden.sprite.visible).toBe(false);
+      throw new Error("Raster unavailable");
+    }),
+  ).toThrow("Raster unavailable");
+  expect(shown.sprite.visible).toBe(true);
+  expect(hidden.sprite.visible).toBe(false);
+  restore();
 });
 
 it("calibrates every annotation kind without changing scientific text, anchors or hidden choices", () => {

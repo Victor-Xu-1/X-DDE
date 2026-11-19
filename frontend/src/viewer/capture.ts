@@ -5,6 +5,8 @@ import {
   type FigureSettings,
 } from "../publication/settings";
 import { nativeLabelLayer } from "./native-labels";
+import { figureOccupancy } from "./figure-occupancy";
+import { figureWithLabelLeaders } from "./figure-label-leaders";
 export function captureDimensions(
   width: number,
   height: number,
@@ -59,7 +61,6 @@ export function captureFigure(
   try {
     element.style.width = size.width / ratio + "px";
     element.style.height = size.height / ratio + "px";
-    viewer.setBackgroundColor("white", settings.transparent ? 0 : 1);
     // Container offsetWidth/offsetHeight round fractional CSS dimensions. Use
     // the public native size controls so odd print-pixel dimensions stay exact.
     viewer.setWidth(size.width / ratio);
@@ -67,13 +68,22 @@ export function captureFigure(
     viewer.setView(view);
     const scale = settings.structureScale ?? 1;
     if (scale !== 1) viewer.zoom(scale);
-    labels.layout();
+    const placements = labels.arrangeForPrint(() => {
+      viewer.setBackgroundColor("white", 0);
+      viewer.render();
+      return figureOccupancy(viewer.getCanvas());
+    });
+    viewer.setBackgroundColor("white", settings.transparent ? 0 : 1);
     viewer.render();
     const canvas = viewer.getCanvas();
     if (canvas.width !== size.width || canvas.height !== size.height)
       throw new Error(
         "Native canvas did not reach the requested figure resolution.",
       );
+    if (placements.length) {
+      const figure = figureWithLabelLeaders(canvas, placements, settings.dpi);
+      return figure.toDataURL("image/png");
+    }
     return viewer.pngURI();
   } finally {
     try {

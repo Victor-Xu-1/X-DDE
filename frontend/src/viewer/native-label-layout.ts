@@ -1,15 +1,25 @@
 import { Vector2, type GLViewer, type Label, type XYZ } from "3dmol";
-import { contactLabelLayout, type LabelBox } from "./contact-label-layout";
+import {
+  contactLabelLayout,
+  type GeometryOccupancy,
+  type LabelAnchor,
+  type LabelBox,
+} from "./contact-label-layout";
 
 export interface NativeAnnotation {
   label: Label;
   layoutHidden: boolean;
+}
+export interface LabelPlacement {
+  anchor: LabelAnchor;
+  box: LabelBox;
 }
 /** Screen-space placement preserves the native molecular anchor. */
 export function layoutNativeLabels(
   viewer: GLViewer,
   entries: NativeAnnotation[],
   ligand: XYZ[],
+  print?: { occupied: GeometryOccupancy; placements: LabelPlacement[] },
 ) {
   const bounds = viewer.getCanvas().getBoundingClientRect();
   const project = (point: XYZ) => {
@@ -39,7 +49,7 @@ export function layoutNativeLabels(
     width: label.canvas.width * label.sprite.scale.x,
     height: label.canvas.height * label.sprite.scale.y,
   }));
-  const boxes = contactLabelLayout(anchors, bounds, protectedBox);
+  const boxes = contactLabelLayout(anchors, bounds, protectedBox, print?.occupied);
   let changed = false;
   active.forEach((entry, index) => {
     const { label } = entry,
@@ -51,6 +61,7 @@ export function layoutNativeLabels(
       changed = true;
     }
     if (!box || !label.sprite.material) return;
+    print?.placements.push({ anchor: anchors[index], box });
     const material = label.sprite.material,
       alignment = material.alignment;
     const left = (((alignment?.x ?? 1) - 1) * anchors[index].width) / 2;

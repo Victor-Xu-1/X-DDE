@@ -16,11 +16,26 @@ def observe_native_label_pixels(page):
         if(events.length>24) events.shift();
       };
       window.__nativeLabelCaptures=[];
+      const observedLines=new WeakMap();
+      const copy=CanvasRenderingContext2D.prototype.drawImage;
+      CanvasRenderingContext2D.prototype.drawImage=function(image,...args) {
+        const result=copy.call(this,image,...args), rows=frames.get(image);
+        if(rows && this.canvas.width===image.width && this.canvas.height===image.height)
+          frames.set(this.canvas,[...rows]);
+        return result;
+      };
+      const line=CanvasRenderingContext2D.prototype.lineTo;
+      CanvasRenderingContext2D.prototype.lineTo=function(...args) {
+        if(frames.get(this.canvas)?.length)
+          observedLines.set(this.canvas,1+(observedLines.get(this.canvas)||0));
+        return line.apply(this,args);
+      };
       const encode=HTMLCanvasElement.prototype.toDataURL;
       HTMLCanvasElement.prototype.toDataURL=function(...args) {
         const rows=frames.get(this);
         window.__nativeLabelCaptures.push({
           width:this.width,height:this.height,rows:rows ? [...rows] : [],
+          leaders:observedLines.get(this)||0,
           stats:{...stats},events:[...events]});
         return encode.apply(this,args);
       };
@@ -149,7 +164,7 @@ def observe_native_label_pixels(page):
 
 
 def inspect_native_label_pixels(
-    panel, evidence, filename, dpi=600, width=2102, pt=7, required_text=None
+    panel, evidence, filename, dpi=600, width=2102, pt=7, required_text=None, leaders=None
 ):
     captures = panel.locator("iframe").first.evaluate(
         "frame => frame.contentWindow.__nativeLabelCaptures || []"
@@ -162,6 +177,8 @@ def inspect_native_label_pixels(
     assert matching, {"message": "Native PNG capture was not observed", "captures": captures[-2:]}
     selected = matching[-1]["rows"]
     assert selected, "The encoded PNG had no native annotation text"
+    if leaders is not None:
+        assert matching[-1]["leaders"] == leaders
     if required_text:
         assert any(required_text in row["text"] for row in selected), {
             "required": required_text,

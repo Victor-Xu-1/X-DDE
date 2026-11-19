@@ -1,6 +1,8 @@
 import type { GLViewer, Label, LabelSpec, XYZ } from "3dmol";
+import type { GeometryOccupancy } from "./contact-label-layout";
 import {
   layoutNativeLabels,
+  type LabelPlacement,
   type NativeAnnotation,
 } from "./native-label-layout";
 
@@ -45,6 +47,28 @@ export class NativeLabelLayer {
       this.updating = false;
     }
   }
+  arrangeForPrint(readGeometry: () => GeometryOccupancy) {
+    const entries = [...this.entries.values()];
+    if (
+      !entries.some(
+        ({ label, layoutHidden }) => label.sprite.visible || layoutHidden,
+      )
+    )
+      return [];
+    const visibility = entries.map(({ label }) => label.sprite.visible);
+    let occupied: GeometryOccupancy;
+    try {
+      for (const { label } of entries) label.sprite.visible = false;
+      occupied = readGeometry();
+    } finally {
+      entries.forEach(({ label }, index) => {
+        label.sprite.visible = visibility[index];
+      });
+    }
+    const placements: LabelPlacement[] = [];
+    layoutNativeLabels(this.viewer, entries, this.ligand, { occupied, placements });
+    return placements;
+  }
   printFont(outputPixels: number, pixelRatio: number) {
     if (
       !Number.isFinite(outputPixels) ||
@@ -65,9 +89,9 @@ export class NativeLabelLayer {
       scale: entry.label.sprite.scale.clone(),
       visible: entry.label.sprite.visible,
     }));
+    const wasUpdating = this.updating;
     const restore = () => {
       const failures: unknown[] = [];
-      const wasUpdating = this.updating;
       this.updating = true;
       try {
         for (const {
@@ -94,7 +118,6 @@ export class NativeLabelLayer {
       if (failures.length)
         throw new AggregateError(failures, "Native label restoration failed.");
     };
-    const wasUpdating = this.updating;
     this.updating = true;
     try {
       for (const { label, style } of previous)
@@ -110,8 +133,6 @@ export class NativeLabelLayer {
     } catch (error) {
       restore();
       throw error;
-    } finally {
-      this.updating = wasUpdating;
     }
     return restore;
   }
