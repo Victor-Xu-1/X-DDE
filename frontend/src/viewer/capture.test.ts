@@ -65,6 +65,15 @@ it.each([
   { dpi: 300 as const, shape: "landscape" as const, width: 1051, height: 701 },
   { dpi: 300 as const, shape: "portrait" as const, width: 1051, height: 1401 },
   {
+    dpi: 300 as const,
+    shape: "portrait" as const,
+    ligandAspect: 1.5,
+    structureScale: 1.25 as const,
+    expectedScale: (1051 / 1401) * (3 / 4) * 1.25,
+    width: 1051,
+    height: 1401,
+  },
+  {
     dpi: 600 as const,
     widthMm: 183 as const,
     pixels: { width: 2114, height: 2001 },
@@ -78,6 +87,8 @@ it.each([
     widthMm = 89,
     shape,
     structureScale,
+    ligandAspect,
+    expectedScale = structureScale,
     pixels,
     width: expectedWidth,
     height: expectedHeight,
@@ -118,9 +129,10 @@ it.each([
       render: vi.fn(),
       pngURI: () => {
         expect([width, height]).toEqual([expectedWidth, expectedHeight]);
-        expect(zoom.mock.calls).toEqual(
-          structureScale ? [[structureScale]] : [],
-        );
+        if (expectedScale) {
+          expect(zoom).toHaveBeenCalledTimes(1);
+          expect(zoom.mock.calls[0][0]).toBeCloseTo(expectedScale);
+        } else expect(zoom).not.toHaveBeenCalled();
         throw new Error("native capture failed");
       },
     } as unknown as GLViewer;
@@ -136,6 +148,7 @@ it.each([
           structureScale,
         },
         pixels,
+        ligandAspect,
       ),
     ).toThrow("native capture failed");
     expect(element.style.width).toBe("100%");

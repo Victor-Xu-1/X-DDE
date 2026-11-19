@@ -1,5 +1,6 @@
 import * as mol from "3dmol";
 import { focusedViewScale } from "./appearance";
+import { currentLigandAspect, LigandFraming } from "./ligand-framing";
 import { nativeLabelLayer } from "./native-labels";
 import { molecularRecordText } from "../presentation/molecular-record";
 import {
@@ -47,16 +48,29 @@ new MutationObserver(() => {
   attributeFilter: ["data-theme"],
 });
 let previousViewport: ViewportSize | null = null;
+let ligandFraming: LigandFraming | undefined;
+function adaptCameraSize(previous: ViewportSize, next: ViewportSize) {
+  const factor = resizeZoomFactor(
+    previous,
+    next,
+    ligandFraming?.resizeAspect(),
+  );
+  const tolerance = ligandFraming ? 0 : 0.001;
+  if (Math.abs(factor - 1) > tolerance) viewer.zoom(factor);
+}
 new ResizeObserver(([entry]) => {
   const next = {
     width: entry.contentRect.width,
     height: entry.contentRect.height,
   };
   viewer.resize();
-  if (previousViewport && viewer.getModel(0)) {
-    const factor = resizeZoomFactor(previousViewport, next);
-    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
-  }
+  if (
+    previousViewport &&
+    next.width > 0 &&
+    next.height > 0 &&
+    viewer.getModel(0)
+  )
+    adaptCameraSize(previousViewport, next);
   if (next.width > 0 && next.height > 0) previousViewport = next;
   viewer.render();
 }).observe(document.getElementById("molecule")!);
@@ -95,7 +109,7 @@ function reset() {
       : {},
   );
   const fit = visible.length && hiddenChainIds.length ? 1.05 : 0.85;
-  viewer.zoom(fit * viewportFitFactor(viewport));
+  if (!ligandFraming?.fit()) viewer.zoom(fit * viewportFitFactor(viewport));
   if (viewport.width > 0 && viewport.height > 0)
     previousViewport = { width: viewport.width, height: viewport.height };
   viewer.render();
@@ -127,6 +141,7 @@ async function load(input: ViewerLoad) {
     current = ++generation;
   focusedChainView = false;
   hiddenChainIds = [];
+  ligandFraming = undefined;
   scene.resetState();
   notify("loading");
   viewer.clear();
@@ -246,6 +261,15 @@ async function load(input: ViewerLoad) {
       await scene.paint();
     }
     if (current !== generation) return;
+    ligandFraming =
+      molecular &&
+      !input.comparison &&
+      !input.trajectoryKey &&
+      !input.channelGeometry &&
+      !input.searchBox &&
+      !input.electrostaticMap
+        ? new LigandFraming(viewer)
+        : undefined;
     reset();
     if (retainedView) viewer.setView(retainedView);
     else if (scene.channelGeometry) scene.focusChannel();
@@ -366,9 +390,8 @@ window.addEventListener("message", (event) => {
     isCameraSnapshot(value)
   ) {
     const bounds = document.getElementById("molecule")!.getBoundingClientRect();
-    const factor = resizeZoomFactor(value.viewport, bounds);
     viewer.setView([...value.camera]);
-    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
+    adaptCameraSize(value.viewport, bounds);
   }
   if (type === "clear") {
     confidenceSource = null;
@@ -378,6 +401,7 @@ window.addEventListener("message", (event) => {
     generation++;
     focusedChainView = false;
     hiddenChainIds = [];
+    ligandFraming = undefined;
     scene.resetState();
     viewer.clear();
     viewer.render();
@@ -447,6 +471,7 @@ window.addEventListener("message", (event) => {
               document.getElementById("molecule")!,
               capture.figure,
               capture.pixels,
+              ligandFraming ? currentLigandAspect(viewer) : undefined,
             )
           : captureView(
               viewer,

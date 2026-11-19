@@ -338,8 +338,8 @@ jobs:
           name: compact-native-viewer-evidence
           path: outputs/compact-native-viewer/
   native-print-labels:
-    needs: scope
-    if: needs.scope.outputs.print_labels_changed == 'true'
+    needs: [scope, utility-scope]
+    if: needs.scope.outputs.print_labels_changed == 'true' && needs.utility-scope.outputs.ligand_camera_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 14
     env:

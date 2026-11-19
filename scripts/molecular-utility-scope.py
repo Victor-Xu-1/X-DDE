@@ -1397,6 +1397,22 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DESKTOP_MOLECULE_RESULTS_DIFF = "d576f4c8e3662ea4b70bb511cf46197783f2d7d1430a6836d2d2ee3cd9d11bce"
+DESKTOP_LIGAND_CAMERA_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/viewer/camera-resize.test.ts",
+    "frontend/src/viewer/camera-resize.ts",
+    "frontend/src/viewer/capture.test.ts",
+    "frontend/src/viewer/capture.ts",
+    "frontend/src/viewer/frame.ts",
+    "frontend/src/viewer/ligand-framing.test.ts",
+    "frontend/src/viewer/ligand-framing.ts",
+    "server_tests/test_result_handoffs_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_LIGAND_CAMERA_DIFF = "b75bee113da22ac302f3217269e0bc9608d5f4ac1c859f4c5d702ea889e0a9f5"
 DESKTOP_STRUCTURE_FOCUS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",
@@ -1681,7 +1697,12 @@ def main():
         DESKTOP_MOLECULE_RESULTS_FILES, DESKTOP_MOLECULE_RESULTS_DIFF,
         scope_pin="DESKTOP_MOLECULE_RESULTS_DIFF",
     )
-    result_handoff_desktop = molecule_results or reviewed_selected(
+    ligand_camera = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_LIGAND_CAMERA_FILES, DESKTOP_LIGAND_CAMERA_DIFF,
+        scope_pin="DESKTOP_LIGAND_CAMERA_DIFF",
+    )
+    result_handoff_desktop = molecule_results or ligand_camera or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RESULT_HANDOFF_DESKTOP_FILES, RESULT_HANDOFF_DESKTOP_DIFF,
         scope_pin="RESULT_HANDOFF_DESKTOP_DIFF",
@@ -1725,6 +1746,7 @@ def main():
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("molecule_results_only=" + str(molecule_results).lower() + "\n")
+        output.write("ligand_camera_only=" + str(ligand_camera).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
         output.write("utility_result_desktop_only=" + str(utility_result_desktop).lower() + "\n")
