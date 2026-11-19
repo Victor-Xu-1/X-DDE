@@ -44,6 +44,13 @@ export async function figureWithColorKeys(
       }, 0) +
       (keys.length - 1) * padding,
   );
+  if (height - footer < 128) {
+    const error = new Error(
+      "The selected aspect leaves too little room for the molecular panel.",
+    );
+    error.name = "MolecularColorKeyLayoutError";
+    throw error;
+  }
   const panel = nativeFigurePixels({ width, height: height - footer });
   const native = await capture(settings, panel);
   if (

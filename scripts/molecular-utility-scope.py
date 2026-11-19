@@ -688,17 +688,22 @@ NATIVE_COLOR_FIGURE_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",
     "frontend/src/publication/molecular-color-key.ts",
+    "frontend/src/publication/FigureExport.test.tsx",
+    "frontend/src/publication/FigurePreview.tsx",
+    "frontend/src/publication/useFigurePreview.ts",
     "frontend/src/viewer/ConfidenceControls.tsx",
     "frontend/src/viewer/StructureViewport.tsx",
     "frontend/src/viewer/SurfaceLegend.tsx",
     "frontend/src/viewer/electric-color-scale.ts",
     "frontend/src/viewer/scientific-color-keys.test.ts",
     "frontend/src/viewer/scientific-color-keys.ts",
+    "frontend/src/viewer/scene.ts",
+    "frontend/src/viewer/style.test.ts",
     "frontend/src/viewer/viewer.css",
     "server_tests/test_native_color_key_publication_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-NATIVE_COLOR_FIGURE_DIFF = "2bacf9407229694eeae81b3464cfa77691b3239c0efc0c7e275ccca47ed6da34"
+NATIVE_COLOR_FIGURE_DIFF = "ef53f104a76875778595c33f7b60bb94de5d92e72a99361ee8bb70b5662bcaf2"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

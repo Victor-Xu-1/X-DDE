@@ -447,6 +447,7 @@ export class MolecularScene {
   }
   private async paintSurface() {
     this.emit("surface", null);
+    if (this.potential) this.emit("potential-surface", false);
     if (
       this.options.mode !== "surface" ||
       (this.overlay && !this.info.hasInteractionContext)
@@ -479,6 +480,7 @@ export class MolecularScene {
         this.potentialSurface = id;
         // Use the same vertex coordinates and sampling for the first and later palettes.
         this.viewer.setSurfaceMaterialStyle(id, style);
+        this.emit("potential-surface", true);
       }
       return;
     }

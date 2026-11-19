@@ -9,6 +9,7 @@ import {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { FigureExport } from "./FigureExport";
 import { defaultFigure } from "./settings";
+import { figureWithColorKeys } from "./molecular-color-key";
 const download = vi.hoisted(() => vi.fn());
 vi.mock("../presentation/visual-export", () => ({ downloadBlob: download }));
 // Protocol fixtures only; native browser acceptance inspects actual molecular/vector/pixel content.
@@ -235,6 +236,46 @@ it("offers a wider layout without exporting or silently shrinking a molecular fi
     widthMm: 183,
   });
   expect(download).toHaveBeenCalledOnce();
+});
+it("asks for a taller aspect before attempting a panel with no room for the color key", async () => {
+  const capture = vi.fn();
+  render(
+    <FigureExport
+      sourceKey="controlled-native-source"
+      language="en"
+      filename="molecule"
+      format="svg"
+      molecular
+      aspect={5}
+      render={(settings) =>
+        settings.shape === "viewport"
+          ? figureWithColorKeys(
+              { ...settings, dpi: 300 },
+              5,
+              [
+                {
+                  title: "APBS potential (kBT/e)",
+                  kind: "scale",
+                  ticks: ["−5", "0", "+5"],
+                },
+              ],
+              capture,
+            )
+          : Promise.resolve(vector())
+      }
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Export figure/ }));
+  const shape = screen.getByRole("combobox", { name: "Panel layout" });
+  fireEvent.change(shape, { target: { value: "viewport" } });
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Choose 1:1 or 3:4",
+  );
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeDisabled();
+  expect(capture).not.toHaveBeenCalled();
+  fireEvent.change(shape, { target: { value: "square" } });
+  fireEvent.load(await screen.findByRole("img"));
+  expect(screen.getByRole("button", { name: "Export SVG" })).toBeEnabled();
 });
 it("keeps a decode failure unavailable until a newly rendered preview loads", async () => {
   const native = vi.fn(async () => vector());

@@ -140,6 +140,14 @@ def test_retained_native_figure_includes_applied_color_key(color_key, tool, lang
             json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         assert frame.evaluate(CAMERA) == before
+        if color_key == "potential":
+            chains = viewer.locator(".viewer-chain-menu")
+            chains.locator("summary").click()
+            for chain in chains.get_by_role("checkbox").all():
+                chain.uncheck()
+            expect(viewer.locator(".potential-legend")).to_have_count(0)
+            chains.get_by_role("button", name="Show all chains", exact=True).click()
+            expect(viewer.locator(".potential-legend")).to_contain_text("+10 kBT/e")
         assert page.request.get(base + "/api/jobs").json() == jobs
         assert not writes
         browser.close()

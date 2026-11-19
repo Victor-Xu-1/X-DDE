@@ -9,6 +9,7 @@ import {
   type AtomSelectionSpec,
   type AtomStyleSpec,
   type AtomSpec,
+  type VolumeData,
 } from "3dmol";
 import { MolecularScene } from "./scene";
 import { residueRef } from "./geometry";
@@ -33,6 +34,7 @@ function fixture(data = sdf, format = "sdf") {
     addLabel: vi.fn(),
     addCylinder: vi.fn(),
     addSurface: vi.fn().mockResolvedValue({}),
+    setSurfaceMaterialStyle: vi.fn(),
     render: vi.fn(),
     zoomTo: vi.fn(),
     zoom: vi.fn(),
@@ -42,6 +44,26 @@ function fixture(data = sdf, format = "sdf") {
   scene.inspect(false, ["sdf", "mol", "mol2"].includes(format));
   return { model, scene, clicks, viewer, emit };
 }
+it("acknowledges the painted potential surface only while its atoms are visible", async () => {
+  const pdb =
+    "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nEND\n";
+  const { scene, viewer, emit } = fixture(pdb, "pdb");
+  scene.potential = {
+    data: { getIndex: () => 0 } as unknown as VolumeData,
+    range: 5,
+  };
+  await scene.configure({ mode: "surface" });
+  expect(emit).toHaveBeenCalledWith("potential-surface", true);
+  emit.mockClear();
+  await scene.displayChains({ action: "hide", chain: "A" });
+  await scene.setPotentialRange(10);
+  expect(emit).toHaveBeenCalledWith("potential-surface", false);
+  expect(emit).not.toHaveBeenCalledWith("potential-surface", true);
+  expect(viewer.addSurface).toHaveBeenCalledOnce();
+  await scene.displayChains({ action: "all" });
+  expect(emit).toHaveBeenCalledWith("potential-surface", true);
+  expect(viewer.addSurface).toHaveBeenCalledTimes(2);
+});
 it("reports partially hidden residues independently of chains and restores exact source geometry", async () => {
   const pdb =
     "ATOM      1  CA  ALA A   1       0.000   0.000   0.000  1.00 20.00           C  \nATOM      2  N   ALA A   1       1.300   0.000   0.000  1.00 20.00           N  \nATOM      3  CA  GLY A   2       0.000   5.000   0.000  1.00 20.00           C  \nEND\n";

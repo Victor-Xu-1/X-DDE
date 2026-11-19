@@ -164,6 +164,7 @@ export function StructureViewport({
     : undefined;
   const sentPotentialRange = useRef<number | undefined>(undefined);
   const [appliedPotentialRange, setAppliedPotentialRange] = useState<number>();
+  const [potentialPainted, setPotentialPainted] = useState(false);
   const optimizationReceiver = useRef(optimization);
   optimizationReceiver.current = optimization;
   const frame = useRef<HTMLIFrameElement>(null),
@@ -376,6 +377,7 @@ export function StructureViewport({
       )
         setAttachmentCount(detail);
       if (type === "surface") setSurface(surfaceSummary(detail));
+      if (type === "potential-surface") setPotentialPainted(detail === true);
       if (type === "potential-range" && isPotentialRange(detail))
         setAppliedPotentialRange(detail);
       if (type === "site-region") setSiteStatus(detail);
@@ -441,6 +443,7 @@ export function StructureViewport({
     setContacts(null);
     setAttachmentCount(0);
     setSurface(null);
+    setPotentialPainted(false);
     setSiteStatus(null);
     setError("");
     setScene(emptyScene);
@@ -545,7 +548,7 @@ export function StructureViewport({
             !overlay,
           ),
           hasPotentialMap: Boolean(electrostaticMap),
-          potentialRange: appliedPotentialRange,
+          potentialRange: potentialPainted ? appliedPotentialRange : undefined,
           surface,
           language,
         })
@@ -851,6 +854,7 @@ export function StructureViewport({
         />
         {loaded &&
           options.mode === "surface" &&
+          potentialPainted &&
           appliedPotentialRange !== undefined && (
             <div className="potential-legend" role="status">
               <span>{zh ? "APBS 电势" : "APBS potential"}</span>
