@@ -15,6 +15,25 @@ from server_tests.test_workspace_fullscreen_browser import (
 )
 
 
+def inspect_desktop_rail(page, workspace):
+    rail = workspace.locator(".structure-workbench-toolbar")
+    view = workspace.locator(".structure-workbench-view")
+    details = workspace.locator(".structure-workbench-details")
+    rail_box, view_box, details_box = (
+        panel.bounding_box() for panel in (rail, view, details)
+    )
+    assert rail_box and view_box and details_box
+    assert abs(view_box["y"] - rail_box["y"]) <= 1
+    assert abs(rail_box["x"] - details_box["x"]) <= 1
+    assert abs(rail_box["width"] - details_box["width"]) <= 1
+    assert view_box["x"] + view_box["width"] <= rail_box["x"]
+    assert view_box["width"] > details_box["width"]
+    expect(view.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
+    next_pose = rail.get_by_role("button", name="Next candidate").bounding_box()
+    assert next_pose and next_pose["x"] + next_pose["width"] <= rail_box["x"] + rail_box["width"]
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+
 @pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
 def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
     restored_workspace, language, width
@@ -74,6 +93,9 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         expect(export).to_be_enabled(timeout=45000)
         initial = viewer.locator(".molecular-stage iframe").bounding_box()
         assert initial and initial["y"] < (625 if width < 600 else 415), initial
+        if width >= 1180:
+            inspect_desktop_rail(page, workspace)
+            page.screenshot(path=evidence / "desktop-rail.png")
         mapping = "原子映射" if language == "zh" else "Atom mapping"
         status = "状态" if language == "zh" else "Status"
         pose_label = "姿势" if language == "zh" else "Pose"
@@ -153,6 +175,8 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         geometry = inspect_full_workspace(
             page, viewer, evidence, language, "core-metrics", inspect, changes_source=True
         )
+        if width >= 1180:
+            inspect_desktop_rail(page, workspace)
         expect(table.locator('tr[aria-selected="true"]')).to_contain_text(pose_label + " 2")
         # This is the same retained search, never fitted or submitted to another engine.
         for number in (1, 2):

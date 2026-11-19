@@ -4,6 +4,8 @@ on:
     outputs:
       presentation_only:
         value: ${{ jobs.scope.outputs.presentation_only }}
+      desktop_layout_only:
+        value: ${{ jobs.scope.outputs.desktop_layout_only }}
 permissions:
   contents: read
 jobs:
@@ -12,6 +14,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       presentation_only: ${{ steps.paths.outputs.presentation_only }}
+      desktop_layout_only: ${{ steps.paths.outputs.desktop_layout_only }}
     steps:
       - uses: actions/checkout@v4
         with:

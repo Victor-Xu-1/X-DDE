@@ -145,7 +145,12 @@ jobs:
           OVERLAY_ONLY: ${{ steps.scope.outputs.overlay_only }}
           CHAIN_FOCUS_ONLY: ${{ steps.scope.outputs.chain_focus_only }}
           DOCKING_PRESENTATION_ONLY: ${{ needs.result-scope.outputs.presentation_only }}
+          DESKTOP_LAYOUT_ONLY: ${{ needs.result-scope.outputs.desktop_layout_only }}
         run: |
+          if [ "$DESKTOP_LAYOUT_ONLY" = true ]; then
+            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx
+            exit
+          fi
           if [ "$DOCKING_PRESENTATION_ONLY" = true ]; then
             npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx \
               src/docking/DockingResultsEvidence.test.tsx src/docking/ReferenceComparison.test.tsx \
