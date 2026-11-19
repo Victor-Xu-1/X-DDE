@@ -31,6 +31,7 @@ def exit_expanded_files(page, language):
 
 def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     zh = language == "zh"
+    inspector = page.locator(".research-inspector-heading")
     frame = preview.locator(".molecular-stage iframe")
     toolbar = page.locator(".research-file-library .research-file-toolbar")
     measurements = []
@@ -57,11 +58,11 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     page.set_viewport_size({"width": 1280, "height": 800})
     original = frame.element_handle()
     assert original
-    expand = preview.get_by_role(
+    expand = inspector.get_by_role(
         "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
     )
     expand.click()
-    close = preview.get_by_role(
+    close = inspector.get_by_role(
         "button", name="关闭展开视图" if zh else "Close expanded view", exact=True
     )
     expect(close).to_be_visible()
@@ -69,11 +70,11 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     close.click()
     expect(expand).to_be_focused()
     assert frame.evaluate("(current, previous) => current === previous", original)
-    link = page.get_by_role(
-        "link", name="下载此版本" if zh else "Download version", exact=True
+    action = inspector.get_by_role(
+        "button", name="下载此版本" if zh else "Download version", exact=True
     )
     with page.expect_download() as download:
-        link.click()
+        action.click()
     assert hashlib.sha256(download.value.path().read_bytes()).hexdigest() == source_sha256
 
     def configure(dialog):
@@ -213,14 +214,20 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         )
         inspect_png(native)
         page.screenshot(path=evidence / "warhead-3d.png", full_page=True)
-        warhead.get_by_role(
+        inspector = page.locator(".research-inspector-heading")
+        inspector.get_by_role(
             "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
         ).click()
         warhead.get_by_role(
             "tab", name="二维结构" if zh else "2D structure", exact=True
         ).click()
         expect(warhead.locator(".molecular-stage iframe")).not_to_be_visible()
-        exit_expanded_files(page, language)
+        close = inspector.get_by_role(
+            "button", name="关闭展开视图" if zh else "Close expanded view", exact=True
+        )
+        expect(close).to_be_visible()
+        close.click()
+        expect(page.locator(".research-workspace [data-workspace-expanded]")).to_have_count(0)
         _, second = drawing("study_protac")
         assert first != second, "File switching retained the wrong molecular drawing"
         selected, restored = drawing("study_ligand")
@@ -238,6 +245,32 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         expect(page.locator(".research-workspace > .viewer-panel")).to_have_count(0)
         inspect_desktop_structure(page, receptor, evidence, language, original["stat6_receptor"])
         page.set_viewport_size({"width": 1440, "height": 1000})
+        # Replace only the browser response. The original archive and its identity stay intact.
+        url = f"{base}/api/assets/{cases['stat6_receptor']['reference']['asset_id']}"
+        receptor_response = page.request.get(url)
+        tampered_downloads = []
+        capture = "生成三维视图图片" if zh else "Capture 3D view"
+        original_bytes = receptor_response.body()
+        replacement = b"\r" if original_bytes.endswith(b"\n") else b"\n"
+
+        def replace_bytes(route):
+            route.fulfill(response=receptor_response, body=original_bytes[:-1] + replacement)
+
+        page.on("download", tampered_downloads.append)
+        page.route(url, replace_bytes)
+        suspect = select("stat6_receptor")
+        expect(suspect.get_by_role("alert")).to_be_visible(timeout=45000)
+        expect(suspect.get_by_role("button", name=capture, exact=True)).to_be_disabled()
+        name = "下载此版本" if zh else "Download version"
+        inspector.get_by_role("button", name=name, exact=True).click()
+        expect(inspector.get_by_role("alert")).to_be_visible()
+        assert not tampered_downloads
+        page.unroute(url, replace_bytes)
+        metadata = page.request.get(url + "/metadata").json()
+        with page.expect_download() as recovered:
+            inspector.get_by_role("button", name=name, exact=True).click()
+        assert recovered.value.suggested_filename == metadata["name"]
+        assert recovered.value.path().read_bytes() == original_bytes
         drawing("study_protac")
         page.get_by_text(
             "查看文件之间的关系" if zh else "Show file relationships", exact=True
@@ -384,6 +417,23 @@ def test_retained_stat6_sequence_inspection_positions_and_downloads(language):
         expect(
             preview.get_by_text("847 个位置" if zh else "847 positions", exact=True)
         ).to_be_visible()
+        inspector = page.locator(".research-inspector-heading")
+        expand = inspector.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
+        )
+        expand.click()
+        expect(preview.get_by_role("heading", name=header, exact=True)).to_be_visible()
+        inspector.get_by_role(
+            "button", name="关闭展开视图" if zh else "Close expanded view", exact=True
+        ).click()
+        expect(expand).to_be_focused()
+        filename = page.request.get(source_url + "/metadata").json()["name"]
+        with page.expect_download() as saved_file:
+            inspector.get_by_role(
+                "button", name="下载此版本" if zh else "Download version", exact=True
+            ).click()
+        assert saved_file.value.suggested_filename == filename
+        assert saved_file.value.path().read_bytes() == original
         assert preview.locator(".sequence-residue-grid button").count() == 600
         jump = preview.get_by_role(
             "spinbutton", name="跳转位置" if zh else "Go to position", exact=True

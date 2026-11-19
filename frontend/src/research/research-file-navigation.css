@@ -31,12 +31,26 @@
 .studio-app .research-file-inspection .research-inspector:not(.is-empty) {
   padding-block-start: 10px;
 }
-.research-file-inspection .research-inspector > h2 {
+.research-file-inspection .research-inspector-heading > h2 {
   margin-block: 0 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.studio-app .research-file-inspection .research-inspector > .editor-toolbar {
+.studio-app
+  .research-file-inspection
+  .research-inspector-heading
+  > .editor-toolbar {
   padding: 0;
   gap: 8px;
+}
+.research-inspector-heading .verified-artifact-download {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.research-inspector-heading .verified-artifact-download > [role="alert"] {
+  color: var(--danger);
 }
 .research-file-inspection .research-selected-preview {
   margin-block-start: 12px;
@@ -94,23 +108,37 @@
   .research-file-library .research-node-list {
     max-height: clamp(260px, calc(100dvh - 400px), 520px);
   }
-  .research-inspector:has(> .research-selected-preview > .viewer-panel) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 12px;
+  .research-inspector-heading {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 12px;
     align-items: center;
-
-    > * {
-      grid-column: 1 / -1;
-    }
     > h2 {
-      grid-area: 1 / 1;
+      flex: 1 1 160px;
       margin: 0;
     }
     > .editor-toolbar {
-      grid-area: 1 / 2;
+      margin-inline-start: auto;
       border: 0;
     }
+  }
+  .studio-app
+    .research-workspace
+    > .structure-workbench[data-workspace-expanded="true"]:has(
+      .research-inspector-heading [data-workspace-expand]
+    ) {
+    grid-template-rows: minmax(0, 1fr);
+    > .structure-workbench-toolbar {
+      display: none;
+    }
+  }
+  .research-workspace
+    [data-workspace-expanded="true"]
+    .research-selected-preview
+    .molecule-inspection-view
+    .figure-preview-sheet {
+    height: clamp(330px, 48dvh, 560px);
   }
   .research-file-inspection .research-selected-preview {
     margin-block-start: 8px;

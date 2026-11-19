@@ -2,24 +2,47 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { Language } from "../types";
 import { readArtifactFile } from "./artifact-file";
 import { downloadBlob } from "./visual-export";
+import { readAssetFileWithMetadata } from "../research/asset-file";
+import type { MoleculeRef } from "../research/types";
 
-export function VerifiedArtifactDownload({
-  url,
-  sha256,
-  filename,
-  language,
-  label,
-  downloadLabel,
-  className,
-}: {
-  url: string;
-  sha256: string;
-  filename: string;
-  language: Language;
-  label: string;
-  downloadLabel: string;
-  className?: string;
-}) {
+type DownloadSource =
+  | { reference: Pick<MoleculeRef, "asset_id" | "sha256"> }
+  | { url: string; sha256: string; filename: string };
+
+async function readDownload(source: DownloadSource, signal: AbortSignal) {
+  const limits = { maxBytes: 25 * 1024 ** 2 };
+  if ("reference" in source) {
+    const { bytes, name } = await readAssetFileWithMetadata(
+      source.reference,
+      signal,
+      limits,
+    );
+    if (!name || /[\\/\x00-\x1f\x7f]/.test(name))
+      throw new Error("Invalid saved filename.");
+    return { bytes, filename: name };
+  }
+  const { bytes } = await readArtifactFile(source.url, signal, {
+    ...limits,
+    sha256: source.sha256,
+  });
+  return { bytes, filename: source.filename };
+}
+
+export function VerifiedArtifactDownload(
+  props: DownloadSource & {
+    language: Language;
+    label: string;
+    downloadLabel: string;
+    className?: string;
+  },
+) {
+  const { language, label, downloadLabel, className } = props;
+  const identity =
+    "reference" in props
+      ? [props.reference.asset_id, props.reference.sha256]
+      : [props.url, props.sha256, props.filename];
+  const key = JSON.stringify(identity);
+  const sha256 = "reference" in props ? props.reference.sha256 : props.sha256;
   const pending = useRef<AbortController | null>(null);
   const [state, setState] = useState<"idle" | "reading" | "error">("idle");
   const zh = language === "zh";
@@ -29,7 +52,7 @@ export function VerifiedArtifactDownload({
       pending.current?.abort();
       pending.current = null;
     };
-  }, [url, sha256]);
+  }, [key]);
 
   async function download() {
     if (pending.current) return;
@@ -43,10 +66,7 @@ export function VerifiedArtifactDownload({
     try {
       if (!/^[0-9a-f]{64}$/.test(sha256))
         throw new Error("Missing artifact checksum.");
-      const { bytes } = await readArtifactFile(url, signal, {
-        sha256,
-        maxBytes: 25 * 1024 ** 2,
-      });
+      const { bytes, filename } = await readDownload(props, signal);
       signal.throwIfAborted();
       downloadBlob(new Blob([bytes]), filename);
       setState("idle");
@@ -64,6 +84,7 @@ export function VerifiedArtifactDownload({
         className={className}
         disabled={state === "reading"}
         aria-label={downloadLabel}
+        title={downloadLabel}
         onClick={() => void download()}
       >
         {state === "reading" ? (zh ? "正在校验…" : "Verifying…") : label}

@@ -37,8 +37,13 @@ it("previews the exact selected record and clears its view when the asset change
   const input = () =>
     JSON.parse(screen.getByTestId("molecule").getAttribute("data-input")!);
   expect(input()).toMatchObject({
-    source: { url: "/api/assets/series-file", record: 1 },
+    source: {
+      url: "/api/assets/series-file",
+      record: 1,
+      sha256: molecule.reference.sha256,
+    },
     records: [1],
+    savedAssetSha256: molecule.reference.sha256,
   });
   expect(screen.getByText("Record 2")).toBeVisible();
   rerender(
@@ -85,7 +90,12 @@ it("places protein and pocket previews in the same selected-file inspector", () 
   );
   expect(
     JSON.parse(screen.getByTestId("protein").getAttribute("data-input")!),
-  ).toMatchObject({ urls: ["/api/assets/series-file"], comparison: false });
+  ).toMatchObject({
+    urls: ["/api/assets/series-file"],
+    structureChecksums: [molecule.reference.sha256],
+    comparison: false,
+    showWorkspaceControls: false,
+  });
   rerender(
     <SelectedAssetPreview
       object={{ ...molecule, kind: "sequence" }}

@@ -3,8 +3,12 @@ import { MolecularPreview } from "../presentation/MolecularPreview";
 import { useReveal } from "../presentation/useReveal";
 import type { Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
-import type { ScientificObject } from "./types";
+import type { ObjectKind, ScientificObject } from "./types";
 import { SequenceFilePreview } from "./SequenceFilePreview";
+
+export function canPreviewFile(kind: ObjectKind) {
+  return ["molecule", "structure", "pocket", "sequence"].includes(kind);
+}
 
 /** Display the selected scientific record; the original asset remains authoritative. */
 export function SelectedAssetPreview({
@@ -17,10 +21,9 @@ export function SelectedAssetPreview({
   const panel = useRef<HTMLElement>(null);
   useReveal(panel, object.id);
   const url = `/api/assets/${encodeURIComponent(object.reference.asset_id)}`;
-  const record = object.reference.record;
+  const { record, sha256 } = object.reference;
   const molecule = object.kind === "molecule";
-  if (!molecule && !["structure", "pocket", "sequence"].includes(object.kind))
-    return null;
+  if (!canPreviewFile(object.kind)) return null;
   return (
     <section
       ref={panel}
@@ -38,16 +41,19 @@ export function SelectedAssetPreview({
           key={JSON.stringify(object.reference)}
           language={language}
           label={object.label}
-          source={{ url, record }}
+          source={{ url, record, sha256 }}
           urls={object.reference.conformer === 0 ? [url] : undefined}
           records={[record]}
+          savedAssetSha256={sha256}
         />
       ) : (
         <StructureViewer
           key={JSON.stringify(object.reference)}
           urls={[url]}
+          structureChecksums={[sha256]}
           language={language}
           comparison={false}
+          showWorkspaceControls={false}
         />
       )}
       {molecule && (
