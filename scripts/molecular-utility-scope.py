@@ -735,7 +735,7 @@ MODULE_POWER_FILES = {
     "server_tests/test_screening_power_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MODULE_POWER_DIFF = "8108bd794cd01d9810ad741f188b38df817af02a4428ccb41765ea5c1955eeb4"
+MODULE_POWER_DIFF = "74a5a31f3fd8474142e1acfb00a2ba16ca63551890a519aa3778721eb784377d"
 MODULE_POWER_CONSUMERS = MODULE_POWER_FILES - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

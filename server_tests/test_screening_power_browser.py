@@ -92,7 +92,7 @@ def test_screening_stage_switches_stay_reachable_after_acceptance(tmp_path):
         next_step(form)
         expect(switch(form, "chemistry")).not_to_be_checked()
         expect(switch(form, "gnina")).to_have_count(0)
-        form.get_by_label("Supplier or owned compound library", exact=True).set_input_files(
+        form.get_by_role("button", name="Supplier or owned compound library").set_input_files(
             {"name": "library.csv", "mimeType": "text/csv", "buffer": b"ID,SMILES\n1,c1ccccc1\n"}
         )
         next_step(form)
