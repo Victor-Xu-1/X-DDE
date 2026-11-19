@@ -111,7 +111,13 @@ export function useRecognitionRequest(options: Options) {
       !started.current
     )
       start();
-  }, [options.automatic, options.connected, options.valid, supported, serviceReady]);
+  }, [
+    options.automatic,
+    options.connected,
+    options.valid,
+    supported,
+    serviceReady,
+  ]);
   useEffect(() => {
     const id = completed.current;
     if (
@@ -131,6 +137,7 @@ export function useRecognitionRequest(options: Options) {
     serviceReady,
     start,
     receive,
+    hasPending: () => pending.current !== null,
     isAutomatic: () => current.current.automatic,
   };
 }

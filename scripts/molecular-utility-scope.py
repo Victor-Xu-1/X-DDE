@@ -552,10 +552,13 @@ RECOGNITION_ACCESS_FILES = {
     "frontend/src/utilities/UtilityImageTask.test.tsx",
     "frontend/src/utilities/image-molecule.css",
     "frontend/src/utilities/useImageInputSession.ts",
+    "frontend/src/utilities/useRecognitionBridge.ts",
+    "frontend/src/utilities/useRecognitionRequest.test.tsx",
+    "frontend/src/utilities/useRecognitionRequest.ts",
     "server_tests/test_utility_image_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-RECOGNITION_ACCESS_DIFF = "583e763ef15870dce2c87a15f9739b482c4f730442775a1b263b6d340386b403"
+RECOGNITION_ACCESS_DIFF = "6a6f5b12881cd06d704cac3d715e2779eb09c9533287ef616b215b67dadff949"
 RECOGNITION_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

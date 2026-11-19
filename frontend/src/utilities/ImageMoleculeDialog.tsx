@@ -54,13 +54,7 @@ export function ImageMoleculeDialog({
       window.removeEventListener("popstate", close);
     };
   }, [mode, onClose]);
-  const dismiss = () =>
-    onClose(
-      importing &&
-        bridge.connected &&
-        !bridge.busy &&
-        bridge.phase !== "working",
-    );
+  const dismiss = () => onClose(importing && bridge.canRetain());
   const progress = bridge.busy
     ? zh
       ? "正在带入分子结构…"

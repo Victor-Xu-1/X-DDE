@@ -433,6 +433,7 @@ jobs:
         run: >-
           npx vitest run src/utilities/ImageMoleculeInput.test.tsx
           src/utilities/ImageMoleculeInput.action.test.tsx src/utilities/useRecognitionBridge.test.tsx
+          src/utilities/useRecognitionRequest.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/utilities/BackendControls.test.tsx
       - name: Close the recognition service without leaving the current task
         run: |
