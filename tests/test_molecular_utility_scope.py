@@ -168,6 +168,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "native_color_figure_only=false\n"
         "result_handoff_desktop_only=false\n"
         "molecule_results_only=false\n"
+        "ligand_camera_only=false\n"
         "desktop_structure_focus_only=false\n"
         "runtime_entry_only=false\n"
         "utility_result_desktop_only=false\n"
