@@ -42,6 +42,7 @@ _NAVIGATION = {
     "server_tests/test_workspace_preview_browser.py",
     "server_tests/test_workspace_versions_browser.py",
 }
+_DESKTOP_BLOBS = {}
 
 
 def file_navigation_only(base, event, ref):
@@ -52,19 +53,25 @@ def file_navigation_only(base, event, ref):
         return False
     paths = set(git("diff", "--name-only", base, "HEAD").decode().splitlines())
     mirrors = _SCOPE["VERSION_FILES"]
-    allowed = _NAVIGATION | _REVIEWED_BLOBS.keys() | mirrors | {
-        "scripts/research-file-navigation-scope.py",
-    }
+    support = mirrors | {"scripts/research-file-navigation-scope.py"}
+    allowed = _NAVIGATION | _REVIEWED_BLOBS.keys() | support
     blob = _SCOPE["git_blob"]
-    return (
+    desktop = (
+        paths - support == _DESKTOP_BLOBS.keys()
+        and all(
+            (blob(base, path), blob("HEAD", path)) == pair
+            for path, pair in _DESKTOP_BLOBS.items()
+        )
+    )
+    navigation = (
         bool(paths & _NAVIGATION)
         and paths <= allowed
         and all(
             (blob(base, path), blob("HEAD", path)) == _REVIEWED_BLOBS[path]
             for path in paths & _REVIEWED_BLOBS.keys()
         )
-        and _SCOPE["only_version_mirrors"](base, paths & mirrors)
     )
+    return (desktop or navigation) and _SCOPE["only_version_mirrors"](base, paths & mirrors)
 
 
 if __name__ == "__main__":

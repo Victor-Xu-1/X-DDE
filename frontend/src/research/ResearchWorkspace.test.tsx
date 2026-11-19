@@ -132,6 +132,34 @@ function narrowView() {
   }));
 }
 
+it("keeps the same upload control as the file library finishes loading", async () => {
+  let resolveGraph!: (value: ResearchGraph) => void;
+  vi.spyOn(client, "request").mockImplementation(async (path) =>
+    path === "/research/indexing"
+      ? ([] as never)
+      : (new Promise<ResearchGraph>((resolve) => {
+          resolveGraph = resolve;
+        }) as never),
+  );
+  render(
+    <ResearchWorkspace
+      language="en"
+      onEdit={vi.fn()}
+      onJob={vi.fn()}
+      onCreated={vi.fn()}
+    />,
+  );
+  const upload = screen.getByLabelText("Upload material");
+  fireEvent.change(screen.getByRole("combobox", { name: "Upload type" }), {
+    target: { value: "structure" },
+  });
+  await waitFor(() => expect(resolveGraph).toBeDefined());
+  await act(async () => resolveGraph(graph()));
+  expect(await screen.findByRole("list", { name: "Assets and tasks" })).toBeVisible();
+  expect(screen.getByLabelText("Upload material")).toBe(upload);
+  expect(upload).toHaveAttribute("accept", ".pdb,.cif");
+});
+
 it("returns keyboard focus to the selected file without changing the filter", async () => {
   narrowView();
   vi.spyOn(client, "request").mockImplementation(async (path) =>
