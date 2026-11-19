@@ -68,7 +68,8 @@ class RecognitionPower {
     clearTimeout(this.timer);
   }
 
-  refresh = async () => {
+  refresh = async (invalidate = false) => {
+    if (invalidate) this.update({ status: null });
     if (!this.listeners.size || this.state.changing) return;
     this.stopReading();
     const reader = new AbortController();
@@ -82,7 +83,9 @@ class RecognitionPower {
       );
       if (reader.signal.aborted) return;
       this.update({
-        status: hasPower(next) ? next : next && { available: next.available },
+        status: hasPower(next)
+          ? next
+          : next && { available: next.available, idle_power: next.idle_power },
       });
     } catch {
       if (!reader.signal.aborted) this.update({ status: null });

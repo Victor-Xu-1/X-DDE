@@ -70,7 +70,7 @@
 .runtime-switch > button[aria-checked="false"] i {
   background: color-mix(in srgb, var(--muted) 47%, var(--line));
 }
-.runtime-switch > button:disabled {
+.runtime-switch > button:is(:disabled, [aria-disabled="true"]) {
   cursor: not-allowed;
   opacity: 0.76;
 }

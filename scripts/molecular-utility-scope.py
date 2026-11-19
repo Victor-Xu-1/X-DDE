@@ -602,11 +602,13 @@ INLINE_RECOGNITION_FILES = {
     "frontend/src/operations/PropertyForm.test.tsx",
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendPowerSwitch.tsx",
     "frontend/src/utilities/ImageMoleculeDialog.tsx",
     "frontend/src/utilities/ImageMoleculeInput.tsx",
     "frontend/src/utilities/RecognitionBackendEntry.tsx",
     "frontend/src/utilities/image-molecule.css",
     "frontend/src/utilities/recognition-power.ts",
+    "frontend/src/utilities/runtime-switch.css",
     "frontend/src/utilities/useImageInputSession.ts",
     "frontend/src/utilities/useRecognitionBridge.ts",
     "frontend/src/utilities/useRecognitionRequest.test.tsx",
@@ -616,7 +618,7 @@ INLINE_RECOGNITION_FILES = {
     "tests/fixtures/utility_image/browser.tsx",
     "tests/test_molecular_utility_scope.py",
 }
-INLINE_RECOGNITION_DIFF = "b8683c48592e577274dbe21d0fd3902bb68a44a2438f76bb4066acfb634caa13"
+INLINE_RECOGNITION_DIFF = "f6313de7603d8f854c53e937b6de7c216e5a6630b81d588a9c5fe89a2ab1f1fa"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

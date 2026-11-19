@@ -19,6 +19,8 @@ import {
 } from "./TaskBackendControl";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { ImageMoleculeInput } from "./ImageMoleculeInput";
+import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
+import { useRecognitionStatus } from "./recognition-power";
 
 vi.mock("../api", () => ({ request: vi.fn(), api: { post: vi.fn() } }));
 afterEach(() => {
@@ -191,6 +193,51 @@ it("shares one explicit DECIMER toggle across the compound form and backend menu
     "Keep my draft",
   );
   expect(document.querySelector("iframe")).toBeNull();
+});
+
+it("waits for fresh power state after leaving the native editor", async () => {
+  const user = userEvent.setup();
+  const stopped = {
+    available: true,
+    idle_power: true,
+    power: { phase: "stopped", enabled: false },
+  };
+  const ready = { ...stopped, power: { phase: "ready", enabled: true } };
+  let resolveRead: (value: typeof ready) => void = () => {};
+  const pending = new Promise<typeof ready>((resolve) => {
+    resolveRead = resolve;
+  });
+  vi.mocked(request)
+    .mockResolvedValueOnce(stopped)
+    .mockReturnValueOnce(pending)
+    .mockResolvedValue(stopped);
+  vi.mocked(api.post).mockResolvedValue(stopped);
+  function Form() {
+    const power = useRecognitionStatus(true);
+    return (
+      <>
+        <button type="button" onClick={() => void power.refresh(true)}>
+          Return from editor
+        </button>
+        <RecognitionBackendEntry language="en" powerControl={power} />
+      </>
+    );
+  }
+  render(<Form />);
+  const toggle = screen.getByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(toggle).toBeEnabled());
+  await user.click(screen.getByRole("button", { name: "Return from editor" }));
+  expect(toggle).toBeDisabled();
+  await user.click(toggle);
+  expect(api.post).not.toHaveBeenCalled();
+  await act(async () => resolveRead(ready));
+  expect(toggle).toBeEnabled();
+  expect(toggle).toBeChecked();
+  await user.click(toggle);
+  expect(api.post).toHaveBeenCalledExactlyOnceWith(
+    "/utilities/recognition/stop",
+    {},
+  );
 });
 
 it("does not start engines on mount, offers only explicit available switches", async () => {

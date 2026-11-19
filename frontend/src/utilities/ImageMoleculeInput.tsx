@@ -209,11 +209,11 @@ export function ImageMoleculeInput({
             initialMolecule={image.initialMolecule}
             onClose={() => {
               session.close();
-              void recognition.refresh();
+              void recognition.refresh(true);
             }}
             onAccept={async (value, source) => {
               await session.accept(image, value, source);
-              void recognition.refresh();
+              void recognition.refresh(true);
             }}
           />,
           document.body,

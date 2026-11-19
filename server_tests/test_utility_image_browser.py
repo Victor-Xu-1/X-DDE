@@ -40,14 +40,15 @@ def compiled_image(tmp_path_factory):
 
 
 @contextmanager
-def image_hosts(root):
+def image_hosts(root, idle_power=True):
     uploads = []
     power_commands = []
     power_enabled = False
 
     def power_state():
         return json.dumps({
-            "available": True, "port": 8940, "idle_power": True,
+            "available": True, "port": 8940,
+            **({"idle_power": True} if idle_power else {}),
             "power": {"enabled": power_enabled, "phase": "ready" if power_enabled else "stopped"},
         }).encode()
 
@@ -263,4 +264,45 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             "inline_power_before_input_without_native_frame": True,
             "replacement_source_digest": True,
         }, indent=2))
+        browser.close()
+
+
+def test_legacy_recognition_power_keeps_the_import_and_draft(compiled_image):
+    with (
+        image_hosts(compiled_image, idle_power=False) as (uploads, power_commands),
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto("http://127.0.0.1:4322/")
+        actions = page.locator(".utility-image-entry > .image-molecule-actions")
+        inline = actions.get_by_role("switch", name="DECIMER")
+        expect(inline).to_be_disabled()
+        page.locator('.utility-image-entry > input[type="file"]').set_input_files({
+            "name": "legacy.png", "mimeType": "image/png",
+            "buffer": base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+                "AwMCAO+a9XcAAAAASUVORK5CYII="
+            ),
+        })
+        dialog = page.get_by_role("dialog")
+        dialog.frame_locator("iframe").get_by_role("switch").click()
+        draft = page.get_by_label("Primary draft", exact=True)
+        selected = page.get_by_label("Primary input", exact=True)
+        expect(selected).to_have_text("controlled-image-1")
+        expect(dialog).to_have_count(0)
+        expect(inline).to_be_disabled()
+        with page.expect_popup() as opened:
+            actions.get_by_role("link", name="Manage recognition in a new tab").click()
+        popup = opened.value
+        expect(popup).to_have_url("http://127.0.0.1:8940/?lang=en")
+        toggle = popup.get_by_role("switch", name="Recognition backend")
+        expect(toggle).to_be_checked()
+        toggle.click()
+        expect(toggle).not_to_be_checked()
+        popup.close()
+        expect(draft).to_have_value("Keep my draft")
+        expect(selected).to_have_text("controlled-image-1")
+        assert page.locator("iframe").count() == 0
+        assert len(uploads) == 1 and power_commands == [(8940, True), (8940, False)]
         browser.close()

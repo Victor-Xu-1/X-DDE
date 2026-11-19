@@ -1,5 +1,6 @@
 import { BackendPowerSwitch } from "./BackendPowerSwitch";
 import type { Language } from "../types";
+import { recognitionOrigin } from "./image-molecule";
 import {
   recognitionPhases,
   recognitionPowerBlocked,
@@ -36,19 +37,26 @@ export function RecognitionBackendEntry({
         name="DECIMER"
         status={changing ? (zh ? "正在切换…" : "Switching…") : description}
         enabled={status?.power?.enabled === true}
-        disabled={
-          changing ||
-          !status?.idle_power ||
-          !phase ||
-          recognitionPowerBlocked(phase)
-        }
+        disabled={!status?.idle_power || !phase}
+        pending={changing || (phase != null && recognitionPowerBlocked(phase))}
         onToggle={() => void toggle()}
         setup={
-          onOpen && (
+          onOpen ? (
             <button type="button" className="text-button" onClick={onOpen}>
               {zh ? "打开识别工作台" : "Open image workbench"}
             </button>
-          )
+          ) : status?.available === true && status.idle_power !== true ? (
+            <a
+              className="runtime-switch-setup"
+              href={`${recognitionOrigin()}/?lang=${language}`}
+              target="_blank"
+              rel="noopener"
+            >
+              {zh
+                ? "在新标签页管理识别服务"
+                : "Manage recognition in a new tab"}
+            </a>
+          ) : undefined
         }
       />
       {failed && (
