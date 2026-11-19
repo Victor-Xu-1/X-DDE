@@ -931,6 +931,26 @@ PROTEIN_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 PROTEIN_DESKTOP_DIFF = "384e184627cc2c834334f8333b981262eb09c46d4e6ca83d73b20255a0fd5120"
+HISTORY_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/task-history-checks.yml",
+    "frontend/package-lock.json",
+    "frontend/src/App.test.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/design/research-navigation.css",
+    "frontend/src/studio/TaskHistoryFilters.tsx",
+    "frontend/src/studio/TaskHistoryList.test.tsx",
+    "frontend/src/studio/TaskHistoryList.tsx",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/studio/TaskWorkspace.test.tsx",
+    "frontend/src/studio/TaskWorkspace.tsx",
+    "frontend/src/studio/task-history.css",
+    "server_tests/test_prediction_job_archive_browser.py",
+    "server_tests/test_task_history_browser.py",
+    "server_tests/test_task_status_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+HISTORY_DESKTOP_DIFF = "18924fe5b9696fbe289451636de90669583d80ee60418a347ec52f0f6c3927ff"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -1102,7 +1122,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PROTEIN_DESKTOP_FILES, PROTEIN_DESKTOP_DIFF, scope_pin="PROTEIN_DESKTOP_DIFF",
     )
+    history_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        HISTORY_DESKTOP_FILES, HISTORY_DESKTOP_DIFF, scope_pin="HISTORY_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
         output.write("task_power_only=" + str(task_power).lower() + "\n")
@@ -1110,7 +1135,8 @@ def main():
         output.write("module_power_only=" + str(module_power).lower() + "\n")
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
-            not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+            not history_desktop
+            and (not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed)))
         )
         output.write("module_power_changed=" + str(power_changed).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
@@ -1151,6 +1177,7 @@ def main():
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
+            or history_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

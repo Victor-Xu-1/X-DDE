@@ -189,16 +189,24 @@ it("keeps all projects visible when selecting a task from a module's unfiltered 
   expect(
     await screen.findByRole("heading", { name: "Project A task" }),
   ).toBeVisible();
-  await user.click(screen.getByText("Task list", { exact: true }));
+  await user.click(
+    screen.getByRole("button", { name: "Back to task results" }),
+  );
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
-  expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
+  expect(
+    await screen.findByRole("button", { name: /Project B task/ }),
+  ).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
   await user.click(screen.getByRole("button", { name: /Project B task/ }));
   expect(
     await screen.findByRole("heading", { name: "Project B task" }),
   ).toBeVisible();
-  await user.click(screen.getByText("Task list", { exact: true }));
-  expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Back to task results" }),
+  );
+  expect(
+    await screen.findByRole("button", { name: /Project A task/ }),
+  ).toBeVisible();
 });
 
 it("applies an explicitly chosen project until the user clears its filter", async () => {
@@ -208,22 +216,27 @@ it("applies an explicitly chosen project until the user clears its filter", asyn
   await user.click(await screen.findByRole("button", { name: /Study A/ }));
 
   const filter = screen.getByRole("group", { name: "Project filter" });
-  await user.click(screen.getByText("Task list", { exact: true }));
   expect(filter).toHaveTextContent("Study A");
+  const ownTask = await screen.findByRole("button", { name: /Another A task/ });
   expect(screen.queryByRole("button", { name: /Project B task/ })).toBeNull();
-  await user.click(screen.getByRole("button", { name: /Another A task/ }));
+  await user.click(ownTask);
   expect(
     await screen.findByRole("heading", { name: "Another A task" }),
   ).toBeVisible();
-  await user.click(screen.getByText("Task list", { exact: true }));
-  expect(screen.getByRole("button", { name: /Project A task/ })).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Back to task results" }),
+  );
+  expect(
+    await screen.findByRole("button", { name: /Project A task/ }),
+  ).toBeVisible();
 
   await user.click(
     within(filter).getByRole("button", { name: "Clear filter" }),
   );
   expect(screen.queryByRole("group", { name: "Project filter" })).toBeNull();
-  await user.click(screen.getByText("Task list"));
-  expect(screen.getByRole("button", { name: /Project B task/ })).toBeVisible();
+  expect(
+    await screen.findByRole("button", { name: /Project B task/ }),
+  ).toBeVisible();
   expect(screen.getByRole("button", { name: /Ungrouped task/ })).toBeVisible();
 });
 
@@ -643,6 +656,28 @@ it("keeps the preceding filtered result location when opening a new questionnair
 });
 
 it("restores a newly typed history query after immediately opening a new task", async () => {
+  const savedPocket: Job = {
+    ...jobs[0],
+    id: "55555555-5555-4555-8555-555555555555",
+    status: "cancelled",
+    request: {
+      operation: "pocket_search",
+      name: "Existing pocket search",
+      protein: {
+        asset_id: "fixture",
+        sha256: "a".repeat(64),
+        record: 0,
+        conformer: 0,
+      },
+      profile: "experimental",
+      threads: 1,
+      memory_mib: 1024,
+      point_threshold: 0.5,
+      minimum_cluster: 5,
+      review_limit: 10,
+    },
+  };
+  vi.mocked(api.jobs).mockResolvedValue([...jobs, savedPocket]);
   vi.mocked(apiClient.request).mockResolvedValue({
     availability: { configuration_present: false },
   } as never);

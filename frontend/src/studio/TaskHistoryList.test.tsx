@@ -64,6 +64,7 @@ it.each(["en", "zh"] as const)(
         onPage={vi.fn()}
       />,
     );
+    expect(screen.queryByRole("navigation")).toBeNull();
     fireEvent.click(
       screen.getByRole("button", {
         name: language === "zh" ? "STAT6 研究" : "STAT6 study",

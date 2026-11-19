@@ -107,6 +107,24 @@ function props(
 async function modulePage() {
   await screen.findByRole("button", { name: "STAT6 descriptors" });
 }
+it("uses one compact empty state when a module has no tasks", async () => {
+  historyJobs = [];
+  const onStart = vi.fn();
+  render(<TaskWorkspace {...props({ onStart })} />);
+  expect(screen.getByText("Loading tasks…")).toBeVisible();
+  expect(
+    screen.queryByRole("searchbox", { name: "Search this module" }),
+  ).toBeNull();
+  await screen.findByRole("heading", { name: "No tasks in this module yet" });
+  expect(screen.queryByRole("table")).toBeNull();
+  expect(
+    screen.queryByRole("searchbox", { name: "Search this module" }),
+  ).toBeNull();
+  expect(screen.queryByRole("navigation", { name: "Task pages" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "New task" }));
+  expect(onStart).toHaveBeenCalledWith("admet.predict");
+});
+
 it("rejects invalid date URLs without issuing a broader history query", async () => {
   window.history.replaceState(
     null,
@@ -127,7 +145,14 @@ it("restores date filters from the module route and clears them with the other f
   );
   render(<TaskWorkspace {...props()} />);
   await screen.findByRole("heading", { name: "No matching tasks" });
+  const dates = screen.getByRole("button", { name: /Date range/ });
+  expect(dates).toHaveAttribute("aria-expanded", "true");
   expect(screen.getByRole("button", { name: /Start date: / })).toBeVisible();
+  expect(screen.queryByRole("table")).toBeNull();
+  fireEvent.click(dates);
+  expect(dates).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("button", { name: /Start date: / })).toBeNull();
+  expect(window.location.hash).toContain("from=2026-10-02");
   expect(api.taskHistory).toHaveBeenCalledWith(
     expect.stringContaining("created_from="),
     expect.any(AbortSignal),
@@ -180,7 +205,7 @@ it.each(["en", "zh"] as const)(
         name: language === "zh" ? "任务结果" : "Task results",
       }),
     ).toBeNull();
-    expect(document.querySelector(".task-picker")).not.toBeVisible();
+    expect(document.querySelector(".task-history-list")).toBeNull();
     expect(
       screen.getByRole("heading", { name: "STAT6 structure" }),
     ).toBeVisible();
@@ -196,7 +221,12 @@ it.each(["en", "zh"] as const)(
       level: 2,
       name: language === "zh" ? "任务结果" : "Task results",
     });
-    expect(document.querySelector(".task-picker > summary")).toHaveFocus();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toHaveFocus();
     expect(document.querySelector(".task-result-content")).toBeNull();
   },
 );
@@ -236,7 +266,7 @@ it.each(["en", "zh"] as const)(
         name: language === "zh" ? "任务结果" : "Task results",
       }),
     ).toBeNull();
-    expect(document.querySelector(".task-picker")).not.toBeVisible();
+    expect(document.querySelector(".task-history-list")).toBeNull();
     expect(
       screen.getByRole("group", {
         name: language === "zh" ? "项目筛选" : "Project filter",
@@ -257,7 +287,12 @@ it.each(["en", "zh"] as const)(
       }),
     );
     await screen.findByRole("button", { name: "STAT6 descriptors" });
-    expect(document.querySelector(".task-picker > summary")).toHaveFocus();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: language === "zh" ? "任务结果" : "Task results",
+      }),
+    ).toHaveFocus();
     expect(document.querySelector(".task-result-content")).toBeNull();
   },
 );
@@ -308,7 +343,7 @@ it.each([
     expect(
       screen.queryByRole("heading", { level: 2, name: "Task results" }),
     ).toBeNull();
-    expect(document.querySelector(".task-picker")).not.toBeVisible();
+    expect(document.querySelector(".task-history-list")).toBeNull();
   },
 );
 it("moves a running native prediction from common navigation to its terminal header", () => {
@@ -394,7 +429,7 @@ it("preserves page and query when selecting a row and returning to its list", as
   fireEvent.click(screen.getByRole("button", { name: "Next" }));
   await screen.findByRole("button", { name: "STAT6 series 20" });
   fireEvent.click(screen.getByRole("button", { name: "STAT6 series 20" }));
-  expect(document.querySelector(".task-picker")).not.toBeVisible();
+  expect(document.querySelector(".task-history-list")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Back to task results" }));
   expect(
     screen.getByRole("searchbox", { name: "Search this module" }),
@@ -404,7 +439,7 @@ it("preserves page and query when selecting a row and returning to its list", as
       "2 / 2",
     ),
   ).toBeVisible();
-  expect(document.querySelector(".task-picker > summary")).toHaveFocus();
+  expect(screen.getByRole("heading", { name: "Task results" })).toHaveFocus();
 });
 it("keeps projects isolated and hides a selected task belonging to another project", async () => {
   historyJobs = [

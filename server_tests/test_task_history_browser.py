@@ -31,16 +31,21 @@ def navigation(page, language):
 
 
 def open_list(page, language):
-    picker = page.locator(".task-picker")
-    if not picker.is_visible():
+    if not page.locator(".task-history-list").is_visible():
         page.get_by_role(
             "button",
             name="返回任务结果" if language == "zh" else "Back to task results",
             exact=True,
         ).click()
-        expect(picker.locator("summary")).to_be_focused()
-    if not picker.evaluate("node => node.open"):
-        picker.locator("summary").click()
+        expect(page.locator(".task-history-title h2")).to_be_focused()
+
+
+def reveal_dates(page, zh):
+    trigger = page.get_by_role("button", name="日期范围" if zh else "Date range")
+    if trigger.get_attribute("aria-expanded") == "false":
+        trigger.click()
+    expect(trigger).to_have_attribute("aria-expanded", "true")
+    return trigger
 
 
 def open_module_results(page, language, module):
@@ -94,6 +99,10 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         ).to_have_count(0)
         open_module_results(page, language, "evaluation")
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth+1")
+        expect(page.locator(".task-history-count")).to_have_text(
+            "125 项任务" if zh else "125 tasks"
+        )
+        expect(page.locator(".task-history-date-controls")).to_be_hidden()
         page.screenshot(path=root / "module-results.png")
         rows = page.locator(".task-history-table tbody tr")
         expect(rows).to_have_count(20)
@@ -116,7 +125,9 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         expect(pages).to_contain_text("7 / 7")
         page.screenshot(path=root / "older-history.png")
 
-        # Browser navigation must dismiss a calendar before its list becomes hidden.
+        # Browser navigation dismisses a calendar with its occupied list.
+        expect(page.locator(".task-history-date-controls")).to_be_hidden()
+        reveal_dates(page, zh)
         page.get_by_role(
             "button", name="开始日期" if zh else "Start date", exact=True
         ).click()
@@ -131,7 +142,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         )
         expect(page.locator(".detail-panel h2")).to_have_text(oldest["name"])
         expect(page.get_by_role("dialog")).to_have_count(0)
-        expect(page.locator(".task-picker")).not_to_be_visible()
+        expect(page.locator(".task-history-list")).not_to_be_visible()
         assert page.evaluate("!document.activeElement.closest('[hidden]')")
         expect(page.locator(".task-history-heading")).to_have_count(0)
         page.screenshot(path=root / "focused-result.png")
@@ -140,6 +151,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
 
         # The range applies to all125records, not just the current7thpage.
         def choose_day(control, day, month=9):
+            reveal_dates(page, zh)
             page.get_by_role("button", name=control, exact=True).click()
             calendar = page.get_by_role("dialog")
             expect(calendar).to_be_visible()
@@ -198,6 +210,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         page.get_by_role("button", name="清除筛选" if zh else "Clear filters", exact=True).click()
         expect(rows).to_have_count(20)
         # Calendar cancellation returns keyboard focus and leaves the filter unchanged.
+        reveal_dates(page, zh)
         start_button = page.get_by_role(
             "button", name="开始日期" if zh else "Start date", exact=True
         )
@@ -223,6 +236,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         search.fill(oldest["name"])
         expect(rows).to_have_count(1)
         expect(rows).to_contain_text(oldest["name"])
+        expect(pages).to_have_count(0)
         page.reload()
         expect(page.locator(".page-context-title")).to_have_text(
             "性质与安全性" if zh else "Properties and safety"
@@ -241,7 +255,7 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
             "口袋与对接" if zh else "Pockets and docking"
         )
         expect(page.get_by_role("heading", name=fixture["native_name"], exact=True)).to_be_visible()
-        expect(page.locator(".task-picker")).not_to_be_visible()
+        expect(page.locator(".task-history-list")).not_to_be_visible()
         expect(page.locator(".task-history-heading")).to_have_count(0)
         expect(page.get_by_role(
             "button", name="返回任务结果" if zh else "Back to task results", exact=True
@@ -290,6 +304,9 @@ def test_modules_filters_paging_linked_history_and_unchanged_native_result(langu
         page.get_by_role("button", name="重新连接" if zh else "Reconnect", exact=True).click()
         expect(rows).to_have_count(20)
         open_module_results(page, language, "simulations")
+        expect(page.locator(".task-history-table")).to_have_count(0)
+        expect(page.locator(".task-history-controls")).to_have_count(0)
+        expect(pages).to_have_count(0)
         expect(
             page.get_by_role(
                 "heading",

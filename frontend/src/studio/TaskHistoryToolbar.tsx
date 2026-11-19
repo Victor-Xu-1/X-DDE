@@ -3,6 +3,7 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import type { RefObject } from "react";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
 import { BackendControls } from "../utilities/BackendControls";
@@ -15,6 +16,8 @@ export function TaskHistoryToolbar({
   projectName,
   hasProject,
   view,
+  headingRef,
+  count,
   onHistory,
   onRefresh,
   onStart,
@@ -25,6 +28,8 @@ export function TaskHistoryToolbar({
   projectName: string | undefined;
   hasProject: boolean;
   view: "history" | "prediction" | "detail";
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  count: number | undefined;
   onHistory(): void;
   onRefresh(): void;
   onStart(tool?: ToolId): void;
@@ -36,7 +41,20 @@ export function TaskHistoryToolbar({
     <>
       {view === "history" && (
         <header className="task-history-heading">
-          <h2>{zh ? "任务结果" : "Task results"}</h2>
+          <div className="task-history-title">
+            <h2 ref={headingRef} tabIndex={-1}>
+              {zh ? "任务结果" : "Task results"}
+            </h2>
+            {Boolean(count) && (
+              <span className="task-history-count">
+                {zh
+                  ? `${count} 项任务`
+                  : count === 1
+                    ? "1 task"
+                    : `${count} tasks`}
+              </span>
+            )}
+          </div>
           <div className="task-history-heading-actions">
             {researchModule && (
               <BackendControls

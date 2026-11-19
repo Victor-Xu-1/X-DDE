@@ -218,11 +218,14 @@ export function App() {
   }
   function chooseProject(id: string | null) {
     setProjectId(id);
-    const next = jobs.find(
-      (x) =>
-        (!id || x.request.project_id === id) &&
-        (view !== "home" || isPrediction(x.request)),
-    );
+    const next =
+      view === "home"
+        ? jobs.find(
+            (job) =>
+              isPrediction(job.request) &&
+              (!id || job.request.project_id === id),
+          )
+        : undefined;
     chooseJob(next?.id ?? "");
     if (!next) setSubmitted(null);
   }
