@@ -66,7 +66,7 @@ new ResizeObserver(([entry]) => {
       next,
       ligandFraming?.resizeAspect(),
     );
-    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
+    if (factor !== 1) viewer.zoom(factor);
   }
   if (next.width > 0 && next.height > 0) previousViewport = next;
   viewer.render();
@@ -393,7 +393,7 @@ window.addEventListener("message", (event) => {
       bounds,
       ligandFraming?.resizeAspect(),
     );
-    if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
+    if (factor !== 1) viewer.zoom(factor);
   }
   if (type === "clear") {
     confidenceSource = null;

@@ -245,6 +245,26 @@ def native_camera(frame):
     }""")
 
 
+def verify_incremental_resize(frame):
+    style = frame.get_attribute("style")
+    try:
+        frame.evaluate("el => Object.assign(el.style, {width:'1200px', height:'900px'})")
+        wide = native_camera(frame)
+        assert wide["viewport"]["width"] == 1200
+        for width in range(1199, 1182, -1):
+            frame.evaluate("(el, width) => el.style.width = width + 'px'", width)
+            stepped = native_camera(frame)
+        assert stepped["viewport"]["width"] == 1183
+        assert stepped["camera"][3] < wide["camera"][3]
+        frame.evaluate("el => el.style.width = '1200px'")
+        assert native_camera(frame)["camera"] == pytest.approx(wide["camera"], abs=1e-6)
+    finally:
+        frame.evaluate(
+            "(el, value) => value === null ? el.removeAttribute('style')"
+            " : el.setAttribute('style', value)", style,
+        )
+
+
 def verify_ligand_camera_actions(page, inspector, frame, evidence):
     initial = native_camera(frame)
     inspector.get_by_role("button", name="Zoom out", exact=True).click()
@@ -260,6 +280,8 @@ def verify_ligand_camera_actions(page, inspector, frame, evidence):
     restored = native_camera(frame)
     assert restored["viewport"] == zoomed["viewport"]
     assert isclose(restored["camera"][3], zoomed["camera"][3], abs_tol=1e-6)
+    verify_incremental_resize(frame)
+    assert native_camera(frame)["camera"] == pytest.approx(zoomed["camera"], abs=1e-6)
     inspector.get_by_role("button", name="Reset view", exact=True).click()
     fitted = native_camera(frame)
     assert fitted == initial
