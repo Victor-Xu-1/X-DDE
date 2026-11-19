@@ -809,6 +809,16 @@ RESULT_MODULE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_MODULE_POWER_DIFF = "56c58e6f54a21958473e43c220f49de94141a3556bee8030c5c8837147fb93ba"
+BACKEND_SETUP_FILES = {
+    "docs/user-guide.md",
+    "frontend/src/App.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendPowerSwitch.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+}
+BACKEND_SETUP_DIFF = "c8347a8e009067581feb1cb0247d6e742e78bc327b7c7eeb82cd126ce1758738"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -899,7 +909,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_BACKEND_FILES, MODULE_BACKEND_DIFF,
     )
-    module_power = reviewed_selected(
+    backend_setup = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        BACKEND_SETUP_FILES, BACKEND_SETUP_DIFF, scope_pin="BACKEND_SETUP_DIFF",
+    )
+    module_power = backend_setup or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,
     ) or reviewed_selected(
@@ -955,7 +969,9 @@ def main():
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("module_power_only=" + str(module_power).lower() + "\n")
-        power_changed = not changed or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        power_changed = (
+            not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        )
         output.write("module_power_changed=" + str(power_changed).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
