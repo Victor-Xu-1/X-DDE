@@ -46,6 +46,7 @@ import { useViewerConnection } from "./useViewerConnection";
 import { ViewerExportActions } from "./ViewerExportActions";
 import { figureWithColorKeys } from "../publication/molecular-color-key";
 import { scientificColorKeys } from "./scientific-color-keys";
+import { electricColorBackground } from "./electric-color-scale";
 import { ViewerToolGroup } from "./ViewerToolGroup";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -854,7 +855,10 @@ export function StructureViewport({
             <div className="potential-legend" role="status">
               <span>{zh ? "APBS 电势" : "APBS potential"}</span>
               <span>−{appliedPotentialRange}</span>
-              <i aria-hidden="true" />
+              <i
+                aria-hidden="true"
+                style={{ backgroundImage: electricColorBackground }}
+              />
               <span>+{appliedPotentialRange} kBT/e</span>
             </div>
           )}

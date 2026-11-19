@@ -1,6 +1,12 @@
-import { expect, it } from "vitest";
+import { afterAll, expect, it, vi } from "vitest";
+const worker = vi.hoisted(() =>
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:color-key-worker"),
+);
+afterAll(() => worker.mockRestore());
+import { Gradient } from "3dmol";
 import { confidenceColor } from "./confidence-types";
 import { scientificColorKeys } from "./scientific-color-keys";
+import { electricColorStops } from "./electric-color-scale";
 
 const surface = {
   mode: "surface",
@@ -9,6 +15,18 @@ const surface = {
   potentialRange: 10,
   language: "en",
 } as const;
+
+it("matches the native diverging surface palette at every rendered stop", () => {
+  const nativeRamp = new Gradient.RWB(-1, 1);
+  for (const { color, offset } of electricColorStops) {
+    const rgb = color.match(/\d+/g)!.map(Number);
+    const value = nativeRamp.valueToHex(offset * 2 - 1);
+    const expected = [value >> 16, (value >> 8) & 255, value & 255];
+    expect(
+      rgb.every((channel, index) => Math.abs(channel - expected[index]) <= 1),
+    ).toBe(true);
+  }
+});
 
 it("labels the current verified potential range and omits an unconfirmed map", () => {
   expect(scientificColorKeys(surface)).toEqual([

@@ -26,7 +26,7 @@ OBSERVE_FIGURES = """(() => {
     };
     HTMLCanvasElement.prototype.toBlob = function(...args) {
       const rows = drawn.get(this);
-      if (rows?.some(row => /^(APBS|pLDDT)/.test(row.value))) {
+      if (rows?.some(row => /^(APBS|pLDDT|Approximate partial charge)/.test(row.value))) {
         window.__figureKeys.push({width:this.width,height:this.height,rows});
       }
       return toBlob.apply(this,args);
@@ -58,11 +58,13 @@ def colored_footer(dialog, palette):
     )
 
 
-@pytest.mark.parametrize(("tool", "language", "dpi"), [
-    ("apbs.potential", "en", 300), ("predict", "zh", 600),
+@pytest.mark.parametrize(("color_key", "tool", "language", "dpi"), [
+    ("potential", "apbs.potential", "en", 300),
+    ("confidence", "predict", "zh", 600),
+    ("partial-charge", "predict", "en", 300),
 ])
-def test_retained_native_figure_includes_applied_color_key(tool, language, dpi):
-    evidence = EVIDENCE / tool
+def test_retained_native_figure_includes_applied_color_key(color_key, tool, language, dpi):
+    evidence = EVIDENCE / color_key
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     state = Settings.from_env().state_dir
@@ -80,22 +82,38 @@ def test_retained_native_figure_includes_applied_color_key(tool, language, dpi):
         trigger = viewer.locator(".figure-export-trigger")
         frame = viewer.locator(".molecular-stage iframe")
         expect(trigger).to_be_enabled(timeout=45000)
-        before = frame.evaluate(CAMERA)
-        if tool == "apbs.potential":
+        surface_palette = [[255, 180, 180], [180, 180, 255]]
+        if color_key == "potential":
             scale = page.get_by_role("combobox", name="Color range", exact=True)
             scale.select_option("10")
             expect(viewer.locator(".potential-legend")).to_contain_text("+10 kBT/e")
             labels = {"APBS potential (kBT/e)", "−10", "0", "+10"}
-            palette = [[255, 0, 0], [0, 0, 255]]
+            palette = surface_palette
         else:
-            color = viewer.get_by_role("combobox", name="结构着色", include_hidden=True)
+            color = viewer.get_by_role(
+                "combobox", name="结构着色" if zh else "Structure coloring", include_hidden=True
+            )
             if not color.is_visible():
                 viewer.locator(".viewer-tool-group.is-display > button").click()
-            color.select_option("confidence")
-            expect(viewer.locator(".confidence-legend")).to_be_visible()
-            labels = {"pLDDT · 聚合物置信度（0–100）", "> 90", "70–90", "50–<70", "< 50"}
-            palette = [[0, 83, 214], [101, 203, 243], [255, 219, 19], [255, 125, 69]]
+            if color_key == "confidence":
+                color.select_option("confidence")
+                expect(viewer.locator(".confidence-legend")).to_be_visible()
+                labels = {"pLDDT · 聚合物置信度（0–100）", "> 90", "70–90", "50–<70", "< 50"}
+                palette = [[0, 83, 214], [101, 203, 243], [255, 219, 19], [255, 125, 69]]
+            else:
+                color.select_option("chain")
+                viewer.get_by_role("button", name="Surface", exact=True).click()
+                legend = viewer.locator(".surface-legend")
+                expect(legend).to_contain_text("Approximate charge")
+                legend.get_by_role("button", name="Surface charge help").focus()
+                expect(page.get_by_role("tooltip")).to_contain_text("fixed range −0.6 to +0.6 e")
+                labels = {"Approximate partial charge (e)", "−0.6", "0", "+0.6"}
+                palette = surface_palette
+                if legend.locator(".surface-charge-missing").is_visible():
+                    labels.add("Gray · no charge data")
+                    palette = [*palette, [177, 183, 193]]
         expect(trigger).to_be_enabled()
+        before = frame.evaluate(CAMERA)
 
         def configure(dialog):
             dialog.get_by_role(
@@ -108,7 +126,8 @@ def test_retained_native_figure_includes_applied_color_key(tool, language, dpi):
             assert all(color > 20 for color in colored_footer(dialog, palette))
 
         figure = export_figure(
-            page, trigger, evidence, "with-color-key", language, configure=configure, inspect=inspect
+            page, trigger, evidence, "with-color-key", language,
+            configure=configure, inspect=inspect,
         )
         width = 1051 if dpi == 300 else 2102
         inspect_png(figure, dpi=dpi, width=width)
@@ -117,7 +136,9 @@ def test_retained_native_figure_includes_applied_color_key(tool, language, dpi):
         rows = captures[-1]["rows"]
         assert {row["value"] for row in rows} == labels
         assert all(row["y"] > width * 0.8 for row in rows)
-        (evidence / "color-key.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+        (evidence / "color-key.json").write_text(
+            json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         assert frame.evaluate(CAMERA) == before
         assert page.request.get(base + "/api/jobs").json() == jobs
         assert not writes

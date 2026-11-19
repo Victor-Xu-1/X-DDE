@@ -285,7 +285,6 @@
   height: 9px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: linear-gradient(to right, #ff0000, #ffffff 50%, #0000ff);
 }
 .surface-charge-missing {
   display: inline-flex;
@@ -320,7 +319,6 @@
   min-width: 24px;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #e25358, #fff, #406ad1);
 }
 .viewer-attachment-count {
   color: var(--muted);

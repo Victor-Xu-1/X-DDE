@@ -1,5 +1,6 @@
 import { Hint } from "../guided/Hint";
 import { surfaceChargeRange, type SurfaceSummary } from "./protocol";
+import { electricColorBackground } from "./electric-color-scale";
 import type { Language } from "../types";
 
 export function SurfaceLegend({
@@ -29,7 +30,11 @@ export function SurfaceLegend({
             : "Partial charge"}
       </strong>
       <span>{zh ? "负电" : "Negative"}</span>
-      <span className="surface-charge-scale" aria-hidden="true" />
+      <span
+        className="surface-charge-scale"
+        style={{ backgroundImage: electricColorBackground }}
+        aria-hidden="true"
+      />
       <span>{zh ? "正电" : "Positive"}</span>
       {summary.missing > 0 && (
         <span className="surface-charge-missing">

@@ -690,11 +690,15 @@ NATIVE_COLOR_FIGURE_FILES = {
     "frontend/src/publication/molecular-color-key.ts",
     "frontend/src/viewer/ConfidenceControls.tsx",
     "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/SurfaceLegend.tsx",
+    "frontend/src/viewer/electric-color-scale.ts",
     "frontend/src/viewer/scientific-color-keys.test.ts",
     "frontend/src/viewer/scientific-color-keys.ts",
+    "frontend/src/viewer/viewer.css",
     "server_tests/test_native_color_key_publication_browser.py",
+    "tests/test_molecular_utility_scope.py",
 }
-NATIVE_COLOR_FIGURE_DIFF = "0000000000000000000000000000000000000000000000000000000000000000"
+NATIVE_COLOR_FIGURE_DIFF = "19362bb0480ba23d6125a53e990ae689de75780cc74ab74075f9f711fe43f533"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

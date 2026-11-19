@@ -1,4 +1,5 @@
 import { nativeFigurePixels, type FigurePanel } from "./figure-panels";
+import { electricColorStops } from "../viewer/electric-color-scale";
 import {
   figureAspect,
   figureDimensions,
@@ -86,9 +87,8 @@ export async function figureWithColorKeys(
         const last = width - padding - context.measureText(high).width / 2;
         const center = (first + last) / 2;
         const ramp = context.createLinearGradient(first, 0, last, 0);
-        ramp.addColorStop(0, "#ff0000");
-        ramp.addColorStop(0.5, "#ffffff");
-        ramp.addColorStop(1, "#0000ff");
+        for (const { offset, color } of electricColorStops)
+          ramp.addColorStop(offset, color);
         context.fillStyle = ramp;
         context.fillRect(first, y, last - first, rampHeight);
         context.strokeStyle = line;
