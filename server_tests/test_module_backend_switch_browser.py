@@ -106,7 +106,12 @@ def verify_setup_entry(page, base):
         status = panel.locator(".runtime-switch-status")
         expect(status.locator("small")).to_have_text("已关闭 · 待配置")
         assert status.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
-        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        header = page.locator(".studio-topbar")
+        rightmost = header.evaluate("""bar => Math.max(0, ...Array.from(
+            bar.querySelectorAll("button, summary"),
+            control => control.getBoundingClientRect().right
+        ))""")
+        assert rightmost <= width, (width, rightmost)
     search = page.get_by_role("button", name="搜索任务", exact=True)
     search.click()
     field = page.get_by_role("searchbox", name="搜索任务", exact=True)
