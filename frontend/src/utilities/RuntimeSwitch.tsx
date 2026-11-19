@@ -28,11 +28,15 @@ export function RuntimeSwitch({
   language,
   runtime,
   showName = true,
+  taskNames,
+  current = false,
 }: {
   item: RuntimeEngine;
   language: Language;
   runtime: Runtime;
   showName?: boolean;
+  taskNames?: readonly string[];
+  current?: boolean;
 }) {
   const zh = language === "zh";
   const switching = runtime.busy === item.id;
@@ -47,6 +51,14 @@ export function RuntimeSwitch({
       id={item.id}
       name={item.name}
       showName={showName}
+      context={
+        taskNames?.length ? (
+          <span className="runtime-switch-tasks" title={taskNames.join(" · ")}>
+            {taskNames.join(" · ")}
+          </span>
+        ) : undefined
+      }
+      current={current}
       status={
         runtime.readError
           ? zh

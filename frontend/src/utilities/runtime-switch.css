@@ -82,6 +82,29 @@
 .backend-controls-list > .recognition-backend-entry {
   display: block;
 }
+.backend-controls-search {
+  display: block;
+  margin-block: 8px 4px;
+}
+.backend-controls-search > input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+}
+.backend-controls-list .runtime-switch-tasks {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.backend-controls-list [data-current-backend] > .runtime-switch-label > span:first-child {
+  color: var(--accent);
+  font-weight: 650;
+}
 .recognition-backend-entry .text-button {
   font-size: 11px;
   padding: 0;
@@ -172,6 +195,18 @@
 }
 .studio-topbar .has-inline-switch .backend-controls-label {
   display: none;
+}
+@media (min-width: 1160px) {
+  .studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
+    display: inline-flex;
+    width: auto;
+    padding-inline: 10px;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  .studio-topbar .has-inline-switch .backend-controls-label {
+    display: inline;
+  }
 }
 .studio-topbar
   .task-backend-control[data-backend-placement="entry"]

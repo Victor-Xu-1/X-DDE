@@ -1008,6 +1008,20 @@ MODULE_POWER_ENTRY_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 MODULE_POWER_ENTRY_DIFF = "4cfa9adb9f10805473c24b9436d9e3df8d849e3d1d20128138cc3980f4bd80a1"
+CONTEXTUAL_BACKEND_PANEL_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendPanelList.tsx",
+    "frontend/src/utilities/BackendPowerSwitch.tsx",
+    "frontend/src/utilities/ComputeSwitch.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+CONTEXTUAL_BACKEND_PANEL_DIFF = "eb282d2de28bd3f364ad4e70bd40b448ba7b8939a9dcdd9b7955afce9eb46fb3"
 PERSISTENT_TASK_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1364,6 +1378,7 @@ RUNTIME_ENTRY_FILES = {
 RUNTIME_ENTRY_DIFF = "36c46e01103946be2ab2400daaacdccb76e179b40bae2f5c2da860eecf780458"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
+    | CONTEXTUAL_BACKEND_PANEL_FILES
 ) - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1510,6 +1525,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_ENTRY_FILES, MODULE_POWER_ENTRY_DIFF,
         scope_pin="MODULE_POWER_ENTRY_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        CONTEXTUAL_BACKEND_PANEL_FILES, CONTEXTUAL_BACKEND_PANEL_DIFF,
+        scope_pin="CONTEXTUAL_BACKEND_PANEL_DIFF",
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

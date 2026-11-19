@@ -3,14 +3,10 @@ import { ControlOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
 import { enginesForScope } from "./backend-control-scope";
-import {
-  computeActivity,
-  ComputeSwitch,
-  useComputePower,
-} from "./ComputeSwitch";
+import { useComputePower } from "./ComputeSwitch";
+import { BackendPanelList } from "./BackendPanelList";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
-import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
 import { useRecognitionStatus } from "./recognition-power";
 import "./runtime-switch.css";
 
@@ -65,7 +61,6 @@ export function BackendControls({
   const rows = capabilities
     ? enginesForScope(runtime.catalogue, { capabilities })
     : (runtime.catalogue?.engines ?? []);
-  const harness = rows.find((row) => row.id === "harness");
   const moduleRows = moduleCapabilities
     ? enginesForScope(runtime.catalogue, { capabilities: moduleCapabilities })
     : [];
@@ -83,14 +78,22 @@ export function BackendControls({
     moduleRows.filter((row) => row.enabled).length +
     Number(activeCompute) +
     Number(moduleHasRecognition && recognition?.power?.enabled === true);
+  // A recovered task can still be active while its session permission is off.
+  const activeTasks = moduleRows.some((row) => row.active);
   const power =
     unavailable || reading || !moduleRows.length
       ? "unknown"
-      : activeCount
+      : activeCount || activeTasks
         ? "on"
         : "off";
   const status = {
-    on: zh ? `${activeCount} 个后端已开启` : `${activeCount} on`,
+    on: activeTasks
+      ? zh
+        ? "有任务正在运行"
+        : "Tasks active"
+      : zh
+        ? `${activeCount} 个后端已开启`
+        : `${activeCount} on`,
     off: zh ? "任务引擎已关闭" : "Task engines off",
     unknown:
       reading && !unavailable
@@ -242,42 +245,24 @@ export function BackendControls({
                 : "Off by default. Tasks that use the same backend share its switch."}
             </p>
           )}
-          <BackendStateMessage
+          <BackendPanelList
+            key={panel + (currentCapability ?? "")}
             runtime={runtime}
+            rows={rows}
+            capabilities={capabilities}
+            currentCapability={currentCapability}
             language={language}
-            failed={rows.some((row) => row.id === runtime.failed)}
-            focusAfterRetry={() => panelClose.current?.focus()}
+            recognition={recognitionPower}
+            onOpenRecognition={
+              showRecognition && onOpenRecognition
+                ? () => {
+                    setPanel("closed");
+                    onOpenRecognition();
+                  }
+                : undefined
+            }
+            onRetry={() => panelClose.current?.focus()}
           />
-          {!runtime.catalogue && !runtime.readError && (
-            <p role="status">{zh ? "正在读取…" : "Loading…"}</p>
-          )}
-          <div className="backend-controls-list">
-            {showRecognition && onOpenRecognition && (
-              <RecognitionBackendEntry
-                language={language}
-                powerControl={recognitionPower}
-                onOpen={() => {
-                  setPanel("closed");
-                  onOpenRecognition();
-                }}
-              />
-            )}
-            {rows.map((item) => (
-              <RuntimeSwitch
-                key={item.id}
-                item={item}
-                language={language}
-                runtime={runtime}
-              />
-            ))}
-            {(harness || !capabilities) && (
-              <ComputeSwitch
-                language={language}
-                configuredOnly={!capabilities}
-                activity={computeActivity(harness, runtime.readError)}
-              />
-            )}
-          </div>
           {module && (
             <button
               type="button"

@@ -137,15 +137,13 @@ function computeStatus(power: ComputePower, activity: Activity, zh: boolean) {
 
 export function ComputeSwitch({
   language,
-  configuredOnly = false,
   activity = "idle",
 }: {
   language: Language;
-  configuredOnly?: boolean;
   activity?: Activity;
 }) {
   const power = useComputePower();
-  if (!power || (configuredOnly && !power.service?.configured)) return null;
+  if (!power) return null;
   const zh = language === "zh";
   const { service } = power;
   return (
