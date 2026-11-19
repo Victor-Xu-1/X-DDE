@@ -710,6 +710,7 @@ jobs:
           src/studio/Header.test.tsx src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/TaskWorkspace.test.tsx src/studio/HomeWorkspace.test.tsx
           src/examples/ExampleActions.test.tsx src/utilities/UtilityWorkspace.test.tsx
+          src/utilities/ImageRecognition.test.tsx
       - name: Backend switches for compound tools, example previews and selected workflow steps
         if: needs.scope.outputs.composed_power_only == 'true'
         working-directory: frontend

@@ -328,6 +328,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "MODULE_POWER_FILES",
         "MODULE_POWER_ENTRY_FILES",
         "CONTEXTUAL_BACKEND_PANEL_FILES",
+        "FUNCTION_POWER_FILES",
         "COMPACT_MATERIAL_FILES",
         "DESKTOP_MOLECULE_RESULTS_FILES",
         "INLINE_MODULE_POWER_FILES",

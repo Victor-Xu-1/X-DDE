@@ -104,10 +104,15 @@ it("offers retry on failure and replaces the offline state after recovery", asyn
   vi.stubGlobal("fetch", fetcher);
   render(<ImageRecognition language="zh" />);
   expect(await screen.findByText("图片识别工作台尚未打开")).toBeVisible();
+  const recognition = screen.getByRole("switch", { name: "DECIMER" });
+  expect(recognition).toBeDisabled();
+  expect(recognition).not.toBeChecked();
+  expect(recognition).toHaveAccessibleDescription("工作台未连接");
   await userEvent.click(screen.getByRole("button", { name: "重新连接" }));
   await waitFor(() =>
     expect(screen.getByTitle("图片识别与分子编辑")).toBeVisible(),
   );
+  expect(recognition).not.toBeInTheDocument();
 });
 
 it("moves actions into the compact tab bar without reloading the editor on language changes", async () => {

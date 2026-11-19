@@ -6,6 +6,7 @@ import { ExportOutlined, ReloadOutlined } from "@ant-design/icons";
 import "./utilities.css";
 import { recognitionFrameUrl } from "./recognition-locale";
 import { useRecognitionLocale } from "./useRecognitionLocale";
+import { BackendPowerSwitch } from "./BackendPowerSwitch";
 import {
   drawingDestinations,
   useRecognitionDrawing,
@@ -102,6 +103,15 @@ export function ImageRecognition({
   }, [connection, focusRequest, status, visible]);
   const actions = (
     <div className="utility-editor-tools">
+      {status === "offline" && (
+        <BackendPowerSwitch
+          id="decimer"
+          name="DECIMER"
+          status={zh ? "工作台未连接" : "Workbench offline"}
+          enabled={false}
+          disabled
+        />
+      )}
       {drawing.available !== null && (
         <select
           className="utility-drawing-destination"

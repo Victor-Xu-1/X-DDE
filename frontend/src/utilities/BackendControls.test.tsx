@@ -63,8 +63,29 @@ it("shows only the selected task's engine beside the module menu", async () => {
       currentCapability="admet.predict"
     />,
   );
-  expect(within(task).getByRole("switch", { name: "ADMET" })).toBeChecked();
+  expect(
+    await within(task).findByRole("switch", { name: "ADMET" }),
+  ).toBeChecked();
   expect(vi.mocked(api.post)).not.toHaveBeenCalled();
+});
+
+it("keeps the current task's backend status and retry visible if the first read fails", async () => {
+  vi.mocked(request)
+    .mockRejectedValueOnce(new Error("Unavailable"))
+    .mockResolvedValue({
+      capabilities: { properties: "chemistry" },
+      engines: [entry],
+    });
+  render(<BackendControls language="en" currentCapability="properties" />);
+  const task = screen.getByRole("group", { name: "Backend for this task" });
+  const warning = await within(task).findByRole("alert");
+  expect(warning).toHaveTextContent("Cannot read backend state.");
+  expect(within(task).queryByRole("switch")).toBeNull();
+  await userEvent.click(within(warning).getByRole("button", { name: "Retry" }));
+  expect(
+    await within(task).findByRole("switch", { name: "RDKit" }),
+  ).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
 });
 
 it("keeps an example's additional engine and omits an already visible switch", async () => {
@@ -886,9 +907,8 @@ it("starts and stops persistent compute from a Harness task and syncs the global
   const user = userEvent.setup();
   const view = (data: Deployment) => (
     <ComputePowerProvider data={data} error="" refresh={refresh}>
-      <TaskBackendControl language="en" scope={{ capability: "fold" }} />
+      <BackendControls language="en" currentCapability="fold" />
       <TaskBackendControl language="en" scope={{ capability: "properties" }} />
-      <BackendControls language="en" />
     </ComputePowerProvider>
   );
   const { rerender } = render(view({ compute_service: service } as Deployment));
@@ -896,6 +916,9 @@ it("starts and stops persistent compute from a Harness task and syncs the global
     name: "Persistent compute",
   });
   expect(task).not.toBeChecked();
+  expect(
+    screen.getByRole("switch", { name: "OpenDDE Harness" }),
+  ).not.toBeChecked();
   expect(api.post).not.toHaveBeenCalled();
   await user.click(task);
   expect(task).toBeDisabled();
