@@ -1063,6 +1063,23 @@ PROXIMITY_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
+PROXIMITY_PAIR_FILES = {
+    ".github/workflows/proximity-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/proximity/AssemblyComparison.tsx",
+    "frontend/src/proximity/AssemblyFiles.tsx",
+    "frontend/src/proximity/Results.tsx",
+    "frontend/src/proximity/Results.test.tsx",
+    "frontend/src/proximity/ResultsPreview.tsx",
+    "frontend/src/proximity/proximity.css",
+    "frontend/src/proximity/useAssemblyComparison.ts",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/ViewerExportActions.tsx",
+    "server_tests/test_proximity_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+PROXIMITY_PAIR_DIFF = "377ca52642f408f0a8648dd0e89a786087e90f0036032455defdc5653f16c3ca"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
@@ -1344,6 +1361,9 @@ def main():
     proximity_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PROXIMITY_DESKTOP_FILES, PROXIMITY_DESKTOP_DIFF, scope_pin="PROXIMITY_DESKTOP_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        PROXIMITY_PAIR_FILES, PROXIMITY_PAIR_DIFF, scope_pin="PROXIMITY_PAIR_DIFF",
     )
     utility_result_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

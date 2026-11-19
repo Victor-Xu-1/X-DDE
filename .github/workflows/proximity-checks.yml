@@ -58,7 +58,9 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Assembly selection and local scientific previews
         working-directory: frontend
-        run: npx vitest run src/proximity/Results.test.tsx
+        run: >-
+          npx vitest run src/proximity/Results.test.tsx
+          src/viewer/StructureViewer.test.tsx src/presentation/WorkspaceFullscreenControl.test.tsx
       - name: Restore an immutable native result for read-only Chrome checks
         env:
           GH_TOKEN: ${{ github.token }}

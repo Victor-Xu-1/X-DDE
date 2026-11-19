@@ -1,10 +1,10 @@
-import { DownloadOutlined } from "@ant-design/icons";
 import { artifactUrl } from "../api";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Job, Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { attachmentAtom } from "./AttachmentDirections";
+import { AssemblyFiles } from "./AssemblyFiles";
 import type { AssemblyProposal, AttachmentBond, TernaryResult } from "./types";
 
 export function ResultsPreview({
@@ -52,18 +52,6 @@ export function ResultsPreview({
     : zh
       ? "诊断结构 · 几何待复核"
       : "Diagnostic · Review geometry";
-  const downloads = [
-    {
-      href: complex,
-      format: "PDB",
-      label: zh ? "PDB · 下载完整复合物" : "PDB · Download complete complex",
-    },
-    {
-      href: ligand,
-      format: "SDF",
-      label: zh ? "下载分子 SDF" : "Download molecule SDF",
-    },
-  ];
   return (
     <section
       className="proximity-assembly-preview"
@@ -82,24 +70,7 @@ export function ResultsPreview({
             {status}
           </span>
         </div>
-        <nav
-          className="proximity-downloads"
-          aria-label={zh ? "下载结构" : "Download structures"}
-        >
-          {downloads.map(({ href, format, label }) => (
-            <a
-              key={format}
-              className="secondary-button"
-              href={href}
-              aria-label={label}
-              title={label}
-              download
-            >
-              <DownloadOutlined aria-hidden="true" />
-              {format}
-            </a>
-          ))}
-        </nav>
+        <AssemblyFiles complex={complex} ligand={ligand} language={language} />
       </header>
       <ResearchTabs
         key={assembly.id}

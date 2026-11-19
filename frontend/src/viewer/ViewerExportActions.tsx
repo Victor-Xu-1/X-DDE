@@ -17,6 +17,7 @@ export function ViewerExportActions({
   render,
   capture,
   leading,
+  showWorkspaceControls = true,
 }: {
   language: Language;
   originalUrls: readonly string[];
@@ -27,6 +28,7 @@ export function ViewerExportActions({
   render(settings: FigureSettings): Promise<Blob>;
   capture(scale: number): void;
   leading?: ReactNode;
+  showWorkspaceControls?: boolean;
 }) {
   const zh = language === "zh";
   const [scale, setScale] = useState(2);
@@ -96,7 +98,13 @@ export function ViewerExportActions({
       >
         <CameraOutlined />
       </button>
-      <WorkspaceFullscreenControl language={language} compact structureFocus />
+      {showWorkspaceControls && (
+        <WorkspaceFullscreenControl
+          language={language}
+          compact
+          structureFocus
+        />
+      )}
     </div>
   );
 }

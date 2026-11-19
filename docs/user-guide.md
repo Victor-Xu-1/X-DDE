@@ -173,7 +173,11 @@ ssh -L 4320:127.0.0.1:4320 USER@SERVER
 
 在对接结果表勾选两个有效姿势，再点「三维比较两个姿势」。默认叠合视图用橙色、紫色碳区分两个姿势。「A / B 并列」可单独查看各自的受体和配体，「匹配视角」将 A 的视角用于 B。「导出比较图」可将两幅视图合成一张 PNG。展开研究工作区后可选「专注结构」放大画布。两种布局都使用同一任务的原始坐标，可分别下载 SDF，并可返回单个姿势继续查看接触和质控。三维比较需要两个有效姿势，表格指标比较最多支持四条记录。
 
-In a docking result, mark two valid poses, open **Compare**, then choose **Compare two poses in 3D**. The large left viewport retains the original receptor frame; orange and purple carbon distinguish the two native poses. Neither ligand is fitted or minimized. Download either SDF separately, select its name to inspect it, or return to the previously selected single pose. Overlay does not establish a correct binding mode or combine interaction evidence and scores. Metric comparison still supports up to four records; structural overlay requires exactly two valid poses.
+In a docking result, mark two valid poses and choose **Compare two poses in 3D**. The overlay distinguishes poses by orange and purple carbon. **A / B side by side** gives each pose its own receptor view and SDF download. **Match views** copies the camera from A to B. **Export comparison** creates a labelled PNG. In the expanded workspace, **Focus structure** enlarges the canvases. Metric comparison supports up to four records.
+
+在诱导邻近设计的结果表勾选两个装配，再点「三维比较两个装配」。每幅视图独立显示原始复合物和几何检查状态，支持下载原始 PDB、SDF 或导出当前视图。展开工作区后可点「专注结构」同时放大两幅视图。点击「单独检查」可进入该装配的二维、三维和连接位点视图。
+
+In an induced proximity result, mark two assemblies and choose **Compare two assemblies in 3D**. Each view shows the original complex and recorded geometry status. Download the PDB or SDF or export a single view from its panel. In the expanded workspace, **Focus structure** enlarges both panels. **Inspect** opens one assembly's 2D, 3D, and attachment-site views.
 
 - `frontend/src/operations`：能力目录、各任务表单、文件/原子/残基选择、原生参数编辑、设计计划和结果展示。
 - `entities` / `parameters` / `prediction` / `requests`：显式输入契约；`native_arguments` / `native_task` 只调用固定版本的原生命令。
