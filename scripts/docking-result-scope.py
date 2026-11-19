@@ -89,7 +89,10 @@ PAIRED_COMPARISON_BLOBS = {
         "dc994ad2772d14a9bf071a428bcbce5ab357bbf5", "b9db1e3769f23dd3e295f32dc7f3b8153c12a5c7",
     ),
     "frontend/src/docking/DockingResults.test.tsx": (
-        "3ccd6780d54d64db4e24e3aed4208d1223a26d93", "e27b55fe5c310dfa366c6ffdec36293e0def0e34",
+        "3ccd6780d54d64db4e24e3aed4208d1223a26d93", "71ee363f856ff684765a75e2eb014f88f037a0a5",
+    ),
+    "frontend/src/docking/DockingResults.tsx": (
+        "e7949ba74e26a42eb7cd4f55bbbddb3d257af366", "1b0845c4c9fc289d03339f33460edddc776ee8fb",
     ),
     "frontend/src/docking/PoseComparison.css": (
         "e1e8af33c3e91d98a20f6318c7daae50507511b8", "58417b1042b5c73376f0a230961728a4f7e0c2e7",
@@ -104,7 +107,7 @@ PAIRED_COMPARISON_BLOBS = {
         "52057742078e7d1d20c9d0cd44bda87f04d03950", "d3a2688fdf7f15a8489fa15dcd448596f9b350ee",
     ),
     "server_tests/test_docking_table_browser.py": (
-        "54388cd9e6854763656232cdf7b3e489616670be", "9b4c892a67ddeccc540d7f857f7209c495c46c14",
+        "54388cd9e6854763656232cdf7b3e489616670be", "679a60324720e1e70074fe1717c95a563e148023",
     ),
 }
 ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | SCOPE_FILES

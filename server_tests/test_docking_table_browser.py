@@ -18,7 +18,7 @@ from server_tests.test_workspace_fullscreen_browser import (
 PAIRED_STAGE = '.simulation-webgl[data-loaded="true"][aria-busy="false"]'
 
 
-def inspect_paired_poses(page, workspace, comparison, sources, hashes, evidence):
+def inspect_paired_poses(page, workspace, comparison, opener, sources, hashes, evidence):
     pair = comparison.get_by_role("button", name="A / B side by side", exact=True)
     overlay = comparison.get_by_role("button", name="Overlay", exact=True)
     controls = comparison.locator("[data-workspace-expand]")
@@ -58,10 +58,15 @@ def inspect_paired_poses(page, workspace, comparison, sources, hashes, evidence)
     inspect_png(export_figure(page, export, evidence, "focused-docking-comparison", "en"))
     expect(controls).to_have_count(1)
     page.screenshot(path=evidence / "focused-a-b.png")
-    controls.click()
+    comparison.get_by_role("button", name="Return to single pose", exact=True).click()
+    expect(comparison).to_have_count(0)
+    single = workspace.locator(".viewer-panel [data-workspace-expand]")
+    expect(single).to_be_focused()
+    expect(workspace).to_have_attribute("data-workspace-focus", "true")
+    page.keyboard.press("Escape")
     expect(details).to_be_visible()
-    expect(pair).to_have_attribute("aria-pressed", "true")
-    overlay.click()
+    opener.press("Enter")
+    expect(overlay).to_have_attribute("aria-pressed", "true")
 
 
 def inspect_desktop_rail(page, workspace):
@@ -320,7 +325,7 @@ def test_native_docking_core_metrics_optional_details_and_unchanged_downloads(
         )
         if width >= 1180:
             inspect_paired_poses(
-                page, workspace, overlay, load["urls"],
+                page, workspace, overlay, opener, load["urls"],
                 [pin.artifact_sha256[pose["artifact"]] for pose in original["poses"][:2]],
                 evidence,
             )

@@ -503,6 +503,11 @@ it.each(["en", "zh"] as const)(
       }),
     );
     expect(
+      screen.getByRole("group", {
+        name: zh ? "结合姿势预览" : "Binding pose preview",
+      }),
+    ).toHaveFocus();
+    expect(
       screen.queryByRole("region", {
         name: zh ? "结合姿势三维比较" : "Binding pose structural comparison",
       }),
