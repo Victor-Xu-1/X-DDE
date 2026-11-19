@@ -75,6 +75,55 @@
   font-weight: 500;
   margin: 0;
 }
+.proximity-results .structure-workbench-details {
+  gap: 12px;
+}
+.proximity-result-overview .proximity-summary {
+  margin: 9px 0 0;
+  padding-bottom: 8px;
+  gap: 18px;
+}
+.proximity-result-overview .proximity-summary dd {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+.proximity-preview-heading,
+.proximity-preview-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.proximity-preview-heading {
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.proximity-preview-identity > span {
+  font-size: 12px;
+}
+.proximity-assembly-preview > .research-tabs > .research-tab-list {
+  margin: 0 0 6px;
+}
+.proximity-assembly-preview .molecular-stage {
+  border-radius: 8px;
+}
+.studio-app .proximity-results .proximity-assembly-preview .viewer-panel {
+  padding: 0;
+}
+/* The preview header already exposes both original scientific files. */
+.proximity-assembly-preview .viewer-original-downloads {
+  display: none;
+}
+.proximity-assembly-preview .viewer-panel > .studio-heading {
+  column-gap: 8px;
+}
+.proximity-comparison .research-table .result-search input[type="search"] {
+  min-height: 32px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+}
 .proximity-partner-layout > * {
   min-width: 0;
 }
@@ -122,9 +171,16 @@
 }
 .proximity-downloads {
   display: flex;
-  gap: 18px;
+  gap: 6px;
   flex-wrap: wrap;
-  margin: 16px 0;
+}
+.proximity-preview-heading .proximity-downloads .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 31px;
+  padding: 4px 8px;
+  font-size: 12px;
 }
 .proximity-caption {
   color: var(--muted, #66758b);
@@ -189,6 +245,9 @@
 }
 .attachment-directions .section-heading h3 {
   font-size: 14px;
+}
+.attachment-directions .research-table thead th {
+  white-space: nowrap;
 }
 .proximity-scope {
   margin-top: 12px;

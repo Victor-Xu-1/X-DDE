@@ -17,6 +17,7 @@ on:
       - "server_tests/protac_initialization_checks.py"
       - "server_tests/molecular_glue*"
       - "server_tests/test_proximity_browser.py"
+      - "server_tests/test_proximity_desktop.py"
       - "tests/test_proximity*"
       - "frontend/src/proximity/**"
       # Study-only prefills use the STAT6 template gate, without native model execution.
@@ -37,6 +38,47 @@ concurrency:
   group: proximity-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
+  desktop-results:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.proximity_desktop_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Assembly selection and local scientific previews
+        working-directory: frontend
+        run: npx vitest run src/proximity/Results.test.tsx
+      - name: Restore an immutable native result for read-only Chrome checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv sync --locked --group dev --group browser
+          gh run download 40425851465 --repo "$GITHUB_REPOSITORY" \
+            --name deepternary-native-evidence --dir "$RUNNER_TEMP/retained-ternary"
+          export WB_RETAINED_TERNARY="$RUNNER_TEMP/retained-ternary/deepternary/platform/x-dde-proximity-cases-v1.zip"
+          export WB_PROXIMITY_GRAPHICS="$RUNNER_TEMP/proximity-visual/state/deployment.json"
+          WB_HOME="$RUNNER_TEMP/proximity-visual" WB_STATE_DIR="$RUNNER_TEMP/proximity-visual/state" \
+            uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          google-chrome --version
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_proximity_desktop.py
+          uv run --locked python -m pytest -x -q tests/test_molecular_utility_scope.py server_tests/test_proximity_desktop.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-ternary-results
+          path: outputs/proximity-desktop/
+          if-no-files-found: warn
   scope:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-24.04
@@ -72,12 +114,13 @@ jobs:
               stream.write('input_only=' + str(input_only).lower() + '\n')
           PY
   native:
-    needs: scope
+    needs: [scope, utility-scope]
     if: >-
       !cancelled() &&
       (github.event_name == 'workflow_dispatch' && inputs.scope != 'memory_profile' ||
        github.event_name != 'workflow_dispatch' && needs.scope.result == 'success' &&
-       needs.scope.outputs.input_only != 'true')
+       needs.scope.outputs.input_only != 'true' && needs.utility-scope.result == 'success' &&
+       needs.utility-scope.outputs.proximity_desktop_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
