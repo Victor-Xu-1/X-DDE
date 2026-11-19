@@ -985,12 +985,14 @@ PERSISTENT_TASK_POWER_FILES = {
     "frontend/src/studio/ModuleTaskPicker.tsx",
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendPowerSwitch.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
     "frontend/src/utilities/TaskBackendControl.tsx",
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
     "server_tests/test_screening_power_browser.py",
 }
-PERSISTENT_TASK_POWER_DIFF = "22aa55af6b75faa77a386e82d3a08bbd43fdbd42ba75b2c9e5f2ae9dae8d2e7d"
+PERSISTENT_TASK_POWER_DIFF = "38e49ee15d9458e79797214375edfba530b06bf80243ceb4b828f52572afa745"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",

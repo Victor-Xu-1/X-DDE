@@ -59,7 +59,8 @@ export function RuntimeSwitch({
             : engineStatus(item, zh)
       }
       enabled={item.enabled}
-      disabled={Boolean(runtime.busy) || runtime.readError || !canToggle(item)}
+      disabled={runtime.readError || !canToggle(item)}
+      pending={Boolean(runtime.busy)}
       setup={
         showName &&
         needsSetup && (

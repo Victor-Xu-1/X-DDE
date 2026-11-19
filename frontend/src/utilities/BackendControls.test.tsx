@@ -94,6 +94,36 @@ it("keeps an example's additional engine and omits an already visible switch", a
   expect(vi.mocked(api.post)).not.toHaveBeenCalled();
 });
 
+it("keeps keyboard focus on an engine switch while the server confirms the change", async () => {
+  let enabled = false;
+  let finish: (result: { enabled: boolean }) => void = () => {};
+  vi.mocked(request).mockImplementation(async () => ({
+    capabilities: { properties: "chemistry" },
+    engines: [{ ...entry, enabled }],
+  }));
+  vi.mocked(api.post).mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const user = userEvent.setup();
+  render(<BackendControls language="en" currentCapability="properties" />);
+  const toggle = await screen.findByRole("switch", { name: "RDKit" });
+  toggle.focus();
+  await user.keyboard(" ");
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAttribute("aria-disabled", "true");
+  await user.keyboard(" ");
+  expect(api.post).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    enabled = true;
+    finish({ enabled });
+  });
+  expect(toggle).toHaveFocus();
+  expect(toggle).toBeChecked();
+  expect(toggle).not.toHaveAttribute("aria-disabled", "true");
+});
+
 it("switches DECIMER from a utility without leaving the current tab", async () => {
   const onOpen = vi.fn();
   const user = userEvent.setup();

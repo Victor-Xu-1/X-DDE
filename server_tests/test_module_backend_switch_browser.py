@@ -100,6 +100,10 @@ def verify_setup_entry(page, base):
         expect(page).to_have_url(f"{base}/#view=new&tool=p2rank.detect")
     finally:
         target.close()
+    page.set_viewport_size({"width": 390, "height": 775})
+    expect(panel.get_by_text("P2Rank", exact=True)).to_be_visible()
+    expect(panel.get_by_text("已关闭 · 待配置", exact=True)).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
 
 
 def verify_shared_power(page, base):

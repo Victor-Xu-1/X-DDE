@@ -29,7 +29,7 @@ export function BackendPowerSwitch({
       <span className="runtime-switch-label">
         {showName && <span title={name}>{name}</span>}
         <span className="runtime-switch-status">
-          <small id={description} aria-live="polite">
+          <small id={description} title={status} aria-live="polite">
             {status}
           </small>
           {setup}
@@ -43,7 +43,7 @@ export function BackendPowerSwitch({
         aria-checked={enabled}
         aria-disabled={pending || undefined}
         disabled={disabled}
-        title={hint}
+        title={hint ?? `${name} · ${status}`}
         onClick={pending ? undefined : onToggle}
       >
         <i aria-hidden="true" />
