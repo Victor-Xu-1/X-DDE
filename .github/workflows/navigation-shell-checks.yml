@@ -87,10 +87,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "WB_HOME=$RUNNER_TEMP/x-dde-research-shell" >> "$GITHUB_ENV"
-          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-research-shell/state" >> "$GITHUB_ENV"
+          export WB_HOME="$RUNNER_TEMP/x-dde-research-shell"
+          export WB_STATE_DIR="$WB_HOME/state"
+          echo "WB_HOME=$WB_HOME" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$WB_STATE_DIR" >> "$GITHUB_ENV"
           uv sync --locked --group dev --group browser
-          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          if [ "$DESKTOP_HEADER_ONLY" = true ]; then
+            readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+            test "${#source[@]}" -eq 2
+            [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+            [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+            gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+            .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
+          else
+            gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+            .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          fi
       - name: Verify the approved header-only CI scope
         if: needs.utility-scope.outputs.mobile_header_only == 'true' || env.DESKTOP_HEADER_ONLY == 'true'
         run: |
@@ -98,7 +110,6 @@ jobs:
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
       - name: Real page navigation, modal focus and task search in Chromium
         run: |
-          .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python server_tests/prepare_shell_history.py
           .venv/bin/python -m playwright install --with-deps chromium
           mkdir -p server_tests/evidence/navigation-shell

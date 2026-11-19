@@ -696,7 +696,7 @@ DESKTOP_HEADER_FILES = {
     "server_tests/test_navigation_shell_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_HEADER_DIFF = "3969581a523ee6ae7b62bef40f3e4008a70c0812664f732cd7130a3c7cf3d604"
+DESKTOP_HEADER_DIFF = "340b4af2af2f34363e5a2eab66ca66f5d0c230e37d399a7507deb6fec6b395ec"
 
 INITIAL_POSE_POWER_FILES = {
     ".github/workflows/molecule-design-review-checks.yml",
