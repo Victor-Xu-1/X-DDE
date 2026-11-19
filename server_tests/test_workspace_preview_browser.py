@@ -17,6 +17,18 @@ from server_tests.workspace_preview_viewing import inspect_molecular_viewing
 EVIDENCE = Path("outputs/workspace-preview")
 
 
+def exit_expanded_files(page, language):
+    exit_label = "退出文件展开视图" if language == "zh" else "Exit expanded file view"
+    expanded = page.locator(".research-workspace [data-workspace-expanded]")
+    exit_button = expanded.get_by_role("button", name=exit_label, exact=True)
+    expect(exit_button).to_be_visible()
+    exit_button.click()
+    expect(expanded).to_have_count(0)
+    search_label = "查找研究文件或任务" if language == "zh" else "Find research files or tasks"
+    expect(page.get_by_role("searchbox", name=search_label, exact=True)).to_be_focused()
+    assert not page.locator(".studio-topbar").evaluate("el => Boolean(el.closest('[inert]'))")
+
+
 def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     zh = language == "zh"
     frame = preview.locator(".molecular-stage iframe")
@@ -80,18 +92,20 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     inspect_png(figure, dpi=300, width=1051)
 
     expand.click()
+    page.set_viewport_size({"width": 900, "height": 800})
+    page.get_by_role(
+        "button", name="返回文件列表" if zh else "Back to files", exact=True
+    ).click()
+    expect(preview).not_to_be_visible()
+    exit_expanded_files(page, language)
+    page.set_viewport_size({"width": 1280, "height": 800})
+
+    expand.click()
     toolbar.get_by_role(
         "button", name="取消选择" if zh else "Clear selection", exact=True
     ).click()
     expect(frame).to_have_count(0)
-    fallback = toolbar.get_by_role(
-        "button", name="关闭展开视图" if zh else "Close expanded view", exact=True
-    )
-    expect(fallback).to_be_visible()
-    fallback.click()
-    expect(page.locator(".research-workspace [data-workspace-expanded]")).to_have_count(0)
-    expect(open_navigation(page, language)).to_be_visible()
-    assert not page.locator(".studio-topbar").evaluate("el => Boolean(el.closest('[inert]'))")
+    exit_expanded_files(page, language)
     (evidence / "desktop-file-layout.json").write_text(
         json.dumps(measurements, indent=2), encoding="utf-8"
     )
@@ -199,6 +213,14 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         )
         inspect_png(native)
         page.screenshot(path=evidence / "warhead-3d.png", full_page=True)
+        warhead.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
+        ).click()
+        warhead.get_by_role(
+            "tab", name="二维结构" if zh else "2D structure", exact=True
+        ).click()
+        expect(warhead.locator(".molecular-stage iframe")).not_to_be_visible()
+        exit_expanded_files(page, language)
         _, second = drawing("study_protac")
         assert first != second, "File switching retained the wrong molecular drawing"
         selected, restored = drawing("study_ligand")

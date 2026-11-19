@@ -18,6 +18,7 @@ import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
 import { useResearchFileNavigation } from "./useResearchFileNavigation";
+import { ResearchWorkspaceExpansionExit } from "./ResearchWorkspaceExpansionExit";
 import {
   ResearchWorkspaceFileToolbar,
   type ResearchUploadKind,
@@ -37,6 +38,7 @@ export function ResearchWorkspace({
 }) {
   const zh = language === "zh";
   const fileContext = useId();
+  const fileLibrary = useRef<HTMLElement>(null);
   const {
     graph: sourceGraph,
     selected,
@@ -243,6 +245,19 @@ export function ResearchWorkspace({
         </p>
       )}
       <StructureWorkbench
+        toolbar={
+          <ResearchWorkspaceExpansionExit
+            language={language}
+            onClose={() => {
+              const visible = [
+                navigation.search.current,
+                navigation.preview.current,
+                fileLibrary.current?.querySelector("select"),
+              ].find((control) => control?.getClientRects().length);
+              visible?.focus({ preventScroll: true });
+            }}
+          />
+        }
         preview={graph?.nodes.length ? (
           <section
             className="research-file-inspection"
@@ -295,6 +310,7 @@ export function ResearchWorkspace({
         <section
           className="setup-card research-file-library"
           aria-label={zh ? "研究文件库" : "Research file library"}
+          ref={fileLibrary}
         >
           <ResearchWorkspaceFileToolbar
             language={language}

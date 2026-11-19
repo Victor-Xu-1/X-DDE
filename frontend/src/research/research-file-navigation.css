@@ -17,19 +17,16 @@
 .research-file-actions .anticon {
   display: none;
 }
-.research-expanded-exit {
+/* The exit lives above both panes, even when the active file has no visible viewer. */
+.research-workspace > .structure-workbench:not([data-workspace-expanded="true"])
+  > .structure-workbench-toolbar {
   display: none;
 }
-/* The library outlives its selected preview. Keep an exit when the viewer is removed. */
 .research-workspace
-  .structure-workbench[data-workspace-expanded="true"]:not(:has(
-    .research-file-inspection button[aria-haspopup="dialog"][aria-pressed="true"]
-  ))
-  .research-expanded-exit {
+  > .structure-workbench[data-workspace-expanded="true"]
+  > .structure-workbench-toolbar {
   display: flex;
-}
-.research-file-actions .research-expanded-exit .anticon {
-  display: inline-flex;
+  justify-content: flex-end;
 }
 .studio-app .research-file-inspection .research-inspector:not(.is-empty) {
   padding-block-start: 10px;

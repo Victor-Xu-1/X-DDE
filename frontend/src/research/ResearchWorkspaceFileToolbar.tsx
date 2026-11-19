@@ -1,7 +1,6 @@
 import { CloseOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { AssetKind } from "../operations/types";
 import { FileSelect } from "../presentation/FileSelect";
-import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import type { Language } from "../types";
 import { objectLabels, type ObjectKind } from "./types";
 
@@ -89,9 +88,6 @@ export function ResearchWorkspaceFileToolbar({
             <span className="research-file-action-label">{clear}</span>
           </button>
         )}
-        <div className="research-expanded-exit">
-          <WorkspaceFullscreenControl language={language} compact />
-        </div>
       </div>
     </div>
   );
