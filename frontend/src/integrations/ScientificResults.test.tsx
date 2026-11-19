@@ -114,6 +114,61 @@ it("offers the restored scientific structure and sequence without transport alia
   ).toBeNull();
 });
 
+it("offers sequence-only LigandMPNN outputs once and does not label FASTA as structure", () => {
+  const result: NativeResult = {
+    operation: "ligandmpnn_design",
+    program: "ligandmpnn",
+    version: "fixed-native-version",
+    candidates: [
+      {
+        id: "sequence-001",
+        sequence: "STQ",
+        artifact: "designed-sequences.fasta",
+        geometry: "none",
+        metrics: [],
+      },
+    ],
+    metrics: [],
+    interactions: [],
+    validation_points: [],
+    artifact_sha256: {
+      "designed-sequences.fasta": "a".repeat(64),
+      "sequences.csv": "b".repeat(64),
+    },
+    sequence_design: {
+      original_sequence: "SNQ",
+      selected_residues: [],
+      native_ligand_scored_residues: 0,
+      native_ligand_score_cutoff_A: 8,
+      sample_count: 1,
+      unique_sequence_count: 1,
+      wild_type_samples: 0,
+      candidates: [],
+      scope: "conditional_sequence_likelihood_not_binding_probability",
+    },
+  };
+  render(
+    <ScientificResults
+      job={{ id: "unpacked-result" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const files = screen.getByRole("navigation", {
+    name: "Original sequence design files",
+  });
+  expect(
+    within(files)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href")),
+  ).toEqual([
+    "/api/jobs/unpacked-result/download?name=designed-sequences.fasta",
+    "/api/jobs/unpacked-result/download?name=sequences.csv",
+  ]);
+  expect(screen.getByText("STQ")).toBeVisible();
+  expect(screen.queryByRole("link", { name: "Structure" })).toBeNull();
+});
+
 it("shows native energy units and never pools equal metric names across incompatible units", () => {
   const method = "OpenMM vacuum potential with backbone positional restraints";
   const result: NativeResult = {

@@ -1,20 +1,30 @@
+import { artifactUrl } from "../api";
+import type { Language } from "../types";
 import type { SequenceDesignResult } from "./sequence-design";
 
 export function SequenceDesignOverview({
+  jobId,
   result,
   selected,
-  zh,
+  downloads,
+  language,
 }: {
+  jobId: string;
   result: SequenceDesignResult;
   selected: string;
-  zh: boolean;
+  downloads: readonly { artifact: string; label: string }[];
+  language: Language;
 }) {
+  const zh = language === "zh";
   const active = result.candidates.find(
     (value) => value.candidate_id === selected,
   );
   return (
-    <section aria-label={zh ? "序列设计核对" : "Sequence design review"}>
-      <div className="dataset-review-strip">
+    <section
+      className="sequence-review-summary"
+      aria-label={zh ? "序列设计核对" : "Sequence design review"}
+    >
+      <div className="sequence-review-counts">
         <div>
           <span>{zh ? "采样数" : "Samples"}</span>
           <strong>{result.sample_count}</strong>
@@ -35,6 +45,26 @@ export function SequenceDesignOverview({
           </strong>
         </div>
       </div>
+      {downloads.length > 0 && (
+        <nav
+          className="sequence-review-downloads"
+          aria-label={
+            zh ? "原始序列设计文件" : "Original sequence design files"
+          }
+        >
+          {downloads.map(({ artifact, label }) => (
+            <a
+              key={artifact}
+              className="secondary-button"
+              href={artifactUrl(jobId, artifact)}
+              title={artifact}
+              download
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+      )}
       <p>
         {active?.mutations.length
           ? active.mutations

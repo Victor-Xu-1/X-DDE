@@ -31,9 +31,13 @@ it.each([true, false])(
   (zh) => {
     render(
       <SequenceDesignOverview
+        jobId="test-result"
         result={result}
         selected="sequence-002"
-        zh={zh}
+        language={zh ? "zh" : "en"}
+        downloads={[
+          { artifact: "packed-002.cif", label: "Selected structure" },
+        ]}
       />,
     );
     expect(screen.getByText("A566: S → T")).toBeVisible();
@@ -44,5 +48,11 @@ it.each([true, false])(
     expect(
       screen.getByText(zh ? "不同序列" : "Distinct sequences"),
     ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Selected structure" }),
+    ).toHaveAttribute(
+      "href",
+      "/api/jobs/test-result/download?name=packed-002.cif",
+    );
   },
 );
