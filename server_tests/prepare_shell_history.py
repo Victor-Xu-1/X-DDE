@@ -1,27 +1,30 @@
 """Restore one searchable historical task from verified native case bytes in CI only."""
 
+import argparse
 import hashlib
 import json
 import os
 import shutil
 from pathlib import Path
 
+from opendde_workbench.examples.bundle_catalogue import bundle_catalogue
 from opendde_workbench.examples.pins import ExamplePins
 from opendde_workbench.models import Status
 from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 
 
-def main():
+def main(profile):
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
     store = Store(settings.state_dir / "jobs.sqlite3")
-    pin = ExamplePins(store, settings.state_dir).get("esm", verify=True)
+    modules = bundle_catalogue(profile).modules
+    pin = ExamplePins(store, settings.state_dir, modules=modules).get("esm", verify=True)
     assert pin is not None
     original = store.get(str(pin.job_id))
     assert original is not None and original.status == Status.SUCCEEDED
     request = original.request.model_copy(
-        update={"name": "Trastuzumab sequence scoring · archived research", "project_id": None}
+        update={"name": "Sequence scoring · archived research", "project_id": None}
     )
     restored = store.create(
         request, "shell-history-" + str(pin.job_id), 2, 1000, parent_id=original.id
@@ -50,4 +53,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--profile", choices=("archive", "current"), default="archive")
+    main(parser.parse_args().profile)

@@ -110,7 +110,9 @@ jobs:
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
       - name: Real page navigation, modal focus and task search in Chromium
         run: |
-          .venv/bin/python server_tests/prepare_shell_history.py
+          profile=archive
+          if [ "$DESKTOP_HEADER_ONLY" = true ]; then profile=current; fi
+          .venv/bin/python server_tests/prepare_shell_history.py --profile "$profile"
           .venv/bin/python -m playwright install --with-deps chromium
           mkdir -p server_tests/evidence/navigation-shell
           .venv/bin/python -m opendde_workbench --port 4330 > server_tests/evidence/navigation-shell/service.log 2>&1 &

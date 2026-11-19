@@ -694,9 +694,10 @@ DESKTOP_HEADER_FILES = {
     "frontend/src/receptors/receptors.css",
     "frontend/src/studio/header.css",
     "server_tests/test_navigation_shell_browser.py",
+    "server_tests/prepare_shell_history.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_HEADER_DIFF = "340b4af2af2f34363e5a2eab66ca66f5d0c230e37d399a7507deb6fec6b395ec"
+DESKTOP_HEADER_DIFF = "b0e718054f95337e46ea792c98bf0561de6c475ce96caf984e1897ae15496cf7"
 
 INITIAL_POSE_POWER_FILES = {
     ".github/workflows/molecule-design-review-checks.yml",
