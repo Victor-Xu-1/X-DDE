@@ -331,6 +331,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "FUNCTION_POWER_FILES",
         "COMPACT_MATERIAL_FILES",
         "DESKTOP_MOLECULE_RESULTS_FILES",
+        "DESKTOP_LIGAND_CAMERA_FILES",
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",

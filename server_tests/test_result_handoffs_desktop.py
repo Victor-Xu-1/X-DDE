@@ -4,7 +4,9 @@ import csv
 import hashlib
 import os
 import re
+from math import isclose
 from pathlib import Path
+from struct import unpack
 from urllib.parse import urlsplit
 
 import pytest
@@ -209,6 +211,97 @@ def property_record_bytes(page, base, input_id):
     return records[int(one_based) - 1]
 
 
+def rendered_footprint(image):
+    return image.evaluate("""source => {
+      const sample = document.createElement('canvas');
+      const w = source.naturalWidth || source.width, h = source.naturalHeight || source.height;
+      const scale = Math.min(1, 448 / Math.max(w, h));
+      const width = sample.width = Math.round(w * scale);
+      const height = sample.height = Math.round(h * scale);
+      const ctx = sample.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(source, 0, 0, width, height);
+      const {data} = ctx.getImageData(0, 0, width, height);
+      let minX = width, minY = height, maxX = -1, maxY = -1;
+      const bg = [...data.slice(0, 4)];
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          if (bg.every((v, k) => Math.abs(data[i+k]-v) <= 16)) continue;
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+      }
+      return [minX/width, minY/height, (maxX+1)/width, (maxY+1)/height];
+    }""")
+
+
+def native_camera(frame):
+    return frame.evaluate("""frame => new Promise((resolve, reject) => {
+      const id = crypto.randomUUID();
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', receive);
+        reject(new Error('Native camera response timed out'));
+      }, 5000);
+      function receive(event) {
+        if (event.source !== frame.contentWindow || event.data?.type !== 'camera' ||
+            event.data.detail?.id !== id) return;
+        clearTimeout(timeout);
+        window.removeEventListener('message', receive);
+        const {camera, viewport} = event.data.detail;
+        resolve({camera, viewport});
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() =>
+        frame.contentWindow.postMessage(
+          {channel: 'opendde-viewer', type: 'camera-read', value: id}, location.origin)));
+    })""")
+
+
+def verify_ligand_camera_actions(page, inspector, frame, evidence):
+    initial = native_camera(frame)
+    inspector.get_by_role("button", name="Zoom out", exact=True).click()
+    zoomed = native_camera(frame)
+    assert zoomed["camera"][3] < initial["camera"][3]
+
+    page.set_viewport_size({"width": 1280, "height": 800})
+    resized = native_camera(frame)
+    assert resized["viewport"]["width"] < initial["viewport"]["width"]
+    assert resized["camera"][:3] == zoomed["camera"][:3]
+    assert resized["camera"][4:] == zoomed["camera"][4:]
+    page.set_viewport_size({"width": 1400, "height": 880})
+    restored = native_camera(frame)
+    assert restored["viewport"] == zoomed["viewport"]
+    assert isclose(restored["camera"][3], zoomed["camera"][3], abs_tol=1e-6)
+    inspector.get_by_role("button", name="Reset view", exact=True).click()
+    fitted = native_camera(frame)
+    assert fitted == initial
+
+    bounds = frame.bounding_box()
+    x, y = bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 48, y - 20, steps=4)
+    page.mouse.up()
+    rotated = native_camera(frame)
+    assert rotated["camera"][4:] != fitted["camera"][4:]
+
+    inspector.get_by_role("button", name="Export figure ↓", exact=True).click()
+    dialog = page.get_by_role("dialog", name="Export research figure")
+    dialog.get_by_label("Panel layout").select_option("portrait")
+    dialog.get_by_label("Resolution").select_option("300")
+    expect(dialog.locator(".figure-output-spec")).to_have_text("1051 × 1401 px · 300 dpi")
+    export = dialog.get_by_role("button", name="Export PNG", exact=True)
+    expect(export).to_be_enabled(timeout=DRAWING_TIMEOUT_MS)
+    left, top, right, bottom = rendered_footprint(dialog.locator("img"))
+    assert 0.04 < left < right < 0.96 and 0.04 < top < bottom < 0.96
+    assert max(right - left, bottom - top) > 0.55
+    with page.expect_download() as receipt:
+        export.click()
+    path = evidence / "portrait-300dpi.png"
+    receipt.value.save_as(path)
+    assert unpack(">II", path.read_bytes()[16:24]) == (1051, 1401)
+    assert native_camera(frame) == rotated
+
+
 def test_reviewed_property_poses_open_without_new_calculation(tmp_path, monkeypatch):
     monkeypatch.setenv("WB_HOME", str(tmp_path))
     monkeypatch.setenv("WB_STATE_DIR", str(tmp_path / "state"))
@@ -257,7 +350,14 @@ def test_reviewed_property_poses_open_without_new_calculation(tmp_path, monkeypa
             assert reference["asset_id"] == asset and reference["sha256"] == expected
             assert reference["record"] == int(one_based) - 1
             expect(page.locator(".property-descriptors table")).to_be_visible()
+            frame = inspector.locator(".molecular-stage iframe")
+            canvas = frame.content_frame.locator("#molecule canvas")
+            left, top, right, bottom = rendered_footprint(canvas)
+            assert 0.04 < left < right < 0.96 and 0.04 < top < bottom < 0.96
+            assert right - left > 0.55
             page.screenshot(path=evidence / f"{job}-native-3d.png")
+            if job == RETAINED_3D_PROPERTIES[-1]:
+                verify_ligand_camera_actions(page, inspector, frame, evidence)
         assert len(qualified) == len(RETAINED_3D_PROPERTIES)
         assert not blocked and page.request.get(f"{base}/api/jobs").json() == before
         browser.close()

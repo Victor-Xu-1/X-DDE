@@ -5,6 +5,7 @@ import {
   type FigureSettings,
 } from "../publication/settings";
 import { nativeLabelLayer } from "./native-labels";
+import { resizeZoomFactor } from "./camera-resize";
 import { figureOccupancy } from "./figure-occupancy";
 import { figureWithLabelLeaders } from "./figure-label-leaders";
 import {
@@ -44,6 +45,7 @@ export function captureFigure(
   element: HTMLElement,
   settings: FigureSettings,
   panel?: FigurePixels,
+  ligandAspect?: number,
 ) {
   const bounds = element.getBoundingClientRect(),
     ratio = viewer.getRenderer().devicePixelRatio;
@@ -74,7 +76,11 @@ export function captureFigure(
     viewer.setWidth(size.width / ratio);
     viewer.setHeight(size.height / ratio);
     viewer.setView(view);
-    const scale = settings.structureScale ?? 1;
+    const aspectScale =
+      ligandAspect === undefined
+        ? 1
+        : Math.min(1, resizeZoomFactor(bounds, size, ligandAspect));
+    const scale = (settings.structureScale ?? 1) * aspectScale;
     if (scale !== 1) viewer.zoom(scale);
     const placements = labels.arrangeForPrint(() => {
       viewer.setBackgroundColor("white", 0);

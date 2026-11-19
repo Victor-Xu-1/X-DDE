@@ -277,6 +277,10 @@ The task header and saved examples for **Define full-molecule regions** and **Po
 
 For a ligand that still needs its first calculated 3D conformer, the preview shows its RDKit switch while the engine is off. Turn it on and choose **Prepare 3D conformer**. Previously calculated conformers can still open while the engine is off.
 
+A single ligand fits the 3D canvas when opened. Drag to rotate and use the wheel to zoom. **Reset view** fits the structure at the current angle. A narrower layout or figure format leaves room for the ligand on the shorter axis. Figure export keeps your live view intact.
+
+独立配体打开后会自动适应三维画布。拖动可旋转，滚轮可缩放。点击「重置视角」可按当前角度重新取景。缩窄工作区或选择窄幅图件时，画面会为配体留出边距。导出完成后仍保留原来的操作视图。
+
 If a switch shows **Off · Setup required**, **Set up** opens Installation and runtime in a separate tab so you can keep the current form open.
 
 开关旁显示「已关闭 · 待配置」时，点击「配置」会在新标签页打开「安装与运行」，当前填写页仍可保留。

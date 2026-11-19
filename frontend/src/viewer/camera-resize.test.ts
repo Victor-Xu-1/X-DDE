@@ -32,3 +32,13 @@ it("keeps proportional viewports and hidden/invalid dimensions from changing the
     resizeZoomFactor({ width: 500, height: 400 }, { width: NaN, height: 400 }),
   ).toBe(1);
 });
+
+it("preserves relative zoom between wide and narrow stages for a wide or tall ligand", () => {
+  const wide = { width: 600, height: 400 };
+  const narrow = { width: 440, height: 400 };
+  expect(resizeZoomFactor(wide, narrow, 1.7)).toBeCloseTo(440 / 600);
+  expect(resizeZoomFactor(wide, narrow, 0.67)).toBe(1);
+  expect(
+    resizeZoomFactor(wide, narrow, 1.7) * resizeZoomFactor(narrow, wide, 1.7),
+  ).toBeCloseTo(1);
+});

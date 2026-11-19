@@ -1,5 +1,6 @@
 import * as mol from "3dmol";
 import { focusedViewScale } from "./appearance";
+import { currentLigandAspect, fitStandaloneLigand } from "./ligand-framing";
 import { nativeLabelLayer } from "./native-labels";
 import { molecularRecordText } from "../presentation/molecular-record";
 import {
@@ -47,6 +48,8 @@ new MutationObserver(() => {
   attributeFilter: ["data-theme"],
 });
 let previousViewport: ViewportSize | null = null;
+let standaloneLigand = false;
+let ligandAspect: number | undefined;
 new ResizeObserver(([entry]) => {
   const next = {
     width: entry.contentRect.width,
@@ -54,7 +57,7 @@ new ResizeObserver(([entry]) => {
   };
   viewer.resize();
   if (previousViewport && viewer.getModel(0)) {
-    const factor = resizeZoomFactor(previousViewport, next);
+    const factor = resizeZoomFactor(previousViewport, next, ligandAspect);
     if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
   }
   if (next.width > 0 && next.height > 0) previousViewport = next;
@@ -95,7 +98,9 @@ function reset() {
       : {},
   );
   const fit = visible.length && hiddenChainIds.length ? 1.05 : 0.85;
-  viewer.zoom(fit * viewportFitFactor(viewport));
+  ligandAspect = standaloneLigand ? fitStandaloneLigand(viewer) : undefined;
+  if (ligandAspect === undefined)
+    viewer.zoom(fit * viewportFitFactor(viewport));
   if (viewport.width > 0 && viewport.height > 0)
     previousViewport = { width: viewport.width, height: viewport.height };
   viewer.render();
@@ -127,6 +132,8 @@ async function load(input: ViewerLoad) {
     current = ++generation;
   focusedChainView = false;
   hiddenChainIds = [];
+  standaloneLigand = false;
+  ligandAspect = undefined;
   scene.resetState();
   notify("loading");
   viewer.clear();
@@ -246,6 +253,13 @@ async function load(input: ViewerLoad) {
       await scene.paint();
     }
     if (current !== generation) return;
+    standaloneLigand =
+      molecular &&
+      !input.comparison &&
+      !input.trajectoryKey &&
+      !input.channelGeometry &&
+      !input.searchBox &&
+      !input.electrostaticMap;
     reset();
     if (retainedView) viewer.setView(retainedView);
     else if (scene.channelGeometry) scene.focusChannel();
@@ -366,7 +380,7 @@ window.addEventListener("message", (event) => {
     isCameraSnapshot(value)
   ) {
     const bounds = document.getElementById("molecule")!.getBoundingClientRect();
-    const factor = resizeZoomFactor(value.viewport, bounds);
+    const factor = resizeZoomFactor(value.viewport, bounds, ligandAspect);
     viewer.setView([...value.camera]);
     if (Math.abs(factor - 1) > 0.001) viewer.zoom(factor);
   }
@@ -378,6 +392,8 @@ window.addEventListener("message", (event) => {
     generation++;
     focusedChainView = false;
     hiddenChainIds = [];
+    standaloneLigand = false;
+    ligandAspect = undefined;
     scene.resetState();
     viewer.clear();
     viewer.render();
@@ -447,6 +463,7 @@ window.addEventListener("message", (event) => {
               document.getElementById("molecule")!,
               capture.figure,
               capture.pixels,
+              standaloneLigand ? currentLigandAspect(viewer) : undefined,
             )
           : captureView(
               viewer,
