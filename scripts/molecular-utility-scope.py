@@ -587,7 +587,7 @@ RECOGNITION_PANEL_POWER_FILES = {
     "src/opendde_workbench/utility_routes.py",
     "tests/test_utility_tools.py",
 }
-RECOGNITION_PANEL_POWER_DIFF = "02d67ac2279bf382fbc27b223158adb1e623dcc544765ca5cd6fc40f8a2d19cd"
+RECOGNITION_PANEL_POWER_DIFF = "8751af344d8c6b4f32c90212e688edee61fa760a95e9353deffb02b987deb85e"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

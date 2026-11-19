@@ -72,7 +72,7 @@ def _change_recognition_power(enabled):
         if not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{64}", token) or not previous:
             raise ValueError("Invalid recognition session")
         if previous["phase"] in {"busy", "stopping"}:
-            raise HTTPException(409, "Wait for the recognition service to finish before switching it.")
+            raise HTTPException(409, "Wait for recognition to finish before switching the service.")
         request = urllib.request.Request(
             _RECOGNITION_URL + "api/power",
             data=json.dumps({"enabled": enabled}).encode(),

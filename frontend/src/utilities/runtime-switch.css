@@ -79,6 +79,9 @@
   outline-offset: 1px;
   border-radius: 6px;
 }
+.backend-controls-list > .recognition-backend-entry {
+  display: block;
+}
 .recognition-backend-entry .text-button {
   font-size: 11px;
   padding: 0;

@@ -13,8 +13,7 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from opendde_workbench import api
-from opendde_workbench import utility_routes
+from opendde_workbench import api, utility_routes
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
@@ -60,8 +59,6 @@ def test_discovery_failure_is_not_model_readiness():
     ],
 )
 def test_recognition_status_only_reads_bounded_native_power(health, state, expected):
-    import json
-
     app = FastAPI()
     register_utilities(app)
     opener = Mock()

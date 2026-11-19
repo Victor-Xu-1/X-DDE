@@ -225,6 +225,7 @@ def verify_modules(page, base):
 
 
 def verify_utilities(page, base, companion, companion_loads):
+    page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(base + "/#view=utilities")
     admet = page.get_by_role("button", name="ADMET 预测", exact=True)
     admet.click()
@@ -240,6 +241,9 @@ def verify_utilities(page, base, companion, companion_loads):
     expect(trigger).to_have_accessible_description("任务引擎已关闭")
     expect(toggle).not_to_be_checked()
     expect(toggle).to_be_enabled()
+    decimer = toggle.bounding_box()
+    admet_power = module.locator('[data-engine="admet"]').get_by_role("switch").bounding_box()
+    assert decimer and admet_power and abs(decimer["x"] - admet_power["x"]) < 1
     toggle.press("Space")
     expect(toggle).to_be_checked()
     expect(trigger).to_have_accessible_description("1 个后端已开启")
