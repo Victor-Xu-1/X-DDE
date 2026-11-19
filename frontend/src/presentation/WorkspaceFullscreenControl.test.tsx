@@ -31,8 +31,10 @@ function Preview({
   }, []);
   return (
     <section className={surfaceClass}>
-      <WorkspaceFullscreenControl language={language} />
-      <iframe title="Native scene" />
+      <WorkspaceFullscreenControl language={language} structureFocus />
+      <div className="molecular-stage">
+        <iframe title="Native scene" />
+      </div>
     </section>
   );
 }
@@ -78,6 +80,7 @@ afterEach(async () => {
     await Promise.resolve();
   });
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   delete (HTMLElement.prototype as { showPopover?: unknown }).showPopover;
   delete (HTMLElement.prototype as { hidePopover?: unknown }).hidePopover;
   document.body.style.overflow = "";
@@ -126,6 +129,65 @@ it.each(["en", "zh"] as const)(
       .requestFullscreen;
   },
 );
+
+class DesktopMedia extends EventTarget {
+  matches = true;
+}
+
+it("focuses one scene, retains analysis inputs and resets focus mode on Escape", async () => {
+  vi.stubGlobal("matchMedia", () => new DesktopMedia());
+  const user = userEvent.setup();
+  render(<Workbench />);
+  const scene = screen.getByTitle<HTMLIFrameElement>("Native scene");
+  await user.selectOptions(screen.getByRole("combobox"), "Pose 2");
+  await user.click(openButton());
+  const dialog = screen.getByRole("dialog");
+  const focus = screen.getByRole("button", { name: "Focus structure" });
+  await user.click(focus);
+  expect(dialog).toHaveAttribute("data-workspace-focus", "true");
+  expect(focus).toHaveAccessibleName("Show analysis panel");
+  expect(focus).toHaveFocus();
+  expect(screen.getByTitle("Native scene")).toBe(scene);
+  await user.click(focus);
+  expect(dialog).not.toHaveAttribute("data-workspace-focus");
+  expect(screen.getByRole("combobox")).toHaveValue("Pose 2");
+  await user.click(focus);
+  fireEvent.keyDown(scene.contentDocument!, { key: "Escape" });
+  expect(dialog).not.toHaveAttribute("data-workspace-focus");
+  expect(openButton()).toHaveFocus();
+  expect(mounts).toHaveBeenCalledOnce();
+});
+
+it("returns to the new view when its tab hides the expanded scene and its controls", async () => {
+  vi.stubGlobal("matchMedia", () => new DesktopMedia());
+  function Views() {
+    const [drawing, showDrawing] = useState(false);
+    return (
+      <StructureWorkbench
+        preview={
+          <>
+            <button onClick={() => showDrawing(!drawing)}>Change view</button>
+            <div hidden={drawing}>
+              <Preview />
+            </div>
+            {drawing && <p>2D drawing</p>}
+          </>
+        }
+      >
+        Analysis
+      </StructureWorkbench>
+    );
+  }
+  const user = userEvent.setup();
+  render(<Views />);
+  await user.click(openButton());
+  await user.click(screen.getByRole("button", { name: "Focus structure" }));
+  const tab = screen.getByRole("button", { name: "Change view" });
+  await user.click(tab);
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(screen.getByText("2D drawing")).toBeVisible();
+  expect(tab).toHaveFocus();
+});
 
 it("expands a loading scene, contains focus and restores pre-existing inert/scroll state", async () => {
   const user = userEvent.setup();
@@ -181,6 +243,7 @@ it("leaves a nested figure dialog to handle Escape, then closes from the native 
 });
 
 it("shares one expansion across paired controls and a replacement scene", async () => {
+  vi.stubGlobal("matchMedia", () => new DesktopMedia());
   function Changing() {
     const [source, select] = useState("Source 1");
     return (
@@ -208,6 +271,7 @@ it("shares one expansion across paired controls and a replacement scene", async 
     screen.getAllByRole("button", { name: "Expand research workspace" })[0],
   );
   const workspace = screen.getByRole("dialog");
+  expect(screen.queryByRole("button", { name: "Focus structure" })).toBeNull();
   expect(
     screen.getAllByRole("button", { name: "Close expanded view" }),
   ).toHaveLength(2);

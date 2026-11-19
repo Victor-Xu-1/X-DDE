@@ -269,6 +269,12 @@ frame or binding-pose display. Selecting another candidate uses that candidate's
 own scene and retains it when returning inline. Escape (including inside the
 same-origin renderer) and Close expanded view restore the inline page, previous
 scroll positions and trigger focus. A standalone viewer expands its own panel.
+Expanded desktop workspaces with a single native 3D scene also offer **Focus
+structure**. The canvas uses the space below its live toolbar while analysis and
+sequence panels are parked. The same scene retains zoom, selection, and its
+display controls. Figure export and original structure downloads remain in the
+viewer toolbar. **Show analysis panel** restores the split view and its scroll
+positions. Selecting 2D closes expansion when it leaves no visible 3D toolbar.
 The manual popover promotes the same DOM without moving or cloning the iframe;
 native browser fullscreen is no longer requested. Background branches are inert
 and keyboard focus stays inside the workspace. An open figure dialog handles its

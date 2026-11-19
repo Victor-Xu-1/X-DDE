@@ -108,6 +108,8 @@ on:
         type: boolean
         default: false
     outputs:
+      desktop_structure_focus_only:
+        value: ${{ jobs.scope.outputs.desktop_structure_focus_only }}
       result_handoff_desktop_only:
         value: ${{ jobs.scope.outputs.result_handoff_desktop_only }}
       utility_only:
@@ -174,6 +176,7 @@ jobs:
       simulation_desktop_only: ${{ steps.select.outputs.simulation_desktop_only }}
       proximity_desktop_only: ${{ steps.select.outputs.proximity_desktop_only }}
       result_handoff_desktop_only: ${{ steps.select.outputs.result_handoff_desktop_only }}
+      desktop_structure_focus_only: ${{ steps.select.outputs.desktop_structure_focus_only }}
       runtime_entry_only: ${{ steps.select.outputs.runtime_entry_only }}
       utility_result_desktop_only: ${{ steps.select.outputs.utility_result_desktop_only }}
       recognition_power_only: ${{ steps.select.outputs.recognition_power_only }}
@@ -226,6 +229,7 @@ jobs:
       needs.scope.outputs.simulation_desktop_only != 'true' &&
       needs.scope.outputs.proximity_desktop_only != 'true' &&
       needs.scope.outputs.result_handoff_desktop_only != 'true' &&
+      needs.scope.outputs.desktop_structure_focus_only != 'true' &&
       needs.scope.outputs.runtime_entry_only != 'true' &&
       needs.scope.outputs.utility_result_desktop_only != 'true'
     runs-on: ubuntu-24.04
