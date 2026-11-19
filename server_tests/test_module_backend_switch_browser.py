@@ -108,15 +108,15 @@ def verify_shared_power(page, base):
     button = tool.get_by_role("switch")
     expect(button).to_be_enabled()
     expect(button).not_to_be_checked()
-    observed = page.locator(".backend-module-status")
-    expect(observed).to_have_attribute("data-power", "off")
+    observed, _ = module_power(page)
+    expect(observed).to_have_accessible_description("任务引擎已关闭")
     page.get_by_role("textbox", name="靶点名称或基因符号").fill("STAT6")
     page.get_by_role("checkbox", name="允许将名称或数据库编号发送到公共数据库查询").check()
     search = page.get_by_role("button", name="查找", exact=True)
     expect(search).to_be_disabled()
     button.press("Space")
     expect(button).to_be_checked()
-    expect(observed).to_have_attribute("data-power", "on")
+    expect(observed).to_have_accessible_description("1 个后端已开启")
     expect(search).to_be_enabled()
     sibling = open_capability(page, base, "discovery.disease")
     expect(sibling.get_by_role("switch")).to_be_checked()
@@ -173,7 +173,7 @@ def verify_shared_power(page, base):
     expect(open_capability(page, base, "discovery.disease").get_by_role(
         "switch"
     )).not_to_be_checked()
-    expect(observed).to_have_attribute("data-power", "off")
+    expect(observed).to_have_accessible_description("任务引擎已关闭")
 
 
 def verify_modules(page, base):
