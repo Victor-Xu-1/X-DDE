@@ -58,6 +58,7 @@ import type { SearchBoxGeometry } from "./search-box";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
+  showWorkspaceControls?: boolean;
   expectedStructureSha256?: string;
   nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
@@ -95,6 +96,7 @@ export interface StructureViewerProps {
 }
 export function StructureViewport({
   sourceSnapshot = false,
+  showWorkspaceControls = true,
   expectedStructureSha256,
   onStructureVerification,
   trajectoryKey,
@@ -600,6 +602,7 @@ export function StructureViewport({
         )}
         <ViewerExportActions
           language={language}
+          showWorkspaceControls={showWorkspaceControls}
           originalUrls={optimization.pose.nativeArtifactSha256 ? [] : urls}
           sourceKey={JSON.stringify([
             key,

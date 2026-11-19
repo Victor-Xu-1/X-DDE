@@ -12,7 +12,9 @@ import {
 } from "./types";
 import type { Job, Language } from "../types";
 import { ResultsPreview } from "./ResultsPreview";
+import { AssemblyComparison } from "./AssemblyComparison";
 import { AttachmentDirections } from "./AttachmentDirections";
+import { useAssemblyComparison } from "./useAssemblyComparison";
 import "./proximity.css";
 
 function assemblyLabel(id: string, zh: boolean, selected = false) {
@@ -26,15 +28,21 @@ function assemblyLabel(id: string, zh: boolean, selected = false) {
   return label + " " + Number(id.split("-")[1]);
 }
 
-export function ProximityResults({
-  job,
-  result,
-  language,
-}: {
+type ProximityResultProps = {
   job: Job;
   result: TernaryResult;
   language: Language;
-}) {
+};
+
+export function ProximityResults(props: ProximityResultProps) {
+  return <ProximityResultWorkspace key={props.job.id} {...props} />;
+}
+
+function ProximityResultWorkspace({
+  job,
+  result,
+  language,
+}: ProximityResultProps) {
   const zh = language === "zh",
     rows = result.assemblies;
   const [selected, setSelected] = useState(
@@ -43,16 +51,26 @@ export function ProximityResults({
   const active = rows.find((r) => r.id === selected) ?? rows[0];
   const [view, setView] = useState("assembly");
   const [bond, setBond] = useState<string | null>();
+  const comparison = useAssemblyComparison(rows);
+  const { pair } = comparison;
   const attachments =
     result.attachment_geometry?.assemblies.find((row) => row.id === active?.id)
       ?.bonds ?? [];
   const activeView =
     view === "attachments" && !attachments.length ? "assembly" : view;
+  const showAttachments = !pair && activeView === "attachments";
   const selectedBond =
     bond === undefined && attachments.length > 2
       ? attachments[0].id
       : (bond ?? null);
   const qualified = rows.filter((r) => r.quality.accepted).length;
+  function inspect(id: string) {
+    comparison.close("preview");
+    if (id !== active?.id) {
+      setSelected(id);
+      setBond(undefined);
+    }
+  }
   const columns = useMemo<ResearchColumn<AssemblyProposal>[]>(
     () => [
       {
@@ -165,20 +183,43 @@ export function ProximityResults({
       ) : (
         <StructureWorkbench
           preview={
-            <ResultsPreview
-              job={job}
-              result={result}
-              assembly={active}
-              label={assemblyLabel(active.id, zh, true)}
-              language={language}
-              view={activeView}
-              onView={setView}
-              attachments={attachments}
-              selectedBond={selectedBond}
-            />
+            <div
+              ref={comparison.preview}
+              tabIndex={-1}
+              role="group"
+              aria-label={zh ? "装配结构预览" : "Assembly structure preview"}
+            >
+              {pair ? (
+                <AssemblyComparison
+                  key={JSON.stringify(pair.map((row) => row.id))}
+                  jobId={job.id}
+                  assemblies={pair}
+                  labels={[
+                    assemblyLabel(pair[0].id, zh),
+                    assemblyLabel(pair[1].id, zh),
+                  ]}
+                  language={language}
+                  activation={comparison.activation}
+                  onBack={() => comparison.close("table")}
+                  onInspect={inspect}
+                />
+              ) : (
+                <ResultsPreview
+                  job={job}
+                  result={result}
+                  assembly={active}
+                  label={assemblyLabel(active.id, zh, true)}
+                  language={language}
+                  view={activeView}
+                  onView={setView}
+                  attachments={attachments}
+                  selectedBond={selectedBond}
+                />
+              )}
+            </div>
           }
         >
-          {activeView === "attachments" ? (
+          {showAttachments ? (
             <AttachmentDirections
               rows={attachments}
               selected={selectedBond}
@@ -188,23 +229,36 @@ export function ProximityResults({
           ) : (
             overview
           )}
-          <div className="proximity-comparison">
+          <div className="proximity-comparison" ref={comparison.details}>
             <ResearchTable
               rows={rows}
               columns={columns}
               rowId={(r) => r.id}
               language={language}
               title={zh ? "装配比较" : "Compare assemblies"}
-              selected={active.id}
+              selected={pair ? null : active.id}
               initialVisibleColumns={["id", "geometry", "clashes"]}
-              onSelect={(r) => {
-                if (r.id === active.id) return;
-                setSelected(r.id);
-                setBond(undefined);
-              }}
+              onSelect={(r) => inspect(r.id)}
+              comparisonActions={(marked) => (
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={marked.length !== 2}
+                  title={
+                    zh
+                      ? "勾选两个装配以并列查看。"
+                      : "Mark two assemblies to view them side by side."
+                  }
+                  onClick={(event) =>
+                    comparison.open(marked, event.currentTarget)
+                  }
+                >
+                  {zh ? "三维比较两个装配" : "Compare two assemblies in 3D"}
+                </button>
+              )}
               exportName="ternary-assemblies.csv"
             />
-            {activeView !== "attachments" && (
+            {!pair && activeView !== "attachments" && (
               <AssemblyQualityView
                 assembly={active}
                 mechanism={result.mechanism}

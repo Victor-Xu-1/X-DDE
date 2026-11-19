@@ -70,6 +70,73 @@ def inspect_molecular_vector(path):
     assert not root.findall(".//{http://www.w3.org/2000/svg}image")
 
 
+def inspect_pair(page, table, preview, rows, result, language, evidence):
+    zh = language == "zh"
+    fixture = ".proximity-results .structure-workbench"
+    workspace = page.locator(fixture)
+    for row in (rows[0], rows[2]):
+        label = ("对比 " if zh else "Compare ") + row["id"]
+        table.get_by_role("checkbox", name=label, exact=True).check()
+    opener = table.get_by_role(
+        "button", name="三维比较两个装配" if zh else "Compare two assemblies in 3D", exact=True,
+    )
+    opener.press("Enter")
+    pair = page.get_by_role(
+        "region", name="三维装配比较" if zh else "3D assembly comparison", exact=True,
+    )
+    heading = pair.get_by_role(
+        "heading", name="装配并列比较" if zh else "Compare assemblies side by side",
+    )
+    expect(heading).to_be_focused()
+    assert pair.locator("[data-workspace-expand]").count() == 1
+    for slot, number in (("A", 1), ("B", 3)):
+        row = rows[number - 1]
+        label = ("装配 " if zh else "Assembly ") + str(number)
+        pane = pair.get_by_role("region", name=f"{slot} · {label}", exact=True)
+        expect(pane.locator(".proximity-check-fail")).to_be_visible()
+        frame = pane.locator(".molecular-stage iframe")
+        expect(frame.content_frame.locator("html")).to_have_attribute(
+            "data-assembly-artifact", row["complex_artifact"], timeout=25000,
+        )
+        check_downloads(page, pane, row, result, zh)
+    frames = pair.locator(".molecular-stage iframe")
+    originals = frames.element_handles()
+    assert len(originals) == 2
+    pair.locator("[data-workspace-expand]").click()
+    width = frames.first.bounding_box()["width"]
+    pair.get_by_role("button", name="专注结构" if zh else "Focus structure").click()
+    expect(workspace.locator(":scope > .structure-workbench-details")).to_be_hidden()
+    rects = [frame.bounding_box() for frame in frames.all()]
+    assert all(rect and rect["width"] > width * 1.25 for rect in rects)
+    assert abs(rects[0]["y"] - rects[1]["y"]) <= 2
+    assert abs(rects[0]["height"] - rects[1]["height"]) <= 2
+    for frame, original in zip(frames.all(), originals, strict=True):
+        assert frame.evaluate("(frame, original) => frame === original", original)
+    if not zh:
+        figures = []
+        for index, slot in enumerate(("a", "b")):
+            png = export_figure(
+                page, pair.locator(".figure-export-trigger").nth(index), evidence,
+                f"assembly-{slot}-view", language,
+            )
+            inspect_png(png)
+            figures.append(png.read_bytes())
+        assert figures[0] != figures[1]
+    page.screenshot(path=evidence / "focused-assembly-comparison.png")
+    pair.get_by_role(
+        "button", name="返回单个装配" if zh else "Return to single assembly", exact=True,
+    ).click()
+    expect(pair).to_have_count(0)
+    expect(preview.locator('[role="tabpanel"]:visible [data-workspace-expand]')).to_be_focused()
+    expect(workspace).to_have_attribute("data-workspace-focus", "true")
+    native_view(preview, rows[1]["complex_artifact"])
+    page.keyboard.press("Escape")
+    expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+    assert table.locator(".research-table-scroll").evaluate(
+        "node => node.scrollWidth <= node.clientWidth + 1"
+    )
+
+
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1280, 800),
     ("zh", "dark", 1600, 900),
@@ -170,6 +237,7 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
         page.screenshot(path=evidence / "selected-attachment.png")
         preview.get_by_role("tab", name="完整复合物" if zh else "Complete complex").press("Enter")
         native_view(preview, rows[1]["complex_artifact"])
+        inspect_pair(page, table, preview, rows, result, language, evidence)
         assert not writes and page.request.get(power).json() == prior
         assert all(not row["enabled"] and not row["active"] for row in prior["engines"])
         (evidence / "receipt.json").write_text(json.dumps({

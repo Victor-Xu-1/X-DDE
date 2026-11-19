@@ -174,13 +174,95 @@
   gap: 6px;
   flex-wrap: wrap;
 }
-.proximity-preview-heading .proximity-downloads .secondary-button {
+:is(.proximity-preview-heading, .proximity-compare-pane-heading)
+  .proximity-downloads
+  .secondary-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 31px;
   padding: 4px 8px;
   font-size: 12px;
+}
+.proximity-compare-toolbar,
+.proximity-compare-pane-heading,
+.proximity-compare-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.proximity-compare-toolbar,
+.proximity-compare-pane-heading {
+  justify-content: space-between;
+}
+.proximity-compare-toolbar {
+  padding-block: 4px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.proximity-compare-toolbar h3 {
+  font-size: 16px;
+  margin: 0;
+  scroll-margin-top: 96px;
+}
+.proximity-compare-toolbar .field-help {
+  margin: 3px 0 0;
+}
+.proximity-compare-actions
+  > :is([data-workspace-expand], .workspace-structure-focus) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--surface);
+  font-size: 12px;
+}
+.proximity-compare-actions
+  > :is([data-workspace-expand], .workspace-structure-focus):hover {
+  background: var(--accent-soft);
+}
+.proximity-compare-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin-block: 10px 0;
+}
+.proximity-compare-panels > section {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  min-width: 0;
+}
+.proximity-compare-pane-heading {
+  align-items: end;
+}
+.proximity-compare-pane-heading h4 {
+  margin: 0;
+  font-size: 14px;
+}
+.proximity-compare-pane-heading h4 span {
+  color: var(--accent);
+  margin-inline-end: 5px;
+}
+.studio-app .proximity-compare-panels .viewer-panel {
+  padding: 0;
+}
+.proximity-compare-panels .viewer-original-downloads {
+  display: none;
+}
+.studio-app .proximity-compare-panels .viewer-panel .molecular-stage {
+  border-radius: 8px;
+}
+@media (max-width: 1000px) {
+  .proximity-compare-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .proximity-caption {
   color: var(--muted, #66758b);

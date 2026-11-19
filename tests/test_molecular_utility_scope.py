@@ -321,6 +321,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",
+        "PROXIMITY_PAIR_FILES",
     ],
 )
 def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):
