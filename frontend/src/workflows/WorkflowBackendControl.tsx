@@ -60,7 +60,13 @@ export function WorkflowBackendControl({
       ? []
       : draftOperations;
   if (operations.length)
-    return <TaskBackendControl language={language} scope={{ operations }} />;
+    return (
+      <TaskBackendControl
+        language={language}
+        scope={{ operations }}
+        placement="entry"
+      />
+    );
   const zh = language === "zh";
   if (!missingId)
     return (

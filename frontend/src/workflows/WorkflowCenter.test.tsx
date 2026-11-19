@@ -54,6 +54,14 @@ const runtime = {
       active: false,
       operations: ["properties"],
     },
+    {
+      id: "gnina",
+      name: "GNINA",
+      ready: true,
+      enabled: false,
+      active: false,
+      operations: ["docking"],
+    },
   ],
 };
 beforeEach(() => {
@@ -115,7 +123,18 @@ it("looks up the exact plan for a history run outside the plan list, with retry"
     state: "succeeded",
     attempts: [],
   };
-  const older = { id: run.plan_id, sha256: "b".repeat(64), body };
+  const older = {
+    id: run.plan_id,
+    sha256: "b".repeat(64),
+    body: {
+      ...body,
+      steps: [
+        ...body.steps,
+        { request: { operation: "docking" } },
+        { request: { operation: "docking" } },
+      ],
+    },
+  };
   let detailReads = 0;
   transport.request.mockImplementation(async (path) => {
     if (path === "/workflows/runs") return [run];
@@ -141,6 +160,8 @@ it("looks up the exact plan for a history run outside the plan list, with retry"
   expect(
     await screen.findByRole("switch", { name: "RDKit" }),
   ).not.toBeChecked();
+  expect(screen.getByRole("switch", { name: "GNINA" })).not.toBeChecked();
+  expect(screen.getAllByRole("switch")).toHaveLength(2);
   expect(detailReads).toBe(2);
   expect(transport.post).not.toHaveBeenCalled();
 });

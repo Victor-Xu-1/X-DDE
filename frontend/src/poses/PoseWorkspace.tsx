@@ -8,17 +8,19 @@ import type { Language } from "../types";
 import { PoseForm } from "./PoseForm";
 import { PosePlanRun } from "./PosePlanRun";
 import { DefinedSiteStart } from "../sites/DefinedSiteStart";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
+import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import type { Exploration } from "./types";
 import "./poses.css";
 export function PoseWorkspace({
   language,
   initialSites,
   initialExplorationId,
+  showBackend = true,
 }: {
   language: Language;
   initialSites?: SiteSet;
   initialExplorationId?: string;
+  showBackend?: boolean;
 }) {
   const zh = language === "zh";
   const sourceGroup = useId();
@@ -80,10 +82,12 @@ export function PoseWorkspace({
       }
       aria-busy={loading}
     >
-      <TaskBackendControl
-        language={language}
-        scope={{ capability: "gnina.dock" }}
-      />
+      {showBackend && (
+        <FollowupBackendControl
+          language={language}
+          capability="pose_exploration"
+        />
+      )}
       {loading && (
         <p role="status">
           {zh

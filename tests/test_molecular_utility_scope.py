@@ -162,6 +162,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "initial_pose_power_only=false\n"
         "backend_placement_only=false\ntask_power_only=false\nmodule_backend_only=false\n"
         "module_power_only=false\n"
+        "composed_power_only=false\n"
         "module_power_changed=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "desktop_header_only=false\n"

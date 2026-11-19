@@ -7,7 +7,6 @@ import type { MoleculeRef } from "../research/types";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import { referenceKey } from "../diffsbdd/model";
 import { useNativeIdentity } from "./useNativeIdentity";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { savedRegions } from "./records";
 import {
   toggleAtom,
@@ -298,7 +297,7 @@ export function RegionEditor({
   } catch {
     complete = false;
   }
-  const guide = (
+  return (
     <GuidedSteps<SavedRegion>
       initialResult={showResult ? initialRecord : null}
       language={language}
@@ -367,14 +366,5 @@ export function RegionEditor({
         </>
       )}
     />
-  );
-  return (
-    <>
-      <TaskBackendControl
-        language={language}
-        scope={{ capability: "diffsbdd.identity" }}
-      />
-      {guide}
-    </>
   );
 }

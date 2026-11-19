@@ -321,43 +321,62 @@ describe("module templates", () => {
       screen.getByRole("button", { name: "Example results" }),
     ).toHaveFocus();
   });
-  it("opens a verified compound result without loading it into a live plan", async () => {
-    transport.request.mockResolvedValueOnce({
-      ...info,
-      module: { ...info.module, capability_id: "regions" },
-      record_pin: {
-        record_id: "retained-region",
-        computed_result_available: true,
-      },
-    });
-    transport.request.mockResolvedValueOnce({
-      module: info.module,
-      record: {
-        kind: "regions",
-        value: { id: "retained-region" },
-        pin: {
+  it.each([
+    ["regions", "diffsbdd", "DiffSBDD"],
+    ["pose_exploration", "gnina", "GNINA"],
+  ] as const)(
+    "keeps the %s backend available in its verified example",
+    async (capability, id, name) => {
+      const metadata = {
+        ...info,
+        module: { ...info.module, capability_id: capability },
+        record_pin: {
           record_id: "retained-region",
-          record_sha256: "a".repeat(64),
           computed_result_available: true,
         },
-      },
-    });
-    const onLoad = vi.fn();
-    render(
-      <ExampleActions capability="regions" language="en" onLoad={onLoad} />,
-    );
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Example results" }),
-    );
-    expect(await screen.findByText("Verified compound output")).toBeVisible();
-    expect(onLoad).not.toHaveBeenCalled();
-    expect(
-      transport.request.mock.calls
-        .filter(([path]) => path.startsWith("/examples/"))
-        .at(-1),
-    ).toEqual(["/examples/regions/result"]);
-    expect(transport.post).not.toHaveBeenCalled();
-  });
+      };
+      const result = {
+        module: metadata.module,
+        record: {
+          kind: capability,
+          value: { id: "retained-region" },
+          pin: {
+            record_id: "retained-region",
+            record_sha256: "a".repeat(64),
+            computed_result_available: true,
+          },
+        },
+      };
+      transport.request.mockImplementation(async (path: string) => {
+        if (path.startsWith("/runtime-controls"))
+          return {
+            capabilities: { [capability]: id },
+            engines: [{ id, name, ready: true, enabled: false, active: false }],
+          };
+        return path.endsWith("/result") ? result : metadata;
+      });
+      const onLoad = vi.fn();
+      render(
+        <ExampleActions
+          capability={capability}
+          language="en"
+          onLoad={onLoad}
+        />,
+      );
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Example results" }),
+      );
+      expect(await screen.findByText("Verified compound output")).toBeVisible();
+      expect(await screen.findByRole("switch", { name })).not.toBeChecked();
+      expect(onLoad).not.toHaveBeenCalled();
+      expect(
+        transport.request.mock.calls
+          .filter(([path]) => path.startsWith("/examples/"))
+          .at(-1),
+      ).toEqual([`/examples/${capability}/result`]);
+      expect(transport.post).not.toHaveBeenCalled();
+    },
+  );
   it("lets the user explicitly return to a new blank task", async () => {
     transport.post.mockResolvedValue({ module: info.module, case: info.case });
     const clear = vi.fn();

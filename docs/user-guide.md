@@ -251,6 +251,10 @@ Use the backend switch at the top of each calculation page, including nested too
 
 在研究模块的新建任务、任务结果和结果详情页，右上角的「后端管理」会显示本模块的任务引擎状态。点击后可分别启停各引擎，也可切换到完整清单。「任务结果」标题旁也能直接操作。单引擎模块显示一个开关，多引擎模块可打开「本模块后端」逐一启停。计算任务和原子检查、三维对齐编辑等子功能都可就地启停。高通量筛选选择新库时显示分子处理开关，选择追加对接时显示对接开关，提交后仍可在当前运行页面操作。示例预览随当前结果阶段切换后端。工作流选中任务后即可启停相应引擎，保存计划前也能操作。使用同一引擎的页面共享开关状态，每次重启 X-DDE 后默认关闭。开启后按需加载，关闭后已排队的任务等待再次开启。请先完成或取消正在运行的任务。Harness 任务页的常驻计算服务可在空闲时关闭以释放内存。
 
+The task header and saved examples for **Define full-molecule regions** and **Pose exploration** show the switch for DiffSBDD and GNINA, respectively. When opening pose exploration from a saved site, use the switch alongside the exploration form. Experimental evidence entry uses X-DDE's built-in storage and requires no calculation engine.
+
+「定义完整分子的区域」和「姿势探索」的任务页头与示例预览分别提供 DiffSBDD 和 GNINA 开关。从保存的位点进入姿势探索时，也可在表单旁操作。录入实验数据直接使用 X-DDE 的存储功能，无需开启计算引擎。
+
 For a ligand that still needs its first calculated 3D conformer, the preview shows its RDKit switch while the engine is off. Turn it on and choose **Prepare 3D conformer**. Previously calculated conformers can still open while the engine is off.
 
 If a switch shows **Off · Setup required**, **Set up** opens Installation and runtime in a separate tab so you can keep the current form open.

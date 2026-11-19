@@ -11,7 +11,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 const runtime = {
-  capabilities: { "gnina.dock": "gnina" },
+  capabilities: { pose_exploration: "gnina" },
   engines: [
     { id: "gnina", name: "GNINA", ready: true, enabled: false, active: false },
   ],
