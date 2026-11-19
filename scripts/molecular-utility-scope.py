@@ -732,9 +732,15 @@ MODULE_POWER_FILES = {
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_screening_power_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MODULE_POWER_DIFF = "05ecb419609898d21319abb2c61c513c4e491a6a8968957b0ef24f04e682881f"
+MODULE_POWER_DIFF = "8108bd794cd01d9810ad741f188b38df817af02a4428ccb41765ea5c1955eeb4"
+MODULE_POWER_CONSUMERS = MODULE_POWER_FILES - {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "tests/test_molecular_utility_scope.py",
+}
 
 
 def reviewed_selected(changed, event, base, files, digest):
@@ -848,6 +854,8 @@ def main():
         output.write("task_power_only=" + str(task_power).lower() + "\n")
         output.write("module_backend_only=" + str(module_backend).lower() + "\n")
         output.write("module_power_only=" + str(module_power).lower() + "\n")
+        power_changed = not changed or bool(MODULE_POWER_CONSUMERS.intersection(changed))
+        output.write("module_power_changed=" + str(power_changed).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")

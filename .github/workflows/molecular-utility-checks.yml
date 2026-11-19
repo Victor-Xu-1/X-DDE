@@ -76,6 +76,7 @@ on:
       - "frontend/src/utilities/TaskBackendControl.tsx"
       - "frontend/src/utilities/runtime-switch.css"
       - "frontend/src/datasets/ScreeningForm*"
+      - "server_tests/test_screening_power_browser.py"
       - "server_tests/test_module_backend_switch_browser.py"
       - "tests/test_utility_tools.py"
       - "tests/test_compute_power_admission.py"
@@ -129,6 +130,7 @@ jobs:
       task_power_only: ${{ steps.select.outputs.task_power_only }}
       module_backend_only: ${{ steps.select.outputs.module_backend_only }}
       module_power_only: ${{ steps.select.outputs.module_power_only }}
+      module_power_changed: ${{ steps.select.outputs.module_power_changed }}
       native_state_only: ${{ steps.select.outputs.native_state_only }}
       compact_example_only: ${{ steps.select.outputs.compact_example_only }}
       mobile_header_only: ${{ steps.select.outputs.mobile_header_only }}
@@ -310,7 +312,9 @@ jobs:
 
   contextual-backends:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.runtime_switch_only == 'true' }}
+    if: >-
+      !inputs.scope_only && needs.scope.outputs.runtime_switch_only == 'true' &&
+      needs.scope.outputs.module_power_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -323,10 +327,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Contextual backend, utility, workflow and example switches
-        if: >-
-          needs.scope.outputs.backend_placement_only == 'true' &&
-          needs.scope.outputs.module_backend_only != 'true' &&
-          needs.scope.outputs.module_power_only != 'true'
+        if: needs.scope.outputs.backend_placement_only == 'true' && needs.scope.outputs.module_backend_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/utilities/BackendControls.test.tsx
@@ -342,13 +343,6 @@ jobs:
           src/studio/TaskWorkspace.test.tsx src/studio/ModuleWorkspaceNavigation.test.tsx
           src/studio/MethodSwitch.test.tsx src/App.test.tsx
           src/discovery/TargetResearchForm.test.tsx
-      - name: Module status and selected screening stage switches
-        if: needs.scope.outputs.module_power_only == 'true'
-        working-directory: frontend
-        run: >-
-          npx vitest run src/utilities/BackendControls.test.tsx
-          src/datasets/ScreeningForm.test.tsx src/datasets/screening-readiness.test.ts
-          src/studio/ModuleWorkspaceNavigation.test.tsx
       - name: Backend switches and directly changed surfaces
         if: needs.scope.outputs.backend_placement_only != 'true'
         working-directory: frontend
@@ -393,6 +387,40 @@ jobs:
         with:
           name: contextual-backend-evidence
           path: outputs/module-backend-switches/
+
+  module-power:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.module_power_changed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Shared switches and selected screening stages
+        working-directory: frontend
+        run: >-
+          npx vitest run src/utilities/BackendControls.test.tsx
+          src/datasets/ScreeningForm.test.tsx src/datasets/screening-readiness.test.ts
+          src/studio/ModuleWorkspaceNavigation.test.tsx
+      - name: Contextual power controls in Chrome without scientific execution
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_{module_backend_switch,screening_power}_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          uv run --locked python -m pytest -x -q server_tests/test_{module_backend_switch,screening_power}_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: module-power-evidence
+          path: |
+            outputs/module-backend-switches/
+            outputs/screening-power/
 
   image-input-touch-controls:
     needs: scope

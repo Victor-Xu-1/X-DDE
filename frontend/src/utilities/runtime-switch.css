@@ -73,6 +73,11 @@
 }
 .backend-module-status[data-power="on"]::before {
   background: var(--accent);
+  border-radius: 50%;
+}
+.backend-module-status[data-power="off"]::before {
+  width: 8px;
+  height: 2px;
 }
 .backend-module-status[data-power="unknown"]::before {
   background: transparent;
