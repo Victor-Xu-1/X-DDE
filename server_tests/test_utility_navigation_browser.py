@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 
 EVIDENCE = Path("outputs/utility-navigation")
@@ -123,11 +124,11 @@ def work_area(panel):
 @pytest.mark.parametrize(("language", "width", "height"), [
     ("en", 1280, 720), ("zh", 1600, 775),
 ])
-def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(tmp_path, language, width, height):
+def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(language, width, height):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     key = f"desktop-{language}-{width}"
-    with platform(tmp_path / "state", EVIDENCE / f"{key}.log") as base:
+    with platform(Settings.from_env().state_dir, EVIDENCE / f"{key}.log") as base:
         with sync_playwright() as driver:
             browser = driver.chromium.launch(channel="chrome")
             page = browser.new_page(viewport={"width": width, "height": height})
