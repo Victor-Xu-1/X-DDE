@@ -1,0 +1,59 @@
+.refinement-summary {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.refinement-summary h3 {
+  margin: 0 0 10px;
+}
+.refinement-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.refinement-summary :is(th, td) {
+  border-top: 1px solid var(--line);
+  padding: 9px 0;
+  overflow-wrap: anywhere;
+}
+.refinement-summary th {
+  text-align: start;
+  font-weight: 500;
+}
+.refinement-summary td {
+  padding-inline-start: 8px;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.refinement-summary td > small {
+  display: inline-block;
+  margin-inline-start: 4px;
+  color: var(--muted);
+}
+.refinement-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-block-start: 8px;
+}
+.refinement-summary-actions > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+
+@media (min-width: 1001px) {
+  .scientific-results.is-refinement-result > .structure-workbench {
+    grid-template-columns: minmax(0, 2.35fr) minmax(275px, 1fr);
+    gap: 16px;
+  }
+  .studio-app .is-refinement-result .structure-workbench-view > .viewer-panel:not(:popover-open) {
+    padding: 0;
+  }
+  .studio-app .is-refinement-result .viewer-panel:not(:popover-open) > .molecular-stage {
+    border-radius: 10px;
+  }
+}

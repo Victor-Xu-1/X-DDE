@@ -39,6 +39,11 @@ on:
       - "frontend/src/utilities/UtilityWorkspace*"
       - "frontend/src/studio/HelpWorkspace*"
       - "server_tests/test_desktop_help_browser.py"
+      - "frontend/src/integrations/RefinementSummary.tsx"
+      - "frontend/src/integrations/refinement-summary.css"
+      - "frontend/src/integrations/refinement-energy-labels.ts"
+      - "server_tests/test_refinement_review_browser.py"
+      - ".github/workflows/refinement-input-checks.yml"
       - "frontend/src/utilities/UtilityTask*"
       - "frontend/src/utilities/UtilitySinglePage*"
       - "frontend/src/utilities/utility-task.css"
@@ -119,6 +124,8 @@ on:
         value: ${{ jobs.scope.outputs.recognition_power_only }}
       result_header_only:
         value: ${{ jobs.scope.outputs.result_header_only }}
+      refinement_desktop_only:
+        value: ${{ jobs.scope.outputs.refinement_desktop_only }}
 permissions:
   contents: read
 jobs:
@@ -130,6 +137,7 @@ jobs:
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
       utility_desktop_only: ${{ steps.select.outputs.utility_desktop_only }}
       desktop_help_only: ${{ steps.select.outputs.desktop_help_only }}
+      refinement_desktop_only: ${{ steps.select.outputs.refinement_desktop_only }}
       recognition_power_only: ${{ steps.select.outputs.recognition_power_only }}
       potential_display_only: ${{ steps.select.outputs.potential_display_only }}
       runtime_switch_only: ${{ steps.select.outputs.runtime_switch_only }}
@@ -165,7 +173,8 @@ jobs:
       needs.scope.outputs.desktop_header_only != 'true' &&
       needs.scope.outputs.initial_pose_power_only != 'true' &&
       needs.scope.outputs.mobile_viewer_only != 'true' && needs.scope.outputs.print_labels_only != 'true' &&
-      needs.scope.outputs.utility_desktop_only != 'true' && needs.scope.outputs.desktop_help_only != 'true'
+      needs.scope.outputs.utility_desktop_only != 'true' && needs.scope.outputs.desktop_help_only != 'true' &&
+      needs.scope.outputs.refinement_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
@@ -463,6 +472,13 @@ jobs:
         with:
           name: utility-touch-evidence
           path: outputs/utility-image
+
+  desktop-refinement:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.refinement_desktop_only == 'true' }}
+    uses: ./.github/workflows/refinement-input-checks.yml
+    with:
+      check: desktop-preview
 
   desktop-help:
     needs: scope

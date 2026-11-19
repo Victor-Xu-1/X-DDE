@@ -188,6 +188,45 @@ it("shows native energy units and never pools equal metric names across incompat
   expect(within(foreign).getByText("-1.398e+4")).toBeVisible();
 });
 
+it("puts one archived refined structure and its native values in a compact result", () => {
+  const result: NativeResult = {
+    operation: "structure_refine",
+    program: "openmm",
+    version: "8.6.1",
+    candidates: [{
+      id: "refined-structure",
+      artifact: "refined-structure.pdb",
+      geometry: "source_frame",
+      metrics: [{
+        name: "Final potential energy",
+        value: -58503.15506459447,
+        unit: "kJ/mol",
+        method: "OpenMM vacuum potential with backbone positional restraints",
+        meaning: "energy",
+      }],
+    }],
+    metrics: [],
+    artifact_sha256: {
+      "refined-structure.pdb": "a".repeat(64),
+      "result.json": "b".repeat(64),
+    },
+    interactions: [],
+    validation_points: [],
+  };
+  render(<ScientificResults job={{ id: "native-refinement" } as Job} result={result} language="en" />);
+  const summary = within(screen.getByRole("region", { name: "Refinement result" }));
+  expect(summary.getByRole("rowheader", { name: "Final energy" })).toBeVisible();
+  expect(summary.getByRole("cell")).toHaveTextContent("-58,503.155");
+  expect(summary.getByRole("cell")).toHaveTextContent("kJ/mol");
+  expect(summary.getByRole("link", { name: "Download refined structure" })).toHaveAttribute(
+    "href",
+    "/api/jobs/native-refinement/download?name=refined-structure.pdb",
+  );
+  expect(summary.getByRole("button", { name: "Export metrics CSV" })).toBeVisible();
+  expect(screen.queryByRole("searchbox")).toBeNull();
+  expect(screen.queryByRole("link", { name: "refined-structure.pdb" })).toBeNull();
+});
+
 it("keeps declared stereochemistry separate from unbound 3D geometry when selecting a candidate", () => {
   const result: NativeResult = {
     operation: "reinvent_design",

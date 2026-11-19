@@ -36,6 +36,11 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    if: inputs.scope_only != true
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -60,8 +65,8 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/managed_compute_scope.py
   model-review:
-    needs: scope
-    if: inputs.scope_only != true && needs.scope.outputs.calculation_plan_only != 'true' && needs.scope.outputs.managed_compute_only != 'true'
+    needs: [scope, utility-scope]
+    if: inputs.scope_only != true && needs.scope.outputs.calculation_plan_only != 'true' && needs.scope.outputs.managed_compute_only != 'true' && needs.utility-scope.outputs.refinement_desktop_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:
