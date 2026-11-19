@@ -22,13 +22,18 @@
   white-space: normal;
 }
 
+.dataset-candidate-table[data-program="deli"] .research-table .column-sort {
+  max-width: 116px;
+}
+
 .dataset-candidate-table .research-table .molecule-image.is-thumbnail {
-  width: clamp(88px, 24cqi, 136px);
-  height: 88px;
+  width: clamp(72px, 24cqi, 108px);
+  max-width: 100%;
+  height: 52px;
 }
 
 .dataset-candidate-table .research-table .molecule-image.is-thumbnail > img {
-  height: 80px;
+  height: 50px;
 }
 
 .dataset-candidate-table .research-table td small {
@@ -40,6 +45,35 @@
 
 .dataset-candidate-table .research-table .dataset-row-title {
   color: var(--accent);
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   word-break: normal;
+}
+
+.dataset-candidate-table .research-table-toolbar {
+  gap: 6px 8px;
+  padding: 6px 0 8px;
+}
+.dataset-candidate-table .result-search {
+  flex-basis: 115px;
+  min-width: 0;
+}
+
+.dataset-candidate-table .research-table .result-search input[type="search"] {
+  min-height: 32px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+}
+.dataset-candidate-member {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+.dataset-candidate-member > div {
+  min-width: 0;
+}
+.dataset-candidate-table .research-table .column-header-content {
+  white-space: normal;
 }

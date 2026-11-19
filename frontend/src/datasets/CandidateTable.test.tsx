@@ -65,14 +65,19 @@ it.each(["en", "zh"] as const)(
       "CHEMBL517122",
     );
     expect(within(table).getAllByRole("row")[1]).toHaveTextContent("0.497");
+    const member = within(table).getAllByRole("row")[1];
+    expect(
+      within(member).getByRole("img", { name: "CHEMBL517122" }),
+    ).toBeVisible();
+    expect(
+      within(table).queryByRole("columnheader", { name: "SMILES" }),
+    ).toBeNull();
     expect(within(table).getAllByRole("row")[2]).toHaveTextContent("-5.550");
     await user.click(within(table).getByRole("button", { name: /CNN/ }));
     expect(within(table).getAllByRole("row")[1]).toHaveTextContent(
       "CHEMBL512894",
     );
-    await user.click(
-      screen.getByRole("button", { name: "CHEMBL512894" }),
-    );
+    await user.click(screen.getByRole("button", { name: "CHEMBL512894" }));
     expect(onSelect).toHaveBeenCalledExactlyOnceWith(data.candidates[1]);
     expect(
       screen.getByRole("checkbox", {
@@ -114,6 +119,8 @@ it("keeps hidden model outputs and every native decimal in the actual CSV Blob",
     reader.readAsText(exported);
   });
   for (const exact of [
+    "SMILES",
+    data.candidates[0].smiles,
     "CNNscore",
     "CNNaffinity_model_output",
     "-5.11726",

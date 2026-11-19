@@ -63,6 +63,26 @@ export function DatasetResults({
         !(key === "unresolved_structures" && value === 0),
     )
     .slice(0, 5);
+  const summaryInPreview =
+    !tableView && result.candidates.length > 0 && !hasCharts;
+  const summary = (
+    <div className="dataset-result-metrics">
+      <span className="dataset-status-complete sr-only">
+        {zh ? "已完成" : "Complete"}
+      </span>
+      {stats.map(([key, value]) => (
+        <div key={key}>
+          <span>{names[key][zh ? 0 : 1]}</span>
+          <strong>{value.toLocaleString()}</strong>
+        </div>
+      ))}
+      <ResearchDownloads
+        jobId={job.id}
+        artifacts={result.artifacts}
+        language={language}
+      />
+    </div>
+  );
   const primary = (
     <>
       {available && available.length > 0 && tableView === "enrichment" && (
@@ -104,6 +124,7 @@ export function DatasetResults({
           result={result}
           language={language}
           onCreated={onCreated}
+          summary={summaryInPreview ? summary : undefined}
         />
       )}
       {(tableView === "index" || tableView === "library") && (
@@ -148,22 +169,7 @@ export function DatasetResults({
   ) : null;
   return (
     <div className="dataset-results">
-      <div className="dataset-result-metrics">
-        <span className="dataset-status-complete sr-only">
-          {zh ? "已完成" : "Complete"}
-        </span>
-        {stats.map(([key, value]) => (
-          <div key={key}>
-            <span>{names[key][zh ? 0 : 1]}</span>
-            <strong>{value.toLocaleString()}</strong>
-          </div>
-        ))}
-        <ResearchDownloads
-          jobId={job.id}
-          artifacts={result.artifacts}
-          language={language}
-        />
-      </div>
+      {!summaryInPreview && summary}
       {result.operation === "del_count" &&
         result.metadata.umi_method !== "raw" &&
         !result.metadata.umi_integrity && (

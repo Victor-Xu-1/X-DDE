@@ -951,6 +951,30 @@ HISTORY_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 HISTORY_DESKTOP_DIFF = "18924fe5b9696fbe289451636de90669583d80ee60418a347ec52f0f6c3927ff"
+CANDIDATE_DESKTOP_FILES = {
+    ".github/workflows/dataset-discovery-checks.yml",
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-preview-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/package-lock.json",
+    "frontend/src/datasets/CandidateTable.test.tsx",
+    "frontend/src/datasets/CandidateTable.tsx",
+    "frontend/src/datasets/CandidateView.css",
+    "frontend/src/datasets/CandidateView.test.tsx",
+    "frontend/src/datasets/CandidateView.tsx",
+    "frontend/src/datasets/DatasetResults.tsx",
+    "frontend/src/datasets/candidate-table.css",
+    "frontend/src/diffsbdd/GeneratedCandidates.css",
+    "frontend/src/diffsbdd/GeneratedCandidates.tsx",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/viewer/StructureViewer.tsx",
+    "frontend/src/viewer/pose-plan.test.ts",
+    "frontend/src/viewer/pose-plan.ts",
+    "frontend/src/viewer/pose-types.ts",
+    "server_tests/test_candidate_inspection_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+CANDIDATE_DESKTOP_DIFF = "34e1241686cd1feeed48028a4d34d11de6efa3b3dfe61259c8245ccb5280ff81"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -1126,7 +1150,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         HISTORY_DESKTOP_FILES, HISTORY_DESKTOP_DIFF, scope_pin="HISTORY_DESKTOP_DIFF",
     )
+    candidate_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -1177,7 +1206,7 @@ def main():
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
-            or history_desktop
+            or history_desktop or candidate_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

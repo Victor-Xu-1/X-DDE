@@ -2,13 +2,16 @@ import {
   StructureViewport,
   type StructureViewerProps,
 } from "./StructureViewport";
-import { posePlan } from "./pose-plan";
+import { posePlan, type PoseFrame } from "./pose-plan";
 import { usePoseSession } from "./PoseSession";
 import { usePoseOptimization } from "./usePoseOptimization";
 import { useContext } from "react";
 import { TemplatePreviewContext } from "../examples/context";
 
-export function StructureViewer(props: StructureViewerProps) {
+type ViewerProps = StructureViewerProps &
+  Pick<PoseFrame, "nativeArtifactRecord">;
+
+export function StructureViewer(props: ViewerProps) {
   const preview = useContext(TemplatePreviewContext);
   const scoped = preview ? { ...props, sourceSnapshot: true } : props;
   const workspace = usePoseSession();

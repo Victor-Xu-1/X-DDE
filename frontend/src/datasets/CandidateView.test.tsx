@@ -92,7 +92,7 @@ it.each([
   },
 );
 
-it("binds encoded count evidence to the exact selected DEL member", () => {
+it("opens encoded count evidence on demand and binds it to the selected DEL member", async () => {
   const data = {
     ...result(
       candidate("DEL-reference", "unbound_conformer", 0),
@@ -101,7 +101,11 @@ it("binds encoded count evidence to the exact selected DEL member", () => {
     operation: "del_candidates" as const,
   };
   render(<CandidateView job={job} result={data} language="en" />);
-  expect(screen.getByRole("note")).toHaveTextContent("Evidence: DEL-reference");
+  expect(screen.queryByRole("note")).toBeNull();
+  fireEvent.click(screen.getByText("Counts and sample support"));
+  expect(await screen.findByRole("note")).toHaveTextContent(
+    "Evidence: DEL-reference",
+  );
   fireEvent.click(screen.getByRole("button", { name: "DEL-hypothesis" }));
   expect(screen.getByRole("note")).toHaveTextContent(
     "Evidence: DEL-hypothesis",
@@ -153,12 +157,21 @@ it("retains the selected unbound screening record through 2D, 3D and handoff", (
           candidate("CHEMBL520539", "unbound_conformer", 2),
         ),
         operation: "drugclip_retrieve",
+        artifacts: [
+          {
+            name: "candidates.sdf",
+            format: "sdf",
+            sha256: "a".repeat(64),
+            size: 400,
+            role: "candidates",
+          },
+        ],
       }}
     />,
   );
   expect(
     screen.getByText("Unbound conformer").closest(".dataset-preview-pane"),
-  ).toHaveClass("screening-candidate-preview");
+  ).toHaveClass("candidate-inspection-preview");
   expect(probes.handoff).toHaveBeenLastCalledWith(
     expect.objectContaining({
       candidate: expect.objectContaining({ id: "CHEMBL487451" }),
@@ -169,7 +182,13 @@ it("retains the selected unbound screening record through 2D, 3D and handoff", (
   expect(screen.getByRole("tabpanel")).toBeVisible();
   fireEvent.click(screen.getByRole("tab", { name: "3D structure" }));
   expect(probes.structure).toHaveBeenLastCalledWith(
-    expect.objectContaining({ records: [2], nativeScore: null, focusModel: 0 }),
+    expect.objectContaining({
+      records: [2],
+      nativeScore: null,
+      focusModel: 0,
+      nativeArtifactSha256: "a".repeat(64),
+      nativeArtifactRecord: 2,
+    }),
   );
   expect(probes.handoff).toHaveBeenLastCalledWith(
     expect.objectContaining({

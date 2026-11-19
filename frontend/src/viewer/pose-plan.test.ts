@@ -27,6 +27,22 @@ it("binds a native proof to one immutable artifact and rejects proofs for overla
   expect(
     posePlan({ ...frame, records: [1] }).base.nativeArtifactSha256,
   ).toBeUndefined();
+  const selected = posePlan({
+    ...frame,
+    records: [2],
+    nativeArtifactRecord: 2,
+  });
+  expect(selected.base.nativeArtifactSha256).toBe(nativeArtifactSha256);
+  expect(selected.base.source).toMatchObject({ kind: "artifact", record: 2 });
+  expect(selected.key).not.toBe(posePlan(frame).key);
+  expect(
+    posePlan({ ...frame, records: [1], nativeArtifactRecord: 2 }).base
+      .nativeArtifactSha256,
+  ).toBeUndefined();
+  expect(
+    posePlan({ ...frame, records: [500], nativeArtifactRecord: 500 }).base
+      .nativeArtifactSha256,
+  ).toBeUndefined();
   expect(
     posePlan({ ...frame, urls: [url, url] }).base.nativeArtifactSha256,
   ).toBeUndefined();
