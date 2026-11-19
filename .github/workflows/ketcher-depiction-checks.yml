@@ -48,6 +48,10 @@ jobs:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
+  workspace-scope:
+    uses: ./.github/workflows/workspace-preview-checks.yml
+    with:
+      scope_only: true
   reference-scope:
     runs-on: ubuntu-24.04
     outputs:
@@ -61,8 +65,9 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/interaction-workspace-scope.py
   display-policy:
-    needs: [reference-scope, utility-scope]
+    needs: [reference-scope, utility-scope, workspace-scope]
     if: >-
+      needs.workspace-scope.outputs.file_navigation_only != 'true' &&
       needs.reference-scope.outputs.reference_only != 'true' &&
       needs.utility-scope.outputs.runtime_switch_only != 'true' &&
       needs.utility-scope.outputs.recognition_power_only != 'true' &&

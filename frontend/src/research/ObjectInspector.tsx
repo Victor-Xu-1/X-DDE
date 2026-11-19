@@ -1,7 +1,9 @@
 import { PoseWorkspace } from "../poses/PoseWorkspace";
 import type { Language } from "../types";
-import { SelectedAssetPreview } from "./SelectedAssetPreview";
+import { canPreviewFile, SelectedAssetPreview } from "./SelectedAssetPreview";
 import { PoseStudyInput } from "../viewer/PoseStudyInput";
+import { VerifiedArtifactDownload } from "../presentation/VerifiedArtifactDownload";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import {
   edgeLabels,
   type GraphNode,
@@ -54,6 +56,7 @@ export function ObjectInspector({
 }) {
   const zh = language === "zh",
     object = node?.object;
+  const downloadLabel = zh ? "下载此版本" : "Download version";
   const related = graph.edges.filter(
     (e) => e.source === selected || e.target === selected,
   );
@@ -63,9 +66,9 @@ export function ObjectInspector({
     >
       {node ? (
         <>
-          <h2>{node.label}</h2>
-          {object && (
-            <>
+          <header className="research-inspector-heading">
+            <h2>{node.label}</h2>
+            {object && (
               <div className="editor-toolbar">
                 {object.kind === "molecule" && (
                   <PoseStudyInput original={object} language={language}>
@@ -97,10 +100,25 @@ export function ObjectInspector({
                     )}
                   </PoseStudyInput>
                 )}
-                <a href={`/api/assets/${object.reference.asset_id}`} download>
-                  {zh ? "下载此版本" : "Download version"}
-                </a>
+                <VerifiedArtifactDownload
+                  key={object.id}
+                  reference={object.reference}
+                  label={zh ? "下载" : "Download"}
+                  downloadLabel={downloadLabel}
+                  language={language}
+                />
+                {canPreviewFile(object.kind) && (
+                  <WorkspaceFullscreenControl
+                    language={language}
+                    compact
+                    structureFocus
+                  />
+                )}
               </div>
+            )}
+          </header>
+          {object && (
+            <>
               <SelectedAssetPreview object={object} language={language} />
               <details className="asset-annotations" key={object.id}>
                 <summary>
@@ -160,8 +178,8 @@ export function ObjectInspector({
                 <summary>{zh ? "版本说明" : "About this version"}</summary>
                 <p className="field-help">
                   {zh
-                    ? "文件来源与版本已校验；化学有效性、三维质量和实验意义需由相应科学工具确认。"
-                    : "File identity and version are checked. Chemical validity, 3D quality and experimental interpretation require scientific tools."}
+                    ? "切换预览构象后，下载按钮仍保存标题所对应的原文件。"
+                    : "Download saves the original file for the named version, even when another pose is displayed."}
                 </p>
               </details>
             </>

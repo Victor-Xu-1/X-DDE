@@ -24,6 +24,8 @@ on:
     outputs:
       guidance_only:
         value: ${{ jobs.scope.outputs.guidance_only }}
+      file_navigation_only:
+        value: ${{ jobs.workspace-scope.outputs.file_navigation_only }}
 permissions:
   contents: read
 jobs:

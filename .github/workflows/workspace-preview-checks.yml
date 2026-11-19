@@ -92,6 +92,16 @@ jobs:
           src/research/SequenceFilePreview.test.tsx src/research/fasta-file.test.ts
           src/presentation/SequenceTrack.test.tsx
           src/publication/FigureExport.test.tsx
+      - name: File identity, saved downloads and direct reader consumers
+        if: needs.reference-scope.outputs.file_navigation_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/presentation/VerifiedArtifactDownload.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx
+          src/viewer/StructureViewer.test.tsx src/viewer/PoseSession.test.tsx
+          src/viewer/usePoseOptimization.test.tsx src/editors/scientificEditor.test.ts
+          src/simulations/fep-series.test.ts src/simulations/useFepSeries.test.tsx
+          src/integrations/ScientificResults.test.tsx
       - name: Retained real inputs and native Ketcher; no calculations
         run: |
           .venv/bin/python server_tests/prepare_workspace_preview_cases.py

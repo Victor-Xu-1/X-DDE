@@ -25,16 +25,19 @@ export async function readAssetFile(
 
 /** Read one immutable input and its validated format, bounded during transfer. */
 export async function readAssetFileWithMetadata(
-  reference: MoleculeRef,
+  reference: Pick<MoleculeRef, "asset_id" | "sha256">,
   signal: AbortSignal,
-  policy: AssetFilePolicy,
-): Promise<{ bytes: Uint8Array<ArrayBuffer>; suffix: string }> {
+  policy: AssetFilePolicy | { maxBytes: number },
+): Promise<{ bytes: Uint8Array<ArrayBuffer>; suffix: string; name: string }> {
   const id = encodeURIComponent(reference.asset_id);
   const asset = await request<Asset>(`/assets/${id}/metadata`, { signal });
   signal.throwIfAborted();
   if (asset.id !== reference.asset_id || asset.sha256 !== reference.sha256)
     throw new AssetFileError("identity");
-  if (asset.kind !== policy.kind || !policy.suffixes.includes(asset.suffix))
+  if (
+    "kind" in policy &&
+    (asset.kind !== policy.kind || !policy.suffixes.includes(asset.suffix))
+  )
     throw new AssetFileError("format");
   if (
     !Number.isInteger(asset.size) ||
@@ -48,19 +51,24 @@ export async function readAssetFileWithMetadata(
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let length = 0;
+  const abort = () => {
+    void reader.cancel(signal.reason).catch(() => {});
+  };
+  signal.addEventListener("abort", abort, { once: true });
   try {
     for (;;) {
       signal.throwIfAborted();
       const { done, value } = await reader.read();
       if (done) break;
       length += value.byteLength;
-      if (length > asset.size) {
-        await reader.cancel();
-        throw new AssetFileError("identity");
-      }
+      if (length > asset.size) throw new AssetFileError("identity");
       chunks.push(value);
     }
+  } catch (error) {
+    void reader.cancel(error).catch(() => {});
+    throw error;
   } finally {
+    signal.removeEventListener("abort", abort);
     reader.releaseLock();
   }
   signal.throwIfAborted();
@@ -77,5 +85,5 @@ export async function readAssetFileWithMetadata(
     value.toString(16).padStart(2, "0"),
   ).join("");
   if (sha256 !== reference.sha256) throw new AssetFileError("identity");
-  return { bytes, suffix: asset.suffix };
+  return { bytes, suffix: asset.suffix, name: asset.name };
 }

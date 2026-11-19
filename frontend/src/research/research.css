@@ -104,9 +104,6 @@
   margin-top: 20px;
   min-width: 0;
 }
-.research-selected-preview .molecule-image > img {
-  height: clamp(260px, 30vw, 400px);
-}
 .research-selected-preview > .field-help {
   margin: 0;
 }
@@ -193,9 +190,6 @@
   overflow: auto;
   padding-left: 18px;
   font-size: 13px;
-}
-.research-inspector > h2 {
-  overflow-wrap: anywhere;
 }
 .research-inspector > h3 {
   font-size: 14px;

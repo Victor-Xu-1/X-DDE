@@ -74,6 +74,42 @@ _DESKTOP_BLOBS = {
     ),
 }
 _DESKTOP_SELECTOR_SHA = "4c7cf85fc7b9fa6d5afaaa9f024f91e60c37cc369efb49006716e94df588f44a"
+_INSPECTION_FILES = {
+    ".github/workflows/example-result-set-checks.yml",
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/ketcher-depiction-checks.yml",
+    ".github/workflows/restraint-guidance-checks.yml",
+    ".github/workflows/simulation-questionnaire-checks.yml",
+    ".github/workflows/task-layout-checks.yml",
+    ".github/workflows/user-interface-checks.yml",
+    ".github/workflows/workspace-preview-checks.yml",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/presentation/VerifiedArtifactDownload.test.tsx",
+    "frontend/src/presentation/VerifiedArtifactDownload.tsx",
+    "frontend/src/research/ObjectInspector.tsx",
+    "frontend/src/research/ResearchWorkspaceExpansionExit.tsx",
+    "frontend/src/research/SelectedAssetPreview.test.tsx",
+    "frontend/src/research/SelectedAssetPreview.tsx",
+    "frontend/src/research/asset-file.ts",
+    "frontend/src/research/research-file-navigation.css",
+    "frontend/src/research/research.css",
+    "server_tests/test_workspace_preview_browser.py",
+}
+_INSPECTION_SHA = "e430fb9f79b23edfca3f11c9dcd4adf82710075bb60921c0ebe90f54f7e0d329"
+
+
+def inspection_digest(base, head):
+    git = _SCOPE["git"]
+    selector = "scripts/research-file-navigation-scope.py"
+    mask = f'_INSPECTION_SHA = "{_INSPECTION_SHA}"'.encode()
+    payload = git("show", f"{head}:{selector}").replace(mask, b"", 1)
+    selector_hash = sha256(payload).hexdigest()
+    blob = _SCOPE["git_blob"]
+    for path in sorted(_INSPECTION_FILES | {selector}):
+        before = blob(base, path)
+        after = selector_hash if path == selector else blob(head, path)
+        payload += f"\n{path}\t{before}\t{after}".encode()
+    return sha256(payload).hexdigest()
 
 
 def desktop_only(paths, base, support):
@@ -110,7 +146,10 @@ def file_navigation_only(base, event, ref):
             for path in paths & _REVIEWED_BLOBS.keys()
         )
     )
-    return (desktop_only(paths, base, support) or navigation) and _SCOPE[
+    inspection = (
+        paths - support == _INSPECTION_FILES and inspection_digest(base, "HEAD") == _INSPECTION_SHA
+    )
+    return (inspection or desktop_only(paths, base, support) or navigation) and _SCOPE[
         "only_version_mirrors"
     ](base, paths & mirrors)
 

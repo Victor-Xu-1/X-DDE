@@ -30,9 +30,13 @@ jobs:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
       scope_only: true
+  workspace-scope:
+    uses: ./.github/workflows/workspace-preview-checks.yml
+    with:
+      scope_only: true
   questionnaires:
-    if: needs.utility-scope.outputs.utility_only != 'true'
-    needs: utility-scope
+    if: needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true'
+    needs: [utility-scope, workspace-scope]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

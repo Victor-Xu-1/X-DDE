@@ -22,7 +22,7 @@ export function ResearchWorkspaceExpansionExit({
       ref={anchor}
       className="secondary-button research-expanded-exit"
       type="button"
-      hidden={!workspace.active}
+      data-workspace-expand
       onClick={() => {
         workspace.toggle();
         onClose();

@@ -16,6 +16,7 @@ export function MolecularPreview({
   focusModel,
   nativeArtifactSha256,
   nativeArtifactRecord,
+  savedAssetSha256,
 }: {
   language: Language;
   label: string;
@@ -27,6 +28,8 @@ export function MolecularPreview({
   focusModel?: number;
   nativeArtifactSha256?: string;
   nativeArtifactRecord?: number;
+  /** Whole-file digest for a selected version in the research file workspace. */
+  savedAssetSha256?: string;
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
 }) {
   const zh = language === "zh";
@@ -58,7 +61,10 @@ export function MolecularPreview({
     id: "3d",
     label: zh ? "三维结构" : "3D structure",
     content: (
-      <StructureViewer {...frame} language={language} focusModel={focusModel} />
+      <MolecularStructureView
+        viewer={{ ...frame, language, focusModel }}
+        savedAssetSha256={savedAssetSha256}
+      />
     ),
   };
   const tabs = urls?.length
@@ -92,6 +98,26 @@ export function MolecularPreview({
         />
       </section>
     </PoseSession>
+  );
+}
+
+function MolecularStructureView({
+  viewer,
+  savedAssetSha256,
+}: {
+  viewer: Parameters<typeof StructureViewer>[0];
+  savedAssetSha256?: string;
+}) {
+  const session = usePoseSession();
+  if (!savedAssetSha256) return <StructureViewer {...viewer} />;
+  const sha256 =
+    session?.controller.pose.object?.reference.sha256 ?? savedAssetSha256;
+  return (
+    <StructureViewer
+      {...viewer}
+      structureChecksums={[sha256]}
+      showWorkspaceControls={false}
+    />
   );
 }
 
