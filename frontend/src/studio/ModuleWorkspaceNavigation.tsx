@@ -11,10 +11,12 @@ import {
 export function ModuleWorkspaceNavigation({
   view,
   language,
+  disabled = false,
   onView,
 }: {
   view: View;
   language: Language;
+  disabled?: boolean;
   onView(view: View): void;
 }) {
   const results = resultModule(view);
@@ -28,6 +30,7 @@ export function ModuleWorkspaceNavigation({
     >
       <button
         type="button"
+        disabled={disabled}
         aria-pressed={!results}
         className={!results ? "selected" : ""}
         onClick={() => onView(viewForTool(module.defaultTool))}
@@ -36,6 +39,7 @@ export function ModuleWorkspaceNavigation({
       </button>
       <button
         type="button"
+        disabled={disabled}
         aria-pressed={Boolean(results)}
         className={results ? "selected" : ""}
         onClick={() => onView(viewForResults(module.id))}

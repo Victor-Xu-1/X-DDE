@@ -64,7 +64,10 @@ interface Props {
   renderPrediction(onHistory: () => void, headerActions: ReactNode): ReactNode;
 }
 export function TaskWorkspace(props: Props) {
-  return (
+  const scope = useInputActionScope();
+  return scope ? (
+    <TaskWorkspaceContent {...props} />
+  ) : (
     <InputActionScope>
       <TaskWorkspaceContent {...props} />
     </InputActionScope>

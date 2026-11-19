@@ -842,6 +842,7 @@ jobs:
           npx vitest run src/admet/AdmetResults.test.tsx
           src/chemistry/LibraryScreenResults.test.tsx src/chemistry/StatePreparationHandoff.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/studio/TaskWorkspace.test.tsx
+          src/App.test.tsx src/studio/ModuleWorkspaceNavigation.test.tsx
           src/TaskDetail.actions.test.tsx src/TaskDetail.test.tsx
           src/operations/useTaskSubmit.test.ts
       - name: Verify native results and exact retained selection in Chrome

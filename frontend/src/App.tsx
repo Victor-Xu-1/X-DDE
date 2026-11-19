@@ -1,6 +1,10 @@
 import "./presentation/result-layout.css";
 import { useEffect, useRef, useState } from "react";
 import { ApplicationScope } from "./studio/ApplicationScope";
+import {
+  InputActionScope,
+  useInputActionScope,
+} from "./guided/InputActionScope";
 import { api, artifactUrl } from "./api";
 import { persistLanguage, restoreLanguage, translator } from "./i18n";
 import {
@@ -52,6 +56,15 @@ import { Editors } from "./editors/Editors";
 import { ResearchWorkspace } from "./research/ResearchWorkspace";
 import type { ScientificObject } from "./research/types";
 export function App() {
+  return (
+    <InputActionScope>
+      <WorkspaceApp />
+    </InputActionScope>
+  );
+}
+
+function WorkspaceApp() {
+  const actions = useInputActionScope()!;
   const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
   const [imageRequest, setImageRequest] = useState(0);
@@ -158,6 +171,11 @@ export function App() {
       ? viewForResults(moduleForKind(kindForJob(job)))
       : requestedView;
   const scopedResults = resultModule(view);
+  const resultSubmissionPending = Boolean(
+    scopedResults && actions.action === "submission",
+  );
+  const hasPendingResult = () =>
+    Boolean(scopedResults && actions.isLocked("submission"));
   const showingResults = Boolean(scopedResults) || view === "tasks";
   const predictionLayout =
     view === "home" ||
@@ -214,6 +232,7 @@ export function App() {
     setFocusResidue(null);
   }
   function showJob(id: string) {
+    if (hasPendingResult()) return;
     inspectJob(id);
     setResultsVersion((n) => n + 1);
     const next =
@@ -259,6 +278,7 @@ export function App() {
     return created;
   }
   function prepareDraft(value: Prediction) {
+    if (hasPendingResult()) return;
     chooseJob("", {
       pushHash: taskEntryHash("predict", value.project_id ?? null),
     });
@@ -289,6 +309,7 @@ export function App() {
     navigate("utilities");
   }
   function navigate(next: View) {
+    if (hasPendingResult()) return;
     if (next === "deployment") {
       openEnvironment("components");
       return;
@@ -374,6 +395,7 @@ export function App() {
               <ModuleWorkspaceNavigation
                 view={view}
                 language={language}
+                disabled={resultSubmissionPending}
                 onView={navigate}
               />
             }
