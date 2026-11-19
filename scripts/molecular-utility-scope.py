@@ -884,6 +884,20 @@ SPATIAL_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
+SEQUENCE_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/property-model-review-checks.yml",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/integrations/SequenceDesignOverview.test.tsx",
+    "frontend/src/integrations/SequenceDesignOverview.tsx",
+    "frontend/src/operations/CandidateSequenceResults.tsx",
+    "frontend/src/operations/SequenceProposalSummary.tsx",
+    "frontend/src/operations/candidate-results.css",
+    "frontend/src/presentation/sequence-review.css",
+    "server_tests/test_sequence_review_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SEQUENCE_DESKTOP_DIFF = "85a7c27d415acd86e5bba326f62793f3950a18366885c2fbe09175564dc1fc72"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -1044,6 +1058,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SPATIAL_DESKTOP_FILES, SPATIAL_DESKTOP_DIFF, scope_pin="SPATIAL_DESKTOP_DIFF",
     )
+    sequence_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SEQUENCE_DESKTOP_FILES, SEQUENCE_DESKTOP_DIFF, scope_pin="SEQUENCE_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -1068,6 +1086,7 @@ def main():
         output.write("desktop_help_only=" + str(desktop_help).lower() + "\n")
         output.write("refinement_desktop_only=" + str(refinement_desktop).lower() + "\n")
         output.write("spatial_desktop_only=" + str(spatial_desktop).lower() + "\n")
+        output.write("sequence_desktop_only=" + str(sequence_desktop).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         event = os.environ.get("GITHUB_EVENT_NAME", "push")
         shared_paths = SHARED.keys()
@@ -1090,7 +1109,7 @@ def main():
             or native_state or compact_example or mobile_header or desktop_header
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
-            or refinement_desktop or spatial_desktop
+            or refinement_desktop or spatial_desktop or sequence_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

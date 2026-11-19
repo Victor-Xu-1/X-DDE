@@ -18,7 +18,9 @@ import { mutationDescription } from "./sequence-result";
 import { candidateStructure } from "./candidate-structures";
 import { SequenceProposalSummary } from "./SequenceProposalSummary";
 import { FoldAssessment } from "./FoldAssessment";
+import { Hint } from "../guided/Hint";
 import "./candidate-results.css";
+import "../presentation/sequence-review.css";
 
 export function CandidateSequenceResults({
   job,
@@ -133,29 +135,27 @@ export function CandidateSequenceResults({
       ),
     });
   return (
-    <section className="sequence-candidate-results">
-      <p className="field-help">
-        {zh
-          ? "模型结果；序列、界面与结构评分不等于实验结合活性。"
-          : "Model outputs; sequence, interface and structure scores are not measured binding activity."}
-      </p>
-      <SequenceProposalSummary
-        candidates={candidates}
-        parent={original}
-        selected={current.index}
-        language={language}
-      />
+    <section className="sequence-candidate-results sequence-review-workspace">
       <StructureWorkbench
         preview={
           <div className="result-inspector">
-            <header>
+            <header className="sequence-result-heading">
               <h3>{candidateLabel(current)}</h3>
+              <Hint label={zh ? "评分说明" : "Interpreting scores"}>
+                {zh
+                  ? "模型结果；序列、界面与结构评分不等于实验结合活性。"
+                  : "Model outputs; sequence, interface and structure scores are not measured binding activity."}
+              </Hint>
             </header>
-            <ResearchTabs
-              key={current.index}
-              label={zh ? "候选预览" : "Candidate views"}
-              tabs={tabs}
-            />
+            {structure ? (
+              <ResearchTabs
+                key={current.index}
+                label={zh ? "候选预览" : "Candidate views"}
+                tabs={tabs}
+              />
+            ) : (
+              tree
+            )}
             {Array.isArray(current.value.mutations) && (
               <p>
                 {zh
@@ -180,6 +180,12 @@ export function CandidateSequenceResults({
           </div>
         }
       >
+        <SequenceProposalSummary
+          candidates={candidates}
+          parent={original}
+          selected={current.index}
+          language={language}
+        />
         <div className="result-inspector">
           <FoldAssessment
             job={job}

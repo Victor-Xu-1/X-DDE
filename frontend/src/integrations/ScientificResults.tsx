@@ -21,6 +21,7 @@ import "./results.css";
 import { DynamicsResults } from "../simulations/DynamicsResults";
 import { FreeEnergyResults } from "../simulations/FreeEnergyResults";
 import { SequenceDesignOverview } from "./SequenceDesignOverview";
+import "../presentation/sequence-review.css";
 import { isInternalResearchFile } from "../presentation/research-files";
 import { BinderQuality } from "./BinderQuality";
 import { binderFilterColumn } from "./ScientificResultsBinderColumn";
@@ -279,14 +280,16 @@ export function ScientificResults({
       exportName="scientific-candidates.csv"
     />
   );
-  const metricsTable =
-    result.operation !== "chemprop_train" && result.metrics.length > 0 && (
+  const metricsTable = result.operation !== "chemprop_train" &&
+    result.metrics.length > 0 && (
       <table className="compact-table">
         <tbody>
           {result.metrics.map((metric) => (
             <tr key={metric.name}>
               <th title={metric.method}>{metric.name}</th>
-              <td>{metric.value.toPrecision(4)} {metric.unit}</td>
+              <td>
+                {metric.value.toPrecision(4)} {metric.unit}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -298,12 +301,36 @@ export function ScientificResults({
       /\.(sdf|pdb|cif|fasta|csv|dx|pqr|pt)$/.test(name) &&
       !isInternalResearchFile(name),
   );
+  const sequenceDownloads =
+    result.sequence_design && active
+      ? [
+          {
+            artifact: active.artifact,
+            label: zh ? "所选结构" : "Structure",
+          },
+          {
+            artifact: "designed-sequences.fasta",
+            label: zh ? "序列 FASTA" : "FASTA",
+          },
+          {
+            artifact: "sequences.csv",
+            label: zh ? "评分 CSV" : "Scores CSV",
+          },
+        ].filter((file): file is { artifact: string; label: string } =>
+          Boolean(file.artifact && researchFiles.includes(file.artifact)),
+        )
+      : [];
+  const otherFiles = researchFiles.filter(
+    (artifact) =>
+      !sequenceDownloads.some((entry) => entry.artifact === artifact),
+  );
   return (
     <div
       className={
         "scientific-results" +
         (prediction ? " prediction-result" : "") +
-        (refinement ? " is-refinement-result" : "")
+        (refinement ? " is-refinement-result" : "") +
+        (result.sequence_design ? " sequence-review-workspace" : "")
       }
     >
       {displayedReview?.omittedDomainClash && (
@@ -319,13 +346,6 @@ export function ScientificResults({
       {!refinement && metricsTable}
       {rows.length > 0 && (
         <>
-          {result.sequence_design && (
-            <SequenceDesignOverview
-              result={result.sequence_design}
-              selected={active?.id ?? ""}
-              zh={zh}
-            />
-          )}
           <StructureWorkbench
             preview={view}
             toolbar={
@@ -342,6 +362,15 @@ export function ScientificResults({
             }
             sequenceHostRef={prediction ? setSequenceHost : undefined}
           >
+            {result.sequence_design && (
+              <SequenceDesignOverview
+                jobId={job.id}
+                result={result.sequence_design}
+                selected={active?.id ?? ""}
+                downloads={sequenceDownloads}
+                language={language}
+              />
+            )}
             {result.operation === "boltz_predict" && active && (
               <ConfidencePanel
                 jobId={job.id}
@@ -392,7 +421,9 @@ export function ScientificResults({
                 />
                 {metricsTable}
               </>
-            ) : !prediction && candidateTable}
+            ) : (
+              !prediction && candidateTable
+            )}
             {result.mol1 && active && (
               <Mol1Confidence
                 job={job.id}
@@ -419,7 +450,7 @@ export function ScientificResults({
           </p>
         </section>
       )}
-      {(!refinement || researchFiles.length > 0) && (
+      {(otherFiles.length > 0 || (!refinement && !result.sequence_design)) && (
         <ResearchTabs
           label={zh ? "研究文件" : "Research files"}
           tabs={[
@@ -428,7 +459,7 @@ export function ScientificResults({
               label: zh ? "下载文件" : "Download files",
               content: (
                 <div className="download-actions">
-                  {researchFiles.map((name) => (
+                  {otherFiles.map((name) => (
                     <a
                       className="secondary-button"
                       key={name}

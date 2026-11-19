@@ -46,8 +46,11 @@ export function SequenceProposalSummary({
   const key = keys[selected];
   const copies = key == null ? 0 : keys.filter((value) => value === key).length;
   return (
-    <section aria-label={zh ? "序列多样性" : "Sequence diversity"}>
-      <div className="dataset-review-strip">
+    <section
+      className="sequence-review-summary"
+      aria-label={zh ? "序列多样性" : "Sequence diversity"}
+    >
+      <div className="sequence-review-counts">
         <div>
           <span>{zh ? "原生采样" : "Native samples"}</span>
           <strong>{candidates.length}</strong>

@@ -66,7 +66,11 @@ jobs:
         run: python3 scripts/managed_compute_scope.py
   model-review:
     needs: [scope, utility-scope]
-    if: inputs.scope_only != true && needs.scope.outputs.calculation_plan_only != 'true' && needs.scope.outputs.managed_compute_only != 'true' && needs.utility-scope.outputs.refinement_desktop_only != 'true'
+    if: >-
+      inputs.scope_only != true && needs.scope.outputs.calculation_plan_only != 'true' &&
+      needs.scope.outputs.managed_compute_only != 'true' &&
+      needs.utility-scope.outputs.refinement_desktop_only != 'true' &&
+      needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
     env:

@@ -1,0 +1,144 @@
+.sequence-review-workspace .structure-workbench-details,
+.sequence-review-workspace .structure-workbench-view {
+  gap: 10px;
+}
+
+.sequence-review-summary {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.sequence-review-summary > p {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.sequence-review-summary > details {
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+
+.sequence-review-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sequence-review-counts > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.sequence-review-counts strong {
+  color: var(--ink);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sequence-review-downloads,
+.sequence-result-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sequence-result-heading h3 {
+  margin: 0;
+}
+
+.studio-app .sequence-review-downloads a {
+  padding: 5px 8px;
+  min-height: 32px;
+  font-size: 12px;
+}
+
+.sequence-review-workspace .research-table :is(th, td) {
+  padding-inline: 7px;
+}
+
+.sequence-review-workspace .research-table .mark-cell {
+  width: 24px;
+  padding-inline-end: 0;
+}
+
+.sequence-review-workspace
+  .research-table
+  :is(th, .column-header-content, .record-select) {
+  white-space: normal;
+}
+
+.sequence-review-workspace .research-table .result-search {
+  flex-basis: 100%;
+  max-width: none;
+}
+
+@media (min-width: 1001px) {
+  .sequence-review-workspace
+    > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1.95fr) minmax(326px, 1fr);
+    gap: 16px;
+  }
+
+  .studio-app
+    .sequence-review-workspace
+    .structure-workbench-view
+    .viewer-panel:not(:popover-open) {
+    padding: 0;
+  }
+
+  .studio-app
+    .sequence-review-workspace
+    .viewer-panel:not(:popover-open)
+    > .molecular-stage {
+    border-radius: 10px;
+  }
+
+  .sequence-review-workspace .structure-workbench-view .research-tab-list {
+    margin: 0 0 6px;
+  }
+
+  .sequence-review-workspace
+    .structure-workbench-view
+    .research-tab-list
+    button {
+    min-height: 34px;
+    padding-block: 6px;
+  }
+
+  .sequence-review-workspace .candidate-chain-view .sequence-track {
+    padding-block: 8px;
+  }
+
+  .sequence-review-workspace .candidate-chain-view .sequence-track header {
+    margin-bottom: 8px;
+  }
+
+  .sequence-review-workspace .candidate-chain-view .sequence-residue-grid {
+    grid-template-columns: repeat(auto-fill, minmax(22px, 1fr));
+  }
+
+  .sequence-review-workspace
+    .candidate-chain-view
+    .sequence-residue-grid
+    button {
+    min-height: 28px;
+    padding-block: 1px;
+  }
+
+  .sequence-review-workspace .candidate-chain-view .sequence-track-scroll {
+    max-height: 152px;
+  }
+}
