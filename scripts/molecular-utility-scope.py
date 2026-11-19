@@ -1381,7 +1381,7 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
     "server_tests/test_utility_result_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_MOLECULE_RESULTS_DIFF = "c61dbbb3621437c1f325c7c243f19d5ab4059228a7ac071c6716e0c36bdbb67e"
+DESKTOP_MOLECULE_RESULTS_DIFF = "30efe30ba0c1c8c3f5b682934969fa10214e30e806095e84c840ef239e55b441"
 DESKTOP_STRUCTURE_FOCUS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",

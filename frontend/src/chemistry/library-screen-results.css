@@ -68,6 +68,7 @@
     max-height: clamp(208px, calc(100dvh - 505px), 440px);
     overflow: auto;
     overscroll-behavior-y: contain;
+    scroll-padding-block-start: 44px;
     scrollbar-gutter: stable;
   }
   .library-screen-records thead {
