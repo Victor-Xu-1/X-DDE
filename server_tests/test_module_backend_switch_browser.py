@@ -363,7 +363,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             if request.method == "POST" and request.url.startswith(base + "/api/"):
                 posts.append(request.url.removeprefix(base))
 
-        page.on("request", record)
+        page.context.on("request", record)
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)

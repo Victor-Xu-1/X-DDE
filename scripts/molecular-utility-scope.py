@@ -818,7 +818,7 @@ BACKEND_SETUP_FILES = {
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
 }
-BACKEND_SETUP_DIFF = "88907b5d875fa445f2f2ac672bc3d376a6714de9e660eefa15f13d1c0c611583"
+BACKEND_SETUP_DIFF = "c8347a8e009067581feb1cb0247d6e742e78bc327b7c7eeb82cd126ce1758738"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
