@@ -1374,13 +1374,14 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
     "frontend/src/operations/PropertyResults.test.tsx",
     "frontend/src/operations/PropertyResults.tsx",
     "frontend/src/operations/property-result-views.css",
+    "frontend/src/presentation/CandidateReviewBar.tsx",
     "server_tests/test_metric_landscape_browser.py",
     "server_tests/test_property_preview_browser.py",
     "server_tests/test_result_handoffs_desktop.py",
     "server_tests/test_utility_result_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_MOLECULE_RESULTS_DIFF = "501e2ae7d54a21387b87b0dbd1debacc822071dfaa414ad47aacec5d817d7875"
+DESKTOP_MOLECULE_RESULTS_DIFF = "c61dbbb3621437c1f325c7c243f19d5ab4059228a7ac071c6716e0c36bdbb67e"
 DESKTOP_STRUCTURE_FOCUS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",

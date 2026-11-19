@@ -1,7 +1,9 @@
 """Replay retained ADMET and library results through the desktop inspection UI."""
 
+import csv
 import hashlib
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -138,11 +140,64 @@ def verify_descriptors(page, base, zh, evidence):
     expect(table.locator("tbody tr")).to_have_count(8)
     assert float(table.locator("tbody td").first.get_attribute("title")) == active["mw"]
     expect(panel.locator(".research-table")).to_have_count(0)
-    drawing = panel.locator(".molecule-image[data-drawing-state=ready] img")
+    inspector = panel.locator(".result-inspector")
+    drawing = inspector.locator(".molecule-image[data-drawing-state=ready] img")
     expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     assert drawing.bounding_box()["x"] < table.bounding_box()["x"]
     page.screenshot(path=evidence / "molecular-descriptors.png")
+    frame = page.locator("iframe.drawing-service-frame")
+    frame.evaluate("""frame => {
+      const editor = frame.contentWindow;
+      const service = editor.ketcher.structService;
+      const native = service.dearomatize.bind(service);
+      editor.reviewInputs = [];
+      service.dearomatize = (options, ...rest) => {
+        editor.reviewInputs.push(options.struct);
+        return native(options, ...rest);
+      };
+    }""")
     panel.get_by_role("tab", name="记录与导出" if zh else "Records & export").click()
-    expect(panel.get_by_role(
+    records = panel.locator(".research-table .molecule-record")
+    expect(records).to_have_count(2)
+    for index, record in enumerate(native):
+        molecule = property_record_bytes(page, base, record["input"])
+        records.nth(index).click()
+        expect(records.nth(index)).to_have_attribute("aria-pressed", "true")
+        expect(inspector.get_by_role(
+            "tab", name="三维结构" if zh else "3D structure", exact=True
+        )).to_be_visible()
+        inspector.get_by_role(
+            "combobox", name="二维图线条粗细" if zh else "2D drawing line weight"
+        ).select_option("2.2")
+        page.wait_for_function(
+            """structure => document.querySelector('iframe.drawing-service-frame')
+                ?.contentWindow.reviewInputs.includes(structure)""",
+            arg=molecule,
+            timeout=DRAWING_TIMEOUT_MS,
+        )
+        expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
+    export = panel.get_by_role(
         "button", name="导出筛选结果" if zh else "Export filtered rows"
-    )).to_be_enabled()
+    )
+    with page.expect_download() as download:
+        export.click()
+    with Path(download.value.path()).open(encoding="utf-8-sig", newline="") as content:
+        exported = list(csv.DictReader(content))
+    assert len(exported) == len(native)
+    for row, original in zip(exported, native, strict=True):
+        assert len(row) == 9
+        assert float(row["MW (g/mol)"]) == original["mw"]
+        assert float(row["TPSA (Å²)"]) == original["tpsa"]
+        assert int(row["HBD"]) == original["hbd"]
+
+
+def property_record_bytes(page, base, input_id):
+    asset, one_based = input_id.split(":")
+    url = f"{base}/api/assets/{asset}"
+    metadata = page.request.get(f"{url}/metadata").json()
+    original = page.request.get(url)
+    assert original.ok and original.headers["x-structure-format"] == "sdf"
+    body = original.body()
+    assert hashlib.sha256(body).hexdigest() == metadata["sha256"]
+    records = re.split(r"(?m)^[ \t]*\$\$\$\$[ \t]*\r?\n", body.decode("utf-8-sig"))
+    return records[int(one_based) - 1]
