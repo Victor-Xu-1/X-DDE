@@ -947,8 +947,9 @@ HISTORY_DESKTOP_FILES = {
     "server_tests/test_prediction_job_archive_browser.py",
     "server_tests/test_task_history_browser.py",
     "server_tests/test_task_status_browser.py",
+    "tests/test_molecular_utility_scope.py",
 }
-HISTORY_DESKTOP_DIFF = "ab721ccc89c176bfcdb27165e62e4b88ce632f86669a5b8d23e679b12bb9b1d7"
+HISTORY_DESKTOP_DIFF = "8784e94039e29fd4f65866b5f7cacfb65814b1a516620f109e18a23ebcc54d7a"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
