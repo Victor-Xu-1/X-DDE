@@ -56,6 +56,7 @@ export function Header({
         key={researchModule?.id ?? (module ? "utilities" : "all")}
         language={language}
         module={module}
+        inlineSingle={!compact}
         moduleHasRecognition={view === "utilities"}
         onOpenRecognition={onOpenRecognition}
       />

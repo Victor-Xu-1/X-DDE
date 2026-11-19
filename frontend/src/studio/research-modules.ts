@@ -19,6 +19,7 @@ export interface ResearchModule {
   defaultTool: ToolId;
   recommended: readonly ToolId[];
   tools: readonly ToolId[];
+  followupBackendCapabilities?: readonly string[];
 }
 /** Presentation groups share the generated backend catalogue; they never replace scientific contracts. */
 export const researchModules: readonly ResearchModule[] = [
@@ -70,6 +71,7 @@ export const researchModules: readonly ResearchModule[] = [
       "Discover pockets, explore poses and inspect interactions",
     ],
     defaultTool: "p2rank.detect",
+    followupBackendCapabilities: ["pose.cluster"],
     recommended: ["p2rank.detect", "gnina.dock", "pose_exploration"],
     tools: [
       "p2rank.detect",

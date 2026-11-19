@@ -617,7 +617,8 @@ jobs:
         run: >-
           npx vitest run src/utilities/BackendControls.test.tsx
           src/datasets/ScreeningForm.test.tsx src/datasets/screening-readiness.test.ts
-          src/studio/ModuleWorkspaceNavigation.test.tsx src/studio/TaskWorkspace.test.tsx
+          src/studio/Header.test.tsx src/studio/ModuleWorkspaceNavigation.test.tsx
+          src/studio/TaskWorkspace.test.tsx
       - name: Backend switches for compound tools, example previews and selected workflow steps
         if: needs.scope.outputs.composed_power_only == 'true'
         working-directory: frontend

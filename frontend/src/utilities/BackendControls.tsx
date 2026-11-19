@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ControlOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
@@ -17,25 +17,21 @@ import "./runtime-switch.css";
 export function BackendControls({
   language,
   module,
-  placement,
+  inlineSingle = false,
   moduleHasRecognition = false,
   onOpenRecognition,
 }: {
   language: Language;
-  module?: Pick<ResearchModule, "label" | "tools">;
-  placement?: "module";
+  module?: Pick<
+    ResearchModule,
+    "label" | "tools" | "followupBackendCapabilities"
+  >;
+  inlineSingle?: boolean;
   moduleHasRecognition?: boolean;
   onOpenRecognition?(): void;
 }) {
   const zh = language === "zh";
-  const local = placement === "module";
-  const triggerLabel = local
-    ? zh
-      ? "本模块后端"
-      : "Module backends"
-    : zh
-      ? "后端管理"
-      : "Backend controls";
+  const triggerLabel = zh ? "后端管理" : "Backend controls";
   const [panel, setPanel] = useState<"closed" | "module" | "all">("closed");
   const open = panel !== "closed";
   const showAll = panel === "all";
@@ -44,7 +40,14 @@ export function BackendControls({
   const panelClose = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const statusId = useId();
-  const capabilities = showAll ? undefined : module?.tools;
+  const moduleCapabilities = useMemo(
+    () =>
+      module?.followupBackendCapabilities
+        ? [...module.tools, ...module.followupBackendCapabilities]
+        : module?.tools,
+    [module],
+  );
+  const capabilities = showAll ? undefined : moduleCapabilities;
   const showRecognition = Boolean(
     onOpenRecognition && (moduleHasRecognition || !capabilities),
   );
@@ -61,8 +64,8 @@ export function BackendControls({
     ? enginesForScope(runtime.catalogue, { capabilities })
     : (runtime.catalogue?.engines ?? []);
   const harness = rows.find((row) => row.id === "harness");
-  const moduleRows = module
-    ? enginesForScope(runtime.catalogue, { capabilities: module.tools })
+  const moduleRows = moduleCapabilities
+    ? enginesForScope(runtime.catalogue, { capabilities: moduleCapabilities })
     : [];
   const compute = useComputePower();
   const moduleUsesCompute = moduleRows.some((row) => row.id === "harness");
@@ -102,17 +105,13 @@ export function BackendControls({
     : zh
       ? "所有后端"
       : "All backends";
-  const label = local
+  const label = capabilities
     ? zh
-      ? "任务结果后端"
-      : "Backends for these task results"
-    : capabilities
-      ? zh
-        ? "本模块的后端"
-        : "Backends in this module"
-      : zh
-        ? "后端启停"
-        : "Backend power";
+      ? "本模块的后端"
+      : "Backends in this module"
+    : zh
+      ? "后端启停"
+      : "Backend power";
   useEffect(() => {
     if (!open) return;
     function dismissOutside(event: PointerEvent) {
@@ -126,18 +125,24 @@ export function BackendControls({
     return () => document.removeEventListener("pointerdown", dismissOutside);
   }, [open]);
   useEffect(() => {
-    if (local && open) panelClose.current?.focus();
-  }, [local, open]);
+    if (module && open) panelClose.current?.focus();
+  }, [module, open]);
   function close() {
     setPanel("closed");
     trigger.current?.focus();
   }
-  if (local && moduleRows.length === 1 && !harness) {
+  if (
+    inlineSingle &&
+    !open &&
+    !moduleHasRecognition &&
+    moduleRows.length === 1 &&
+    !moduleUsesCompute
+  ) {
     const [item] = moduleRows;
     return (
       <div
         className="task-backend-control"
-        data-backend-placement={placement}
+        data-backend-placement="module"
         role="group"
         aria-label={zh ? "本模块后端开关" : "Backend switch for this module"}
       >
@@ -154,7 +159,7 @@ export function BackendControls({
     <div
       ref={container}
       className="backend-controls"
-      data-backend-placement={placement}
+      data-backend-placement={module ? "module" : undefined}
       onBlur={(event) => {
         if (
           open &&
@@ -178,7 +183,9 @@ export function BackendControls({
         aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        disabled={local && !runtime.catalogue && !runtime.readError}
+        disabled={
+          inlineSingle && !!module && !runtime.catalogue && !runtime.readError
+        }
         onClick={() => (open ? close() : setPanel("module"))}
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
@@ -213,7 +220,7 @@ export function BackendControls({
               ×
             </button>
           </header>
-          {!local && (
+          {!capabilities && (
             <p>
               {zh
                 ? "默认关闭。各任务页共用同一后端状态。"
@@ -255,7 +262,7 @@ export function BackendControls({
               />
             )}
           </div>
-          {module && !local && (
+          {module && (
             <button
               type="button"
               className="text-button"

@@ -959,6 +959,19 @@ RESULT_MODULE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_MODULE_POWER_DIFF = "56c58e6f54a21958473e43c220f49de94141a3556bee8030c5c8837147fb93ba"
+MODULE_POWER_ENTRY_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/studio/research-modules.ts",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+MODULE_POWER_ENTRY_DIFF = "cb479fcdf35fe818746b2520f5ea44d79fd28e285271a5189262c68d21df3056"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",
@@ -1432,6 +1445,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RESULT_MODULE_POWER_FILES, RESULT_MODULE_POWER_DIFF,
         scope_pin="RESULT_MODULE_POWER_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        MODULE_POWER_ENTRY_FILES, MODULE_POWER_ENTRY_DIFF,
+        scope_pin="MODULE_POWER_ENTRY_DIFF",
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

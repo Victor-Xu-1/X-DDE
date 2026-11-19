@@ -322,6 +322,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "INITIAL_POSE_POWER_FILES", "INITIAL_POSE_RECOVERY_FILES",
         "MOBILE_VIEWER_FILES", "SPLIT_VIEWER_FILES",
         "MODULE_POWER_FILES",
+        "MODULE_POWER_ENTRY_FILES",
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",
