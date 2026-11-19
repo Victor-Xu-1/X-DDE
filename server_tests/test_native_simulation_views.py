@@ -310,7 +310,8 @@ def test_native_result_views_and_downloads(case, language):
                     name="Binding pose display" if language == "en" else "结合姿势显示",
                 )
             ).to_have_value("b")
-            inspect_full_workspace(page, pose, evidence, language, language + "-fep-overlay")
+            comparison = root.locator(".bound-pose-comparison")
+            inspect_full_workspace(page, comparison, evidence, language, language + "-fep-overlay")
             expect(
                 root.get_by_role(
                     "combobox", name="Binding pose display" if language == "en" else "结合姿势显示"
@@ -361,7 +362,7 @@ def test_native_result_views_and_downloads(case, language):
                 if width == 390:
                     inspect_full_workspace(
                         page,
-                        restored.nth(0).get_by_test_id("molstar-viewport"),
+                        comparison,
                         evidence,
                         language,
                         language + "-fep-paired-narrow",

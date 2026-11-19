@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import type { Language } from "../types";
 import { FigureExport } from "../publication/FigureExport";
 import { useReveal } from "../presentation/useReveal";
+import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import { MolecularViewport } from "./MolecularViewport";
 import type { StructureSource } from "./molstar-controller";
 import type {
@@ -45,6 +46,7 @@ export function BoundPoseComparison({
   return (
     <section
       className="bound-pose-comparison"
+      data-structure-focus-group
       aria-label={zh ? "结合姿势比较" : "Binding pose comparison"}
     >
       <div className="pose-comparison-toolbar">
@@ -104,6 +106,7 @@ export function BoundPoseComparison({
             />
           </>
         )}
+        <WorkspaceFullscreenControl language={language} structureFocus />
       </div>
       <div ref={panel}>
         {mode === "pair" ? (
@@ -117,6 +120,7 @@ export function BoundPoseComparison({
                   <span>{slot.toUpperCase()}</span> {labels[index]}
                 </h3>
                 <MolecularViewport
+                  workspaceControls="hidden"
                   sources={sources}
                   language={language}
                   fixedLigand={slot}
@@ -131,6 +135,7 @@ export function BoundPoseComparison({
           </div>
         ) : (
           <MolecularViewport
+            workspaceControls="hidden"
             sources={sources}
             language={language}
             initialLigand="all"

@@ -1,92 +1,121 @@
 const heightProperty = "--focused-structure-height";
+const sceneSelector =
+  ".viewer-panel > .molecular-stage, .simulation-molecular-viewport > .simulation-webgl";
 
-function singleScene(target: HTMLElement) {
+type SceneLayout = { view: HTMLElement; stages: HTMLElement[] };
+
+function sceneLayout(target: HTMLElement): SceneLayout | null {
   const view = target.querySelector<HTMLElement>(
     ":scope > .structure-workbench-view",
   );
-  const scenes = Array.from(
-    view?.querySelectorAll<HTMLElement>(
-      ".molecular-stage, .simulation-webgl",
-    ) ?? [],
-  ).filter(
-    (scene) =>
-      !scene.closest("[hidden]") &&
-      (typeof scene.checkVisibility !== "function" || scene.checkVisibility()),
+  if (!view) return null;
+  const stages = [...view.querySelectorAll<HTMLElement>(sceneSelector)].filter(
+    (stage) =>
+      !stage.closest("[hidden]") &&
+      (typeof stage.checkVisibility !== "function" || stage.checkVisibility()),
   );
-  const [stage] = scenes;
-  return view &&
-    scenes.length === 1 &&
-    stage.matches(".viewer-panel > .molecular-stage")
-    ? { view, stage }
+  if (stages.length === 1) return { view, stages };
+  if (stages.length !== 2) return null;
+  const group = stages[0].closest("[data-structure-focus-group]");
+  return group && view.contains(group) && group.contains(stages[1])
+    ? { view, stages }
     : null;
 }
 
-/** Expand the live canvas within the available pane without moving its iframe. */
+/** Fit the existing canvas or comparison group without replacing a renderer. */
 export function createStructureFocus(target: HTMLElement, notify: () => void) {
   const desktop = window.matchMedia?.("(min-width: 1001px)");
-  let scene: ReturnType<typeof singleScene> = null;
-  let release: (() => void) | undefined;
+  let scene: SceneLayout | null = null;
+  let returnToSplit: (() => void) | undefined;
+  let observer: ResizeObserver | undefined;
   let request = 0;
 
   function fit() {
     request = 0;
-    if (!scene || !release) return;
-    const { view, stage } = scene;
-    const offset =
-      stage.getBoundingClientRect().top -
-      view.getBoundingClientRect().top +
-      view.scrollTop;
-    const value = Math.max(260, Math.floor(view.clientHeight - offset)) + "px";
-    if (stage.style.getPropertyValue(heightProperty) !== value)
-      stage.style.setProperty(heightProperty, value);
+    if (!scene || !returnToSplit) return;
+    const { view, stages } = scene;
+    const base = view.getBoundingClientRect().top - view.scrollTop;
+    const space = view.clientHeight;
+    const heights = stages.map(
+      (stage) =>
+        Math.max(
+          260,
+          Math.floor(space - stage.getBoundingClientRect().top + base),
+        ) + "px",
+    );
+    stages.forEach((stage, index) => {
+      if (stage.style.getPropertyValue(heightProperty) !== heights[index])
+        stage.style.setProperty(heightProperty, heights[index]);
+    });
   }
   function schedule() {
-    if (release && !request) request = requestAnimationFrame(fit);
+    if (returnToSplit && !request) request = requestAnimationFrame(fit);
   }
-  function restore() {
-    release?.();
-    release = undefined;
+  function disconnect() {
     cancelAnimationFrame(request);
     request = 0;
+    observer?.disconnect();
+    observer = undefined;
+    scene?.stages.forEach((stage) =>
+      stage.style.removeProperty(heightProperty),
+    );
+  }
+  function observe() {
+    if (!scene || !returnToSplit) return;
+    if (typeof ResizeObserver === "function") {
+      observer = new ResizeObserver(schedule);
+      observer.observe(scene.view);
+      for (const stage of scene.stages)
+        if (stage.parentElement) observer.observe(stage.parentElement);
+    }
+    fit();
+  }
+  function restore() {
+    if (!returnToSplit) return;
+    disconnect();
+    returnToSplit();
+    returnToSplit = undefined;
   }
   function refresh() {
-    const next = desktop?.matches ? singleScene(target) : null;
-    if (next?.stage !== scene?.stage || next?.view !== scene?.view) {
-      restore();
-      scene = next || null;
-      notify();
+    const next = desktop?.matches ? sceneLayout(target) : null;
+    if (
+      next === scene ||
+      (next &&
+        scene &&
+        next.view === scene.view &&
+        next.stages.length === scene.stages.length &&
+        next.stages.every((stage, index) => stage === scene?.stages[index]))
+    ) {
+      schedule();
+      return;
     }
-    schedule();
+    if (!next || next.view !== scene?.view) restore();
+    else if (returnToSplit) disconnect();
+    scene = next;
+    observe();
+    notify();
   }
   function toggle() {
-    if (release) restore();
+    if (returnToSplit) restore();
     else {
       if (!scene) return;
-      const { view, stage } = scene;
+      const { view } = scene;
       const scroll = [
         view,
         ...target.querySelectorAll<HTMLElement>(
           ":scope > :is(.structure-workbench-details, .structure-workbench-sequence)",
         ),
       ].map((pane) => ({ pane, top: pane.scrollTop, left: pane.scrollLeft }));
-      const observer =
-        typeof ResizeObserver === "function"
-          ? new ResizeObserver(schedule)
-          : null;
       target.dataset.workspaceFocus = "true";
       view.scrollTop = 0;
-      release = () => {
-        observer?.disconnect();
+      returnToSplit = () => {
         delete target.dataset.workspaceFocus;
-        stage.style.removeProperty(heightProperty);
         for (const { pane, top, left } of scroll) {
           pane.scrollTop = top;
           pane.scrollLeft = left;
         }
       };
-      observer?.observe(view);
-      observer?.observe(stage.parentElement!);
-      fit();
+      observe();
     }
     notify();
   }

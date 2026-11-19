@@ -248,8 +248,10 @@ html
     body
     .studio-app
     .structure-workbench[data-workspace-expanded="true"][data-workspace-focus="true"]
-    .viewer-panel
-    .molecular-stage {
+    :is(
+      .viewer-panel > .molecular-stage,
+      .simulation-molecular-viewport > .simulation-webgl
+    ) {
     height: var(--focused-structure-height, 60dvh);
     min-height: 0;
     max-height: none;

@@ -134,6 +134,59 @@ class DesktopMedia extends EventTarget {
   matches = true;
 }
 
+it("keeps the expanded focus when a coordinated comparison switches rendering modes", async () => {
+  vi.stubGlobal("matchMedia", () => new DesktopMedia());
+  function Comparison() {
+    const [paired, setPaired] = useState(true);
+    return (
+      <StructureWorkbench
+        preview={
+          <div data-structure-focus-group>
+            <button onClick={() => setPaired(!paired)}>
+              Toggle comparison
+            </button>
+            <WorkspaceFullscreenControl language="en" structureFocus />
+            {(paired ? ["A", "B"] : ["Overlay"]).map((name) => (
+              <section key={name} className="simulation-molecular-viewport">
+                <div className="simulation-webgl" aria-label={name} />
+              </section>
+            ))}
+          </div>
+        }
+      >
+        Analysis
+      </StructureWorkbench>
+    );
+  }
+  const user = userEvent.setup();
+  render(<Comparison />);
+  const toggle = screen.getByRole("button", { name: "Toggle comparison" });
+  await user.click(openButton());
+  await user.click(screen.getByRole("button", { name: "Focus structure" }));
+  const dialog = screen.getByRole("dialog");
+  const focused = "--focused-structure-height";
+  const original = screen.getByLabelText("A");
+  expect(original.style.getPropertyValue(focused)).not.toBe("");
+  await user.click(toggle);
+  await waitFor(() =>
+    expect(
+      screen.getByLabelText("Overlay").style.getPropertyValue(focused),
+    ).not.toBe(""),
+  );
+  expect(original.style.getPropertyValue(focused)).toBe("");
+  expect(dialog).toHaveAttribute("data-workspace-focus", "true");
+  await user.click(toggle);
+  await waitFor(() =>
+    expect(screen.getByLabelText("B").style.getPropertyValue(focused)).not.toBe(
+      "",
+    ),
+  );
+  const current = screen.getByLabelText("B");
+  await user.click(screen.getByRole("button", { name: "Show analysis panel" }));
+  expect(dialog).not.toHaveAttribute("data-workspace-focus");
+  expect(current.style.getPropertyValue(focused)).toBe("");
+});
+
 it("focuses one scene, retains analysis inputs and resets focus mode on Escape", async () => {
   vi.stubGlobal("matchMedia", () => new DesktopMedia());
   const user = userEvent.setup();

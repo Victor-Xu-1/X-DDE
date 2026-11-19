@@ -47,7 +47,11 @@ export function WorkspaceFullscreenControl({
       {structureFocus && fullscreen.canFocus && (
         <button
           type="button"
-          className="workspace-structure-focus"
+          className={
+            compact
+              ? "workspace-structure-focus"
+              : "workspace-structure-focus text-button"
+          }
           aria-label={focusLabel}
           aria-pressed={fullscreen.focused}
           onClick={fullscreen.toggleFocus}
