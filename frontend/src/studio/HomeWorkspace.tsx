@@ -4,7 +4,6 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { TaskForm } from "../TaskForm";
 import { translator } from "../i18n";
 import { PredictionResults } from "./PredictionResults";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import type { PredictionWorkspaceProps } from "./prediction-workspace";
 export function HomeWorkspace(p: PredictionWorkspaceProps) {
   const [showingExample, setShowingExample] = useState(false);
@@ -139,18 +138,7 @@ export function HomeWorkspace(p: PredictionWorkspaceProps) {
           </div>
         </div>
       </section>
-      {showResults && p.job && (
-        <PredictionResults
-          {...p}
-          headerActions={
-            <TaskBackendControl
-              language={p.language}
-              scope={{ operations: [p.job.request.operation ?? "predict"] }}
-              placement="result"
-            />
-          }
-        />
-      )}
+      {showResults && p.job && <PredictionResults {...p} />}
     </div>
   );
 }

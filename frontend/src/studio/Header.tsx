@@ -2,6 +2,7 @@ import type { Job, Language } from "../types";
 import { Fragment, useSyncExternalStore, type ReactNode } from "react";
 import {
   researchModuleForView,
+  toolForView,
   viewTitle,
   type View,
 } from "./navigation-model";
@@ -56,6 +57,7 @@ export function Header({
         key={researchModule?.id ?? (module ? "utilities" : "all")}
         language={language}
         module={module}
+        currentCapability={toolForView(view) ?? undefined}
         inlineSingle={!compact}
         moduleHasRecognition={view === "utilities"}
         onOpenRecognition={onOpenRecognition}

@@ -17,6 +17,7 @@ import "./runtime-switch.css";
 export function BackendControls({
   language,
   module,
+  currentCapability,
   inlineSingle = false,
   moduleHasRecognition = false,
   onOpenRecognition,
@@ -26,6 +27,7 @@ export function BackendControls({
     ResearchModule,
     "label" | "tools" | "followupBackendCapabilities"
   >;
+  currentCapability?: string;
   inlineSingle?: boolean;
   moduleHasRecognition?: boolean;
   onOpenRecognition?(): void;
@@ -56,8 +58,8 @@ export function BackendControls({
   );
   const { status: recognition } = recognitionPower;
   const runtime = useBackendRuntime(
-    Boolean(module) || open,
-    open ? capabilities : undefined,
+    Boolean(module || currentCapability) || open,
+    open ? capabilities : currentCapability,
     open && !capabilities,
   );
   const rows = capabilities
@@ -131,13 +133,18 @@ export function BackendControls({
     setPanel("closed");
     trigger.current?.focus();
   }
+  const current = currentCapability
+    ? enginesForScope(runtime.catalogue, { capability: currentCapability })[0]
+    : undefined;
   const inline =
-    inlineSingle &&
+    current ??
+    (inlineSingle &&
+    !currentCapability &&
     !moduleHasRecognition &&
     moduleRows.length === 1 &&
     !moduleUsesCompute
       ? moduleRows[0]
-      : undefined;
+      : undefined);
   return (
     <div
       ref={container}
@@ -161,8 +168,18 @@ export function BackendControls({
       {inline && (
         <div
           className="task-backend-control"
+          data-backend-placement={current ? "entry" : undefined}
+          data-capability={current ? currentCapability : undefined}
           role="group"
-          aria-label={zh ? "本模块后端开关" : "Backend switch for this module"}
+          aria-label={
+            current
+              ? zh
+                ? "此任务的后端"
+                : "Backend for this task"
+              : zh
+                ? "本模块后端开关"
+                : "Backend switch for this module"
+          }
         >
           <RuntimeSwitch item={inline} language={language} runtime={runtime} />
           {!open && (

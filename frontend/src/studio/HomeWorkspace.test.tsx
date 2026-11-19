@@ -2,6 +2,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
 import { HomeWorkspace } from "./HomeWorkspace";
+import { Header } from "./Header";
 import { defaults } from "../form-model";
 import { RuntimeStatus } from "./RuntimeStatus";
 import type { Health } from "../types";
@@ -135,7 +136,24 @@ it("separates task entry from structure review while preserving the draft", asyn
         });
       return request(path, init);
     });
-  const { rerender, container } = render(<HomeWorkspace {...props} />);
+  function workspace(resultsVersion = props.resultsVersion) {
+    return (
+      <>
+        <Header
+          view="home"
+          language={props.language}
+          jobs={props.jobs}
+          onJob={props.onJob}
+          storageWarning={false}
+        />
+        <HomeWorkspace {...props} resultsVersion={resultsVersion} />
+      </>
+    );
+  }
+  const { rerender, container } = render(workspace());
+  const toggle = await screen.findByRole("switch", { name: "OpenDDE" });
+  expect(toggle).toBeEnabled();
+  expect(toggle).not.toBeChecked();
   fireEvent.click(screen.getByRole("button", { name: "下一步" }));
   const sequence = screen.getByLabelText("单字母氨基酸序列");
   fireEvent.change(sequence, { target: { value: "ACDE" } });
@@ -153,16 +171,15 @@ it("separates task entry from structure review while preserving the draft", asyn
   expect(
     screen.queryByRole("heading", { name: /^已完成的任务$/, level: 2 }),
   ).toBeNull();
-  const toggle = await within(summary!).findByRole("switch", {
-    name: "OpenDDE",
-  });
-  expect(toggle).toBeEnabled();
-  expect(toggle).toHaveAttribute("aria-checked", "false");
+  expect(
+    within(summary!).queryByRole("switch", { name: "OpenDDE" }),
+  ).toBeNull();
+  expect(screen.getByRole("switch", { name: "OpenDDE" })).toBe(toggle);
   fireEvent.click(screen.getByRole("button", { name: "新建预测" }));
   expect(sequence).toBeVisible();
   expect(sequence).toHaveValue("ACDE");
-  expect(screen.queryByRole("switch", { name: "OpenDDE" })).toBeNull();
-  rerender(<HomeWorkspace {...props} resultsVersion={1} />);
+  expect(screen.getByRole("switch", { name: "OpenDDE" })).toBe(toggle);
+  rerender(workspace(1));
   expect(sequence).not.toBeVisible();
   const refreshedSummary = container.querySelector<HTMLElement>(
     ".prediction-result-heading",

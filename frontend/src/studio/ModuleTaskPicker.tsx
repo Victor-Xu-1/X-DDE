@@ -6,17 +6,14 @@ import { isDatasetTool } from "../datasets/dataset-model";
 import type { ToolId } from "../operations/catalog";
 import { moduleForTool, toolLabel } from "./research-modules";
 import type { Language } from "../types";
-import { TaskBackendControl } from "../utilities/TaskBackendControl";
 export function ModuleTaskPicker({
   value,
   language,
   onChange,
-  active = true,
 }: {
   value: ToolId;
   language: Language;
   onChange(tool: ToolId): void;
-  active?: boolean;
 }) {
   const [guide, setGuide] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -78,12 +75,6 @@ export function ModuleTaskPicker({
           )}
         </>
       )}
-      <TaskBackendControl
-        language={language}
-        scope={{ capability: value }}
-        active={active}
-        placement="entry"
-      />
       <MethodSwitch value={value} language={language} onChange={onChange} />
     </div>
   );

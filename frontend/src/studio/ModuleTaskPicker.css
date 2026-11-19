@@ -14,8 +14,3 @@
     padding-block: 2px 8px;
   }
 }
-.studio-app
-  .module-task-picker:has(> [data-backend-placement="entry"])
-  > .task-model-switch {
-  flex-basis: 100%;
-}

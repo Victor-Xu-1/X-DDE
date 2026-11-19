@@ -105,6 +105,8 @@ def test_screening_stage_switches_stay_reachable_after_acceptance(tmp_path):
         assert mocked == []
         form.get_by_role("button", name="Submit screening", exact=True).click()
         expect(form.get_by_role("region", name="Research plan run")).to_be_visible()
+        expect(switch(entry, "drugclip")).to_be_visible()
+        expect(switch(entry, "drugclip")).not_to_be_checked()
         for engine in ("chemistry", "gnina"):
             expect(switch(form, engine)).to_be_visible()
             expect(switch(form, engine)).not_to_be_checked()

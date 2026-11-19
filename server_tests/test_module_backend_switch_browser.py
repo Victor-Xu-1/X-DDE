@@ -43,16 +43,21 @@ def verify_catalogue(page, base, snapshot):
             continue
         owner = snapshot["capabilities"][key]
         panel = open_capability(page, base, key)
+        expect(panel).to_have_attribute("data-backend-placement", "entry")
+        expect(page.locator(".studio-topbar").locator(panel)).to_be_visible()
         row = panel.locator(f'[data-engine="{owner}"]')
         switch = row.get_by_role("switch")
         expect(switch).to_be_visible()
         expect(switch).not_to_be_checked()
         if owner == "harness":
-            service = panel.locator('[data-engine="native-compute"]').get_by_role("switch")
+            trigger, drawer = module_power(page)
+            trigger.click()
+            service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
             expect(service).to_be_visible()
             expect(service).not_to_be_checked()
             expect(service).to_be_disabled()  # The isolated platform has no native model installed.
-        expect(panel.get_by_role("switch")).to_have_count(2 if owner == "harness" else 1)
+            trigger.press("Escape")
+        expect(panel.get_by_role("switch")).to_have_count(1)
         checked.append(key)
     assert set(checked) == expected
     return checked
@@ -95,6 +100,24 @@ def verify_setup_entry(page, base):
         expect(page).to_have_url(f"{base}/#view=new&tool=p2rank.detect")
     finally:
         target.close()
+    for width in (390, 1024):
+        page.set_viewport_size({"width": width, "height": 775})
+        expect(panel.get_by_text("P2Rank", exact=True)).to_be_visible()
+        status = panel.locator(".runtime-switch-status")
+        expect(status.locator("small")).to_have_text("已关闭 · 待配置")
+        assert status.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+        header = page.locator(".studio-topbar")
+        rightmost = header.evaluate("""bar => Math.max(0, ...Array.from(
+            bar.querySelectorAll("button, summary"),
+            control => control.getBoundingClientRect().right
+        ))""")
+        assert rightmost <= width, (width, rightmost)
+    search = page.get_by_role("button", name="搜索任务", exact=True)
+    search.click()
+    field = page.get_by_role("searchbox", name="搜索任务", exact=True)
+    expect(field).to_be_focused()
+    field.press("Escape")
+    expect(search).to_be_focused()
 
 
 def verify_shared_power(page, base):
@@ -103,15 +126,15 @@ def verify_shared_power(page, base):
     button = tool.get_by_role("switch")
     expect(button).to_be_enabled()
     expect(button).not_to_be_checked()
-    observed = page.locator(".backend-module-status")
-    expect(observed).to_have_attribute("data-power", "off")
+    observed, _ = module_power(page)
+    expect(observed).to_have_accessible_description("任务引擎已关闭")
     page.get_by_role("textbox", name="靶点名称或基因符号").fill("STAT6")
     page.get_by_role("checkbox", name="允许将名称或数据库编号发送到公共数据库查询").check()
     search = page.get_by_role("button", name="查找", exact=True)
     expect(search).to_be_disabled()
     button.press("Space")
     expect(button).to_be_checked()
-    expect(observed).to_have_attribute("data-power", "on")
+    expect(observed).to_have_accessible_description("1 个后端已开启")
     expect(search).to_be_enabled()
     sibling = open_capability(page, base, "discovery.disease")
     expect(sibling.get_by_role("switch")).to_be_checked()
@@ -126,7 +149,8 @@ def verify_shared_power(page, base):
     global_panel = page.get_by_role("region", name="后端启停", exact=True)
     global_toggle = global_panel.locator('[data-engine="discovery"]').get_by_role("switch")
     expect(global_toggle).to_be_checked()
-    expect(global_panel.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
+    chemistry = global_panel.locator('[data-engine="chemistry"]').get_by_role("switch")
+    expect(chemistry).not_to_be_checked()
     page.get_by_role("button", name="返回本模块", exact=True).click()
     expect(local_toggle).to_be_checked()
     page.mouse.click(4, 600)
@@ -167,7 +191,7 @@ def verify_shared_power(page, base):
     expect(open_capability(page, base, "discovery.disease").get_by_role(
         "switch"
     )).not_to_be_checked()
-    expect(observed).to_have_attribute("data-power", "off")
+    expect(observed).to_have_accessible_description("任务引擎已关闭")
 
 
 def verify_modules(page, base):
@@ -347,12 +371,12 @@ def verify_desktop_module_power(page, base, groups):
         assert bounds["x"] + bounds["width"] <= width and bounds["y"] < 280
         nav = page.get_by_role("navigation", name="模块工作区")
         nav.get_by_role("button", name="新建任务", exact=True).click()
-        if len(engines) == 1:
-            expect(inline.get_by_role("switch")).to_be_visible()
-            expect(inline.get_by_role("switch")).not_to_be_checked()
-        else:
-            expect(local_trigger).to_be_visible()
-            expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
+        current = toolbar.locator(controls(page, zh=True)).get_by_role("switch")
+        expect(inline).to_have_count(0)
+        expect(current).to_be_visible()
+        expect(current).not_to_be_checked()
+        expect(local_trigger).to_be_visible()
+        expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
 
 
 def verify_inline_switch_lifecycle(page, base):
@@ -388,11 +412,10 @@ def verify_inline_switch_lifecycle(page, base):
     child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
     expect(child.get_by_role("switch")).to_be_checked()
     page.set_viewport_size({"width": 1280, "height": 800})
-    expect(inline).to_be_checked()
+    expect(inline).to_have_count(0)
     with page.expect_response(f"{root}/stop") as stopped:
         child.get_by_role("switch").click()
     assert stopped.value.ok and stopped.value.json() == {"enabled": False}
-    expect(inline).not_to_be_checked()
     expect(child.get_by_role("switch")).not_to_be_checked()
     nav.get_by_role("button", name="任务结果", exact=True).click()
     expect(inline).not_to_be_checked()

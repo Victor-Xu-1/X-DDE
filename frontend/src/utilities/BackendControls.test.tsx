@@ -34,6 +34,96 @@ const entry = {
   enabled: false,
   active: false,
 };
+it("shows only the selected task's engine beside the module menu", async () => {
+  const admet = { ...entry, id: "admet", name: "ADMET", enabled: true };
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry", "admet.predict": "admet" },
+    engines: [entry, admet],
+  });
+  const module = {
+    label: ["性质", "Properties"] as const,
+    tools: ["properties", "admet.predict"] as const,
+  };
+  const { rerender } = render(
+    <BackendControls
+      language="en"
+      module={module}
+      currentCapability="properties"
+    />,
+  );
+  const task = await screen.findByRole("group", {
+    name: "Backend for this task",
+  });
+  expect(within(task).getByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  expect(within(task).queryByRole("switch", { name: "ADMET" })).toBeNull();
+  rerender(
+    <BackendControls
+      language="en"
+      module={module}
+      currentCapability="admet.predict"
+    />,
+  );
+  expect(within(task).getByRole("switch", { name: "ADMET" })).toBeChecked();
+  expect(vi.mocked(api.post)).not.toHaveBeenCalled();
+});
+
+it("keeps an example's additional engine and omits an already visible switch", async () => {
+  const admet = {
+    ...entry,
+    id: "admet",
+    name: "ADMET",
+    operations: ["admet_predict"],
+  };
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [{ ...entry, operations: ["properties"] }, admet],
+  });
+  render(
+    <PrimaryBackendScope.Provider value={{ capability: "properties" }}>
+      <TaskBackendControl
+        language="en"
+        scope={{ operations: ["properties", "admet_predict"] }}
+        placement="example"
+      />
+    </PrimaryBackendScope.Provider>,
+  );
+  expect(
+    await screen.findByRole("switch", { name: "ADMET" }),
+  ).not.toBeChecked();
+  expect(screen.queryByRole("switch", { name: "RDKit" })).toBeNull();
+  expect(vi.mocked(api.post)).not.toHaveBeenCalled();
+});
+
+it("keeps keyboard focus on an engine switch while the server confirms the change", async () => {
+  let enabled = false;
+  let finish: (result: { enabled: boolean }) => void = () => {};
+  vi.mocked(request).mockImplementation(async () => ({
+    capabilities: { properties: "chemistry" },
+    engines: [{ ...entry, enabled }],
+  }));
+  vi.mocked(api.post).mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const user = userEvent.setup();
+  render(<BackendControls language="en" currentCapability="properties" />);
+  const toggle = await screen.findByRole("switch", { name: "RDKit" });
+  toggle.focus();
+  await user.keyboard(" ");
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAttribute("aria-disabled", "true");
+  await user.keyboard(" ");
+  expect(api.post).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    enabled = true;
+    finish({ enabled });
+  });
+  expect(toggle).toHaveFocus();
+  expect(toggle).toBeChecked();
+  expect(toggle).not.toHaveAttribute("aria-disabled", "true");
+});
+
 it("switches DECIMER from a utility without leaving the current tab", async () => {
   const onOpen = vi.fn();
   const user = userEvent.setup();
