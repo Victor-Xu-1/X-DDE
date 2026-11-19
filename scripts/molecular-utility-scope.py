@@ -1011,6 +1011,8 @@ MODULE_POWER_ENTRY_DIFF = "4cfa9adb9f10805473c24b9436d9e3df8d849e3d1d20128138cc3
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
+    "frontend/src/App.tsx",
+    "frontend/src/studio/Header.tsx",
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/BackendControls.tsx",
     "frontend/src/utilities/BackendPanelList.tsx",
@@ -1021,7 +1023,7 @@ CONTEXTUAL_BACKEND_PANEL_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-CONTEXTUAL_BACKEND_PANEL_DIFF = "c69e42376721875f2b8e9ff766bf0350cefa03d01ce15c55dcb6873372767b06"
+CONTEXTUAL_BACKEND_PANEL_DIFF = "35d4213acbdee98a008ba75a54adf4d5a10bab92895edee6b2d39f069a9b2971"
 PERSISTENT_TASK_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

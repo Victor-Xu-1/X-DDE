@@ -14,6 +14,7 @@ export function BackendControls({
   language,
   module,
   currentCapability,
+  resultOperation,
   inlineSingle = false,
   moduleHasRecognition = false,
   onOpenRecognition,
@@ -24,6 +25,7 @@ export function BackendControls({
     "label" | "tools" | "followupBackendCapabilities"
   >;
   currentCapability?: string;
+  resultOperation?: string;
   inlineSingle?: boolean;
   moduleHasRecognition?: boolean;
   onOpenRecognition?(): void;
@@ -208,7 +210,7 @@ export function BackendControls({
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
         <span className="backend-controls-label">
-          {inline ? (zh ? "后端" : "Backends") : triggerLabel}
+          {inline ? (zh ? "后端" : "Backend") : triggerLabel}
         </span>
         {module && (
           <span
@@ -248,11 +250,12 @@ export function BackendControls({
             </p>
           )}
           <BackendPanelList
-            key={panel + (currentCapability ?? "")}
+            key={panel + (currentCapability ?? resultOperation ?? "")}
             runtime={runtime}
             rows={rows}
             capabilities={capabilities}
             currentCapability={currentCapability}
+            resultOperation={resultOperation}
             language={language}
             recognition={recognitionPower}
             onOpenRecognition={

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { tools } from "../operations/catalog";
+import { historyKindLabel } from "../studio/task-history-model";
 import type { Language } from "../types";
 import type { useBackendRuntime } from "./backend-runtime";
 import {
@@ -12,15 +12,13 @@ import type { useRecognitionStatus } from "./recognition-power";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
 
 type Runtime = ReturnType<typeof useBackendRuntime>;
-const labels = new Map<string, readonly [string, string]>(
-  tools.map(({ id, label }) => [id, label]),
-);
 
 export function BackendPanelList({
   runtime,
   rows,
   capabilities,
   currentCapability,
+  resultOperation,
   language,
   recognition,
   onOpenRecognition,
@@ -30,6 +28,7 @@ export function BackendPanelList({
   rows: NonNullable<Runtime["catalogue"]>["engines"];
   capabilities?: readonly string[];
   currentCapability?: string;
+  resultOperation?: string;
   language: Language;
   recognition: ReturnType<typeof useRecognitionStatus>;
   onOpenRecognition?(): void;
@@ -41,12 +40,20 @@ export function BackendPanelList({
   const matches = (...words: string[]) =>
     words.some((word) => word.toLocaleLowerCase().includes(query));
   const owners = runtime.catalogue?.capabilities;
-  const current = currentCapability && owners?.[currentCapability];
+  const current = currentCapability
+    ? owners?.[currentCapability]
+    : rows.find(
+        (engine) =>
+          resultOperation && engine.operations.includes(resultOperation),
+      )?.id;
   const functions = new Map<string, (readonly [string, string])[]>();
-  for (const id of capabilities ?? labels.keys()) {
+  for (const id of capabilities ?? Object.keys(owners ?? {})) {
     const owner = owners?.[id];
-    const label = labels.get(id);
-    if (!owner || !label) continue;
+    if (!owner) continue;
+    const label = [
+      historyKindLabel(id, "zh"),
+      historyKindLabel(id, "en"),
+    ] as const;
     const tasks = functions.get(owner) ?? [];
     tasks.push(label);
     functions.set(owner, tasks);
