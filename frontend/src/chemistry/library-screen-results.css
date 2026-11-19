@@ -55,7 +55,30 @@
 }
 .library-screen-records thead th {
   font-size: 12px;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+}
+.library-screen-records td {
+  font-variant-numeric: tabular-nums;
+}
+.library-screen-candidates .candidate-review-bar {
+  margin-block: 8px 0;
+}
+@media (min-width: 1001px) {
+  .library-screen-records {
+    max-height: clamp(208px, calc(100dvh - 505px), 440px);
+    overflow: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+  }
+  .library-screen-records thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface-muted);
+  }
+  .library-screen-records .library-screen-record {
+    min-height: 28px;
+  }
 }
 .library-screen-records tr[data-selected] {
   background: var(--accent-soft);
@@ -71,4 +94,9 @@
 .library-screen-pages {
   justify-content: space-between;
   padding-top: 8px;
+}
+.library-screen-pages > button {
+  min-height: 30px;
+  padding: 3px 10px;
+  font-size: 12px;
 }

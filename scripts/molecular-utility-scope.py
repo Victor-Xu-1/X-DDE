@@ -1362,6 +1362,25 @@ RESULT_HANDOFF_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_HANDOFF_DESKTOP_DIFF = "6772a9ca4bfb448068e72e9d4ea121c0d2028c5f7cb55bdc28446f51d2edd567"
+DESKTOP_MOLECULE_RESULTS_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/property-preview-checks.yml",
+    "frontend/src/chemistry/LibraryScreenRecords.tsx",
+    "frontend/src/chemistry/LibraryScreenResults.test.tsx",
+    "frontend/src/chemistry/LibraryScreenResults.tsx",
+    "frontend/src/chemistry/LibraryScreenSelection.tsx",
+    "frontend/src/chemistry/library-screen-results.css",
+    "frontend/src/operations/PropertyResultViews.tsx",
+    "frontend/src/operations/PropertyResults.test.tsx",
+    "frontend/src/operations/PropertyResults.tsx",
+    "frontend/src/operations/property-result-views.css",
+    "server_tests/test_metric_landscape_browser.py",
+    "server_tests/test_property_preview_browser.py",
+    "server_tests/test_result_handoffs_desktop.py",
+    "server_tests/test_utility_result_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_MOLECULE_RESULTS_DIFF = "501e2ae7d54a21387b87b0dbd1debacc822071dfaa414ad47aacec5d817d7875"
 DESKTOP_STRUCTURE_FOCUS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",
@@ -1637,7 +1656,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RUNTIME_ENTRY_FILES, RUNTIME_ENTRY_DIFF, scope_pin="RUNTIME_ENTRY_DIFF",
     )
-    result_handoff_desktop = reviewed_selected(
+    molecule_results = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_MOLECULE_RESULTS_FILES, DESKTOP_MOLECULE_RESULTS_DIFF,
+        scope_pin="DESKTOP_MOLECULE_RESULTS_DIFF",
+    )
+    result_handoff_desktop = molecule_results or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RESULT_HANDOFF_DESKTOP_FILES, RESULT_HANDOFF_DESKTOP_DIFF,
         scope_pin="RESULT_HANDOFF_DESKTOP_DIFF",
@@ -1680,6 +1704,7 @@ def main():
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
+        output.write("molecule_results_only=" + str(molecule_results).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
         output.write("utility_result_desktop_only=" + str(utility_result_desktop).lower() + "\n")

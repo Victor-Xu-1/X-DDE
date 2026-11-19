@@ -99,6 +99,7 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         assert canvas.evaluate(
             "node => getComputedStyle(node.closest('.molecule-image')).borderRadius"
         ) == "10px"
+        result.get_by_role("tab", name="记录与导出" if zh else "Records & export").click()
         expect(result.locator(".properties-results .research-table tbody tr")).to_have_count(
             len(actual["molecules"])
         )

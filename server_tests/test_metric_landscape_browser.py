@@ -90,6 +90,10 @@ def test_native_landscape_preserves_values_links_records_and_exports(capability,
             page.get_by_role(
                 "tab", name="Property landscape" if language == "en" else "性质分布", exact=True
             ).click()
+        if capability == "properties":
+            page.get_by_role(
+                "tab", name="Landscape" if language == "en" else "分布", exact=True
+            ).click()
         panel = page.locator(".metric-scatter:visible").first
         expect(panel).to_be_visible(timeout=30000)
         chart = panel.get_by_role("application")

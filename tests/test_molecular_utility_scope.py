@@ -167,6 +167,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "paired_figure_only=false\n"
         "native_color_figure_only=false\n"
         "result_handoff_desktop_only=false\n"
+        "molecule_results_only=false\n"
         "desktop_structure_focus_only=false\n"
         "runtime_entry_only=false\n"
         "utility_result_desktop_only=false\n"
@@ -328,6 +329,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "MODULE_POWER_ENTRY_FILES",
         "CONTEXTUAL_BACKEND_PANEL_FILES",
         "COMPACT_MATERIAL_FILES",
+        "DESKTOP_MOLECULE_RESULTS_FILES",
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",

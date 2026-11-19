@@ -2,15 +2,12 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useState } from "react";
 import type { Job, Language, LigandProperties, Prediction } from "../types";
 import { defaults } from "../form-model";
-import {
-  ResearchTable,
-  type ResearchColumn,
-} from "../presentation/ResearchTable";
+import type { ResearchColumn } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
-import { MetricScatter } from "../presentation/MetricScatter";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { MetricHelp, type metrics } from "../guided/MetricHelp";
 import { propertySource } from "./property-source";
+import { PropertyResultViews } from "./PropertyResultViews";
 type Row = LigandProperties & { index: number };
 export function PropertyResults({
   job,
@@ -88,83 +85,70 @@ export function PropertyResults({
   ];
   return (
     <section className="properties-results">
-      <p className="field-help">
-        {zh
-          ? "RDKit 计算描述符 · 点击分子或散点查看结构；QED 和 SA 不代表实测药效。"
-          : "RDKit descriptors · select a molecule or plot point to inspect its structure. QED and SA are not measured potency."}
-      </p>
       <StructureWorkbench
         preview={
-          <div className="result-inspector">
-            {current && (
-              <>
-                <header>
-                  <h3>{moleculeName(current)}</h3>
-                  {current.available && current.smiles && onDraft && (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() =>
-                        onDraft({
-                          name: (
-                            job.request.name +
-                            " · " +
-                            (current.index + 1)
-                          ).slice(0, 80),
-                          components: [
-                            {
-                              kind: "ligand",
-                              value: current.smiles!,
-                              count: 1,
-                            },
-                          ],
-                          parameters: { ...defaults, model: "standard" },
-                          project_id: job.request.project_id,
-                        })
-                      }
-                    >
-                      {zh ? "用此分子预测结构" : "Predict this molecule"}
-                    </button>
-                  )}
-                </header>
-                {current.available && current.smiles ? (
-                  <MolecularPreview
-                    language={language}
-                    label={moleculeName(current)}
-                    source={source ?? { smiles: current.smiles }}
-                    urls={source ? [source.url] : undefined}
-                    records={source ? [source.record] : undefined}
-                  />
-                ) : (
-                  <p role="status">{current.reason}</p>
+          current && (
+            <div className="result-inspector">
+              <header>
+                <h3>{moleculeName(current)}</h3>
+                {current.available && current.smiles && onDraft && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() =>
+                      onDraft({
+                        name: (
+                          job.request.name +
+                          " · " +
+                          (current.index + 1)
+                        ).slice(0, 80),
+                        components: [
+                          {
+                            kind: "ligand",
+                            value: current.smiles!,
+                            count: 1,
+                          },
+                        ],
+                        parameters: { ...defaults, model: "standard" },
+                        project_id: job.request.project_id,
+                      })
+                    }
+                  >
+                    {zh ? "用此分子预测结构" : "Predict this molecule"}
+                  </button>
                 )}
-              </>
-            )}
-            <MetricScatter<Row>
-              rows={rows}
-              language={language}
-              label={zh ? "性质分布" : "Property landscape"}
-              rowId={(row) => String(row.index)}
-              rowLabel={moleculeName}
-              selected={String(selection)}
-              onSelect={(row) => setSelection(row.index)}
-              metrics={numeric.map((m) => ({
-                ...m,
-                value: (row) => (row.available ? row[m.key] : null),
-              }))}
-            />
-          </div>
+              </header>
+              {current.available && current.smiles ? (
+                <MolecularPreview
+                  language={language}
+                  label={moleculeName(current)}
+                  source={source ?? { smiles: current.smiles }}
+                  urls={source ? [source.url] : undefined}
+                  records={source ? [source.record] : undefined}
+                />
+              ) : (
+                <p role="status">{current.reason}</p>
+              )}
+            </div>
+          )
         }
       >
-        <ResearchTable
-          rows={rows}
-          columns={columns}
-          rowId={(row) => String(row.index)}
-          title={zh ? "分子性质 · RDKit 计算" : "Molecular properties · RDKit"}
-          language={language}
-          selected={String(selection)}
-          onSelect={(row) => setSelection(row.index)}
-        />
+        {current ? (
+          <PropertyResultViews<Row>
+            rows={rows}
+            current={current}
+            columns={columns}
+            name={moleculeName}
+            language={language}
+            onSelect={(row) => setSelection(row.index)}
+            metrics={numeric.map((metric) => ({
+              ...metric,
+              value: (row) => (row.available ? row[metric.key] : null),
+            }))}
+          />
+        ) : (
+          <p role="status">{zh ? "没有分子记录。" : "No molecule records."}</p>
+        )}
       </StructureWorkbench>
     </section>
   );

@@ -67,9 +67,12 @@ it("shows reasons in Chinese and hands off the saved output record rather than i
     />,
   );
   await user.click(screen.getByRole("checkbox", { name: "只看选中分子" }));
-  expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
+  expect(screen.getByTitle("重复结构，保留原始第 4 条")).toHaveTextContent(
+    "重复",
+  );
   await user.click(screen.getByRole("button", { name: "原始分子 #5" }));
   expect(screen.getByRole("heading", { name: "原始分子 #5" })).toBeVisible();
+  expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
   expect(screen.queryByRole("button", { name: "准备分子" })).toBeNull();
   await user.click(screen.getByRole("button", { name: "原始分子 #4" }));
   const prepare = screen.getByRole("button", { name: "准备分子" });
@@ -81,7 +84,48 @@ it("shows reasons in Chinese and hands off the saved output record rather than i
     "aria-pressed",
     "true",
   );
-  expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
+  expect(screen.getByTitle("重复结构，保留原始第 4 条")).toBeVisible();
+});
+
+it("continues candidate navigation across a table page using original record numbers", async () => {
+  const result = {
+    rows: Array.from({ length: 22 }, (_, index) => ({
+      record: index * 2,
+      available: true,
+      selected: true,
+    })),
+    selected_records: Array.from({ length: 22 }, (_, index) => index * 2),
+    artifact: "selected.sdf",
+  } as unknown as LibraryScreenResult;
+  render(
+    <LibraryScreenResults
+      job={{ id: "job" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Input molecule #39" }));
+  const next = screen.getByRole("button", { name: "Next candidate" });
+  next.focus();
+  await user.keyboard("{Enter}");
+  expect(
+    screen.getByRole("heading", { name: "Input molecule #41" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Input molecule #41" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(next).toHaveFocus();
+  await user.click(
+    screen.getByRole("checkbox", { name: "Show selected molecules only" }),
+  );
+  expect(
+    screen.getByRole("heading", { name: "Input molecule #41" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Previous candidate" }));
+  expect(
+    screen.getByRole("button", { name: "Input molecule #39" }),
+  ).toHaveAttribute("aria-pressed", "true");
 });
 it("presents zero hits without a molecule download or invented reusable reference", () => {
   render(

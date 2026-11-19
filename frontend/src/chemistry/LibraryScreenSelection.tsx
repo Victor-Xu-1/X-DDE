@@ -42,12 +42,7 @@ export function LibraryScreenSelection({
           </button>
         )}
       </header>
-      <MoleculeImage
-        key={row.record}
-        source={source}
-        language={language}
-        label={label}
-      />
+      <MoleculeImage source={source} language={language} label={label} />
       <div className="library-screen-record-details">
         {result.options?.alert_policy &&
           result.options.alert_policy !== "off" && (
