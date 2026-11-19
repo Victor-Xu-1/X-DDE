@@ -230,3 +230,46 @@ html
     background: var(--surface);
   }
 }
+
+@media (min-width: 1001px) {
+  .studio-app
+    .structure-workbench[data-workspace-expanded="true"][data-workspace-focus="true"] {
+    display: block;
+  }
+  [data-workspace-expanded="true"][data-workspace-focus="true"]
+    > :is(
+      .structure-workbench-toolbar,
+      .structure-workbench-details,
+      .structure-workbench-sequence
+    ) {
+    display: none;
+  }
+  html
+    body
+    .studio-app
+    .structure-workbench[data-workspace-expanded="true"][data-workspace-focus="true"]
+    .viewer-panel
+    .molecular-stage {
+    height: var(--focused-structure-height, 60dvh);
+    min-height: 0;
+    max-height: none;
+    border-radius: 10px;
+  }
+  [data-workspace-expanded="true"][data-workspace-focus="true"]
+    .viewer-panel
+    > .studio-heading {
+    padding-block: 4px;
+    margin-block: 0;
+  }
+  [data-workspace-expanded="true"][data-workspace-focus="true"]
+    .viewer-panel
+    > .viewer-modes {
+    margin-block: 4px;
+  }
+  [data-workspace-expanded="true"] .workspace-structure-focus {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+}

@@ -1083,6 +1083,21 @@ RESULT_HANDOFF_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_HANDOFF_DESKTOP_DIFF = "6772a9ca4bfb448068e72e9d4ea121c0d2028c5f7cb55bdc28446f51d2edd567"
+DESKTOP_STRUCTURE_FOCUS_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/presentation/WorkspaceFullscreenControl.test.tsx",
+    "frontend/src/presentation/WorkspaceFullscreenControl.tsx",
+    "frontend/src/presentation/useWorkspaceFullscreen.ts",
+    "frontend/src/presentation/workspace-expansion.ts",
+    "frontend/src/presentation/workspace-fullscreen.css",
+    "frontend/src/presentation/workspace-structure-focus.ts",
+    "frontend/src/viewer/ViewerExportActions.tsx",
+    "server_tests/test_workspace_fullscreen_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_STRUCTURE_FOCUS_DIFF = "18f05e1880583f927845e53cbeefda9cac8b6204bf932f4357739f9b3859c3bf"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
@@ -1145,6 +1160,11 @@ def main():
     changed = subprocess.check_output(
         ["git", "diff", "--name-only", base, "HEAD"], text=True
     ).splitlines() if base and set(base) != {"0"} else []
+    desktop_structure_focus = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_STRUCTURE_FOCUS_FILES, DESKTOP_STRUCTURE_FOCUS_DIFF,
+        scope_pin="DESKTOP_STRUCTURE_FOCUS_DIFF",
+    )
     touch_paths = {
         "frontend/src/utilities/image-molecule.css",
         "server_tests/test_utility_image_browser.py",
@@ -1309,6 +1329,7 @@ def main():
     )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
+        output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
         output.write("utility_result_desktop_only=" + str(utility_result_desktop).lower() + "\n")
         output.write("proximity_desktop_only=" + str(proximity_desktop).lower() + "\n")
@@ -1372,6 +1393,7 @@ def main():
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
             or utility_result_desktop or runtime_entry or result_handoff_desktop
+            or desktop_structure_focus
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

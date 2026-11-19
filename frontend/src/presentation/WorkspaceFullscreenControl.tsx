@@ -1,4 +1,9 @@
-import { FullscreenExitOutlined, FullscreenOutlined } from "@ant-design/icons";
+import {
+  ColumnWidthOutlined,
+  FullscreenExitOutlined,
+  FullscreenOutlined,
+  LayoutOutlined,
+} from "@ant-design/icons";
 import { useRef } from "react";
 import type { Language } from "../types";
 import { useWorkspaceFullscreen } from "./useWorkspaceFullscreen";
@@ -7,9 +12,11 @@ import "./workspace-fullscreen.css";
 export function WorkspaceFullscreenControl({
   language,
   compact = false,
+  structureFocus = false,
 }: {
   language: Language;
   compact?: boolean;
+  structureFocus?: boolean;
 }) {
   const anchor = useRef<HTMLButtonElement>(null);
   const zh = language === "zh";
@@ -28,10 +35,30 @@ export function WorkspaceFullscreenControl({
       : zh
         ? "展开结构视图"
         : "Expand structure view";
+  const focusLabel = fullscreen.focused
+    ? zh
+      ? "显示分析面板"
+      : "Show analysis panel"
+    : zh
+      ? "专注结构"
+      : "Focus structure";
   return (
     <>
+      {structureFocus && fullscreen.canFocus && (
+        <button
+          type="button"
+          className="workspace-structure-focus"
+          aria-label={focusLabel}
+          aria-pressed={fullscreen.focused}
+          onClick={fullscreen.toggleFocus}
+        >
+          {fullscreen.focused ? <LayoutOutlined /> : <ColumnWidthOutlined />}
+          <span>{focusLabel}</span>
+        </button>
+      )}
       <button
         ref={anchor}
+        data-workspace-expand
         type="button"
         className={compact ? undefined : "text-button"}
         aria-label={label}

@@ -28,6 +28,98 @@ def restored_workspace():
     return settings, store, ExamplePins(store, settings.state_dir, modules=MODULES)
 
 
+@pytest.mark.parametrize(
+    ("capability", "language", "width", "height"),
+    [("gnina.dock", "en", 1280, 720), ("p2rank.detect", "zh", 1600, 900)],
+)
+def test_desktop_structure_focus_uses_the_same_scene(
+    restored_workspace, capability, language, width, height
+):
+    settings, store, pins = restored_workspace
+    pin = pins.get(capability, verify=True)
+    assert pin
+    zh = language == "zh"
+    evidence = Path("outputs/workspace-fullscreen/focus") / language / capability
+    evidence.mkdir(parents=True, exist_ok=True)
+    before = {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)}
+    with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
+        browser = pw.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": width, "height": height}, accept_downloads=True)
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+        writes, errors = [], []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on(
+            "request",
+            lambda request: writes.append(request.url)
+            if request.method not in {"GET", "HEAD", "OPTIONS"} and "/api/" in request.url
+            else None,
+        )
+        page.goto(base + "/#task=" + str(pin.job_id))
+        workspace = page.locator(".structure-workbench").first
+        viewer = workspace.locator(".viewer-panel").first
+        stage = viewer.locator(".molecular-stage")
+        frame = stage.locator("iframe")
+        export = viewer.get_by_role(
+            "button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True
+        )
+        expand = viewer.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True,
+        )
+        focus = viewer.get_by_role("button", name="专注结构" if zh else "Focus structure")
+        restore = viewer.get_by_role(
+            "button", name="显示分析面板" if zh else "Show analysis panel",
+        )
+        details = workspace.locator(":scope > .structure-workbench-details")
+        expect(export).to_be_enabled(timeout=45000)
+        original = frame.element_handle()
+        await_frame = (
+            "() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
+        )
+        expand.click()
+        expect(focus).to_be_visible()
+        page.evaluate(await_frame)
+        split = stage.bounding_box()
+        assert split
+        expected_scroll = details.evaluate("node => (node.scrollTop = 60, node.scrollTop)")
+        focus.click()
+        expect(details).to_be_hidden()
+        expect(restore).to_be_focused()
+        page.evaluate(await_frame)
+        wide = stage.bounding_box()
+        pane = workspace.locator(":scope > .structure-workbench-view").bounding_box()
+        assert wide and pane
+        assert wide["width"] > split["width"] * 1.25
+        assert wide["width"] > pane["width"] * 0.97 and wide["height"] > split["height"]
+        assert wide["y"] + wide["height"] <= pane["y"] + pane["height"] + 1
+        assert stage.evaluate("node => getComputedStyle(node).borderRadius") == "10px"
+        assert frame.evaluate("(node,original) => node === original", original)
+        page.screenshot(path=str(evidence / "focused.png"))
+        output = export_figure(page, export, evidence, "focused-native-figure", language)
+        inspect_png(output)
+        expect(workspace).to_have_attribute("data-workspace-focus", "true")
+        restore.click()
+        expect(details).to_be_visible()
+        assert details.evaluate("node => node.scrollTop") == expected_scroll
+        assert frame.evaluate("(node,original) => node === original", original)
+        focus.click()
+        if not zh:
+            drawing = workspace.get_by_role("tab", name="2D structure", exact=True)
+            drawing.click()
+            expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+            expect(drawing).to_have_attribute("aria-selected", "true")
+            expect(drawing).to_be_focused()
+            workspace.get_by_role("tab", name="3D structure", exact=True).click()
+        else:
+            page.keyboard.press("Escape")
+            expect(expand).to_be_focused()
+        expect(workspace).not_to_have_attribute("data-workspace-focus", "true")
+        assert frame.evaluate("(node,original) => node === original", original)
+        assert not writes and not errors, {"writes": writes, "errors": errors}
+        assert {job.id: job.model_dump(mode="json") for job in store.list_jobs(1000)} == before
+        assert pins.get(capability, verify=True) == pin
+        browser.close()
+
+
 @pytest.mark.parametrize("capability", ["gnina.dock", "p2rank.detect", "posebusters.check"])
 @pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
 def test_native_workspace_keeps_structure_controls_selection_and_downloads(

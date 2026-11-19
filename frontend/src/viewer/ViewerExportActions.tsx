@@ -96,7 +96,7 @@ export function ViewerExportActions({
       >
         <CameraOutlined />
       </button>
-      <WorkspaceFullscreenControl language={language} compact />
+      <WorkspaceFullscreenControl language={language} compact structureFocus />
     </div>
   );
 }

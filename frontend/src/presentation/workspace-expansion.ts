@@ -1,5 +1,11 @@
+import { createStructureFocus } from "./workspace-structure-focus";
+
 /** One presentation session; the original scene and React tree never move. */
-type ExpandedWorkspace = { target: HTMLElement; close(): void };
+type ExpandedWorkspace = {
+  target: HTMLElement;
+  close(): void;
+  focus: ReturnType<typeof createStructureFocus>;
+};
 let current: ExpandedWorkspace | null = null;
 export const expansionChange = "workspace-expansion-change";
 
@@ -31,6 +37,16 @@ function visible(node: HTMLElement) {
 
 export function expandedWorkspace() {
   return current?.target ?? null;
+}
+
+export function canFocusWorkspace(target: HTMLElement | null) {
+  return Boolean(
+    current && current.target === target && current.focus.available,
+  );
+}
+
+export function toggleWorkspaceFocus(target: HTMLElement | null) {
+  if (current && current.target === target) current.focus.toggle();
 }
 
 function outsideBranches(target: HTMLElement) {
@@ -80,6 +96,7 @@ export function toggleWorkspace(
     scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
   const frameDocuments = new Map<HTMLIFrameElement, Document>();
   const frames = new Set<HTMLIFrameElement>();
+  let structureFocus: ExpandedWorkspace["focus"] | undefined;
   let closed = false;
   const choices = () =>
     [...target.querySelectorAll<HTMLElement>(focusable)].filter(
@@ -87,15 +104,24 @@ export function toggleWorkspace(
         visible(node) &&
         (typeof node.checkVisibility !== "function" || node.checkVisibility()),
     );
-  const focus = () =>
-    (trigger.isConnected ? trigger : (choices()[0] ?? target)).focus({
+  function focus(fallback?: Element | null) {
+    const replacement =
+      fallback instanceof HTMLElement &&
+      target.contains(fallback) &&
+      visible(fallback)
+        ? fallback
+        : choices()[0];
+    (visible(trigger) ? trigger : (replacement ?? target)).focus({
       preventScroll: true,
     });
+  }
   function close() {
     if (closed) return;
     closed = true;
+    const activeBeforeClose = document.activeElement;
     current = null;
     observer.disconnect();
+    structureFocus?.dispose();
     document.removeEventListener("keydown", keydown, true);
     document.removeEventListener("focusin", containFocus);
     target.removeEventListener("toggle", nativeToggle);
@@ -119,7 +145,7 @@ export function toggleWorkspace(
       node.scrollLeft = left;
     }
     document.dispatchEvent(new Event(expansionChange));
-    if (visible(target)) focus();
+    if (visible(target)) focus(activeBeforeClose);
     else
       [...document.querySelectorAll<HTMLElement>(focusable)]
         .find(visible)
@@ -230,9 +256,21 @@ export function toggleWorkspace(
       }
     }
   }
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((records) => {
     if (!visible(target)) close();
-    else connectFrame();
+    else {
+      connectFrame();
+      if (records.some((record) => target.contains(record.target))) {
+        const triggers = target.querySelectorAll<HTMLElement>(
+          "[data-workspace-expand]",
+        );
+        if (![...triggers].some(visible)) {
+          close();
+          return;
+        }
+        structureFocus?.refresh();
+      }
+    }
   });
   try {
     target.setAttribute("popover", "manual");
@@ -242,7 +280,15 @@ export function toggleWorkspace(
     target.setAttribute("tabindex", "-1");
     target.dataset.workspaceExpanded = "true";
     target.showPopover();
-    current = { target, close };
+    structureFocus = createStructureFocus(target, () => {
+      if (
+        !structureFocus?.available &&
+        document.activeElement?.classList.contains("workspace-structure-focus")
+      )
+        focus();
+      document.dispatchEvent(new Event(expansionChange));
+    });
+    current = { target, close, focus: structureFocus };
     for (const [node] of inert) node.setAttribute("inert", "");
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
@@ -256,6 +302,7 @@ export function toggleWorkspace(
       attributeFilter: ["hidden", "aria-hidden", "class", "style"],
     });
     connectFrame();
+    structureFocus.refresh();
     document.dispatchEvent(new Event(expansionChange));
     focus();
   } catch (error) {
