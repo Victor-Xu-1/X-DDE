@@ -10,7 +10,10 @@ import {
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { useAssetUpload } from "../operations/useAssetUpload";
-import { ImageMoleculeInput } from "./ImageMoleculeInput";
+import {
+  ImageMoleculeInput,
+  type ImageInputTarget,
+} from "./ImageMoleculeInput";
 import { ImageInputSourceContext } from "./ImageInputSource";
 import {
   editorMoleculeFile,
@@ -59,7 +62,7 @@ export function UtilityImageInput({
   active,
   value,
   onLoaded,
-  query = false,
+  target = "molecule",
   drawing,
   children,
 }: {
@@ -67,13 +70,16 @@ export function UtilityImageInput({
   active: boolean;
   value: string;
   onLoaded(value: UtilityImageValue): void;
-  query?: boolean;
+  target?: ImageInputTarget;
   drawing?: UtilityDrawingOffer | null;
   children: ReactNode;
 }) {
   const source = useRef(new AbortController());
   const scope = useInputActionScope();
   const importAttempt = useRef<AbortController | null>(null);
+  const uploadButton = useRef<HTMLButtonElement>(null);
+  const acceptDrawing = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef<"upload" | "drawing" | null>(null);
   const getSourceSignal = useCallback(() => source.current.signal, []);
   const replaceSource = useCallback(() => {
     source.current.abort();
@@ -110,6 +116,14 @@ export function UtilityImageInput({
     () => () => importAttempt.current?.abort(),
     [active, drawing?.id],
   );
+  useLayoutEffect(() => {
+    if (!active) restoreFocus.current = null;
+    if (!restoreFocus.current || upload.busy || scope?.action) return;
+    const target =
+      restoreFocus.current === "drawing" ? acceptDrawing : uploadButton;
+    restoreFocus.current = null;
+    target.current?.focus();
+  }, [active, drawing, upload.busy, scope?.action]);
   async function importDrawing(offer: UtilityDrawingOffer) {
     if (!active || upload.busy || importAttempt.current) return;
     const finish = scope?.begin("structure-import");
@@ -123,9 +137,10 @@ export function UtilityImageInput({
           signal: attempt.signal,
         })
       ) {
+        restoreFocus.current = "upload";
         setReview(null);
         offer.dismiss(offer.id);
-      }
+      } else if (!attempt.signal.aborted) restoreFocus.current = "drawing";
     } finally {
       if (importAttempt.current === attempt) importAttempt.current = null;
       finish?.();
@@ -135,12 +150,18 @@ export function UtilityImageInput({
   return (
     <ImageInputSourceContext.Provider value={getSourceSignal}>
       <ImageMoleculeInput
-        className={query ? "utility-query-image-entry" : "utility-image-entry"}
+        className={
+          target === "molecule"
+            ? "utility-image-entry"
+            : "utility-screen-image-entry"
+        }
         language={language}
+        target={target}
+        uploadButton={uploadButton}
         enabled={active}
         disabled={upload.busy}
         inputOwner
-        controlsFirst={!query}
+        controlsFirst={target === "molecule"}
         automatic
         cancelOnEdit
         review={review ?? undefined}
@@ -168,6 +189,7 @@ export function UtilityImageInput({
                 : "Drawing from the molecular editor"}
             </span>
             <button
+              ref={acceptDrawing}
               className="secondary-button"
               type="button"
               disabled={!active || upload.busy || Boolean(scope?.action)}
@@ -177,15 +199,20 @@ export function UtilityImageInput({
                 ? zh
                   ? "正在添加…"
                   : "Adding…"
-                : zh
-                  ? "用作输入"
-                  : "Use as input"}
+                : target === "query"
+                  ? zh
+                    ? "用作参照分子"
+                    : "Use as query"
+                  : zh
+                    ? "用作输入"
+                    : "Use as input"}
             </button>
             <button
               className="text-button"
               type="button"
               disabled={!active || upload.busy || Boolean(scope?.action)}
               onClick={() => {
+                restoreFocus.current = "upload";
                 drawing.dismiss(drawing.id);
                 upload.clearError();
               }}

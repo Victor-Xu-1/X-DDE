@@ -162,6 +162,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "aligned_comparison_only=false\n"
         "inline_recognition_only=false\n"
         "editor_drawing_only=false\n"
+        "utility_query_only=false\n"
         "paired_figure_only=false\n"
         "native_color_figure_only=false\n"
         "result_handoff_desktop_only=false\n"
