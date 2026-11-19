@@ -183,7 +183,7 @@ def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(tmp_path, language
             drawing = form.locator('.molecule-image[data-drawing-state="ready"]')
             expect(drawing).to_be_visible(timeout=60000)
             area = work_area(form)
-            assert drawing.bounding_box()["height"] >= height - 310
+            assert drawing.bounding_box()["height"] >= height - 300
             assert area["preview"]["right"] < area["input"]["left"]
             assert area["run"]["bottom"] <= height, area
             expect(draft).to_be_focused()

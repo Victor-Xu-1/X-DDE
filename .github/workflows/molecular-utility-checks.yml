@@ -483,7 +483,7 @@ jobs:
           uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_navigation_browser.py tests/test_molecular_utility_scope.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
-          uv run --locked pytest -q server_tests/test_utility_navigation_browser.py::test_desktop_tools_fit_one_strip_and_keep_a_large_preview
+          uv run --locked python -m pytest -q server_tests/test_utility_navigation_browser.py::test_desktop_tools_fit_one_strip_and_keep_a_large_preview
       - uses: actions/upload-artifact@v4
         if: always()
         with:
