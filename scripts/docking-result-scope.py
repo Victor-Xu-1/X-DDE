@@ -72,7 +72,7 @@ DESKTOP_LAYOUT_BLOBS = {
         "9bc4fda4c8acee01473ed87660892ceba72b3d30", "0e7294e931160f244ced5948c09b5b73087d7d79",
     ),
     "server_tests/test_docking_table_browser.py": (
-        "18f31218adf99d3caeb94af9113dbde71930ea14", "79af029d738d6a5620b59a3528ef209a26b94ce7",
+        "18f31218adf99d3caeb94af9113dbde71930ea14", "54388cd9e6854763656232cdf7b3e489616670be",
     ),
 }
 ALLOWED = REVIEWED_BLOBS.keys() | VERSION_FILES | SCOPE_FILES
