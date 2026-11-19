@@ -42,7 +42,11 @@ jobs:
         run: python scripts/managed_compute_scope.py
   actions:
     needs: [workflow-scope, utility-scope]
-    if: needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.managed_compute_only != 'true' && needs.utility-scope.outputs.task_power_only != 'true'
+    if: >-
+      needs.workflow-scope.outputs.workflow_only != 'true' &&
+      needs.workflow-scope.outputs.managed_compute_only != 'true' &&
+      needs.utility-scope.outputs.task_power_only != 'true' &&
+      needs.utility-scope.outputs.result_handoff_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

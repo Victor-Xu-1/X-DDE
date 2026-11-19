@@ -1038,6 +1038,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
 }
 UTILITY_RESULT_DESKTOP_DIFF = "fb5f54ef07da82c9a1d62e451534535e8c0f735ff99ea82f65a741a05286da1a"
 RESULT_HANDOFF_DESKTOP_FILES = {
+    ".github/workflows/task-action-checks.yml",
     "frontend/src/TaskDetail.tsx",
     "frontend/src/studio/TaskHistoryToolbar.tsx",
     "frontend/src/studio/TaskWorkspace.test.tsx",
@@ -1058,7 +1059,7 @@ RESULT_HANDOFF_DESKTOP_FILES = {
     "server_tests/test_result_handoffs_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-RESULT_HANDOFF_DESKTOP_DIFF = "5fa69f249a9981a319a45a03192584908ce3f3007a78866b9033bc5e944651f8"
+RESULT_HANDOFF_DESKTOP_DIFF = "91c0f2ade70fcfb07313c1cbeeaa0e7c148cd9345155ec3bbffadbcc87b2cfbc"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",

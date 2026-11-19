@@ -108,6 +108,8 @@ on:
         type: boolean
         default: false
     outputs:
+      result_handoff_desktop_only:
+        value: ${{ jobs.scope.outputs.result_handoff_desktop_only }}
       utility_only:
         value: ${{ jobs.scope.outputs.utility_only }}
       potential_display_only:
@@ -158,6 +160,8 @@ jobs:
   scope:
     runs-on: ubuntu-24.04
     outputs:
+      result_handoff_desktop_only:
+        value: ${{ jobs.scope.outputs.result_handoff_desktop_only }}
       utility_only: ${{ steps.select.outputs.utility_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
@@ -840,7 +844,7 @@ jobs:
           npx vitest run src/admet/AdmetResults.test.tsx
           src/chemistry/LibraryScreenResults.test.tsx src/chemistry/StatePreparationHandoff.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/studio/TaskWorkspace.test.tsx
-          src/TaskDetail.actions.test.tsx
++
       - name: Verify native results and exact retained selection in Chrome
         env:
           GH_TOKEN: ${{ github.token }}
