@@ -105,12 +105,17 @@ it.each([false, true])(
   "fits both panels at one scale or retains both if clipping is detected (%s)",
   async (clipped) => {
     const native = setup();
-    let measurements = 0;
     native.context.getImageData.mockImplementation((_x, _y, width, height) => {
       const data = new Uint8ClampedArray(width * height * 4);
-      const left = clipped && measurements === 3 ? 0 : Math.floor(width * 0.33);
-      data[(Math.floor(height * 0.33) * width + left) * 4 + 3] = 255;
-      measurements++;
+      const draw = native.drawn.mock.lastCall!;
+      if (draw.length === 5) {
+        data[
+          (Math.floor(height * 0.33) * width + Math.floor(width * 0.33)) * 4 + 3
+        ] = 255;
+      } else if (clipped && draw[0].index === 3) {
+        // A single translucent edge pixel would disappear from the sampled estimate.
+        data[3] = 1;
+      }
       return { data } as ImageData;
     });
     await comparisonFigure(

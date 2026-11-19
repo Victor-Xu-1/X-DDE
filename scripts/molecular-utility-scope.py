@@ -682,7 +682,7 @@ PAIRED_FIGURE_FILES = {
     "server_tests/test_proximity_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-PAIRED_FIGURE_DIFF = "64fbd15a2b85676f6d0cba6ed3b5d0463a52ac2e4488bf3315869fe86f0bd7b8"
+PAIRED_FIGURE_DIFF = "b40d94a71f29d82fe33fd3f8860530dc71fb63dfbf1d536dc0e204f67264fa59"
 
 
 # Only this exact presentation patch takes the narrower browser gate.

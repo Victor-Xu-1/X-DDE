@@ -11,7 +11,9 @@ export function useStructureFigure(
   onReady?: (handle: StructureFigureHandle | null) => void,
 ) {
   const renderer = useRef(capture);
-  renderer.current = capture;
+  useLayoutEffect(() => {
+    renderer.current = capture;
+  });
   useLayoutEffect(() => {
     if (!onReady || !ready) return;
     let current = true;

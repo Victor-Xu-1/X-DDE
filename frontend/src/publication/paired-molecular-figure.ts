@@ -4,7 +4,11 @@ import {
   type FigureSettings,
 } from "./settings";
 import type { FigurePanel } from "./figure-panels";
-import { foregroundRadius, pairedMagnification } from "./paired-framing";
+import {
+  foregroundRadius,
+  hasClearNativeMargin,
+  pairedMagnification,
+} from "./paired-framing";
 
 function linesFor(
   text: string,
@@ -117,7 +121,7 @@ export async function comparisonFigure(
           if (
             enlarged.every((image) => {
               const bounds = foregroundRadius(image);
-              return bounds !== null && bounds < 0.46;
+              return bounds !== null && hasClearNativeMargin(image);
             })
           ) {
             panels.forEach((image) => image.close());

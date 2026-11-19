@@ -1,10 +1,10 @@
 """Review the archived STAT6 comparison in Chrome without dispatching an engine."""
 
 import hashlib
-import struct
 import json
 import os
 import re
+import struct
 from pathlib import Path
 
 import pytest
@@ -139,9 +139,16 @@ def verify_aligned_pair(page, panel, result, evidence):
         figures.append(hashlib.sha256(figure.read_bytes()).hexdigest())
     assert len(set(figures)) == 2
     combined = panel.get_by_role("button", name="Export comparison ↓", exact=True)
-    png = export_figure(page, combined, evidence, "aligned-pair-print", "en")
-    inspect_png(png)
-    assert struct.unpack(">I", png.read_bytes()[20:24])[0] == 1051
+
+    def double_column(dialog):
+        expect(dialog.get_by_label("Structure size")).to_have_value("auto")
+        dialog.get_by_label("Figure width").select_option("183")
+
+    png = export_figure(
+        page, combined, evidence, "aligned-pair-print", "en", configure=double_column,
+    )
+    inspect_png(png, width=4323)
+    assert struct.unpack(">I", png.read_bytes()[20:24])[0] == 2162
     assert read_camera(a) == pytest.approx(narrow_camera, abs=1e-6)
 
 

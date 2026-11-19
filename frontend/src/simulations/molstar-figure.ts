@@ -24,11 +24,13 @@ export async function molecularFigure(
   const canvas = plugin.canvas3d;
   if (!helper || !canvas) throw new Error("The molecular view is not ready.");
   const bounds = viewport.getBoundingClientRect();
-  const whole = figureDimensions(
-    settings,
-    figureAspect(settings, bounds.width / bounds.height),
-  );
-  const size = panel ? nativeFigurePixels(panel) : whole;
+  const size =
+    panel === undefined
+      ? figureDimensions(
+          settings,
+          figureAspect(settings, bounds.width / bounds.height),
+        )
+      : nativeFigurePixels(panel);
   const pass = helper.imagePass;
   const { multiSample, postprocessing, transparentBackground } = pass.props;
   const image = await plugin.runTask(

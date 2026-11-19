@@ -66,14 +66,16 @@ it.each([
   { dpi: 300 as const, shape: "portrait" as const, width: 1051, height: 1401 },
   {
     dpi: 600 as const,
-    pixels: { width: 1003, height: 981 },
-    width: 1003,
-    height: 981,
+    widthMm: 183 as const,
+    pixels: { width: 2114, height: 2001 },
+    width: 2114,
+    height: 2001,
   },
 ])(
   "renders $dpi dpi at exact print pixels and restores the native camera on failure",
   ({
     dpi,
+    widthMm = 89,
     shape,
     structureScale,
     pixels,
@@ -83,8 +85,8 @@ it.each([
     const element = document.createElement("div");
     element.style.width = "100%";
     vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-      width: 400,
-      height: 300,
+      width: pixels ? 368 : 400,
+      height: pixels ? 576 : 300,
     } as DOMRect);
     let width = 800,
       height = 600;
@@ -126,7 +128,13 @@ it.each([
       captureFigure(
         viewer,
         element,
-        { ...defaultFigure, dpi, shape, structureScale },
+        {
+          ...defaultFigure,
+          dpi,
+          widthMm: widthMm as 89 | 183,
+          shape,
+          structureScale,
+        },
         pixels,
       ),
     ).toThrow("native capture failed");

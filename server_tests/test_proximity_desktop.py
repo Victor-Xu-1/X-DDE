@@ -1,10 +1,10 @@
 """Replay the reviewed native three-assembly archive without launching a model."""
 
 import hashlib
-import struct
 import json
 import os
 import shutil
+import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 

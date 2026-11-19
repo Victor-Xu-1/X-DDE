@@ -49,11 +49,13 @@ export function captureFigure(
     ratio = viewer.getRenderer().devicePixelRatio;
   if (!Number.isFinite(ratio) || ratio <= 0)
     throw new Error("The native canvas is not ready.");
-  const whole = figureDimensions(
-    settings,
-    figureAspect(settings, bounds.width / bounds.height),
-  );
-  const size = panel === undefined ? whole : nativeFigurePixels(panel);
+  const size =
+    panel === undefined
+      ? figureDimensions(
+          settings,
+          figureAspect(settings, bounds.width / bounds.height),
+        )
+      : nativeFigurePixels(panel);
   const previousWidth = element.style.width,
     previousHeight = element.style.height,
     view = viewer.getView();
