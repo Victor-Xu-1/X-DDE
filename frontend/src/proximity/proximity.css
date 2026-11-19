@@ -105,7 +105,7 @@
 .proximity-assembly-preview > .research-tabs > .research-tab-list {
   margin: 0 0 6px;
 }
-.proximity-assembly-preview .molecular-stage {
+.studio-app .proximity-assembly-preview .viewer-panel .molecular-stage {
   border-radius: 8px;
 }
 .studio-app .proximity-results .proximity-assembly-preview .viewer-panel {

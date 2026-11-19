@@ -51,6 +51,7 @@ def inspect_layout(page, frame, width, height):
     assert canvas["width"] >= (575 if width == 1280 else 775)
     assert canvas["height"] >= 500 and (height - canvas["y"]) >= 320
     assert 0 < canvas["y"] < 480 and canvas["x"] + canvas["width"] < details["x"]
+    assert frame.evaluate("node => getComputedStyle(node.parentElement).borderRadius") == "8px"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
 
 
