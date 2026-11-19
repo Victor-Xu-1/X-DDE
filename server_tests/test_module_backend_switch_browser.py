@@ -194,6 +194,35 @@ def verify_utilities(page, base):
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
 
 
+def verify_inline_module_power(page, base):
+    toolbar = page.locator(".task-history-heading")
+    inline = toolbar.get_by_role("group", name="本模块后端开关", exact=True)
+    checked = []
+    for module, engine, width in (("del", "deli", 1280), ("proximity", "deepternary", 1600)):
+        page.set_viewport_size({"width": width, "height": 800})
+        page.goto(f"{base}/#view=results&module={module}")
+        switch = inline.locator(f'[data-engine="{engine}"]').get_by_role("switch")
+        expect(switch).to_be_visible()
+        expect(switch).not_to_be_checked()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        bounds = switch.bounding_box()
+        assert bounds and bounds["x"] + bounds["width"] <= width and bounds["y"] < 240
+        page.screenshot(path=EVIDENCE / f"{module}-power-{width}.png")
+        nav = page.get_by_role("navigation", name="模块工作区")
+        nav.get_by_role("button", name="新建任务", exact=True).click()
+        expect(inline).to_have_count(0)
+        task_switch = controls(page, zh=True).locator(f'[data-engine="{engine}"]')
+        expect(task_switch.get_by_role("switch")).not_to_be_checked()
+        checked.append(module)
+    page.goto(f"{base}/#view=results&module=simulations")
+    expect(toolbar.get_by_role("heading", name="任务结果", exact=True)).to_be_visible()
+    trigger, panel = module_power(page)
+    trigger.click()
+    expect(panel.get_by_role("switch")).to_have_count(3)
+    expect(inline).to_have_count(0)
+    return checked
+
+
 def verify_result_detail(page, base, job_id):
     page.set_viewport_size({"width": 1450, "height": 950})
     page.goto(f"{base}/#task={job_id}")
@@ -238,6 +267,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
+        inline_modules = verify_inline_module_power(page, base)
         verify_result_detail(page, base, fixture.id)
         assert posts == []
         verify_shared_power(page, base)
@@ -250,7 +280,12 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             "/api/runtime-controls/discovery/stop",
         ]
         (EVIDENCE / "coverage.json").write_text(
-            json.dumps({"task_forms": checked, "modules": modules, "posts": posts}, indent=2),
+            json.dumps({
+                "task_forms": checked,
+                "modules": modules,
+                "inline_modules": inline_modules,
+                "posts": posts,
+            }, indent=2),
             encoding="utf-8",
         )
         chromium.close()

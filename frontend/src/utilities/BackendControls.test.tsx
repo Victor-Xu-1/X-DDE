@@ -177,6 +177,11 @@ it("shares one default-off engine across module, sibling tool and global switche
         language="en"
         scope={{ capability: "experimental.evidence" }}
       />
+      <TaskBackendControl
+        language="en"
+        scope={{ capabilities: ["properties", "chemistry.states"] }}
+        placement="module"
+      />
       <BackendControls
         language="en"
         module={{ label: ["分子性质", "Molecular properties"], tools: ["properties"] }}
@@ -184,11 +189,14 @@ it("shares one default-off engine across module, sibling tool and global switche
     </>,
   );
   const toggles = await screen.findAllByRole("switch", { name: "RDKit" });
-  expect(toggles).toHaveLength(3);
+  expect(toggles).toHaveLength(4);
+  const moduleSwitch = within(
+    screen.getByRole("group", { name: "Backend switch for this module" }),
+  ).getByRole("switch");
   toggles.forEach((toggle) => expect(toggle).not.toBeChecked());
   expect(request).toHaveBeenCalledTimes(1);
   expect(api.post).not.toHaveBeenCalled();
-  await user.click(toggles[0]);
+  await user.click(moduleSwitch);
   await waitFor(() => expect(toggles[0]).toBeChecked());
   const trigger = screen.getByRole("button", { name: "Backend controls" });
   expect(trigger).toHaveAccessibleDescription("1 on");
@@ -204,6 +212,40 @@ it("shares one default-off engine across module, sibling tool and global switche
     "/runtime-controls/chemistry/start",
     "/runtime-controls/chemistry/stop",
   ]);
+});
+
+it("keeps multiple module engines in the management panel", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry", "admet.predict": "admet" },
+    engines: [entry, { ...entry, id: "admet", name: "ADMET-AI" }],
+  });
+  render(
+    <>
+      <BackendControls
+        language="en"
+        module={{
+          label: ["性质与安全性", "Properties and safety"],
+          tools: ["properties", "admet.predict"],
+        }}
+      />
+      <TaskBackendControl
+        language="en"
+        scope={{ capabilities: ["properties", "admet.predict"] }}
+        placement="module"
+      />
+    </>,
+  );
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const panel = within(
+    screen.getByRole("region", { name: "Backends in this module" }),
+  );
+  expect(await panel.findByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  expect(panel.getByRole("switch", { name: "ADMET-AI" })).not.toBeChecked();
+  expect(
+    screen.queryByRole("group", { name: "Backend switch for this module" }),
+  ).toBeNull();
+  expect(api.post).not.toHaveBeenCalled();
 });
 
 it("only probes native campaign activity when a matching tool is visible", async () => {

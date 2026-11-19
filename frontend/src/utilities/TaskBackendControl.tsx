@@ -21,16 +21,19 @@ export function TaskBackendControl({
   language: Language;
   scope: BackendControlScope;
   active?: boolean;
-  placement?: "entry" | "followup" | "result" | "example";
+  placement?: "entry" | "followup" | "result" | "example" | "module";
 }) {
+  const moduleSwitch = placement === "module";
   const primaryScope = useContext(PrimaryBackendScope);
   const runtime = useBackendRuntime(
     active,
-    "capability" in scope
-      ? scope.capability
-      : "capabilities" in scope
-        ? scope.capabilities
-        : undefined,
+    moduleSwitch
+      ? undefined
+      : "capability" in scope
+        ? scope.capability
+        : "capabilities" in scope
+          ? scope.capabilities
+          : undefined,
     "operations" in scope && scope.operations.includes("harness"),
   );
   if (!active) return null;
@@ -40,6 +43,8 @@ export function TaskBackendControl({
   const rows = enginesForScope(catalogue, scope).filter(
     (row) => !primaryEngines.some((primary) => primary.id === row.id),
   );
+  // The module toolbar has room for one switch. The header lists all engines.
+  if (moduleSwitch && (rows.length !== 1 || rows[0].id === "harness")) return null;
   if (catalogue && !rows.length) return null;
   const zh = language === "zh";
   const harness = rows.find((row) => row.id === "harness");
@@ -49,7 +54,11 @@ export function TaskBackendControl({
       data-backend-placement={placement}
       data-capability={"capability" in scope ? scope.capability : undefined}
       role="group"
-      aria-label={zh ? "此任务的后端" : "Backend for this task"}
+      aria-label={
+        moduleSwitch
+          ? (zh ? "本模块后端开关" : "Backend switch for this module")
+          : (zh ? "此任务的后端" : "Backend for this task")
+      }
     >
       {rows.map((item) => (
         <RuntimeSwitch
