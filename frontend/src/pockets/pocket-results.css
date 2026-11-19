@@ -94,33 +94,6 @@
   gap: 4px 8px;
   margin: 0;
 }
-@media (961px <= width <= 1360px) {
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar {
-    gap: 10px;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .page-context {
-    min-width: 110px;
-    white-space: normal;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .task-search {
-    flex: 1 1 110px;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .global-search {
-    width: 100%;
-  }
-  .studio-main:has(.task-result-content > .detail-panel > .operation-results > .pocket-result-workspace)
-    .studio-topbar
-    .top-actions {
-    flex: none;
-  }
-}
 .pocket-selection {
   display: grid;
   gap: 8px;

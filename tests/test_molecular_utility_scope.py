@@ -133,6 +133,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "module_power_only=false\n"
         "module_power_changed=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
+        "desktop_header_only=false\n"
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
         "utility_desktop_only=false\n"
@@ -268,6 +269,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
     [
         "BACKEND_PLACEMENT_FILES", "TASK_POWER_FILES", "MODULE_BACKEND_FILES",
         "NATIVE_STATE_FILES", "COMPACT_EXAMPLE_FILES", "MOBILE_HEADER_FILES",
+        "DESKTOP_HEADER_FILES",
         "INITIAL_POSE_POWER_FILES", "MOBILE_VIEWER_FILES", "SPLIT_VIEWER_FILES",
         "MODULE_POWER_FILES",
         "INLINE_MODULE_POWER_FILES",

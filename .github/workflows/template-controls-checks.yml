@@ -38,7 +38,7 @@ jobs:
       scope_only: true
   public-case-controls:
     needs: [prediction-scope, utility-scope]
-    if: needs.prediction-scope.outputs.feature_settings != 'true' && needs.prediction-scope.outputs.task_power_only != 'true' && needs.utility-scope.outputs.compact_example_only != 'true'
+    if: needs.prediction-scope.outputs.feature_settings != 'true' && needs.prediction-scope.outputs.task_power_only != 'true' && needs.utility-scope.outputs.compact_example_only != 'true' && needs.utility-scope.outputs.desktop_header_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

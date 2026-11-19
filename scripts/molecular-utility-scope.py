@@ -680,6 +680,25 @@ MOBILE_HEADER_FILES = {
 }
 MOBILE_HEADER_DIFF = "06dee94bdfc85b11323769a6edf467758ddb245af81ec01f0161673e016ff8f6"
 
+DESKTOP_HEADER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/navigation-shell-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    ".github/workflows/template-controls-checks.yml",
+    ".github/workflows/viewer-checks.yml",
+    "frontend/src/chemistry/states.css",
+    "frontend/src/examples/examples.css",
+    "frontend/src/pockets/pocket-results.css",
+    "frontend/src/presentation/prediction-shell.css",
+    "frontend/src/receptors/receptors.css",
+    "frontend/src/studio/header.css",
+    "server_tests/test_navigation_shell_browser.py",
+    "server_tests/prepare_shell_history.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_HEADER_DIFF = "b0e718054f95337e46ea792c98bf0561de6c475ce96caf984e1897ae15496cf7"
+
 INITIAL_POSE_POWER_FILES = {
     ".github/workflows/molecule-design-review-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
@@ -881,6 +900,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
     )
+    desktop_header = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_HEADER_FILES, DESKTOP_HEADER_DIFF,
+    )
     initial_pose_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         INITIAL_POSE_POWER_FILES, INITIAL_POSE_POWER_DIFF,
@@ -911,6 +934,7 @@ def main():
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
+        output.write("desktop_header_only=" + str(desktop_header).lower() + "\n")
         output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
         output.write("print_labels_only=" + str(print_labels).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
@@ -936,7 +960,8 @@ def main():
         })
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
-            or native_state or compact_example or mobile_header or initial_pose_power
+            or native_state or compact_example or mobile_header or desktop_header
+            or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop
             or selected(changed, event, shared=shared)
         )

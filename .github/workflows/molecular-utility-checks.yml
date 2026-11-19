@@ -107,6 +107,8 @@ on:
         value: ${{ jobs.scope.outputs.compact_example_only }}
       mobile_header_only:
         value: ${{ jobs.scope.outputs.mobile_header_only }}
+      desktop_header_only:
+        value: ${{ jobs.scope.outputs.desktop_header_only }}
       initial_pose_power_only:
         value: ${{ jobs.scope.outputs.initial_pose_power_only }}
       mobile_viewer_only:
@@ -136,6 +138,7 @@ jobs:
       native_state_only: ${{ steps.select.outputs.native_state_only }}
       compact_example_only: ${{ steps.select.outputs.compact_example_only }}
       mobile_header_only: ${{ steps.select.outputs.mobile_header_only }}
+      desktop_header_only: ${{ steps.select.outputs.desktop_header_only }}
       initial_pose_power_only: ${{ steps.select.outputs.initial_pose_power_only }}
       mobile_viewer_only: ${{ steps.select.outputs.mobile_viewer_only }}
       print_labels_only: ${{ steps.select.outputs.print_labels_only }}
@@ -156,6 +159,7 @@ jobs:
       needs.scope.outputs.result_header_only != 'true' && needs.scope.outputs.utility_navigation_only != 'true' &&
       needs.scope.outputs.potential_display_only != 'true' && needs.scope.outputs.native_state_only != 'true' &&
       needs.scope.outputs.compact_example_only != 'true' && needs.scope.outputs.mobile_header_only != 'true' &&
+      needs.scope.outputs.desktop_header_only != 'true' &&
       needs.scope.outputs.initial_pose_power_only != 'true' &&
       needs.scope.outputs.mobile_viewer_only != 'true' && needs.scope.outputs.print_labels_only != 'true' &&
       needs.scope.outputs.utility_desktop_only != 'true'
