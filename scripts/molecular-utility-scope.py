@@ -776,7 +776,7 @@ INLINE_MODULE_POWER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-INLINE_MODULE_POWER_DIFF = "e924a8054bf1bd5ebb7f4ccca0e60aef01be918705939a1de7344e9ba5819807"
+INLINE_MODULE_POWER_DIFF = "43c5e70f0b7e8ef2be169ffacb47265fb2a47a39473242daf0fdf64b5d260301"
 MODULE_POWER_CONSUMERS = (MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES) - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

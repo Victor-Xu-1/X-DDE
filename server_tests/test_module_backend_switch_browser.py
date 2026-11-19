@@ -224,6 +224,7 @@ def verify_inline_module_power(page, base):
 
 
 def verify_inline_switch_lifecycle(page, base):
+    page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(f"{base}/#view=results&module=del")
     inline = page.locator('[data-backend-placement="module"]').get_by_role("switch")
     trigger, panel = module_power(page)
@@ -240,7 +241,7 @@ def verify_inline_switch_lifecycle(page, base):
     expect(menu_switch).to_be_checked()
     trigger.press("Escape")
     nav.get_by_role("button", name="新建任务", exact=True).click()
-    child = controls(page, zh=True).locator('[data-capability="del.analyze"]')
+    child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
     expect(child.get_by_role("switch")).to_be_checked()
     nav.get_by_role("button", name="任务结果", exact=True).click()
     expect(inline).to_be_checked()
