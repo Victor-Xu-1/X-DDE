@@ -971,7 +971,7 @@ MODULE_POWER_ENTRY_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MODULE_POWER_ENTRY_DIFF = "cb479fcdf35fe818746b2520f5ea44d79fd28e285271a5189262c68d21df3056"
+MODULE_POWER_ENTRY_DIFF = "cba28d020f3442cc9a0348bb4d7ad010202a13e8a6b6bdf9c36f388b8ded49ac"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",

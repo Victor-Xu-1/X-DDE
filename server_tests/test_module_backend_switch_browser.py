@@ -317,7 +317,8 @@ def verify_desktop_module_power(page, base, groups):
         width = 1280 if index % 2 == 0 else 1600
         page.set_viewport_size({"width": width, "height": 800})
         page.goto(f"{base}/#view=results&module={module}")
-        expect(page.locator(".task-history-heading [data-backend-placement=module]")).to_have_count(0)
+        duplicate = page.locator(".task-history-heading [data-backend-placement=module]")
+        expect(duplicate).to_have_count(0)
         if len(engines) == 1:
             switch = inline.get_by_role("switch")
             expect(switch).to_be_visible()
@@ -357,7 +358,8 @@ def verify_desktop_module_power(page, base, groups):
 def verify_inline_switch_lifecycle(page, base):
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(f"{base}/#view=results&module=del")
-    inline = page.locator('.studio-topbar .task-backend-control[data-backend-placement="module"]').get_by_role("switch")
+    toolbar = page.locator(".studio-topbar")
+    inline = toolbar.get_by_role("group", name="本模块后端开关").get_by_role("switch")
     trigger, panel = module_power(page)
     menu_switch = panel.locator('[data-engine="deli"]').get_by_role("switch")
     nav = page.get_by_role("navigation", name="模块工作区")
