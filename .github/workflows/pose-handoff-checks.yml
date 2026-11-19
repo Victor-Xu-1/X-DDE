@@ -146,7 +146,13 @@ jobs:
           CHAIN_FOCUS_ONLY: ${{ steps.scope.outputs.chain_focus_only }}
           DOCKING_PRESENTATION_ONLY: ${{ needs.result-scope.outputs.presentation_only }}
           DESKTOP_LAYOUT_ONLY: ${{ needs.result-scope.outputs.desktop_layout_only }}
+          PAIRED_COMPARISON_ONLY: ${{ needs.result-scope.outputs.paired_comparison_only }}
         run: |
+          if [ "$PAIRED_COMPARISON_ONLY" = true ]; then
+            npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx \
+              src/simulations/BoundPoseComparison.test.tsx src/simulations/MolecularViewport.test.tsx
+            exit
+          fi
           if [ "$DESKTOP_LAYOUT_ONLY" = true ]; then
             npx vitest run src/docking/DockingResults.test.tsx src/docking/PoseTable.test.tsx
             exit
@@ -219,6 +225,13 @@ jobs:
           WB_HOME: ${{ runner.temp }}/x-dde-docking-table
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-docking-table/state
         run: uv run --locked python -m pytest -q server_tests/test_docking_table_browser.py
+      - name: Shared FEP comparison with saved views and export
+        if: needs.result-scope.outputs.paired_comparison_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 37797255499 --repo "$GITHUB_REPOSITORY" --name native-simulation-evidence --dir outputs/native-simulations
+          uv run --locked python -m pytest -x -q server_tests/test_simulation_structure_focus.py -k openfe
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -226,3 +239,4 @@ jobs:
           path: |
             outputs/pose-handoff/**
             outputs/docking-table/**
+            outputs/native-simulations/openfe.rbfe/browser/structure-focus/**

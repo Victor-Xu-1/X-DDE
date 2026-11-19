@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import type { Language } from "../types";
 import { FigureExport } from "../publication/FigureExport";
 import { useReveal } from "../presentation/useReveal";
@@ -17,11 +17,15 @@ export function BoundPoseComparison({
   labels,
   language,
   initialMode = "pair",
+  overlayView,
+  poseActions,
 }: {
   sources: StructureSource[];
   labels: readonly [string, string];
   language: Language;
   initialMode?: "pair" | "overlay";
+  overlayView?: ReactNode;
+  poseActions?: readonly [ReactNode, ReactNode];
 }) {
   const zh = language === "zh",
     [mode, setMode] = useState(initialMode);
@@ -106,7 +110,9 @@ export function BoundPoseComparison({
             />
           </>
         )}
-        <WorkspaceFullscreenControl language={language} structureFocus />
+        {(mode === "pair" || !overlayView) && (
+          <WorkspaceFullscreenControl language={language} structureFocus />
+        )}
       </div>
       <div ref={panel}>
         {mode === "pair" ? (
@@ -116,9 +122,12 @@ export function BoundPoseComparison({
                 key={slot}
                 aria-label={`${slot.toUpperCase()} · ${labels[index]}`}
               >
-                <h3>
-                  <span>{slot.toUpperCase()}</span> {labels[index]}
-                </h3>
+                <header className="pose-comparison-panel-heading">
+                  <h3>
+                    <span>{slot.toUpperCase()}</span> {labels[index]}
+                  </h3>
+                  {poseActions?.[index]}
+                </header>
                 <MolecularViewport
                   workspaceControls="hidden"
                   sources={sources}
@@ -134,16 +143,18 @@ export function BoundPoseComparison({
             ))}
           </div>
         ) : (
-          <MolecularViewport
-            workspaceControls="hidden"
-            sources={sources}
-            language={language}
-            initialLigand="all"
-            savedView={saved.current.overlay}
-            onRememberView={(state) => {
-              saved.current.overlay = state;
-            }}
-          />
+          (overlayView ?? (
+            <MolecularViewport
+              workspaceControls="hidden"
+              sources={sources}
+              language={language}
+              initialLigand="all"
+              savedView={saved.current.overlay}
+              onRememberView={(state) => {
+                saved.current.overlay = state;
+              }}
+            />
+          ))
         )}
       </div>
     </section>

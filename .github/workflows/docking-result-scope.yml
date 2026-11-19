@@ -6,6 +6,8 @@ on:
         value: ${{ jobs.scope.outputs.presentation_only }}
       desktop_layout_only:
         value: ${{ jobs.scope.outputs.desktop_layout_only }}
+      paired_comparison_only:
+        value: ${{ jobs.scope.outputs.paired_comparison_only }}
 permissions:
   contents: read
 jobs:
@@ -15,6 +17,7 @@ jobs:
     outputs:
       presentation_only: ${{ steps.paths.outputs.presentation_only }}
       desktop_layout_only: ${{ steps.paths.outputs.desktop_layout_only }}
+      paired_comparison_only: ${{ steps.paths.outputs.paired_comparison_only }}
     steps:
       - uses: actions/checkout@v4
         with:

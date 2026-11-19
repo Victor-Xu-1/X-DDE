@@ -171,7 +171,7 @@ ssh -L 4320:127.0.0.1:4320 USER@SERVER
 
 ### 比较候选结合姿势
 
-在对接结果表勾选两个有效姿势，打开“对比”，再点“三维比较两个姿势”。左侧大视图显示同一任务的原始受体，以及橙色、紫色碳区分的两个姿势；不单独拟合或最小化配体。两个 SDF 可以分别下载，点击姿势名称或“返回单个姿势”可继续检查单个姿势的接触和质量。叠加视图不混合相互作用，也不显示一个共同的对接分数。指标并列对比仍支持最多四条记录；三维叠加需恰好两个有效姿势。
+在对接结果表勾选两个有效姿势，再点「三维比较两个姿势」。默认叠合视图用橙色、紫色碳区分两个姿势。「A / B 并列」可单独查看各自的受体和配体，「匹配视角」将 A 的视角用于 B。「导出比较图」可将两幅视图合成一张 PNG。展开研究工作区后可选「专注结构」放大画布。两种布局都使用同一任务的原始坐标，可分别下载 SDF，并可返回单个姿势继续查看接触和质控。三维比较需要两个有效姿势，表格指标比较最多支持四条记录。
 
 In a docking result, mark two valid poses, open **Compare**, then choose **Compare two poses in 3D**. The large left viewport retains the original receptor frame; orange and purple carbon distinguish the two native poses. Neither ligand is fitted or minimized. Download either SDF separately, select its name to inspect it, or return to the previously selected single pose. Overlay does not establish a correct binding mode or combine interaction evidence and scores. Metric comparison still supports up to four records; structural overlay requires exactly two valid poses.
 

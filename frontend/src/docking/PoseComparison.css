@@ -11,6 +11,22 @@
   margin-block: 4px;
 }
 
+.pose-comparison .pose-comparison-toolbar {
+  margin-block: 8px;
+}
+
+.pose-comparison .pose-comparison-panels {
+  gap: 12px;
+}
+
+.pose-comparison-panel-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
 .pose-comparison .viewer-panel {
   padding-inline: 0;
 }

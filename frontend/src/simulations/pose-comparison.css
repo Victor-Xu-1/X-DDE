@@ -29,8 +29,16 @@
 .pose-comparison-panels > section {
   min-width: 0;
 }
+.pose-comparison-panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-block-end: 10px;
+}
 .pose-comparison-panels h3 {
-  margin: 0 0 12px;
+  margin: 0;
   overflow-wrap: anywhere;
   font-size: 15px;
 }

@@ -1,6 +1,8 @@
 import { artifactUrl } from "../api";
 import { useLayoutEffect, useRef } from "react";
 import { StructureViewer } from "../viewer/StructureViewer";
+import { BoundPoseComparison } from "../simulations/BoundPoseComparison";
+import type { StructureSource } from "../simulations/molstar-controller";
 import type { Language } from "../types";
 import type { DockingResult, PoseResult } from "./types";
 import "./PoseComparison.css";
@@ -28,9 +30,83 @@ export function PoseComparison({
     heading.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
     heading.current?.focus({ preventScroll: true });
   }, [activation]);
-  if (poses.length !== 2 || poses.some((pose) => !pose.valid || !pose.artifact))
+  const [first, second] = poses;
+  if (
+    poses.length !== 2 ||
+    !first?.valid ||
+    !second?.valid ||
+    !first.artifact ||
+    !second.artifact
+  )
     return null;
   const zh = language === "zh";
+  const label = (pose: PoseResult) =>
+    (zh ? "姿势 " : "Pose ") + (pose.record + 1);
+  const firstUrl = artifactUrl(jobId, first.artifact);
+  const secondUrl = artifactUrl(jobId, second.artifact);
+  const receptor = artifactUrl(jobId, result.receptor_artifact);
+  const labels = [label(first), label(second)] as const;
+  const sources: StructureSource[] = [
+    { url: receptor, format: "pdb", role: "protein" },
+    { url: firstUrl, format: "sdf", role: "ligand", label: labels[0] },
+    { url: secondUrl, format: "sdf", role: "ligand", label: labels[1] },
+  ];
+  const actions = (pose: PoseResult, url: string) => (
+    <div className="pose-comparison-panel-actions">
+      <button
+        type="button"
+        className="text-button"
+        aria-label={zh ? `检查${label(pose)}` : `Inspect ${label(pose)}`}
+        onClick={() => onInspect(pose)}
+      >
+        {zh ? "单独检查" : "Inspect"}
+      </button>
+      <a
+        href={url}
+        download
+        aria-label={
+          zh ? `下载${label(pose)} SDF` : `Download ${label(pose)} SDF`
+        }
+      >
+        SDF ↓
+      </a>
+    </div>
+  );
+  const overlayView = (
+    <>
+      <div className="pose-comparison-sources">
+        {[first, second].map((pose, index) => (
+          <span key={pose.record}>
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => onInspect(pose)}
+            >
+              {labels[index]}
+              {index === 0
+                ? zh
+                  ? " · 橙色碳"
+                  : " · Orange carbon"
+                : zh
+                  ? " · 紫色碳"
+                  : " · Purple carbon"}
+            </button>
+            <a href={sources[index + 1].url} download>
+              {zh ? "下载 SDF" : "Download SDF"}
+            </a>
+          </span>
+        ))}
+      </div>
+      <StructureViewer
+        urls={[receptor, firstUrl, secondUrl]}
+        language={language}
+        sourceSnapshot
+        comparison
+        focusModels={[1, 2]}
+        records={[0, 0, 0]}
+      />
+    </>
+  );
   return (
     <section
       className="pose-comparison"
@@ -48,44 +124,17 @@ export function PoseComparison({
       </div>
       <p className="field-help">
         {zh
-          ? "叠合保留同一受体中的原始姿势。请分别核查各姿势的接触和质控结果。"
-          : "The overlay preserves the original poses in the same receptor frame. Inspect the contacts and quality checks for each pose separately."}
+          ? "两个姿势使用同一受体的原始坐标。"
+          : "Both poses use the original coordinates in the same receptor frame."}
       </p>
-      <div className="pose-comparison-sources">
-        {poses.map((pose, index) => (
-          <span key={pose.record}>
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => onInspect(pose)}
-            >
-              {zh ? "姿势 " : "Pose "}
-              {pose.record + 1}
-              {index === 0
-                ? zh
-                  ? " · 橙色碳"
-                  : " · Orange carbon"
-                : zh
-                  ? " · 紫色碳"
-                  : " · Purple carbon"}
-            </button>{" "}
-            <a href={artifactUrl(jobId, pose.artifact!)} download>
-              {zh ? "下载 SDF" : "Download SDF"}
-            </a>
-          </span>
-        ))}
-      </div>
-      <StructureViewer
-        key={JSON.stringify([jobId, poses.map((pose) => pose.artifact)])}
-        urls={[
-          artifactUrl(jobId, result.receptor_artifact),
-          ...poses.map((pose) => artifactUrl(jobId, pose.artifact!)),
-        ]}
+      <BoundPoseComparison
+        key={JSON.stringify(sources)}
+        sources={sources}
+        labels={labels}
         language={language}
-        sourceSnapshot
-        comparison
-        focusModels={[1, 2]}
-        records={[0, 0, 0]}
+        initialMode="overlay"
+        overlayView={overlayView}
+        poseActions={[actions(first, firstUrl), actions(second, secondUrl)]}
       />
     </section>
   );
