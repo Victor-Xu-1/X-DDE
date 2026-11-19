@@ -173,6 +173,35 @@
 .studio-topbar .has-inline-switch .backend-controls-label {
   display: none;
 }
+.studio-topbar
+  .task-backend-control[data-backend-placement="entry"]
+  .runtime-switch-label
+  > span:first-child:not(.runtime-switch-status) {
+  max-width: clamp(90px, 11vw, 164px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .studio-topbar
+    .task-backend-control[data-backend-placement="entry"]
+    .runtime-switch-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .studio-topbar
+    .task-backend-control[data-backend-placement="entry"]
+    .runtime-switch-setup {
+    display: none;
+  }
+  .studio-topbar .backend-controls.has-inline-switch > .task-backend-control {
+    padding-inline-end: 0;
+    border-inline-end: 0;
+  }
+}
 .studio-topbar .task-backend-control .backend-state-message {
   position: absolute;
   inset-inline-end: 12px;
@@ -205,18 +234,4 @@
   .utility-tabbar:has(> .task-backend-control) > .utility-tabs {
     flex-basis: 100%;
   }
-}
-
-/* An example repeats its task's switch in the preview toolbar.
-   A follow-up can use a different engine and must keep the source control visible. */
-.module-task-picker:has(
-    + .tool-center.is-result [data-backend-placement="example"]
-  )
-  > .task-backend-control,
-.utility-workspace:has(
-    .utility-panel:not([hidden]) [data-backend-placement="example"]
-  )
-  > .utility-tabbar
-  > .task-backend-control {
-  display: none;
 }

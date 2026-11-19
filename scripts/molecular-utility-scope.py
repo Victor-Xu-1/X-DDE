@@ -973,6 +973,24 @@ MODULE_POWER_ENTRY_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 MODULE_POWER_ENTRY_DIFF = "4cfa9adb9f10805473c24b9436d9e3df8d849e3d1d20128138cc3980f4bd80a1"
+PERSISTENT_TASK_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/App.tsx",
+    "frontend/src/studio/ApplicationScope.tsx",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/studio/HomeWorkspace.test.tsx",
+    "frontend/src/studio/HomeWorkspace.tsx",
+    "frontend/src/studio/ModuleTaskPicker.css",
+    "frontend/src/studio/ModuleTaskPicker.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_screening_power_browser.py",
+}
+PERSISTENT_TASK_POWER_DIFF = "64622f0eeadc015df879143fe679f205dd1b24603ea72427d7c368bdd15ee12f"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",
@@ -1417,7 +1435,12 @@ def main():
         RECOGNITION_PANEL_POWER_FILES, RECOGNITION_PANEL_POWER_DIFF,
         scope_pin="RECOGNITION_PANEL_POWER_DIFF",
     ) or bool(changed and set(changed) <= NATIVE_RECOGNITION_POWER_FILES)
-    task_power = reviewed_selected(
+    persistent_task_power = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        PERSISTENT_TASK_POWER_FILES, PERSISTENT_TASK_POWER_DIFF,
+        scope_pin="PERSISTENT_TASK_POWER_DIFF",
+    )
+    task_power = persistent_task_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         TASK_POWER_FILES, TASK_POWER_DIFF,
     )
@@ -1436,7 +1459,7 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_STATE_FILES, BACKEND_STATE_DIFF, scope_pin="BACKEND_STATE_DIFF",
     )
-    module_power = backend_setup or composed_power or reviewed_selected(
+    module_power = persistent_task_power or backend_setup or composed_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,
     ) or reviewed_selected(

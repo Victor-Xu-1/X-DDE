@@ -369,6 +369,7 @@ export function App() {
     <ApplicationScope
       taskServiceAvailable={taskServiceAvailable}
       deployment={deployment}
+      primaryBackendCapability={toolForView(view)}
     >
       <div className="studio-app">
         <Navigation
@@ -552,7 +553,6 @@ export function App() {
             <div hidden={view !== "home"}>
               <ModuleTaskPicker
                 value="predict"
-                active={view === "home"}
                 language={language}
                 onChange={openTool}
               />

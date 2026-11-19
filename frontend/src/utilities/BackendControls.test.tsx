@@ -34,6 +34,66 @@ const entry = {
   enabled: false,
   active: false,
 };
+it("shows only the selected task's engine beside the module menu", async () => {
+  const admet = { ...entry, id: "admet", name: "ADMET", enabled: true };
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry", "admet.predict": "admet" },
+    engines: [entry, admet],
+  });
+  const module = {
+    label: ["性质", "Properties"] as const,
+    tools: ["properties", "admet.predict"] as const,
+  };
+  const { rerender } = render(
+    <BackendControls
+      language="en"
+      module={module}
+      currentCapability="properties"
+    />,
+  );
+  const task = await screen.findByRole("group", {
+    name: "Backend for this task",
+  });
+  expect(within(task).getByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  expect(within(task).queryByRole("switch", { name: "ADMET" })).toBeNull();
+  rerender(
+    <BackendControls
+      language="en"
+      module={module}
+      currentCapability="admet.predict"
+    />,
+  );
+  expect(within(task).getByRole("switch", { name: "ADMET" })).toBeChecked();
+  expect(vi.mocked(api.post)).not.toHaveBeenCalled();
+});
+
+it("keeps an example's additional engine and omits an already visible switch", async () => {
+  const admet = {
+    ...entry,
+    id: "admet",
+    name: "ADMET",
+    operations: ["admet_predict"],
+  };
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [{ ...entry, operations: ["properties"] }, admet],
+  });
+  render(
+    <PrimaryBackendScope.Provider value={{ capability: "properties" }}>
+      <TaskBackendControl
+        language="en"
+        scope={{ operations: ["properties", "admet_predict"] }}
+        placement="example"
+      />
+    </PrimaryBackendScope.Provider>,
+  );
+  expect(
+    await screen.findByRole("switch", { name: "ADMET" }),
+  ).not.toBeChecked();
+  expect(screen.queryByRole("switch", { name: "RDKit" })).toBeNull();
+  expect(vi.mocked(api.post)).not.toHaveBeenCalled();
+});
+
 it("switches DECIMER from a utility without leaving the current tab", async () => {
   const onOpen = vi.fn();
   const user = userEvent.setup();

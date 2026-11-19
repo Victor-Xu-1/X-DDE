@@ -43,16 +43,21 @@ def verify_catalogue(page, base, snapshot):
             continue
         owner = snapshot["capabilities"][key]
         panel = open_capability(page, base, key)
+        expect(panel).to_have_attribute("data-backend-placement", "entry")
+        expect(page.locator(".studio-topbar").locator(panel)).to_be_visible()
         row = panel.locator(f'[data-engine="{owner}"]')
         switch = row.get_by_role("switch")
         expect(switch).to_be_visible()
         expect(switch).not_to_be_checked()
         if owner == "harness":
-            service = panel.locator('[data-engine="native-compute"]').get_by_role("switch")
+            trigger, drawer = module_power(page)
+            trigger.click()
+            service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
             expect(service).to_be_visible()
             expect(service).not_to_be_checked()
             expect(service).to_be_disabled()  # The isolated platform has no native model installed.
-        expect(panel.get_by_role("switch")).to_have_count(2 if owner == "harness" else 1)
+            trigger.press("Escape")
+        expect(panel.get_by_role("switch")).to_have_count(1)
         checked.append(key)
     assert set(checked) == expected
     return checked
@@ -126,7 +131,8 @@ def verify_shared_power(page, base):
     global_panel = page.get_by_role("region", name="后端启停", exact=True)
     global_toggle = global_panel.locator('[data-engine="discovery"]').get_by_role("switch")
     expect(global_toggle).to_be_checked()
-    expect(global_panel.locator('[data-engine="chemistry"]').get_by_role("switch")).not_to_be_checked()
+    chemistry = global_panel.locator('[data-engine="chemistry"]').get_by_role("switch")
+    expect(chemistry).not_to_be_checked()
     page.get_by_role("button", name="返回本模块", exact=True).click()
     expect(local_toggle).to_be_checked()
     page.mouse.click(4, 600)
@@ -347,12 +353,12 @@ def verify_desktop_module_power(page, base, groups):
         assert bounds["x"] + bounds["width"] <= width and bounds["y"] < 280
         nav = page.get_by_role("navigation", name="模块工作区")
         nav.get_by_role("button", name="新建任务", exact=True).click()
-        if len(engines) == 1:
-            expect(inline.get_by_role("switch")).to_be_visible()
-            expect(inline.get_by_role("switch")).not_to_be_checked()
-        else:
-            expect(local_trigger).to_be_visible()
-            expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
+        current = toolbar.locator(controls(page, zh=True)).get_by_role("switch")
+        expect(inline).to_have_count(0)
+        expect(current).to_be_visible()
+        expect(current).not_to_be_checked()
+        expect(local_trigger).to_be_visible()
+        expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
 
 
 def verify_inline_switch_lifecycle(page, base):
@@ -388,11 +394,10 @@ def verify_inline_switch_lifecycle(page, base):
     child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
     expect(child.get_by_role("switch")).to_be_checked()
     page.set_viewport_size({"width": 1280, "height": 800})
-    expect(inline).to_be_checked()
+    expect(inline).to_have_count(0)
     with page.expect_response(f"{root}/stop") as stopped:
         child.get_by_role("switch").click()
     assert stopped.value.ok and stopped.value.json() == {"enabled": False}
-    expect(inline).not_to_be_checked()
     expect(child.get_by_role("switch")).not_to_be_checked()
     nav.get_by_role("button", name="任务结果", exact=True).click()
     expect(inline).not_to_be_checked()

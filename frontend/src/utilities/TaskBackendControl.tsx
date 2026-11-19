@@ -36,7 +36,9 @@ export function TaskBackendControl({
   if (!active) return null;
   const { catalogue, readError } = runtime;
   const primaryEngines =
-    placement === "followup" ? enginesForScope(catalogue, primaryScope) : [];
+    placement === "followup" || placement === "example"
+      ? enginesForScope(catalogue, primaryScope)
+      : [];
   const rows = enginesForScope(catalogue, scope).filter(
     (row) => !primaryEngines.some((primary) => primary.id === row.id),
   );
