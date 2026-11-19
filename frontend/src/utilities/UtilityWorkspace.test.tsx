@@ -105,3 +105,21 @@ it("restarts only the submitted tool while preserving other unfinished work", as
   );
   expect(screen.getByLabelText("Image editing")).toHaveValue("keep drawing");
 });
+
+it("honors every explicit image entry without resetting another tool's draft", async () => {
+  const user = userEvent.setup();
+  const onCreated = vi.fn();
+  const workspace = (request: number) => (
+    <UtilityWorkspace language="en" onCreated={onCreated} imageRequest={request} />
+  );
+  const { rerender } = render(workspace(0));
+  const admet = screen.getByRole("button", { name: "ADMET prediction" });
+  await user.click(admet);
+  await user.type(screen.getByLabelText("ADMET input"), "unfinished");
+  for (const request of [1, 2]) {
+    rerender(workspace(request));
+    expect(screen.getByLabelText("Image editing")).toBeVisible();
+    await user.click(admet);
+    expect(screen.getByLabelText("ADMET input")).toHaveValue("unfinished");
+  }
+});

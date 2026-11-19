@@ -185,7 +185,6 @@ textarea {
   background: var(--info-soft);
 }
 .task-page-grid,
-.guide-grid,
 .model-grid {
   gap: 20px;
 }
@@ -204,7 +203,6 @@ textarea {
 .task-page-list button.selected {
   background: var(--surface-hover);
 }
-.guide-grid .studio-panel p,
 .model-grid .studio-panel p {
   font-size: 14px;
   line-height: 1.7;

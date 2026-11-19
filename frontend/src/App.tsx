@@ -50,6 +50,7 @@ import type { ScientificObject } from "./research/types";
 export function App() {
   const content = useRef<HTMLElement>(null);
   const deployment = useDeployment();
+  const [imageRequest, setImageRequest] = useState(0);
   const [editorObject, setEditorObject] = useState<ScientificObject | null>(
     null,
   );
@@ -372,6 +373,7 @@ export function App() {
                 language={language}
                 jobs={jobs}
                 active={view === "utilities"}
+                imageRequest={imageRequest}
                 onCreated={(next) => {
                   work.confirmJob(next);
                   refresh();
@@ -450,6 +452,10 @@ export function App() {
               <HelpWorkspace
                 language={language}
                 onStart={() => navigate("tools")}
+                onScreenshot={() => {
+                  setImageRequest((value) => value + 1);
+                  navigate("utilities");
+                }}
               />
             )}
             {view !== "deployment" && (
