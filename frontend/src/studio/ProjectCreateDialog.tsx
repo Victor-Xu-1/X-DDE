@@ -22,6 +22,10 @@ export function ProjectCreateDialog({
     dialog.current?.showModal();
     nameInput.current?.focus();
   }, []);
+  function dismiss() {
+    dialog.current?.close();
+    onClose();
+  }
   async function create(e: FormEvent) {
     e.preventDefault();
     if (saving || !name.trim()) return;
@@ -41,8 +45,8 @@ export function ProjectCreateDialog({
       className="project-create-dialog"
       aria-labelledby={id}
       onCancel={(e) => {
-        if (saving) e.preventDefault();
-        else onClose();
+        e.preventDefault();
+        if (!saving) dismiss();
       }}
     >
       <header>
@@ -52,7 +56,7 @@ export function ProjectCreateDialog({
           className="text-button"
           aria-label={zh ? "关闭" : "Close"}
           disabled={saving}
-          onClick={onClose}
+          onClick={dismiss}
         >
           ×
         </button>
@@ -91,7 +95,7 @@ export function ProjectCreateDialog({
             className="secondary-button"
             type="button"
             disabled={saving}
-            onClick={onClose}
+            onClick={dismiss}
           >
             {zh ? "取消" : "Cancel"}
           </button>

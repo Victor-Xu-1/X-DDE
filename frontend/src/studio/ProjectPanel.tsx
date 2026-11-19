@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ArrowRightOutlined,
   FolderOpenOutlined,
   PlusOutlined,
   ExperimentOutlined,
@@ -39,15 +40,26 @@ export function ProjectPanel({
     <section className="project-workspace">
       <header className="project-toolbar">
         <h1 className="sr-only">{zh ? "研究项目" : "Projects"}</h1>
-        <input
-          type="search"
-          aria-label={zh ? "查找项目" : "Search projects"}
-          placeholder={zh ? "查找项目…" : "Search projects…"}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <button
+          type="button"
+          className="text-button project-task-shortcut"
+          onClick={() => onChoose(null)}
+        >
+          <ExperimentOutlined aria-hidden="true" />
+          {zh ? "全部结构预测任务" : "All structure prediction tasks"}
+          <ArrowRightOutlined aria-hidden="true" />
+        </button>
+        {projects.length > 0 && (
+          <input
+            type="search"
+            aria-label={zh ? "查找项目" : "Search projects"}
+            placeholder={zh ? "查找项目…" : "Search projects…"}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        )}
         <button className="primary-button" onClick={() => setCreating(true)}>
-          <PlusOutlined /> {zh ? "新建项目" : "New project"}
+          <PlusOutlined aria-hidden="true" /> {zh ? "新建项目" : "New project"}
         </button>
       </header>
       {createdName && (
@@ -76,23 +88,19 @@ export function ProjectPanel({
         <p role="status">{zh ? "正在读取项目…" : "Loading projects…"}</p>
       )}
       <div className="project-list">
-        <button
-          className={`project-row ${!active ? "active" : ""}`}
-          onClick={() => onChoose(null)}
-        >
-          <ExperimentOutlined /> {zh ? "全部任务" : "All tasks"}
-        </button>
         {visible.map((project) => (
           <button
             className={`project-row ${active === project.id ? "active" : ""}`}
+            aria-current={active === project.id ? true : undefined}
             onClick={() => onChoose(project.id)}
             key={project.id}
           >
-            <FolderOpenOutlined />
-            <span>
+            <FolderOpenOutlined aria-hidden="true" />
+            <span className="project-row-copy">
               <strong>{project.name}</strong>
               {project.description && <small>{project.description}</small>}
             </span>
+            <ArrowRightOutlined className="project-row-arrow" aria-hidden="true" />
           </button>
         ))}
         {!visible.length && (projects.length > 0 || (!error && !loading)) && (
@@ -106,14 +114,6 @@ export function ProjectPanel({
                   ? "还没有研究项目"
                   : "No research projects yet"}
             </p>
-            {!projects.length && (
-              <button
-                className="secondary-button"
-                onClick={() => setCreating(true)}
-              >
-                {zh ? "创建第一个项目" : "Create your first project"}
-              </button>
-            )}
           </div>
         )}
       </div>

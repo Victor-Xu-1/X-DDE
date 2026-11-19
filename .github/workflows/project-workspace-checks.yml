@@ -1,0 +1,43 @@
+name: Desktop project workspace checks
+on:
+  push:
+    paths: &project_paths
+      - "frontend/src/studio/ProjectPanel.tsx"
+      - "frontend/src/studio/ProjectPanel.test.tsx"
+      - "frontend/src/studio/ProjectCreateDialog.tsx"
+      - "frontend/src/studio/projects.css"
+      - "server_tests/test_project_workspace_browser.py"
+      - ".github/workflows/project-workspace-checks.yml"
+  pull_request:
+    paths: *project_paths
+permissions:
+  contents: read
+jobs:
+  projects:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Project creation receipts and filtering
+        working-directory: frontend
+        run: npx vitest run src/studio/ProjectPanel.test.tsx
+      - name: Bilingual desktop project lifecycle in Chrome
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-project-workspace
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check scripts/project-workspace-scope.py server_tests/test_project_workspace_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_project_workspace_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-project-evidence
+          path: outputs/project-workspace
+          if-no-files-found: warn
