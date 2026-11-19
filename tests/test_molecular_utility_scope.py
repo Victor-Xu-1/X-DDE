@@ -135,6 +135,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
+        "utility_desktop_only=false\n"
         "touch_controls_only=false\n"
         "runtime_switch_only=false\nresult_header_only=false\n"
         f"utility_only={str(not mixed).lower()}\n"
@@ -270,6 +271,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "INITIAL_POSE_POWER_FILES", "MOBILE_VIEWER_FILES", "SPLIT_VIEWER_FILES",
         "MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
+        "UTILITY_DESKTOP_FILES",
     ],
 )
 def test_backend_switch_placement_scope_requires_the_exact_reviewed_diff(monkeypatch, key):

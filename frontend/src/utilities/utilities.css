@@ -140,6 +140,9 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
+.utility-tab-compact {
+  display: none;
+}
 .utility-workspace > section[hidden] {
   display: none;
 }
@@ -220,6 +223,35 @@
 .utility-offline p {
   color: var(--muted);
   line-height: 1.7;
+}
+@media (min-width: 1100px) {
+  .studio-app .studio-main.is-utilities > .studio-topbar {
+    min-height: 52px;
+    margin: 10px 20px 4px;
+    padding: 4px 14px;
+    border-radius: 14px;
+  }
+  .studio-app .is-utilities > .studio-content {
+    padding-block: 4px 10px;
+  }
+  .utility-tabbar {
+    gap: 8px;
+    padding-bottom: 5px;
+    margin-bottom: 4px;
+  }
+  .utility-tabs {
+    gap: 4px;
+  }
+  .studio-app .utility-tabs button {
+    min-height: 34px;
+    padding: 5px 7px;
+  }
+  .utility-tab-full {
+    display: none;
+  }
+  .utility-tab-compact {
+    display: inline;
+  }
 }
 @media (max-width: 760px) {
   .utility-tabs {

@@ -123,6 +123,7 @@ jobs:
       utility_only: ${{ steps.select.outputs.utility_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
+      utility_desktop_only: ${{ steps.select.outputs.utility_desktop_only }}
       recognition_power_only: ${{ steps.select.outputs.recognition_power_only }}
       potential_display_only: ${{ steps.select.outputs.potential_display_only }}
       runtime_switch_only: ${{ steps.select.outputs.runtime_switch_only }}
@@ -155,7 +156,8 @@ jobs:
       needs.scope.outputs.potential_display_only != 'true' && needs.scope.outputs.native_state_only != 'true' &&
       needs.scope.outputs.compact_example_only != 'true' && needs.scope.outputs.mobile_header_only != 'true' &&
       needs.scope.outputs.initial_pose_power_only != 'true' &&
-      needs.scope.outputs.mobile_viewer_only != 'true' && needs.scope.outputs.print_labels_only != 'true'
+      needs.scope.outputs.mobile_viewer_only != 'true' && needs.scope.outputs.print_labels_only != 'true' &&
+      needs.scope.outputs.utility_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
@@ -453,6 +455,40 @@ jobs:
         with:
           name: utility-touch-evidence
           path: outputs/utility-image
+
+  utility-desktop:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.utility_desktop_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Tool selection, input persistence and screenshot actions
+        working-directory: frontend
+        run: >-
+          npx vitest run src/utilities/UtilityWorkspace.test.tsx
+          src/utilities/UtilitySinglePage.test.tsx src/utilities/UtilityImageTask.test.tsx
+      - name: Desktop Chrome tool rail and native molecule review
+        run: |
+          uv sync --locked --group dev --group browser
+          export WB_HOME="$RUNNER_TEMP/x-dde-desktop-utility"
+          export WB_STATE_DIR="$WB_HOME/state"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_utility_navigation_browser.py tests/test_molecular_utility_scope.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          uv run --locked pytest -q server_tests/test_utility_navigation_browser.py::test_desktop_tools_fit_one_strip_and_keep_a_large_preview
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: utility-desktop-evidence
+          path: outputs/utility-navigation/
 
   utility-navigation:
     needs: scope

@@ -120,6 +120,79 @@ def work_area(panel):
       };
     }""")
 
+@pytest.mark.parametrize(("language", "width", "height"), [
+    ("en", 1280, 720), ("zh", 1600, 775),
+])
+def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(tmp_path, language, width, height):
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    zh = language == "zh"
+    key = f"desktop-{language}-{width}"
+    with platform(tmp_path / "state", EVIDENCE / f"{key}.log") as base:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch(channel="chrome")
+            page = browser.new_page(viewport={"width": width, "height": height})
+            page.add_init_script(
+                f"localStorage.setItem('opendde-workbench.language', '{language}')"
+            )
+            writes = []
+            page.on(
+                "request",
+                lambda req: writes.append(req.url)
+                if req.method != "GET" and req.url.startswith(f"{base}/api/")
+                else None,
+            )
+            # Only the host allocation is under test here. The installed companion
+            # itself is exercised in the owner browser with its engine switched off.
+            page.route(
+                "**/api/utilities/recognition",
+                lambda route: route.fulfill(json={"available": True}),
+            )
+            page.route("http://127.0.0.1:8940/**", lambda route: route.fulfill(
+                content_type="text/html", body="<main>Editor frame fixture</main>",
+            ))
+            page.goto(f"{base}/#view=utilities")
+            strip = page.locator(".utility-tabs")
+            tabs = strip.get_by_role("button")
+            expect(tabs).to_have_count(6)
+            frame = page.locator(".utility-recognition-frame")
+            expect(frame).to_be_visible()
+            assert frame.bounding_box()["height"] >= height * 0.80
+            for index, tool in enumerate(("admet", "brain", "properties", "screen", "states"), 1):
+                tabs.nth(index).click()
+                expect(tabs.nth(index)).to_have_attribute("aria-pressed", "true")
+                expect(page.locator(".utility-tabbar").get_by_role("switch")).not_to_be_checked()
+                assert strip.evaluate("strip => strip.scrollWidth <= strip.clientWidth + 1")
+                panel = page.locator(f'[data-utility="{tool}"]')
+                expect(panel.locator(".single-page-main")).to_be_visible()
+                expect(panel.locator(".example-toolbar")).to_be_visible()
+                page.locator(".is-utilities > .studio-content").evaluate("node => node.scrollTop=0")
+                area = work_area(panel)
+                assert not area["overflow"], area
+                assert area["input"]["top"] <= 220, area
+                assert area["paste"]["bottom"] <= height, area
+                assert area["run"]["bottom"] <= height, area
+            properties = "分子性质" if zh else "Molecular properties"
+            strip.get_by_role("button", name=properties, exact=True).click()
+            form = page.locator('[data-utility="properties"]')
+            source = "粘贴分子结构文字（SMILES）" if zh else "Paste molecular structure text (SMILES)"
+            form.get_by_role("radio", name=source, exact=True).check()
+            draft = form.get_by_role("textbox", name="SMILES", exact=True)
+            draft.fill(DRAFT)
+            drawing = form.locator('.molecule-image[data-drawing-state="ready"]')
+            expect(drawing).to_be_visible(timeout=60000)
+            area = work_area(form)
+            assert drawing.bounding_box()["height"] >= height - 295
+            assert area["preview"]["right"] < area["input"]["left"]
+            assert area["run"]["bottom"] <= height, area
+            expect(draft).to_be_focused()
+            expect(draft).to_have_value(DRAFT)
+            page.screenshot(path=EVIDENCE / f"{key}-preview.png")
+            tabs.nth(1).click()
+            strip.get_by_role("button", name=properties, exact=True).click()
+            expect(draft).to_have_value(DRAFT)
+            assert not writes
+            browser.close()
+
 
 @pytest.mark.parametrize(("language", "width", "height"), [
     ("en", 1110, 580), ("en", 320, 568), ("zh", 390, 775),
