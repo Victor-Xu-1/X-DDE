@@ -75,6 +75,9 @@ it.each<Language>(["en", "zh"])(
     const submit = vi.spyOn(api, "post");
     const zh = language === "zh";
     render(<ProximityResults job={job} result={result} language={language} />);
+    const preview = screen.getByRole("region", {
+      name: zh ? "完整装配预览" : "Complete assembly preview",
+    });
     fireEvent.click(
       screen.getByRole("tab", {
         name: zh ? "分子三维" : "Molecule 3D",
@@ -89,6 +92,18 @@ it.each<Language>(["en", "zh"])(
         fireEvent.click(
           screen.getByText(zh ? "装配 2" : "Assembly 2", { exact: true }),
         );
+      // The next selection keeps the current view and mounts only its viewer.
+      expect(preview.querySelectorAll("iframe")).toHaveLength(
+        number === 1 ? 2 : 1,
+      );
+      expect(
+        screen.getByRole("link", {
+          name: zh ? "PDB · 下载完整复合物" : "PDB · Download complete complex",
+        }),
+      ).toHaveAttribute(
+        "href",
+        `/api/jobs/${job.id}/download?name=assembly-00${number}.pdb`,
+      );
       const frame = within(panel()).getByTitle(
         zh ? "可交互分子结构" : "Interactive molecular structure",
       ) as HTMLIFrameElement;
@@ -115,9 +130,7 @@ it.each<Language>(["en", "zh"])(
       ).toHaveAttribute("href", load.urls[0]);
       expect(
         screen.getByText(
-          zh
-            ? "诊断结构 · 几何检查未全部通过"
-            : "Diagnostic structure · geometry checks incomplete",
+          zh ? "诊断结构 · 几何待复核" : "Diagnostic · Review geometry",
         ),
       ).toBeVisible();
       post.mockRestore();

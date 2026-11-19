@@ -1,13 +1,9 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useMemo, useState } from "react";
-import { artifactUrl } from "../api";
 import {
   ResearchTable,
   type ResearchColumn,
 } from "../presentation/ResearchTable";
-import { StructureViewer } from "../viewer/StructureViewer";
-import { MoleculeImage } from "../presentation/MoleculeImage";
-import { ResearchTabs } from "../presentation/ResearchTabs";
 import { AssemblyQualityView, assemblyClashes } from "./Quality";
 import {
   mechanismLabels,
@@ -15,8 +11,20 @@ import {
   type TernaryResult,
 } from "./types";
 import type { Job, Language } from "../types";
-import "./proximity.css";
+import { ResultsPreview } from "./ResultsPreview";
 import { AttachmentDirections } from "./AttachmentDirections";
+import "./proximity.css";
+
+function assemblyLabel(id: string, zh: boolean, selected = false) {
+  const label = zh
+    ? selected
+      ? "当前装配"
+      : "装配"
+    : selected
+      ? "Selected assembly"
+      : "Assembly";
+  return label + " " + Number(id.split("-")[1]);
+}
 
 export function ProximityResults({
   job,
@@ -33,24 +41,25 @@ export function ProximityResults({
     rows.find((r) => r.quality.accepted)?.id ?? rows[0]?.id ?? "",
   );
   const active = rows.find((r) => r.id === selected) ?? rows[0];
+  const [view, setView] = useState("assembly");
+  const [bond, setBond] = useState<string | null>();
+  const attachments =
+    result.attachment_geometry?.assemblies.find((row) => row.id === active?.id)
+      ?.bonds ?? [];
+  const activeView =
+    view === "attachments" && !attachments.length ? "assembly" : view;
+  const selectedBond =
+    bond === undefined && attachments.length > 2
+      ? attachments[0].id
+      : (bond ?? null);
   const qualified = rows.filter((r) => r.quality.accepted).length;
-  const payload: Record<string, unknown> =
-    job.request.operation === "ternary_model" ? job.request.payload : {};
-  const anchorName =
-    payload[
-      result.search.anchor_partner === "b" ? "partner_b_name" : "partner_a_name"
-    ];
   const columns = useMemo<ResearchColumn<AssemblyProposal>[]>(
     () => [
       {
         key: "id",
         label: zh ? "装配" : "Assembly",
         value: (r) => r.id,
-        render: (r) => (
-          <strong>
-            {(zh ? "装配 " : "Assembly ") + Number(r.id.split("-")[1])}
-          </strong>
-        ),
+        render: (r) => <strong>{assemblyLabel(r.id, zh)}</strong>,
       },
       {
         key: "geometry",
@@ -106,9 +115,8 @@ export function ProximityResults({
     ],
     [zh],
   );
-  const url = (name: string) => artifactUrl(job.id, name);
-  return (
-    <div className="proximity-results" lang={language}>
+  const overview = (
+    <section className="proximity-result-overview">
       <div className="proximity-result-heading">
         <h2>
           {mechanismLabels[result.mechanism][zh ? 0 : 1]} ·{" "}
@@ -141,138 +149,45 @@ export function ProximityResults({
             : "The exploration budget was reached. Actual returned assemblies are shown below."}
         </p>
       )}
+    </section>
+  );
+  return (
+    <div className="proximity-results" lang={language}>
       {!active ? (
-        <p role="status">
-          {zh
-            ? "当前预算内没有生成装配。请检查结合姿势与材料后重新设置探索方案。"
-            : "No assembly was generated within this budget. Review the bound poses and materials before another exploration."}
-        </p>
+        <>
+          {overview}
+          <p role="status">
+            {zh
+              ? "当前预算内没有生成装配。请检查结合姿势与材料后重新设置探索方案。"
+              : "No assembly was generated within this budget. Review the bound poses and materials before another exploration."}
+          </p>
+        </>
       ) : (
         <StructureWorkbench
           preview={
-            <section
-              className="proximity-assembly-preview"
-              aria-label={zh ? "完整装配预览" : "Complete assembly preview"}
-            >
-              <ResearchTabs
-                label={zh ? "装配视图" : "Assembly view"}
-                tabs={[
-                  {
-                    id: "assembly",
-                    label: zh ? "完整复合物" : "Complete complex",
-                    content: (
-                      <StructureViewer
-                        sourceSnapshot
-                        initialMode="cartoon"
-                        key={active.id + "-complex"}
-                        urls={[url(active.complex_artifact)]}
-                        molecularSource={{
-                          url: url(active.ligand_artifact),
-                          record: 0,
-                        }}
-                        language={language}
-                      />
-                    ),
-                  },
-                  {
-                    id: "ligand",
-                    label: zh ? "分子三维" : "Molecule 3D",
-                    content: (
-                      <StructureViewer
-                        sourceSnapshot
-                        key={active.id + "-ligand"}
-                        urls={[url(active.ligand_artifact)]}
-                        language={language}
-                      />
-                    ),
-                  },
-                  {
-                    id: "drawing",
-                    label: zh ? "分子二维" : "Molecule 2D",
-                    content: (
-                      <MoleculeImage
-                        label={active.id}
-                        source={{ url: url(active.ligand_artifact), record: 0 }}
-                        language={language}
-                      />
-                    ),
-                  },
-                  ...(result.attachment_geometry?.assemblies.some(
-                    (row) => row.id === active.id && row.bonds.length,
-                  )
-                    ? [
-                        {
-                          id: "attachments",
-                          label: zh ? "连接位点" : "Attachment sites",
-                          content: (
-                            <AttachmentDirections
-                              key={active.id}
-                              job={job}
-                              assembly={active}
-                              result={result}
-                              language={language}
-                            />
-                          ),
-                        },
-                      ]
-                    : []),
-                ]}
-              />
-              <nav
-                className="proximity-downloads"
-                aria-label={zh ? "下载结构" : "Download structures"}
-              >
-                <a href={url(active.complex_artifact)} download>
-                  {zh ? "下载完整复合物" : "Download complete complex"}
-                </a>
-                <a href={url(active.ligand_artifact)} download>
-                  {zh ? "下载分子 SDF" : "Download molecule SDF"}
-                </a>
-              </nav>
-              {!active.quality.accepted && (
-                <span className="proximity-check-fail">
-                  {zh
-                    ? "诊断结构 · 几何检查未全部通过"
-                    : "Diagnostic structure · geometry checks incomplete"}
-                </span>
-              )}
-              <details className="proximity-scope">
-                <summary>
-                  {zh
-                    ? "结构范围与结果说明"
-                    : "Structure scope and interpretation"}
-                </summary>
-                {result.search.anchor_partner && (
-                  <p className="proximity-caption">
-                    {zh ? "固定蛋白：" : "Fixed protein: "}
-                    {typeof anchorName === "string"
-                      ? anchorName
-                      : result.search.anchor_partner.toUpperCase()}
-                    .
-                    {zh
-                      ? "模型排序分数仅用于相同固定端方案内比较。"
-                      : " Compare model ranking scores within the same fixed-partner protocol."}
-                  </p>
-                )}
-                <p className="proximity-caption">
-                  {zh
-                    ? "链 A：伙伴 1 · 链 B：伙伴 2 · 链 L：完整分子"
-                    : "Chain A: partner 1 · Chain B: partner 2 · Chain L: complete molecule"}
-                </p>
-                <p className="proximity-caption">
-                  {zh
-                    ? "本次只建模两个核心蛋白链与完整分子；其他亚基和辅因子需要另行评估。"
-                    : "This models two principal protein chains and the complete molecule. Accessory subunits and cofactors require separate assessment."}
-                </p>
-                <p className="proximity-caption">
-                  {zh
-                    ? "三元装配不证明降解、协同性、效应抑制或细胞活性。"
-                    : "A ternary assembly does not establish degradation, cooperativity, effector inhibition or cellular activity."}
-                </p>
-              </details>
-            </section>
+            <ResultsPreview
+              job={job}
+              result={result}
+              assembly={active}
+              label={assemblyLabel(active.id, zh, true)}
+              language={language}
+              view={activeView}
+              onView={setView}
+              attachments={attachments}
+              selectedBond={selectedBond}
+            />
           }
         >
+          {activeView === "attachments" ? (
+            <AttachmentDirections
+              rows={attachments}
+              selected={selectedBond}
+              onSelect={setBond}
+              language={language}
+            />
+          ) : (
+            overview
+          )}
           <div className="proximity-comparison">
             <ResearchTable
               rows={rows}
@@ -282,14 +197,20 @@ export function ProximityResults({
               title={zh ? "装配比较" : "Compare assemblies"}
               selected={active.id}
               initialVisibleColumns={["id", "geometry", "clashes"]}
-              onSelect={(r) => setSelected(r.id)}
+              onSelect={(r) => {
+                if (r.id === active.id) return;
+                setSelected(r.id);
+                setBond(undefined);
+              }}
               exportName="ternary-assemblies.csv"
             />
-            <AssemblyQualityView
-              assembly={active}
-              mechanism={result.mechanism}
-              language={language}
-            />
+            {activeView !== "attachments" && (
+              <AssemblyQualityView
+                assembly={active}
+                mechanism={result.mechanism}
+                language={language}
+              />
+            )}
           </div>
         </StructureWorkbench>
       )}

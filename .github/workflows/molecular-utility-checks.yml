@@ -147,6 +147,8 @@ on:
         value: ${{ jobs.scope.outputs.candidate_desktop_only }}
       simulation_desktop_only:
         value: ${{ jobs.scope.outputs.simulation_desktop_only }}
+      proximity_desktop_only:
+        value: ${{ jobs.scope.outputs.proximity_desktop_only }}
 permissions:
   contents: read
 jobs:
@@ -165,6 +167,7 @@ jobs:
       history_desktop_only: ${{ steps.select.outputs.history_desktop_only }}
       candidate_desktop_only: ${{ steps.select.outputs.candidate_desktop_only }}
       simulation_desktop_only: ${{ steps.select.outputs.simulation_desktop_only }}
+      proximity_desktop_only: ${{ steps.select.outputs.proximity_desktop_only }}
       recognition_power_only: ${{ steps.select.outputs.recognition_power_only }}
       recognition_entry_only: ${{ steps.select.outputs.recognition_entry_only }}
       potential_display_only: ${{ steps.select.outputs.potential_display_only }}
@@ -210,7 +213,8 @@ jobs:
       needs.scope.outputs.protein_desktop_only != 'true' &&
       needs.scope.outputs.history_desktop_only != 'true' &&
       needs.scope.outputs.candidate_desktop_only != 'true' &&
-      needs.scope.outputs.simulation_desktop_only != 'true'
+      needs.scope.outputs.simulation_desktop_only != 'true' &&
+      needs.scope.outputs.proximity_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
