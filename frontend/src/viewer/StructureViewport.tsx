@@ -44,6 +44,9 @@ import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
 import { useViewerConnection } from "./useViewerConnection";
 import { ViewerExportActions } from "./ViewerExportActions";
+import { figureWithColorKeys } from "../publication/molecular-color-key";
+import { scientificColorKeys } from "./scientific-color-keys";
+import { electricColorBackground } from "./electric-color-scale";
 import { ViewerToolGroup } from "./ViewerToolGroup";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -161,6 +164,7 @@ export function StructureViewport({
     : undefined;
   const sentPotentialRange = useRef<number | undefined>(undefined);
   const [appliedPotentialRange, setAppliedPotentialRange] = useState<number>();
+  const [potentialPainted, setPotentialPainted] = useState(false);
   const optimizationReceiver = useRef(optimization);
   optimizationReceiver.current = optimization;
   const frame = useRef<HTMLIFrameElement>(null),
@@ -373,6 +377,7 @@ export function StructureViewport({
       )
         setAttachmentCount(detail);
       if (type === "surface") setSurface(surfaceSummary(detail));
+      if (type === "potential-surface") setPotentialPainted(detail === true);
       if (type === "potential-range" && isPotentialRange(detail))
         setAppliedPotentialRange(detail);
       if (type === "site-region") setSiteStatus(detail);
@@ -438,6 +443,7 @@ export function StructureViewport({
     setContacts(null);
     setAttachmentCount(0);
     setSurface(null);
+    setPotentialPainted(false);
     setSiteStatus(null);
     setError("");
     setScene(emptyScene);
@@ -531,6 +537,22 @@ export function StructureViewport({
   const displayBusy =
     displayPending ||
     (loaded && requestedPotentialRange !== appliedPotentialRange);
+  const colorKeys =
+    loaded && !comparison
+      ? scientificColorKeys({
+          mode: options.mode,
+          confidence: Boolean(
+            currentConfidence &&
+            options.color === "confidence" &&
+            scene.residues.length &&
+            !overlay,
+          ),
+          hasPotentialMap: Boolean(electrostaticMap),
+          potentialRange: potentialPainted ? appliedPotentialRange : undefined,
+          surface,
+          language,
+        })
+      : [];
   const figureKey = JSON.stringify([
     sceneKey,
     options,
@@ -542,6 +564,11 @@ export function StructureViewport({
     selectedResidues,
     displayRevision,
   ]);
+  const printFigureKey = JSON.stringify([figureKey, colorKeys]);
+  function viewportAspect() {
+    const bounds = frame.current?.getBoundingClientRect();
+    return bounds && bounds.height > 0 ? bounds.width / bounds.height : 1.5;
+  }
   useStructureFigure(
     figureKey,
     loaded && !displayBusy,
@@ -657,14 +684,20 @@ export function StructureViewport({
               ? []
               : urls
           }
-          sourceKey={figureKey}
+          sourceKey={printFigureKey}
           sourceReady={loaded && !displayBusy}
           busy={snapshot.busy}
-          aspect={() => {
-            const bounds = frame.current?.getBoundingClientRect();
-            return bounds ? bounds.width / bounds.height : 1.5;
-          }}
-          render={(settings) => snapshot.figure(send, settings)}
+          aspect={viewportAspect}
+          render={(settings) =>
+            colorKeys.length
+              ? figureWithColorKeys(
+                  settings,
+                  viewportAspect(),
+                  colorKeys,
+                  (value, pixels) => snapshot.figure(send, value, pixels),
+                )
+              : snapshot.figure(send, settings)
+          }
           capture={(scale) => snapshot.begin(send, scale)}
           leading={
             channelGeometry && (
@@ -821,11 +854,15 @@ export function StructureViewport({
         />
         {loaded &&
           options.mode === "surface" &&
+          potentialPainted &&
           appliedPotentialRange !== undefined && (
             <div className="potential-legend" role="status">
               <span>{zh ? "APBS 电势" : "APBS potential"}</span>
               <span>−{appliedPotentialRange}</span>
-              <i aria-hidden="true" />
+              <i
+                aria-hidden="true"
+                style={{ backgroundImage: electricColorBackground }}
+              />
               <span>+{appliedPotentialRange} kBT/e</span>
             </div>
           )}

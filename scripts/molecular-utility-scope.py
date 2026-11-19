@@ -683,6 +683,27 @@ PAIRED_FIGURE_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 PAIRED_FIGURE_DIFF = "b40d94a71f29d82fe33fd3f8860530dc71fb63dfbf1d536dc0e204f67264fa59"
+NATIVE_COLOR_FIGURE_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "frontend/src/publication/molecular-color-key.ts",
+    "frontend/src/publication/FigureExport.test.tsx",
+    "frontend/src/publication/FigurePreview.tsx",
+    "frontend/src/publication/useFigurePreview.ts",
+    "frontend/src/viewer/ConfidenceControls.tsx",
+    "frontend/src/viewer/StructureViewport.tsx",
+    "frontend/src/viewer/SurfaceLegend.tsx",
+    "frontend/src/viewer/electric-color-scale.ts",
+    "frontend/src/viewer/scientific-color-keys.test.ts",
+    "frontend/src/viewer/scientific-color-keys.ts",
+    "frontend/src/viewer/scene.ts",
+    "frontend/src/viewer/style.test.ts",
+    "frontend/src/viewer/viewer.css",
+    "server_tests/test_native_color_key_publication_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+NATIVE_COLOR_FIGURE_DIFF = "5d182f2b996e6ccb36b7436646d677a27f2acc296d18fbc366ffc27f830a5a5e"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1585,6 +1606,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PAIRED_FIGURE_FILES, PAIRED_FIGURE_DIFF, scope_pin="PAIRED_FIGURE_DIFF",
     )
+    native_color_figure = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        NATIVE_COLOR_FIGURE_FILES, NATIVE_COLOR_FIGURE_DIFF,
+        scope_pin="NATIVE_COLOR_FIGURE_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         aligned_comparison = aligned_comparison_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
@@ -1593,6 +1619,7 @@ def main():
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
+        output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
@@ -1664,6 +1691,7 @@ def main():
             or inline_recognition
             or editor_drawing
             or paired_figure
+            or native_color_figure
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

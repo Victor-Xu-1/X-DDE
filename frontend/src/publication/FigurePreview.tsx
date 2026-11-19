@@ -81,13 +81,17 @@ export function FigurePreview({
       {state.error && (
         <div role="alert">
           <p>
-            {state.layoutError
+            {state.layoutError === "height"
               ? zh
-                ? "当前分子无法在所选宽度内清晰排布，请选择双栏（183 mm）或较小字号。"
-                : "This structure needs more space. Choose double column (183 mm) or a smaller printed type size."
-              : zh
-                ? "预览未能生成，请降低清晰度或重试。"
-                : "Preview could not be prepared. Reduce resolution or try again."}
+                ? "当前版面太矮，无法同时容纳结构与色标。请选择 1:1 或 3:4。"
+                : "This layout is too short for the structure and color key. Choose 1:1 or 3:4."
+              : state.layoutError === "width"
+                ? zh
+                  ? "当前分子无法在所选宽度内清晰排布，请选择双栏（183 mm）或较小字号。"
+                  : "This structure needs more space. Choose double column (183 mm) or a smaller printed type size."
+                : zh
+                  ? "预览未能生成，请降低清晰度或重试。"
+                  : "Preview could not be prepared. Reduce resolution or try again."}
           </p>
           <button
             type="button"

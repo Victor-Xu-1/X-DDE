@@ -34,7 +34,7 @@ export function useFigurePreview({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [failure, setFailure] = useState<{
       key: string;
-      layout: boolean;
+      layout?: "width" | "height";
     } | null>(null),
     [attempt, setAttempt] = useState(0);
   const session = useRef<FigureRenderQueue | null>(null);
@@ -78,11 +78,14 @@ export function useFigurePreview({
         .catch((cause: unknown) => {
           if (!controller.signal.aborted) {
             console.warn("Native figure preview unavailable.", cause);
-            setFailure({
-              key,
-              layout:
-                cause instanceof Error && cause.name === "MolecularLayoutError",
-            });
+            const name = cause instanceof Error ? cause.name : "";
+            const layout =
+              name === "MolecularColorKeyLayoutError"
+                ? "height"
+                : name === "MolecularLayoutError"
+                  ? "width"
+                  : undefined;
+            setFailure({ key, layout });
           }
         });
     }, 180);
@@ -97,7 +100,7 @@ export function useFigurePreview({
   return {
     preview: current,
     error,
-    layoutError: Boolean(error && failure?.layout),
+    layoutError: error ? failure?.layout : undefined,
     ready: !!current?.decoded && !error,
     decoded: (readyId: number) =>
       setPreview((value) =>
@@ -108,7 +111,7 @@ export function useFigurePreview({
       console.warn("Native figure preview could not be decoded.");
       activeId.current = null;
       setPreview(null);
-      setFailure({ key, layout: false });
+      setFailure({ key });
     },
     retry: () => setAttempt((value) => value + 1),
   };
