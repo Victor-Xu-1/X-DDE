@@ -1,6 +1,11 @@
 import { expect, it, vi } from "vitest";
 import type { AtomSpec, GLViewer, XYZ } from "3dmol";
-import { currentLigandAspect, fitStandaloneLigand } from "./ligand-framing";
+import {
+  currentLigandAspect,
+  fitStandaloneLigand,
+  LigandFraming,
+} from "./ligand-framing";
+import { resizeZoomFactor } from "./camera-resize";
 
 const stick = { stick: {} };
 function scene(atoms: AtomSpec[], width = 600, height = 400) {
@@ -68,4 +73,28 @@ it("restores the snapshot if a perspective correction cannot fit the visible ato
   expect(fitStandaloneLigand(native)).toBeUndefined();
   expect(viewer.zoom).toHaveBeenCalledTimes(2);
   expect(viewer.setView).toHaveBeenCalledExactlyOnceWith(view);
+});
+
+it("re-anchors the aspect after an orbit and keeps it stable through resize and zoom", () => {
+  const { native, viewer, view } = scene([
+    { x: -35, y: -105, z: 0, style: stick },
+    { x: 35, y: 105, z: 0, style: stick },
+  ]);
+  const framing = new LigandFraming(native);
+  expect(framing.fit()).toBe(true);
+  expect(framing.resizeAspect()).toBeCloseTo(1 / 3);
+  view[6] = view[7] = Math.SQRT1_2;
+  viewer.modelToScreen.mockReturnValueOnce([
+    { x: 205, y: 255 },
+    { x: 415, y: 185 },
+  ]);
+  const before = { width: 630, height: 420 };
+  const after = { width: 462, height: 420 };
+  const forward = resizeZoomFactor(before, after, framing.resizeAspect());
+  expect(forward).toBeCloseTo(462 / 630);
+  view[3] -= 15;
+  expect(framing.resizeAspect()).toBeCloseTo(3);
+  expect(
+    forward * resizeZoomFactor(after, before, framing.resizeAspect()),
+  ).toBeCloseTo(1);
 });

@@ -236,24 +236,13 @@ def rendered_footprint(image):
 
 
 def native_camera(frame):
-    return frame.evaluate("""frame => new Promise((resolve, reject) => {
-      const id = crypto.randomUUID();
-      const timeout = setTimeout(() => {
-        window.removeEventListener('message', receive);
-        reject(new Error('Native camera response timed out'));
-      }, 5000);
-      function receive(event) {
-        if (event.source !== frame.contentWindow || event.data?.type !== 'camera' ||
-            event.data.detail?.id !== id) return;
-        clearTimeout(timeout);
-        window.removeEventListener('message', receive);
-        const {camera, viewport} = event.data.detail;
-        resolve({camera, viewport});
-      }
-      requestAnimationFrame(() => requestAnimationFrame(() =>
-        frame.contentWindow.postMessage(
-          {channel: 'opendde-viewer', type: 'camera-read', value: id}, location.origin)));
-    })""")
+    return frame.evaluate("""async frame => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const molecule = frame.contentDocument.querySelector('#molecule');
+      const {width, height} = molecule.getBoundingClientRect();
+      return {camera: molecule.querySelector('canvas')._3dmol_viewer.getView(),
+              viewport: {width, height}};
+    }""")
 
 
 def verify_ligand_camera_actions(page, inspector, frame, evidence):
@@ -283,6 +272,14 @@ def verify_ligand_camera_actions(page, inspector, frame, evidence):
     page.mouse.up()
     rotated = native_camera(frame)
     assert rotated["camera"][4:] != fitted["camera"][4:]
+    page.set_viewport_size({"width": 1180, "height": 880})
+    narrowed = native_camera(frame)
+    assert narrowed["viewport"]["width"] < rotated["viewport"]["width"]
+    assert narrowed["camera"][4:] == rotated["camera"][4:]
+    left, top, right, bottom = rendered_footprint(frame.content_frame.locator("#molecule canvas"))
+    assert 0.04 < left < right < 0.96 and 0.04 < top < bottom < 0.96
+    page.set_viewport_size({"width": 1400, "height": 880})
+    assert native_camera(frame)["camera"] == pytest.approx(rotated["camera"], abs=1e-6)
 
     inspector.get_by_role("button", name="Export figure ↓", exact=True).click()
     dialog = page.get_by_role("dialog", name="Export research figure")
@@ -299,7 +296,7 @@ def verify_ligand_camera_actions(page, inspector, frame, evidence):
     path = evidence / "portrait-300dpi.png"
     receipt.value.save_as(path)
     assert unpack(">II", path.read_bytes()[16:24]) == (1051, 1401)
-    assert native_camera(frame) == rotated
+    assert native_camera(frame)["camera"] == pytest.approx(rotated["camera"], abs=1e-6)
 
 
 def test_reviewed_property_poses_open_without_new_calculation(tmp_path, monkeypatch):

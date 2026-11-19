@@ -68,3 +68,28 @@ export function fitStandaloneLigand(viewer: GLViewer) {
   // Avoid a degenerate aspect for projections that are nearly collinear.
   return projectedAspect(adjusted);
 }
+
+/** Reuse the current angle and center across a resize, even as zoom changes. */
+export class LigandFraming {
+  private fitReference: { key: string; aspect?: number } | undefined;
+
+  constructor(private viewer: GLViewer) {}
+
+  private orientationKey() {
+    const [x, y, z, , ...rotation] = this.viewer.getView();
+    return [x, y, z, ...rotation].join(",");
+  }
+
+  fit() {
+    const aspect = fitStandaloneLigand(this.viewer);
+    this.fitReference = { key: this.orientationKey(), aspect };
+    return aspect !== undefined;
+  }
+
+  resizeAspect() {
+    const key = this.orientationKey();
+    if (this.fitReference?.key !== key)
+      this.fitReference = { key, aspect: currentLigandAspect(this.viewer) };
+    return this.fitReference.aspect;
+  }
+}
