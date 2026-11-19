@@ -27,10 +27,12 @@ export function RuntimeSwitch({
   item,
   language,
   runtime,
+  showName = true,
 }: {
   item: RuntimeEngine;
   language: Language;
   runtime: Runtime;
+  showName?: boolean;
 }) {
   const zh = language === "zh";
   const switching = runtime.busy === item.id;
@@ -44,6 +46,7 @@ export function RuntimeSwitch({
     <BackendPowerSwitch
       id={item.id}
       name={item.name}
+      showName={showName}
       status={
         runtime.readError
           ? zh
@@ -58,6 +61,7 @@ export function RuntimeSwitch({
       enabled={item.enabled}
       disabled={Boolean(runtime.busy) || runtime.readError || !canToggle(item)}
       setup={
+        showName &&
         needsSetup && (
           <a
             className="runtime-switch-setup"
