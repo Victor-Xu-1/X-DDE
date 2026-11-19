@@ -9,6 +9,7 @@ on:
       - "frontend/src/presentation/useWorkspaceFullscreen.ts"
       - "frontend/src/presentation/workspace-expansion.ts"
       - "frontend/src/presentation/workspace-fullscreen.css"
+      - "frontend/src/presentation/workspace-structure-focus.ts"
       - "frontend/src/presentation/ResearchTabs.tsx"
       - "frontend/src/presentation/ResearchTabs.test.tsx"
       - "frontend/src/presentation/research-tabs.css"

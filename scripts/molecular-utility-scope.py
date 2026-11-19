@@ -1097,7 +1097,7 @@ DESKTOP_STRUCTURE_FOCUS_FILES = {
     "server_tests/test_workspace_fullscreen_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_STRUCTURE_FOCUS_DIFF = "18f05e1880583f927845e53cbeefda9cac8b6204bf932f4357739f9b3859c3bf"
+DESKTOP_STRUCTURE_FOCUS_DIFF = "88474b366eef4a88030b9446e5a5511b02ce57a160f300fb3667e923f8723f10"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
