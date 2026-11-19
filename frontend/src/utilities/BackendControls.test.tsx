@@ -94,6 +94,82 @@ it("keeps an example's additional engine and omits an already visible switch", a
   expect(vi.mocked(api.post)).not.toHaveBeenCalled();
 });
 
+it("finds the backend by its task name and keeps the current engine first", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: {
+      properties: "chemistry",
+      "admet.predict": "admet",
+      "admet.brain": "admet",
+      "chemprop.train": "chemprop",
+      "p2rank.detect": "p2rank",
+    },
+    engines: [
+      entry,
+      { ...entry, id: "chemprop", name: "Chemprop" },
+      { ...entry, id: "admet", name: "ADMET-AI" },
+      { ...entry, id: "p2rank", name: "P2Rank" },
+    ],
+  });
+  const user = userEvent.setup();
+  render(
+    <BackendControls
+      language="en"
+      module={{
+        label: ["性质与安全性", "Properties and safety"],
+        tools: ["properties", "admet.predict", "admet.brain", "chemprop.train"],
+      }}
+      currentCapability="admet.predict"
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Backend controls" }));
+  const panel = within(
+    screen.getByRole("region", { name: "Backends in this module" }),
+  );
+  const field = await panel.findByRole("searchbox", {
+    name: "Find a task or backend",
+  });
+  expect(
+    panel
+      .getAllByRole("switch")
+      .map((element) => element.getAttribute("aria-label")),
+  ).toEqual(["ADMET-AI", "RDKit", "Chemprop"]);
+  await user.type(field, "透脑评估");
+  expect(panel.getAllByRole("switch")).toHaveLength(1);
+  expect(panel.getByRole("switch", { name: "ADMET-AI" })).not.toBeChecked();
+  await user.clear(field);
+  await user.type(field, "P2Rank");
+  expect(panel.getByRole("status")).toHaveTextContent("No matching backends");
+  await user.click(panel.getByRole("button", { name: "View all backends" }));
+  const all = within(screen.getByRole("region", { name: "Backend power" }));
+  expect(all.getByRole("searchbox")).toHaveValue("");
+  expect(all.getByRole("switch", { name: "P2Rank" })).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+});
+
+it("reports active tasks even when the recovered engine permission is off", async () => {
+  vi.mocked(request).mockResolvedValue({
+    capabilities: { properties: "chemistry" },
+    engines: [{ ...entry, active: true }],
+  });
+  render(
+    <BackendControls
+      language="en"
+      inlineSingle
+      module={{
+        label: ["分子性质", "Molecular properties"],
+        tools: ["properties"],
+      }}
+    />,
+  );
+  const power = await screen.findByRole("switch", { name: "RDKit" });
+  expect(power).not.toBeChecked();
+  expect(power).toBeDisabled();
+  expect(power).toHaveAccessibleDescription("Task active");
+  expect(
+    screen.getByRole("button", { name: "Backend controls" }),
+  ).toHaveAccessibleDescription("Tasks active");
+});
+
 it("keeps keyboard focus on an engine switch while the server confirms the change", async () => {
   let enabled = false;
   let finish: (result: { enabled: boolean }) => void = () => {};

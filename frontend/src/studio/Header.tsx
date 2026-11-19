@@ -34,6 +34,7 @@ export function Header({
   storageWarning,
   workspace,
   onOpenRecognition,
+  resultOperation,
 }: {
   view: View;
   language: Language;
@@ -42,6 +43,7 @@ export function Header({
   storageWarning: boolean;
   workspace?: ReactNode;
   onOpenRecognition?(): void;
+  resultOperation?: string;
 }) {
   const zh = language === "zh";
   const researchModule = researchModuleForView(view);
@@ -58,6 +60,7 @@ export function Header({
         language={language}
         module={module}
         currentCapability={toolForView(view) ?? undefined}
+        resultOperation={resultOperation}
         inlineSingle={!compact}
         moduleHasRecognition={view === "utilities"}
         onOpenRecognition={onOpenRecognition}

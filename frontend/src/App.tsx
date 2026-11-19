@@ -164,6 +164,13 @@ export function App() {
       ? viewForResults(moduleForKind(kindForJob(job)))
       : requestedView;
   const scopedResults = resultModule(view);
+  const resultOperation =
+    scopedResults &&
+    job &&
+    moduleForKind(kindForJob(job)) === scopedResults &&
+    (!projectId || job.request.project_id === projectId)
+      ? (job.request.operation ?? "predict")
+      : undefined;
   const resultSubmissionPending = Boolean(
     scopedResults && actions.action === "submission",
   );
@@ -389,6 +396,7 @@ export function App() {
             language={language}
             jobs={jobs}
             onJob={showJob}
+            resultOperation={resultOperation}
             storageWarning={storageWarning}
             workspace={
               <ModuleWorkspaceNavigation

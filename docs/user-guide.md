@@ -261,7 +261,11 @@ To embed an existing DECIMER workbench, its HTTP host must explicitly permit onl
 
 On a calculation page, use the current engine's switch at the top right. It stays available when you open the example or view an in-page result. In **Task results**, open **Backend controls** to see all engines for that module. Utilities and follow-up actions show their switches beside the corresponding tool. Workflows show the engines for their selected steps. For structure screenshots, use **DECIMER** beside the image input before or after import. Switches for the same engine stay in sync across pages.
 
+The module panel lists the tasks that share each engine and shows the current task's engine first. In larger lists, search by task name or software name.
+
 在研究模块的「新建任务」「任务结果」和结果详情页，都可从右上角启停后端。桌面端的单引擎模块直接显示开关。多引擎模块和窄屏页面可打开「后端管理」，逐一启停所需引擎。计算任务和后续操作旁也提供对应的开关。工作流会显示所选步骤的引擎。支持截图输入的表单在图片输入旁提供 DECIMER 开关，导入前后均可使用。同一引擎的状态在各页面同步。
+
+「后端管理」会列出各引擎对应的任务，优先显示当前任务的引擎。后端较多时，可按任务名称或软件名称查找。
 
 Engines start off when X-DDE restarts. Turning an engine on permits on-demand execution. Turning it off holds queued tasks until it is enabled again. Finish or cancel active work before switching off its engine. The persistent compute service used by Harness also has a switch and can be stopped when idle.
 

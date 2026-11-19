@@ -10,6 +10,8 @@ export function BackendPowerSwitch({
   pending = false,
   hint,
   setup,
+  context,
+  current,
   onToggle,
 }: {
   id: string;
@@ -21,11 +23,17 @@ export function BackendPowerSwitch({
   pending?: boolean;
   hint?: string;
   setup?: ReactNode;
+  context?: ReactNode;
+  current?: boolean;
   onToggle(): void;
 }) {
   const description = useId();
   return (
-    <div className="compute-switch runtime-switch" data-engine={id}>
+    <div
+      className="compute-switch runtime-switch"
+      data-engine={id}
+      data-current-backend={current || undefined}
+    >
       <span className="runtime-switch-label">
         {showName && <span title={name}>{name}</span>}
         <span className="runtime-switch-status">
@@ -34,6 +42,7 @@ export function BackendPowerSwitch({
           </small>
           {setup}
         </span>
+        {context}
       </span>
       <button
         type="button"
