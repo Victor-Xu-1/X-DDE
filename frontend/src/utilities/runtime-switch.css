@@ -209,6 +209,13 @@
     :is(.compact-search-trigger, .compact-search-close) {
       display: grid;
     }
+    .has-inline-switch .backend-controls-trigger {
+      width: 36px;
+      padding: 0;
+    }
+    .has-inline-switch .backend-controls-label {
+      display: none;
+    }
     .task-search .global-search {
       display: none;
     }

@@ -57,7 +57,8 @@ def verify_catalogue(page, base, snapshot):
             expect(local_service).to_be_disabled()
             title = page.locator(".studio-topbar .page-context-title")
             bounds = title.bounding_box()
-            assert bounds and bounds["height"] <= 30 and bounds["width"] > 85
+            assert bounds and bounds["height"] <= 30 and bounds["width"] > 40
+            assert title.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
             trigger, drawer = module_power(page)
             trigger.click()
             service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
@@ -82,6 +83,10 @@ def verify_narrow_compute_entry(page, base):
     service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
     expect(service).to_be_visible()
     expect(service).not_to_be_checked()
+    expect(drawer.locator("[data-engine]").nth(1)).to_have_attribute(
+        "data-engine", "native-compute",
+    )
+    expect(service).to_be_in_viewport()
     trigger.press("Escape")
 
 

@@ -1027,6 +1027,7 @@ FUNCTION_POWER_FILES = {
     "docs/user-guide.md",
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/BackendPanelList.tsx",
     "frontend/src/utilities/BackendPowerSwitch.tsx",
     "frontend/src/utilities/ImageRecognition.test.tsx",
     "frontend/src/utilities/ImageRecognition.tsx",
@@ -1034,7 +1035,7 @@ FUNCTION_POWER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-FUNCTION_POWER_DIFF = "6da5f032ad2121138d986b61ea793f7bc5706c0e3fce900b236dd633f373b5a7"
+FUNCTION_POWER_DIFF = "4972eca67848df81f53a8bc059c3fa0b2419f681690df585780f894a3773d51b"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
