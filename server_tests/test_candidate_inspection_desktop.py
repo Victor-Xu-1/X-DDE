@@ -91,7 +91,7 @@ def dataset_candidate(page, workbench, frame, ready, root, result, capability, z
         expect(disclosure).not_to_have_attribute("open", "")
         disclosure.locator("summary").press("Enter")
         expect(disclosure.locator(".dataset-candidate-evidence dl")).to_be_visible()
-    selected_name = selected["display_name"] or selected["id"]
+    selected_name = selected.get("display_name") or selected["id"]
     workbench.get_by_role("button", name=selected_name, exact=True).click()
     expect(ready).to_be_enabled(timeout=35000)
     exact_frame(frame, selected, artifact, binding)
