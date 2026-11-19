@@ -1021,7 +1021,7 @@ CONTEXTUAL_BACKEND_PANEL_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-CONTEXTUAL_BACKEND_PANEL_DIFF = "eb282d2de28bd3f364ad4e70bd40b448ba7b8939a9dcdd9b7955afce9eb46fb3"
+CONTEXTUAL_BACKEND_PANEL_DIFF = "c69e42376721875f2b8e9ff766bf0350cefa03d01ce15c55dcb6873372767b06"
 PERSISTENT_TASK_POWER_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

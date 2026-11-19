@@ -207,7 +207,9 @@ export function BackendControls({
         onClick={() => (open ? close() : setPanel("module"))}
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
-        <span className="backend-controls-label">{triggerLabel}</span>
+        <span className="backend-controls-label">
+          {inline ? (zh ? "后端" : "Backends") : triggerLabel}
+        </span>
         {module && (
           <span
             id={statusId}
