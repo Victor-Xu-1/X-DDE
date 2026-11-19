@@ -157,6 +157,7 @@ def test_desktop_tools_fit_one_strip_and_keep_a_large_preview(tmp_path, language
             frame = page.locator(".utility-recognition-frame")
             expect(frame).to_be_visible()
             assert frame.bounding_box()["height"] >= height * 0.80
+            assert frame.evaluate("node => getComputedStyle(node).borderTopLeftRadius") == "10px"
             for index, tool in enumerate(("admet", "brain", "properties", "screen", "states"), 1):
                 tabs.nth(index).click()
                 expect(tabs.nth(index)).to_have_attribute("aria-pressed", "true")

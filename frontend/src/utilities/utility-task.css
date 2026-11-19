@@ -266,6 +266,10 @@
 @media (min-width: 1100px) {
   .utility-task-fields > .utility-image-entry > .questionnaire {
     padding-top: 4px;
+    border-radius: var(--utility-surface-radius);
+  }
+  .molecular-utility .single-page-task .questionnaire-choices label {
+    border-radius: 6px;
   }
   .utility-task-fields > .utility-image-entry >
     .single-page-task:has(.single-page-preview .molecular-input-review) {
@@ -283,7 +287,7 @@
   .single-page-inputs:has(.molecular-input-review) > .single-page-main {
     grid-column: 2;
     grid-row: 1;
-    container-type: inline-size;
+    container: utility-materials / inline-size;
   }
   .single-page-inputs:has(.molecular-input-review) > .single-page-preview {
     grid-column: 1;
@@ -314,7 +318,7 @@
     grid-column: 1 / -1;
   }
 }
-@container (max-width: 430px) {
+@container utility-materials (max-width: 430px) {
   .molecular-utility .single-page-task .single-page-main .questionnaire-choices {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;

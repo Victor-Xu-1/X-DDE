@@ -225,6 +225,12 @@
   line-height: 1.7;
 }
 @media (min-width: 1100px) {
+  .utility-workspace {
+    --utility-surface-radius: 10px;
+  }
+  .utility-recognition-frame {
+    border-radius: var(--utility-surface-radius);
+  }
   .studio-app .studio-main.is-utilities > .studio-topbar {
     min-height: 52px;
     margin: 10px 20px 4px;
