@@ -27,6 +27,7 @@ export function BackendControls({
   const showAll = panel === "all";
   const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const panelClose = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const statusId = useId();
   const capabilities = showAll ? undefined : module?.tools;
@@ -80,6 +81,9 @@ export function BackendControls({
     document.addEventListener("pointerdown", dismissOutside);
     return () => document.removeEventListener("pointerdown", dismissOutside);
   }, [open]);
+  useEffect(() => {
+    if (local && open) panelClose.current?.focus();
+  }, [local, open]);
   function close() {
     setPanel("closed");
     trigger.current?.focus();
@@ -107,6 +111,14 @@ export function BackendControls({
       ref={container}
       className="backend-controls"
       data-backend-placement={placement}
+      onBlur={(event) => {
+        if (
+          open &&
+          event.relatedTarget &&
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setPanel("closed");
+      }}
       onKeyDown={(event) => {
         if (open && event.key === "Escape") {
           event.stopPropagation();
@@ -148,6 +160,7 @@ export function BackendControls({
           <header>
             <strong>{heading}</strong>
             <button
+              ref={panelClose}
               type="button"
               className="text-button"
               aria-label={zh ? "关闭后端面板" : "Close backend panel"}
@@ -156,11 +169,13 @@ export function BackendControls({
               ×
             </button>
           </header>
-          {!local && <p>
-            {zh
-              ? "默认关闭。各任务页共用同一后端状态。"
-              : "Off by default. Tasks that use the same backend share its switch."}
-          </p>}
+          {!local && (
+            <p>
+              {zh
+                ? "默认关闭。各任务页共用同一后端状态。"
+                : "Off by default. Tasks that use the same backend share its switch."}
+            </p>
+          )}
           <BackendStateMessage
             runtime={runtime}
             language={language}

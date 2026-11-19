@@ -245,9 +245,9 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   const trigger = screen.getByRole("button", { name: "Module backends" });
   expect(trigger).toHaveAccessibleDescription("Task engines off");
   await user.click(trigger);
-  const panel = within(
-    screen.getByRole("region", { name: "Backends for these task results" }),
-  );
+  const region = screen.getByRole("region", { name: "Backends for these task results" });
+  const panel = within(region);
+  expect(panel.getByRole("button", { name: "Close backend panel" })).toHaveFocus();
   const chemistry = panel.getByRole("switch", { name: "RDKit" });
   const missing = panel.getByRole("switch", { name: "ADMET-AI" });
   expect(chemistry).not.toBeChecked();
@@ -260,6 +260,7 @@ it("switches one engine at a time in the multi-engine module toolbar", async () 
   expect(trigger).toHaveAccessibleDescription("1 on");
   expect(missing).not.toBeChecked();
   await user.click(taskSwitch);
+  expect(region).not.toBeInTheDocument();
   await waitFor(() => expect(trigger).toHaveAccessibleDescription("Task engines off"));
   expect(vi.mocked(api.post).mock.calls.map(([path]) => path)).toEqual([
     "/runtime-controls/chemistry/start",
