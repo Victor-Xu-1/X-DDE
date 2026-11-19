@@ -1027,6 +1027,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "docs/frontend-layout.md",
     "frontend/src/guided/Questionnaire.tsx",
     "frontend/src/guided/TaskPresentation.tsx",
+    "frontend/src/utilities/UtilityImageTask.test.tsx",
     "frontend/src/utilities/UtilitySinglePage.test.tsx",
     "frontend/src/utilities/UtilityTask.tsx",
     "frontend/src/utilities/UtilityTaskResult.tsx",
@@ -1035,7 +1036,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "server_tests/test_utility_result_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-UTILITY_RESULT_DESKTOP_DIFF = "96d974cf8377105c77aff16a3643e8bd898819a2a5f6f70ac921af37d3831878"
+UTILITY_RESULT_DESKTOP_DIFF = "fb5f54ef07da82c9a1d62e451534535e8c0f735ff99ea82f65a741a05286da1a"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {

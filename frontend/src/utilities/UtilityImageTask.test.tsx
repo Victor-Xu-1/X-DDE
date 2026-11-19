@@ -11,11 +11,14 @@ import { afterEach, expect, it, vi } from "vitest";
 import { UtilityTask } from "./UtilityTask";
 import * as client from "../api";
 import type { Asset } from "../operations/types";
+import type { Job } from "../types";
 import type { ImageMolecule } from "./image-molecule";
 import { StateForm } from "../chemistry/StateForm";
 
 vi.mock("../operations/OperationResults", () => ({
-  OperationResults: () => <StateForm language="en" onCreated={vi.fn()} />,
+  OperationResults: ({ onCreated }: { onCreated(job: Job): void }) => (
+    <StateForm language="en" onCreated={onCreated} />
+  ),
 }));
 
 vi.mock("../examples/ExampleActions", () => ({ ExampleActions: () => null }));
@@ -162,7 +165,7 @@ it("switching away preserves the form draft and rejects a delayed image upload",
   ).toBeDisabled();
 });
 
-it("a follow-up form owns its image without replacing its parent's result", async () => {
+it("keeps a follow-up screenshot and its pending submission separate from the parent result", async () => {
   const next = { ...asset, id: "followup-image", sha256: "b".repeat(64) };
   vi.spyOn(client, "request").mockImplementation(
     async (url) => (String(url).includes(next.id) ? next : asset) as never,
@@ -170,9 +173,10 @@ it("a follow-up form owns its image without replacing its parent's result", asyn
   vi.spyOn(client.api, "upload")
     .mockResolvedValueOnce(asset)
     .mockResolvedValueOnce(next);
+  let finish!: (job: Job) => void;
   const submit = vi
     .spyOn(client.api, "submit")
-    .mockImplementation(
+    .mockImplementationOnce(
       async (request) =>
         ({
           id: "parent-result",
@@ -180,8 +184,17 @@ it("a follow-up form owns its image without replacing its parent's result", asyn
           status: "succeeded",
           error: null,
         }) as never,
+    )
+    .mockImplementationOnce(
+      () =>
+        new Promise<Job>((resolve) => {
+          finish = resolve;
+        }),
     );
-  render(<UtilityTask tool="properties" language="en" onCreated={vi.fn()} />);
+  const accepted = vi.fn();
+  const view = render(
+    <UtilityTask tool="properties" language="en" onCreated={accepted} />,
+  );
   const paste = (target: Element) =>
     fireEvent.paste(target, {
       clipboardData: {
@@ -202,8 +215,34 @@ it("a follow-up form owns its image without replacing its parent's result", asyn
   await userEvent.click(screen.getByText("Finish protocol import"));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(screen.getByRole("region", { name: "Current results" })).toBeVisible();
-  expect(
-    screen.getByRole("button", { name: "Prepare states and conformers" }),
-  ).toBeEnabled();
+  const followup = screen.getByRole("button", {
+    name: "Prepare states and conformers",
+  });
+  expect(followup).toBeEnabled();
   expect(submit).toHaveBeenCalledOnce();
+  await userEvent.click(followup);
+  await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
+  expect(screen.getByRole("button", { name: "New task" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Edit inputs" })).toBeDisabled();
+  view.rerender(
+    <UtilityTask
+      tool="properties"
+      language="en"
+      active={false}
+      onCreated={accepted}
+    />,
+  );
+  await act(async () =>
+    finish({ id: "follow-up", status: "queued", error: null } as Job),
+  );
+  expect(accepted.mock.calls.map(([job]) => job.id)).toEqual([
+    "parent-result",
+    "follow-up",
+  ]);
+  view.rerender(
+    <UtilityTask tool="properties" language="en" active onCreated={accepted} />,
+  );
+  expect(
+    screen.getByRole("link", { name: "Task details & downloads" }),
+  ).toHaveAttribute("href", "/#task=parent-result");
 });
