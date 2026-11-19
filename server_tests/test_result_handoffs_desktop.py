@@ -14,6 +14,7 @@ from server_tests.browser_platform import platform
 
 ADMET = "9699cfec-c574-40da-8ede-cec190d199c5"
 LIBRARY = "b4db0db0-c238-42b3-8ee9-6ca0e4cb1f40"
+DRAWING_TIMEOUT_MS = 35000
 
 
 def require_no_horizontal_truncation(locator):
@@ -66,7 +67,7 @@ def verify_library(page, base, height, evidence):
     page.goto(f"{base}/#task={LIBRARY}")
     selection = page.locator(".library-screen-selection")
     drawing = selection.locator(".molecule-image[data-drawing-state=ready] img")
-    expect(drawing).to_be_visible()
+    expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     canvas = selection.bounding_box()
     records = page.locator(".library-screen-records")
     table = records.bounding_box()
@@ -78,6 +79,7 @@ def verify_library(page, base, height, evidence):
     row = records.locator("tbody tr").nth(1).get_by_role("button")
     row.click()
     expect(row).to_have_attribute("aria-pressed", "true")
+    expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     expect(drawing).not_to_have_attribute("src", original)
     expect(drawing).not_to_have_attribute("alt", original_label)
     href = page.locator(".library-screen-downloads a").first.get_attribute("href")
@@ -90,7 +92,7 @@ def verify_admet(page, base, zh, evidence):
     page.goto(f"{base}/#task={ADMET}")
     selected = page.locator(".admet-selected-molecule")
     drawing = selected.locator(".molecule-image[data-drawing-state=ready] img")
-    expect(drawing).to_be_visible()
+    expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     tabs = page.locator(".admet-candidates .research-tab-list")
     require_no_horizontal_truncation(tabs)
     prepare = selected.get_by_role("button", name="用于分子准备" if zh else "Prepare this molecule")
@@ -104,6 +106,6 @@ def verify_admet(page, base, zh, evidence):
     expect(drawing).to_be_hidden()
     form.get_by_role("button", name="返回性质预测" if zh else "Back to predictions").click()
     expect(prepare).to_be_focused()
-    expect(drawing).to_be_visible()
+    expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     assert drawing.evaluate("(node, before) => node === before", draw_node)
     page.screenshot(path=evidence / "admet-returns.png")

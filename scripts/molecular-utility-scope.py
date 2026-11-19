@@ -1054,7 +1054,7 @@ RESULT_HANDOFF_DESKTOP_FILES = {
     "server_tests/test_result_handoffs_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-RESULT_HANDOFF_DESKTOP_DIFF = "61bc66839e4be37e9ba811ede4432777f83e0dc5d81621694734636813dcd65d"
+RESULT_HANDOFF_DESKTOP_DIFF = "bc9fcc333537b7e39f6690b30d8787a5699ae634a104335e39b471d3f9e572ec"
 RUNTIME_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/App.tsx",
