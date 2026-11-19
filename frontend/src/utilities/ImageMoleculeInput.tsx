@@ -2,7 +2,6 @@ import { useContext, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
-import { RecognitionPowerAccess } from "./RecognitionPowerAccess";
 import type { ImageMolecule } from "./image-molecule";
 import { useImageInputSession } from "./useImageInputSession";
 import "./image-molecule.css";
@@ -50,17 +49,21 @@ export function ImageMoleculeInput({
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDivElement>(null);
-  const [usedRecognition, setUsedRecognition] = useState(false);
+  const [powerFrame, setPowerFrame] = useState<number | null>(null);
   const session = useImageInputSession({
     enabled,
     disabled,
     onMolecule,
     trigger,
-    onImageSelected(editing) {
-      setUsedRecognition(true);
-      onImageSelected?.(editing);
-    },
+    onImageSelected,
   });
+  const retained = session.retained;
+  const image = enabled ? (session.selection ?? retained) : null;
+  const mode = session.selection
+    ? "import"
+    : image && powerFrame === image.token.id
+      ? "power"
+      : "hidden";
   function owns(target: EventTarget) {
     return (
       target instanceof Element &&
@@ -131,11 +134,16 @@ export function ImageMoleculeInput({
             {zh ? "编辑识别的结构" : "Edit recognized structure"}
           </button>
         )}
-        {enabled && usedRecognition && (
-          <RecognitionPowerAccess
-            language={language}
+        {enabled && retained && (
+          <button
+            className="text-button"
+            type="button"
+            aria-haspopup="dialog"
             disabled={session.disabled}
-          />
+            onClick={() => setPowerFrame(retained.token.id)}
+          >
+            {zh ? "识别服务开关" : "Recognition power"}
+          </button>
         )}
       </div>
       <input
@@ -199,19 +207,22 @@ export function ImageMoleculeInput({
       {controlsFirst && controls}
       {children}
       {!controlsFirst && controls}
-      {session.selection &&
+      {image &&
         createPortal(
           <ImageMoleculeDialog
-            key={session.selection.token.id}
-            file={session.selection.file}
+            key={image.token.id}
+            file={image.file}
             language={language}
             disabled={session.disabled}
-            automatic={automatic && !session.selection.initialMolecule}
-            initialMolecule={session.selection.initialMolecule}
-            onClose={() => session.close()}
-            onAccept={(value, source) =>
-              session.accept(session.selection!, value, source)
+            mode={mode}
+            automatic={automatic && !image.initialMolecule}
+            initialMolecule={image.initialMolecule}
+            onClose={(keepFrame) =>
+              mode === "power"
+                ? setPowerFrame(null)
+                : session.dismiss(keepFrame)
             }
+            onAccept={(value, source) => session.accept(image, value, source)}
           />,
           document.body,
         )}

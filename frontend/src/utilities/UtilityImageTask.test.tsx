@@ -37,31 +37,36 @@ vi.mock("./ImageMoleculeDialog", () => ({
   ImageMoleculeDialog: ({
     automatic,
     initialMolecule,
+    mode,
     onAccept,
     onClose,
     file,
   }: {
     automatic: boolean;
     initialMolecule?: ImageMolecule;
+    mode: string;
     file: File;
     onAccept(value: ImageMolecule, file: File): Promise<void>;
     onClose(): void;
-  }) => (
-    <div role="dialog" aria-label="Image import">
-      <span>{automatic ? "Automatic image import" : "Edit current graph"}</span>
-      <button
-        onClick={() =>
-          void onAccept(
-            initialMolecule ?? { smiles: "Nc1ccccc1", molfile: "M  END\n" },
-            file,
-          )
-        }
-      >
-        Finish protocol import
-      </button>
-      <button onClick={onClose}>Cancel import</button>
-    </div>
-  ),
+  }) =>
+    mode === "hidden" ? null : (
+      <div role="dialog" aria-label="Image import">
+        <span>
+          {automatic ? "Automatic image import" : "Edit current graph"}
+        </span>
+        <button
+          onClick={() =>
+            void onAccept(
+              initialMolecule ?? { smiles: "Nc1ccccc1", molfile: "M  END\n" },
+              file,
+            )
+          }
+        >
+          Finish protocol import
+        </button>
+        <button onClick={() => onClose()}>Cancel import</button>
+      </div>
+    ),
 }));
 const asset: Asset = {
   id: "image-input",

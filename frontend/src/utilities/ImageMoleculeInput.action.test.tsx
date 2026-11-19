@@ -28,14 +28,16 @@ vi.mock("./ImageMoleculeDialog", () => ({
   ImageMoleculeDialog: ({
     onClose,
     onAccept,
+    mode,
   }: {
     onClose(): void;
     onAccept: (...args: unknown[]) => Promise<void>;
+    mode: string;
   }) => {
     dialog.accept = onAccept;
-    return (
+    return mode === "hidden" ? null : (
       <div role="dialog">
-        <button onClick={onClose}>Cancel image</button>
+        <button onClick={() => onClose()}>Cancel image</button>
       </div>
     );
   },

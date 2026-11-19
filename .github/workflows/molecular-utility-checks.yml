@@ -21,7 +21,6 @@ on:
       - "frontend/src/operations/AssetPickerSources.ts"
       - "frontend/src/operations/AssetPickerUpload.tsx"
       - "frontend/src/utilities/ImageMoleculeInput*"
-      - "frontend/src/utilities/RecognitionPowerAccess.tsx"
       - "frontend/src/utilities/ImageMoleculeDialog*"
       - "frontend/src/utilities/useImageInputSession*"
       - "frontend/src/admet/**"
@@ -433,7 +432,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/utilities/ImageMoleculeInput.test.tsx
-          src/utilities/ImageMoleculeInput.action.test.tsx src/utilities/ImageRecognition.test.tsx
+          src/utilities/ImageMoleculeInput.action.test.tsx src/utilities/useRecognitionBridge.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/utilities/BackendControls.test.tsx
       - name: Close the recognition service without leaving the current task
         run: |

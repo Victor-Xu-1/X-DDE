@@ -148,6 +148,10 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         power = frame.get_by_role("switch", name="Recognition backend")
         expect(power).to_be_visible()
         expect(power).not_to_be_checked()
+        dialog.locator("iframe").evaluate("(node) => window.initialImageFrame = node")
+        power_sessions = []
+        page.on("framenavigated", lambda frame: power_sessions.append(frame.url)
+                if frame.url.startswith("http://127.0.0.1:8940/") else None)
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
         expect(dialog.get_by_role("button", name="Use this molecule")).to_be_disabled()
         assert not uploads
@@ -182,7 +186,9 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         power_frame = management.frame_locator("iframe")
         power = power_frame.get_by_role("switch", name="Recognition backend")
         expect(power).to_be_checked()
-        expect(power_frame.get_by_label("OCR calls")).to_have_text("0")
+        expect(power_frame.get_by_label("OCR calls")).to_have_text("1")
+        assert management.locator("iframe").evaluate("(node) => window.initialImageFrame === node")
+        assert not power_sessions
         power.click()
         expect(power).not_to_be_checked()
         page.screenshot(path=evidence / "recognition-power-in-task.png")
@@ -215,6 +221,7 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(page.get_by_label("Query input", exact=True)).to_have_text("controlled-image-3")
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
         page.get_by_role("button", name="Toggle active tool").click()
+        expect(page.locator(".image-molecule-dialog iframe")).to_have_count(0)
         page.get_by_role("button", name="Toggle active tool").click()
         expect(page.get_by_label("Primary draft", exact=True)).to_have_value("Keep my draft")
         expect(page.get_by_label("Query draft", exact=True)).to_have_value("Keep query draft")
@@ -226,8 +233,9 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             "scientific_jobs": 0, "uploads": len(uploads), "edited_graph_prefill": True,
             "nested_query_ownership": True, "image_digest_preserved": True,
             "primary_controls_follow_visual_tab_order": True, "inline_format_error": True,
-            "off_on_entry": True, "explicit_enable_and_disable_in_import": True,
+            "off_on_entry": True, "explicit_recognition_enable_and_disable": True,
             "power_panel_retains_input_and_focus": True,
+            "power_panel_reuses_native_frame": True,
             "replacement_source_digest": True,
         }, indent=2))
         browser.close()

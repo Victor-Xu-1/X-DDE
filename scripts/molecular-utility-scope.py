@@ -545,13 +545,17 @@ RECOGNITION_POWER_DIFF = "931c66f515c294674f933f2833a6c77a3c22d178c72839bf782ca9
 RECOGNITION_ACCESS_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
+    "frontend/src/utilities/ImageMoleculeDialog.tsx",
     "frontend/src/utilities/ImageMoleculeInput.tsx",
-    "frontend/src/utilities/RecognitionPowerAccess.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.test.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.action.test.tsx",
+    "frontend/src/utilities/UtilityImageTask.test.tsx",
     "frontend/src/utilities/image-molecule.css",
+    "frontend/src/utilities/useImageInputSession.ts",
     "server_tests/test_utility_image_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-RECOGNITION_ACCESS_DIFF = "81224db4c4096c07ffa4eca4db4fdb315d9ad9d4b5820fcb85f2baaa3bbad98c"
+RECOGNITION_ACCESS_DIFF = "583e763ef15870dce2c87a15f9739b482c4f730442775a1b263b6d340386b403"
 RECOGNITION_ENTRY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
