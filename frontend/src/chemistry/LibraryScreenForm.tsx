@@ -1,8 +1,10 @@
-import { useLayoutEffect, useState } from "react";
+import { useContext, useLayoutEffect, useState } from "react";
 import {
-  UtilityFormImage,
+  UtilityImageInput,
   type UtilityImageValue,
 } from "../utilities/UtilityImageInput";
+import { UtilityDrawingContext } from "../utilities/UtilityDrawingContext";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { useExampleReference, useExampleTask } from "../examples/context";
 import { AssetPicker } from "../operations/AssetPicker";
 import { useSdfAsset } from "../research/useSdfAsset";
@@ -21,27 +23,19 @@ import {
   type ScreenOptions,
 } from "./screen-types";
 
-export function LibraryScreenForm(props: Parameters<typeof LibraryFields>[0]) {
-  return (
-    <UtilityFormImage language={props.language}>
-      {(imageInput) => (
-        <LibraryFields {...props} imageInput={imageInput ?? props.imageInput} />
-      )}
-    </UtilityFormImage>
-  );
-}
-
-function LibraryFields({
+export function LibraryScreenForm({
   language,
   onCreated,
   initialLibrary = null,
-  imageInput = null,
 }: {
   language: Language;
   onCreated(job: Job): void;
   initialLibrary?: LibraryRef | null;
-  imageInput?: UtilityImageValue | null;
 }) {
+  const presentation = useContext(TaskPresentationContext);
+  const drawing = useContext(UtilityDrawingContext);
+  const workspace = presentation?.imageEntry === "workspace";
+  const [imageInput, setImageInput] = useState<UtilityImageValue | null>(null);
   const exampleLibrary = useExampleReference("library");
   const preset = useExampleTask("library_screen");
   const zh = language === "zh",
@@ -49,16 +43,11 @@ function LibraryFields({
     availability = useTaskReadiness("chemistry.screen"),
     input = useSdfAsset(language);
   useLayoutEffect(() => {
-    const selected =
-      imageInput?.reference ??
-      initialLibrary ??
-      preset?.library ??
-      exampleLibrary;
+    const selected = initialLibrary ?? preset?.library ?? exampleLibrary;
     if (selected) void input.choose(selected.asset_id, selected.sha256);
   }, [
     initialLibrary?.asset_id,
     initialLibrary?.sha256,
-    imageInput?.key,
     preset?.library.asset_id,
     exampleLibrary?.asset_id,
     input.choose,
@@ -96,6 +85,17 @@ function LibraryFields({
     Number.isInteger(options.seed) &&
     options.seed >= 1 &&
     options.seed <= 2147483647;
+  const libraryPicker = (
+    <AssetPicker
+      language={language}
+      label={zh ? "SDF 分子库文件" : "SDF molecular library file"}
+      kind="ligand"
+      allowedSuffixes={[".sdf"]}
+      value={library?.asset_id ?? ""}
+      onChange={(id) => void input.choose(id)}
+      uploadKey={imageInput?.key}
+    />
+  );
   return (
     <Questionnaire
       language={language}
@@ -125,17 +125,25 @@ function LibraryFields({
         {
           title: zh ? "选择分子库" : "Choose a library",
           valid: Boolean(library) && !loading,
-          content: (
+          content: workspace ? (
+            <UtilityImageInput
+              language={language}
+              target="library"
+              active={presentation.active !== false}
+              value={library?.asset_id ?? ""}
+              onLoaded={(value) => {
+                setImageInput(value);
+                void input.choose(
+                  value.reference.asset_id,
+                  value.reference.sha256,
+                );
+              }}
+            >
+              {libraryPicker}
+            </UtilityImageInput>
+          ) : (
             <>
-              <AssetPicker
-                language={language}
-                label={zh ? "SDF 分子库文件" : "SDF molecular library file"}
-                kind="ligand"
-                allowedSuffixes={[".sdf"]}
-                value={library?.asset_id ?? ""}
-                onChange={(id) => void input.choose(id)}
-                uploadKey={imageInput?.key}
-              />
+              {libraryPicker}
               <Hint
                 label={
                   zh
@@ -167,7 +175,11 @@ function LibraryFields({
                 setQuery(null);
               }}
               query={query}
-              onQuery={setQuery}
+              drawing={drawing}
+              onQuery={(value) => {
+                if (value && !requiresQuery) configure({ mode: "similarity" });
+                setQuery(value);
+              }}
             />
           ),
         },

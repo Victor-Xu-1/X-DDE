@@ -5,6 +5,7 @@ export const drawingDestinations = {
   admet: ["ADMET 预测", "ADMET prediction"],
   brain: ["透脑评估", "Brain penetration"],
   properties: ["分子性质", "Molecular properties"],
+  screen: ["作为筛查参照分子", "Similarity query"],
   states: ["质子化与互变异构", "Protonation & tautomers"],
 } as const;
 export type DrawingDestination = keyof typeof drawingDestinations;

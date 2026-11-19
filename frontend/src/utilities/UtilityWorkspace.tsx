@@ -165,14 +165,13 @@ export function UtilityWorkspace({
                     onCreated={onCreated}
                     jobs={jobs}
                     active={visible && active === id}
-                    drawing={id === "screen" ? undefined : drawings[id]}
+                    drawing={drawings[id]}
                     onDrawingHandled={(token) => {
-                      if (id !== "screen")
-                        setDrawings((previous) =>
-                          previous[id]?.id === token
-                            ? { ...previous, [id]: undefined }
-                            : previous,
-                        );
+                      setDrawings((previous) =>
+                        previous[id]?.id === token
+                          ? { ...previous, [id]: undefined }
+                          : previous,
+                      );
                     }}
                   />
                 </PrimaryBackendScope.Provider>

@@ -646,6 +646,20 @@ EDITOR_DRAWING_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
+UTILITY_QUERY_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/chemistry/LibraryScreenForm.tsx",
+    "frontend/src/chemistry/LibraryScreenQuestions.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/UtilityImageInput.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/useRecognitionDrawing.ts",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_image_browser.py",
+    "tests/fixtures/utility_image/browser.tsx",
+    "tests/test_molecular_utility_scope.py",
+}
+UTILITY_QUERY_DIFF = "de8f187ec78be163e67b2093c15d151d27a45436eb401a8a5662d2b425090702"
 
 
 PAIRED_FIGURE_FILES = {
@@ -1602,6 +1616,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         EDITOR_DRAWING_FILES, EDITOR_DRAWING_DIFF, scope_pin="EDITOR_DRAWING_DIFF",
     )
+    utility_query = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        UTILITY_QUERY_FILES, UTILITY_QUERY_DIFF, scope_pin="UTILITY_QUERY_DIFF",
+    )
     paired_figure = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PAIRED_FIGURE_FILES, PAIRED_FIGURE_DIFF, scope_pin="PAIRED_FIGURE_DIFF",
@@ -1618,6 +1636,7 @@ def main():
         output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
+        output.write("utility_query_only=" + str(utility_query).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
@@ -1690,6 +1709,7 @@ def main():
             or aligned_comparison
             or inline_recognition
             or editor_drawing
+            or utility_query
             or paired_figure
             or native_color_figure
             or selected(changed, event, shared=shared)

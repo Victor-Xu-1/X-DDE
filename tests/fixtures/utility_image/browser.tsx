@@ -54,7 +54,7 @@ function Parent() {
           <UtilityImageInput
             active={active}
             language="en"
-            query
+            target="query"
             value={query?.reference.asset_id ?? ""}
             onLoaded={setQuery}
           >

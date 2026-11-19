@@ -163,18 +163,18 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
             for button in (upload, paste):
                 box = button.bounding_box()
                 assert box and box["height"] >= 44 and box["width"] >= 44
-        query = page.locator(".utility-query-image-entry")
-        query_power = query.get_by_role("switch", name="DECIMER", exact=True)
+        query = page.locator('[data-image-target="query"]')
+        expect(query.get_by_role("switch", name="DECIMER", exact=True)).to_have_count(0)
         primary_power.press("Space")
-        expect(query_power).to_be_checked()
-        query_power.click()
+        expect(primary_power).to_be_checked()
+        primary_power.click()
         expect(primary_power).not_to_be_checked()
         assert power_commands == [(4322, True), (4322, False)]
         assert page.locator("iframe").count() == 0
         page.get_by_label("Query draft", exact=True).focus()
         page.keyboard.press("Tab")
         expect(query.get_by_role(
-            "button", name="Upload structure image", exact=True
+            "button", name="Upload query image", exact=True
         )).to_be_focused()
         primary.locator(':scope > input[type="file"]').set_input_files({
             "name": "unsupported.gif", "mimeType": "image/gif", "buffer": png,
@@ -223,7 +223,6 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(page.locator("iframe")).to_have_count(0)
         primary_power.press("Space")
         expect(primary_power).not_to_be_checked()
-        expect(query_power).not_to_be_checked()
         page.screenshot(path=evidence / "recognition-power-in-task.png")
         expect(page.get_by_role("dialog")).to_have_count(0)
         expect(primary_power).to_be_focused()
@@ -241,8 +240,7 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         dialog.get_by_role("button", name="Use this molecule", exact=True).click()
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
         assert b"NCCc1ccccc1" in uploads[1]
-        query = page.locator(".utility-query-image-entry")
-        query.get_by_label("Choose structure image", exact=True).set_input_files({
+        query.locator('input[type="file"][accept^="image/png"]').set_input_files({
             "name": "query-transport.png", "mimeType": "image/png", "buffer": png,
         })
         frame = page.get_by_role("dialog").frame_locator("iframe")
@@ -251,8 +249,8 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         expect(frame.get_by_label("OCR calls")).to_have_text("0")
         power.click()
         expect(page.get_by_label("Query input", exact=True)).to_have_text("controlled-image-3")
-        expect(query_power).to_be_checked()
-        query_power.click()
+        expect(primary_power).to_be_checked()
+        primary_power.click()
         expect(primary_power).not_to_be_checked()
         expect(page.get_by_label("Primary input", exact=True)).to_have_text("controlled-image-2")
         page.get_by_role("button", name="Toggle active tool").click()
@@ -350,4 +348,47 @@ def test_editor_drawing_reaches_the_selected_utility_only_on_acceptance(compiled
         assert b"Nc1ccccc1" in uploads[0]
         assert b"Molecular editor drawing" in uploads[0] and b"XDDE_IMAGE_SHA256" not in uploads[0]
         assert not power_commands
+        browser.close()
+
+
+def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_library(compiled_image):
+    with image_hosts(compiled_image) as (uploads, power_commands), sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        jobs = []
+        page.on("request", lambda req: jobs.append(req.url) if "/api/jobs" in req.url else None)
+        page.goto("http://127.0.0.1:4322/?audit=drawing")
+        page.get_by_role("button", name="Similarity & structural alerts", exact=True).click()
+        library = page.locator('[data-image-target="library"]:visible')
+        query = page.locator('[data-image-target="query"]:visible')
+        mode = page.get_by_label("What should this selection do?")
+        original_mode = mode.input_value()
+        expect(library.get_by_role("switch", name="DECIMER")).not_to_be_checked()
+        expect(query.get_by_role("switch", name="DECIMER")).to_have_count(0)
+        library.locator('input[type="file"][accept=".sdf"]').set_input_files({
+            "name": "retained-library.sdf",
+            "mimeType": "chemical/x-mdl-sdfile",
+            "buffer": b"Original library records\nM  END\n$$$$\n",
+        })
+        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Image recognition & editor", exact=True).click()
+        frame = page.frame_locator(".utility-recognition-frame")
+        drawing = frame.get_by_label("Graph text")
+        drawing.fill("Nc1ccccc1")
+        destination = page.get_by_role("combobox", name="Use structure in a task")
+        destination.select_option("screen")
+        offer = query.get_by_role("group", name="Drawing ready")
+        expect(offer).to_be_visible()
+        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(mode).to_have_value(original_mode)
+        assert len(uploads) == 1
+        offer.get_by_role("button", name="Use as query", exact=True).click()
+        expect(offer).to_have_count(0)
+        expect(mode).to_have_value("similarity")
+        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(page.locator(".molecular-input-review figcaption")).to_have_text(
+            "Query molecule · Record 1"
+        )
+        assert len(uploads) == 2 and b"Nc1ccccc1" in uploads[1]
+        assert not jobs and not power_commands
         browser.close()

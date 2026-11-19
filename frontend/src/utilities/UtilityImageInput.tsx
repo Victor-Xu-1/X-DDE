@@ -10,7 +10,10 @@ import {
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { useAssetUpload } from "../operations/useAssetUpload";
-import { ImageMoleculeInput } from "./ImageMoleculeInput";
+import {
+  ImageMoleculeInput,
+  type ImageInputTarget,
+} from "./ImageMoleculeInput";
 import { ImageInputSourceContext } from "./ImageInputSource";
 import {
   editorMoleculeFile,
@@ -59,7 +62,7 @@ export function UtilityImageInput({
   active,
   value,
   onLoaded,
-  query = false,
+  target = "molecule",
   drawing,
   children,
 }: {
@@ -67,7 +70,7 @@ export function UtilityImageInput({
   active: boolean;
   value: string;
   onLoaded(value: UtilityImageValue): void;
-  query?: boolean;
+  target?: ImageInputTarget;
   drawing?: UtilityDrawingOffer | null;
   children: ReactNode;
 }) {
@@ -135,12 +138,17 @@ export function UtilityImageInput({
   return (
     <ImageInputSourceContext.Provider value={getSourceSignal}>
       <ImageMoleculeInput
-        className={query ? "utility-query-image-entry" : "utility-image-entry"}
+        className={
+          target === "molecule"
+            ? "utility-image-entry"
+            : "utility-screen-image-entry"
+        }
         language={language}
+        target={target}
         enabled={active}
         disabled={upload.busy}
         inputOwner
-        controlsFirst={!query}
+        controlsFirst={target === "molecule"}
         automatic
         cancelOnEdit
         review={review ?? undefined}
@@ -177,9 +185,13 @@ export function UtilityImageInput({
                 ? zh
                   ? "正在添加…"
                   : "Adding…"
-                : zh
-                  ? "用作输入"
-                  : "Use as input"}
+                : target === "query"
+                  ? zh
+                    ? "用作参照分子"
+                    : "Use as query"
+                  : zh
+                    ? "用作输入"
+                    : "Use as input"}
             </button>
             <button
               className="text-button"

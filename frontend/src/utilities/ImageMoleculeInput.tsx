@@ -9,12 +9,26 @@ import { useRecognitionStatus } from "./recognition-power";
 import "./image-molecule.css";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 
+export type ImageInputTarget = "molecule" | "library" | "query";
+
+const imageActions = {
+  library: [
+    ["上传分子库图片", "Upload library image"],
+    ["粘贴分子库图片", "Paste library image"],
+  ],
+  query: [
+    ["上传参照分子图片", "Upload query image"],
+    ["粘贴参照分子图片", "Paste query image"],
+  ],
+} as const;
+
 export function ImageMoleculeInput({
   language,
   enabled = true,
   disabled = false,
   className = "",
   inputOwner = false,
+  target = "molecule",
   controlsFirst = false,
   automatic = false,
   cancelOnEdit = false,
@@ -29,6 +43,7 @@ export function ImageMoleculeInput({
   disabled?: boolean;
   className?: string;
   inputOwner?: boolean;
+  target?: ImageInputTarget;
   controlsFirst?: boolean;
   automatic?: boolean;
   cancelOnEdit?: boolean;
@@ -51,7 +66,7 @@ export function ImageMoleculeInput({
     picker = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDivElement>(null);
-  const recognition = useRecognitionStatus(enabled);
+  const recognition = useRecognitionStatus(enabled && target !== "query");
   const session = useImageInputSession({
     enabled,
     disabled,
@@ -101,13 +116,15 @@ export function ImageMoleculeInput({
             if (session.choose()) picker.current?.click();
           }}
         >
-          {automatic
-            ? zh
-              ? "上传结构图"
-              : "Upload structure image"
-            : zh
-              ? "从结构图片输入"
-              : "Input from structure image"}
+          {target !== "molecule"
+            ? imageActions[target][0][zh ? 0 : 1]
+            : automatic
+              ? zh
+                ? "上传结构图"
+                : "Upload structure image"
+              : zh
+                ? "从结构图片输入"
+                : "Input from structure image"}
         </button>
         <button
           type="button"
@@ -115,11 +132,17 @@ export function ImageMoleculeInput({
           disabled={session.disabled}
           onClick={() => void session.paste()}
         >
-          {zh ? "粘贴截图" : "Paste screenshot"}
+          {target === "molecule"
+            ? zh
+              ? "粘贴截图"
+              : "Paste screenshot"
+            : imageActions[target][1][zh ? 0 : 1]}
         </button>
-        <span>
-          {zh ? "也可直接拖入结构图" : "Or drop a structure image here"}
-        </span>
+        {target === "molecule" && (
+          <span>
+            {zh ? "也可直接拖入结构图" : "Or drop a structure image here"}
+          </span>
+        )}
         {review && (
           <button
             type="button"
@@ -130,7 +153,7 @@ export function ImageMoleculeInput({
             {zh ? "编辑识别的结构" : "Edit recognized structure"}
           </button>
         )}
-        {enabled && (
+        {enabled && target !== "query" && (
           <RecognitionBackendEntry
             language={language}
             powerControl={recognition}
@@ -141,7 +164,13 @@ export function ImageMoleculeInput({
         ref={picker}
         type="file"
         hidden
-        aria-label={zh ? "选择结构图片" : "Choose structure image"}
+        aria-label={
+          target === "molecule"
+            ? zh
+              ? "选择结构图片"
+              : "Choose structure image"
+            : imageActions[target][0][zh ? 0 : 1]
+        }
         accept="image/png,image/jpeg,image/webp,image/bmp"
         disabled={session.disabled}
         onChange={(event) => {
@@ -161,6 +190,7 @@ export function ImageMoleculeInput({
     <div
       ref={surface}
       className={"image-molecule-input " + className}
+      data-image-target={target === "molecule" ? undefined : target}
       onClickCapture={(event) => edit(event.target)}
       onChangeCapture={(event) => edit(event.target)}
       onPasteCapture={(event) => {
