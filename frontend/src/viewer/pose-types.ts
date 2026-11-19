@@ -34,7 +34,7 @@ export interface SavedPose {
 export interface PreviewPose {
   urls: string[];
   records?: number[];
-  /** The digest belongs to this exact precomputed single-record artifact. */
+  /** Digest of the exact artifact containing the selected precomputed record. */
   nativeArtifactSha256?: string;
   source: PoseSource | null;
   receptor: PoseSource | null;

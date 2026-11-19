@@ -113,3 +113,30 @@
     height: 48px;
   }
 }
+
+@media (min-width: 1180px) {
+  .structure-workbench:not(.is-text-only, [data-workspace-expanded]):has(
+      > .structure-workbench-toolbar > .generated-candidate-navigation
+    ) {
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: 12px;
+
+    > .structure-workbench-toolbar {
+      grid-area: 1 / 2;
+    }
+
+    > .structure-workbench-view {
+      grid-area: 1 / 1 / span 2;
+    }
+
+    > .structure-workbench-details {
+      grid-area: 2 / 2;
+    }
+  }
+
+  .generated-candidate-navigation .candidate-review-bar {
+    padding: 5px 0 8px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}

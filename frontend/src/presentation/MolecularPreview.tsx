@@ -15,6 +15,7 @@ export function MolecularPreview({
   defaultView = "2d",
   focusModel,
   nativeArtifactSha256,
+  nativeArtifactRecord,
 }: {
   language: Language;
   label: string;
@@ -25,6 +26,7 @@ export function MolecularPreview({
   defaultView?: "2d" | "3d";
   focusModel?: number;
   nativeArtifactSha256?: string;
+  nativeArtifactRecord?: number;
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
 }) {
   const zh = language === "zh";
@@ -33,6 +35,7 @@ export function MolecularPreview({
     records,
     nativeScore,
     nativeArtifactSha256,
+    nativeArtifactRecord,
     comparison: false,
     molecularSource:
       source && "url" in source

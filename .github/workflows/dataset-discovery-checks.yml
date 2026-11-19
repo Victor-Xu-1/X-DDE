@@ -216,7 +216,7 @@ jobs:
           server_tests/test_docking_receptor_handoff.py
   contracts:
     needs: [target-ui-scope, utility-scope]
-    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
+    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -291,7 +291,7 @@ jobs:
           src/datasets/CandidateTable.test.tsx src/datasets/CandidateHandoff.test.tsx
   native-del-data:
     needs: [target-ui-scope, utility-scope]
-    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
+    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

@@ -32,35 +32,35 @@ export function CandidateTable({
       label: zh ? "成员" : "Member",
       value: (row) => row.display_name || row.id,
       render: (row) => (
-        <>
-          <button
-            type="button"
-            className="dataset-row-title"
-            onClick={() => onSelect(row)}
-          >
-            {row.display_name || row.id}
-          </button>
-          <small>{supplierLabel(row.supplier, zh)}</small>
-        </>
+        <div className="dataset-candidate-member">
+          {row.smiles && (
+            <MoleculeImage
+              source={{ smiles: row.smiles }}
+              language={language}
+              label={row.display_name || row.id}
+              compact
+            />
+          )}
+          <div>
+            <button
+              type="button"
+              className="dataset-row-title"
+              onClick={() => onSelect(row)}
+            >
+              {row.display_name || row.id}
+            </button>
+            {row.supplier?.trim() && (
+              <small>{supplierLabel(row.supplier, zh)}</small>
+            )}
+          </div>
+        </div>
       ),
     },
     {
       key: "structure",
-      label: zh ? "结构" : "Structure",
-      exportLabel: "SMILES",
+      label: "SMILES",
       value: (row) => row.smiles || null,
       sortable: false,
-      render: (row) =>
-        row.smiles ? (
-          <MoleculeImage
-            source={{ smiles: row.smiles }}
-            language={language}
-            label={row.display_name || row.id}
-            compact
-          />
-        ) : (
-          "—"
-        ),
     },
   ];
   if (["gnina", "drugclip", "deli"].includes(result.program)) {
@@ -119,7 +119,7 @@ export function CandidateTable({
       render: (row) => row.score?.toFixed(3) ?? "—",
     });
   return (
-    <section className="dataset-candidate-table">
+    <section className="dataset-candidate-table" data-program={result.program}>
       <div className="dataset-panel-title">
         <strong>{zh ? "候选分子" : "Candidates"}</strong>
         {docking && (
@@ -145,7 +145,10 @@ export function CandidateTable({
         selected={selected}
         onSelect={onSelect}
         initialVisibleColumns={columns
-          .filter((column) => !["affinity", "upstream"].includes(column.key))
+          .filter(
+            (column) =>
+              !["structure", "affinity", "upstream"].includes(column.key),
+          )
           .map((column) => column.key)}
       />
     </section>

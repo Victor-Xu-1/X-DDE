@@ -1,40 +1,76 @@
-.dataset-preview-pane.screening-candidate-preview {
+.dataset-preview-pane.candidate-inspection-preview {
   margin-top: 0;
-  padding: 0 0 12px;
+  padding: 0 0 10px;
   background: var(--surface);
 }
-
-.screening-candidate-preview > .dataset-panel-title {
-  min-height: 0;
-  padding: 4px 0 6px;
-  gap: 4px 12px;
+.candidate-preview-heading,
+.candidate-preview-identity,
+.candidate-preview-actions {
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 4px 10px;
+  min-width: 0;
 }
-
-.screening-candidate-preview > .dataset-panel-title strong {
+.candidate-preview-heading {
+  justify-content: space-between;
+  padding: 3px 0 5px;
+}
+.candidate-preview-identity strong {
   color: var(--ink);
   overflow-wrap: anywhere;
 }
-
-.screening-candidate-preview > .dataset-panel-title span {
+.candidate-preview-identity span {
   color: var(--muted);
+  font-size: 12px;
 }
-
-.screening-candidate-preview > .molecular-preview > .research-tabs > .research-tab-list {
-  margin: 0 0 6px;
+.candidate-preview-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 12px;
+  white-space: nowrap;
 }
-
-.screening-candidate-preview .viewer-panel > .studio-heading {
-  margin-block: 0 6px;
+.candidate-inspection-preview
+  > .molecular-preview
+  > .research-tabs
+  > .research-tab-list {
+  margin: 0 0 5px;
 }
-
+.candidate-inspection-preview .viewer-panel > .studio-heading {
+  margin-block: 0 5px;
+}
+.candidate-evidence-disclosure {
+  border-bottom: 1px solid var(--line);
+}
+.candidate-evidence-disclosure > summary {
+  cursor: pointer;
+  padding: 5px 0 8px;
+  color: var(--accent);
+  font-size: 13px;
+}
+.candidate-evidence-disclosure .dataset-candidate-evidence {
+  padding-block: 9px;
+}
 @media (min-width: 1001px) {
   .studio-app
     .dataset-results
     :where(.structure-workbench:not([data-workspace-expanded="true"]))
-    .screening-candidate-preview.dataset-preview-pane
+    .candidate-inspection-preview.dataset-preview-pane
     .viewer-panel:not(:popover-open)
     .molecular-stage {
-    height: clamp(380px, 54dvh, 560px);
+    height: clamp(400px, 57dvh, 600px);
+    border-radius: 8px;
   }
+}
+
+.candidate-inspection-summary .dataset-result-metrics {
+  gap: 6px 10px;
+  margin: 0;
+  padding-bottom: 7px;
+}
+.candidate-inspection-summary .dataset-result-metrics strong {
+  font-size: 14px;
 }

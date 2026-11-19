@@ -80,23 +80,25 @@ export function GeneratedCandidates({
       toolbar={
         generated &&
         records.length > 0 && (
-          <CandidateReviewBar
-            label={zh ? "生成候选预览" : "Generated candidate preview"}
-            caption={zh ? "候选" : "Candidate"}
-            candidates={records.map(({ record }) => ({
-              id: record,
-              label:
-                (zh ? "预览候选 " : "Preview candidate ") +
-                originalNumber(record),
-              short: originalNumber(record),
-            }))}
-            selected={selected?.record}
-            language={language}
-            onSelect={(id) => {
-              const candidate = records.find(({ record }) => record === id);
-              if (candidate) onSelect(candidate);
-            }}
-          />
+          <div className="generated-candidate-navigation">
+            <CandidateReviewBar
+              label={zh ? "生成候选预览" : "Generated candidate preview"}
+              caption={zh ? "候选" : "Candidate"}
+              candidates={records.map(({ record }) => ({
+                id: record,
+                label:
+                  (zh ? "预览候选 " : "Preview candidate ") +
+                  originalNumber(record),
+                short: originalNumber(record),
+              }))}
+              selected={selected?.record}
+              language={language}
+              onSelect={(id) => {
+                const candidate = records.find(({ record }) => record === id);
+                if (candidate) onSelect(candidate);
+              }}
+            />
+          </div>
         )
       }
       preview={
