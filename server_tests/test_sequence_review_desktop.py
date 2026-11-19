@@ -105,15 +105,22 @@ def test_retained_sequence_workspaces(language, theme, width, height):
     settings = Settings.from_env()
     evidence = EVIDENCE / f"{language}-{theme}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
-    with platform(settings.state_dir, evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"""localStorage.setItem('opendde-workbench.language', '{language}');
             localStorage.setItem('x-dde-theme', '{theme}');
         """)
         mutations = []
-        page.context.on("request", lambda request: mutations.append(request.url)
-                        if request.method == "POST" and "/api/" in request.url else None)
+
+        def record(request):
+            if request.method not in {"GET", "HEAD", "OPTIONS"} and "/api/" in request.url:
+                mutations.append(request.url)
+
+        page.context.on("request", record)
         url = base + "/api/runtime-controls?include_native=false"
         before = page.request.get(url).json()
         verify_native(page, base, language, width, height, evidence)
