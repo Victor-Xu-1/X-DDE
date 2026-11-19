@@ -104,7 +104,7 @@ def verify_setup_entry(page, base):
         page.set_viewport_size({"width": width, "height": 775})
         expect(panel.get_by_text("P2Rank", exact=True)).to_be_visible()
         status = panel.locator(".runtime-switch-status")
-        expect(status).to_have_text("已关闭 · 待配置")
+        expect(status.locator("small")).to_have_text("已关闭 · 待配置")
         assert status.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     search = page.get_by_role("button", name="搜索任务", exact=True)
