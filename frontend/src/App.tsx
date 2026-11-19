@@ -30,6 +30,11 @@ import { taskHistoryHash, taskHistoryRoute } from "./studio/task-history-route";
 import { taskEntryHash, taskEntryRoute } from "./studio/task-entry-route";
 import { WorkspaceTabs } from "./studio/WorkspaceTabs";
 import { EnvironmentWorkspace } from "./studio/EnvironmentWorkspace";
+import {
+  environmentHash,
+  environmentTabFromHash,
+  type EnvironmentTab,
+} from "./studio/environment-route";
 import { HelpWorkspace } from "./studio/HelpWorkspace";
 import { ProjectPanel } from "./studio/ProjectPanel";
 import type { ToolId } from "./operations/catalog";
@@ -60,10 +65,13 @@ export function App() {
   const [language, setLanguage] = useState<Language>(restoreLanguage),
     [storageWarning, setStorageWarning] = useState(false);
   const requestedTask = useRef(taskIdFromHash(location.hash));
+  const [environmentTab, setEnvironmentTab] = useState<EnvironmentTab>(
+    () => environmentTabFromHash(location.hash) ?? "components",
+  );
   const [requestedView, setView] = useState<View>(() => {
       if (location.hash === "#view=utilities" || !location.hash)
         return "utilities";
-      if (location.hash === "#view=deployment") return "deployment";
+      if (environmentTabFromHash(location.hash)) return "deployment";
       const entry = taskEntryRoute(location.hash);
       if (entry) return entry.tool ? viewForTool(entry.tool) : "tools";
       const history = taskHistoryRoute(location.hash);
@@ -85,7 +93,10 @@ export function App() {
         setView("utilities");
         return;
       }
-      if (window.location.hash === "#view=deployment") {
+      const tab = environmentTabFromHash(window.location.hash);
+      if (tab) {
+        requestedTask.current = "";
+        setEnvironmentTab(tab);
         setView("deployment");
         return;
       }
@@ -256,7 +267,17 @@ export function App() {
     setInputVersion((n) => n + 1);
     setView("home");
   }
+  function openEnvironment(tab: EnvironmentTab) {
+    const hash = environmentHash(tab);
+    if (window.location.hash !== hash) chooseJob("", { pushHash: hash });
+    setEnvironmentTab(tab);
+    setView("deployment");
+  }
   function openTool(tool: ToolId | null) {
+    if (tool === "resources") {
+      openEnvironment("runtime");
+      return;
+    }
     chooseJob("", { pushHash: taskEntryHash(tool, projectId) });
     setDraft(null);
     setEntryRevision((n) => n + 1);
@@ -268,6 +289,10 @@ export function App() {
     navigate("utilities");
   }
   function navigate(next: View) {
+    if (next === "deployment") {
+      openEnvironment("components");
+      return;
+    }
     if (next === "utilities") {
       chooseJob("", { pushHash: "#view=utilities" });
       setView("utilities");
@@ -435,7 +460,7 @@ export function App() {
                         deployment={deployment.data}
                         deploymentError={deployment.error}
                         onRetry={deployment.refresh}
-                        onSetup={() => setView("deployment")}
+                        onSetup={() => openEnvironment("components")}
                         onCreated={changed}
                       />
                     )}
@@ -446,6 +471,8 @@ export function App() {
             {view === "deployment" && (
               <EnvironmentWorkspace
                 language={language}
+                tab={environmentTab}
+                onTab={openEnvironment}
                 data={deployment.data}
                 error={deployment.error}
                 refresh={deployment.refresh}

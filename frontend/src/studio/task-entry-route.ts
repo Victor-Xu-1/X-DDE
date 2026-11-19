@@ -1,4 +1,5 @@
 import { tools, type ToolId } from "../operations/catalog";
+import { environmentHash } from "./environment-route";
 
 const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 function projectId(value: string | null) {
@@ -15,8 +16,9 @@ export function taskEntryRoute(hash: string): TaskEntryRoute | null {
     return { tool: null, project: null }; // Existing empty-task bookmarks.
   if (params.get("view") !== "new") return null;
   const tool = tools.find((item) => item.id === params.get("tool"));
+  if (tool?.id === "resources") return null;
   return {
-    tool: tool && tool.id !== "resources" ? tool.id : null,
+    tool: tool?.id ?? null,
     project: projectId(params.get("project")),
   };
 }
@@ -24,8 +26,9 @@ export function taskEntryHash(
   tool: ToolId | null,
   project: string | null = null,
 ) {
+  if (tool === "resources") return environmentHash("runtime");
   const params = new URLSearchParams({ view: "new" });
-  if (tool && tool !== "resources") params.set("tool", tool);
+  if (tool) params.set("tool", tool);
   const id = projectId(project);
   if (id) params.set("project", id);
   return "#" + params;

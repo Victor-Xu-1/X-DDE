@@ -94,6 +94,7 @@ on:
       - "frontend/src/datasets/ScreeningForm*"
       - "server_tests/test_screening_power_browser.py"
       - "server_tests/test_module_backend_switch_browser.py"
+      - "server_tests/test_runtime_entry_browser.py"
       - "tests/test_utility_tools.py"
       - "tests/test_compute_power_admission.py"
       - ".github/workflows/molecular-utility-checks.yml"
@@ -169,6 +170,7 @@ jobs:
       candidate_desktop_only: ${{ steps.select.outputs.candidate_desktop_only }}
       simulation_desktop_only: ${{ steps.select.outputs.simulation_desktop_only }}
       proximity_desktop_only: ${{ steps.select.outputs.proximity_desktop_only }}
+      runtime_entry_only: ${{ steps.select.outputs.runtime_entry_only }}
       utility_result_desktop_only: ${{ steps.select.outputs.utility_result_desktop_only }}
       recognition_power_only: ${{ steps.select.outputs.recognition_power_only }}
       recognition_entry_only: ${{ steps.select.outputs.recognition_entry_only }}
@@ -217,6 +219,7 @@ jobs:
       needs.scope.outputs.candidate_desktop_only != 'true' &&
       needs.scope.outputs.simulation_desktop_only != 'true' &&
       needs.scope.outputs.proximity_desktop_only != 'true' &&
+      needs.scope.outputs.runtime_entry_only != 'true' &&
       needs.scope.outputs.utility_result_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -788,6 +791,31 @@ jobs:
         with:
           name: desktop-help-evidence
           path: outputs/desktop-help/
+
+  runtime-entry:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.runtime_entry_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Runtime entry and shared backend switches
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/task-entry-route.test.ts src/studio/RuntimeStatus.test.tsx
+          src/utilities/BackendControls.test.tsx
+      - run: uv sync --locked --group dev --group browser
+      - name: Scoped contracts and explicit backend actions in Chrome
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_runtime_entry_browser.py
+          uv run --locked python -m pytest -x -q tests/test_molecular_utility_scope.py server_tests/test_runtime_entry_browser.py server_tests/test_module_backend_switch_browser.py
 
   utility-result-desktop:
     needs: scope

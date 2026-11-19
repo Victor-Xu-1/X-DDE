@@ -59,9 +59,12 @@
   color: var(--ink);
   max-width: 300px;
 }
-.runtime-environments td:last-child {
+.runtime-environments td:nth-child(4) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+.runtime-environments .runtime-table-power {
+  min-width: 150px;
 }
 .runtime-environments .status {
   white-space: nowrap;

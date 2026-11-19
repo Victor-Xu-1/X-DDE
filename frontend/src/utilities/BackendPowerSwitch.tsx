@@ -4,6 +4,7 @@ export function BackendPowerSwitch({
   id,
   name,
   status,
+  showName = true,
   enabled,
   disabled,
   hint,
@@ -13,6 +14,7 @@ export function BackendPowerSwitch({
   id: string;
   name: string;
   status: string;
+  showName?: boolean;
   enabled: boolean;
   disabled: boolean;
   hint?: string;
@@ -23,7 +25,7 @@ export function BackendPowerSwitch({
   return (
     <div className="compute-switch runtime-switch" data-engine={id}>
       <span className="runtime-switch-label">
-        <span title={name}>{name}</span>
+        {showName && <span title={name}>{name}</span>}
         <span className="runtime-switch-status">
           <small id={description} aria-live="polite">
             {status}

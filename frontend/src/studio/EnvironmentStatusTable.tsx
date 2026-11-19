@@ -1,4 +1,7 @@
 import { Hint } from "../guided/Hint";
+import { useBackendRuntime } from "../utilities/backend-runtime";
+import { BackendStateMessage, RuntimeSwitch } from "../utilities/RuntimeSwitch";
+import "../utilities/runtime-switch.css";
 import type { EngineStatus, Language } from "../types";
 
 const researchUses: Record<string, [string, string]> = {
@@ -62,6 +65,14 @@ export function EnvironmentStatusTable({
 }) {
   const zh = language === "zh",
     rows = Object.values(engines);
+  const runtime = useBackendRuntime(
+    connected,
+    undefined,
+    Boolean(engines.harness),
+  );
+  const powerRows = new Map(
+    runtime.catalogue?.engines.map((row) => [row.id, row]),
+  );
   return (
     <section
       className="runtime-environments"
@@ -70,6 +81,13 @@ export function EnvironmentStatusTable({
       <div className="studio-heading">
         <h3>{zh ? "集成环境" : "Integrated environments"}</h3>
       </div>
+      {connected && (
+        <BackendStateMessage
+          runtime={runtime}
+          language={language}
+          failed={powerRows.has(runtime.failed)}
+        />
+      )}
       <div className="table-scroll">
         <table>
           <thead>
@@ -85,11 +103,13 @@ export function EnvironmentStatusTable({
                     : "This checks whether model files exist. Inference and scientific benchmarks are verified separately through actual tasks."}
                 </Hint>
               </th>
+              <th>{zh ? "后端开关" : "Backend power"}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((engine) => {
               const models = Object.values(engine.models ?? {});
+              const power = connected ? powerRows.get(engine.id) : undefined;
               const ready =
                 engine.ready &&
                 (engine.id !== "harness" || engine.compute_configured);
@@ -123,6 +143,18 @@ export function EnvironmentStatusTable({
                     {models.length
                       ? `${models.filter(Boolean).length} / ${models.length}`
                       : "—"}
+                  </td>
+                  <td className="runtime-table-power">
+                    {power ? (
+                      <RuntimeSwitch
+                        item={power}
+                        language={language}
+                        runtime={runtime}
+                        showName={false}
+                      />
+                    ) : (
+                      <span className="task-backend-pending">—</span>
+                    )}
                   </td>
                 </tr>
               );
