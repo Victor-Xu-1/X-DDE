@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { historyKindLabel } from "../studio/task-history-model";
 import type { Language } from "../types";
 import type { useBackendRuntime } from "./backend-runtime";
@@ -77,6 +77,13 @@ export function BackendPanelList({
   const showRecognition =
     onOpenRecognition &&
     matches("DECIMER", "图片识别与编辑", "Image recognition & editor");
+  const computeSwitch = showCompute && (
+    <ComputeSwitch
+      language={language}
+      activity={computeActivity(harness, runtime.readError)}
+    />
+  );
+  const hasHarnessEntry = entries.some(({ engine }) => engine.id === "harness");
 
   return (
     <>
@@ -104,14 +111,16 @@ export function BackendPanelList({
       )}
       <div className="backend-controls-list">
         {entries.map(({ engine, tasks }) => (
-          <RuntimeSwitch
-            key={engine.id}
-            item={engine}
-            language={language}
-            runtime={runtime}
-            taskNames={tasks.map((label) => label[zh ? 0 : 1])}
-            current={engine.id === current}
-          />
+          <Fragment key={engine.id}>
+            <RuntimeSwitch
+              item={engine}
+              language={language}
+              runtime={runtime}
+              taskNames={tasks.map((label) => label[zh ? 0 : 1])}
+              current={engine.id === current}
+            />
+            {engine.id === "harness" && computeSwitch}
+          </Fragment>
         ))}
         {showRecognition && (
           <RecognitionBackendEntry
@@ -120,12 +129,7 @@ export function BackendPanelList({
             onOpen={onOpenRecognition}
           />
         )}
-        {showCompute && (
-          <ComputeSwitch
-            language={language}
-            activity={computeActivity(harness, runtime.readError)}
-          />
-        )}
+        {!hasHarnessEntry && computeSwitch}
       </div>
       {query && entries.length === 0 && !showRecognition && !showCompute && (
         <p role="status">{zh ? "没有匹配的后端" : "No matching backends"}</p>

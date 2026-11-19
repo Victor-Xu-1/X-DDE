@@ -267,9 +267,9 @@ The module panel lists the tasks that share each engine and shows the current ta
 
 「后端管理」会列出各引擎对应的任务，优先显示当前任务的引擎。后端较多时，可按任务名称或软件名称查找。
 
-Engines start off when X-DDE restarts. Turning an engine on permits on-demand execution. Turning it off holds queued tasks until it is enabled again. Finish or cancel active work before switching off its engine. The persistent compute service used by Harness also has a switch and can be stopped when idle.
+Engines start off when X-DDE restarts. Turning an engine on permits on-demand execution. Turning it off holds queued tasks until it is enabled again. Finish or cancel active work before switching off its engine. On wide screens, Harness task pages show both the Harness and persistent compute switches. Both are available under **Backend controls** on narrower screens. Stop persistent compute when idle to release RAM and GPU memory. The image recognition tab shows a disabled DECIMER switch if the local workbench is offline. Use **Reconnect** after opening the workbench.
 
-每次重启 X-DDE，后端默认关闭。开启后按需加载，关闭后已排队的任务等待再次开启。正在运行的任务需先完成或取消。Harness 使用的常驻计算服务也有自己的开关，可在空闲时关闭。
+每次重启 X-DDE，任务引擎默认关闭。开启后按需加载，关闭后已排队的任务等待再次开启。正在运行的任务需先完成或取消。宽屏上的 Harness 任务页同时显示 Harness 和常驻计算服务开关，窗口较窄时可在「后端管理」里操作两者。空闲时关闭常驻计算服务可释放内存和显存。图片识别工作台离线时，识别页仍显示不可操作的 DECIMER 开关。打开工作台后点击「重新连接」即可恢复。
 
 The task header and saved examples for **Define full-molecule regions** and **Pose exploration** show the switch for DiffSBDD and GNINA, respectively. When opening pose exploration from a saved site, use the switch alongside the exploration form. Experimental evidence entry uses X-DDE's built-in storage and requires no calculation engine.
 

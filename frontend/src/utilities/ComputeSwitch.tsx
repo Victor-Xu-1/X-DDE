@@ -153,9 +153,9 @@ export function ComputeSwitch({
         name={zh ? "常驻计算服务" : "Persistent compute"}
         status={computeStatus(power, activity, zh)}
         enabled={Boolean(service?.running)}
+        pending={power.action !== null}
         disabled={
           power.unavailable ||
-          Boolean(power.action) ||
           !service?.configured ||
           Boolean(service.cleanup_pending) ||
           activity !== "idle" ||

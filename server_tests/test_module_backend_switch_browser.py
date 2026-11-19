@@ -29,6 +29,7 @@ def module_power(page):
 
 
 def verify_catalogue(page, base, snapshot):
+    page.set_viewport_size({"width": 1280, "height": 800})
     catalogue = page.request.get(base + "/api/capabilities").json()["capabilities"]
     expected = {
         spec["id"] for spec in catalogue
@@ -50,6 +51,14 @@ def verify_catalogue(page, base, snapshot):
         expect(switch).to_be_visible()
         expect(switch).not_to_be_checked()
         if owner == "harness":
+            local_service = panel.locator('[data-engine="native-compute"]').get_by_role("switch")
+            expect(local_service).to_be_visible()
+            expect(local_service).not_to_be_checked()
+            expect(local_service).to_be_disabled()
+            title = page.locator(".studio-topbar .page-context-title")
+            bounds = title.bounding_box()
+            assert bounds and bounds["height"] <= 30 and bounds["width"] > 40
+            assert title.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
             trigger, drawer = module_power(page)
             trigger.click()
             service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
@@ -57,10 +66,28 @@ def verify_catalogue(page, base, snapshot):
             expect(service).not_to_be_checked()
             expect(service).to_be_disabled()  # The isolated platform has no native model installed.
             trigger.press("Escape")
-        expect(panel.get_by_role("switch")).to_have_count(1)
+        expect(panel.get_by_role("switch")).to_have_count(2 if owner == "harness" else 1)
         checked.append(key)
     assert set(checked) == expected
     return checked
+
+
+def verify_narrow_compute_entry(page, base):
+    page.set_viewport_size({"width": 1024, "height": 800})
+    task = open_capability(page, base, "fold")
+    expect(task.get_by_role("switch", name="OpenDDE Harness")).to_be_visible()
+    hidden = task.locator('[data-engine="native-compute"]')
+    expect(hidden).to_be_hidden()
+    trigger, drawer = module_power(page)
+    trigger.click()
+    service = drawer.locator('[data-engine="native-compute"]').get_by_role("switch")
+    expect(service).to_be_visible()
+    expect(service).not_to_be_checked()
+    expect(drawer.locator("[data-engine]").nth(1)).to_have_attribute(
+        "data-engine", "native-compute",
+    )
+    expect(service).to_be_in_viewport()
+    trigger.press("Escape")
 
 
 def verify_composite_tools(page, base):
@@ -336,6 +363,11 @@ def verify_utilities(page, base, companion, companion_loads):
     )
     expect(page.get_by_role("button", name="重新连接")).to_be_focused()
     expect(page.get_by_text("图片识别工作台尚未打开")).to_be_visible()
+    local_recognition = page.locator(".utility-editor-tools").get_by_role("switch", name="DECIMER")
+    expect(local_recognition).to_be_visible()
+    expect(local_recognition).to_be_disabled()
+    expect(local_recognition).not_to_be_checked()
+    expect(local_recognition).to_have_accessible_description("工作台未连接")
     page.screenshot(path=EVIDENCE / "recognition-power-offline-1280.png")
 
     previous_loads = len(companion_loads)
@@ -349,6 +381,7 @@ def verify_utilities(page, base, companion, companion_loads):
     switch = page.frame_locator("iframe.utility-recognition-frame").get_by_role("switch")
     expect(switch).to_be_visible()
     expect(switch).not_to_be_checked()
+    expect(local_recognition).to_have_count(0)
     page.get_by_role("button", name="分子性质", exact=True).click()
     trigger.click()
     recognition.get_by_role("button", name="打开识别工作台").press("Enter")
@@ -525,6 +558,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
 
         page.context.on("request", record)
         checked = verify_catalogue(page, base, state)
+        verify_narrow_compute_entry(page, base)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
         verify_desktop_module_power(page, base, modules)

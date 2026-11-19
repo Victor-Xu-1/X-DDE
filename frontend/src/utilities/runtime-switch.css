@@ -178,9 +178,56 @@
   gap: 6px;
 }
 .studio-topbar .backend-controls.has-inline-switch > .task-backend-control {
+  gap: 6px 10px;
   margin: 0;
   padding-inline-end: 8px;
   border-inline-end: 1px solid var(--line);
+}
+.task-backend-compute {
+  padding-inline-start: 8px;
+  border-inline-start: 1px solid var(--line);
+}
+@media (max-width: 1159px) {
+  .studio-topbar .task-backend-compute {
+    display: none;
+  }
+}
+@media (min-width: 1160px) {
+  .studio-topbar:has(.task-backend-compute) > .page-context .page-context-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+@media (1160px <= width <= 1440px) {
+  .studio-app .studio-topbar:has(.task-backend-compute) {
+    > .task-search {
+      position: static;
+      flex: none;
+      min-width: 0;
+    }
+    :is(.compact-search-trigger, .compact-search-close) {
+      display: grid;
+    }
+    .has-inline-switch .backend-controls-trigger {
+      width: 36px;
+      padding: 0;
+    }
+    .has-inline-switch .backend-controls-label {
+      display: none;
+    }
+    .task-search .global-search {
+      display: none;
+    }
+    .task-search .global-search.is-expanded {
+      display: flex;
+      position: absolute;
+      inset: 12px 24px auto;
+      width: auto;
+      height: 44px;
+      z-index: 2;
+    }
+  }
 }
 .studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
   display: grid;

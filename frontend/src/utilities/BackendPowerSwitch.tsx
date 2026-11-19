@@ -25,7 +25,7 @@ export function BackendPowerSwitch({
   setup?: ReactNode;
   context?: ReactNode;
   current?: boolean;
-  onToggle(): void;
+  onToggle?(): void;
 }) {
   const description = useId();
   return (
@@ -51,7 +51,7 @@ export function BackendPowerSwitch({
         aria-describedby={description}
         aria-checked={enabled}
         aria-disabled={pending || undefined}
-        disabled={disabled}
+        disabled={disabled || !onToggle}
         title={hint ?? `${name} · ${status}`}
         onClick={pending ? undefined : onToggle}
       >

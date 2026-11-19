@@ -3,7 +3,11 @@ import { ControlOutlined } from "@ant-design/icons";
 import type { Language } from "../types";
 import type { ResearchModule } from "../studio/research-modules";
 import { enginesForScope } from "./backend-control-scope";
-import { useComputePower } from "./ComputeSwitch";
+import {
+  computeActivity,
+  ComputeSwitch,
+  useComputePower,
+} from "./ComputeSwitch";
 import { BackendPanelList } from "./BackendPanelList";
 import { useBackendRuntime } from "./backend-runtime";
 import { BackendStateMessage, RuntimeSwitch } from "./RuntimeSwitch";
@@ -150,10 +154,13 @@ export function BackendControls({
     !moduleUsesCompute
       ? moduleRows[0]
       : undefined);
+  const readingCurrent = currentCapability && !runtime.catalogue;
+  const showInline = Boolean(inline || readingCurrent);
+  const showComputeSwitch = current?.id === "harness" && Boolean(compute);
   return (
     <div
       ref={container}
-      className={"backend-controls" + (inline ? " has-inline-switch" : "")}
+      className={"backend-controls" + (showInline ? " has-inline-switch" : "")}
       data-backend-placement={module ? "module" : undefined}
       onBlur={(event) => {
         if (
@@ -170,14 +177,14 @@ export function BackendControls({
         }
       }}
     >
-      {inline && (
+      {showInline && (
         <div
           className="task-backend-control"
-          data-backend-placement={current ? "entry" : undefined}
-          data-capability={current ? currentCapability : undefined}
+          data-backend-placement={currentCapability ? "entry" : undefined}
+          data-capability={currentCapability}
           role="group"
           aria-label={
-            current
+            currentCapability
               ? zh
                 ? "此任务的后端"
                 : "Backend for this task"
@@ -186,12 +193,31 @@ export function BackendControls({
                 : "Backend switch for this module"
           }
         >
-          <RuntimeSwitch item={inline} language={language} runtime={runtime} />
+          {inline && (
+            <RuntimeSwitch
+              item={inline}
+              language={language}
+              runtime={runtime}
+            />
+          )}
+          {showComputeSwitch && (
+            <div className="task-backend-compute">
+              <ComputeSwitch
+                language={language}
+                activity={computeActivity(current, runtime.readError)}
+              />
+            </div>
+          )}
+          {readingCurrent && !runtime.readError && (
+            <span className="task-backend-pending" role="status">
+              {zh ? "正在读取后端…" : "Reading backend…"}
+            </span>
+          )}
           {!open && (
             <BackendStateMessage
               runtime={runtime}
               language={language}
-              failed={runtime.failed === inline.id}
+              failed={Boolean(inline && runtime.failed === inline.id)}
               focusAfterRetry={() => trigger.current?.focus()}
             />
           )}
@@ -202,7 +228,7 @@ export function BackendControls({
         className="secondary-button backend-controls-trigger"
         type="button"
         aria-label={triggerLabel}
-        title={inline ? triggerLabel : undefined}
+        title={showInline ? triggerLabel : undefined}
         aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -210,12 +236,12 @@ export function BackendControls({
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
         <span className="backend-controls-label">
-          {inline ? (zh ? "后端" : "Backend") : triggerLabel}
+          {showInline ? (zh ? "后端" : "Backend") : triggerLabel}
         </span>
         {module && (
           <span
             id={statusId}
-            className={inline ? "sr-only" : "backend-module-status"}
+            className={showInline ? "sr-only" : "backend-module-status"}
             data-power={power}
             aria-live="polite"
             title={status}
