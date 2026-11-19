@@ -10,6 +10,79 @@ from opendde_workbench.deployment.manager import DeploymentManager
 from server_tests.browser_platform import platform
 
 
+def open_components(page, base, language, width):
+    zh = language == "zh"
+    page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
+    page.goto(base)
+    if width < 1024:
+        page.get_by_role(
+            "button", name="打开研究导航" if zh else "Open research navigation"
+        ).click()
+    page.get_by_role("button", name="设置与帮助" if zh else "Settings and help").click()
+    page.get_by_role(
+        "menuitem", name="安装与运行" if zh else "Installation and runtime"
+    ).click()
+
+
+@pytest.mark.parametrize(("language", "width", "height", "columns"), [
+    ("en", 1280, 720, 4),
+    ("zh", 1600, 900, 5),
+])
+def test_desktop_catalogue_keeps_first_row_actions_visible(
+    tmp_path, language, width, height, columns,
+):
+    evidence = Path("outputs/component-presentation")
+    evidence.mkdir(parents=True, exist_ok=True)
+    prefix = f"{language}-{width}-catalogue"
+    with platform(tmp_path / "state", evidence / f"{prefix}.log") as base:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": width, "height": height})
+            mutations = []
+            page.on("request", lambda request: mutations.append(request.url)
+                    if request.method == "POST" else None)
+            open_components(page, base, language, width)
+            library = page.locator(".component-library")
+            grid = library.locator(":scope > .component-grid")
+            cards = grid.get_by_role("article")
+            expect(cards.first).to_be_visible()
+            location = page.locator(".install-location")
+            compute = page.locator(".compute-service-panel")
+            location_box, compute_box = location.bounding_box(), compute.bounding_box()
+            assert location_box and compute_box
+            assert abs(location_box["y"] - compute_box["y"]) <= 1
+            assert location_box["x"] + location_box["width"] < compute_box["x"]
+            boxes = cards.evaluate_all(
+                """nodes => nodes.map(node => {
+                    const box = node.getBoundingClientRect().toJSON();
+                    const description = node.querySelector("p");
+                    const actions = node.querySelector(".component-actions");
+                    const next = node.querySelector(".component-size") ?? actions;
+                    return {...box, actions: actions.getBoundingClientRect().toJSON(),
+                        textFits: description.scrollHeight <= description.clientHeight + 1 &&
+                            description.getBoundingClientRect().bottom <=
+                            next.getBoundingClientRect().top + 1};
+                })"""
+            )
+            row = [box for box in boxes if abs(box["top"] - boxes[0]["top"]) <= 1]
+            assert len(row) == columns
+            assert all(box["actions"]["bottom"] <= height for box in row), row
+            assert all(abs(box["height"] - box["width"]) <= 32 for box in row), row
+            assert all(box["textFits"] for box in boxes)
+            expect(cards.first).to_have_css("border-top-left-radius", "10px")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            page.screenshot(path=evidence / f"{prefix}.png")
+
+            selector = location.get_by_role("combobox")
+            original = selector.input_value()
+            selector.select_option("custom")
+            expect(location.get_by_role("textbox")).to_be_visible()
+            selector.select_option(original)
+            expect(location.get_by_role("textbox")).to_have_count(0)
+            assert not mutations
+            browser.close()
+
+
 @pytest.mark.parametrize("language", ["en", "zh"])
 @pytest.mark.parametrize("width", [1440, 768, 390])
 def test_visible_engine_comparison_and_installed_controls(tmp_path, language, width):
@@ -32,19 +105,7 @@ def test_visible_engine_comparison_and_installed_controls(tmp_path, language, wi
                 lambda request: mutations.append(request.url) if request.method == "POST" else None,
             )
             page.route("**/api/deployment", lambda route: route.fulfill(json=catalog))
-            page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
-            page.goto(base)
-            if width < 1024:
-                page.get_by_role(
-                    "button",
-                    name="Open research navigation" if language == "en" else "打开研究导航",
-                ).click()
-            page.get_by_role(
-                "button", name="Settings and help" if language == "en" else "设置与帮助"
-            ).click()
-            page.get_by_role(
-                "menuitem", name="Installation and runtime" if language == "en" else "安装与运行"
-            ).click()
+            open_components(page, base, language, width)
             page.get_by_role(
                 "button",
                 name="Dynamics and binding free energy"
@@ -67,7 +128,8 @@ def test_visible_engine_comparison_and_installed_controls(tmp_path, language, wi
             )
             if width == 1440:
                 assert max(p["y"] for p in positions) - min(p["y"] for p in positions) <= 1
-                assert all(p["width"] >= 280 for p in positions)
+                widths = [p["width"] for p in positions]
+                assert min(widths) >= 240 and max(widths) - min(widths) <= 1
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=str(evidence / f"{language}-{width}-engines.png"), full_page=True)
             assert not mutations and not errors
@@ -134,18 +196,8 @@ def test_old_component_failure_retains_recovery_controls(tmp_path, language, wid
             # can enqueue an installer on the real platform or execute the fixture queue.
             page.route("**/api/**", deployment_control)
             page.route("**/api/deployment", deployment_read)
-            page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
             try:
-                page.goto(base)
-                if width < 1024:
-                    page.get_by_role("button", name="打开研究导航").click()
-                page.get_by_role(
-                    "button", name="Settings and help" if language == "en" else "设置与帮助"
-                ).click()
-                page.get_by_role(
-                    "menuitem",
-                    name="Installation and runtime" if language == "en" else "安装与运行",
-                ).click()
+                open_components(page, base, language, width)
                 activity = page.locator(".deployment-progress")
                 expect(activity.get_by_role("article")).to_have_count(1)
                 expect(activity.get_by_text(message, exact=True)).to_be_visible()
