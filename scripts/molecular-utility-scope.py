@@ -489,6 +489,17 @@ UTILITY_NAVIGATION_FILES = {
 }
 UTILITY_NAVIGATION_DIFF = "df3ade6d18c23db03652cf3d15b75dc1ebc76d0ac5ddb8d79a44a877e9c6ec4d"
 
+UTILITY_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/utilities.css",
+    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_navigation_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+UTILITY_DESKTOP_DIFF = "ecad5e50e2869aaef046ae915b975e7a994e84d85325f61395d14fc6bef2b957"
+
 
 POTENTIAL_DISPLAY_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
@@ -870,6 +881,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PRINT_LABEL_FILES, PRINT_LABEL_DIFF,
     )
+    utility_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        UTILITY_DESKTOP_FILES, UTILITY_DESKTOP_DIFF,
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -886,6 +901,7 @@ def main():
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
+        output.write("utility_desktop_only=" + str(utility_desktop).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         event = os.environ.get("GITHUB_EVENT_NAME", "push")
         shared_paths = SHARED.keys()
@@ -906,7 +922,7 @@ def main():
         utility = (
             recognition_power or potential_display or navigation or runtime or layout
             or native_state or compact_example or mobile_header or initial_pose_power
-            or mobile_viewer or print_labels
+            or mobile_viewer or print_labels or utility_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

@@ -6,10 +6,10 @@ import { TaskBackendControl } from "./TaskBackendControl";
 import { PrimaryBackendScope } from "./backend-control-scope";
 
 const utilityTabs = [
-  ["image", "图片识别与编辑", "Image recognition & editor"],
-  ["admet", "ADMET 预测", "ADMET prediction"],
+  ["image", "图片识别与编辑", "Image recognition & editor", "Image recognition"],
+  ["admet", "ADMET 预测", "ADMET prediction", "ADMET"],
   ["brain", "透脑评估", "Brain penetration"],
-  ["properties", "分子性质", "Molecular properties"],
+  ["properties", "分子性质", "Molecular properties", "Properties"],
   ["screen", "相似性与结构筛查", "Similarity & structural alerts"],
   ["states", "质子化与互变异构", "Protonation & tautomers"],
 ] as const;
@@ -70,10 +70,11 @@ export function UtilityWorkspace({
           className="utility-tabs"
           aria-label={zh ? "小工具分类" : "Utility tools"}
         >
-          {utilityTabs.map(([id, cn, en]) => (
+          {utilityTabs.map(([id, cn, en, short]) => (
             <button
               key={id}
               type="button"
+              aria-label={zh ? cn : en}
               ref={active === id ? activeTab : undefined}
               aria-pressed={active === id}
               onClick={() => {
@@ -83,7 +84,16 @@ export function UtilityWorkspace({
                 );
               }}
             >
-              {zh ? cn : en}
+              {short && !zh ? (
+                <>
+                  <span className="utility-tab-full">{en}</span>
+                  <span className="utility-tab-compact" aria-hidden="true">
+                    {short}
+                  </span>
+                </>
+              ) : (
+                zh ? cn : en
+              )}
             </button>
           ))}
         </nav>

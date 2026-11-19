@@ -264,6 +264,13 @@
 
 /* Allocate the left-hand stage once there is a molecule to inspect. */
 @media (min-width: 1100px) {
+  .utility-task-fields > .utility-image-entry > .questionnaire {
+    padding-top: 4px;
+    border-radius: var(--utility-surface-radius);
+  }
+  .molecular-utility .single-page-task .questionnaire-choices label {
+    border-radius: 6px;
+  }
   .utility-task-fields > .utility-image-entry >
     .single-page-task:has(.single-page-preview .molecular-input-review) {
     display: grid;
@@ -280,6 +287,7 @@
   .single-page-inputs:has(.molecular-input-review) > .single-page-main {
     grid-column: 2;
     grid-row: 1;
+    container: utility-materials / inline-size;
   }
   .single-page-inputs:has(.molecular-input-review) > .single-page-preview {
     grid-column: 1;
@@ -292,7 +300,7 @@
     margin-bottom: 0;
   }
   .single-page-preview .molecule-image {
-    min-height: clamp(320px, calc(100dvh - 380px), 760px);
+    min-height: clamp(320px, calc(100dvh - 300px), 760px);
   }
   .single-page-inputs:has(.molecular-input-review) > .single-page-options {
     grid-column: 2;
@@ -308,5 +316,14 @@
   }
   .single-page-task > .error-box {
     grid-column: 1 / -1;
+  }
+}
+@container utility-materials (max-width: 430px) {
+  .molecular-utility .single-page-task .single-page-main .questionnaire-choices {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .molecular-utility .single-page-task .single-page-main .questionnaire-choices label {
+    padding-block: 5px;
   }
 }
