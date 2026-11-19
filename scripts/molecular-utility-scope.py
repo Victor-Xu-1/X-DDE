@@ -575,6 +575,19 @@ RECOGNITION_ENTRY_FILES = {
     "tests/test_utility_tools.py",
 }
 RECOGNITION_ENTRY_DIFF = "cac849f9ca1589c2878ce789af25b092ed6ae25b710a14c62fd9774d7072cf46"
+RECOGNITION_PANEL_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/RecognitionBackendEntry.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "src/opendde_workbench/runtime_controls.py",
+    "src/opendde_workbench/utility_routes.py",
+    "tests/test_utility_tools.py",
+}
+RECOGNITION_PANEL_POWER_DIFF = "02d67ac2279bf382fbc27b223158adb1e623dcc544765ca5cd6fc40f8a2d19cd"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1253,6 +1266,10 @@ def main():
     recognition_entry = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_ENTRY_FILES, RECOGNITION_ENTRY_DIFF, scope_pin="RECOGNITION_ENTRY_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RECOGNITION_PANEL_POWER_FILES, RECOGNITION_PANEL_POWER_DIFF,
+        scope_pin="RECOGNITION_PANEL_POWER_DIFF",
     )
     task_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

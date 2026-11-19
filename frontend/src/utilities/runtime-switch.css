@@ -79,9 +79,12 @@
   outline-offset: 1px;
   border-radius: 6px;
 }
-.recognition-backend-entry > button {
-  flex-shrink: 1;
+.recognition-backend-entry .text-button {
   font-size: 11px;
+  padding: 0;
+}
+.recognition-backend-entry .backend-state-message {
+  margin-block-start: 4px;
 }
 .backend-module-status {
   display: inline-flex;

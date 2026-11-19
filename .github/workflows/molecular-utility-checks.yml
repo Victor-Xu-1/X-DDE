@@ -367,11 +367,11 @@ jobs:
         run: >-
           npx vitest run src/studio/Header.test.tsx src/utilities/BackendControls.test.tsx
           src/utilities/UtilityWorkspace.test.tsx src/utilities/ImageRecognition.test.tsx
-      - name: Read-only recognition state and module backend switches in Chrome
+      - name: Recognition state, explicit power, and module switches in Chrome
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check src/opendde_workbench/utility_routes.py tests/test_utility_tools.py scripts/molecular-utility-scope.py server_tests/test_module_backend_switch_browser.py
-          uv run --locked pytest -q tests/test_molecular_utility_scope.py tests/test_utility_tools.py -k 'discovery_only_reads or discovery_failure or recognition_status or managed_engine_default_off or test_molecular_utility_scope'
+          uv run --locked ruff check src/opendde_workbench/runtime_controls.py src/opendde_workbench/utility_routes.py tests/test_utility_tools.py scripts/molecular-utility-scope.py server_tests/test_module_backend_switch_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py tests/test_utility_tools.py -k 'discovery_only_reads or discovery_failure or recognition_status or recognition_power or managed_engine_default_off or test_molecular_utility_scope'
           uv run --locked python -m pytest -xq server_tests/test_module_backend_switch_browser.py
       - uses: actions/upload-artifact@v4
         if: always()

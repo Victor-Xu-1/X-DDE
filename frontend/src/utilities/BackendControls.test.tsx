@@ -30,6 +30,59 @@ const entry = {
   enabled: false,
   active: false,
 };
+it("switches DECIMER from a utility without leaving the current tab", async () => {
+  const onOpen = vi.fn();
+  const user = userEvent.setup();
+  let recognition = { phase: "stopped", enabled: false };
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? { available: true, power: recognition }
+        : {
+            capabilities: { properties: "chemistry" },
+            engines: [entry],
+          }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    const on = path.endsWith("/start");
+    recognition = { phase: on ? "ready" : "stopped", enabled: on };
+    return { available: true, power: recognition } as never;
+  });
+  render(
+    <BackendControls
+      language="en"
+      module={{ label: ["小工具", "Utilities"], tools: ["properties"] }}
+      moduleHasRecognition
+      onOpenRecognition={onOpen}
+    />,
+  );
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  const power = await screen.findByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(power).toBeEnabled());
+  expect(power).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+
+  await user.click(power);
+  await waitFor(() => expect(power).toBeChecked());
+  expect(menu).toHaveAccessibleDescription("1 on");
+  expect(screen.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  await user.click(power);
+  await waitFor(() => expect(power).not.toBeChecked());
+  expect(menu).toHaveAccessibleDescription("Task engines off");
+  expect(api.post).toHaveBeenNthCalledWith(
+    1,
+    "/utilities/recognition/start",
+    {},
+  );
+  expect(api.post).toHaveBeenNthCalledWith(
+    2,
+    "/utilities/recognition/stop",
+    {},
+  );
+  expect(onOpen).not.toHaveBeenCalled();
+});
+
 it("does not start engines on mount, offers only explicit available switches", async () => {
   vi.mocked(request).mockResolvedValue({
     engines: [entry, { ...entry, id: "admet", name: "ADMET-AI", ready: false }],
