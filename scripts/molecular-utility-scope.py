@@ -936,6 +936,7 @@ HISTORY_DESKTOP_FILES = {
     ".github/workflows/task-history-checks.yml",
     "frontend/package-lock.json",
     "frontend/src/App.test.tsx",
+    "frontend/src/App.tsx",
     "frontend/src/design/research-navigation.css",
     "frontend/src/studio/TaskHistoryFilters.tsx",
     "frontend/src/studio/TaskHistoryList.test.tsx",
@@ -949,7 +950,7 @@ HISTORY_DESKTOP_FILES = {
     "server_tests/test_task_status_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-HISTORY_DESKTOP_DIFF = "8784e94039e29fd4f65866b5f7cacfb65814b1a516620f109e18a23ebcc54d7a"
+HISTORY_DESKTOP_DIFF = "18924fe5b9696fbe289451636de90669583d80ee60418a347ec52f0f6c3927ff"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
