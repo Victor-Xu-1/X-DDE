@@ -542,6 +542,22 @@ RECOGNITION_POWER_FILES = {
     "tests/test_recognition_companion.py",
 }
 RECOGNITION_POWER_DIFF = "931c66f515c294674f933f2833a6c77a3c22d178c72839bf782ca9b284548af4"
+RECOGNITION_ENTRY_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/App.tsx",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/ImageRecognition.tsx",
+    "frontend/src/utilities/RecognitionBackendEntry.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "src/opendde_workbench/utility_routes.py",
+    "tests/test_molecular_utility_scope.py",
+    "tests/test_utility_tools.py",
+}
+RECOGNITION_ENTRY_DIFF = "cac849f9ca1589c2878ce789af25b092ed6ae25b710a14c62fd9774d7072cf46"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1076,6 +1092,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_POWER_FILES, RECOGNITION_POWER_DIFF,
     )
+    recognition_entry = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RECOGNITION_ENTRY_FILES, RECOGNITION_ENTRY_DIFF, scope_pin="RECOGNITION_ENTRY_DIFF",
+    )
     task_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         TASK_POWER_FILES, TASK_POWER_DIFF,
@@ -1189,9 +1209,11 @@ def main():
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not history_desktop
+            and not recognition_entry
             and (not changed or backend_setup or bool(MODULE_POWER_CONSUMERS.intersection(changed)))
         )
         output.write("module_power_changed=" + str(power_changed).lower() + "\n")
+        output.write("recognition_entry_only=" + str(recognition_entry).lower() + "\n")
         output.write("native_state_only=" + str(native_state).lower() + "\n")
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
@@ -1225,7 +1247,8 @@ def main():
             for path in set(changed) & RESULT_HEADER_BLOBS.keys()
         })
         utility = (
-            recognition_power or potential_display or navigation or runtime or layout
+            recognition_entry or recognition_power or potential_display or navigation
+            or runtime or layout
             or native_state or compact_example or mobile_header or desktop_header
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help

@@ -6,7 +6,12 @@ import { TaskBackendControl } from "./TaskBackendControl";
 import { PrimaryBackendScope } from "./backend-control-scope";
 
 const utilityTabs = [
-  ["image", "图片识别与编辑", "Image recognition & editor", "Image recognition"],
+  [
+    "image",
+    "图片识别与编辑",
+    "Image recognition & editor",
+    "Image recognition",
+  ],
   ["admet", "ADMET 预测", "ADMET prediction", "ADMET"],
   ["brain", "透脑评估", "Brain penetration"],
   ["properties", "分子性质", "Molecular properties", "Properties"],
@@ -39,10 +44,12 @@ export function UtilityWorkspace({
   active?: boolean;
   imageRequest?: number;
 }) {
-  const [selection, setSelection] = useState<{ tab: Utility; request: number }>({
-    tab: "image",
-    request: imageRequest,
-  });
+  const [selection, setSelection] = useState<{ tab: Utility; request: number }>(
+    {
+      tab: "image",
+      request: imageRequest,
+    },
+  );
   // Explicit screenshot entries select the image tab without remounting drafts.
   const active = selection.request === imageRequest ? selection.tab : "image";
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
@@ -68,7 +75,9 @@ export function UtilityWorkspace({
     return () => observer.disconnect();
   }, [active, language, visible]);
   const backendScope =
-    visible && active !== "image" ? { capability: utilityCapability(active) } : null;
+    visible && active !== "image"
+      ? { capability: utilityCapability(active) }
+      : null;
   return (
     <div className="utility-workspace">
       <div className="utility-tabbar">
@@ -98,8 +107,10 @@ export function UtilityWorkspace({
                     {short}
                   </span>
                 </>
+              ) : zh ? (
+                cn
               ) : (
-                zh ? cn : en
+                en
               )}
             </button>
           ))}
@@ -140,6 +151,8 @@ export function UtilityWorkspace({
               <ImageRecognition
                 language={language}
                 actionsTarget={imageActions}
+                visible={visible && active === id}
+                focusRequest={imageRequest}
               />
             )}
           </section>

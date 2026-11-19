@@ -11,19 +11,27 @@ import { useRecognitionLocale } from "./useRecognitionLocale";
 export function ImageRecognition({
   language,
   actionsTarget,
+  visible = true,
+  focusRequest = 0,
 }: {
   language: Language;
   actionsTarget?: HTMLElement | null;
+  visible?: boolean;
+  focusRequest?: number;
 }) {
   const zh = language === "zh";
   const [attempt, setAttempt] = useState(0);
-  const [status, setStatus] = useState<"checking" | "ready" | "offline">(
-    "checking",
-  );
+  const [connection, setConnection] = useState<{
+    status: "checking" | "ready" | "offline";
+    focusRequest: number;
+  }>({ status: "checking", focusRequest: 0 });
+  const { status } = connection;
   const hostname =
     location.hostname === "localhost" ? "localhost" : "127.0.0.1";
   const origin = `http://${hostname}:8940`;
   const frame = useRef<HTMLIFrameElement>(null);
+  const reconnect = useRef<HTMLButtonElement>(null);
+  const lastFocusedRequest = useRef(0);
   const [url] = useState(() => recognitionFrameUrl(origin, language));
   const locale = useRecognitionLocale(
     frame,
@@ -32,9 +40,13 @@ export function ImageRecognition({
     status === "ready",
   );
   useEffect(() => {
+    if (!visible) return;
     const controller = new AbortController();
     const deadline = window.setTimeout(() => controller.abort(), 5000);
-    setStatus("checking");
+    let disposed = false;
+    function settle(status: "ready" | "offline") {
+      if (!disposed) setConnection({ status, focusRequest });
+    }
     fetch("/api/utilities/recognition", {
       signal: controller.signal,
       cache: "no-store",
@@ -42,20 +54,36 @@ export function ImageRecognition({
       .then(async (response) => {
         if (!response.ok) throw new Error("Unavailable");
         const value = await response.json();
-        if (!controller.signal.aborted)
-          setStatus(value.available === true ? "ready" : "offline");
+        settle(
+          value.available === true && !controller.signal.aborted
+            ? "ready"
+            : "offline",
+        );
       })
       .catch(() => {
-        if (!disposed) setStatus("offline");
+        settle("offline");
       })
       .finally(() => window.clearTimeout(deadline));
-    let disposed = false;
     return () => {
       disposed = true;
       controller.abort();
       window.clearTimeout(deadline);
     };
-  }, [attempt]);
+  }, [attempt, focusRequest, visible]);
+  useEffect(() => {
+    if (
+      !visible ||
+      connection.focusRequest !== focusRequest ||
+      focusRequest <= lastFocusedRequest.current ||
+      status === "checking"
+    )
+      return;
+    const target = status === "ready" ? frame.current : reconnect.current;
+    if (target) {
+      lastFocusedRequest.current = focusRequest;
+      target.focus();
+    }
+  }, [connection, focusRequest, status, visible]);
   const actions = (
     <div className="utility-editor-tools">
       <Hint label={zh ? "图片输入帮助" : "Image input help"}>
@@ -65,6 +93,7 @@ export function ImageRecognition({
       </Hint>
       <div className="utility-actions">
         <button
+          ref={reconnect}
           type="button"
           className="secondary-button"
           aria-label={zh ? "重新连接" : "Reconnect"}

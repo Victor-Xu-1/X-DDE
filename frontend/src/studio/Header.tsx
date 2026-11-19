@@ -32,7 +32,7 @@ export function Header({
   onJob,
   storageWarning,
   workspace,
-  runtime,
+  onOpenRecognition,
 }: {
   view: View;
   language: Language;
@@ -40,7 +40,7 @@ export function Header({
   onJob(id: string): void;
   storageWarning: boolean;
   workspace?: ReactNode;
-  runtime?: ReactNode;
+  onOpenRecognition?(): void;
 }) {
   const zh = language === "zh";
   const researchModule = researchModuleForView(view);
@@ -52,15 +52,13 @@ export function Header({
   );
   const actions = (
     <div key="actions" className="top-actions">
-      {module ? (
-        <BackendControls
-          key={researchModule?.id ?? "utilities"}
-          language={language}
-          module={module}
-        />
-      ) : (
-        runtime
-      )}
+      <BackendControls
+        key={researchModule?.id ?? (module ? "utilities" : "all")}
+        language={language}
+        module={module}
+        moduleHasRecognition={view === "utilities"}
+        onOpenRecognition={onOpenRecognition}
+      />
       <TaskNotifications jobs={jobs} language={language} onJob={onJob} />
     </div>
   );
