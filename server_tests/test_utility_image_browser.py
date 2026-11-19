@@ -382,6 +382,14 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
         expect(mode).to_have_value(original_mode)
         assert len(uploads) == 1
+        query_upload = query.get_by_role("button", name="Upload query image", exact=True)
+        offer.get_by_role("button", name="Dismiss", exact=True).press("Enter")
+        expect(offer).to_have_count(0)
+        expect(query_upload).to_be_focused()
+        expect(mode).to_have_value(original_mode)
+        page.get_by_role("button", name="Image recognition & editor", exact=True).click()
+        expect(drawing).to_have_value("Nc1ccccc1")
+        destination.select_option("screen")
         offer.get_by_role("button", name="Use as query", exact=True).click()
         expect(offer).to_have_count(0)
         expect(mode).to_have_value("similarity")
@@ -390,5 +398,6 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
             "Query molecule · Record 1"
         )
         assert len(uploads) == 2 and b"Nc1ccccc1" in uploads[1]
+        expect(query_upload).to_be_focused()
         assert not jobs and not power_commands
         browser.close()

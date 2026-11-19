@@ -1,4 +1,4 @@
-import { useContext, useRef, type ReactNode } from "react";
+import { useContext, useRef, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
 import { ImageMoleculeDialog } from "./ImageMoleculeDialog";
@@ -29,6 +29,7 @@ export function ImageMoleculeInput({
   className = "",
   inputOwner = false,
   target = "molecule",
+  uploadButton,
   controlsFirst = false,
   automatic = false,
   cancelOnEdit = false,
@@ -44,6 +45,7 @@ export function ImageMoleculeInput({
   className?: string;
   inputOwner?: boolean;
   target?: ImageInputTarget;
+  uploadButton?: RefObject<HTMLButtonElement | null>;
   controlsFirst?: boolean;
   automatic?: boolean;
   cancelOnEdit?: boolean;
@@ -64,7 +66,8 @@ export function ImageMoleculeInput({
     (inputOwner || presentation?.imageEntry !== "workspace");
   const zh = language === "zh",
     picker = useRef<HTMLInputElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
+  const localTrigger = useRef<HTMLButtonElement>(null);
+  const trigger = uploadButton ?? localTrigger;
   const surface = useRef<HTMLDivElement>(null);
   const recognition = useRecognitionStatus(enabled && target !== "query");
   const session = useImageInputSession({

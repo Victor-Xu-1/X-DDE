@@ -659,7 +659,7 @@ UTILITY_QUERY_FILES = {
     "tests/fixtures/utility_image/browser.tsx",
     "tests/test_molecular_utility_scope.py",
 }
-UTILITY_QUERY_DIFF = "de8f187ec78be163e67b2093c15d151d27a45436eb401a8a5662d2b425090702"
+UTILITY_QUERY_DIFF = "3e4afa4c99c61dd9446469052ab8916e7394452efd14613597e020a66f41abac"
 
 
 PAIRED_FIGURE_FILES = {
