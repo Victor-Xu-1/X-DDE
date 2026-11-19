@@ -24,9 +24,16 @@ export function useRecognitionStatus(observe: boolean) {
   const [changing, setChanging] = useState(false);
   const [failed, setFailed] = useState(false);
   const pending = useRef(false);
+  const observation = useRef(0);
   const reading = useRef<AbortController | null>(null);
   useLayoutEffect(() => {
-    if (!observe) setStatus(null);
+    if (!observe) {
+      setStatus(null);
+      setFailed(false);
+    }
+    return () => {
+      observation.current += 1;
+    };
   }, [observe]);
   useEffect(() => {
     if (!observe || changing) return;
@@ -70,6 +77,7 @@ export function useRecognitionStatus(observe: boolean) {
     )
       return;
     pending.current = true;
+    const observed = observation.current;
     reading.current?.abort();
     setChanging(true);
     setFailed(false);
@@ -86,10 +94,12 @@ export function useRecognitionStatus(observe: boolean) {
         !Object.hasOwn(phaseLabels, next.power.phase)
       )
         throw new Error("Invalid recognition power response");
-      setStatus(next);
+      if (observation.current === observed) setStatus(next);
     } catch {
-      setStatus(null);
-      setFailed(true);
+      if (observation.current === observed) {
+        setStatus(null);
+        setFailed(true);
+      }
     } finally {
       pending.current = false;
       setChanging(false);

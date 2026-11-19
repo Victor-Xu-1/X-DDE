@@ -1,15 +1,7 @@
 diff --git a/desktop/server.mjs b/desktop/server.mjs
-index 2a44626..b2163ae 100644
 --- a/desktop/server.mjs
 +++ b/desktop/server.mjs
-@@ -29,5 +29,6 @@ const types = {
- export function makeServer(config, lifecycle = new Lifecycle(config)) {
-   const sessions = new Sessions();
-+  let admitting = false;
-   const json = (res, status, body, headers = {}) => {
-     res.writeHead(status, {
-       "content-type": "application/json; charset=utf-8",
-@@ -51,6 +52,7 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+@@ -51,6 +51,7 @@
          return json(res, 200, {
            app: "decimer-workbench",
            version: config.version,
@@ -17,7 +9,7 @@ index 2a44626..b2163ae 100644
          });
        if (path === "/api/session" && req.method === "GET") {
          const token = sessions.issue();
-@@ -67,7 +69,8 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+@@ -67,7 +68,8 @@
          return json(res, 200, lifecycle.state());
        if (path.startsWith("/api/")) {
          sessions.verify(req);
@@ -27,25 +19,27 @@ index 2a44626..b2163ae 100644
            if (!req.headers["content-type"]?.startsWith("application/json"))
              throw new HttpError(415, "JSON required");
            let body;
-@@ -79,29 +82,39 @@ export function makeServer(config, lifecycle = new Lifecycle(config)) {
+@@ -79,29 +81,42 @@
            }
            if (typeof body.enabled !== "boolean")
              throw new HttpError(422, "enabled must be boolean");
 +          if (
 +            idlePower &&
-+            (admitting || lifecycle.phase === "busy" || lifecycle.phase === "stopping")
++            (lifecycle.admitting || lifecycle.phase === "busy" || lifecycle.phase === "stopping")
 +          )
 +            throw new HttpError(409, "Wait for the current recognition request.");
            return json(res, 202, lifecycle.setEnabled(body.enabled));
          }
          if (path === "/api/jobs" && req.method === "POST") {
 -          if (lifecycle.phase !== "ready")
-+          if (admitting || lifecycle.phase !== "ready")
++          if (lifecycle.admitting || lifecycle.phase !== "ready")
              throw new HttpError(409, "识别服务尚未就绪或正在处理其他图片。");
            if (!req.headers["content-type"]?.startsWith("multipart/form-data;"))
              throw new HttpError(415, "Image form required");
 -          const body = await readBody(req);
--          const generation = lifecycle.generation;
++          lifecycle.admitting = true;
++          lifecycle.admissionEpoch++;
+           const generation = lifecycle.generation;
 -          const response = await lifecycle.worker("/api/jobs", {
 -            method: "POST",
 -            headers: { "content-type": req.headers["content-type"] },
@@ -58,10 +52,10 @@ index 2a44626..b2163ae 100644
 -            lifecycle.job = data;
 -            lifecycle.phase = "busy";
 -            lifecycle.lastActivity = Date.now();
-+          admitting = true;
 +          try {
 +            const body = await readBody(req);
-+            const generation = lifecycle.generation;
++            if (generation !== lifecycle.generation || !lifecycle.desired)
++              throw new HttpError(409, "识别服务已关闭。");
 +            const response = await lifecycle.worker("/api/jobs", {
 +              method: "POST",
 +              headers: { "content-type": req.headers["content-type"] },
@@ -77,9 +71,63 @@ index 2a44626..b2163ae 100644
 +            }
 +            return json(res, response.status, data);
 +          } finally {
-+            admitting = false;
++            lifecycle.admitting = false;
            }
 -          return json(res, response.status, data);
          }
          if (
            /^\/api\/jobs\/[a-f0-9-]{36}$/.test(path) &&
+diff --git a/desktop/lifecycle.mjs b/desktop/lifecycle.mjs
+--- a/desktop/lifecycle.mjs
++++ b/desktop/lifecycle.mjs
+@@ -10,6 +10,8 @@
+     this.fetch = dependencies.fetch || fetch;
+     this.desired = false;
+     this.generation = 0;
++    this.admissionEpoch = 0;
++    this.admitting = false;
+     this.phase = "stopped";
+     this.error = null;
+     this.job = null;
+@@ -110,7 +112,7 @@
+     });
+   }
+   async tick() {
+-    if (!this.desired || this.polling || this.phase === "starting") return;
++    if (!this.desired || this.admitting || this.polling || this.phase === "starting") return;
+     if (
+       this.job?.status !== "running" &&
+       Date.now() - this.lastActivity > 600000
+@@ -120,11 +122,17 @@
+     }
+     this.polling = true;
+     const generation = this.generation;
++    const admissionEpoch = this.admissionEpoch;
+     try {
+       const response = await this.worker("/api/heartbeat", { method: "POST" });
+       if (!response.ok) throw new Error(`Worker HTTP ${response.status}`);
+       const state = await response.json();
+-      if (generation !== this.generation || !this.desired) return;
++      if (
++        generation !== this.generation ||
++        admissionEpoch !== this.admissionEpoch ||
++        !this.desired
++      )
++        return;
+       this.failures = 0;
+       if (state.phase === "error") {
+         this.fail(state.error || "模型加载失败。");
+@@ -143,7 +151,12 @@
+       )
+         this.fail("识别超时，识别服务已关闭。");
+     } catch (error) {
+-      if (generation !== this.generation || !this.desired) return;
++      if (
++        generation !== this.generation ||
++        admissionEpoch !== this.admissionEpoch ||
++        !this.desired
++      )
++        return;
+       this.failures++;
+       if (
+         Date.now() > this.deadline ||

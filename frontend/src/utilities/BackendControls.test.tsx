@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   render,
   screen,
@@ -83,7 +84,7 @@ it("switches DECIMER from a utility without leaving the current tab", async () =
   expect(onOpen).not.toHaveBeenCalled();
 });
 
-it("requires fresh DECIMER state when reopening the global panel", async () => {
+it("requires fresh DECIMER state after a power response arrives while closed", async () => {
   const user = userEvent.setup();
   const stopped = {
     available: true,
@@ -95,6 +96,11 @@ it("requires fresh DECIMER state when reopening the global panel", async () => {
   const fresh = new Promise((resolve) => {
     resolveStatus = resolve;
   });
+  let resolveToggle: (value: unknown) => void = () => {};
+  const toggled = new Promise((resolve) => {
+    resolveToggle = resolve;
+  });
+  vi.mocked(api.post).mockImplementation(async () => toggled as never);
   vi.mocked(request).mockImplementation(
     async (path) =>
       (path.startsWith("/utilities/recognition")
@@ -109,13 +115,21 @@ it("requires fresh DECIMER state when reopening the global panel", async () => {
   await waitFor(() =>
     expect(screen.getByRole("switch", { name: "DECIMER" })).toBeEnabled(),
   );
-  await user.keyboard("{Escape}");
+  await user.click(screen.getByRole("switch", { name: "DECIMER" }));
+  await user.click(menu);
+  expect(menu).toHaveAttribute("aria-expanded", "false");
   hold = true;
+  await act(async () => {
+    resolveToggle({
+      ...stopped,
+      power: { phase: "ready", enabled: true },
+    });
+  });
   await user.click(menu);
   const control = screen.getByRole("switch", { name: "DECIMER" });
   expect(control).toBeDisabled();
   expect(control).toHaveAccessibleDescription("State unavailable");
-  expect(api.post).not.toHaveBeenCalled();
+  expect(api.post).toHaveBeenCalledTimes(1);
   resolveStatus({
     ...stopped,
     power: { phase: "ready", enabled: true },

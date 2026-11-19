@@ -251,7 +251,7 @@ The editor fills the available window height below the utility tabs. Help, recon
 
 Use **Backend controls** in any utility to switch DECIMER on or off while keeping your current form open. The image editor and the screenshot import dialog control the same service. It defaults to off and releases its model when idle. Older companion builds show a shortcut to the image workbench. The utility switch becomes available when the desktop companion advertises idle-only power control.
 
-For a compatible desktop companion source, apply [the idle-power patch](../scripts/recognition-idle-power.patch) from its project root. Verify the actual handler with `node scripts/check-recognition-idle-power.mjs <companion-root>/desktop/server.mjs` from X-DDE. Update only the idle desktop web host so the new endpoint takes effect.
+For a compatible desktop companion source, apply [the idle-power patch](../scripts/recognition-idle-power.patch) from its project root. Verify the handler and lifecycle with `node scripts/check-recognition-idle-power.mjs <companion-root>/desktop/server.mjs` from X-DDE. Update the desktop web host while the model is stopped so the new endpoint takes effect.
 
 To embed an existing DECIMER workbench, its HTTP host must explicitly permit only `http://127.0.0.1:4322` and `http://localhost:4322` in `frame-ancestors`; retain its host/origin/session checks. X-DDE permits only the two corresponding local 8940 frame origins. The read-only discovery route checks the fixed `/health` endpoint and optionally returns the phase and enabled flag from `/api/state`. Power changes remain in the authenticated companion.
 
