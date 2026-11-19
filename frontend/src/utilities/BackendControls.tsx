@@ -50,9 +50,10 @@ export function BackendControls({
   const showRecognition = Boolean(
     onOpenRecognition && (moduleHasRecognition || !capabilities),
   );
-  const recognition = useRecognitionStatus(
+  const recognitionPower = useRecognitionStatus(
     showRecognition && (moduleHasRecognition || open),
   );
+  const { status: recognition } = recognitionPower;
   const runtime = useBackendRuntime(
     Boolean(module) || open,
     open ? capabilities : undefined,
@@ -233,7 +234,7 @@ export function BackendControls({
             {showRecognition && onOpenRecognition && (
               <RecognitionBackendEntry
                 language={language}
-                status={recognition}
+                powerControl={recognitionPower}
                 onOpen={() => {
                   setPanel("closed");
                   onOpenRecognition();

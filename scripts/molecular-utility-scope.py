@@ -575,6 +575,27 @@ RECOGNITION_ENTRY_FILES = {
     "tests/test_utility_tools.py",
 }
 RECOGNITION_ENTRY_DIFF = "cac849f9ca1589c2878ce789af25b092ed6ae25b710a14c62fd9774d7072cf46"
+NATIVE_RECOGNITION_POWER_FILES = {
+    "scripts/check-recognition-idle-power.mjs",
+    "scripts/recognition-idle-power.patch",
+    "tests/fixtures/recognition_idle_power/SHA256SUMS",
+    "tests/fixtures/recognition_idle_power/desktop/lifecycle.mjs",
+    "tests/fixtures/recognition_idle_power/desktop/security.mjs",
+    "tests/fixtures/recognition_idle_power/desktop/server.mjs",
+}
+RECOGNITION_PANEL_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/RecognitionBackendEntry.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "src/opendde_workbench/runtime_controls.py",
+    "src/opendde_workbench/utility_routes.py",
+    "tests/test_utility_tools.py",
+} | NATIVE_RECOGNITION_POWER_FILES
+RECOGNITION_PANEL_POWER_DIFF = "4d42bb33efc7ee5e23f96a572897d59ea7c7d1e746f331e1efc947c4047c450a"
 
 
 # Only this exact presentation patch takes the narrower browser gate.
@@ -1253,7 +1274,11 @@ def main():
     recognition_entry = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RECOGNITION_ENTRY_FILES, RECOGNITION_ENTRY_DIFF, scope_pin="RECOGNITION_ENTRY_DIFF",
-    )
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RECOGNITION_PANEL_POWER_FILES, RECOGNITION_PANEL_POWER_DIFF,
+        scope_pin="RECOGNITION_PANEL_POWER_DIFF",
+    ) or bool(changed and set(changed) <= NATIVE_RECOGNITION_POWER_FILES)
     task_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         TASK_POWER_FILES, TASK_POWER_DIFF,

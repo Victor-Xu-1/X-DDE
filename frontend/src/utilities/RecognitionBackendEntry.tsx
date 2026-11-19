@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { request } from "../api";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { api, request } from "../api";
+import { BackendPowerSwitch } from "./BackendPowerSwitch";
 import type { Language } from "../types";
 
 const phaseLabels = {
@@ -14,14 +15,30 @@ const phaseLabels = {
 
 type RecognitionStatus = {
   available: boolean;
+  idle_power?: boolean;
   power?: { phase: keyof typeof phaseLabels; enabled: boolean };
 };
 
 export function useRecognitionStatus(observe: boolean) {
   const [status, setStatus] = useState<RecognitionStatus | null>(null);
+  const [changing, setChanging] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const pending = useRef(false);
+  const observation = useRef(0);
+  const reading = useRef<AbortController | null>(null);
+  useLayoutEffect(() => {
+    if (!observe) {
+      setStatus(null);
+      setFailed(false);
+    }
+    return () => {
+      observation.current += 1;
+    };
+  }, [observe]);
   useEffect(() => {
-    if (!observe) return;
+    if (!observe || changing) return;
     const controller = new AbortController();
+    reading.current = controller;
     let timer: ReturnType<typeof setTimeout>;
     async function read() {
       try {
@@ -45,21 +62,66 @@ export function useRecognitionStatus(observe: boolean) {
     return () => {
       controller.abort();
       clearTimeout(timer);
+      reading.current = null;
     };
-  }, [observe]);
-  return observe ? status : null;
+  }, [observe, changing]);
+
+  async function toggle() {
+    const power = status?.power;
+    if (
+      !observe ||
+      !status?.idle_power ||
+      !power ||
+      pending.current ||
+      blocked(power.phase)
+    )
+      return;
+    pending.current = true;
+    const observed = observation.current;
+    reading.current?.abort();
+    setChanging(true);
+    setFailed(false);
+    try {
+      const next = await api.post<RecognitionStatus>(
+        `/utilities/recognition/${power.enabled ? "stop" : "start"}`,
+        {},
+      );
+      if (
+        !next.available ||
+        next.idle_power !== true ||
+        !next.power ||
+        next.power.enabled !== !power.enabled ||
+        !Object.hasOwn(phaseLabels, next.power.phase)
+      )
+        throw new Error("Invalid recognition power response");
+      if (observation.current === observed) setStatus(next);
+    } catch {
+      if (observation.current === observed) {
+        setStatus(null);
+        setFailed(true);
+      }
+    } finally {
+      pending.current = false;
+      setChanging(false);
+    }
+  }
+  return { status: observe ? status : null, changing, failed, toggle };
 }
+
+const blocked = (phase: keyof typeof phaseLabels) =>
+  phase === "busy" || phase === "stopping";
 
 export function RecognitionBackendEntry({
   language,
-  status,
+  powerControl,
   onOpen,
 }: {
   language: Language;
-  status: RecognitionStatus | null;
+  powerControl: ReturnType<typeof useRecognitionStatus>;
   onOpen(): void;
 }) {
   const zh = language === "zh";
+  const { status, changing, failed, toggle } = powerControl;
   const phase = status?.power?.phase;
   const description =
     phase && Object.hasOwn(phaseLabels, phase)
@@ -72,19 +134,27 @@ export function RecognitionBackendEntry({
           ? "状态待确认"
           : "State unavailable";
   return (
-    <div
-      className="runtime-switch recognition-backend-entry"
-      data-engine="decimer"
-    >
-      <span className="runtime-switch-label">
-        <span>DECIMER</span>
-        <span className="runtime-switch-status">
-          <small aria-live="polite">{description}</small>
-        </span>
-      </span>
-      <button type="button" className="secondary-button" onClick={onOpen}>
-        {zh ? "打开识别工作台" : "Open image workbench"}
-      </button>
+    <div className="recognition-backend-entry">
+      <BackendPowerSwitch
+        id="decimer"
+        name="DECIMER"
+        status={changing ? (zh ? "正在切换…" : "Switching…") : description}
+        enabled={status?.power?.enabled === true}
+        disabled={changing || !status?.idle_power || !phase || blocked(phase)}
+        onToggle={() => void toggle()}
+        setup={
+          <button type="button" className="text-button" onClick={onOpen}>
+            {zh ? "打开识别工作台" : "Open image workbench"}
+          </button>
+        }
+      />
+      {failed && (
+        <p className="backend-state-message" role="alert">
+          {zh
+            ? "未能确认启停结果，正在重新读取识别服务状态。"
+            : "Could not confirm the power change. Checking recognition status."}
+        </p>
+      )}
     </div>
   );
 }

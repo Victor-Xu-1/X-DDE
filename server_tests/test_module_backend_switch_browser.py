@@ -225,16 +225,36 @@ def verify_modules(page, base):
 
 
 def verify_utilities(page, base, companion, companion_loads):
+    page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(base + "/#view=utilities")
+    admet = page.get_by_role("button", name="ADMET 预测", exact=True)
+    admet.click()
     trigger, module = module_power(page)
     trigger.click()
-    expect(module.get_by_role("switch")).to_have_count(2)
+    expect(module.get_by_role("switch")).to_have_count(3)
     assert set(module.locator("[data-engine]").evaluate_all(
         "(rows) => rows.map((row) => row.dataset.engine)"
     )) == {"admet", "chemistry", "decimer"}
     recognition = module.locator('[data-engine="decimer"]')
+    toggle = recognition.get_by_role("switch", name="DECIMER", exact=True)
     expect(recognition).to_contain_text("已关闭")
     expect(trigger).to_have_accessible_description("任务引擎已关闭")
+    expect(toggle).not_to_be_checked()
+    expect(toggle).to_be_enabled()
+    decimer = toggle.bounding_box()
+    admet_power = module.locator('[data-engine="admet"]').get_by_role("switch").bounding_box()
+    assert decimer and admet_power and abs(decimer["x"] - admet_power["x"]) < 1
+    toggle.press("Space")
+    expect(toggle).to_be_checked()
+    expect(trigger).to_have_accessible_description("1 个后端已开启")
+    expect(admet).to_have_attribute("aria-pressed", "true")
+    toggle.press("Space")
+    expect(toggle).not_to_be_checked()
+    expect(trigger).to_have_accessible_description("任务引擎已关闭")
+    expect(admet).to_have_attribute("aria-pressed", "true")
+    assert page.locator("iframe.utility-recognition-frame:visible").count() == 0
+    page.screenshot(path=EVIDENCE / "recognition-power-in-admet-1280.png")
+
     companion["power"] = {"phase": "ready", "enabled": True}
     expect(recognition).to_contain_text("已开启", timeout=12000)
     expect(trigger).to_have_accessible_description("1 个后端已开启")
@@ -261,6 +281,7 @@ def verify_utilities(page, base, companion, companion_loads):
     trigger.click()
     recognition = module.locator('[data-engine="decimer"]')
     expect(recognition).to_contain_text("工作台未连接", timeout=12000)
+    expect(recognition.get_by_role("switch")).to_be_disabled()
     recognition.get_by_role("button", name="打开识别工作台").press("Enter")
     expect(module).to_have_count(0)
     expect(page.get_by_role("button", name="图片识别与编辑")).to_have_attribute(
@@ -272,7 +293,7 @@ def verify_utilities(page, base, companion, companion_loads):
 
     previous_loads = len(companion_loads)
     page.get_by_role("button", name="分子性质", exact=True).click()
-    companion.update(available=True, power={"phase": "stopped", "enabled": False})
+    companion.update(available=True, idle_power=True, power={"phase": "stopped", "enabled": False})
     trigger.click()
     expect(recognition).to_contain_text("已关闭", timeout=12000)
     recognition.get_by_role("button", name="打开识别工作台").press("Enter")
@@ -397,6 +418,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         companion = {
             "available": True,
             "port": 8940,
+            "idle_power": True,
             "power": {"phase": "stopped", "enabled": False},
         }
         companion_loads = []
@@ -407,13 +429,21 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
                 body='<button role="switch" aria-checked="false">Recognition</button>',
             ),
         )
-        page.route(
-            "**/api/utilities/recognition*",
-            lambda route: route.fulfill(
-                json=companion if "include_power=true" in route.request.url else
-                {"available": companion["available"], "port": 8940}
-            ),
-        )
+        def recognition_state(route):
+            if route.request.method == "POST":
+                assert route.request.headers["x-workbench-csrf"]
+                enabled = route.request.url.endswith("/start")
+                companion["power"] = {
+                    "phase": "ready" if enabled else "stopped", "enabled": enabled,
+                }
+                route.fulfill(json=companion)
+            else:
+                route.fulfill(
+                    json=companion if "include_power=true" in route.request.url else
+                    {"available": companion["available"], "port": 8940}
+                )
+
+        page.route("**/api/utilities/recognition**", recognition_state)
         def record_companion_load(frame):
             if frame.url.startswith("http://127.0.0.1:8940/"):
                 companion_loads.append(frame.url)
@@ -449,6 +479,8 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             "/api/runtime-controls/discovery/stop",
             "/api/runtime-controls/deli/start",
             "/api/runtime-controls/deli/stop",
+            "/api/utilities/recognition/start",
+            "/api/utilities/recognition/stop",
         ]
         (EVIDENCE / "coverage.json").write_text(
             json.dumps({

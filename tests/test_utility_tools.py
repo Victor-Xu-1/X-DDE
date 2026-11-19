@@ -1,7 +1,9 @@
 """Local tool discovery must never install or start a recognition process."""
 
 import asyncio
-from threading import Event
+import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
@@ -11,7 +13,7 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from opendde_workbench import api
+from opendde_workbench import api, utility_routes
 from opendde_workbench.backend_router import BackendRouter
 from opendde_workbench.capabilities.definitions import CAPABILITIES
 from opendde_workbench.deployment.compute_service import ComputeService
@@ -57,8 +59,6 @@ def test_discovery_failure_is_not_model_readiness():
     ],
 )
 def test_recognition_status_only_reads_bounded_native_power(health, state, expected):
-    import json
-
     app = FastAPI()
     register_utilities(app)
     opener = Mock()
@@ -82,6 +82,96 @@ def test_recognition_status_only_reads_bounded_native_power(health, state, expec
         found = client.get("/api/utilities/recognition?include_power=true").json()
     assert found == {"port": 8940, **expected}
     assert opener.open.call_count == (3 if found["available"] else 2)
+
+
+def test_recognition_power_relays_only_explicit_authorized_actions(monkeypatch):
+    state = {"phase": "stopped", "enabled": False}
+    token = "a" * 64
+    native_calls = []
+    idle_power = False
+    accepting = False
+
+    class Companion(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def send_json(self, status, data, session=False):
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            if session:
+                self.send_header("Set-Cookie", f"dw-session={token}; HttpOnly; Path=/")
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode())
+
+        def do_GET(self):
+            native_calls.append(("GET", self.path))
+            if self.path == "/health":
+                self.send_json(200, {"app": "decimer-workbench", "idlePower": idle_power})
+            elif self.path == "/api/state":
+                self.send_json(200, state)
+            else:
+                self.send_json(200, {**state, "csrf": token}, session=True)
+
+        def do_POST(self):
+            native_calls.append(("POST", self.path))
+            if (
+                self.path != "/api/power/idle"
+                or self.headers.get("Cookie") != f"dw-session={token}"
+                or self.headers.get("X-CSRF-Token") != token
+            ):
+                self.send_json(403, {})
+                return
+            if accepting:
+                self.send_json(409, {})
+                return
+            data = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            state.update(enabled=data["enabled"], phase="ready" if data["enabled"] else "stopped")
+            self.send_json(202, {**state, "job": "private"})
+
+    def authenticate():
+        raise HTTPException(403, "Test authentication")
+
+    app = FastAPI()
+    register_utilities(app)
+    utility_routes.register_recognition_power(app, authenticate)
+    route = "/api/utilities/recognition"
+    with ThreadingHTTPServer(("127.0.0.1", 0), Companion) as native:
+        thread = Thread(target=native.serve_forever, daemon=True)
+        thread.start()
+        monkeypatch.setattr(utility_routes, "_RECOGNITION_URL", f"http://127.0.0.1:{native.server_port}/")
+        try:
+            with TestClient(app) as client:
+                assert client.post(f"{route}/start").status_code == 403
+                assert native_calls == []
+                app.dependency_overrides[authenticate] = lambda: None
+                assert client.post(f"{route}/reset").status_code == 404
+                assert native_calls == []
+                assert client.get(route, params={"include_power": True}).json()["power"] == state
+                assert native_calls == [("GET", "/health"), ("GET", "/api/state")]
+                assert client.post(f"{route}/start").status_code == 409
+                assert ("GET", "/api/session") not in native_calls
+                idle_power = True
+                on = client.post(f"{route}/start")
+                assert on.status_code == 200
+                assert on.json() == {
+                    "available": True, "port": 8940, "idle_power": True, "power": state,
+                }
+                assert on.json()["power"]["enabled"] is True
+                state.update(phase="busy")
+                assert client.post(f"{route}/stop").status_code == 409
+                assert native_calls.count(("POST", "/api/power/idle")) == 1
+                state.update(phase="ready")
+                accepting = True
+                assert client.post(f"{route}/stop").status_code == 409
+                assert state == {"phase": "ready", "enabled": True}
+                accepting = False
+                off = client.post(f"{route}/stop")
+                assert off.status_code == 200
+                assert off.json()["power"] == {"phase": "stopped", "enabled": False}
+                assert native_calls.count(("POST", "/api/power/idle")) == 3
+        finally:
+            native.shutdown()
+            thread.join(timeout=3)
 
 
 def test_platform_boot_never_starts_saved_automatic_compute(tmp_path):

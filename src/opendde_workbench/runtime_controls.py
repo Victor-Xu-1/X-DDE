@@ -75,7 +75,9 @@ class RuntimeControls:
 def register_runtime_controls(app, store, engine, worker, health, mutation, harness=None):
     from .backend_router import BackendRouter
     from .capabilities.definitions import CAPABILITIES
+    from .utility_routes import register_recognition_power
 
+    register_recognition_power(app, mutation)
     # Explicitly injected engines retain their own lifecycle contract.
     managed = isinstance(engine, BackendRouter)
     controls = RuntimeControls(store)

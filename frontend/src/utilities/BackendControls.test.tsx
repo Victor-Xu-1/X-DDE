@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   render,
   screen,
@@ -30,6 +31,113 @@ const entry = {
   enabled: false,
   active: false,
 };
+it("switches DECIMER from a utility without leaving the current tab", async () => {
+  const onOpen = vi.fn();
+  const user = userEvent.setup();
+  let recognition = { phase: "stopped", enabled: false };
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? { available: true, idle_power: true, power: recognition }
+        : {
+            capabilities: { properties: "chemistry" },
+            engines: [entry],
+          }) as never,
+  );
+  vi.mocked(api.post).mockImplementation(async (path) => {
+    const on = path.endsWith("/start");
+    recognition = { phase: on ? "ready" : "stopped", enabled: on };
+    return { available: true, idle_power: true, power: recognition } as never;
+  });
+  render(
+    <BackendControls
+      language="en"
+      module={{ label: ["小工具", "Utilities"], tools: ["properties"] }}
+      moduleHasRecognition
+      onOpenRecognition={onOpen}
+    />,
+  );
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  const power = await screen.findByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(power).toBeEnabled());
+  expect(power).not.toBeChecked();
+  expect(api.post).not.toHaveBeenCalled();
+
+  await user.click(power);
+  await waitFor(() => expect(power).toBeChecked());
+  expect(menu).toHaveAccessibleDescription("1 on");
+  expect(screen.getByRole("switch", { name: "RDKit" })).not.toBeChecked();
+  await user.click(power);
+  await waitFor(() => expect(power).not.toBeChecked());
+  expect(menu).toHaveAccessibleDescription("Task engines off");
+  expect(api.post).toHaveBeenNthCalledWith(
+    1,
+    "/utilities/recognition/start",
+    {},
+  );
+  expect(api.post).toHaveBeenNthCalledWith(
+    2,
+    "/utilities/recognition/stop",
+    {},
+  );
+  expect(onOpen).not.toHaveBeenCalled();
+});
+
+it("requires fresh DECIMER state after a power response arrives while closed", async () => {
+  const user = userEvent.setup();
+  const stopped = {
+    available: true,
+    idle_power: true,
+    power: { phase: "stopped", enabled: false },
+  };
+  let hold = false;
+  let resolveStatus: (value: unknown) => void = () => {};
+  const fresh = new Promise((resolve) => {
+    resolveStatus = resolve;
+  });
+  let resolveToggle: (value: unknown) => void = () => {};
+  const toggled = new Promise((resolve) => {
+    resolveToggle = resolve;
+  });
+  vi.mocked(api.post).mockImplementation(async () => toggled as never);
+  vi.mocked(request).mockImplementation(
+    async (path) =>
+      (path.startsWith("/utilities/recognition")
+        ? hold
+          ? fresh
+          : stopped
+        : { engines: [] }) as never,
+  );
+  render(<BackendControls language="en" onOpenRecognition={vi.fn()} />);
+  const menu = screen.getByRole("button", { name: "Backend controls" });
+  await user.click(menu);
+  await waitFor(() =>
+    expect(screen.getByRole("switch", { name: "DECIMER" })).toBeEnabled(),
+  );
+  await user.click(screen.getByRole("switch", { name: "DECIMER" }));
+  await user.click(menu);
+  expect(menu).toHaveAttribute("aria-expanded", "false");
+  hold = true;
+  await act(async () => {
+    resolveToggle({
+      ...stopped,
+      power: { phase: "ready", enabled: true },
+    });
+  });
+  await user.click(menu);
+  const control = screen.getByRole("switch", { name: "DECIMER" });
+  expect(control).toBeDisabled();
+  expect(control).toHaveAccessibleDescription("State unavailable");
+  expect(api.post).toHaveBeenCalledTimes(1);
+  resolveStatus({
+    ...stopped,
+    power: { phase: "ready", enabled: true },
+  });
+  await waitFor(() => expect(control).toBeChecked());
+  expect(control).toBeEnabled();
+});
+
 it("does not start engines on mount, offers only explicit available switches", async () => {
   vi.mocked(request).mockResolvedValue({
     engines: [entry, { ...entry, id: "admet", name: "ADMET-AI", ready: false }],
