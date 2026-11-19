@@ -91,18 +91,20 @@ def dataset_candidate(page, workbench, frame, ready, root, result, capability, z
         expect(disclosure).not_to_have_attribute("open", "")
         disclosure.locator("summary").press("Enter")
         expect(disclosure.locator(".dataset-candidate-evidence dl")).to_be_visible()
-    workbench.get_by_role("button", name=selected["display_name"] or selected["id"], exact=True).click()
+    selected_name = selected["display_name"] or selected["id"]
+    workbench.get_by_role("button", name=selected_name, exact=True).click()
     expect(ready).to_be_enabled(timeout=35000)
     exact_frame(frame, selected, artifact, binding)
     if capability == "del.candidates":
         expect(disclosure).to_have_attribute("open", "")
         expect(disclosure.locator(".dataset-candidate-evidence dl")).to_be_visible()
     controls = workbench.locator(".molecular-preview")
-    controls.get_by_role("tab", name="二维结构" if zh else "2D structure", exact=True).press("Enter")
-    expect(controls.locator('[role="tabpanel"]:visible .molecule-image[data-drawing-state="ready"] img')).to_be_visible(
-        timeout=30000
-    )
-    controls.get_by_role("tab", name="三维结构" if zh else "3D structure", exact=True).press("Enter")
+    tab_2d = "二维结构" if zh else "2D structure"
+    tab_3d = "三维结构" if zh else "3D structure"
+    controls.get_by_role("tab", name=tab_2d, exact=True).press("Enter")
+    image = controls.locator('[role="tabpanel"]:visible [data-drawing-state="ready"] img')
+    expect(image).to_be_visible(timeout=30000)
+    controls.get_by_role("tab", name=tab_3d, exact=True).press("Enter")
     expect(ready).to_be_enabled(timeout=35000)
     exact_frame(frame, selected, artifact, binding)
     return digest
@@ -132,7 +134,10 @@ def test_retained_candidate_desktop_workspaces(language, theme, width, height):
     zh = language == "zh"
     evidence = Path("outputs/candidate-inspection") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
-    with platform(settings.state_dir, evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": height}, accept_downloads=True)
         page.add_init_script(f"""localStorage.setItem('opendde-workbench.language', '{language}');
@@ -141,7 +146,8 @@ def test_retained_candidate_desktop_workspaces(language, theme, width, height):
             if (event.origin === location.origin && event.source === window.parent &&
                 event.data?.channel === 'opendde-viewer' && event.data.type === 'load') {{
               window.__candidateLoad = structuredClone(event.data.value);
-              document.documentElement.dataset.loadRecord = String(event.data.value.records?.at(-1));
+              const record = event.data.value.records?.at(-1);
+              document.documentElement.dataset.loadRecord = String(record);
             }}
           }});""")
         writes = []
@@ -159,17 +165,22 @@ def test_retained_candidate_desktop_workspaces(language, theme, width, height):
         rows = []
         for capability in CASES:
             job, root, result = load_case(page, base, capability, settings)
-            marker = ".candidate-inspection-preview" if not capability.startswith("diffsbdd.") else ".generated-candidate-navigation"
+            generated = capability.startswith("diffsbdd.")
+            marker = (
+                ".generated-candidate-navigation" if generated else ".candidate-inspection-preview"
+            )
             workbench = page.locator(".structure-workbench").filter(has=page.locator(marker))
             frame, figure, box = canvas_bounds(workbench, width, height)
             expect(workbench).to_be_visible()
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=evidence / f"{capability}.png")
-            if capability.startswith("diffsbdd."):
+            if generated:
                 generated_candidate(workbench, frame, figure)
                 digest = None
             else:
-                digest = dataset_candidate(page, workbench, frame, figure, root, result, capability, zh)
+                digest = dataset_candidate(
+                    page, workbench, frame, figure, root, result, capability, zh
+                )
             if not zh and capability == "screening.dock":
                 inspect_png(export_figure(page, figure, evidence, "screening-figure", language))
             rows.append({"capability": capability, "job": job, "view": box, "sdf_sha256": digest})

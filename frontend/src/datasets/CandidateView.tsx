@@ -124,11 +124,10 @@ export function CandidateView({
               {molecular && (
                 <a
                   className="secondary-button"
-                  aria-label={structureDownload}
                   href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
                 >
                   <DownloadOutlined aria-hidden="true" />
-                  {zh ? "原始 SDF" : "Original SDF"}
+                  {structureDownload}
                 </a>
               )}
               <Hint label={zh ? "预览说明" : "Preview help"}>
