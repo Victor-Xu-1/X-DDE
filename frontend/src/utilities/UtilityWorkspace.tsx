@@ -31,13 +31,20 @@ export function UtilityWorkspace({
   onCreated,
   jobs = [],
   active: visible = true,
+  imageRequest = 0,
 }: {
   language: Language;
   onCreated(job: Job): void;
   jobs?: readonly Job[];
   active?: boolean;
+  imageRequest?: number;
 }) {
-  const [active, setActive] = useState<Utility>("image");
+  const [selection, setSelection] = useState<{ tab: Utility; request: number }>({
+    tab: "image",
+    request: imageRequest,
+  });
+  // Explicit screenshot entries select the image tab without remounting drafts.
+  const active = selection.request === imageRequest ? selection.tab : "image";
   const [imageActions, setImageActions] = useState<HTMLDivElement | null>(null);
   const [visited, setVisited] = useState<Utility[]>(["image"]);
   const zh = language === "zh";
@@ -78,7 +85,7 @@ export function UtilityWorkspace({
               ref={active === id ? activeTab : undefined}
               aria-pressed={active === id}
               onClick={() => {
-                setActive(id);
+                setSelection({ tab: id, request: imageRequest });
                 setVisited((previous) =>
                   previous.includes(id) ? previous : [...previous, id],
                 );

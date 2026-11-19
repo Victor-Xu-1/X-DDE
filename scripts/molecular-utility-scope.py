@@ -819,6 +819,20 @@ BACKEND_SETUP_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
 }
 BACKEND_SETUP_DIFF = "c8347a8e009067581feb1cb0247d6e742e78bc327b7c7eeb82cd126ce1758738"
+DESKTOP_HELP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/App.tsx",
+    "frontend/src/design/controls.css",
+    "frontend/src/design/workspaces.css",
+    "frontend/src/studio.css",
+    "frontend/src/studio/HelpWorkspace.css",
+    "frontend/src/studio/HelpWorkspace.tsx",
+    "frontend/src/utilities/UtilityWorkspace.test.tsx",
+    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "server_tests/test_desktop_help_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_HELP_DIFF = "859f9bfde6462dbf773ccb6019c1fd753a1b32e74217cd621f57e246ca18e1a5"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -963,6 +977,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         UTILITY_DESKTOP_FILES, UTILITY_DESKTOP_DIFF,
     )
+    desktop_help = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_HELP_FILES, DESKTOP_HELP_DIFF, scope_pin="DESKTOP_HELP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -983,6 +1001,7 @@ def main():
         output.write("potential_display_only=" + str(potential_display).lower() + "\n")
         output.write("utility_navigation_only=" + str(navigation).lower() + "\n")
         output.write("utility_desktop_only=" + str(utility_desktop).lower() + "\n")
+        output.write("desktop_help_only=" + str(desktop_help).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
         event = os.environ.get("GITHUB_EVENT_NAME", "push")
         shared_paths = SHARED.keys()
@@ -1004,7 +1023,7 @@ def main():
             recognition_power or potential_display or navigation or runtime or layout
             or native_state or compact_example or mobile_header or desktop_header
             or initial_pose_power
-            or mobile_viewer or print_labels or utility_desktop
+            or mobile_viewer or print_labels or utility_desktop or desktop_help
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

@@ -1,0 +1,72 @@
+.help-workspace-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.help-workspace-actions > .primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.help-steps {
+  margin: 16px 0 0;
+  padding: 0 14px 0 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.help-steps li + li {
+  border-top: 1px solid var(--line);
+}
+
+.help-steps li::marker {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.help-step {
+  display: grid;
+  grid-template-columns: minmax(145px, 0.25fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  align-items: baseline;
+}
+
+.help-step h2,
+.help-step p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.help-step p,
+.help-science-notes {
+  color: var(--muted);
+}
+
+.help-science-notes {
+  margin-block: 16px 0;
+  font-size: 13px;
+}
+
+.help-science-notes summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.help-science-notes li {
+  margin-block: 8px;
+  line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+  .help-step {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

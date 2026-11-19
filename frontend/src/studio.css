@@ -743,7 +743,6 @@ body {
   margin: 15px 0;
 }
 .task-page-grid,
-.guide-grid,
 .model-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -753,7 +752,6 @@ body {
   min-width: 0;
 }
 .task-page-grid .studio-panel,
-.guide-grid .studio-panel,
 .model-grid .studio-panel {
   padding: 20px;
 }
@@ -815,14 +813,10 @@ body {
   border: 1px solid var(--line);
   color: var(--accent);
 }
-.guide-grid .studio-panel p,
 .model-grid .studio-panel p {
   font-size: var(--text-small, 13px);
   color: var(--muted);
   line-height: 1.7;
-}
-.guide-grid {
-  margin: 20px 0;
 }
 .studio-footer {
   text-align: center;
@@ -878,7 +872,6 @@ body {
     padding: 11px;
   }
   .task-page-grid,
-  .guide-grid,
   .model-grid {
     grid-template-columns: 1fr;
   }
