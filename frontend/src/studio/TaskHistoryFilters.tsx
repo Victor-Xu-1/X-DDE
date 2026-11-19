@@ -1,4 +1,5 @@
-import { SearchOutlined } from "@ant-design/icons";
+import { CalendarOutlined } from "@ant-design/icons";
+import { useId, useState } from "react";
 import { translator } from "../i18n";
 import type { Language, Status } from "../types";
 import { historyKindLabel, historyStatuses } from "./task-history-model";
@@ -17,7 +18,7 @@ export function TaskHistoryFilters({
   onStartDate,
   onEndDate,
   onClear,
-  active,
+  filtered,
 }: {
   language: Language;
   type: string;
@@ -32,12 +33,25 @@ export function TaskHistoryFilters({
   onStartDate(value: string): void;
   onEndDate(value: string): void;
   onClear(): void;
-  active: boolean;
+  filtered: boolean;
 }) {
   const zh = language === "zh",
     t = translator(language);
+  const dateFiltersId = useId();
+  const hasDates = Boolean(startDate || endDate);
+  const [datesOpen, setDatesOpen] = useState(hasDates);
   return (
     <div className="task-history-controls">
+      <label className="task-history-search">
+        <span>{zh ? "搜索模块内任务" : "Search this module"}</span>
+        <input
+          type="search"
+          maxLength={180}
+          value={query}
+          placeholder={zh ? "任务名称或编号" : "Task name or ID"}
+          onChange={(event) => onQuery(event.target.value)}
+        />
+      </label>
       <label>
         <span>{zh ? "任务类型" : "Task type"}</span>
         <select value={type} onChange={(event) => onType(event.target.value)}>
@@ -63,25 +77,45 @@ export function TaskHistoryFilters({
           ))}
         </select>
       </label>
-      <label className="task-history-search">
-        <span>{zh ? "搜索模块内任务" : "Search this module"}</span>
-        <div>
-          <SearchOutlined aria-hidden="true" />
-          <input
-            type="search"
-            maxLength={180}
-            value={query}
-            placeholder={zh ? "任务名称或编号" : "Task name or ID"}
-            onChange={(event) => onQuery(event.target.value)}
-          />
-        </div>
-      </label>
+      <div className="task-history-filter-actions">
+        <button
+          type="button"
+          className="history-date-trigger"
+          aria-expanded={datesOpen}
+          aria-controls={dateFiltersId}
+          onClick={() => setDatesOpen((value) => !value)}
+        >
+          <CalendarOutlined aria-hidden="true" />
+          {zh ? "日期范围" : "Date range"}
+          {hasDates && (
+            <span
+              className="history-date-indicator"
+              role="img"
+              aria-label={zh ? "已筛选" : "Filtered"}
+            />
+          )}
+        </button>
+        {filtered && (
+          <button
+            type="button"
+            className="task-history-clear"
+            onClick={() => {
+              setDatesOpen(false);
+              onClear();
+            }}
+          >
+            {zh ? "清除筛选" : "Clear filters"}
+          </button>
+        )}
+      </div>
       <div
+        id={dateFiltersId}
         className="task-history-date-controls"
+        hidden={!datesOpen}
         role="group"
         aria-label={zh ? "提交日期 · 本地时间" : "Submitted dates · local time"}
       >
-        {active && (
+        {datesOpen && (
           <>
             <TaskHistoryDatePicker
               language={language}
@@ -98,19 +132,6 @@ export function TaskHistoryFilters({
               onChange={onEndDate}
             />
           </>
-        )}
-        {(type !== "all" ||
-          status !== "all" ||
-          query ||
-          startDate ||
-          endDate) && (
-          <button
-            type="button"
-            className="task-history-clear"
-            onClick={onClear}
-          >
-            {zh ? "清除筛选" : "Clear filters"}
-          </button>
         )}
       </div>
     </div>

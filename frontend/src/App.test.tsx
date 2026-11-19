@@ -643,6 +643,28 @@ it("keeps the preceding filtered result location when opening a new questionnair
 });
 
 it("restores a newly typed history query after immediately opening a new task", async () => {
+  const savedPocket: Job = {
+    ...jobs[0],
+    id: "55555555-5555-4555-8555-555555555555",
+    status: "cancelled",
+    request: {
+      operation: "pocket_search",
+      name: "Existing pocket search",
+      protein: {
+        asset_id: "fixture",
+        sha256: "a".repeat(64),
+        record: 0,
+        conformer: 0,
+      },
+      profile: "experimental",
+      threads: 1,
+      memory_mib: 1024,
+      point_threshold: 0.5,
+      minimum_cluster: 5,
+      review_limit: 10,
+    },
+  };
+  vi.mocked(api.jobs).mockResolvedValue([...jobs, savedPocket]);
   vi.mocked(apiClient.request).mockResolvedValue({
     availability: { configuration_present: false },
   } as never);

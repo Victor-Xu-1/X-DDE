@@ -148,9 +148,8 @@ def test_prediction_zip_preserves_all_original_files(restored_workspace, languag
                     assert "confidence_summary" in roles
             assert not heading.locator(".prediction-archive-download [role=alert]").count()
             heading.get_by_role("button", name="预测记录" if zh else "Predictions").press("Enter")
-            picker = page.locator("details.task-picker")
-            expect(picker.locator("summary")).to_be_focused()
-            expect(picker).to_have_attribute("open", "")
+            expect(page.locator(".task-history-title h2")).to_be_focused()
+            expect(page.locator(".task-history-list")).to_be_visible()
             expect(heading).to_have_count(0)
             params = parse_qs(page.url.split("#", 1)[1])
             assert params["view"] == ["results"]

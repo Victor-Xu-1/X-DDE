@@ -166,14 +166,8 @@ export function TaskWorkspace(p: Props) {
     setPage(0);
     setChoosing(false);
   }, [taskJob?.id, p.scopedModule]);
-  const taskListSummary = useRef<HTMLElement>(null);
+  const historyTitle = useRef<HTMLHeadingElement>(null);
   const returnFocus = useRef(false);
-  useLayoutEffect(() => {
-    if (choosing && returnFocus.current) {
-      returnFocus.current = false;
-      taskListSummary.current?.focus();
-    }
-  }, [choosing]);
   const lastProject = useRef(p.projectId);
   useEffect(() => {
     if (lastProject.current !== p.projectId) setPage(0);
@@ -227,13 +221,19 @@ export function TaskWorkspace(p: Props) {
         (kind) => history.counts[kind]?.total || type === kind,
       )
     : [];
-  const blank = !currentJob && !history.loading && history.data?.total === 0;
+  const blank = history.data?.total === 0 && !history.error;
   const resultView =
     !currentJob || choosing
       ? "history"
       : terminal(currentJob.status) && predictionMethodId(currentJob.request)
         ? "prediction"
         : "detail";
+  useLayoutEffect(() => {
+    if (resultView === "history" && returnFocus.current) {
+      returnFocus.current = false;
+      historyTitle.current?.focus();
+    }
+  }, [resultView]);
   const inlineHeader =
     resultView === "detail" &&
     currentJob &&
@@ -255,6 +255,8 @@ export function TaskWorkspace(p: Props) {
       projectName={projectName}
       hasProject={Boolean(p.projectId)}
       view={resultView}
+      headingRef={historyTitle}
+      count={history.error ? undefined : history.data?.total}
       onHistory={returnToHistory}
       onRefresh={refresh}
       onStart={p.onStart}
@@ -266,7 +268,10 @@ export function TaskWorkspace(p: Props) {
     status !== "all" ||
     Boolean(query.trim()) ||
     Boolean(startDate || endDate);
+  const showFilters =
+    filtered || availableKinds.length > 0 || Boolean(history.data?.total);
   function clearFilters() {
+    historyTitle.current?.focus();
     changeFilter(() => {
       setType("all");
       setStatus("all");
@@ -312,83 +317,80 @@ export function TaskWorkspace(p: Props) {
         />
       ) : (
         <div className="task-page-content">
-          <details
-            className="task-picker"
-            hidden={resultView !== "history"}
-            open={choosing}
-            onToggle={(event) => setChoosing(event.currentTarget.open)}
-          >
-            <summary ref={taskListSummary}>
-              {zh ? "任务列表" : "Task list"}
-              {history.data && <span> · {history.data.total}</span>}
-            </summary>
-            <TaskHistoryFilters
-              active={resultView === "history"}
-              language={p.language}
-              type={type}
-              status={status}
-              query={query}
-              kinds={availableKinds}
-              onType={(value) => changeFilter(() => setType(value))}
-              onStatus={(value) => changeFilter(() => setStatus(value))}
-              onQuery={(value) => changeFilter(() => setQuery(value))}
-              startDate={startDate}
-              endDate={endDate}
-              onStartDate={(value) => changeFilter(() => setStartDate(value))}
-              onEndDate={(value) => changeFilter(() => setEndDate(value))}
-              onClear={clearFilters}
-            />
-            {invalidDates && (
-              <div className="error-box" role="alert">
-                {zh
-                  ? "请选择有效的开始与结束日期；开始日期不能晚于结束日期。"
-                  : "Choose valid dates. The start date cannot follow the end date."}
-              </div>
-            )}
-            {history.loading && (
-              <p className="notice" role="status">
-                {zh ? "正在读取任务…" : "Loading tasks…"}
-              </p>
-            )}
-            {history.data && (
-              <TaskHistoryList
-                language={p.language}
-                data={history.data}
-                selected={currentJob?.id}
-                page={page}
-                loading={history.loading}
-                onPage={setPage}
-                onJob={(id) => {
-                  chosenHere.current = id;
-                  p.onJob(id);
-                  setChoosing(false);
-                }}
-              />
-            )}
-            {blank && !history.error && (
-              <EmptyState
-                icon={<SearchOutlined />}
-                title={
-                  filtered
-                    ? zh
-                      ? "没有匹配的任务"
-                      : "No matching tasks"
-                    : zh
-                      ? "这个模块还没有任务"
-                      : "No tasks in this module yet"
-                }
-                description={
-                  filtered
-                    ? zh
-                      ? "调整筛选，或清除筛选查看模块内任务。"
-                      : "Adjust or clear filters to see tasks in this module."
-                    : zh
-                      ? "新建任务后，在这里查看进度与结果。"
-                      : "Create a task to track progress and inspect results here."
-                }
-              />
-            )}
-          </details>
+          {resultView === "history" && (
+            <div className="task-history-list">
+              {showFilters && (
+                <TaskHistoryFilters
+                  language={p.language}
+                  type={type}
+                  status={status}
+                  query={query}
+                  kinds={availableKinds}
+                  onType={(value) => changeFilter(() => setType(value))}
+                  onStatus={(value) => changeFilter(() => setStatus(value))}
+                  onQuery={(value) => changeFilter(() => setQuery(value))}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDate={(value) =>
+                    changeFilter(() => setStartDate(value))
+                  }
+                  onEndDate={(value) => changeFilter(() => setEndDate(value))}
+                  onClear={clearFilters}
+                  filtered={filtered}
+                />
+              )}
+              {invalidDates && (
+                <div className="error-box" role="alert">
+                  {zh
+                    ? "请选择有效的开始与结束日期；开始日期不能晚于结束日期。"
+                    : "Choose valid dates. The start date cannot follow the end date."}
+                </div>
+              )}
+              {history.loading && (
+                <p className="notice" role="status">
+                  {zh ? "正在读取任务…" : "Loading tasks…"}
+                </p>
+              )}
+              {history.data && history.data.items.length > 0 && (
+                <TaskHistoryList
+                  language={p.language}
+                  data={history.data}
+                  selected={currentJob?.id}
+                  page={page}
+                  loading={history.loading}
+                  onPage={setPage}
+                  onJob={(id) => {
+                    chosenHere.current = id;
+                    p.onJob(id);
+                    setChoosing(false);
+                  }}
+                />
+              )}
+              {blank && (
+                <EmptyState
+                  icon={<SearchOutlined />}
+                  title={
+                    filtered
+                      ? zh
+                        ? "没有匹配的任务"
+                        : "No matching tasks"
+                      : zh
+                        ? "这个模块还没有任务"
+                        : "No tasks in this module yet"
+                  }
+                  description={
+                    filtered
+                      ? zh
+                        ? "调整筛选，或清除筛选查看模块内任务。"
+                        : "Adjust or clear filters to see tasks in this module."
+                      : zh
+                        ? "新建任务后，在这里查看进度与结果。"
+                        : "Create a task to track progress and inspect results here."
+                  }
+                />
+              )}
+            </div>
+          )}
           {currentJob && resultView !== "history" && (
             <PrimaryBackendScope.Provider value={resultBackendScope}>
               <div className="task-result-content">

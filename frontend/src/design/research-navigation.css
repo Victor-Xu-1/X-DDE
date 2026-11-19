@@ -216,23 +216,6 @@
   margin-top: 8px;
 }
 
-.task-picker {
-  margin-bottom: 14px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.task-picker > summary {
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  cursor: pointer;
-}
-.task-picker .task-page-list {
-  margin-top: 8px;
-  max-height: 240px;
-  overflow: auto;
-}
 .task-result-content .prediction-workspace {
   width: 100%;
 }

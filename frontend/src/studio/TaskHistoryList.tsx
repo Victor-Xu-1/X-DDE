@@ -84,34 +84,36 @@ export function TaskHistoryList({
           </tbody>
         </table>
       </div>
-      <nav
-        className="task-history-pagination"
-        aria-label={zh ? "任务分页" : "Task pages"}
-      >
-        <span>
-          {data.total ? data.offset + 1 : 0}–
-          {Math.min(data.offset + data.limit, data.total)} / {data.total}
-        </span>
-        <div>
-          <button
-            type="button"
-            disabled={loading || page === 0}
-            onClick={() => onPage(page - 1)}
-          >
-            {zh ? "上一页" : "Previous"}
-          </button>
+      {pages > 1 && (
+        <nav
+          className="task-history-pagination"
+          aria-label={zh ? "任务分页" : "Task pages"}
+        >
           <span>
-            {page + 1} / {pages}
+            {data.offset + 1}–{Math.min(data.offset + data.limit, data.total)} /{" "}
+            {data.total}
           </span>
-          <button
-            type="button"
-            disabled={loading || page + 1 >= pages}
-            onClick={() => onPage(page + 1)}
-          >
-            {zh ? "下一页" : "Next"}
-          </button>
-        </div>
-      </nav>
+          <div>
+            <button
+              type="button"
+              disabled={loading || page === 0}
+              onClick={() => onPage(page - 1)}
+            >
+              {zh ? "上一页" : "Previous"}
+            </button>
+            <span>
+              {page + 1} / {pages}
+            </span>
+            <button
+              type="button"
+              disabled={loading || page + 1 >= pages}
+              onClick={() => onPage(page + 1)}
+            >
+              {zh ? "下一页" : "Next"}
+            </button>
+          </div>
+        </nav>
+      )}
     </>
   );
 }

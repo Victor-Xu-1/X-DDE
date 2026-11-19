@@ -31,7 +31,7 @@ jobs:
     with:
       scope_only: true
   history:
-    if: needs.utility-scope.outputs.utility_only != 'true'
+    if: needs.utility-scope.outputs.utility_only != 'true' || needs.utility-scope.outputs.history_desktop_only == 'true'
     needs: utility-scope
     runs-on: ubuntu-24.04
     timeout-minutes: 18
@@ -47,6 +47,7 @@ jobs:
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Task modules, filters, history races and direct application consumer
+        if: needs.utility-scope.outputs.history_desktop_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/studio/TaskWorkspace.test.tsx
@@ -59,7 +60,14 @@ jobs:
           src/TaskDetail.test.tsx src/TaskDetail.actions.test.tsx
           src/studio/PredictionResults.test.tsx
           src/operations/result-source-labels.test.ts src/operations/ResultTaskSelect.test.tsx
+      - name: Desktop history, date disclosure and result handoffs
+        if: needs.utility-scope.outputs.history_desktop_only == 'true'
+        run: |
+          (cd frontend && npx vitest run src/studio/TaskWorkspace.test.tsx src/studio/TaskHistoryList.test.tsx src/studio/task-history-dates.test.ts src/studio/task-history-route.test.ts src/studio/useTaskHistory.test.tsx src/App.test.tsx)
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_{task_history,task_status,prediction_job_archive}_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
       - name: Query, request identity, stable pagination and personal/example boundaries
+        if: needs.utility-scope.outputs.history_desktop_only != 'true'
         run: |
           uv run --locked ruff check server_tests/task_history_header_capture.py
           uv run --locked ruff check src/opendde_workbench/task_history tests/test_task_history.py tests/test_example_source_titles.py tests/test_task_identity.py server_tests/prepare_task_history.py server_tests/test_task_history_browser.py
@@ -84,6 +92,26 @@ jobs:
           for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null && break; sleep 1; done
           curl --silent --fail "$WB_BROWSER_URL/api/health" >/dev/null
           .venv/bin/python -m pytest -x -q server_tests/test_task_history_browser.py
+      - name: Direct result return through pending tasks and retained predictions
+        if: needs.utility-scope.outputs.history_desktop_only == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-history-prediction
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-history-prediction/state
+        run: |
+          readarray -t source < <(uv run --locked python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" =~ ^examples-v[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          export WB_REVIEWED_STAT6_ARCHIVE="$RUNNER_TEMP/${source[1]}"
+          uv run --locked python -m pytest -x -q 'server_tests/test_prediction_job_archive_browser.py::test_prediction_zip_preserves_all_original_files[en-1440-light]'
+          .venv/bin/python -m http.server 4330 --bind 127.0.0.1 --directory src/opendde_workbench/web > server_tests/evidence/task-history/fault-server.log 2>&1 &
+          service_pid=$!
+          trap 'kill "$service_pid" 2>/dev/null || true' EXIT
+          for n in $(seq 1 30); do curl --silent --fail "$WB_BROWSER_URL/" >/dev/null && break; sleep 1; done
+          curl --silent --fail "$WB_BROWSER_URL/" >/dev/null
+          uv run --locked python -m pytest -x -q 'server_tests/test_task_status_browser.py::test_new_selection_cancels_old_metadata_and_files[en-1440]'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
