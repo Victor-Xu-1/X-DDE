@@ -17,7 +17,7 @@ _PROJECT_PATHS = frozenset({
 _WORKFLOW_BLOBS = {
     ".github/workflows/project-workspace-checks.yml": (
         None,
-        "f34dc7151f6c0a348daa3bc873d10c31a0fd5c73",
+        "b6d5ccdd20fff17c8e22ad255fc197a64563e537",
     ),
     ".github/workflows/restraint-guidance-checks.yml": (
         "34abbaf13842766a6be845410754153c786b2f33",
@@ -32,7 +32,7 @@ _WORKFLOW_BLOBS = {
         "acc063083caf0c65121ee94ded714847bc73916a",
     ),
 }
-_SELECTOR_SHA = "76fbac797180e583b752c3318b774fe4d039903fff21b3b5af30a88a7815ed1f"
+_SELECTOR_SHA = "c3a0f65f5091199fbe6c1b17fc201968731b81a6cac4612fa43f239071220274"
 
 
 def project_only(base, event, ref):
