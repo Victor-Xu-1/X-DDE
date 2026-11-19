@@ -16,8 +16,13 @@ import { api } from "../api";
 const show = vi.fn(function (this: HTMLDialogElement) {
   this.setAttribute("open", "");
 });
+const close = vi.fn(function (this: HTMLDialogElement) {
+  this.removeAttribute("open");
+});
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = show;
+  HTMLDialogElement.prototype.close = close;
+  close.mockClear();
 });
 afterEach(() => {
   cleanup();
@@ -101,6 +106,7 @@ it("filters existing projects without mutation and dismisses an unsaved form", a
   expect(choose).toHaveBeenCalledWith("her2");
   await user.click(screen.getByRole("button", { name: /New project/ }));
   await user.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(close).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 

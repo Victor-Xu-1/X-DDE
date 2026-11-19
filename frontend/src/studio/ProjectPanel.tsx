@@ -80,7 +80,8 @@ export function ProjectPanel({
           className={`project-row ${!active ? "active" : ""}`}
           onClick={() => onChoose(null)}
         >
-          <ExperimentOutlined /> {zh ? "全部任务" : "All tasks"}
+          <ExperimentOutlined aria-hidden="true" />{" "}
+          {zh ? "全部结构预测任务" : "All structure prediction tasks"}
         </button>
         {visible.map((project) => (
           <button
