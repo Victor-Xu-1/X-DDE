@@ -32,8 +32,12 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
         assert viewer_box["height"] >= 520
         assert height - viewer_box["y"] >= 350, viewer_box
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
-        expect(toolbar.locator("input[type=file]")).to_be_enabled()
-        expect(toolbar.locator("input[type=file]")).to_be_in_viewport()
+        upload = toolbar.locator("input[type=file]")
+        expect(upload).to_be_enabled()
+        expect(upload).to_be_in_viewport()
+        refresh = toolbar.get_by_role("button", name="刷新" if zh else "Refresh", exact=True)
+        expect(refresh).to_be_enabled()
+        assert rail["height"] <= 78, rail
         expect(preview.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
         page.screenshot(path=evidence / f"desktop-file-{width}.png")
         measurements.append({"width": width, "height": height, "viewer": viewer_box})

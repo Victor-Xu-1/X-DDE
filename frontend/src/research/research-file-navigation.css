@@ -9,6 +9,14 @@
 .research-file-upload {
   display: contents;
 }
+.research-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.research-file-actions .anticon {
+  display: none;
+}
 .studio-app .research-file-inspection .research-inspector:not(.is-empty) {
   padding-block-start: 10px;
 }
@@ -30,15 +38,39 @@
     padding: 14px;
     border-radius: 10px;
   }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-toolbar {
+    justify-content: space-between;
+  }
   .research-workspace .structure-workbench:not(.is-text-only) .research-file-upload {
     display: flex;
-    flex: 1 1 100%;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
-  .research-workspace .structure-workbench:not(.is-text-only) .research-upload-label {
+  .research-workspace .structure-workbench:not(.is-text-only) :is(
+    .research-upload-label,
+    .research-file-action-label
+  ) {
     display: none;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions {
+    gap: 4px;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    min-height: 38px;
+    padding: 0;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-actions .anticon {
+    display: inline-flex;
+  }
+  .research-workspace .structure-workbench:not(.is-text-only) .research-file-upload :is(
+    select,
+    .file-select.is-compact
+  ) {
+    padding-inline: 9px;
   }
   .research-file-library > .field {
     gap: 4px;

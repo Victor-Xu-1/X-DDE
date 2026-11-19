@@ -13,12 +13,12 @@ import { useResearchGraph } from "./useResearchGraph";
 import { researchGraphForDisplay } from "../presentation/research-graph";
 import { isResearchFile } from "../presentation/research-files";
 import { visibleAssetNodes, type AssetFilter } from "./asset-list";
-import { FileSelect } from "../presentation/FileSelect";
 import { assetContext } from "./asset-context";
 import { useResearchRegistration } from "./useResearchRegistration";
 import { PoseSession } from "../viewer/PoseSession";
 import type { ReactNode } from "react";
 import { useResearchFileNavigation } from "./useResearchFileNavigation";
+import { ResearchFileToolbar } from "./ResearchFileToolbar";
 import "./research-file-navigation.css";
 
 export function ResearchWorkspace({
@@ -57,8 +57,7 @@ export function ResearchWorkspace({
     [page, setPage] = useState(0);
   const rows = visibleAssetNodes(graph?.nodes ?? [], assetFilter, query),
     pageSize = 30;
-  const [uploadKind, setUploadKind] = useState<ObjectKind>("molecule"),
-    [properties, setProperties] = useState<ScientificObject | null>(null);
+  const [properties, setProperties] = useState<ScientificObject | null>(null);
   const [propertyOrigin, setPropertyOrigin] = useState<string | null>(null);
   const [label, setLabel] = useState(""),
     [notes, setNotes] = useState(""),
@@ -154,72 +153,18 @@ export function ResearchWorkspace({
         />
       </section>,
     );
-  const fileToolbar = (
-    <div className="editor-toolbar research-file-toolbar">
-      <button onClick={() => void load()} disabled={busy}>
-        {zh ? "刷新" : "Refresh"}
-      </button>
-      {selected && (
-        <button onClick={() => setSelected(null)}>
-          {zh ? "取消选择" : "Clear selection"}
-        </button>
-      )}
-      <div className="research-file-upload">
-        <label>
-          <span className="research-upload-label">{zh ? "材料类型" : "Upload type"}</span>
-          <select
-            aria-label={zh ? "材料类型" : "Upload type"}
-            value={uploadKind}
-            disabled={busy}
-            onChange={(e) => setUploadKind(e.target.value as ObjectKind)}
-          >
-            {(["molecule", "structure", "sequence"] as const).map((kind) => (
-              <option key={kind} value={kind}>
-                {objectLabels[kind][zh ? 0 : 1]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="file-choice">
-          <span className="research-upload-label">{zh ? "上传材料" : "Upload material"}</span>
-          <FileSelect
-            language={language}
-            variant="compact"
-            aria-label={zh ? "上传材料" : "Upload material"}
-            disabled={busy}
-            accept={
-              uploadKind === "molecule"
-                ? ".sdf,.mol,.mol2"
-                : uploadKind === "structure"
-                  ? ".pdb,.cif"
-                  : ".fasta,.fa"
-            }
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file)
-                void mutate(async () => {
-                  const intent = selectionIntent();
-                  const kind: AssetKind =
-                    uploadKind === "molecule"
-                      ? "ligand"
-                      : uploadKind === "structure"
-                        ? "structure"
-                        : "sequences";
-                  const asset = await api.upload(file, kind);
-                  await register(asset.id, uploadKind, file.name, undefined, {
-                    intent,
-                    reveal: () => {
-                      if (mounted.current) navigation.open();
-                    },
-                  });
-                });
-              e.target.value = "";
-            }}
-          />
-        </label>
-      </div>
-    </div>
-  );
+  function uploadFile(file: File, kind: ObjectKind, assetKind: AssetKind) {
+    void mutate(async () => {
+      const intent = selectionIntent();
+      const asset = await api.upload(file, assetKind);
+      await register(asset.id, kind, file.name, undefined, {
+        intent,
+        reveal: () => {
+          if (mounted.current) navigation.open();
+        },
+      });
+    });
+  }
   return wrap(
     <section className="research-workspace" data-file-pane={navigation.pane}>
       <h1 className="sr-only">{zh ? "研究文件" : "Research files"}</h1>
@@ -347,7 +292,13 @@ export function ResearchWorkspace({
           className="setup-card research-file-library"
           aria-label={zh ? "研究文件库" : "Research file library"}
         >
-          {fileToolbar}
+          <ResearchFileToolbar
+            language={language}
+            busy={busy}
+            onUpload={uploadFile}
+            onRefresh={() => void load()}
+            onClear={selected ? () => setSelected(null) : undefined}
+          />
           {graph?.nodes.length ? (
             <>
               <label className="field">

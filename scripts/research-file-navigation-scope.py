@@ -1,6 +1,7 @@
 """Delegate exact file-navigation patches to the native workspace checks."""
 
 import os
+from hashlib import sha256
 from pathlib import Path
 from runpy import run_path
 
@@ -42,7 +43,52 @@ _NAVIGATION = {
     "server_tests/test_workspace_preview_browser.py",
     "server_tests/test_workspace_versions_browser.py",
 }
-_DESKTOP_BLOBS = {}
+_DESKTOP_BLOBS = {
+    ".github/workflows/workspace-preview-checks.yml": (
+        "f9a5a7e9063544f923e1cd74a962a7bf3d99542f",
+        "d362041e314b5c13fd7add249c7429a625aee5d0",
+    ),
+    "frontend/src/research/ResearchFileToolbar.tsx": (
+        None,
+        "0e2b567bfd28b6eac7577e2c8b5ba04b971f7ce0",
+    ),
+    "frontend/src/research/ResearchWorkspace.test.tsx": (
+        "1f8d731715777b7d31d3fc9c225e70ad570580e3",
+        "c47adb1820db58f993143566d3f74352f2f3b163",
+    ),
+    "frontend/src/research/ResearchWorkspace.tsx": (
+        "c6967f858394254815617030bc87ba5b51e5715d",
+        "435c17ca9f1a8fbf27b988115c1a5484ee492d6b",
+    ),
+    "frontend/src/research/research-file-navigation.css": (
+        "86fd03960b16b935ed36e60d525838fb84f92709",
+        "d3835d4262c077ed7d4cc9adcbb9702155875e87",
+    ),
+    "frontend/src/research/research.css": (
+        "20a242f615e62c6885783a82271c9d6277aa97ae",
+        "d990fd2786a90627c85d091155c4793abb49e0dc",
+    ),
+    "server_tests/test_workspace_preview_browser.py": (
+        "d7f5e981687b3307fbb26b31cac1094653fbfc80",
+        "a9191a877d394a47d36f625eaf240d9c783472b0",
+    ),
+}
+_DESKTOP_SELECTOR_SHA = "f52adf8e18143d8a03614075f3c32bb2ab428996d1e1b4f9ef18ae949e6866f0"
+
+
+def desktop_only(paths, base, support):
+    if not _DESKTOP_BLOBS or paths - support != _DESKTOP_BLOBS.keys():
+        return False
+    blob = _SCOPE["git_blob"]
+    if any(
+        (blob(base, path), blob("HEAD", path)) != pair
+        for path, pair in _DESKTOP_BLOBS.items()
+    ):
+        return False
+    selector = _SCOPE["git"]("show", "HEAD:scripts/research-file-navigation-scope.py")
+    # Mask the digest assignment to pin the rest of this selector as well.
+    mask = f'_DESKTOP_SELECTOR_SHA = "{_DESKTOP_SELECTOR_SHA}"'.encode()
+    return sha256(selector.replace(mask, b"", 1)).hexdigest() == _DESKTOP_SELECTOR_SHA
 
 
 def file_navigation_only(base, event, ref):
@@ -56,13 +102,6 @@ def file_navigation_only(base, event, ref):
     support = mirrors | {"scripts/research-file-navigation-scope.py"}
     allowed = _NAVIGATION | _REVIEWED_BLOBS.keys() | support
     blob = _SCOPE["git_blob"]
-    desktop = (
-        paths - support == _DESKTOP_BLOBS.keys()
-        and all(
-            (blob(base, path), blob("HEAD", path)) == pair
-            for path, pair in _DESKTOP_BLOBS.items()
-        )
-    )
     navigation = (
         bool(paths & _NAVIGATION)
         and paths <= allowed
@@ -71,7 +110,9 @@ def file_navigation_only(base, event, ref):
             for path in paths & _REVIEWED_BLOBS.keys()
         )
     )
-    return (desktop or navigation) and _SCOPE["only_version_mirrors"](base, paths & mirrors)
+    return (desktop_only(paths, base, support) or navigation) and _SCOPE[
+        "only_version_mirrors"
+    ](base, paths & mirrors)
 
 
 if __name__ == "__main__":
