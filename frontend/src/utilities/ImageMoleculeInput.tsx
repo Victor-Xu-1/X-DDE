@@ -89,7 +89,7 @@ export function ImageMoleculeInput({
       !cancelOnEdit ||
       !owns(target) ||
       !(target instanceof Element) ||
-      target.closest(".image-molecule-actions") ||
+      target.closest(".image-molecule-actions,[data-material-disclosure]") ||
       target === picker.current
     )
       return;

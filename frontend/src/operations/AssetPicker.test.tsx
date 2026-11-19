@@ -9,6 +9,7 @@ import { useState } from "react";
 import type { Job } from "../types";
 import { historyFixture } from "../studio/task-history.test-fixtures";
 import { catalogFixture } from "../diffsbdd/input-catalog.test-fixtures";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 
 const previous: Asset = {
   id: "previous",
@@ -32,9 +33,75 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 const file = () =>
   new File(["ATOM      1"], next.name, { type: "chemical/x-pdb" });
+
+it.each([false, true])(
+  "preserves the verification focus intent after the retry (left picker=%s)",
+  async (leftPicker) => {
+    vi.stubGlobal("matchMedia", () => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    const bad = { ...previous, sha256: "not-a-digest" };
+    let finish!: (asset: Asset) => void;
+    vi.mocked(client.request)
+      .mockResolvedValueOnce(bad)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      );
+    render(
+      <TaskPresentationContext.Provider
+        value={{ layout: "single", imageEntry: "workspace" }}
+      >
+        <button type="button">Another tool control</button>
+        <AssetPicker
+          kind="structure"
+          label="Receptor"
+          language="en"
+          value={previous.id}
+          uploadKey="current-upload"
+          onChange={vi.fn()}
+        />
+      </TaskPresentationContext.Provider>,
+    );
+    const retry = await screen.findByRole("button", {
+      name: "Retry selected file",
+    });
+    expect(
+      screen.queryByRole("button", { name: "Change Receptor" }),
+    ).toBeNull();
+    retry.focus();
+    const user = userEvent.setup();
+    await user.keyboard("{Enter}");
+    await waitFor(() => expect(retry).not.toBeInTheDocument());
+    const outside = screen.getByRole("button", {
+      name: "Another tool control",
+    });
+    if (leftPicker) outside.focus();
+    await act(async () => finish(previous));
+    const summary = await screen.findByRole("button", {
+      name: "Change Receptor",
+    });
+    expect(summary).toHaveAttribute("aria-expanded", "false");
+    expect(leftPicker ? outside : summary).toHaveFocus();
+    expect(
+      screen.queryByRole("radio", { name: "Upload a new file" }),
+    ).toBeNull();
+    summary.focus();
+    await user.keyboard("{Enter}");
+    expect(
+      screen.getByRole("radio", { name: "Upload a new file" }),
+    ).toBeChecked();
+    expect(screen.getByRole("button", { name: "Done Receptor" })).toHaveFocus();
+  },
+);
 it("clears stale input eligibility and permits retry of the same file after an upload error", async () => {
   const upload = vi
     .spyOn(api, "upload")

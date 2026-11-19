@@ -361,6 +361,9 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         page.get_by_role("button", name="Similarity & structural alerts", exact=True).click()
         library = page.locator('[data-image-target="library"]:visible')
         query = page.locator('[data-image-target="query"]:visible')
+        retained_library = library.locator(
+            '[data-material-selection="summary"] .reference-material-summary'
+        )
         mode = page.get_by_label("What should this selection do?")
         original_mode = mode.input_value()
         expect(library.get_by_role("switch", name="DECIMER")).not_to_be_checked()
@@ -370,7 +373,13 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
             "mimeType": "chemical/x-mdl-sdfile",
             "buffer": b"Original library records\nM  END\n$$$$\n",
         })
-        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(retained_library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        change = retained_library.get_by_role("button", name="Change SDF molecular library file")
+        expect(change).to_have_attribute("aria-expanded", "false")
+        change.press("Enter")
+        expect(library.get_by_role("radio", name="Upload a new file")).to_be_checked()
+        library.get_by_role("button", name="Done SDF molecular library file").press("Enter")
+        expect(change).to_be_focused()
         page.get_by_role("button", name="Image recognition & editor", exact=True).click()
         frame = page.frame_locator(".utility-recognition-frame")
         drawing = frame.get_by_label("Graph text")
@@ -379,7 +388,7 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         destination.select_option("screen")
         offer = query.get_by_role("group", name="Drawing ready")
         expect(offer).to_be_visible()
-        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(retained_library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
         expect(mode).to_have_value(original_mode)
         assert len(uploads) == 1
         query_upload = query.get_by_role("button", name="Upload query image", exact=True)
@@ -393,7 +402,8 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         offer.get_by_role("button", name="Use as query", exact=True).click()
         expect(offer).to_have_count(0)
         expect(mode).to_have_value("similarity")
-        expect(library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(retained_library.get_by_text("retained-library.sdf", exact=True)).to_be_visible()
+        expect(query.locator('[data-material-selection="summary"]')).to_contain_text("Record 1")
         expect(page.locator(".molecular-input-review figcaption")).to_have_text(
             "Query molecule · Record 1"
         )
