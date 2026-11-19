@@ -144,7 +144,8 @@ def test_retained_native_figure_includes_applied_color_key(color_key, tool, lang
             chains = viewer.locator(".viewer-chain-menu")
             chains.locator("summary").click()
             for chain in chains.get_by_role("checkbox").all():
-                chain.uncheck()
+                chain.click()
+                expect(chain).not_to_be_checked()
             expect(viewer.locator(".potential-legend")).to_have_count(0)
             chains.get_by_role("button", name="Show all chains", exact=True).click()
             expect(viewer.locator(".potential-legend")).to_contain_text("+10 kBT/e")
