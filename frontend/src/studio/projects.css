@@ -4,23 +4,51 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .project-toolbar input {
-  width: min(100%, 300px);
+  width: min(100%, 260px);
+}
+.project-toolbar .project-task-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-end: auto;
+  padding-inline: 0;
+  text-align: start;
 }
 .project-list {
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--surface);
-  padding: 0;
-  box-shadow: none;
+  overflow: clip;
+}
+.project-list:empty {
+  display: none;
 }
 .project-list .project-row {
   margin: 0;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  min-height: 64px;
+  border-radius: 0;
+  min-height: 56px;
+  padding: 10px 14px;
+}
+.project-list .project-row + .project-row {
+  border-top: 1px solid var(--line);
+}
+.project-list .project-row:hover {
+  background: var(--surface-hover);
+}
+.project-list .project-row:focus-visible {
+  outline-offset: -3px;
+}
+.project-row-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.project-row-copy strong {
+  color: var(--ink);
 }
 .project-list .project-row.active {
   background: var(--accent-soft);
@@ -28,19 +56,24 @@
 }
 .project-empty {
   text-align: center;
-  padding: 40px 16px;
+  padding: 28px 16px;
   color: var(--muted);
 }
+.project-empty p {
+  margin: 0;
+}
 .project-create-dialog {
-  width: 520px;
-  padding: 24px;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  padding: 20px;
+  border-radius: 10px;
 }
 .project-create-dialog header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .project-create-dialog h2 {
   font-size: 18px;
@@ -54,7 +87,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 @media (max-width: 640px) {
   .project-toolbar input {

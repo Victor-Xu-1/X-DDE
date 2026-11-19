@@ -62,7 +62,6 @@ on:
       - 'frontend/src/regions/RegionWorkspace.tsx'
       - 'frontend/src/space/ChannelForm.tsx'
       - 'frontend/src/datasets/ScreeningReview.tsx'
-      - 'frontend/src/studio/ProjectCreateDialog.tsx'
       - 'frontend/src/workflows/WorkflowCenter.tsx'
       # Routing changes are checked by the figure gate; scientific changes above
       - '!src/opendde_workbench/examples/stat6/guidance.py'
@@ -99,6 +98,7 @@ jobs:
     outputs:
       refinement_only: ${{ steps.refinement.outputs.refinement_only }}
       workflow_only: ${{ steps.scope.outputs.workflow_only }}
+      project_only: ${{ steps.project.outputs.project_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -111,6 +111,10 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/docking-refinement-scope.py
+      - id: project
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/project-workspace-scope.py
 
   spr-training:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'spr-training'
@@ -151,7 +155,7 @@ jobs:
           scripts/case-data-scope.py scripts/antibody_template_scope.py tests/ci/test_case_data_scope.py
   templates:
     needs: [workflow-scope, antibody-scope, utility-scope]
-    if: needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training'))
+    if: needs.workflow-scope.outputs.project_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && (needs.antibody-scope.outputs.antibody_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true' && needs.workflow-scope.outputs.refinement_only != 'true' && needs.antibody-scope.outputs.native_receptor_only != 'true' && (github.event_name != 'workflow_dispatch' || inputs.scope != 'spr-training'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

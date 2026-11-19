@@ -328,6 +328,9 @@ on:
       - "!frontend/src/discovery/ReferenceImportForm.tsx"
       - "!frontend/src/discovery/TargetResearchForm.tsx"
       - "!frontend/src/studio/ProjectCreateDialog.tsx"
+      - "!frontend/src/studio/ProjectPanel.tsx"
+      - "!frontend/src/studio/ProjectPanel.test.tsx"
+      - "!frontend/src/studio/projects.css"
       # Shared hydrogen display has focused native Ketcher/3D checks.
       - "!frontend/src/editors/scientificEditor.ts"
       # Shared task actions have a dedicated real-worker recovery gate.
