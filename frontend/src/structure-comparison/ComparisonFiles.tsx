@@ -1,6 +1,7 @@
 import { artifactUrl } from "../api";
 import { useSelectedAsset } from "../operations/useSelectedAsset";
 import { ResearchTable } from "../presentation/ResearchTable";
+import { VerifiedArtifactDownload } from "../presentation/VerifiedArtifactDownload";
 import type { Language } from "../types";
 import { addressLabel, type ComparisonResult } from "./types";
 
@@ -47,9 +48,18 @@ export function ComparisonSources({
                   : "Reference structure"}
             </h3>
             {original && (
-              <a href={artifactUrl(jobId, original)} download>
-                {(i ? moving : reference).asset?.name ?? original}
-              </a>
+              <VerifiedArtifactDownload
+                key={original}
+                url={artifactUrl(jobId, original)}
+                sha256={result.artifact_sha256[original]}
+                filename={original}
+                language={language}
+                label={(i ? moving : reference).asset?.name ?? original}
+                downloadLabel={
+                  zh ? "下载来源结构" : "Download source structure"
+                }
+                className="text-button"
+              />
             )}
             <p>
               {inspection.polymer.polymer_residues}{" "}
@@ -119,5 +129,6 @@ export function comparisonResultFiles(
       artifact,
       label,
       downloadLabel,
+      sha256: result.artifact_sha256[artifact],
     }));
 }

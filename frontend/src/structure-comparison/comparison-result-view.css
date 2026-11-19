@@ -13,6 +13,14 @@
   margin-bottom: 5px;
 }
 
+.comparison-preview-actions button {
+  scroll-margin-block-start: 110px;
+}
+
+[data-workspace-expanded="true"] .comparison-preview-actions button {
+  scroll-margin-block-start: 12px;
+}
+
 .comparison-preview-context {
   display: flex;
   align-items: baseline;
@@ -22,6 +30,82 @@
 
 .comparison-preview-context > .field-help {
   margin: 0;
+}
+
+.comparison-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+
+.studio-app .comparison-view-actions > button {
+  min-height: 32px;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
+.comparison-view-actions [data-workspace-expand] {
+  min-width: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.comparison-view-actions [data-workspace-expand]:hover {
+  background: var(--surface-hover);
+}
+
+.aligned-structure-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aligned-structure-pair > section {
+  min-width: 0;
+}
+
+.aligned-structure-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.aligned-structure-heading h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.aligned-structure-heading h3 > span {
+  margin-inline-end: 4px;
+  color: var(--accent);
+}
+
+.aligned-structure-heading .verified-artifact-download {
+  flex: none;
+}
+
+.aligned-structure-heading .verified-artifact-download > button {
+  font-size: 12px;
+}
+
+@media (max-width: 940px) {
+  .aligned-structure-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1180px) {
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded="true"]):has(
+      .aligned-structure-pair
+    ) {
+    grid-template-columns: minmax(0, 2.2fr) minmax(295px, 1fr);
+  }
 }
 
 .comparison-result-view
@@ -53,6 +137,10 @@
   font-size: 12px;
   min-height: 34px;
   padding-block: 6px;
+}
+
+.comparison-analysis .research-table :is(th, td) {
+  padding-inline: 9px;
 }
 
 .comparison-return-to-residue {

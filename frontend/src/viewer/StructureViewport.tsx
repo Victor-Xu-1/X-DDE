@@ -1,5 +1,11 @@
 import { version as productVersion } from "../../package.json";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   LoadingOutlined,
@@ -55,11 +61,18 @@ import {
   type ConfidenceInspection,
 } from "./confidence-types";
 import type { SearchBoxGeometry } from "./search-box";
+import type { StructureCameraHandle } from "./structure-camera";
+import { useStructureCamera } from "./useStructureCamera";
 export interface StructureViewerProps {
   /** Atom/coordinate selection must use the exact source, never a mutable preview pose. */
   sourceSnapshot?: boolean;
   showWorkspaceControls?: boolean;
+  onCameraReady?(handle: StructureCameraHandle | null): void;
+  figureFilename?: string;
+  heading?: ReactNode;
   expectedStructureSha256?: string;
+  structureChecksums?: readonly string[];
+  cifAuthorResidues?: boolean;
   nativeArtifactSha256?: string;
   onStructureVerification?(verified: boolean): void;
   trajectoryKey?: string;
@@ -97,7 +110,12 @@ export interface StructureViewerProps {
 export function StructureViewport({
   sourceSnapshot = false,
   showWorkspaceControls = true,
+  onCameraReady,
+  figureFilename,
+  heading,
   expectedStructureSha256,
+  structureChecksums,
+  cifAuthorResidues,
   onStructureVerification,
   trajectoryKey,
   ligandContext = true,
@@ -150,6 +168,8 @@ export function StructureViewport({
       ":" +
       JSON.stringify({
         expectedStructureSha256: structureSha256,
+        structureChecksums,
+        cifAuthorResidues,
         nativeInteractions,
         potentialSource: electrostaticMap && [
           electrostaticMap.url,
@@ -242,6 +262,8 @@ export function StructureViewport({
     return {
       urls,
       expectedStructureSha256: structureSha256,
+      structureChecksums,
+      cifAuthorResidues,
       ...(trajectoryKey ? { trajectoryKey } : {}),
       ...(optimization.initialReady || sourceSnapshot
         ? { initialPosePrepared: true }
@@ -499,6 +521,7 @@ export function StructureViewport({
     send("options", value);
   }
   const loaded = ready && status === "loaded" && loadedKey === sceneKey;
+  useStructureCamera(frame, sceneKey, loaded, onCameraReady);
   const displayBusy =
     displayPending ||
     (loaded && requestedPotentialRange !== appliedPotentialRange);
@@ -580,17 +603,19 @@ export function StructureViewport({
   return (
     <section className="studio-panel viewer-panel">
       <div className="studio-heading">
-        <h3 aria-label={title}>
-          <span className="viewer-title-full">{title}</span>
-          <span className="viewer-title-short" aria-hidden="true">
-            {zh ? "三维" : "3D"}
-          </span>
-          <Hint label={zh ? "三维预览说明" : "3D preview help"}>
-            {zh
-              ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
-              : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
-          </Hint>
-        </h3>
+        {heading ?? (
+          <h3 aria-label={title}>
+            <span className="viewer-title-full">{title}</span>
+            <span className="viewer-title-short" aria-hidden="true">
+              {zh ? "三维" : "3D"}
+            </span>
+            <Hint label={zh ? "三维预览说明" : "3D preview help"}>
+              {zh
+                ? "拖动旋转，滚轮缩放。绿色细棒突出配体；色带显示大分子骨架。点选原子或残基后，可在下方调整显示。"
+                : "Drag to rotate and scroll to zoom. Thin green sticks highlight ligands; ribbons show polymer backbones. Select atoms or residues to adjust their display below."}
+            </Hint>
+          </h3>
+        )}
         {attachmentGeometry !== undefined && (
           <span
             className="viewer-attachment-count"
@@ -602,8 +627,13 @@ export function StructureViewport({
         )}
         <ViewerExportActions
           language={language}
+          filename={figureFilename}
           showWorkspaceControls={showWorkspaceControls}
-          originalUrls={optimization.pose.nativeArtifactSha256 ? [] : urls}
+          originalUrls={
+            optimization.pose.nativeArtifactSha256 || structureChecksums
+              ? []
+              : urls
+          }
           sourceKey={JSON.stringify([
             key,
             options,
@@ -881,7 +911,7 @@ export function StructureViewport({
               <a
                 className="secondary-button"
                 href={snapshot.downloadUrl}
-                download="X-DDE-structure-view.png"
+                download={`${figureFilename ?? "X-DDE-structure"}-view.png`}
               >
                 {zh ? "下载视图 PNG" : "Download view PNG"}
               </a>

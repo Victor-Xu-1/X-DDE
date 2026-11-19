@@ -111,6 +111,8 @@ on:
         type: boolean
         default: false
     outputs:
+      aligned_comparison_only:
+        value: ${{ jobs.scope.outputs.aligned_comparison_only }}
       desktop_structure_focus_only:
         value: ${{ jobs.scope.outputs.desktop_structure_focus_only }}
       result_handoff_desktop_only:
@@ -165,6 +167,7 @@ jobs:
   scope:
     runs-on: ubuntu-24.04
     outputs:
+      aligned_comparison_only: ${{ steps.select.outputs.aligned_comparison_only }}
       utility_only: ${{ steps.select.outputs.utility_only }}
       touch_controls_only: ${{ steps.select.outputs.touch_controls_only }}
       utility_navigation_only: ${{ steps.select.outputs.utility_navigation_only }}
@@ -233,6 +236,7 @@ jobs:
       needs.scope.outputs.proximity_desktop_only != 'true' &&
       needs.scope.outputs.result_handoff_desktop_only != 'true' &&
       needs.scope.outputs.desktop_structure_focus_only != 'true' &&
+      needs.scope.outputs.aligned_comparison_only != 'true' &&
       needs.scope.outputs.runtime_entry_only != 'true' &&
       needs.scope.outputs.utility_result_desktop_only != 'true'
     runs-on: ubuntu-24.04

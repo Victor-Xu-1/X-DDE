@@ -7,6 +7,8 @@ import type { ViewMode } from "./protocol";
 import { searchBoxGeometry, type SearchBoxGeometry } from "./search-box";
 export interface ViewerLoad {
   expectedStructureSha256?: string;
+  structureChecksums?: readonly string[];
+  cifAuthorResidues?: boolean;
   trajectoryKey?: string;
   initialPosePrepared?: boolean;
   ligandContext?: boolean;
@@ -48,6 +50,7 @@ export function viewerLoad(value: unknown): ViewerLoad {
     throw new Error("Invalid structure sources");
   const sourceCount = v.urls.length;
   const expectedStructureSha256 = v.expectedStructureSha256;
+  const digests = v.structureChecksums;
   if (
     expectedStructureSha256 !== undefined &&
     (sourceCount !== 1 ||
@@ -55,6 +58,22 @@ export function viewerLoad(value: unknown): ViewerLoad {
       !/^[0-9a-f]{64}$/.test(expectedStructureSha256))
   )
     throw new Error("Invalid reviewed structure checksum");
+  if (
+    digests !== undefined &&
+    (expectedStructureSha256 !== undefined ||
+      !Array.isArray(digests) ||
+      digests.length !== sourceCount ||
+      digests.some(
+        (digest) =>
+          typeof digest !== "string" || !/^[0-9a-f]{64}$/.test(digest),
+      ))
+  )
+    throw new Error("Invalid reviewed source checksums");
+  if (
+    v.cifAuthorResidues !== undefined &&
+    typeof v.cifAuthorResidues !== "boolean"
+  )
+    throw new Error("Invalid residue display identity");
   if (
     v.initialChains !== undefined &&
     (sourceCount !== 1 ||
@@ -114,6 +133,10 @@ export function viewerLoad(value: unknown): ViewerLoad {
     ...(expectedStructureSha256 === undefined
       ? {}
       : { expectedStructureSha256 }),
+    ...(digests === undefined ? {} : { structureChecksums: [...digests] }),
+    ...(v.cifAuthorResidues === undefined
+      ? {}
+      : { cifAuthorResidues: v.cifAuthorResidues }),
     ...(v.trajectoryKey === undefined
       ? {}
       : { trajectoryKey: v.trajectoryKey as string }),

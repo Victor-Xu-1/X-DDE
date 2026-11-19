@@ -840,6 +840,21 @@ and structure, and filtered CSV retains full-precision native distances in angst
 The shared viewer, sequence portal, comparison policy and expanded-workspace authority
 remain unchanged. Narrow views stack naturally and keep wide tables inside their own scroller.
 
+### Aligned protein comparison
+
+Saved comparison results keep the aligned overlay as the initial view. When
+both aligned CIF artifacts have recorded checksums, **Aligned side by side**
+shows the reference and aligned moving structure in separate live panels.
+Selecting an observed residue in either panel or in the displacement table
+highlights its saved correspondence in both structures. The match includes
+the author chain, residue number, and insertion code.
+
+**Match views** copies the reference camera to the moving panel for visual
+comparison. Each layout restores its previous camera after switching.
+The expanded workspace can give both panels the full width. Restoring a view
+adapts its zoom to the current viewport. Each side checks its original CIF
+before rendering or downloading, and exports its own named research figure.
+
 ## ADMET inspection
 
 A retained ADMET result keeps its native molecular structure in the large left

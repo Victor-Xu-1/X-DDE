@@ -1,10 +1,16 @@
 import type { ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Language } from "../types";
+import { VerifiedArtifactDownload } from "./VerifiedArtifactDownload";
 import "./spatial-results.css";
 
 type Metric = { label: string; value: ReactNode; unit?: string };
-type ResultFile = { artifact: string; label: string; downloadLabel: string };
+type ResultFile = {
+  artifact: string;
+  label: string;
+  downloadLabel: string;
+  sha256?: string;
+};
 
 export function SpatialResultSummary({
   jobId,
@@ -53,17 +59,30 @@ export function SpatialResultSummary({
         role="group"
         aria-label={language === "zh" ? "结果文件" : "Result files"}
       >
-        {files.map(({ artifact, label, downloadLabel }) => (
-          <a
-            key={artifact}
-            className="secondary-button"
-            href={artifactUrl(jobId, artifact)}
-            aria-label={downloadLabel}
-            download
-          >
-            {label}
-          </a>
-        ))}
+        {files.map(({ artifact, label, downloadLabel, sha256 }) =>
+          sha256 ? (
+            <VerifiedArtifactDownload
+              key={artifact + ":" + sha256}
+              url={artifactUrl(jobId, artifact)}
+              sha256={sha256}
+              filename={artifact}
+              language={language}
+              label={label}
+              downloadLabel={downloadLabel}
+              className="secondary-button"
+            />
+          ) : (
+            <a
+              key={artifact}
+              className="secondary-button"
+              href={artifactUrl(jobId, artifact)}
+              aria-label={downloadLabel}
+              download
+            >
+              {label}
+            </a>
+          ),
+        )}
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 import { ComparisonPreview } from "./ComparisonPreview";
+import { matchedResidue } from "./AlignedStructurePair";
 import { comparisonResultFiles, ComparisonSources } from "./ComparisonFiles";
 import { useRef, useState } from "react";
 import { Hint } from "../guided/Hint";
@@ -23,17 +24,23 @@ import {
 import "./comparison.css";
 import "./comparison-result-view.css";
 
-export function ComparisonResults({
-  job,
-  result,
-  language,
-  onCreated,
-}: {
+type ComparisonResultProps = {
   job: Job;
   result: ComparisonResult;
   language: Language;
   onCreated?(job: Job): void;
-}) {
+};
+
+export function ComparisonResults(props: ComparisonResultProps) {
+  return <ComparisonResultWorkspace key={props.job.id} {...props} />;
+}
+
+function ComparisonResultWorkspace({
+  job,
+  result,
+  language,
+  onCreated,
+}: ComparisonResultProps) {
   const zh = language === "zh",
     data = result.geometry;
   const previewHeader = useRef<HTMLDivElement>(null);
@@ -52,9 +59,15 @@ export function ComparisonResults({
     },
     {
       key: "displacement",
-      label: zh ? "位移（Å）" : "Displacement (Å)",
+      label: zh ? "位移（Å）" : "Δ (Å)",
+      exportLabel: zh ? "位移（Å）" : "Displacement (Å)",
       numeric: true,
       value: (r) => r.displacement_angstrom,
+      render: (r) => (
+        <span title={String(r.displacement_angstrom)}>
+          {r.displacement_angstrom.toFixed(3)}
+        </span>
+      ),
     },
     {
       key: "role",
@@ -99,6 +112,15 @@ export function ComparisonResults({
             language={language}
             headerRef={previewHeader}
             selection={selection}
+            hashes={result.artifact_sha256 ?? {}}
+            onPick={(side, atom) => {
+              const row = matchedResidue(
+                data.residue_displacements,
+                side,
+                atom,
+              );
+              if (row) setSelection(row);
+            }}
             onClear={() => setSelection(null)}
             onUse={saved && onCreated ? () => setHandoff(true) : undefined}
           />
