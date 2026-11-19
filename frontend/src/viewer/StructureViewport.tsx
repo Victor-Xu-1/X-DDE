@@ -44,6 +44,8 @@ import "./viewer.css";
 import { useViewerSnapshot } from "./useViewerSnapshot";
 import { useViewerConnection } from "./useViewerConnection";
 import { ViewerExportActions } from "./ViewerExportActions";
+import { figureWithColorKeys } from "../publication/molecular-color-key";
+import { scientificColorKeys } from "./scientific-color-keys";
 import { ViewerToolGroup } from "./ViewerToolGroup";
 import type { PoseController } from "./PoseSession";
 import { PoseOptimizationControls } from "./PoseOptimizationControls";
@@ -531,6 +533,22 @@ export function StructureViewport({
   const displayBusy =
     displayPending ||
     (loaded && requestedPotentialRange !== appliedPotentialRange);
+  const colorKeys =
+    loaded && !comparison
+      ? scientificColorKeys({
+          mode: options.mode,
+          confidence: Boolean(
+            currentConfidence &&
+            options.color === "confidence" &&
+            scene.residues.length &&
+            !overlay,
+          ),
+          hasPotentialMap: Boolean(electrostaticMap),
+          potentialRange: appliedPotentialRange,
+          surface,
+          language,
+        })
+      : [];
   const figureKey = JSON.stringify([
     sceneKey,
     options,
@@ -542,6 +560,11 @@ export function StructureViewport({
     selectedResidues,
     displayRevision,
   ]);
+  const printFigureKey = JSON.stringify([figureKey, colorKeys]);
+  function viewportAspect() {
+    const bounds = frame.current?.getBoundingClientRect();
+    return bounds && bounds.height > 0 ? bounds.width / bounds.height : 1.5;
+  }
   useStructureFigure(
     figureKey,
     loaded && !displayBusy,
@@ -657,14 +680,20 @@ export function StructureViewport({
               ? []
               : urls
           }
-          sourceKey={figureKey}
+          sourceKey={printFigureKey}
           sourceReady={loaded && !displayBusy}
           busy={snapshot.busy}
-          aspect={() => {
-            const bounds = frame.current?.getBoundingClientRect();
-            return bounds ? bounds.width / bounds.height : 1.5;
-          }}
-          render={(settings) => snapshot.figure(send, settings)}
+          aspect={viewportAspect}
+          render={(settings) =>
+            colorKeys.length
+              ? figureWithColorKeys(
+                  settings,
+                  viewportAspect(),
+                  colorKeys,
+                  (value, pixels) => snapshot.figure(send, value, pixels),
+                )
+              : snapshot.figure(send, settings)
+          }
           capture={(scale) => snapshot.begin(send, scale)}
           leading={
             channelGeometry && (

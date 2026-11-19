@@ -1,5 +1,5 @@
 import type { Language } from "../types";
-import { confidenceColors } from "./confidence-types";
+import { confidenceMarks } from "./scientific-color-keys";
 import "./confidence-controls.css";
 export function ConfidenceControls({
   language,
@@ -36,10 +36,10 @@ export function ConfidenceLegend({ language }: { language: Language }) {
       className="confidence-legend"
       aria-label={zh ? "置信度色标" : "Confidence legend"}
     >
-      {[...confidenceColors].reverse().map((color, i) => (
+      {confidenceMarks.map(({ color, label }) => (
         <span key={color}>
           <i style={{ background: color }} />
-          {["> 90", "70–90", "50–70", "< 50"][i]}
+          {label}
         </span>
       ))}
       <span>
