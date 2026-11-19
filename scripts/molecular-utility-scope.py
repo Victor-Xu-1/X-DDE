@@ -1064,6 +1064,7 @@ PROXIMITY_DESKTOP_FILES = {
 }
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/proximity-checks.yml",
     ".github/workflows/publication-checks.yml",
     "docs/user-guide.md",
@@ -1079,7 +1080,7 @@ PROXIMITY_PAIR_FILES = {
     "server_tests/test_proximity_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-PROXIMITY_PAIR_DIFF = "377ca52642f408f0a8648dd0e89a786087e90f0036032455defdc5653f16c3ca"
+PROXIMITY_PAIR_DIFF = "ec4abb3394b7f7290a6dcecba8cf2cdcbc0a3f6a525e097669049b763504ff03"
 UTILITY_RESULT_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",

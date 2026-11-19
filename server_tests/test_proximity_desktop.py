@@ -113,11 +113,15 @@ def inspect_pair(page, table, preview, rows, result, language, evidence):
     for frame, original in zip(frames.all(), originals, strict=True):
         assert frame.evaluate("(frame, original) => frame === original", original)
     if not zh:
-        png = export_figure(
-            page, pair.locator(".figure-export-trigger").first, evidence,
-            "assembly-a-view", language,
-        )
-        inspect_png(png)
+        figures = []
+        for index, slot in enumerate(("a", "b")):
+            png = export_figure(
+                page, pair.locator(".figure-export-trigger").nth(index), evidence,
+                f"assembly-{slot}-view", language,
+            )
+            inspect_png(png)
+            figures.append(png.read_bytes())
+        assert figures[0] != figures[1]
     page.screenshot(path=evidence / "focused-assembly-comparison.png")
     pair.get_by_role(
         "button", name="返回单个装配" if zh else "Return to single assembly", exact=True,

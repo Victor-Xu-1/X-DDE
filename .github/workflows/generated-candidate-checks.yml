@@ -51,6 +51,7 @@ jobs:
       needs.result-scope.outputs.native_state_only != 'true' &&
       needs.result-scope.outputs.mobile_viewer_only != 'true' &&
       needs.result-scope.outputs.spatial_desktop_only != 'true' &&
+      needs.result-scope.outputs.proximity_desktop_only != 'true' &&
       needs.result-scope.outputs.candidate_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
