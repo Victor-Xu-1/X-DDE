@@ -213,7 +213,6 @@ it("keeps original report links attached to the chosen complex without changing 
   render(<ProteinInterfaceResults {...props} />);
   await user.selectOptions(screen.getByLabelText("Complex"), "1");
   expect(screen.getByRole("heading", { name: "Dimer two" })).toBeVisible();
-  await user.click(screen.getByText("Source reports and structure"));
   for (const [label, extension] of [
     ["Contacts CSV", "csv"],
     ["Native report TXT", "txt"],
@@ -229,5 +228,8 @@ it("keeps original report links attached to the chosen complex without changing 
       .getByLabelText("Source molecular viewer")
       .getAttribute("data-source"),
   ).toContain("two.cif");
+  await user.click(
+    screen.getByRole("button", { name: "Interpreting contacts and distances" }),
+  );
   expect(screen.getByText(/not binding energy or affinity/)).toBeVisible();
 });

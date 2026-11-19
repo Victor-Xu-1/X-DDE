@@ -123,7 +123,6 @@ def test_both_native_interface_endpoints(interaction_workspace, language, width)
             assert len(exported) == len(expected_rows)
             distance = "端点距离（Å）" if zh else "Endpoint distance (Å)"
             assert [float(r[distance]) for r in exported] == [r["distance"] for r in expected_rows]
-            workspace.locator(".interface-source-reports > summary").click()
             for key, label in (
                 ("table_artifact", "接触表 CSV" if zh else "Contacts CSV"),
                 ("text_artifact", "原生报告 TXT" if zh else "Native report TXT"),

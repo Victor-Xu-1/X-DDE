@@ -87,35 +87,37 @@ export function ComparisonSources({
   );
 }
 
-export function ComparisonDownloads({
-  jobId,
-  language,
-}: {
-  jobId: string;
-  language: Language;
-}) {
+export function comparisonResultFiles(
+  result: ComparisonResult,
+  language: Language,
+) {
   const zh = language === "zh";
-  const files = [
-    ["moving-aligned.cif", zh ? "已对齐结构 mmCIF" : "Aligned structure mmCIF"],
-    ["reference-selected.cif", zh ? "参照结构 mmCIF" : "Reference mmCIF"],
+  return [
+    [
+      "moving-aligned.cif",
+      zh ? "已对齐结构" : "Aligned",
+      zh ? "已对齐结构 mmCIF" : "Aligned structure mmCIF",
+    ],
+    [
+      "reference-selected.cif",
+      zh ? "参照结构" : "Reference",
+      zh ? "参照结构 mmCIF" : "Reference mmCIF",
+    ],
     [
       "residue-displacements.csv",
+      zh ? "位移 CSV" : "CSV",
       zh ? "完整位移 CSV" : "Full displacement CSV",
     ],
-    ["native-dockq.json", zh ? "原生界面报告" : "Native interface report"],
-  ];
-  return (
-    <div className="comparison-downloads">
-      {files.map(([name, label]) => (
-        <a
-          key={name}
-          className="secondary-button"
-          href={artifactUrl(jobId, name)}
-          download
-        >
-          {label}
-        </a>
-      ))}
-    </div>
-  );
+    [
+      "native-dockq.json",
+      zh ? "界面报告" : "Report",
+      zh ? "原生界面报告" : "Native interface report",
+    ],
+  ]
+    .filter(([artifact]) => Object.hasOwn(result.artifact_sha256, artifact))
+    .map(([artifact, label, downloadLabel]) => ({
+      artifact,
+      label,
+      downloadLabel,
+    }));
 }

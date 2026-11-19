@@ -1,6 +1,5 @@
-import { artifactUrl } from "../api";
 import { ResearchTable } from "../presentation/ResearchTable";
-import type { Job, Language } from "../types";
+import type { Language } from "../types";
 import type { SceneInfo } from "../viewer/protocol";
 import type {
   ProteinInterfaceResult,
@@ -16,14 +15,12 @@ import {
 type ContactRow = ProteinInterfaceInteraction & { id: string };
 
 export function ProteinInterfaceContacts({
-  job,
   active,
   language,
   scene,
   focus,
   onSelect,
 }: {
-  job: Job;
   active: ProteinInterfaceResult;
   language: Language;
   scene: SceneInfo | null;
@@ -67,70 +64,40 @@ export function ProteinInterfaceContacts({
     );
   }
   return (
-    <>
-      <ResearchTable<ContactRow>
-        language={language}
-        title={zh ? "完整界面接触" : "Complete interface contacts"}
-        rows={rows}
-        rowId={(row) => row.id}
-        selected={focus?.id ?? null}
-        canSelect={(row) => !!keyFor(row)}
-        onSelect={(row) => select(row)}
-        columns={[
-          {
-            key: "target",
-            label: zh ? "靶蛋白" : "Target",
-            value: interactionResidueLabel,
-            render: (row) => endpoint(row, false),
-          },
-          {
-            key: "partner",
-            label: zh ? "伙伴" : "Partner",
-            value: (row) => interactionResidueLabel(row.partner),
-            render: (row) => endpoint(row, true),
-          },
-          {
-            key: "type",
-            label: zh ? "作用类型" : "Interaction",
-            value: (row) =>
-              interactionNames[row.kind]?.[zh ? 0 : 1] ?? row.kind,
-          },
-          {
-            key: "distance",
-            label: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
-            numeric: true,
-            value: (row) => row.distance,
-            render: (row) => row.distance.toFixed(2),
-          },
-        ]}
-      />
-      <details className="interface-source-reports">
-        <summary>
-          {zh ? "原始报告与结构" : "Source reports and structure"}
-        </summary>
-        <div className="inline-fields">
-          {[
-            [active.table_artifact, zh ? "接触表 CSV" : "Contacts CSV"],
-            [active.text_artifact, zh ? "原生报告 TXT" : "Native report TXT"],
-            [active.xml_artifact, zh ? "原生报告 XML" : "Native report XML"],
-            [active.structure_artifact, zh ? "原始结构" : "Source structure"],
-          ].map(([file, label]) => (
-            <a
-              key={file}
-              className="secondary-button"
-              href={artifactUrl(job.id, file)}
-              download
-            >
-              {label}
-            </a>
-          ))}
-          <p className="field-help">
-            {zh
-              ? "原生化学分类，不是结合能或亲和力；水桥距离表示两侧端点的距离。"
-              : "Native chemical classifications, not binding energy or affinity. Water-bridge distances refer to the two endpoint atoms."}
-          </p>
-        </div>
-      </details>
-    </>
+    <ResearchTable<ContactRow>
+      language={language}
+      title={zh ? "完整界面接触" : "Complete interface contacts"}
+      rows={rows}
+      rowId={(row) => row.id}
+      selected={focus?.id ?? null}
+      canSelect={(row) => !!keyFor(row)}
+      onSelect={(row) => select(row)}
+      columns={[
+        {
+          key: "target",
+          label: zh ? "靶蛋白" : "Target",
+          value: interactionResidueLabel,
+          render: (row) => endpoint(row, false),
+        },
+        {
+          key: "partner",
+          label: zh ? "伙伴" : "Partner",
+          value: (row) => interactionResidueLabel(row.partner),
+          render: (row) => endpoint(row, true),
+        },
+        {
+          key: "type",
+          label: zh ? "作用类型" : "Interaction",
+          value: (row) => interactionNames[row.kind]?.[zh ? 0 : 1] ?? row.kind,
+        },
+        {
+          key: "distance",
+          label: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
+          numeric: true,
+          value: (row) => row.distance,
+          render: (row) => row.distance.toFixed(2),
+        },
+      ]}
+    />
   );
 }
