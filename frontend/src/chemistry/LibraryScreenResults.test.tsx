@@ -68,9 +68,19 @@ it("shows reasons in Chinese and hands off the saved output record rather than i
   );
   await user.click(screen.getByRole("checkbox", { name: "只看选中分子" }));
   expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
-  await user.click(screen.getByRole("button", { name: "准备分子" }));
+  await user.click(screen.getByRole("button", { name: "原始分子 #5" }));
+  expect(screen.getByRole("heading", { name: "原始分子 #5" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "准备分子" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "原始分子 #4" }));
+  const prepare = screen.getByRole("button", { name: "准备分子" });
+  await user.click(prepare);
   expect(screen.getByText("Exact handoff: selected-version / 0")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "返回分子库结果" }));
+  expect(prepare).toHaveFocus();
+  expect(screen.getByRole("button", { name: "原始分子 #4" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   expect(screen.getByText("重复结构，保留原始第 4 条")).toBeVisible();
 });
 it("presents zero hits without a molecule download or invented reusable reference", () => {

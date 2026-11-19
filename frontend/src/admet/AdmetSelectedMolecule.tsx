@@ -20,7 +20,7 @@ export function AdmetSelectedMolecule({
   result: AdmetResult;
   row: AdmetRow;
   language: Language;
-  onPrepare?(reference: MoleculeRef): void;
+  onPrepare?(reference: MoleculeRef, trigger: HTMLButtonElement): void;
 }) {
   const zh = language === "zh";
   const poseSession = usePoseSession();
@@ -101,8 +101,9 @@ export function AdmetSelectedMolecule({
                   className="secondary-button"
                   type="button"
                   disabled={!selection?.ready}
-                  onClick={() => {
-                    if (selection?.ready) onPrepare(selection.reference);
+                  onClick={(event) => {
+                    if (selection?.ready)
+                      onPrepare(selection.reference, event.currentTarget);
                   }}
                 >
                   {zh ? "用于分子准备" : "Prepare this molecule"}

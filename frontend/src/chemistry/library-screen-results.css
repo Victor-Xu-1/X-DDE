@@ -1,0 +1,74 @@
+.library-screen-results {
+  min-width: 0;
+}
+.library-screen-results-heading,
+.library-screen-downloads,
+.library-screen-selection > header,
+.library-screen-pages {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.library-screen-results-heading,
+.library-screen-selection > header {
+  justify-content: space-between;
+}
+.library-screen-results-heading {
+  margin-bottom: 12px;
+}
+.library-screen-results-heading h3,
+.library-screen-selection h4 {
+  margin: 0;
+}
+.library-screen-results-heading span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.library-screen-selection > header {
+  margin-bottom: 8px;
+}
+.library-screen-selection .molecule-image {
+  border-radius: 10px;
+}
+.library-screen-selection .molecule-inspection-view .figure-preview-sheet {
+  height: clamp(260px, 42vh, 520px);
+}
+.library-screen-record-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.library-screen-records table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+}
+.library-screen-records :is(th, td) {
+  padding: 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: middle;
+}
+.library-screen-records thead th {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.library-screen-records tr[data-selected] {
+  background: var(--accent-soft);
+}
+.library-screen-record {
+  min-height: 32px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.library-screen-candidates > p {
+  margin: 6px 0;
+}
+.library-screen-pages {
+  justify-content: space-between;
+  padding-top: 8px;
+}
