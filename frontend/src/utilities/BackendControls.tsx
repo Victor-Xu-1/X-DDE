@@ -131,34 +131,17 @@ export function BackendControls({
     setPanel("closed");
     trigger.current?.focus();
   }
-  if (
+  const inline =
     inlineSingle &&
-    !open &&
     !moduleHasRecognition &&
     moduleRows.length === 1 &&
     !moduleUsesCompute
-  ) {
-    const [item] = moduleRows;
-    return (
-      <div
-        className="task-backend-control"
-        data-backend-placement="module"
-        role="group"
-        aria-label={zh ? "本模块后端开关" : "Backend switch for this module"}
-      >
-        <RuntimeSwitch item={item} language={language} runtime={runtime} />
-        <BackendStateMessage
-          runtime={runtime}
-          language={language}
-          failed={runtime.failed === item.id}
-        />
-      </div>
-    );
-  }
+      ? moduleRows[0]
+      : undefined;
   return (
     <div
       ref={container}
-      className="backend-controls"
+      className={"backend-controls" + (inline ? " has-inline-switch" : "")}
       data-backend-placement={module ? "module" : undefined}
       onBlur={(event) => {
         if (
@@ -175,17 +158,32 @@ export function BackendControls({
         }
       }}
     >
+      {inline && (
+        <div
+          className="task-backend-control"
+          role="group"
+          aria-label={zh ? "本模块后端开关" : "Backend switch for this module"}
+        >
+          <RuntimeSwitch item={inline} language={language} runtime={runtime} />
+          {!open && (
+            <BackendStateMessage
+              runtime={runtime}
+              language={language}
+              failed={runtime.failed === inline.id}
+              focusAfterRetry={() => trigger.current?.focus()}
+            />
+          )}
+        </div>
+      )}
       <button
         ref={trigger}
         className="secondary-button backend-controls-trigger"
         type="button"
         aria-label={triggerLabel}
+        title={inline ? triggerLabel : undefined}
         aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        disabled={
-          inlineSingle && !!module && !runtime.catalogue && !runtime.readError
-        }
         onClick={() => (open ? close() : setPanel("module"))}
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
@@ -193,7 +191,7 @@ export function BackendControls({
         {module && (
           <span
             id={statusId}
-            className="backend-module-status"
+            className={inline ? "sr-only" : "backend-module-status"}
             data-power={power}
             aria-live="polite"
             title={status}
@@ -231,6 +229,7 @@ export function BackendControls({
             runtime={runtime}
             language={language}
             failed={rows.some((row) => row.id === runtime.failed)}
+            focusAfterRetry={() => panelClose.current?.focus()}
           />
           {!runtime.catalogue && !runtime.readError && (
             <p role="status">{zh ? "正在读取…" : "Loading…"}</p>

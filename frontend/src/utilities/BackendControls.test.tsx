@@ -479,13 +479,6 @@ it("shares one default-off engine across module, sibling tool and global switche
         }}
         inlineSingle
       />
-      <BackendControls
-        language="en"
-        module={{
-          label: ["分子性质", "Molecular properties"],
-          tools: ["properties"],
-        }}
-      />
     </>,
   );
   const toggles = await screen.findAllByRole("switch", { name: "RDKit" });
@@ -512,6 +505,44 @@ it("shares one default-off engine across module, sibling tool and global switche
     "/runtime-controls/chemistry/start",
     "/runtime-controls/chemistry/stop",
   ]);
+});
+
+it("keeps the module menu and its focus target when a recovered engine appears", async () => {
+  const user = userEvent.setup();
+  let online = false;
+  vi.mocked(request).mockImplementation(async () => {
+    if (!online) throw new Error("Temporarily unavailable");
+    return {
+      capabilities: { properties: "chemistry" },
+      engines: [entry],
+    };
+  });
+  render(
+    <BackendControls
+      language="en"
+      inlineSingle
+      module={{
+        label: ["分子性质", "Molecular properties"],
+        tools: ["properties"],
+      }}
+    />,
+  );
+  const trigger = screen.getByRole("button", { name: "Backend controls" });
+  await waitFor(() =>
+    expect(trigger).toHaveAccessibleDescription("State unavailable"),
+  );
+  await user.click(trigger);
+  const retry = await screen.findByRole("button", { name: "Retry" });
+  online = true;
+  await user.click(retry);
+  const direct = await screen.findByRole("group", {
+    name: "Backend switch for this module",
+  });
+  expect(within(direct).getByRole("switch")).not.toBeChecked();
+  await user.keyboard("{Escape}");
+  expect(trigger).toHaveFocus();
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(api.post).not.toHaveBeenCalled();
 });
 
 it("switches one engine at a time in the multi-engine module toolbar", async () => {

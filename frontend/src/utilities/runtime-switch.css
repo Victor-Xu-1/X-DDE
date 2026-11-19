@@ -149,10 +149,29 @@
 .task-backend-control .runtime-switch {
   max-width: 100%;
 }
-.studio-topbar .task-backend-control[data-backend-placement="module"] {
+.studio-topbar .backend-controls.has-inline-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.studio-topbar .backend-controls.has-inline-switch > .task-backend-control {
   margin: 0;
   padding-inline-end: 8px;
   border-inline-end: 1px solid var(--line);
+}
+.studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--muted);
+}
+.studio-topbar .has-inline-switch .backend-controls-icon {
+  display: inline-flex;
+}
+.studio-topbar .has-inline-switch .backend-controls-label {
+  display: none;
 }
 .studio-topbar .task-backend-control .backend-state-message {
   position: absolute;

@@ -967,11 +967,12 @@ MODULE_POWER_ENTRY_FILES = {
     "frontend/src/studio/research-modules.ts",
     "frontend/src/utilities/BackendControls.test.tsx",
     "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/RuntimeSwitch.tsx",
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-MODULE_POWER_ENTRY_DIFF = "cba28d020f3442cc9a0348bb4d7ad010202a13e8a6b6bdf9c36f388b8ded49ac"
+MODULE_POWER_ENTRY_DIFF = "4cfa9adb9f10805473c24b9436d9e3df8d849e3d1d20128138cc3980f4bd80a1"
 BACKEND_SETUP_FILES = {
     "docs/user-guide.md",
     "frontend/src/App.tsx",

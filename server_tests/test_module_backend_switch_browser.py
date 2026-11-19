@@ -366,6 +366,13 @@ def verify_inline_switch_lifecycle(page, base):
     root = f"{base}/api/runtime-controls/deli"
     expect(inline).to_be_enabled()
     expect(inline).not_to_be_checked()
+    trigger.click()
+    panel.get_by_role("button", name="查看全部后端", exact=True).click()
+    all_engines = page.get_by_role("region", name="后端启停", exact=True)
+    expect(all_engines.locator('[data-engine="deli"]').get_by_role("switch")).not_to_be_checked()
+    expect(all_engines.locator('[data-engine="decimer"]').get_by_role("switch")).to_be_visible()
+    trigger.press("Escape")
+    expect(trigger).to_be_focused()
     with page.expect_response(f"{root}/start") as started:
         inline.press("Space")
     assert started.value.ok and started.value.json() == {"enabled": True}
@@ -373,7 +380,10 @@ def verify_inline_switch_lifecycle(page, base):
     page.set_viewport_size({"width": 390, "height": 775})
     trigger.click()
     expect(menu_switch).to_be_checked()
+    page.set_viewport_size({"width": 1280, "height": 800})
     trigger.press("Escape")
+    expect(trigger).to_be_focused()
+    expect(inline).to_be_visible()
     nav.get_by_role("button", name="新建任务", exact=True).click()
     child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
     expect(child.get_by_role("switch")).to_be_checked()
