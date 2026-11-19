@@ -15,13 +15,15 @@ export function BoundPoseComparison({
   sources,
   labels,
   language,
+  initialMode = "pair",
 }: {
   sources: StructureSource[];
   labels: readonly [string, string];
   language: Language;
+  initialMode?: "pair" | "overlay";
 }) {
   const zh = language === "zh",
-    [mode, setMode] = useState<"pair" | "overlay">("pair");
+    [mode, setMode] = useState(initialMode);
   const handles = useRef<
     Partial<Record<"a" | "b" | "overlay", MolecularViewHandle>>
   >({});
@@ -131,6 +133,7 @@ export function BoundPoseComparison({
           <MolecularViewport
             sources={sources}
             language={language}
+            initialLigand="all"
             savedView={saved.current.overlay}
             onRememberView={(state) => {
               saved.current.overlay = state;

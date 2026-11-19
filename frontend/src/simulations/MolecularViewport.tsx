@@ -27,6 +27,7 @@ export function MolecularViewport({
   onReady,
   onExport,
   fixedLigand,
+  initialLigand,
   savedView,
   onViewHandle,
   onRememberView,
@@ -40,6 +41,7 @@ export function MolecularViewport({
   onReady?(ready: boolean): void;
   onExport?(): void;
   fixedLigand?: "a" | "b";
+  initialLigand?: MolecularView["ligand"];
   savedView?: SavedMolecularView;
   onViewHandle?(handle: MolecularViewHandle | null): void;
   onRememberView?(state: SavedMolecularView): void;
@@ -63,6 +65,7 @@ export function MolecularViewport({
       contacts: true,
       ligand:
         fixedLigand ??
+        initialLigand ??
         (sources.filter((source) => source.role === "ligand").length > 1
           ? "a"
           : "all"),

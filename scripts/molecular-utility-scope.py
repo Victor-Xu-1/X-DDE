@@ -975,6 +975,25 @@ CANDIDATE_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 CANDIDATE_DESKTOP_DIFF = "1a4b948f38b1177d491c1715192a1f1d81f811a0b7923703700871ec48d37c0b"
+SIMULATION_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/simulation-checks.yml",
+    ".github/workflows/simulation-view-checks.yml",
+    "frontend/package-lock.json",
+    "frontend/src/simulations/BoundPoseComparison.tsx",
+    "frontend/src/simulations/DynamicsAnalysis.tsx",
+    "frontend/src/simulations/DynamicsResults.tsx",
+    "frontend/src/simulations/FreeEnergyResults.tsx",
+    "frontend/src/simulations/MolecularViewport.tsx",
+    "frontend/src/simulations/SimulationResults.test.tsx",
+    "frontend/src/simulations/TrajectoryControls.tsx",
+    "frontend/src/simulations/result-workspace.css",
+    "frontend/src/simulations/simulations.css",
+    "server_tests/test_native_molstar_framing.py",
+    "server_tests/test_native_simulation_views.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SIMULATION_DESKTOP_DIFF = "46cab4e0f2275f0565306b469a7691bc4834f9159298cb93aac58c88bf5a6533"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
 ) - {
@@ -1154,7 +1173,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
     )
+    simulation_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+        output.write("simulation_desktop_only=" + str(simulation_desktop).lower() + "\n")
         output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
@@ -1206,7 +1230,7 @@ def main():
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
-            or history_desktop or candidate_desktop
+            or history_desktop or candidate_desktop or simulation_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")
