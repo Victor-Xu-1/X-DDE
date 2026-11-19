@@ -31,11 +31,8 @@ import { PredictionSamples } from "../presentation/PredictionSamples";
 import { usePredictionReferenceReview } from "../presentation/PredictionReferenceEvidence";
 import { PredictionReferenceReview } from "../presentation/PredictionReferenceReview";
 import { nativePredictionSamples } from "./prediction-presentation";
-
-const ENERGY_NAMES: Record<string, readonly [string, string]> = {
-  "Initial potential energy": ["优化前势能", "Initial energy"],
-  "Final potential energy": ["优化后势能", "Final energy"],
-};
+import { RefinementSummary } from "./RefinementSummary";
+import { refinementMetricLabel } from "./refinement-energy-labels";
 
 export function ScientificResults({
   job,
@@ -114,7 +111,7 @@ export function ScientificResults({
         key: JSON.stringify([name, unit]),
         label: (
           <strong className="native-metric-heading" title={name}>
-            {ENERGY_NAMES[name]?.[zh ? 0 : 1] ?? name}
+            {refinementMetricLabel(name, language)}
             {unit && <small>{unit}</small>}
           </strong>
         ),
@@ -194,6 +191,18 @@ export function ScientificResults({
       />
     );
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
+  const refinement =
+    url &&
+    result.operation === "structure_refine" &&
+    rows.length === 1 &&
+    !active.smiles &&
+    active.metrics.length > 0 &&
+    active.artifact &&
+    /\.(pdb|cif)$/.test(active.artifact) &&
+    Object.hasOwn(result.artifact_sha256, active.artifact) &&
+    !isInternalResearchFile(active.artifact)
+      ? { artifact: active.artifact, url }
+      : null;
   const complexUrl =
     active?.geometry === "source_frame" && result.structure_artifact
       ? artifactUrl(job.id, result.structure_artifact)
@@ -270,10 +279,31 @@ export function ScientificResults({
       exportName="scientific-candidates.csv"
     />
   );
+  const metricsTable =
+    result.operation !== "chemprop_train" && result.metrics.length > 0 && (
+      <table className="compact-table">
+        <tbody>
+          {result.metrics.map((metric) => (
+            <tr key={metric.name}>
+              <th title={metric.method}>{metric.name}</th>
+              <td>{metric.value.toPrecision(4)} {metric.unit}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  const researchFiles = Object.keys(result.artifact_sha256).filter(
+    (name) =>
+      name !== refinement?.artifact &&
+      /\.(sdf|pdb|cif|fasta|csv|dx|pqr|pt)$/.test(name) &&
+      !isInternalResearchFile(name),
+  );
   return (
     <div
       className={
-        "scientific-results" + (prediction ? " prediction-result" : "")
+        "scientific-results" +
+        (prediction ? " prediction-result" : "") +
+        (refinement ? " is-refinement-result" : "")
       }
     >
       {displayedReview?.omittedDomainClash && (
@@ -286,20 +316,7 @@ export function ScientificResults({
       {result.operation === "chemprop_train" && (
         <PropertyModelResults result={result} language={language} />
       )}
-      {result.operation !== "chemprop_train" && result.metrics.length > 0 && (
-        <table className="compact-table">
-          <tbody>
-            {result.metrics.map((metric) => (
-              <tr key={metric.name}>
-                <th title={metric.method}>{metric.name}</th>
-                <td>
-                  {metric.value.toPrecision(4)} {metric.unit}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {!refinement && metricsTable}
       {rows.length > 0 && (
         <>
           {result.sequence_design && (
@@ -366,7 +383,16 @@ export function ScientificResults({
                 language={language}
               />
             )}
-            {!prediction && candidateTable}
+            {refinement ? (
+              <>
+                <RefinementSummary
+                  candidate={active}
+                  structureUrl={refinement.url}
+                  language={language}
+                />
+                {metricsTable}
+              </>
+            ) : !prediction && candidateTable}
             {result.mol1 && active && (
               <Mol1Confidence
                 job={job.id}
@@ -393,21 +419,16 @@ export function ScientificResults({
           </p>
         </section>
       )}
-      <ResearchTabs
-        label={zh ? "研究文件" : "Research files"}
-        tabs={[
-          {
-            id: "files",
-            label: zh ? "下载文件" : "Download files",
-            content: (
-              <div className="download-actions">
-                {Object.keys(result.artifact_sha256)
-                  .filter(
-                    (name) =>
-                      /\.(sdf|pdb|cif|fasta|csv|dx|pqr|pt)$/.test(name) &&
-                      !isInternalResearchFile(name),
-                  )
-                  .map((name) => (
+      {(!refinement || researchFiles.length > 0) && (
+        <ResearchTabs
+          label={zh ? "研究文件" : "Research files"}
+          tabs={[
+            {
+              id: "files",
+              label: zh ? "下载文件" : "Download files",
+              content: (
+                <div className="download-actions">
+                  {researchFiles.map((name) => (
                     <a
                       className="secondary-button"
                       key={name}
@@ -417,11 +438,12 @@ export function ScientificResults({
                       {name}
                     </a>
                   ))}
-              </div>
-            ),
-          },
-        ]}
-      />
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }

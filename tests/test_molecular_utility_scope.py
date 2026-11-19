@@ -168,6 +168,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
         "utility_desktop_only=false\ndesktop_help_only=false\n"
+        "refinement_desktop_only=false\n"
         "touch_controls_only=false\n"
         "runtime_switch_only=false\nresult_header_only=false\n"
         f"utility_only={str(not mixed).lower()}\n"

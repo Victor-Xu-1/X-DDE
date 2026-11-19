@@ -48,12 +48,14 @@ def restored_refinement():
 
 def downloads(page, evidence, zh):
     with page.expect_download() as transfer:
-        page.get_by_role("link", name="refined-structure.pdb", exact=True).click()
+        page.get_by_role(
+            "link", name="下载优化后结构" if zh else "Download refined structure", exact=True,
+        ).click()
     original = evidence / "browser-refined-structure.pdb"
     transfer.value.save_as(original)
     assert hashlib.sha256(original.read_bytes()).hexdigest() == PDB_SHA
     with page.expect_download() as transfer:
-        page.get_by_role("button", name="导出筛选结果" if zh else "Export filtered rows").click()
+        page.get_by_role("button", name="导出指标 CSV" if zh else "Export metrics CSV").click()
     exported = evidence / "browser-native-metrics.csv"
     transfer.value.save_as(exported)
     with exported.open(encoding="utf-8-sig", newline="") as stream:
@@ -71,9 +73,33 @@ def downloads(page, evidence, zh):
     page.get_by_role("button", name="关闭图片" if zh else "Close image", exact=True).click()
 
 
-@pytest.mark.parametrize(("language", "width"), [("en", 1440), ("zh", 390)])
+def verify_expansion(actual, canvas, zh):
+    button = actual.get_by_role(
+        "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True,
+    )
+    iframe = actual.locator(".molecular-stage iframe")
+    frame = iframe.element_handle()
+    assert frame
+    button.click()
+    expect(actual.locator(".structure-workbench")).to_have_attribute(
+        "data-workspace-expanded", "true"
+    )
+    expanded = iframe.bounding_box()
+    assert expanded and expanded["width"] > canvas["width"]
+    assert frame.evaluate("frame => frame.isConnected")
+    actual.get_by_role(
+        "button", name="关闭展开视图" if zh else "Close expanded view", exact=True,
+    ).press("Escape")
+    expect(button).to_be_focused()
+    assert frame.evaluate("frame => frame.isConnected")
+    return expanded
+
+
+@pytest.mark.parametrize(("language", "width", "height"), [
+    ("en", 1280, 720), ("zh", 1600, 900),
+])
 def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
-    restored_refinement, language, width
+    restored_refinement, language, width, height
 ):
     settings = restored_refinement
     before = records(settings.state_dir)
@@ -85,7 +111,7 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
         sync_playwright() as driver,
     ):
         browser = driver.chromium.launch()
-        page = browser.new_page(viewport={"width": width, "height": 1000}, accept_downloads=True)
+        page = browser.new_page(viewport={"width": width, "height": height}, accept_downloads=True)
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
         errors, writes = [], []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -117,12 +143,14 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
             "region", name="模板的真实结果" if zh else "Actual template result"
         )
         expect(actual).to_be_visible(timeout=30000)
-        viewport = actual.locator(".research-table-scroll").bounding_box()
+        summary = actual.get_by_role("region", name="结构精修结果" if zh else "Refinement result")
+        viewport = summary.bounding_box()
         assert viewport
+        expect(summary.get_by_role("searchbox")).to_have_count(0)
         for label in ("优化前势能", "优化后势能") if zh else ("Initial energy", "Final energy"):
-            header = actual.get_by_role("columnheader").filter(has_text=label)
-            expect(header).to_contain_text("kJ/mol")
-            bounds = header.bounding_box()
+            row = summary.get_by_role("row").filter(has_text=label)
+            expect(row).to_contain_text("kJ/mol")
+            bounds = row.bounding_box()
             assert bounds and bounds["x"] >= viewport["x"] - 1
             assert bounds["x"] + bounds["width"] <= viewport["x"] + viewport["width"] + 1
         assert (
@@ -134,16 +162,17 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
         ready_structure(page, zh)
         left = actual.locator(".structure-workbench-view").bounding_box()
         right = actual.locator(".structure-workbench-details").bounding_box()
-        assert left and right
-        assert (
-            (left["x"] < right["x"] and left["width"] > 450)
-            if width > 1000
-            else left["y"] < right["y"]
-        )
+        canvas = actual.locator(".molecular-stage iframe").bounding_box()
+        assert left and right and canvas
+        assert left["x"] < right["x"] and abs(left["y"] - right["y"]) <= 1
+        assert canvas["width"] >= 600 and canvas["height"] >= 500
+        assert viewport["y"] + viewport["height"] < height and viewport["height"] <= 230
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        expanded = verify_expansion(actual, canvas, zh)
         downloads(page, evidence, zh)
         actual.locator(".structure-workbench-view").scroll_into_view_if_needed()
         page.screenshot(path=str(evidence / "native-refinement-example.png"))
-        actual.locator(".research-table").scroll_into_view_if_needed()
+        summary.scroll_into_view_if_needed()
         page.screenshot(path=str(evidence / "native-energy-table.png"))
         page.get_by_role(
             "button", name="返回任务填写" if zh else "Return to task form", exact=True
@@ -162,10 +191,11 @@ def test_actual_preparation_example_units_structure_and_downloads_are_read_only(
                     "width": width,
                     "cold_restored_actual_native_files": True,
                     "visible_energy_units": True,
-                    "both_energy_columns_fit_without_horizontal_scroll": True,
+                    "native_energy_rows_fit_without_horizontal_scroll": True,
                     "full_precision_csv_and_byte_identical_pdb": True,
                     "native_png_export": True,
-                    "structure_on_left_or_above_mobile_details": True,
+                    "desktop_native_canvas": canvas,
+                    "expanded_native_canvas": expanded,
                     "blank_upload_draft_preserved": True,
                     "api_writes": writes,
                     "new_refinement_dynamics_fep": 0,
