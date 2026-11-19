@@ -270,6 +270,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "NATIVE_STATE_FILES", "COMPACT_EXAMPLE_FILES", "MOBILE_HEADER_FILES",
         "INITIAL_POSE_POWER_FILES", "MOBILE_VIEWER_FILES", "SPLIT_VIEWER_FILES",
         "MODULE_POWER_FILES",
+        "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",
     ],

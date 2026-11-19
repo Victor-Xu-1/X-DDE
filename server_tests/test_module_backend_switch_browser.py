@@ -194,6 +194,68 @@ def verify_utilities(page, base):
     page.screenshot(path=EVIDENCE / "utility-power-390.png")
 
 
+def verify_inline_module_power(page, base):
+    toolbar = page.locator(".task-history-heading")
+    inline = toolbar.get_by_role("group", name="本模块后端开关", exact=True)
+    checked = []
+    for module, engine, width in (("del", "deli", 1280), ("proximity", "deepternary", 1600)):
+        page.set_viewport_size({"width": width, "height": 800})
+        page.goto(f"{base}/#view=results&module={module}")
+        switch = inline.locator(f'[data-engine="{engine}"]').get_by_role("switch")
+        expect(switch).to_be_visible()
+        expect(switch).not_to_be_checked()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        bounds = switch.bounding_box()
+        assert bounds and bounds["x"] + bounds["width"] <= width and bounds["y"] < 240
+        page.screenshot(path=EVIDENCE / f"{module}-power-{width}.png")
+        nav = page.get_by_role("navigation", name="模块工作区")
+        nav.get_by_role("button", name="新建任务", exact=True).click()
+        expect(inline).to_have_count(0)
+        task_switch = controls(page, zh=True).locator(f'[data-engine="{engine}"]')
+        expect(task_switch.get_by_role("switch")).not_to_be_checked()
+        checked.append(module)
+    page.goto(f"{base}/#view=results&module=simulations")
+    expect(toolbar.get_by_role("heading", name="任务结果", exact=True)).to_be_visible()
+    trigger, panel = module_power(page)
+    trigger.click()
+    expect(panel.get_by_role("switch")).to_have_count(3)
+    expect(inline).to_have_count(0)
+    return checked
+
+
+def verify_inline_switch_lifecycle(page, base):
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(f"{base}/#view=results&module=del")
+    inline = page.locator('[data-backend-placement="module"]').get_by_role("switch")
+    trigger, panel = module_power(page)
+    menu_switch = panel.locator('[data-engine="deli"]').get_by_role("switch")
+    nav = page.get_by_role("navigation", name="模块工作区")
+    root = f"{base}/api/runtime-controls/deli"
+    expect(inline).to_be_enabled()
+    expect(inline).not_to_be_checked()
+    with page.expect_response(f"{root}/start") as started:
+        inline.press("Space")
+    assert started.value.ok and started.value.json() == {"enabled": True}
+    expect(inline).to_be_checked()
+    trigger.click()
+    expect(menu_switch).to_be_checked()
+    trigger.press("Escape")
+    nav.get_by_role("button", name="新建任务", exact=True).click()
+    child = controls(page, zh=True).and_(page.locator('[data-capability="del.analyze"]'))
+    expect(child.get_by_role("switch")).to_be_checked()
+    nav.get_by_role("button", name="任务结果", exact=True).click()
+    expect(inline).to_be_checked()
+    with page.expect_response(f"{root}/stop") as stopped:
+        inline.click()
+    assert stopped.value.ok and stopped.value.json() == {"enabled": False}
+    expect(inline).not_to_be_checked()
+    trigger.click()
+    expect(menu_switch).not_to_be_checked()
+    trigger.press("Escape")
+    nav.get_by_role("button", name="新建任务", exact=True).click()
+    expect(child.get_by_role("switch")).not_to_be_checked()
+
+
 def verify_result_detail(page, base, job_id):
     page.set_viewport_size({"width": 1450, "height": 950})
     page.goto(f"{base}/#task={job_id}")
@@ -220,7 +282,11 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         100,
     )
     store.cancel(fixture.id)
-    with platform(state_dir, EVIDENCE / "server.log") as base, sync_playwright() as driver:
+    launcher = "server_tests.test_module_backend_switch_browser"
+    with (
+        platform(state_dir, EVIDENCE / "server.log", entrypoint=launcher) as base,
+        sync_playwright() as driver,
+    ):
         chromium = driver.chromium.launch(channel="chrome")
         page = chromium.new_page(viewport={"width": 1450, "height": 950})
         page.add_init_script("localStorage.setItem('opendde-workbench.language', 'zh')")
@@ -238,9 +304,11 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         checked = verify_catalogue(page, base, state)
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
+        inline_modules = verify_inline_module_power(page, base)
         verify_result_detail(page, base, fixture.id)
         assert posts == []
         verify_shared_power(page, base)
+        verify_inline_switch_lifecycle(page, base)
         verify_utilities(page, base)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
@@ -248,9 +316,32 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         assert posts == [
             "/api/runtime-controls/discovery/start",
             "/api/runtime-controls/discovery/stop",
+            "/api/runtime-controls/deli/start",
+            "/api/runtime-controls/deli/stop",
         ]
         (EVIDENCE / "coverage.json").write_text(
-            json.dumps({"task_forms": checked, "modules": modules, "posts": posts}, indent=2),
+            json.dumps({
+                "task_forms": checked,
+                "modules": modules,
+                "inline_modules": inline_modules,
+                "posts": posts,
+            }, indent=2),
             encoding="utf-8",
         )
         chromium.close()
+
+
+if __name__ == "__main__":
+    # Stub only the native installation probe. The real platform owns power,
+    # request authentication, queue admission, and state on every route.
+    from opendde_workbench import backend_router
+    from opendde_workbench.__main__ import main
+    from opendde_workbench.integrations.runtime import readiness
+
+    async def fixture_readiness(settings, identifier):
+        if identifier == "deli":
+            return {"ready": True}
+        return await readiness(settings, identifier)
+
+    backend_router.scientific_readiness = fixture_readiness
+    main()

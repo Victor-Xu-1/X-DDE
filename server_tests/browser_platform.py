@@ -11,7 +11,7 @@ from urllib.request import urlopen
 
 
 @contextmanager
-def platform(state, log_path):
+def platform(state, log_path, *, entrypoint="opendde_workbench"):
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -24,7 +24,7 @@ def platform(state, log_path):
     }
     with log_path.open("w") as log:
         process = subprocess.Popen(
-            [sys.executable, "-m", "opendde_workbench", "--port", str(port)],
+            [sys.executable, "-m", entrypoint, "--port", str(port)],
             env=env,
             stdout=log,
             stderr=log,

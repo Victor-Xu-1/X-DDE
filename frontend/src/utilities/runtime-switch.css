@@ -114,6 +114,11 @@
 .task-backend-control .runtime-switch {
   max-width: 100%;
 }
+.task-history-heading-actions > .task-backend-control {
+  margin-inline: 0 10px;
+  padding-inline-end: 8px;
+  border-inline-end: 1px solid var(--line);
+}
 .backend-state-message {
   margin: 0;
   color: var(--danger);

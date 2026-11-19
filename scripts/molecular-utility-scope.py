@@ -765,7 +765,19 @@ MODULE_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 MODULE_POWER_DIFF = "74a5a31f3fd8474142e1acfb00a2ba16ca63551890a519aa3778721eb784377d"
-MODULE_POWER_CONSUMERS = MODULE_POWER_FILES - {
+INLINE_MODULE_POWER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/utilities/BackendControls.test.tsx",
+    "frontend/src/utilities/TaskBackendControl.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/browser_platform.py",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+INLINE_MODULE_POWER_DIFF = "43c5e70f0b7e8ef2be169ffacb47265fb2a47a39473242daf0fdf64b5d260301"
+MODULE_POWER_CONSUMERS = (MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES) - {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
     "tests/test_molecular_utility_scope.py",
@@ -849,6 +861,9 @@ def main():
     module_power = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        INLINE_MODULE_POWER_FILES, INLINE_MODULE_POWER_DIFF,
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

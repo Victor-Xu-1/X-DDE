@@ -5,6 +5,7 @@ import {
 } from "@ant-design/icons";
 import type { ToolId } from "../operations/catalog";
 import type { Language } from "../types";
+import { TaskBackendControl } from "../utilities/TaskBackendControl";
 import { researchModules } from "./research-modules";
 import type { HistoryModule } from "./task-history-model";
 
@@ -37,6 +38,13 @@ export function TaskHistoryToolbar({
         <header className="task-history-heading">
           <h2>{zh ? "任务结果" : "Task results"}</h2>
           <div className="task-history-heading-actions">
+            {researchModule && (
+              <TaskBackendControl
+                language={language}
+                scope={{ capabilities: researchModule.tools }}
+                placement="module"
+              />
+            )}
             <button
               type="button"
               className="secondary-button"
