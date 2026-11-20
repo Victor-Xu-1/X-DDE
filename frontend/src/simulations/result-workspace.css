@@ -151,3 +151,125 @@
     margin-bottom: 6px;
   }
 }
+
+.simulation-result-workspace [data-compact-tools] {
+  gap: 4px 6px;
+}
+
+.simulation-result-workspace
+  [data-compact-tools]
+  :is([data-workspace-expand], .figure-export-trigger) {
+  display: inline-grid;
+  place-items: center;
+  min-width: 33px;
+  min-height: 33px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.simulation-result-workspace
+  [data-compact-tools]
+  :is([data-workspace-expand], .figure-export-trigger):hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.simulation-result-workspace [data-compact-tools] .viewer-figure-label {
+  display: none;
+}
+
+.simulation-result-workspace [data-compact-tools] .viewer-figure-icon {
+  display: inline-flex;
+  font-size: 15px;
+}
+
+@media (min-width: 1180px) and (max-height: 860px) {
+  .simulation-result-workspace {
+    --simulation-stage-reserve: 322px;
+    --simulation-pair-reserve: 434px;
+  }
+
+  .simulation-result-workspace:has(.trajectory-heading select) {
+    --simulation-stage-reserve: 352px;
+  }
+
+  .simulation-fep-workspace {
+    --simulation-stage-reserve: 368px;
+  }
+
+  .simulation-result-workspace .structure-workbench {
+    column-gap: 16px;
+  }
+
+  .trajectory-strip:not(:has(.trajectory-heading select)) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 14px;
+  }
+
+  .simulation-result-workspace
+    .structure-workbench:not([data-workspace-expanded="true"])
+    .simulation-webgl {
+    height: clamp(330px, calc(100dvh - var(--simulation-stage-reserve)), 535px);
+  }
+
+  .simulation-fep-workspace
+    .structure-workbench:not([data-workspace-expanded="true"])
+    .pose-comparison-panels
+    .simulation-webgl {
+    height: clamp(276px, calc(100dvh - var(--simulation-pair-reserve)), 444px);
+  }
+
+  .simulation-fep-workspace
+    .structure-workbench-view
+    > .research-tabs
+    > .research-tab-list {
+    margin-block: 0 7px;
+    gap: 16px;
+  }
+
+  .simulation-fep-workspace
+    .structure-workbench-view
+    > .research-tabs
+    > .research-tab-list
+    button {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  .simulation-result-workspace .trajectory-controls {
+    margin-block: 2px 3px;
+    padding-block: 2px;
+  }
+
+  .simulation-result-workspace .simulation-view-controls[data-compact-tools] {
+    min-height: 34px;
+    margin-bottom: 4px;
+  }
+
+  .simulation-result-workspace
+    .simulation-view-controls[data-compact-tools]
+    > .text-button:not(.figure-export-trigger) {
+    padding-inline: 4px;
+  }
+
+  .simulation-result-workspace .simulation-view-controls select {
+    min-height: 32px;
+    padding: 3px 6px;
+  }
+
+  .simulation-result-workspace .trajectory-download-label {
+    display: none;
+  }
+}
+
+@media (min-width: 1360px) and (max-height: 860px) {
+  .simulation-fep-workspace {
+    --simulation-stage-reserve: 322px;
+    --simulation-pair-reserve: 396px;
+  }
+}

@@ -41,7 +41,7 @@ export function TrajectoryControls({
       ? "播放轨迹"
       : "Play trajectory";
   return (
-    <>
+    <div className="trajectory-strip">
       <header className="trajectory-heading">
         <h2>{zh ? "三维轨迹" : "3D trajectory"}</h2>
         {replicas.length > 1 && (
@@ -91,12 +91,15 @@ export function TrajectoryControls({
           className="secondary-button"
           href={artifactUrl(jobId, snapshot.artifact)}
           download
+          aria-label={zh ? "下载当前结构" : "Download frame"}
+          title={zh ? "下载当前结构" : "Download frame"}
         >
           <DownloadOutlined aria-hidden="true" />
-          {zh ? "下载当前结构" : "Download frame"}{" "}
-          <span className="sr-only">↓</span>
+          <span className="trajectory-download-label">
+            {zh ? "下载当前结构" : "Download frame"}
+          </span>
         </a>
       </div>
-    </>
+    </div>
   );
 }

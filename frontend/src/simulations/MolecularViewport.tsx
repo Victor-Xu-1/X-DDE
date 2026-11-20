@@ -32,6 +32,7 @@ export function MolecularViewport({
   onViewHandle,
   onRememberView,
   workspaceControls = "expand",
+  compactTools = false,
 }: {
   sources?: StructureSource[];
   frames?: string[];
@@ -47,6 +48,7 @@ export function MolecularViewport({
   onViewHandle?(handle: MolecularViewHandle | null): void;
   onRememberView?(state: SavedMolecularView): void;
   workspaceControls?: "expand" | "focus" | "hidden";
+  compactTools?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null),
     canvas = useRef<HTMLCanvasElement>(null);
@@ -111,16 +113,18 @@ export function MolecularViewport({
   }
   useEffect(() => {
     const signal = new AbortController();
+    const host = container.current!;
+    const drawing = canvas.current!;
     let instance: MolecularController | undefined;
     setLoaded(false);
     setFailure("");
-    void visibleViewport(container.current!, signal.signal)
+    void visibleViewport(host, signal.signal)
       .then(() => import("./molstar-controller"))
       .then(async ({ MolecularController }) => {
         if (signal.signal.aborted) return;
         instance = new MolecularController();
         controller.current = instance;
-        await instance.initialize(canvas.current!, container.current!, setAtom);
+        await instance.initialize(drawing, host, setAtom);
         signal.signal.throwIfAborted();
         const input = JSON.parse(sourceKey) as {
           sources: StructureSource[];
@@ -177,7 +181,10 @@ export function MolecularViewport({
       data-frame={presentation.presentedFrame}
       data-ligand={view.ligand}
     >
-      <div className="simulation-view-controls">
+      <div
+        className="simulation-view-controls"
+        data-compact-tools={compactTools || undefined}
+      >
         <button
           type="button"
           className="text-button"
@@ -192,8 +199,16 @@ export function MolecularViewport({
             className="text-button"
             disabled={!presentation.ready}
             onClick={() => controller.current?.focusLigand()}
+            aria-label={zh ? "配体与口袋" : "Ligand and pocket"}
+            title={zh ? "配体与口袋" : "Ligand and pocket"}
           >
-            {zh ? "配体与口袋" : "Ligand and pocket"}
+            {compactTools
+              ? zh
+                ? "口袋"
+                : "Pocket"
+              : zh
+                ? "配体与口袋"
+                : "Ligand and pocket"}
           </button>
         )}
         <button
@@ -224,11 +239,14 @@ export function MolecularViewport({
                   ? zh
                     ? "选择 A 或 B 查看对应作用位点"
                     : "Select A or B to inspect its binding contacts"
-                  : undefined
+                  : zh
+                    ? "作用位点"
+                    : "Binding contacts"
               }
+              aria-label={zh ? "作用位点" : "Binding contacts"}
               onClick={() => toggle("contacts")}
             >
-              {zh ? "作用位点" : "Binding contacts"}
+              {zh ? "作用位点" : compactTools ? "Contacts" : "Binding contacts"}
             </button>
           )}
         {!fixedLigand &&
@@ -256,6 +274,7 @@ export function MolecularViewport({
           format="png"
           molecular
           structureFraming
+          compactTrigger={compactTools}
           disabled={!presentation.ready}
           label={zh ? "下载视图" : "Download view"}
           onStart={onExport}
@@ -273,10 +292,12 @@ export function MolecularViewport({
           <WorkspaceFullscreenControl
             language={language}
             structureFocus={workspaceControls === "focus"}
+            compact={compactTools}
           />
         )}
       </div>
       <div
+        key={sourceKey}
         ref={container}
         className="simulation-webgl"
         role="application"

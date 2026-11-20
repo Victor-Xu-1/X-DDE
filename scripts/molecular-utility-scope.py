@@ -1317,6 +1317,25 @@ SIMULATION_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SIMULATION_DESKTOP_DIFF = "46cab4e0f2275f0565306b469a7691bc4834f9159298cb93aac58c88bf5a6533"
+SIMULATION_SHORT_REVIEW_FILES = {
+    ".github/workflows/simulation-checks.yml",
+    ".github/workflows/simulation-view-checks.yml",
+    ".github/workflows/windows-capacity-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/simulations/BoundPoseComparison.tsx",
+    "frontend/src/simulations/DynamicsResults.tsx",
+    "frontend/src/simulations/FreeEnergyResults.tsx",
+    "frontend/src/simulations/MolecularViewport.tsx",
+    "frontend/src/simulations/TrajectoryControls.tsx",
+    "frontend/src/simulations/molecular-first-draw.test.ts",
+    "frontend/src/simulations/molecular-first-draw.ts",
+    "frontend/src/simulations/molstar-controller.ts",
+    "frontend/src/simulations/result-workspace.css",
+    "server_tests/test_native_molstar_framing.py",
+    "server_tests/test_short_simulation_review.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SIMULATION_SHORT_REVIEW_DIFF = "eac50d447ca7c6da6f0fb7a5e698be215c86d2cc7c94754bcff4cfe7bef9b11e"
 SIMULATION_FOCUS_FILES = {
     ".github/workflows/simulation-view-checks.yml",
     "docs/frontend-layout.md",
@@ -1800,6 +1819,11 @@ def main():
     simulation_desktop = simulation_focus or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
+    )
+    simulation_desktop = simulation_desktop or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SIMULATION_SHORT_REVIEW_FILES, SIMULATION_SHORT_REVIEW_DIFF,
+        scope_pin="SIMULATION_SHORT_REVIEW_DIFF",
     )
     proximity_desktop = desktop_complex_review or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

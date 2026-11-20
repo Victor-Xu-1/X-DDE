@@ -86,6 +86,7 @@ export function FreeEnergyResults({
                         <BoundPoseComparison
                           key={edge.id}
                           initialMode="overlay"
+                          compactTools
                           labels={[a.id, b.id]}
                           sources={[
                             {
@@ -109,6 +110,7 @@ export function FreeEnergyResults({
               {
                 id: "molecules",
                 label: zh ? "变化网络与分子" : "Network and molecules",
+                shortLabel: zh ? "网络与分子" : "Network",
                 content: (
                   <div className="simulation-main-grid">
                     <FreeEnergyNetwork
@@ -129,6 +131,7 @@ export function FreeEnergyResults({
               {
                 id: "diagnostics",
                 label: zh ? "采样与收敛" : "Sampling and convergence",
+                shortLabel: zh ? "采样" : "Sampling",
                 content: (
                   <FreeEnergyDiagnostics
                     key={edge.id}
@@ -178,6 +181,7 @@ export function FreeEnergyResults({
             onSelect={(row) => setSelected(row.id)}
             rowId={(row) => row.id}
             exportName="free-energy-edges.csv"
+            compactToolbar
             initialVisibleColumns={
               result.stage === "calculate"
                 ? ["change", "delta", "error", "quality"]
