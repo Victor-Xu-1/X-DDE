@@ -184,6 +184,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "recognition_entry_only=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "desktop_header_only=false\n"
+        "desktop_complex_review_only=false\n"
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"
         "recognition_access_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"

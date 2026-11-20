@@ -1346,7 +1346,7 @@ DESKTOP_COMPLEX_REVIEW_FILES = {
     "server_tests/test_receptor_workspace_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_COMPLEX_REVIEW_DIFF = "aa480b9a80bd67d43b18e7c474c8986c235f5790843e54eabc8698c6ef566a37"
+DESKTOP_COMPLEX_REVIEW_DIFF = "d1c23268559e84c23d7fae887c2979eead1610e3cc7976f947a790fe7bce71c8"
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
