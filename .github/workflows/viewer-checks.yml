@@ -206,7 +206,8 @@ jobs:
     needs: [reference-scope, prediction-scope]
     if: >-
       needs.prediction-scope.outputs.mobile_header_only != 'true' &&
-      needs.prediction-scope.outputs.desktop_header_only != 'true' &&
+      (needs.prediction-scope.outputs.desktop_header_only != 'true' ||
+      needs.prediction-scope.outputs.desktop_complex_review_only == 'true') &&
       (needs.reference-scope.outputs.receptor_alignment == 'true' ||
       needs.reference-scope.outputs.structure_preparation == 'true')
     runs-on: ubuntu-24.04
@@ -216,6 +217,7 @@ jobs:
       WB_BROWSER_URL: http://127.0.0.1:4330
       CHECK_ALIGNMENT: ${{ needs.reference-scope.outputs.receptor_alignment }}
       CHECK_PREPARATION: ${{ needs.reference-scope.outputs.structure_preparation }}
+      DESKTOP_COMPLEX_REVIEW: ${{ needs.prediction-scope.outputs.desktop_complex_review_only }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -259,7 +261,9 @@ jobs:
           if [[ "$CHECK_ALIGNMENT" == true ]]; then tests+=(server_tests/test_receptor_workspace_browser.py); fi
           if [[ "$CHECK_PREPARATION" == true ]]; then tests+=(server_tests/test_prepared_structure_workspace_browser.py); fi
           [[ ${#tests[@]} -gt 0 ]]
-          .venv/bin/python -m pytest -q "${tests[@]}"
+          args=()
+          if [[ "$DESKTOP_COMPLEX_REVIEW" == true ]]; then args+=(-k '1180 or 1440'); fi
+          .venv/bin/python -m pytest -q "${tests[@]}" "${args[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

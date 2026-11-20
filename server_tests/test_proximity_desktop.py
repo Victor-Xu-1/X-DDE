@@ -66,6 +66,23 @@ def double_column(dialog):
     dialog.get_by_role("combobox", name="Figure width").select_option("183")
 
 
+def verify_viewer_disclosures(page, preview):
+    disclosures = ((".viewer-mode-options", "input"), (".viewer-heading-actions", "select"))
+    for region, control in disclosures:
+        tool = preview.locator(region).locator(".viewer-tool-group")
+        trigger = tool.locator(".viewer-tool-trigger")
+        settings = tool.locator(".viewer-tool-content")
+        field = settings.locator(control).first
+        trigger.press("Enter")
+        expect(trigger).to_have_attribute("aria-expanded", "true")
+        expect(field).to_be_in_viewport()
+        page.keyboard.press("Tab")
+        expect(field).to_be_focused()
+        field.press("Escape")
+        expect(settings).to_be_hidden()
+        expect(trigger).to_be_focused()
+
+
 def inspect_molecular_vector(path):
     root = ET.fromstring(path.read_bytes())
     assert root.tag == "{http://www.w3.org/2000/svg}svg"
@@ -205,6 +222,8 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
             "node => node.scrollWidth <= node.clientWidth + 1"
         )
         expect(preview.locator(".proximity-check-fail")).to_be_visible()
+        if width == 1280:
+            verify_viewer_disclosures(page, preview)
         page.screenshot(path=evidence / "workspace.png")
         check_downloads(page, preview, rows[0], result, zh)
         if not zh and width == 1280:

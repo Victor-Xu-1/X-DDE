@@ -15,6 +15,7 @@ EVIDENCE = Path("server_tests/evidence/ensemble")
 
 
 @pytest.mark.parametrize(("width", "height", "language", "visible"), [
+    (1180, 720, "en", 0.99),
     (1440, 900, "en", 0.70), (1110, 580, "en", 0.25),
     (390, 775, "zh", 0.25), (320, 568, "en", 0.03),
 ])

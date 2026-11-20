@@ -1328,7 +1328,10 @@ PROXIMITY_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DESKTOP_COMPLEX_REVIEW_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
     ".github/workflows/proximity-checks.yml",
+    ".github/workflows/viewer-checks.yml",
     "frontend/src/presentation/spatial-result-review.css",
     "frontend/src/presentation/workspace-expansion.ts",
     "frontend/src/proximity/Results.tsx",
@@ -1340,9 +1343,10 @@ DESKTOP_COMPLEX_REVIEW_FILES = {
     "frontend/src/viewer/viewer-tool-group.css",
     "server_tests/test_navigation_shell_browser.py",
     "server_tests/test_proximity_desktop.py",
+    "server_tests/test_receptor_workspace_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_COMPLEX_REVIEW_DIFF = "7ab1ed04764708d149e138c6f9d9dff6036597a66ce4fe1a8b5c354e83978f79"
+DESKTOP_COMPLEX_REVIEW_DIFF = "aa480b9a80bd67d43b18e7c474c8986c235f5790843e54eabc8698c6ef566a37"
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
@@ -1869,6 +1873,7 @@ def main():
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not history_desktop
+            and not desktop_complex_review
             and not result_handoff_desktop
             and not recognition_entry
             and not inline_recognition
@@ -1880,6 +1885,7 @@ def main():
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
         output.write("desktop_header_only=" + str(desktop_header).lower() + "\n")
+        output.write("desktop_complex_review_only=" + str(desktop_complex_review).lower() + "\n")
         output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
         output.write("print_labels_only=" + str(print_labels).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")

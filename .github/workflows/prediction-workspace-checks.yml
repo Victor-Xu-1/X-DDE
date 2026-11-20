@@ -186,6 +186,8 @@ on:
         value: ${{ jobs.utility-scope.outputs.mobile_header_only }}
       desktop_header_only:
         value: ${{ jobs.utility-scope.outputs.desktop_header_only }}
+      desktop_complex_review_only:
+        value: ${{ jobs.utility-scope.outputs.desktop_complex_review_only }}
       task_power_only:
         value: ${{ jobs.utility-scope.outputs.task_power_only }}
       confidence_frame:
