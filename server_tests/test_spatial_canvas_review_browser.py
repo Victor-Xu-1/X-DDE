@@ -47,12 +47,14 @@ def inspect_layout(result, height, minimum):
 
 
 def verify_download(page, link):
-    response = page.request.get(link.get_attribute("href"))
+    response = page.request.get(link.evaluate("anchor => anchor.href"))
     assert response.ok
     expect(link).to_be_in_viewport()
     with page.expect_download() as pending:
         link.click()
-    assert Path(pending.value.path()).read_bytes() == response.body()
+    artifact = pending.value
+    assert Path(artifact.path()).read_bytes() == response.body()
+    return artifact.suggested_filename
 
 
 def next_candidate(result, zh):
@@ -74,9 +76,10 @@ def review_docking(page, result, zh):
     tabs.get_by_role("tab", name="三维结构" if zh else "3D structure").click()
     assert frame.evaluate("el => el.isConnected")
     ready(result, zh)
-    verify_download(page, result.get_by_role(
+    artifact = verify_download(page, result.get_by_role(
         "link", name="下载所选姿势 SDF" if zh else "Download selected pose SDF",
     ))
+    assert artifact == "pose-002.sdf"
 
 
 def review_pocket(result, zh):
@@ -85,7 +88,7 @@ def review_pocket(result, zh):
     expect(chosen).to_have_attribute("aria-pressed", "true")
     expect(result.locator(".pocket-selection h3")).to_have_text("口袋 2" if zh else "Pocket 2")
     expect(result.locator(".pocket-scene .viewer-panel")).to_contain_text(
-        "已定位区域残基：" if zh else "Region residues located:",
+        "10 / 10",
     )
     summary = result.locator(".viewer-chain-menu summary")
     summary.click()
