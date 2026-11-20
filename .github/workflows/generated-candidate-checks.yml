@@ -60,7 +60,8 @@ jobs:
       needs.result-scope.outputs.aligned_comparison_only != 'true' &&
       needs.result-scope.outputs.paired_figure_only != 'true' &&
       needs.result-scope.outputs.native_color_figure_only != 'true' &&
-      needs.result-scope.outputs.candidate_desktop_only != 'true'
+      needs.result-scope.outputs.candidate_desktop_only != 'true' &&
+      needs.result-scope.outputs.del_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

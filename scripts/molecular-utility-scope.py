@@ -1298,6 +1298,25 @@ CANDIDATE_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 CANDIDATE_DESKTOP_DIFF = "1a4b948f38b1177d491c1715192a1f1d81f811a0b7923703700871ec48d37c0b"
+DEL_DESKTOP_FILES = {
+    ".github/workflows/dataset-discovery-checks.yml",
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/library-member-checks.yml",
+    ".github/workflows/molecular-preview-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/windows-capacity-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/datasets/CandidateTable.tsx",
+    "frontend/src/datasets/CandidateView.tsx",
+    "frontend/src/datasets/DatasetResults.test.tsx",
+    "frontend/src/datasets/DatasetResults.tsx",
+    "frontend/src/datasets/ResearchTable.tsx",
+    "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "server_tests/test_del_desktop_review.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DEL_DESKTOP_DIFF = "b86d8f29cf59a255ab692dddb78e5171aa59e64c519dc6467b1b648fa271bcd3"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",
@@ -1816,6 +1835,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
     )
+    del_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DEL_DESKTOP_FILES, DEL_DESKTOP_DIFF, scope_pin="DEL_DESKTOP_DIFF",
+    )
     simulation_desktop = simulation_focus or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
@@ -1908,6 +1931,7 @@ def main():
         output.write("proximity_desktop_only=" + str(proximity_desktop).lower() + "\n")
         output.write("simulation_desktop_only=" + str(simulation_desktop).lower() + "\n")
         output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
+        output.write("del_desktop_only=" + str(del_desktop).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -1971,7 +1995,7 @@ def main():
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
             or short_structure_review
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
-            or utility_result_desktop or runtime_entry or result_handoff_desktop
+            or del_desktop or utility_result_desktop or runtime_entry or result_handoff_desktop
             or desktop_structure_focus
             or aligned_comparison
             or inline_recognition

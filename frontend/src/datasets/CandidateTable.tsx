@@ -138,6 +138,7 @@ export function CandidateTable({
       </div>
       <ResearchTable
         rows={result.candidates}
+        compactToolbar={result.operation?.startsWith("del_")}
         columns={columns}
         rowId={(row) => row.id}
         title={zh ? "候选分子" : "Candidates"}

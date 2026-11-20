@@ -21,7 +21,8 @@ jobs:
     needs: utility-scope
     if: >-
       needs.utility-scope.outputs.sequence_desktop_only != 'true' &&
-      needs.utility-scope.outputs.simulation_desktop_only != 'true'
+      needs.utility-scope.outputs.simulation_desktop_only != 'true' &&
+      needs.utility-scope.outputs.del_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -40,7 +41,8 @@ jobs:
     needs: utility-scope
     if: >-
       needs.utility-scope.outputs.sequence_desktop_only != 'true' &&
-      needs.utility-scope.outputs.simulation_desktop_only != 'true'
+      needs.utility-scope.outputs.simulation_desktop_only != 'true' &&
+      needs.utility-scope.outputs.del_desktop_only != 'true'
     runs-on: windows-latest
     timeout-minutes: 15
     steps:

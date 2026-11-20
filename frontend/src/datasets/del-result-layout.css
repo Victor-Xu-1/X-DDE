@@ -1,0 +1,178 @@
+@media (min-width: 1180px) {
+  .candidate-inspection-preview[data-del-review] .research-tab-toolbar {
+    column-gap: 10px;
+    padding-inline: 8px;
+  }
+
+  .candidate-inspection-preview[data-del-review] .candidate-preview-heading {
+    flex: 1 1 310px;
+    gap: 3px 8px;
+    padding-block: 2px;
+  }
+
+  .candidate-inspection-preview[data-del-review] .candidate-preview-actions {
+    gap: 5px;
+  }
+
+  .dataset-results[data-del-results]
+    .structure-workbench:not([data-workspace-expanded="true"]):has(
+      [data-del-review]
+    ) {
+    column-gap: 16px;
+  }
+
+  .dataset-results[data-del-results]
+    .structure-workbench:has([data-del-review])
+    > .structure-workbench-details {
+    gap: 8px;
+  }
+
+  .dataset-results[data-del-results]
+    .dataset-candidate-table
+    .dataset-panel-title {
+    min-height: 0;
+    padding: 4px 0 6px;
+  }
+
+  .dataset-results[data-del-results]
+    .dataset-candidate-table
+    .research-table
+    td {
+    padding-block: 6px;
+  }
+
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
+    .dataset-table-toolbar {
+    justify-content: flex-start;
+    gap: 8px 14px;
+    padding-block: 6px 10px;
+  }
+
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
+    .dataset-table-toolbar
+    input[type="search"] {
+    flex: 1 1 180px;
+    width: auto;
+    min-width: 140px;
+    max-width: 340px;
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
+    .dataset-comparison-control
+    select {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  [data-del-results] .dataset-table-scroll.dataset-enrichment-table th,
+  [data-del-results] .dataset-table-scroll.dataset-enrichment-table td {
+    padding: 7px 10px;
+  }
+
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .dataset-column-member {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background: var(--surface);
+  }
+
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    th.dataset-column-member {
+    z-index: 2;
+    background: var(--surface-muted);
+  }
+
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .molecule-image.is-thumbnail {
+    width: 138px;
+    max-width: 138px;
+    height: 70px;
+    min-height: 0;
+  }
+
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .molecule-image
+    img {
+    max-height: 62px;
+  }
+}
+
+@media (min-width: 1180px) and (max-height: 860px) {
+  .candidate-inspection-preview[data-del-review] {
+    --compact-viewer-tools: enabled;
+  }
+
+  .structure-workbench:not([data-workspace-expanded="true"])
+    [data-del-review]
+    .viewer-panel:not(:popover-open):has(> .viewer-mode-options) {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: center;
+    padding-block-start: 8px;
+  }
+
+  .structure-workbench:not([data-workspace-expanded="true"])
+    [data-del-review]
+    .viewer-panel:not(:popover-open)
+    > :not(.studio-heading, .viewer-mode-options) {
+    grid-column: 1 / -1;
+  }
+
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    > .viewer-mode-options {
+    margin: 0 0 4px;
+  }
+
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    .viewer-title-full {
+    display: none;
+  }
+
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    .viewer-title-short {
+    display: inline;
+  }
+
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    > .studio-heading {
+    min-height: 34px;
+    margin-block: 0 4px;
+  }
+
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    :is(.viewer-heading-actions, .viewer-mode-options)
+    > button,
+  .candidate-inspection-preview[data-del-review]
+    .viewer-panel:not(:popover-open)
+    .viewer-mode-options
+    .viewer-chain-menu
+    > summary {
+    min-height: 34px;
+  }
+
+  .studio-app
+    .dataset-results
+    :where(.structure-workbench:not([data-workspace-expanded="true"]))
+    .dataset-preview-pane[data-del-review]
+    .viewer-panel:not(:popover-open)
+    .molecular-stage {
+    height: clamp(300px, calc(100dvh - 370px), 520px);
+    border-radius: 8px;
+  }
+}

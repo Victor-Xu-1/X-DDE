@@ -531,6 +531,13 @@ Dataset form content aligns with the question title at wide widths instead of
 centering a separate narrow block. Researcher diagnostic captures also wait for
 native molecular drawings to finish before their screenshots are accepted.
 
+DEL enrichment opens the hit table with its paired comparison and search
+controls. Candidate structures and quality charts are separate tabs. Returning
+to the hits retains the selected comparison, query, and prioritization filter.
+Candidate review keeps the retained conformer and its native export on the left,
+with members and sample evidence on the right. The short desktop regression uses
+the original archived DEL006 results in Chrome.
+
 DEL model validation uses one full-width composition: observed/predicted points
 beside the native holdout metrics, stacked on compact screens. The displayed
 baseline comparison uses only finite native RMSE values; application predictions
