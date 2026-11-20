@@ -78,11 +78,14 @@ def inspect_comparison(page, base, height, zh, evidence):
     label.click()
     checkbox = menus.first.get_by_role("checkbox").first
     expect(checkbox).to_be_in_viewport()
-    checkbox.uncheck()
+    # The parent updates the checked state on the molecular frame's reply.
+    checkbox.click()
     expect(label).to_contain_text("1 / 2")
+    expect(checkbox).not_to_be_checked()
     expect(other).to_contain_text("2 / 2")
-    checkbox.check()
+    checkbox.click()
     expect(label).to_contain_text("2 / 2")
+    expect(checkbox).to_be_checked()
     label.click()
     if not zh:
         source = page.request.get(f"{base}/api/jobs/{job}/result").json()["artifact_sha256"]
