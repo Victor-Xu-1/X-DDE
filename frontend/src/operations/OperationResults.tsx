@@ -273,16 +273,19 @@ export function OperationResults({
             <p>{data.notes}</p>
           </details>
         )}
-      {data.molecules && (
-        <p role={data.molecules.some((m) => m.available) ? "status" : "alert"}>
-          {zh ? "成功计算" : "Calculated"}{" "}
-          {data.molecules.filter((m) => m.available).length} /{" "}
-          {data.molecules.length}{" "}
-          {zh
-            ? "个分子；不可解析的记录保留错误原因。"
-            : "molecules; invalid records retain their error details."}
-        </p>
-      )}
+      {data.molecules &&
+        (data.molecules.length !== 1 || !data.molecules[0]?.available) && (
+          <p
+            role={data.molecules.some((m) => m.available) ? "status" : "alert"}
+          >
+            {zh ? "成功计算" : "Calculated"}{" "}
+            {data.molecules.filter((m) => m.available).length} /{" "}
+            {data.molecules.length}{" "}
+            {zh
+              ? "个分子；不可解析的记录保留错误原因。"
+              : "molecules; invalid records retain their error details."}
+          </p>
+        )}
       {data.molecules && (
         <PropertyResults
           job={job}

@@ -281,6 +281,10 @@ A single ligand fits the 3D canvas when opened. Drag to rotate and use the wheel
 
 独立配体打开后会自动适应三维画布。拖动可旋转，滚轮可缩放。点击「重置视角」可按当前角度重新取景。缩窄工作区或选择窄幅图件时，画面会为配体留出边距。导出完成后仍保留原来的操作视图。
 
+Properties and ADMET results show the selected molecule, its 2D and 3D views, and molecule actions in one toolbar. The measurements stay beside the structure. In ADMET, **Download** opens the prediction CSV and the selected original SDF.
+
+分子性质和 ADMET 结果把所选分子的名称、二维和三维视图以及分子操作放在同一工具栏。指标显示在结构旁边。ADMET 的「下载」菜单可下载预测 CSV 和当前分子的原始 SDF。
+
 If a switch shows **Off · Setup required**, **Set up** opens Installation and runtime in a separate tab so you can keep the current form open.
 
 开关旁显示「已关闭 · 待配置」时，点击「配置」会在新标签页打开「安装与运行」，当前填写页仍可保留。

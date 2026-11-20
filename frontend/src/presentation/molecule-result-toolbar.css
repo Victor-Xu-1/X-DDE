@@ -1,0 +1,42 @@
+.molecule-result-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  min-width: 0;
+  padding-block: 4px;
+}
+.research-tab-toolbar > .molecule-result-toolbar {
+  flex: 1 1 240px;
+}
+.molecule-result-identity {
+  flex: 1 1 95px;
+  min-width: 0;
+}
+.molecule-result-identity h3 {
+  margin: 0;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.molecule-result-identity p {
+  margin: 1px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.molecule-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 100%;
+}
+@media (min-width: 1001px) and (pointer: fine) {
+  .molecule-result-actions .secondary-button {
+    min-height: 32px;
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+}

@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import type { Language } from "../types";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { MoleculeImage } from "./MoleculeImage";
-import { ResearchTabs } from "./ResearchTabs";
+import { ResearchTabs, type ResearchTab } from "./ResearchTabs";
 import type { DepictionSource } from "./depiction-renderer";
 import { PoseSession, usePoseSession } from "../viewer/PoseSession";
 export function MolecularPreview({
@@ -17,6 +18,7 @@ export function MolecularPreview({
   nativeArtifactSha256,
   nativeArtifactRecord,
   savedAssetSha256,
+  toolbar,
 }: {
   language: Language;
   label: string;
@@ -31,6 +33,7 @@ export function MolecularPreview({
   /** Whole-file digest for a selected version in the research file workspace. */
   savedAssetSha256?: string;
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
+  toolbar?: ReactNode;
 }) {
   const zh = language === "zh";
   const frame = {
@@ -53,6 +56,7 @@ export function MolecularPreview({
   const drawing = {
     id: "2d",
     label: zh ? "二维结构" : "2D structure",
+    shortLabel: toolbar ? "2D" : undefined,
     content: (
       <MoleculeImage source={source} label={label} language={language} />
     ),
@@ -60,6 +64,7 @@ export function MolecularPreview({
   const structure = {
     id: "3d",
     label: zh ? "三维结构" : "3D structure",
+    shortLabel: toolbar ? "3D" : undefined,
     content: (
       <MolecularStructureView
         viewer={{ ...frame, language, focusModel }}
@@ -67,7 +72,7 @@ export function MolecularPreview({
       />
     ),
   };
-  const tabs = urls?.length
+  const tabs: ResearchTab[] = urls?.length
     ? defaultView === "3d"
       ? [structure, drawing]
       : [drawing, structure]
@@ -95,6 +100,7 @@ export function MolecularPreview({
           key={label + JSON.stringify(source)}
           label={zh ? "结构视图" : "Structure views"}
           tabs={tabs}
+          toolbar={toolbar}
         />
       </section>
     </PoseSession>

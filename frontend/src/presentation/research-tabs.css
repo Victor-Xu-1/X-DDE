@@ -31,6 +31,21 @@
 .research-tab-list button[aria-selected="true"] {
   color: var(--accent);
 }
+.research-tab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  min-width: 0;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.research-tab-toolbar > .research-tab-list {
+  margin: 0;
+  border-bottom: 0;
+  gap: 12px;
+}
 .research-tab-list button span {
   padding: 1px 6px;
   font-size: 11px;

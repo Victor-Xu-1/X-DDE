@@ -5,6 +5,7 @@ import { defaults } from "../form-model";
 import type { ResearchColumn } from "../presentation/ResearchTable";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { MolecularPreview } from "../presentation/MolecularPreview";
+import { MoleculeResultToolbar } from "../presentation/MoleculeResultToolbar";
 import { MetricHelp, type metrics } from "../guided/MetricHelp";
 import { propertySource } from "./property-source";
 import { PropertyResultViews } from "./PropertyResultViews";
@@ -83,41 +84,37 @@ export function PropertyResults({
       value: (row: Row) => (row.available ? row[m.key] : null),
     })),
   ];
+  const toolbar = current && (
+    <MoleculeResultToolbar name={moleculeName(current)}>
+      {current.available && current.smiles && onDraft && (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() =>
+            onDraft({
+              name: (job.request.name + " · " + (current.index + 1)).slice(
+                0,
+                80,
+              ),
+              components: [
+                { kind: "ligand", value: current.smiles!, count: 1 },
+              ],
+              parameters: { ...defaults, model: "standard" },
+              project_id: job.request.project_id,
+            })
+          }
+        >
+          {zh ? "用此分子预测结构" : "Predict this molecule"}
+        </button>
+      )}
+    </MoleculeResultToolbar>
+  );
   return (
     <section className="properties-results">
       <StructureWorkbench
         preview={
           current && (
             <div className="result-inspector">
-              <header>
-                <h3>{moleculeName(current)}</h3>
-                {current.available && current.smiles && onDraft && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      onDraft({
-                        name: (
-                          job.request.name +
-                          " · " +
-                          (current.index + 1)
-                        ).slice(0, 80),
-                        components: [
-                          {
-                            kind: "ligand",
-                            value: current.smiles!,
-                            count: 1,
-                          },
-                        ],
-                        parameters: { ...defaults, model: "standard" },
-                        project_id: job.request.project_id,
-                      })
-                    }
-                  >
-                    {zh ? "用此分子预测结构" : "Predict this molecule"}
-                  </button>
-                )}
-              </header>
               {current.available && current.smiles ? (
                 <MolecularPreview
                   language={language}
@@ -125,9 +122,13 @@ export function PropertyResults({
                   source={source ?? { smiles: current.smiles }}
                   urls={source ? [source.url] : undefined}
                   records={source ? [source.record] : undefined}
+                  toolbar={toolbar}
                 />
               ) : (
-                <p role="status">{current.reason}</p>
+                <>
+                  {toolbar}
+                  <p role="status">{current.reason}</p>
+                </>
               )}
             </div>
           )

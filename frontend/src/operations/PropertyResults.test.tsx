@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Job, LigandProperties } from "../types";
 import { PropertyResults } from "./PropertyResults";
@@ -13,12 +14,15 @@ vi.mock("../presentation/MolecularPreview", () => ({
     source,
     urls,
     records,
+    toolbar,
   }: {
     source: { smiles?: string; url?: string; record?: number };
     urls?: string[];
     records?: number[];
+    toolbar?: ReactNode;
   }) => (
     <>
+      {toolbar}
       <output aria-label="Original molecular identity">{source.smiles}</output>
       <output aria-label="Exact preview file">
         {JSON.stringify({ source, urls, records })}
