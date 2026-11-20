@@ -135,7 +135,9 @@ export function CandidateView({
             href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
           >
             <DownloadOutlined aria-hidden="true" />
-            {inlineToolbar ? (zh ? "结构" : "Structure") : structureDownload}
+            <span className="candidate-structure-label">
+              {inlineToolbar ? (zh ? "结构" : "Structure") : structureDownload}
+            </span>
           </a>
         )}
         <Hint label={zh ? "预览说明" : "Preview help"}>
@@ -205,7 +207,7 @@ export function CandidateView({
         result={result}
         language={language}
         selected={candidate?.id}
-        compactReview={screeningReview}
+        compactReview={inlineToolbar}
         onSelect={(row) => setSelected(result.candidates.indexOf(row))}
       />
     </StructureWorkbench>

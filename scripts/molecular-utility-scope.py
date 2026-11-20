@@ -1376,6 +1376,16 @@ DEL_RESULT_WORKSPACES_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DEL_RESULT_WORKSPACES_DIFF = "092505d6d4d62f9734076e3ea7a514d971e93e43173f7b93cb1d40a915e4a3a8"
+DEL_MEDIUM_DESKTOP_FILES = {
+    "frontend/src/datasets/CandidateView.tsx",
+    "frontend/src/datasets/DatasetResults.tsx",
+    "frontend/src/datasets/IndexedLibraryResults.tsx",
+    "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/datasets/result-viewport.css",
+    "frontend/src/datasets/screening-result-layout.css",
+    "server_tests/test_del_desktop_review.py",
+}
+DEL_MEDIUM_DESKTOP_DIFF = "4c335b105bd0f6720ef6cab525e6135089e24586bd9d16970274f09db9588e8f"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",
@@ -1933,6 +1943,9 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DEL_RESULT_WORKSPACES_FILES, DEL_RESULT_WORKSPACES_DIFF,
         scope_pin="DEL_RESULT_WORKSPACES_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DEL_MEDIUM_DESKTOP_FILES, DEL_MEDIUM_DESKTOP_DIFF, scope_pin="DEL_MEDIUM_DESKTOP_DIFF",
     )
     simulation_desktop = simulation_focus or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

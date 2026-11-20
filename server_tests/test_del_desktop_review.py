@@ -1,6 +1,7 @@
 """Exercise the retained DEL results on short desktops."""
 
 import json
+from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -10,7 +11,7 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.publication_browser_helpers import export_figure, inspect_png
-from server_tests.test_candidate_inspection_desktop import dataset_candidate
+from server_tests.test_candidate_inspection_desktop import dataset_candidate, load_case
 
 
 def open_example(page, base, settings, capability, zh):
@@ -131,6 +132,10 @@ def check_library(page, base, settings, zh, evidence):
     page.screenshot(path=evidence / "library-definition.png")
 
     panel, _, _ = open_example(page, base, settings, "del.enumerate", zh)
+    check_library_members(page, panel, zh, evidence)
+
+
+def check_library_members(page, panel, zh, evidence):
     inspection = panel.locator(".dataset-member-inspector")
     member = panel.locator(".dataset-library-table tbody tr").nth(1).locator(".dataset-row-title")
     expect(member).to_be_visible(timeout=30_000)
@@ -185,13 +190,8 @@ def check_evidence_tables(page, base, settings, zh, evidence):
             )
 
 
-@pytest.mark.parametrize(("language", "theme", "width", "height"), [
-    ("en", "warm", 1180, 720),
-    ("zh", "dark", 1440, 800),
-])
-def test_del_desktop_review(language, theme, width, height):
-    settings = Settings.from_env()
-    evidence = Path("outputs/del-desktop-review") / f"{language}-{width}"
+@contextmanager
+def del_browser(settings, evidence, language, theme, width, height):
     evidence.mkdir(parents=True, exist_ok=True)
     with platform(settings.state_dir, evidence / "app.log") as base, sync_playwright() as driver:
         browser = driver.chromium.launch(channel="chrome")
@@ -220,12 +220,96 @@ def test_del_desktop_review(language, theme, width, height):
         page.route("**/api/**", readonly)
         runtime = f"{base}/api/runtime-controls?include_native=false"
         before = page.request.get(runtime).json()
+        yield page, base
+        assert not writes
+        assert page.request.get(runtime).json() == before
+        assert all(not item["enabled"] and not item["active"] for item in before["engines"])
+        browser.close()
+
+
+@pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1180, 720),
+    ("zh", "dark", 1440, 800),
+])
+def test_del_desktop_review(language, theme, width, height):
+    settings = Settings.from_env()
+    evidence = Path("outputs/del-desktop-review") / f"{language}-{width}"
+    with del_browser(settings, evidence, language, theme, width, height) as (page, base):
         zh = language == "zh"
         check_enrichment(page, base, settings, zh, evidence)
         check_candidates(page, base, settings, width, height, zh, evidence)
         check_library(page, base, settings, zh, evidence)
         check_evidence_tables(page, base, settings, zh, evidence)
-        assert not writes
-        assert page.request.get(runtime).json() == before
-        assert all(not item["enabled"] and not item["active"] for item in before["engines"])
-        browser.close()
+
+
+def check_candidate_tools(page, workspace, frame, zh):
+    actions = workspace.locator(".viewer-heading-actions")
+    tools = actions.locator(".viewer-tool-trigger")
+    expect(tools).to_be_in_viewport(ratio=1)
+    tools.press("Enter")
+    expect(tools).to_have_attribute("aria-expanded", "true")
+    expect(actions.locator(".viewer-tool-content")).to_be_in_viewport()
+    tools.press("Escape")
+    expect(tools).to_have_attribute("aria-expanded", "false")
+    expect(tools).to_be_focused()
+
+    surface = workspace.get_by_role("button", name="分子表面" if zh else "Surface", exact=True)
+    surface.click()
+    expect(surface).to_have_attribute("aria-pressed", "true")
+    sticks = workspace.get_by_role("button", name="棒状结构" if zh else "Sticks", exact=True)
+    sticks.click()
+    expect(sticks).to_have_attribute("aria-pressed", "true")
+
+    expanded = actions.locator("[data-workspace-expand]")
+    handle = frame.element_handle()
+    assert handle
+    expanded.press("Enter")
+    expect(workspace).to_have_attribute("data-workspace-expanded", "true")
+    page.keyboard.press("Escape")
+    expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+    assert frame.evaluate("(current, original) => current === original", handle)
+    expect(expanded).to_be_focused()
+
+
+@pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1080, 650),
+    ("en", "warm", 1120, 650),
+    ("zh", "dark", 1280, 700),
+    ("en", "light", 1440, 900),
+])
+def test_del_retained_result_layout(language, theme, width, height):
+    settings = Settings.from_env()
+    evidence = Path("outputs/del-desktop-review") / f"retained-{language}-{width}"
+    zh = language == "zh"
+    with del_browser(settings, evidence, language, theme, width, height) as (page, base):
+        _, output, result = load_case(page, base, "del.candidates", settings)
+        panel = page.locator(".dataset-results")
+        workspace = panel.locator(".structure-workbench:has([data-del-review])")
+        frame = workspace.locator(".molecular-stage iframe")
+        figure = workspace.locator(".viewer-panel .figure-export-trigger")
+        expect(figure).to_be_enabled(timeout=45_000)
+        expect(frame).to_be_in_viewport(ratio=0.99)
+        box = frame.bounding_box()
+        right = workspace.locator(":scope > .structure-workbench-details")
+        rail = right.bounding_box()
+        assert box and rail and box["height"] >= 320
+        assert box["x"] + box["width"] < rail["x"]
+        expect(right.locator("tbody tr").first).to_be_in_viewport(ratio=0.99)
+        expect(right.locator(".molecule-image")).to_have_count(0)
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        page.screenshot(path=evidence / "candidate.png")
+        check_candidate_tools(page, workspace, frame, zh)
+        dataset_candidate(page, workspace, frame, figure, output, result, "del.candidates", zh)
+
+        load_case(page, base, "del.enumerate", settings)
+        expect(panel.locator(".dataset-library-table .molecule-image")).to_have_count(0)
+        source = panel.get_by_role("link", name="下载 MOL" if zh else "Download MOL", exact=True)
+        expect(source).to_be_visible()
+        href = source.get_attribute("href")
+        assert href and "report_sha256=" in href
+        content = page.request.get(base + href)
+        assert content.ok
+        with page.expect_download() as original:
+            source.click()
+        assert original.value.path().read_bytes() == content.body()
+        check_library_members(page, panel, zh, evidence)

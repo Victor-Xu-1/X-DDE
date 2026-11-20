@@ -12,12 +12,14 @@ export function IndexedLibraryResults({
   language,
   view = "index",
   screeningReview = false,
+  compactReview = screeningReview,
   summary,
 }: {
   jobId: string;
   language: Language;
   view?: "index" | "library";
   screeningReview?: boolean;
+  compactReview?: boolean;
   summary?: ReactNode;
 }) {
   const zh = language === "zh",
@@ -75,7 +77,7 @@ export function IndexedLibraryResults({
           download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
           title={originalLabel}
         >
-          {screeningReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
+          {compactReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
         </a>
         {member.saved ? (
           <span className="dataset-member-saved" role="status">
@@ -93,7 +95,7 @@ export function IndexedLibraryResults({
               ? zh
                 ? "正在保存…"
                 : "Saving…"
-              : screeningReview
+              : compactReview
                 ? zh
                   ? "保存文件"
                   : "Save file"
@@ -136,7 +138,7 @@ export function IndexedLibraryResults({
             </div>
           ) : (
             <>
-              {!screeningReview && actions}
+              {!compactReview && actions}
               {member.phase === "error" && (
                 <p role="alert">
                   {zh
@@ -146,7 +148,7 @@ export function IndexedLibraryResults({
               )}
               <MolecularPreview
                 label={detail.label}
-                toolbar={screeningReview ? actions : undefined}
+                toolbar={compactReview ? actions : undefined}
                 language={language}
                 source={{
                   url: url!,
@@ -168,7 +170,7 @@ export function IndexedLibraryResults({
         <ResearchTable
           jobId={jobId}
           view={view}
-          showThumbnails={!screeningReview}
+          showThumbnails={!compactReview}
           language={language}
           onSelect={setSelected}
           selection={memberId ? [memberId] : []}

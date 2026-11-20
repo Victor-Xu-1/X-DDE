@@ -1,0 +1,123 @@
+:is([data-screening-review], [data-del-results])
+  .research-tab-toolbar
+  > :is(.candidate-preview-heading, .dataset-member-tools) {
+  flex: 1 1 245px;
+  min-width: 0;
+}
+
+:is([data-screening-review], [data-del-results]) .dataset-member-tools,
+:is([data-screening-review], [data-del-results]) .dataset-member-heading,
+:is([data-screening-review], [data-del-results]) .dataset-member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+:is([data-screening-review], [data-del-results]) .dataset-member-tools {
+  justify-content: space-between;
+}
+
+:is([data-screening-review], [data-del-results]) :is(.dataset-member-heading, .dataset-member-actions) {
+  margin: 0;
+  padding: 3px 0;
+}
+
+:is([data-screening-review], [data-del-results]) .dataset-member-heading h3 {
+  font-size: 14px;
+}
+
+:is([data-screening-review], [data-del-results]) .dataset-member-actions :is(a, button) {
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+@media (min-width: 1080px) {
+  .studio-app
+    :is([data-screening-review], [data-del-results])
+    .structure-workbench:not([data-workspace-expanded]) {
+    .research-tab-toolbar {
+      column-gap: 8px;
+      margin-block-end: 6px;
+    }
+
+    .research-tab-toolbar [role="tab"] {
+      min-height: 34px;
+      padding-block: 4px;
+    }
+
+    .dataset-member-inspector
+      .research-tab-list:has(> [role="tab"]:only-of-type) {
+      display: none;
+    }
+
+    .structure-workbench-view .molecule-image {
+      padding: 8px;
+    }
+
+    .figure-preview-sheet {
+      height: var(--dataset-drawing-height, clamp(240px, calc(100dvh - 350px), 540px));
+    }
+
+    .viewer-panel:not(:popover-open) {
+      --compact-viewer-tools: enabled;
+      padding: 0;
+
+      > :is(.studio-heading, .viewer-mode-options) {
+        margin: 0 0 5px;
+      }
+
+      :is(.viewer-heading-actions, .viewer-mode-options) :is(button, summary) {
+        min-height: 32px;
+      }
+
+      > .molecular-stage {
+        height: var(--dataset-stage-height, clamp(290px, calc(100dvh - 324px), 610px));
+        min-height: 0;
+        border-radius: 8px;
+      }
+    }
+
+    .dataset-member-inspector
+      .viewer-panel:not(:popover-open)
+      > .molecular-stage {
+      height: clamp(280px, calc(100dvh - 345px), 610px);
+    }
+
+    .viewer-panel:has(> .viewer-mode-options):not(:popover-open) {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0 6px;
+
+      > * {
+        grid-column: 1 / -1;
+      }
+
+      > .studio-heading {
+        grid-area: 1 / 2;
+        position: static;
+      }
+
+      > .studio-heading > h3 {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+
+      > .viewer-mode-options {
+        grid-area: 1 / 1;
+        position: static;
+      }
+
+      .viewer-tool-content {
+        inset-block-start: 37px;
+      }
+    }
+  }
+}
