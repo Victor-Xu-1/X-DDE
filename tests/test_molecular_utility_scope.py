@@ -336,6 +336,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "FUNCTION_POWER_FILES",
         "DESKTOP_BACKEND_HEADER_FILES",
         "DESKTOP_COMPLEX_REVIEW_FILES",
+        "SEQUENCE_COMPARISON_FILES",
         "COMPACT_MATERIAL_FILES",
         "DESKTOP_MOLECULE_RESULTS_FILES",
         "DESKTOP_MOLECULE_WORKBENCH_FILES",

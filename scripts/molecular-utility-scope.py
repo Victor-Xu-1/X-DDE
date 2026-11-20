@@ -1221,6 +1221,22 @@ SEQUENCE_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SEQUENCE_DESKTOP_DIFF = "837cec103f0a77a977f32810bd325992192533c6fc16b18a271a083aac074615"
+SEQUENCE_COMPARISON_FILES = {
+    ".github/workflows/fold-assessment-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/sequence-result-checks.yml",
+    ".github/workflows/windows-capacity-checks.yml",
+    ".github/workflows/workspace-preview-checks.yml",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/operations/CandidateChainComparison.tsx",
+    "frontend/src/operations/CandidateSequenceResults.test.tsx",
+    "frontend/src/operations/CandidateSequenceResults.tsx",
+    "frontend/src/presentation/SequenceTrack.tsx",
+    "frontend/src/presentation/sequence-review.css",
+    "server_tests/test_sequence_review_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SEQUENCE_COMPARISON_DIFF = "ec203137621150ee406b0ea3b6569b7e7747dda958b17a7483e223874330ae19"
 PROTEIN_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
@@ -1764,6 +1780,10 @@ def main():
     sequence_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SEQUENCE_DESKTOP_FILES, SEQUENCE_DESKTOP_DIFF, scope_pin="SEQUENCE_DESKTOP_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SEQUENCE_COMPARISON_FILES, SEQUENCE_COMPARISON_DIFF,
+        scope_pin="SEQUENCE_COMPARISON_DIFF",
     )
     protein_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
