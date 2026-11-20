@@ -61,7 +61,7 @@ export function Header({
         module={module}
         currentCapability={toolForView(view) ?? undefined}
         resultOperation={resultOperation}
-        inlineSingle={!compact}
+        inlineSingle={!compact && !resultOperation}
         moduleHasRecognition={view === "utilities"}
         onOpenRecognition={onOpenRecognition}
       />
@@ -69,7 +69,10 @@ export function Header({
     </div>
   );
   return (
-    <header className="studio-topbar">
+    <header
+      className="studio-topbar"
+      data-task-result={resultOperation || undefined}
+    >
       <div className="page-context">
         <span className="page-context-title" title={viewTitle(view, language)}>
           {viewTitle(view, language)}

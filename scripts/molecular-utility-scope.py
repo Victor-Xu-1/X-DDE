@@ -1327,6 +1327,21 @@ PROXIMITY_DESKTOP_FILES = {
     "server_tests/test_proximity_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
+DESKTOP_COMPLEX_REVIEW_FILES = {
+    ".github/workflows/proximity-checks.yml",
+    "frontend/src/presentation/spatial-result-review.css",
+    "frontend/src/presentation/workspace-expansion.ts",
+    "frontend/src/proximity/Results.tsx",
+    "frontend/src/proximity/proximity.css",
+    "frontend/src/receptors/ReceptorResults.tsx",
+    "frontend/src/receptors/receptors.css",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/studio/header.css",
+    "server_tests/test_navigation_shell_browser.py",
+    "server_tests/test_proximity_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_COMPLEX_REVIEW_DIFF = "87e63466a989428e1eeb2ff3bf592453dfad4b664002530decfebbc5d396fe76"
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
@@ -1688,7 +1703,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
     )
-    desktop_header = desktop_backend_header or reviewed_selected(
+    desktop_complex_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_COMPLEX_REVIEW_FILES, DESKTOP_COMPLEX_REVIEW_DIFF,
+        scope_pin="DESKTOP_COMPLEX_REVIEW_DIFF",
+    )
+    desktop_header = desktop_complex_review or desktop_backend_header or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_HEADER_FILES, DESKTOP_HEADER_DIFF,
     )
@@ -1756,7 +1776,7 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
     )
-    proximity_desktop = reviewed_selected(
+    proximity_desktop = desktop_complex_review or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PROXIMITY_DESKTOP_FILES, PROXIMITY_DESKTOP_DIFF, scope_pin="PROXIMITY_DESKTOP_DIFF",
     ) or reviewed_selected(

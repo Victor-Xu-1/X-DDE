@@ -108,6 +108,7 @@ export function toggleWorkspace(
     const replacement =
       fallback instanceof HTMLElement &&
       target.contains(fallback) &&
+      !fallback.hasAttribute("data-workspace-expand") &&
       visible(fallback)
         ? fallback
         : choices()[0];

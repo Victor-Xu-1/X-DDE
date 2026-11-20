@@ -90,6 +90,15 @@
   .receptor-results > .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr) minmax(295px, 32%);
   }
+  .studio-app .receptor-overlay-detail .viewer-panel .molecular-stage {
+    border-radius: 8px;
+  }
+}
+@media (min-width: 1180px) and (max-height: 840px) {
+  .studio-app .receptor-overlay-detail .viewer-heading-actions
+    :is(button, .viewer-tool-trigger) {
+    min-height: 34px;
+  }
 }
 @media (max-width: 1000px) {
   .studio-app .receptor-preview-toolbar > .receptor-details-jump {
@@ -137,21 +146,6 @@
   }
 }
 
-.studio-app
-  .studio-content:has(
-    .task-result-content
-      > .detail-panel
-      > .operation-results
-      > .receptor-results
-  ) {
-  padding-block-start: 12px;
-}
-.task-history-workspace
-  .has-header-navigation:has(> .operation-results > .receptor-results)
-  > .task-detail-header {
-  gap: 6px 12px;
-  margin-block-end: 8px;
-}
 .receptor-results .receptor-actions {
   display: flex;
   gap: 0.5rem;

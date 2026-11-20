@@ -11,6 +11,7 @@ import { ReceptorMemberTable } from "./ReceptorMemberTable";
 import { ReceptorMemberDetails } from "./ReceptorMemberDetails";
 import type { Job, Language } from "../types";
 import type { ReceptorResult, ReceptorSet } from "./types";
+import "../presentation/spatial-result-review.css";
 import "./receptors.css";
 import { SiteWorkspace } from "../sites/SiteWorkspace";
 
