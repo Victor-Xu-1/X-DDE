@@ -1038,12 +1038,13 @@ FUNCTION_POWER_FILES = {
 }
 FUNCTION_POWER_DIFF = "4f2213a3a30563022318a2ae6d22bb6875b0fbb46b2031743b57393146ac8275"
 DESKTOP_BACKEND_HEADER_FILES = {
+    "frontend/src/studio/TaskSearch.tsx",
     "frontend/src/studio/header.css",
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_BACKEND_HEADER_DIFF = "925e442f71d2aef50dcd4603c6d5844d1a130a0f2f2c5e5c61530962b6e93a3a"
+DESKTOP_BACKEND_HEADER_DIFF = "bbceecf00e71564df55d859173d7724338192f2b408c6250ee43a186a1db5d9f"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

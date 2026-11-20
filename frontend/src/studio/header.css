@@ -125,7 +125,7 @@
   }
 }
 /* Give the title, navigation and power controls priority on desktop. */
-@media (961px <= width <= 1440px) {
+@media (961px <= width < 1440px) {
   .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
     > .task-search {
       position: static;

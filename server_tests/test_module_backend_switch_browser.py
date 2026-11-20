@@ -132,7 +132,7 @@ def verify_desktop_task_power_header(context, base):
                     && part.right <= bounds.right && (!i || part.left >= parts[i - 1].right));
             }"""), (tool, width)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
-            if width <= 1440:
+            if width < 1440:
                 expect(field).to_be_hidden()
                 search.press("Enter")
                 expect(field).to_be_focused()
@@ -144,6 +144,18 @@ def verify_desktop_task_power_header(context, base):
                 expect(field).to_be_visible()
         page.set_viewport_size({"width": 1180, "height": 800})
         page.screenshot(path=EVIDENCE / f"{owner}-desktop-power-1180-en.png")
+    page.set_viewport_size({"width": 1440, "height": 800})
+    page.goto(f"{base}/#view=new&tool=discovery.import")
+    expect(controls(page).locator('[data-engine="discovery"]')).to_be_visible()
+    expect(search).to_be_hidden()
+    expect(field).to_be_visible()
+    field.fill("native history")
+    page.set_viewport_size({"width": 1180, "height": 800})
+    expect(field).to_be_focused()
+    expect(field).to_have_value("native history")
+    field.press("Escape")
+    expect(search).to_be_focused()
+    expect(field).to_be_hidden()
     page.close()
 
 

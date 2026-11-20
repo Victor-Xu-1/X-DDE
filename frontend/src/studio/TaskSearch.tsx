@@ -103,6 +103,7 @@ export function TaskSearch({
           value={query}
           aria-expanded={Boolean(query.trim())}
           aria-controls={query.trim() ? "task-search-results" : undefined}
+          onFocus={() => setExpanded(true)}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={zh ? "搜索任务名称" : "Search tasks by name or ID"}
         />
