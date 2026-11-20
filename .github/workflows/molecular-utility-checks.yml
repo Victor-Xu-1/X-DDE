@@ -858,8 +858,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 14
     env:
-      WB_HOME: ${{ runner.temp }}/x-dde-del-desktop
-      WB_STATE_DIR: ${{ runner.temp }}/x-dde-del-desktop/state
       WB_AUTO_DEPLOY: "0"
     steps:
       - uses: actions/checkout@v4
@@ -874,6 +872,10 @@ jobs:
           npx vitest run src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
           src/datasets/IndexedLibraryResults.test.tsx src/datasets/CandidateView.test.tsx
           src/datasets/CandidateTable.test.tsx src/datasets/DELCandidateEvidence.test.tsx
+      - name: Set isolated DEL state paths
+        run: |
+          echo "WB_HOME=$RUNNER_TEMP/x-dde-del-desktop" >> "$GITHUB_ENV"
+          echo "WB_STATE_DIR=$RUNNER_TEMP/x-dde-del-desktop/state" >> "$GITHUB_ENV"
       - name: Restore the reviewed DEL006 result bundle
         env:
           GH_TOKEN: ${{ github.token }}
