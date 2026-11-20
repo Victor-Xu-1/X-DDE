@@ -112,6 +112,9 @@
       gap: 5px 8px;
       margin-block-end: 5px;
     }
+    .viewer-mode-options {
+      position: relative;
+    }
     .viewer-heading-actions :is(button, .viewer-tool-trigger),
     .viewer-mode-options :is(button, .viewer-tool-trigger, .viewer-chain-menu > summary) {
       min-height: 32px;
@@ -119,6 +122,13 @@
     .viewer-mode-options .viewer-chain-menu > summary {
       padding-inline: 4px;
       white-space: nowrap;
+    }
+    .viewer-mode-options .viewer-chain-menu {
+      position: static;
+    }
+    .viewer-mode-options .viewer-chain-list {
+      width: min(100%, 320px);
+      border-radius: 8px;
     }
     :is(.viewer-heading-actions, .viewer-mode-options) .viewer-tool-trigger,
     .viewer-heading-actions > button {

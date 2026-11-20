@@ -1224,7 +1224,7 @@ SHORT_STRUCTURE_REVIEW_FILES = {
     "frontend/src/viewer/StructurePairFigure.tsx",
     "server_tests/test_short_protein_viewports.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "e108d3aeb13a6ed31726ab23fb3b8d19168eb566ab17817ed3eeac8c27d115cb"
+SHORT_STRUCTURE_REVIEW_DIFF = "cc954bdaa679548d087fe9af983fbf256cf0f3d955f59f7693665adeebc5c159"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
