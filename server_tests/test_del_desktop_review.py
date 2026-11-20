@@ -123,7 +123,7 @@ def check_library(page, base, settings, zh, evidence):
     articles = panel.locator(".dataset-block-grid article")
     for index in range(3):
         card = articles.nth(index)
-        drawing = card.get_by_role("img")
+        drawing = card.locator(".molecule-image img")
         expect(drawing).to_be_in_viewport(ratio=0.94, timeout=30_000)
         drawing_box = drawing.bounding_box()
         card_box = card.bounding_box()
@@ -137,7 +137,9 @@ def check_library(page, base, settings, zh, evidence):
     selected = member.inner_text().strip()
     member.click()
     expect(inspection.get_by_role("heading")).to_have_text(selected)
-    expect(inspection.get_by_role("img")).to_be_in_viewport(ratio=0.95, timeout=30_000)
+    expect(inspection.locator(".molecule-inspection-view img")).to_be_in_viewport(
+        ratio=0.95, timeout=30_000,
+    )
     expect(panel.locator(".structure-workbench")).to_have_count(1)
     page.screenshot(path=evidence / "library-member.png")
     structures = panel.get_by_role("tab", name="候选结构" if zh else "Candidate structures")
