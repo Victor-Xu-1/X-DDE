@@ -198,7 +198,9 @@ def test_desktop_prediction_entry_and_original_coordinate_review(tmp_path, langu
         form = page.locator(".prediction-workspace.is-input .questionnaire")
         expect(form.locator("> fieldset[aria-labelledby]:not([hidden])")).to_have_count(1)
         action = form.get_by_role("button", name=next_name, exact=True)
-        trigger = page.get_by_role("button", name="预览输入" if zh else "Preview inputs", exact=True)
+        trigger = page.get_by_role(
+            "button", name="预览输入" if zh else "Preview inputs", exact=True
+        )
         expect(action).to_be_in_viewport(ratio=1)
         expect(trigger).to_be_in_viewport(ratio=1)
         action.click()
@@ -213,11 +215,12 @@ def test_desktop_prediction_entry_and_original_coordinate_review(tmp_path, langu
         page.get_by_text(
             "使用已有的三维分子文件" if zh else "Use an existing 3D molecule file", exact=True,
         ).click()
+        file_input = page.get_by_label("上传 配体文件" if zh else "Upload Ligand file")
         with page.expect_response(
             lambda response: urlsplit(response.url).path == "/api/assets" and
             response.request.method == "POST"
         ) as upload:
-            page.get_by_label("上传 配体文件" if zh else "Upload Ligand file").set_input_files(source)
+            file_input.set_input_files(source)
         receipt = upload.value
         assert receipt.ok, receipt.text()
         asset_id = receipt.json()["id"]
