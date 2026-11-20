@@ -1,5 +1,6 @@
 """Replay retained target research and ProTrek results in desktop Chrome."""
 
+import csv
 import hashlib
 from pathlib import Path
 
@@ -111,6 +112,19 @@ def verify_retrieval(page, base, zh, evidence):
     expect(workspace.locator(".sequence-track")).to_have_attribute("aria-label", selected)
     first_view(page, workspace.locator(".sequence-track"), min_height=160)
     page.screenshot(path=evidence / "sequence-retrieval.png")
+    expect(table.get_by_role("columnheader")).to_have_count(2)
+    with page.expect_download() as transfer:
+        workspace.get_by_role(
+            "button", name="导出筛选结果" if zh else "Export filtered rows", exact=True,
+        ).click()
+    with transfer.value.path().open(encoding="utf-8-sig", newline="") as stream:
+        records = list(csv.DictReader(stream))
+    hidden_metrics = (
+        ("全序列一致性 (%)", "对齐区域一致性 (%)", "长度 (aa)") if zh
+        else ("Overall identity (%)", "Aligned identity (%)", "Length (aa)")
+    )
+    assert records[1]["蛋白条目" if zh else "Protein entry"] == selected
+    assert all(records[0][label] for label in hidden_metrics)
 
     workspace = open_example(page, base, "protrek-structure", zh)
     verify_structure(page, workspace, zh)

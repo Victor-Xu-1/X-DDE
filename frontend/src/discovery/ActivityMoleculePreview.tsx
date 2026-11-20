@@ -34,10 +34,7 @@ export function ActivityMoleculePreview({
   onImport?(): void;
 }) {
   const zh = language === "zh";
-  const [copyResult, setCopyResult] = useState<{
-    activityId: number;
-    text: string;
-  } | null>(null);
+  const [message, setMessage] = useState("");
   async function copySmiles() {
     if (!activity.canonical_smiles) return;
     let text: string;
@@ -49,7 +46,7 @@ export function ActivityMoleculePreview({
         ? "复制失败，请从原始结果读取结构。"
         : "Copy failed; use the original result.";
     }
-    setCopyResult({ activityId: activity.activity_id, text });
+    setMessage(text);
   }
   return (
     <section
@@ -112,9 +109,7 @@ export function ActivityMoleculePreview({
             : "The source record does not provide a molecular structure."}
         </p>
       )}
-      {copyResult?.activityId === activity.activity_id && (
-        <p role="status">{copyResult.text}</p>
-      )}
+      {message && <p role="status">{message}</p>}
     </section>
   );
 }

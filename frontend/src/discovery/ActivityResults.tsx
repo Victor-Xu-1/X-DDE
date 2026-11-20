@@ -19,7 +19,7 @@ export function ActivityResults({
   onImport?(value: ReferenceSelection): void;
 }) {
   const zh = language === "zh",
-    [selectedId, setSelectedId] = useState<number | null>(null);
+    [selectedKey, setSelectedKey] = useState<string | null>(null);
   const value = result.activities;
   if (!value)
     return (
@@ -29,8 +29,11 @@ export function ActivityResults({
           : "No reported activity records returned."}
       </p>
     );
-  const selected =
-    value.rows.find((row) => row.activity_id === selectedId) ?? value.rows[0];
+  const rows = value.rows.map((row, index) => ({
+    ...row,
+    rowKey: `${row.activity_id}:${index}`,
+  }));
+  const selected = rows.find((row) => row.rowKey === selectedKey) ?? rows[0];
   const evidence = result.analysis_reference;
   return (
     <section className="target-activity-workspace">
@@ -38,6 +41,7 @@ export function ActivityResults({
         preview={
           selected ? (
             <ActivityMoleculePreview
+              key={selected.rowKey}
               activity={selected}
               language={language}
               onImport={
@@ -67,13 +71,13 @@ export function ActivityResults({
         </details>
         <ResearchTable
           compactToolbar
-          rows={value.rows}
-          rowId={(row) => String(row.activity_id)}
+          rows={rows}
+          rowId={(row) => row.rowKey}
           language={language}
           compare={false}
           initialVisibleColumns={["molecule", "measurement"]}
-          selected={selected ? String(selected.activity_id) : null}
-          onSelect={(row) => setSelectedId(row.activity_id)}
+          selected={selected?.rowKey}
+          onSelect={(row) => setSelectedKey(row.rowKey)}
           title={zh ? "已有实测活性" : "Reported activities"}
           columns={[
             {

@@ -260,6 +260,10 @@ def inspect_activity(page, workspace, result, evidence, language, width):
         expected_records.append((item["molecule_chembl_id"], item["standard_type"],
                                  measurement, item["assay_chembl_id"]))
     assert [tuple(record[label] for label in labels) for record in records] == expected_records
+    activity_id = "活性记录编号" if zh else "Activity ID"
+    assert [record[activity_id] for record in records] == [
+        str(item["activity_id"]) for item in activities
+    ]
     preview.scroll_into_view_if_needed()
     preview.evaluate("""node => {
       const header = document.querySelector('.studio-topbar').getBoundingClientRect();
