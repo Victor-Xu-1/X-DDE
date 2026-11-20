@@ -1,4 +1,4 @@
-"""Exercise the retained DEL hit table and candidate preview on short desktops."""
+"""Exercise the retained DEL results on short desktops."""
 
 import json
 from pathlib import Path
@@ -118,6 +118,69 @@ def check_candidates(page, base, settings, width, height, zh, evidence):
         inspect_png(export_figure(page, figure, evidence, "del-candidate", "en"))
 
 
+def check_library(page, base, settings, zh, evidence):
+    panel, _, _ = open_example(page, base, settings, "del.library", zh)
+    articles = panel.locator(".dataset-block-grid article")
+    for index in range(3):
+        card = articles.nth(index)
+        drawing = card.get_by_role("img")
+        expect(drawing).to_be_in_viewport(ratio=0.94, timeout=30_000)
+        drawing_box = drawing.bounding_box()
+        card_box = card.bounding_box()
+        assert drawing_box["y"] + drawing_box["height"] <= card_box["y"] + card_box["height"]
+    page.screenshot(path=evidence / "library-definition.png")
+
+    panel, _, _ = open_example(page, base, settings, "del.enumerate", zh)
+    inspection = panel.locator(".dataset-member-inspector")
+    member = panel.locator(".dataset-library-table tbody tr").nth(1).locator(".dataset-row-title")
+    expect(member).to_be_visible(timeout=30_000)
+    selected = member.inner_text().strip()
+    member.click()
+    expect(inspection.get_by_role("heading")).to_have_text(selected)
+    expect(inspection.get_by_role("img")).to_be_in_viewport(ratio=0.95, timeout=30_000)
+    expect(panel.locator(".structure-workbench")).to_have_count(1)
+    page.screenshot(path=evidence / "library-member.png")
+    structures = panel.get_by_role("tab", name="候选结构" if zh else "Candidate structures")
+    structures.click()
+    preview = panel.locator(".candidate-inspection-preview")
+    expect(preview.locator(".molecule-inspection-view img")).to_be_in_viewport(
+        ratio=0.95, timeout=30_000,
+    )
+    expect(panel.locator(".structure-workbench:visible")).to_have_count(1)
+    page.screenshot(path=evidence / "library-candidate.png")
+    panel.get_by_role("tab", name="库成员" if zh else "Library members", exact=True).click()
+    expect(inspection.get_by_role("heading")).to_have_text(selected)
+    expect(panel.locator(".structure-workbench:visible")).to_have_count(1)
+
+
+def check_evidence_tables(page, base, settings, zh, evidence):
+    for capability, kind, count in (
+        ("del.decode", "decoded", 7),
+        ("del.count", "counts", 5),
+        ("del.series", "series", 7),
+        ("del.followup", "followup", 1),
+    ):
+        panel, _, _ = open_example(page, base, settings, capability, zh)
+        if kind == "series":
+            expect(panel.locator(".dataset-series-source")).to_contain_text("PCR")
+        if kind in {"decoded", "counts"}:
+            tabs = panel.locator(".research-tab-toolbar")
+            expect(tabs.locator(".dataset-download-menu > summary")).to_be_visible()
+        table = panel.locator(f".dataset-{kind}-table")
+        expect(table.locator("tbody tr").nth(count - 1).locator("td").first).to_be_in_viewport(
+            ratio=0.99, timeout=30_000,
+        )
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        page.screenshot(path=evidence / f"{kind}-evidence.png")
+        if kind == "series":
+            interpretation = panel.locator(".dataset-series-context details")
+            expect(interpretation).not_to_have_attribute("open", "")
+            interpretation.locator("summary").press("Space")
+            expect(interpretation.locator("p").last).to_contain_text(
+                "生物学重复性需单独验证" if zh else "biological reproducibility require separate evidence"
+            )
+
+
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1180, 720),
     ("zh", "dark", 1440, 800),
@@ -156,6 +219,8 @@ def test_del_desktop_review(language, theme, width, height):
         zh = language == "zh"
         check_enrichment(page, base, settings, zh, evidence)
         check_candidates(page, base, settings, width, height, zh, evidence)
+        check_library(page, base, settings, zh, evidence)
+        check_evidence_tables(page, base, settings, zh, evidence)
         assert not writes
         assert page.request.get(runtime).json() == before
         assert all(not item["enabled"] and not item["active"] for item in before["engines"])

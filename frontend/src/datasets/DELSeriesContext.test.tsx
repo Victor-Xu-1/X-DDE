@@ -33,8 +33,10 @@ it("binds raw/PCR scope to the exact parent report and never describes enrichmen
   expect(
     await screen.findByText(/raw reads, retaining PCR bias/),
   ).toBeVisible();
+  const interpretation = screen.getByText("Interpret enrichment and intervals");
+  await userEvent.setup().click(interpretation);
   expect(screen.getByText(/all observed members/)).toBeVisible();
-  expect(screen.getByText(/do not establish affinity/)).toBeVisible();
+  expect(screen.getByText(/biological reproducibility require separate evidence/)).toBeVisible();
   expect(call.mock.calls[0][0]).toBe("/datasets/a-parent/summary");
 });
 

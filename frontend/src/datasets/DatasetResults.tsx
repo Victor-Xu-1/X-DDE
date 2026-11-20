@@ -57,6 +57,15 @@ export function DatasetResults({
   );
   const enumerated =
     tableView === "library" && result.operation === "del_enumerate";
+  const downloadsWithTabs =
+    hasCharts && (tableView === "counts" || tableView === "decoded");
+  const downloads = (
+    <ResearchDownloads
+      jobId={job.id}
+      artifacts={result.artifacts}
+      language={language}
+    />
+  );
   const stats = Object.entries(result.counts)
     .filter(
       ([key, value]) =>
@@ -79,11 +88,7 @@ export function DatasetResults({
           <strong>{value.toLocaleString()}</strong>
         </div>
       ))}
-      <ResearchDownloads
-        jobId={job.id}
-        artifacts={result.artifacts}
-        language={language}
-      />
+      {!downloadsWithTabs && downloads}
     </div>
   );
   const comparisonControl = available &&
@@ -225,6 +230,7 @@ export function DatasetResults({
           key={`views:${job.id}`}
           label={zh ? "研究结果视图" : "Research result views"}
           tabs={tabs}
+          toolbar={downloadsWithTabs ? downloads : undefined}
         />
       ) : (
         tabs[0]?.content

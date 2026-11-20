@@ -1,4 +1,117 @@
+.dataset-results .dataset-series-context {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.dataset-results .dataset-series-context p {
+  margin: 0;
+}
+
+.dataset-series-source strong {
+  margin-inline-end: 8px;
+  color: var(--ink);
+}
+
+.dataset-series-context details[open] {
+  flex-basis: 100%;
+}
+
+.dataset-series-context summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.dataset-results .dataset-series-context details > p {
+  margin-block-start: 6px;
+}
+
 @media (min-width: 1180px) {
+  [data-del-results] > .dataset-result-metrics {
+    column-gap: 11px;
+  }
+
+  [data-del-results] .dataset-download-menu > summary {
+    padding: 6px 10px;
+  }
+
+  [data-del-results] .dataset-download-menu > div {
+    top: calc(100% + 5px);
+  }
+
+  [data-del-results]
+    .dataset-table-region:is(
+      [data-table-view="counts"],
+      [data-table-view="decoded"],
+      [data-table-view="series"],
+      [data-table-view="followup"]
+    ) .dataset-table-toolbar {
+    justify-content: flex-start;
+    gap: 6px 12px;
+    padding-block: 4px 8px;
+  }
+
+  [data-del-results] .dataset-table-region[data-table-view="series"]
+    .dataset-table-toolbar > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  [data-del-results]
+    .dataset-table-region:is(
+      [data-table-view="counts"],
+      [data-table-view="decoded"],
+      [data-table-view="series"],
+      [data-table-view="followup"]
+    ) .dataset-table-toolbar :is(input[type="search"], select) {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  [data-del-results] :is(
+    .dataset-counts-table,
+    .dataset-decoded-table,
+    .dataset-series-table,
+    .dataset-followup-table
+  ) {
+    max-height: min(56vh, 540px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-del-results] :is(
+    .dataset-counts-table,
+    .dataset-decoded-table,
+    .dataset-series-table,
+    .dataset-followup-table
+  ) :is(td, th) {
+    padding: 7px 10px;
+  }
+
+  [data-del-results] :is(
+    .dataset-counts-table, .dataset-decoded-table, .dataset-followup-table
+  ) .dataset-column-member {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background: var(--surface);
+  }
+
+  [data-del-results] :is(
+    .dataset-counts-table, .dataset-decoded-table, .dataset-followup-table
+  ) th.dataset-column-member {
+    z-index: 2;
+    background: var(--surface-muted);
+  }
+
+  [data-del-results]
+    .dataset-table-region[data-table-view="counts"] > .field-help {
+    margin-block: 0 6px;
+  }
+
   [data-del-results] .del-definition-view {
     gap: 12px;
   }
