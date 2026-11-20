@@ -637,7 +637,6 @@ jobs:
     timeout-minutes: 12
     env:
       WB_AUTO_DEPLOY: "0"
-      WB_HOME: ${{ runner.temp }}/guided-desktop
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -651,6 +650,8 @@ jobs:
           npx vitest run src/guided/Questionnaire.test.tsx
           src/guided/QuestionnaireGuidance.test.tsx src/guided/SinglePageTask.test.tsx
       - name: Check supported desktop sizes and choose a region on the native structure
+        env:
+          WB_HOME: ${{ runner.temp }}/guided-desktop
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_guided_desktop_browser.py
