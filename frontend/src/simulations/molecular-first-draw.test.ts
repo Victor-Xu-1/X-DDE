@@ -6,9 +6,7 @@ function scene() {
   return {
     didDraw: new BehaviorSubject(2),
     commitQueueSize: new BehaviorSubject(1),
-    boundingSphere: {
-      radius: 0,
-    },
+    reprCount: new BehaviorSubject(0),
     requestDraw: vi.fn(),
   };
 }
@@ -26,7 +24,7 @@ it("waits for a new draw with committed native geometry even when layers are hid
   source.didDraw.next(4);
   await Promise.resolve();
   expect(settled).not.toHaveBeenCalled();
-  source.boundingSphere.radius = 27;
+  source.reprCount.next(1);
   source.didDraw.next(5);
   await pending;
   expect(settled).toHaveBeenCalledOnce();

@@ -1,5 +1,5 @@
 type DrawSource = {
-  readonly boundingSphere: { readonly radius: number };
+  readonly reprCount: { readonly value: number };
   readonly commitQueueSize: { readonly value: number };
   readonly didDraw: {
     readonly value: number;
@@ -17,7 +17,7 @@ export function waitForMolecularDraw(source: DrawSource, signal: AbortSignal) {
       if (
         stamp !== previous &&
         source.commitQueueSize.value === 0 &&
-        source.boundingSphere.radius > 0
+        source.reprCount.value > 0
       ) {
         finish();
         resolve();

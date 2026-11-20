@@ -1,11 +1,17 @@
 """Check the first screen of two archived native simulation results in Chrome."""
 
+import json
+import sqlite3
 from base64 import b64encode
+from contextlib import closing
+from hashlib import sha256
 from pathlib import Path
+from shutil import copytree
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from opendde_workbench.requests import TASK_ADAPTER
 from server_tests.browser_platform import platform
 from server_tests.test_simulation_structure_focus import verify_frame
 
@@ -88,8 +94,12 @@ def test_short_native_results(case, language, width, height):
         )
         page.screenshot(path=evidence / f"initial-{language}-{width}.png")
         if dynamics:
+            first_canvas = root.locator(READY + " canvas").element_handle()
             verify_frame(page, base, root, result, zh)
             check_first_screen(page, root)
+            assert root.locator(READY + " canvas").evaluate(
+                "(canvas, original) => canvas === original", first_canvas,
+            )
         else:
             assert result["free_energy"]["stage"] == "plan"
             viewport = root.get_by_test_id("molstar-viewport")
@@ -109,4 +119,77 @@ def test_short_native_results(case, language, width, height):
         runtime = page.request.get(base + "/api/runtime-controls?include_native=false").json()
         assert all(not engine["enabled"] and not engine["active"] for engine in runtime["engines"])
         assert not writes and not errors, {"writes": writes, "errors": errors}
+        browser.close()
+
+
+def prepare_protein_only_fixture(source, state):
+    # Keep the archived coordinates and derive a protein-only, two-repeat view fixture.
+    # The same native frames are replayed under a separate test-only repeat identity.
+    identifier = (source / "job-id.txt").read_text().strip()
+    copytree(source / "state", state)
+    output = state / "jobs" / identifier / "output"
+    result_file = output / "result.json"
+    result = json.loads(result_file.read_text())
+    original = result["dynamics"]["replicas"][0]
+    replicas = []
+    for index in range(2):
+        frames = []
+        for frame in original["frames"]:
+            source_file = output / frame["artifact"]
+            content = b"".join(
+                line for line in source_file.read_bytes().splitlines(keepends=True)
+                if not line.startswith((b"HETATM", b"CONECT"))
+            )
+            name = f"protein-only-view-{index + 1}-{source_file.name}"
+            (output / name).write_bytes(content)
+            result["artifact_sha256"][name] = sha256(content).hexdigest()
+            frames.append({**frame, "artifact": name, "ligand_rmsd_angstrom": None})
+        replicas.append({**original, "repeat": index + 1, "frames": frames, "contacts": []})
+    result["dynamics"]["replicas"] = replicas
+    with closing(sqlite3.connect(state / "jobs.sqlite3")) as db, db:
+        text, parent = db.execute(
+            "SELECT request, parent_id FROM jobs WHERE id = ?", (identifier,),
+        ).fetchone()
+        request = json.loads(text)
+        request["payload"]["repeats"] = len(replicas)
+        body = TASK_ADAPTER.validate_python(request).model_dump_json()
+        digest = sha256((body + (parent or "")).encode()).hexdigest()
+        db.execute(
+            "UPDATE jobs SET request = ?, request_hash = ? WHERE id = ?",
+            (body, digest, identifier),
+        )
+    result["request_sha256"] = sha256(body.encode()).hexdigest()
+    result_file.write_text(json.dumps(result), encoding="utf-8")
+    return identifier, replicas
+
+
+def test_restore_protein_after_switching_repeat_with_hidden_layers(tmp_path):
+    source = Path("outputs/native-simulations/openmm.dynamics")
+    state = tmp_path / "state"
+    identifier, replicas = prepare_protein_only_fixture(source, state)
+    with platform(state, tmp_path / "app.log") as base, sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(f"{base}/#task={identifier}")
+        root = page.get_by_test_id("dynamics-results")
+        expect(root.locator(READY)).to_have_count(1, timeout=45000)
+        original_canvas = root.locator(READY + " canvas").element_handle()
+        protein = root.get_by_role("button", name="Protein", exact=True)
+        protein.click()
+        expect(protein).to_have_attribute("aria-pressed", "false")
+        root.get_by_role("combobox", name="Independent repeat").select_option("1")
+        expect(root.get_by_role("link", name="Download frame", exact=True)).to_have_attribute(
+            "href", f"/api/jobs/{identifier}/download?name={replicas[1]['frames'][0]['artifact']}",
+        )
+        expect(root.locator(READY)).to_have_count(1, timeout=15000)
+        assert root.locator(READY + " canvas").evaluate(
+            "(canvas, original) => canvas !== original", original_canvas,
+        )
+        expect(protein).to_have_attribute("aria-pressed", "false")
+        protein.click()
+        expect(protein).to_have_attribute("aria-pressed", "true")
+        scene = root.locator(READY)
+        expect(scene).to_have_count(1, timeout=15000)
+        encoded = b64encode(scene.screenshot()).decode()
+        assert page.evaluate(MOLECULAR_PIXELS, encoded) > 120
         browser.close()

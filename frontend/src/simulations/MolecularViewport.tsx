@@ -113,16 +113,18 @@ export function MolecularViewport({
   }
   useEffect(() => {
     const signal = new AbortController();
+    const host = container.current!;
+    const drawing = canvas.current!;
     let instance: MolecularController | undefined;
     setLoaded(false);
     setFailure("");
-    void visibleViewport(container.current!, signal.signal)
+    void visibleViewport(host, signal.signal)
       .then(() => import("./molstar-controller"))
       .then(async ({ MolecularController }) => {
         if (signal.signal.aborted) return;
         instance = new MolecularController();
         controller.current = instance;
-        await instance.initialize(canvas.current!, container.current!, setAtom);
+        await instance.initialize(drawing, host, setAtom);
         signal.signal.throwIfAborted();
         const input = JSON.parse(sourceKey) as {
           sources: StructureSource[];
@@ -295,6 +297,7 @@ export function MolecularViewport({
         )}
       </div>
       <div
+        key={sourceKey}
         ref={container}
         className="simulation-webgl"
         role="application"
