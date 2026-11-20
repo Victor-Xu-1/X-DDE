@@ -672,7 +672,9 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
         verify_desktop_module_power(page, base, modules)
-        verify_first_module_click_during_status_read(context, base, "proximity", 1440, "deepternary")
+        verify_first_module_click_during_status_read(
+            context, base, "proximity", 1440, "deepternary"
+        )
         verify_first_module_click_during_status_read(context, base, "simulations", 1180)
         verify_result_detail(page, base, fixture.id)
         verify_setup_entry(page, base)
