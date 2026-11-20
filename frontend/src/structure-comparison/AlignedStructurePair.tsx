@@ -82,14 +82,20 @@ export function AlignedStructurePair({
         const name = alignedArtifacts[side];
         const url = artifactUrl(jobId, name);
         const badge = index === 0 ? "A" : "B";
+        const short =
+          index === 0 ? (zh ? "参照" : "Reference") : zh ? "比较" : "Aligned";
         return (
           <section key={side} aria-label={`${badge} · ${label}`}>
             <StructureViewer
               urls={[url]}
               heading={
                 <div className="aligned-structure-heading">
-                  <h3>
-                    <span>{badge}</span> {label}
+                  <h3 aria-label={`${badge} · ${label}`}>
+                    <span className="aligned-structure-badge">{badge}</span>{" "}
+                    <span className="comparison-label-full">{label}</span>
+                    <span className="comparison-label-short" aria-hidden="true">
+                      {short}
+                    </span>
                   </h3>
                   <VerifiedArtifactDownload
                     url={url}

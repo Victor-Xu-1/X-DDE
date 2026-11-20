@@ -113,7 +113,9 @@ export function ConfidencePanel({
       controls={
         <>
           <label className="field">
-            {zh ? "置信度视图" : "Confidence view"}
+            <span className="confidence-view-label">
+              {zh ? "置信度视图" : "Confidence view"}
+            </span>
             <select
               value={metric}
               onChange={(event) =>

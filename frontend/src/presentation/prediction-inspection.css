@@ -207,6 +207,69 @@ html
   }
 }
 
+@media (1180px <= width <= 1440px) and (max-height: 840px) {
+  .prediction-result .structure-workbench:not([data-workspace-expanded]) {
+    row-gap: 8px;
+
+    > .structure-workbench-details {
+      max-height: max(390px, calc(100dvh - 272px));
+    }
+  }
+  .prediction-result .structure-workbench:not([data-workspace-expanded]) {
+    .viewer-panel > .viewer-modes {
+      column-gap: 5px;
+    }
+    .viewer-mode-options .structure-display-controls {
+      gap: 6px 10px;
+    }
+    .viewer-mode-options .confidence-color-control {
+      margin-inline-start: auto;
+    }
+    .viewer-mode-options .confidence-color-control > span {
+      display: none;
+    }
+    .viewer-mode-options .confidence-color-control select {
+      min-width: 102px;
+      padding-inline: 8px 20px;
+    }
+  }
+  .prediction-result .prediction-confidence-toolbar {
+    flex-wrap: nowrap;
+    gap: 6px 10px;
+
+    .field {
+      flex: 1 1 0%;
+      min-width: 0;
+      margin: 0;
+    }
+    .confidence-view-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    select {
+      width: 100%;
+      min-height: 34px;
+    }
+    .confidence-chain-borders {
+      flex: none;
+    }
+  }
+  html
+    body
+    .studio-app
+    .prediction-result
+    .structure-workbench:not([data-workspace-expanded])
+    .viewer-panel
+    .molecular-stage {
+    height: clamp(345px, calc(100dvh - 354px), 510px);
+    min-height: 0;
+  }
+}
+
 @media (max-width: 600px) {
   .prediction-result .viewer-panel .confidence-color-control {
     gap: 4px;

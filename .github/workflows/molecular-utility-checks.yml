@@ -170,6 +170,8 @@ on:
         value: ${{ jobs.scope.outputs.spatial_desktop_only }}
       spatial_review_only:
         value: ${{ jobs.scope.outputs.spatial_review_only }}
+      short_structure_review_only:
+        value: ${{ jobs.scope.outputs.short_structure_review_only }}
       sequence_desktop_only:
         value: ${{ jobs.scope.outputs.sequence_desktop_only }}
       protein_desktop_only:
@@ -203,6 +205,7 @@ jobs:
       refinement_desktop_only: ${{ steps.select.outputs.refinement_desktop_only }}
       spatial_desktop_only: ${{ steps.select.outputs.spatial_desktop_only }}
       spatial_review_only: ${{ steps.select.outputs.spatial_review_only }}
+      short_structure_review_only: ${{ steps.select.outputs.short_structure_review_only }}
       sequence_desktop_only: ${{ steps.select.outputs.sequence_desktop_only }}
       protein_desktop_only: ${{ steps.select.outputs.protein_desktop_only }}
       history_desktop_only: ${{ steps.select.outputs.history_desktop_only }}
@@ -265,6 +268,7 @@ jobs:
       needs.scope.outputs.utility_desktop_only != 'true' && needs.scope.outputs.desktop_help_only != 'true' &&
       needs.scope.outputs.refinement_desktop_only != 'true' &&
       needs.scope.outputs.spatial_desktop_only != 'true' &&
+      needs.scope.outputs.short_structure_review_only != 'true' &&
       needs.scope.outputs.sequence_desktop_only != 'true' &&
       needs.scope.outputs.protein_desktop_only != 'true' &&
       needs.scope.outputs.history_desktop_only != 'true' &&
@@ -982,6 +986,49 @@ jobs:
           path: |
             outputs/spatial-results-desktop/
             outputs/spatial-review-rails/
+
+  desktop-structure-review:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.short_structure_review_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Prediction, confidence and comparison components
+        working-directory: frontend
+        run: >-
+          npx vitest run src/studio/PredictionResults.test.tsx
+          src/presentation/PredictionPlotSize.test.tsx src/presentation/PredictionSamples.test.tsx
+          src/operations/ConfidencePanel.test.tsx src/operations/StructureComparisonResults.test.tsx
+          src/structure-comparison/ComparisonScene.test.ts
+      - name: Native prediction and aligned structures in desktop Chrome
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/short-structure-review
+          WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_short_structure_workspace.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+          readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
+          test "${#source[@]}" -eq 2
+          [[ "${source[0]}" == examples-v2 || "${source[0]}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
+          gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
+          .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
+          .venv/bin/python -m pytest -x -q server_tests/test_short_structure_workspace.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: short-structure-workspace
+          path: outputs/short-structure-workspace/
 
   desktop-refinement:
     needs: scope

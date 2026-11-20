@@ -80,9 +80,13 @@
   font-size: 13px;
 }
 
-.aligned-structure-heading h3 > span {
+.aligned-structure-heading .aligned-structure-badge {
   margin-inline-end: 4px;
   color: var(--accent);
+}
+
+.comparison-label-short {
+  display: none;
 }
 
 .aligned-structure-heading .verified-artifact-download {
@@ -195,5 +199,63 @@
 
   .comparison-result-view .comparison-return-to-residue {
     display: none;
+  }
+}
+
+@media (1180px <= width <= 1440px) and (max-height: 840px) {
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded="true"]) {
+    .comparison-label-full {
+      display: none;
+    }
+    .comparison-label-short {
+      display: inline;
+    }
+    .comparison-preview-actions,
+    .comparison-view-actions {
+      gap: 4px;
+    }
+    .comparison-preview-context {
+      font-size: 12px;
+    }
+    .comparison-preview-context .field-help {
+      font-size: inherit;
+    }
+    .aligned-structure-heading {
+      gap: 5px;
+    }
+    .aligned-structure-heading h3 {
+      white-space: nowrap;
+    }
+    .aligned-structure-heading .verified-artifact-download > button {
+      padding-inline: 6px;
+    }
+    .aligned-structure-pair .viewer-panel {
+      padding-block-start: 0;
+    }
+    .aligned-structure-pair .studio-heading {
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-block-end: 6px;
+    }
+    .aligned-structure-pair .viewer-heading-actions {
+      flex: none;
+    }
+    .viewer-panel .molecular-stage {
+      height: clamp(350px, calc(100dvh - 309px), 520px);
+      min-height: 0;
+    }
+    .aligned-structure-pair .viewer-panel .molecular-stage {
+      height: clamp(320px, calc(100dvh - 369px), 470px);
+    }
+  }
+  .studio-app .comparison-summary .spatial-summary-downloads {
+    gap: 5px;
+
+    :is(a, .verified-artifact-download > button) {
+      min-height: 34px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
   }
 }
