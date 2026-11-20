@@ -1,7 +1,6 @@
 .dataset-preview-pane.candidate-inspection-preview {
   margin-top: 0;
   padding: 0 0 10px;
-  background: var(--surface);
 }
 .candidate-preview-heading,
 .candidate-preview-identity,

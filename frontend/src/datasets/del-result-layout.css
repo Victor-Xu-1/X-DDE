@@ -36,10 +36,6 @@
     padding: 6px 10px;
   }
 
-  [data-del-results] .dataset-download-menu > div {
-    top: calc(100% + 5px);
-  }
-
   [data-del-results]
     .dataset-table-region:is(
       [data-table-view="counts"],
@@ -124,13 +120,8 @@
   [data-del-results] .del-barcode-map > div {
     gap: 4px;
     padding: 8px 11px;
-    background: var(--surface-muted);
     border-top-width: 3px;
     border-radius: 6px;
-  }
-
-  [data-del-results] .del-barcode-map :is(code, span) {
-    color: var(--muted);
   }
 
   [data-del-results] .dataset-block-grid {
@@ -140,7 +131,6 @@
   [data-del-results] .dataset-block-grid article {
     min-height: 152px;
     padding: 10px 12px;
-    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
   }
