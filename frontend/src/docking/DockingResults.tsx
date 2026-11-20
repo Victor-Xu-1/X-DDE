@@ -13,6 +13,7 @@ import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
 import "./DockingResults.css";
+import "../presentation/spatial-result-review.css";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";

@@ -225,6 +225,7 @@ export function PoseTable({
   ];
   return (
     <ResearchTable
+      compactToolbar
       rows={result.poses}
       columns={columns}
       rowId={(p) => String(p.record)}

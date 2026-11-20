@@ -3,6 +3,7 @@ import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useRef, useState } from "react";
 import { ResearchTable } from "../presentation/ResearchTable";
 import "./pocket-results.css";
+import "../presentation/spatial-result-review.css";
 import type { Job, Language } from "../types";
 import type { PocketResult } from "./types";
 import { StructureViewer } from "../viewer/StructureViewer";
@@ -81,6 +82,31 @@ function PocketWorkspace({
   return (
     <section className="operation-results pocket-result-workspace">
       <StructureWorkbench
+        toolbar={
+          selected && (
+            <CandidateReviewBar
+              label={zh ? "口袋预览选择" : "Pocket preview selection"}
+              caption={zh ? "口袋" : "Pocket"}
+              candidates={result.pockets.map((site) => ({
+                id: site.rank,
+                label: (zh ? "预览口袋 " : "Preview pocket ") + site.rank,
+                short: site.rank,
+              }))}
+              selected={selected.rank}
+              language={language}
+              onSelect={setRank}
+              actions={
+                <button
+                  className="secondary-button pocket-panel-jump"
+                  type="button"
+                  onClick={() => revealPanel(details.current)}
+                >
+                  {zh ? "口袋详情" : "Pocket details"}
+                </button>
+              }
+            />
+          )
+        }
         preview={
           <div
             className="pocket-scene"
@@ -89,29 +115,6 @@ function PocketWorkspace({
             role="region"
             aria-label={zh ? "口袋三维预览" : "Pocket 3D preview"}
           >
-            {selected && (
-              <CandidateReviewBar
-                label={zh ? "口袋预览选择" : "Pocket preview selection"}
-                caption={zh ? "口袋" : "Pocket"}
-                candidates={result.pockets.map((site) => ({
-                  id: site.rank,
-                  label: (zh ? "预览口袋 " : "Preview pocket ") + site.rank,
-                  short: site.rank,
-                }))}
-                selected={selected.rank}
-                language={language}
-                onSelect={setRank}
-                actions={
-                  <button
-                    className="secondary-button pocket-panel-jump"
-                    type="button"
-                    onClick={() => revealPanel(details.current)}
-                  >
-                    {zh ? "口袋详情" : "Pocket details"}
-                  </button>
-                }
-              />
-            )}
             <StructureViewer
               key={overlay ?? "protein-only"}
               focusModel={overlay ? 1 : undefined}
@@ -165,6 +168,7 @@ function PocketWorkspace({
             />
           )}
           <ResearchTable
+            compactToolbar
             title={zh ? "候选口袋" : "Candidate pockets"}
             rows={result.pockets}
             language={language}

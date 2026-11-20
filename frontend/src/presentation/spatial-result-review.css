@@ -1,0 +1,42 @@
+/* Align pocket navigation with the candidate rail. */
+@media (min-width: 1180px) {
+  .pocket-result-workspace
+    > .structure-workbench:not([data-workspace-expanded]):has(
+      > .structure-workbench-toolbar
+    ) {
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: 10px;
+
+    > .structure-workbench-toolbar {
+      grid-area: 1 / 2;
+    }
+    > .structure-workbench-details {
+      grid-area: 2 / 2;
+    }
+    > .structure-workbench-view {
+      grid-area: 1 / 1 / span 2;
+    }
+  }
+}
+
+/* Allow for each result header and viewer toolbar on shorter desktop screens. */
+@media (min-width: 1180px) and (max-height: 840px) {
+  .pocket-result-workspace {
+    --spatial-stage-reserve: 272px;
+  }
+  .docking-results {
+    --spatial-stage-reserve: 342px;
+  }
+  .surface-results {
+    --spatial-stage-reserve: 290px;
+  }
+  .studio-app
+    :is(.pocket-result-workspace, .docking-results, .surface-results)
+    > .structure-workbench:not([data-workspace-expanded])
+    > .structure-workbench-view
+    .viewer-panel:not(.pose-comparison-panels .viewer-panel)
+    .molecular-stage {
+    height: clamp(355px, calc(100dvh - var(--spatial-stage-reserve)), 535px);
+    min-height: 0;
+  }
+}

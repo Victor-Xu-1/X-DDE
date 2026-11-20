@@ -77,6 +77,7 @@ export function SurfaceTable({
       <div role="tabpanel" id={id + "-panel"} aria-labelledby={id + "-" + view}>
         {view === "regions" ? (
           <ResearchTable
+            compactToolbar
             rows={result.residues}
             columns={[
               {
@@ -96,6 +97,7 @@ export function SurfaceTable({
           />
         ) : (
           <ResearchTable<SurfaceResult["atoms"][number]>
+            compactToolbar
             rows={result.atoms}
             columns={[
               {

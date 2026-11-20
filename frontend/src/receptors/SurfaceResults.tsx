@@ -1,4 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
+import "../presentation/spatial-result-review.css";
 import { SpatialResultSummary } from "../presentation/SpatialResultSummary";
 import { useState } from "react";
 import { artifactUrl } from "../api";
