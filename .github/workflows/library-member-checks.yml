@@ -24,6 +24,10 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -38,8 +42,8 @@ jobs:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python3 scripts/del-ci-scope.py
   contracts:
-    needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    needs: [scope, utility-scope]
+    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -64,8 +68,8 @@ jobs:
       - name: Exact immutable member reads, saves and pagination
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
-    needs: scope
-    if: needs.scope.outputs.del_only != 'true'
+    needs: [scope, utility-scope]
+    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

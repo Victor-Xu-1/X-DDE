@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { DatasetResults } from "./DatasetResults";
 import type { DatasetResult } from "./types";
@@ -6,8 +7,16 @@ import type { Job } from "../types";
 import { nativeQuality } from "./sequencing-quality.test-data";
 
 vi.mock("./ResearchTable", () => ({
-  ResearchTable: ({ view }: { view: string }) => (
-    <div>Native members: {view}</div>
+  ResearchTable: ({
+    view,
+    comparisonControl,
+  }: {
+    view: string;
+    comparisonControl?: ReactNode;
+  }) => (
+    <div>
+      {comparisonControl}Native members: {view}
+    </div>
   ),
 }));
 vi.mock("./DatasetCharts", () => ({
@@ -150,5 +159,57 @@ it("preserves a quality tab when real primary data and real chart artifacts both
     <DatasetResults job={job} result={data("library", true)} language="en" />,
   );
   expect(screen.getByText("Native members: library")).toBeVisible();
+  expect(screen.getByRole("tab", { name: "Charts and quality" })).toBeVisible();
+});
+
+it("opens DEL candidate structures from the result tabs while retaining the comparison", () => {
+  const result: DatasetResult = {
+    ...data("analysis", true),
+    operation: "del_analyze",
+    program: "deli",
+    artifacts: [
+      ...data("analysis", true).artifacts,
+      {
+        name: "evidence.csv",
+        role: "del_comparison_evidence",
+        format: "csv",
+        sha256: "c".repeat(64),
+        size: 20,
+      },
+    ],
+    metadata: {
+      chosen_comparison: "a",
+      comparisons: [
+        { id: "a", selection: "S1", reference: "R1" },
+        { id: "b", selection: "S2", reference: "R2" },
+      ],
+    },
+    candidates: [
+      {
+        id: "member",
+        source_job: null,
+        source_record: 0,
+        supplier: "",
+        smiles: "",
+        score: 2,
+        raw_score: null,
+        docking_score: null,
+        cnn_score: null,
+        cnn_affinity: null,
+        artifact: null,
+        record: 0,
+        geometry: "none",
+      },
+    ],
+  };
+  render(<DatasetResults job={job} result={result} language="en" />);
+  expect(screen.queryByText("Native candidates")).toBeNull();
+  fireEvent.change(screen.getByRole("combobox", { name: "Comparison" }), {
+    target: { value: "b" },
+  });
+  fireEvent.click(screen.getByRole("tab", { name: "Candidate structures" }));
+  expect(screen.getByText("Native candidates")).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "Results" }));
+  expect(screen.getByRole("combobox", { name: "Comparison" })).toHaveValue("b");
   expect(screen.getByRole("tab", { name: "Charts and quality" })).toBeVisible();
 });

@@ -26,6 +26,7 @@ export function CandidateView({
   summary?: ReactNode;
 }) {
   const sourceSnapshot = useContext(TemplatePreviewContext);
+  const delReview = result.operation?.startsWith("del_");
   const zh = language === "zh",
     initial = Math.max(
       0,
@@ -97,46 +98,58 @@ export function CandidateView({
   const structureDownload = zh
     ? "下载原始结果结构"
     : "Download original result structure";
+  const heading = (
+    <header className="candidate-preview-heading">
+      <div className="candidate-preview-identity">
+        <strong>{candidate?.display_name || candidate?.id}</strong>
+        {source && (
+          <span>
+            {candidate?.geometry === "binding_pose"
+              ? zh
+                ? "结合姿势"
+                : "Binding pose"
+              : candidate?.geometry === "unbound_conformer"
+                ? zh
+                  ? "游离构象"
+                  : "Unbound conformer"
+                : zh
+                  ? "二维结构"
+                  : "2D structure"}
+          </span>
+        )}
+      </div>
+      <div className="candidate-preview-actions">
+        {molecular && (
+          <a
+            className="secondary-button"
+            aria-label={structureDownload}
+            title={structureDownload}
+            href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
+          >
+            <DownloadOutlined aria-hidden="true" />
+            {delReview
+              ? zh
+                ? "结构文件"
+                : "Structure file"
+              : structureDownload}
+          </a>
+        )}
+        <Hint label={zh ? "预览说明" : "Preview help"}>
+          {zh
+            ? "结合姿势来自本次对接的原始结构；游离构象来自源结果的分子文件。"
+            : "Binding poses use the original docked coordinates. Free conformers use the retained molecular file."}
+        </Hint>
+      </div>
+    </header>
+  );
   const content = (
     <StructureWorkbench
       preview={
-        <section className="dataset-preview-pane candidate-inspection-preview">
-          <header className="candidate-preview-heading">
-            <div className="candidate-preview-identity">
-              <strong>{candidate?.display_name || candidate?.id}</strong>
-              {source && (
-                <span>
-                  {candidate?.geometry === "binding_pose"
-                    ? zh
-                      ? "结合姿势"
-                      : "Binding pose"
-                    : candidate?.geometry === "unbound_conformer"
-                      ? zh
-                        ? "游离构象"
-                        : "Unbound conformer"
-                      : zh
-                        ? "二维结构"
-                        : "2D structure"}
-                </span>
-              )}
-            </div>
-            <div className="candidate-preview-actions">
-              {molecular && (
-                <a
-                  className="secondary-button"
-                  href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
-                >
-                  <DownloadOutlined aria-hidden="true" />
-                  {structureDownload}
-                </a>
-              )}
-              <Hint label={zh ? "预览说明" : "Preview help"}>
-                {zh
-                  ? "结合姿势来自本次对接的原始结构；游离构象来自源结果的分子文件。"
-                  : "Binding poses use the original docked coordinates. Free conformers use the retained molecular file."}
-              </Hint>
-            </div>
-          </header>
+        <section
+          className="dataset-preview-pane candidate-inspection-preview"
+          data-del-review={delReview || undefined}
+        >
+          {(!delReview || !source) && heading}
           {source ? (
             <MolecularPreview
               key={candidate.id}
@@ -146,6 +159,7 @@ export function CandidateView({
               nativeArtifactSha256={frame.nativeArtifactSha256}
               nativeArtifactRecord={frame.nativeArtifactRecord}
               source={source}
+              toolbar={delReview ? heading : undefined}
               label={candidate.display_name || candidate.id}
               defaultView={has3d ? "3d" : "2d"}
               focusModel={

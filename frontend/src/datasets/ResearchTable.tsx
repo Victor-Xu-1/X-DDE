@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { request } from "../api";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { Hint } from "../guided/Hint";
@@ -123,6 +123,7 @@ export function ResearchTable({
   selection = [],
   onRowsLoaded,
   defaultPrioritized = false,
+  comparisonControl,
 }: {
   jobId: string;
   view: keyof typeof views;
@@ -133,6 +134,7 @@ export function ResearchTable({
   selection?: string[];
   onRowsLoaded?(rows: TableRow[]): void;
   defaultPrioritized?: boolean;
+  comparisonControl?: ReactNode;
 }) {
   const receiver = useRef(onRowsLoaded);
   receiver.current = onRowsLoaded;
@@ -209,8 +211,9 @@ export function ResearchTable({
     );
   }
   return (
-    <section className="dataset-table-region">
+    <section className="dataset-table-region" data-table-view={view}>
       <div className="dataset-table-toolbar">
+        {comparisonControl}
         <input
           type="search"
           value={search}

@@ -11,7 +11,8 @@ import { chartArtifacts } from "./chart-documents";
 import { countSummary } from "./count-summary";
 import { IndexedLibraryResults } from "./IndexedLibraryResults";
 import { DELSeriesContext } from "./DELSeriesContext";
-import { ResearchTabs } from "../presentation/ResearchTabs";
+import { ResearchTabs, type ResearchTab } from "../presentation/ResearchTabs";
+import "./del-result-layout.css";
 
 export function DatasetResults({
   job,
@@ -83,24 +84,36 @@ export function DatasetResults({
       />
     </div>
   );
+  const comparisonControl = available &&
+    available.length > 0 &&
+    tableView === "enrichment" && (
+      <label className="dataset-comparison-control">
+        {zh ? "比较组" : "Comparison"}
+        <select
+          value={chosen}
+          aria-label={zh ? "选择比较" : "Comparison"}
+          onChange={(e) => setChosen(e.target.value)}
+        >
+          {available.map((item) => (
+            <option value={item.id} key={item.id}>
+              {item.selection} / {item.reference}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  const candidateView = result.candidates.length ? (
+    <CandidateView
+      job={job}
+      result={result}
+      language={language}
+      onCreated={onCreated}
+      summary={summaryInPreview ? summary : undefined}
+    />
+  ) : null;
+  const candidateTab = tableView === "enrichment" && candidateView;
   const primary = (
     <>
-      {available && available.length > 0 && tableView === "enrichment" && (
-        <label className="dataset-comparison-control">
-          {zh ? "比较组" : "Comparison"}
-          <select
-            value={chosen}
-            aria-label={zh ? "选择比较" : "Comparison"}
-            onChange={(e) => setChosen(e.target.value)}
-          >
-            {available.map((item) => (
-              <option value={item.id} key={item.id}>
-                {item.selection} / {item.reference}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
       {tableView === "enrichment" &&
         result.metadata.minimum_supporting_samples != null && (
           <p className="field-help">
@@ -118,15 +131,7 @@ export function DatasetResults({
                 : ". Externally reported counts; processing unverified. Intervals are count-model estimates only.")}
           </p>
         )}
-      {result.candidates.length > 0 && !tableView && (
-        <CandidateView
-          job={job}
-          result={result}
-          language={language}
-          onCreated={onCreated}
-          summary={summaryInPreview ? summary : undefined}
-        />
-      )}
+      {!tableView && candidateView}
       {(tableView === "index" || tableView === "library") && (
         <IndexedLibraryResults
           key={job.id}
@@ -141,6 +146,7 @@ export function DatasetResults({
           jobId={job.id}
           view={tableView}
           comparison={chosen}
+          comparisonControl={comparisonControl}
           language={language}
           defaultPrioritized={
             tableView === "enrichment" &&
@@ -148,15 +154,10 @@ export function DatasetResults({
           }
         />
       )}
-      {result.candidates.length > 0 && tableView && (
+      {candidateView && tableView && !candidateTab && (
         <details className="dataset-structure-details">
           <summary>{zh ? "查看候选结构" : "Candidate structures"}</summary>
-          <CandidateView
-            job={job}
-            result={result}
-            language={language}
-            onCreated={onCreated}
-          />
+          {candidateView}
         </details>
       )}
       {result.data_kind === "definition" && (
@@ -167,8 +168,30 @@ export function DatasetResults({
   const charts = hasCharts ? (
     <DatasetCharts job={job} result={result} language={language} />
   ) : null;
+  const tabs: ResearchTab[] = [];
+  if (hasPrimary)
+    tabs.push({
+      id: "results",
+      label: zh ? "结果探索" : "Results",
+      content: primary,
+    });
+  if (candidateTab)
+    tabs.push({
+      id: "candidates",
+      label: zh ? "候选结构" : "Candidate structures",
+      content: candidateTab,
+    });
+  if (charts)
+    tabs.push({
+      id: "quality",
+      label: zh ? "图表与质量" : "Charts and quality",
+      content: charts,
+    });
   return (
-    <div className="dataset-results">
+    <div
+      className="dataset-results"
+      data-del-results={result.operation?.startsWith("del_") || undefined}
+    >
       {!summaryInPreview && summary}
       {result.operation === "del_count" &&
         result.metadata.umi_method !== "raw" &&
@@ -186,27 +209,14 @@ export function DatasetResults({
           language={language}
         />
       )}
-      {hasPrimary && charts ? (
+      {tabs.length > 1 ? (
         <ResearchTabs
           key={`views:${job.id}`}
           label={zh ? "研究结果视图" : "Research result views"}
-          tabs={[
-            {
-              id: "results",
-              label: zh ? "结果探索" : "Results",
-              content: primary,
-            },
-            {
-              id: "quality",
-              label: zh ? "图表与质量" : "Charts and quality",
-              content: charts,
-            },
-          ]}
+          tabs={tabs}
         />
-      ) : hasPrimary ? (
-        primary
       ) : (
-        charts
+        tabs[0]?.content
       )}
       {result.warnings.length > 0 && (
         <details className="dataset-method-note">
