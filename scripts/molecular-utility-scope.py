@@ -1979,6 +1979,12 @@ def main():
         NATIVE_COLOR_FIGURE_FILES, NATIVE_COLOR_FIGURE_DIFF,
         scope_pin="NATIVE_COLOR_FIGURE_DIFF",
     )
+    prediction_input_layout = (
+        "frontend/src/guided/desktop-questionnaire.css" in changed
+        and run_path(str(Path(__file__).with_name("prediction-workspace-scope.py")))[
+            "input_preview_only"
+        ](changed, os.environ.get("GITHUB_EVENT_NAME", "push"))
+    )
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
         aligned_comparison = aligned_comparison_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
@@ -1988,6 +1994,7 @@ def main():
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
         output.write("guided_desktop_only=" + str(guided_desktop).lower() + "\n")
+        output.write("prediction_input_layout=" + str(prediction_input_layout).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
         output.write("compact_material_only=" + str(compact_material).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")

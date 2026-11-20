@@ -214,6 +214,7 @@ jobs:
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
       portable_smiles_only: ${{ steps.select.outputs.portable_smiles_only }}
       guided_desktop_only: ${{ steps.select.outputs.guided_desktop_only }}
+      prediction_input_layout: ${{ steps.select.outputs.prediction_input_layout }}
       utility_query_only: ${{ steps.select.outputs.utility_query_only }}
       compact_material_only: ${{ steps.select.outputs.compact_material_only }}
       paired_figure_only: ${{ steps.select.outputs.paired_figure_only }}
@@ -278,6 +279,7 @@ jobs:
       needs.scope.outputs.editor_drawing_only != 'true' &&
       needs.scope.outputs.portable_smiles_only != 'true' &&
       needs.scope.outputs.guided_desktop_only != 'true' &&
+      needs.scope.outputs.prediction_input_layout != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&
       needs.scope.outputs.compact_material_only != 'true' &&
       needs.scope.outputs.paired_figure_only != 'true' &&

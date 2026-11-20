@@ -1,12 +1,14 @@
-/* Keep the current question and its navigation in separate desktop rows.
-   Only the dedicated new-task view owns a viewport-sized workspace. */
+/* Keep the current question and its navigation in separate desktop rows. */
 @media (min-width: 1080px) and (min-height: 620px) {
   .studio-main:has(
     > .studio-content
     > .tool-center.is-input
     > div:not([hidden])
     .questionnaire:not(.single-page-task)
-    > fieldset[aria-labelledby]:not([hidden])
+    > fieldset[aria-labelledby]:not([hidden]),
+    > .studio-content > div:not([hidden]) > .prediction-workspace.is-input
+    .input-column:not([hidden]) > div:not([hidden])
+    .questionnaire > fieldset[aria-labelledby]:not([hidden])
   ) {
     display: flex;
     flex-direction: column;
@@ -31,6 +33,12 @@
 
     .tool-center.is-input,
     .tool-center.is-input > div:not([hidden]),
+    .studio-content > div:not([hidden]):has(> .prediction-workspace.is-input),
+    .prediction-workspace.is-input,
+    .prediction-workspace.is-input > .workbench-section,
+    .prediction-workspace.is-input .workbench-columns,
+    .prediction-workspace.is-input .input-column:not([hidden]),
+    .prediction-workspace.is-input .input-column > div:not([hidden]),
     .prediction-form-body {
       display: flex;
       flex: 1 1 0;
@@ -40,6 +48,24 @@
 
     .tool-center.is-input {
       margin-block: 0;
+    }
+
+    .prediction-workspace.is-input
+      :is(.workspace-mode, .workbench-toolbar, .module-template) {
+      flex-shrink: 0;
+    }
+
+    .prediction-workspace.is-input .workbench-toolbar {
+      min-block-size: 0;
+      margin-block-end: 6px;
+    }
+
+    .prediction-workspace.is-input .workbench-columns {
+      align-items: stretch;
+    }
+
+    .prediction-workspace.is-input .module-template {
+      margin-block: 2px 6px;
     }
 
     .tool-center.is-input > .module-template {
@@ -55,14 +81,14 @@
       margin-block-start: 0;
     }
 
-    .prediction-setup {
+    .prediction-setup-layout .prediction-setup {
+      display: flex;
+      flex-direction: column;
       position: static;
-      align-self: start;
-      max-block-size: 100%;
-      overflow: auto;
+      min-block-size: 0;
     }
 
-    .tool-center .questionnaire:not(.single-page-task) {
+    :is(.tool-center, .prediction-workspace.is-input) .questionnaire:not(.single-page-task) {
       display: flex;
       flex: 1 1 0;
       flex-direction: column;
@@ -82,6 +108,8 @@
       > fieldset[aria-labelledby]:not([hidden]) {
         flex: 1 1 0;
         min-block-size: 0;
+        /* Keep absolutely positioned accessible labels inside the scroll pane. */
+        position: relative;
         overflow: auto;
         scrollbar-gutter: stable;
         padding: 4px 4px 8px;
@@ -182,15 +210,48 @@
 }
 
 @media (min-width: 1080px) and (620px <= height <= 719px) {
-  .studio-main:has(> .studio-content > .tool-center.is-input .questionnaire > fieldset[aria-labelledby]:not([hidden])) {
+  .studio-main:has(
+    > .studio-content > .tool-center.is-input .questionnaire > fieldset[aria-labelledby]:not([hidden]),
+    > .studio-content > div:not([hidden]) > .prediction-workspace.is-input
+    .input-column:not([hidden]) > div:not([hidden])
+    .questionnaire > fieldset[aria-labelledby]:not([hidden])
+  ) {
     > .studio-topbar {
       min-height: 52px;
       margin-block: 9px 4px;
       padding-block: 5px;
     }
 
-    > .studio-content > .module-task-picker > label {
+    .studio-content .module-task-picker > label {
       flex: 1 1 300px;
+    }
+
+    .prediction-workspace.is-input .workflow-options {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .prediction-workspace.is-input .workflow-options label {
+      min-block-size: 0;
+      padding: 9px 10px;
+      border-radius: 8px 8px 0 0;
+      gap: 7px;
+    }
+
+    .prediction-workspace.is-input .workflow-options small {
+      margin-block-start: 3px;
+      line-height: 1.4;
+    }
+
+    .prediction-workspace.is-input .workflow-note {
+      margin: 4px 0 0;
+    }
+
+    .prediction-workspace.is-input .questionnaire > .questionnaire-steps {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-block-end: 9px;
+      padding-block: 0 7px;
     }
 
     .tool-center .questionnaire > fieldset:not([hidden]):has(

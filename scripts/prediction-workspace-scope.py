@@ -94,16 +94,25 @@ PATTERNS = (
 )
 
 INPUT_PREVIEW_FILES = {
+    "frontend/src/guided/desktop-questionnaire.css",
     "frontend/src/presentation/PredictionSetup.tsx",
+    "frontend/src/presentation/PredictionSetup.test.tsx",
     "frontend/src/presentation/PredictionInputPreview.tsx",
     "frontend/src/presentation/PredictionEntityPreview.tsx",
+    "frontend/src/presentation/PredictionSourceMolecule.tsx",
     "frontend/src/presentation/PredictionInputPreview.test.tsx",
+    "frontend/src/presentation/prediction-input-inspector.css",
     "frontend/src/presentation/prediction-input-preview.css",
+    "frontend/src/presentation/prediction-inputs.css",
+    "frontend/src/presentation/prediction-setup-summary.css",
     "frontend/src/integrations/ScientificForm.tsx",
     "server_tests/test_prediction_input_preview_browser.py",
     "scripts/prediction-workspace-scope.py",
+    "scripts/molecular-utility-scope.py",
     "tests/test_prediction_workspace_scope.py",
+    "tests/test_molecular_utility_scope.py",
     ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
     "docs/quality/frontend-coverage.md",
     "pyproject.toml",
     "uv.lock",
@@ -775,6 +784,7 @@ def preview_changed(changed, event="push"):
                 "frontend/src/presentation/PredictionSetup",
                 "frontend/src/presentation/PredictionInputPreview",
                 "frontend/src/presentation/PredictionEntityPreview",
+                "frontend/src/presentation/PredictionSourceMolecule",
                 "frontend/src/presentation/PredictionReviewDialog",
             )
         )
@@ -783,6 +793,8 @@ def preview_changed(changed, event="push"):
             "frontend/src/presentation/prediction-settings-summary.ts",
             "frontend/src/research/asset-download.ts",
             "frontend/src/presentation/prediction-input-preview.css",
+            "frontend/src/presentation/prediction-input-inspector.css",
+            "frontend/src/presentation/prediction-setup-summary.css",
             "frontend/src/presentation/prediction-inputs.css",
             "frontend/src/presentation/prediction-shell.css",
             "frontend/src/presentation/prediction-workspace.css",
@@ -1198,7 +1210,7 @@ def result_layout_only(changed, event="push"):
 
 
 def selected(changed, event="push"):
-    if setup_summary_only(changed, event):
+    if input_preview_only(changed, event):
         return True
     if result_layout_only(changed, event):
         return True
