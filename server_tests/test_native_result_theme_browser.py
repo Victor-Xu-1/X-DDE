@@ -11,7 +11,6 @@ from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 from server_tests.test_candidate_inspection_desktop import load_case
 
-
 CASES = ("drugclip.index", "screening.dock", "library.select", "del.candidates")
 
 
@@ -101,7 +100,10 @@ def test_native_result_controls_follow_theme(language, theme, width, height):
         else:
             route.continue_()
 
-    with platform(settings.state_dir, evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"""
