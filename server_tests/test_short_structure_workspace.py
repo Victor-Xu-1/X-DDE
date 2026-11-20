@@ -74,7 +74,8 @@ def inspect_prediction(page, base, width, height, zh, evidence):
 def inspect_boltz_fallback(page, base, height, evidence):
     open_result(page, base, "boltz.predict")
     result = page.locator(".prediction-result")
-    expect(result.locator(".prediction-result-method")).to_contain_text("Boltz-2")
+    header = page.locator(".prediction-result-heading")
+    expect(header.locator(".prediction-result-method")).to_contain_text("Boltz-2")
     expect(result.locator(".confidence-empty")).to_contain_text("No PAE matrix")
     capture = result.get_by_role("button", name="Capture 3D view", exact=True)
     expect(capture).to_be_enabled(timeout=30000)
@@ -85,7 +86,7 @@ def inspect_boltz_fallback(page, base, height, evidence):
     expect(capture).to_be_enabled(timeout=30000)
     iframe = result.locator(".molecular-stage iframe")
     canvas = inspect_canvas(iframe, height, 340)
-    expect(result.get_by_role("button", name="Download all data", exact=True)).to_be_in_viewport()
+    expect(header.get_by_role("button", name="Download all data", exact=True)).to_be_in_viewport()
     page.screenshot(path=evidence / "boltz.png")
     return canvas
 
