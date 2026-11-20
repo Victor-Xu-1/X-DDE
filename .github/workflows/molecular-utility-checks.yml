@@ -202,6 +202,7 @@ jobs:
       utility_only: ${{ steps.select.outputs.utility_only }}
       inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
+      portable_smiles_only: ${{ steps.select.outputs.portable_smiles_only }}
       utility_query_only: ${{ steps.select.outputs.utility_query_only }}
       compact_material_only: ${{ steps.select.outputs.compact_material_only }}
       paired_figure_only: ${{ steps.select.outputs.paired_figure_only }}
@@ -263,6 +264,7 @@ jobs:
       needs.scope.outputs.recognition_access_only != 'true' &&
       needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.editor_drawing_only != 'true' &&
+      needs.scope.outputs.portable_smiles_only != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&
       needs.scope.outputs.compact_material_only != 'true' &&
       needs.scope.outputs.paired_figure_only != 'true' &&
@@ -577,7 +579,6 @@ jobs:
           src/utilities/UtilityWorkspace.test.tsx src/utilities/UtilityTask.test.tsx
           src/utilities/ImageMoleculeInput.action.test.tsx
           src/editors/recognition-host-editor.test.ts
-          src/editors/portable-smiles.test.ts
       - name: Chrome handoff, native resources and legacy image import
         run: |
           uv sync --locked --group dev --group browser
@@ -591,6 +592,28 @@ jobs:
           name: editor-handoff-browser-evidence
           path: outputs/utility-image/
           if-no-files-found: warn
+
+  recognition-smiles-export:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.portable_smiles_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: SMILES export and host embedding
+        working-directory: frontend
+        run: npx vitest run src/editors/portable-smiles.test.ts src/utilities/ImageRecognition.test.tsx
+      - name: Companion migrations, wheel resources and focus scope
+        run: |
+          uv sync --locked --group dev
+          uv run --locked ruff check scripts/molecular-utility-scope.py src/opendde_workbench/recognition_companion.py tests/test_molecular_utility_scope.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py
+          uv build --wheel
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py
 
   recognition-power-in-task:
     needs: scope

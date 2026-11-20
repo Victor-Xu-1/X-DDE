@@ -654,9 +654,10 @@ PORTABLE_SMILES_FILES = {
     "pyproject.toml",
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "src/opendde_workbench/recognition_companion.py",
+    "tests/test_molecular_utility_scope.py",
     "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "548966e34b1bfc6183c49dfbe8b6d4fd04469a48cfe0fa12c198b245f5591f8c"
+PORTABLE_SMILES_DIFF = "c81d275fa3b69fd9a24e8ef20e2a4ef44d28ec88cda8c11e9b3f79c3cc465079"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
@@ -1929,7 +1930,8 @@ def main():
     editor_drawing = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         EDITOR_DRAWING_FILES, EDITOR_DRAWING_DIFF, scope_pin="EDITOR_DRAWING_DIFF",
-    ) or reviewed_selected(
+    )
+    portable_smiles = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PORTABLE_SMILES_FILES, PORTABLE_SMILES_DIFF, scope_pin="PORTABLE_SMILES_DIFF",
     )
@@ -1957,6 +1959,7 @@ def main():
         output.write("aligned_comparison_only=" + str(aligned_comparison).lower() + "\n")
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
+        output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
         output.write("compact_material_only=" + str(compact_material).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
@@ -2040,6 +2043,7 @@ def main():
             or aligned_comparison
             or inline_recognition
             or editor_drawing
+            or portable_smiles
             or utility_query
             or compact_material
             or paired_figure
