@@ -1,12 +1,14 @@
 .dataset-workspace,
 .dataset-results {
-  --dataset-blue: #4768dd;
-  --dataset-purple: #7663dc;
-  --dataset-ink: #24344c;
-  --dataset-soft: #f6f8fc;
   width: 100%;
   min-width: 0;
-  color: var(--dataset-ink);
+}
+.dataset-workspace {
+  --dataset-blue: #4768dd;
+  color: #24344c;
+}
+.dataset-results {
+  color: var(--ink);
 }
 .dataset-continuation {
   display: flex;
@@ -14,19 +16,19 @@
   align-items: center;
   gap: 10px;
   padding: 18px 0;
-  border-top: 1px solid #e7ecf4;
+  border-top: 1px solid var(--line);
   margin-top: 18px;
 }
 .dataset-continuation > span {
   font-weight: 600;
   font-size: 13px;
   margin-right: 8px;
-  color: #5a6780;
+  color: var(--muted);
 }
 .dataset-continuation > button {
-  background: #fff;
-  color: #425b9d;
-  border: 1px solid #d9e1ee;
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--line);
   border-radius: 7px;
   padding: 9px 13px;
   font-size: 13px;
@@ -279,8 +281,8 @@
 }
 .dataset-status-complete {
   font-size: 12px;
-  background: #e8f6ef;
-  color: #258364;
+  background: var(--success-soft);
+  color: var(--success);
   border-radius: 5px;
   padding: 5px 8px;
 }
@@ -290,39 +292,43 @@
   position: relative;
   font-size: 13px;
 }
-.dataset-download-menu summary {
+.dataset-download-menu > summary {
   cursor: pointer;
-  color: #3c5ed6;
-  border: 1px solid #d4def4;
+  color: var(--accent);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: white;
+  background: var(--surface);
   padding: 9px 14px;
+}
+.dataset-download-menu[open] > summary {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .dataset-download-menu > div {
   position: absolute;
   right: 0;
-  top: 43px;
+  top: calc(100% + 5px);
   z-index: 12;
   display: grid;
   gap: 10px;
-  background: #fff;
-  box-shadow: 0 9px 35px #223b671c;
+  background: var(--surface);
+  box-shadow: var(--shadow);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--line);
   min-width: 260px;
   max-height: min(50vh, 420px);
   overflow: auto;
 }
 .dataset-download-menu a {
-  color: #425a8c;
+  color: var(--accent);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 .dataset-data-downloads > summary {
-  border: 0;
-  border-top: 1px solid #e2e8f0;
-  border-radius: 0;
+  cursor: pointer;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
   padding: 12px 0;
 }
 .dataset-data-downloads > div {
@@ -379,13 +385,13 @@
   border: 0;
   background: transparent;
   padding: 9px 17px;
-  color: #7b889d;
+  color: var(--muted);
   border-radius: 6px;
   font-size: 13px;
 }
 .dataset-result-tabs button[aria-pressed="true"] {
-  background: #eaf0ff;
-  color: #4963bb;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .dataset-panel-title {
   padding: 15px 0 16px;
@@ -394,27 +400,27 @@
 .dataset-panel-title strong {
   font-size: 14px;
   font-weight: 600;
-  color: #3b4e6c;
+  color: var(--ink);
 }
 .dataset-panel-title span {
   font-size: 12px;
-  color: #77879d;
+  color: var(--muted);
 }
 .dataset-panel-title button,
 .dataset-table-footer button {
-  background: #fff;
-  border: 1px solid #dfe6f0;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 6px 10px;
   font-size: 12px;
-  color: #526987;
+  color: var(--ink);
 }
 .dataset-table-scroll {
   overflow: auto;
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  background: #fff;
+  background: var(--surface);
   min-height: 90px;
   max-height: min(48vh, 560px);
 }
@@ -457,36 +463,38 @@
 }
 .dataset-member-heading > span,
 .dataset-member-actions > span {
-  color: #65748b;
+  color: var(--muted);
   font-size: 12px;
 }
 .dataset-member-actions {
   margin-bottom: 14px;
 }
 .dataset-member-actions .dataset-member-saved {
-  color: #28796e;
+  color: var(--success);
 }
 .dataset-table-scroll th {
-  background: #f4f7fb;
-  color: #758299;
+  background: var(--surface-muted);
+  color: var(--muted);
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
   padding: 13px 13px;
-  border-bottom: 1px solid #e0e7f0;
+  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 1;
 }
 .dataset-table-scroll td {
-  border-bottom: 1px solid #edf0f5;
+  border-bottom: 1px solid var(--line);
   padding: 13px;
-  color: #485b79;
+  color: var(--ink);
   vertical-align: middle;
 }
-.dataset-table-scroll tbody tr:hover,
+.dataset-table-scroll tbody tr:hover {
+  background: var(--surface-hover);
+}
 .dataset-table-scroll tbody tr.selected {
-  background: #f2f5ff;
+  background: var(--accent-soft);
 }
 .dataset-table-scroll .molecule-image {
   width: 170px;
@@ -496,7 +504,7 @@
 .dataset-row-title {
   border: 0;
   background: transparent;
-  color: #3e5db2;
+  color: var(--accent);
   font-size: 12px;
   text-align: left;
   overflow-wrap: anywhere;
@@ -505,23 +513,23 @@
 }
 .dataset-table-scroll td small {
   display: block;
-  color: #8b97a7;
+  color: var(--muted);
   margin-top: 7px;
   font-size: 10px;
 }
 .dataset-unresolved {
-  color: #97a2b2;
+  color: var(--muted);
   font-size: 11px;
 }
 .dataset-table-toolbar {
   flex-wrap: wrap;
   padding: 8px 0 16px;
   font-size: 12px;
-  color: #65748b;
+  color: var(--muted);
 }
 .dataset-table-footer {
   padding: 14px 0;
-  color: #7b8798;
+  color: var(--muted);
   font-size: 12px;
   justify-content: flex-end;
 }
@@ -530,7 +538,7 @@
 }
 .dataset-empty {
   padding: 25px 0;
-  color: #8b97a9;
+  color: var(--muted);
   font-size: 13px;
   text-align: center;
 }
@@ -539,7 +547,7 @@
   min-width: 0;
 }
 .dataset-preview-pane {
-  background: #fff;
+  background: var(--surface);
   border-radius: 8px;
   padding: 0 15px 15px;
 }
@@ -565,17 +573,17 @@
 }
 .dataset-preview-footer {
   padding-top: 14px;
-  color: #7f8da0;
+  color: var(--muted);
   font-size: 12px;
 }
 .dataset-structure-details {
   margin: 25px 0;
-  border-top: 1px solid #e1e7f0;
+  border-top: 1px solid var(--line);
   padding-top: 18px;
 }
 .dataset-method-note {
   font-size: 12px;
-  color: #8491a5;
+  color: var(--muted);
   margin: 18px 0;
 }
 .dataset-method-note p {

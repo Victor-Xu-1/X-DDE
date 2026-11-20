@@ -89,28 +89,8 @@
   }
 
   [data-screening-review] .dataset-table-scroll {
-    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
-  }
-
-  [data-screening-review] .dataset-table-scroll th {
-    color: var(--muted);
-    background: var(--surface-muted);
-    border-color: var(--line);
-  }
-
-  [data-screening-review] .dataset-table-scroll td {
-    color: var(--ink);
-    border-color: var(--line);
-  }
-
-  [data-screening-review] .dataset-table-scroll tbody tr.selected {
-    background: var(--accent-soft);
-  }
-
-  [data-screening-review] .dataset-row-title {
-    color: var(--accent);
   }
 
   .studio-app

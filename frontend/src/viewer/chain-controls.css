@@ -9,6 +9,12 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
+  color: var(--ink);
+}
+.viewer-chain-menu[open] > summary {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .viewer-chain-list {
   position: absolute;
@@ -21,7 +27,8 @@
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
-  box-shadow: var(--shadow-panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
 }
 .viewer-chain-list > div {
   display: flex;

@@ -1334,6 +1334,17 @@ SCREENING_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SCREENING_DESKTOP_DIFF = "edca4300a2b255ffe9bf7acbc045f7bd5a043e76c671f21c7724c7ab33151212"
+RESULT_THEME_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/datasets/CandidateView.css",
+    "frontend/src/datasets/candidate-table.css",
+    "frontend/src/datasets/datasets.css",
+    "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/datasets/screening-result-layout.css",
+    "frontend/src/viewer/chain-controls.css",
+    "server_tests/test_native_result_theme_browser.py",
+}
+RESULT_THEME_DIFF = "b22bf11bd6603e676ca424c0dd913e312e5b6e4858d29fbb8073b95561c5a7fc"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
@@ -1906,7 +1917,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SCREENING_DESKTOP_FILES, SCREENING_DESKTOP_DIFF, scope_pin="SCREENING_DESKTOP_DIFF",
     )
-    candidate_desktop = screening_desktop or reviewed_selected(
+    result_theme = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        RESULT_THEME_FILES, RESULT_THEME_DIFF, scope_pin="RESULT_THEME_DIFF",
+    )
+    candidate_desktop = result_theme or screening_desktop or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
     )
@@ -2035,6 +2050,7 @@ def main():
         output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
         output.write("screening_desktop_only=" + str(screening_desktop).lower() + "\n")
         output.write("del_desktop_only=" + str(del_desktop).lower() + "\n")
+        output.write("result_theme_only=" + str(result_theme).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")

@@ -233,6 +233,7 @@ jobs:
       candidate_desktop_only: ${{ steps.select.outputs.candidate_desktop_only }}
       screening_desktop_only: ${{ steps.select.outputs.screening_desktop_only }}
       del_desktop_only: ${{ steps.select.outputs.del_desktop_only }}
+      result_theme_only: ${{ steps.select.outputs.result_theme_only }}
       simulation_desktop_only: ${{ steps.select.outputs.simulation_desktop_only }}
       proximity_desktop_only: ${{ steps.select.outputs.proximity_desktop_only }}
       result_handoff_desktop_only: ${{ steps.select.outputs.result_handoff_desktop_only }}
@@ -888,7 +889,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Original candidate identity, selection, data and pose controls
-        if: needs.scope.outputs.screening_desktop_only != 'true'
+        if: needs.scope.outputs.screening_desktop_only != 'true' && needs.scope.outputs.result_theme_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/datasets/CandidateView.test.tsx src/datasets/CandidateTable.test.tsx
@@ -904,6 +905,13 @@ jobs:
           npx vitest run src/datasets/CandidateView.test.tsx src/datasets/CandidateTable.test.tsx
           src/datasets/DatasetResults.test.tsx src/datasets/CandidateHandoff.test.tsx
           src/datasets/IndexedLibraryResults.test.tsx src/datasets/ResearchTable.test.tsx
+      - name: Shared result titles, table controls and native chain menu
+        if: needs.scope.outputs.result_theme_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/datasets/DatasetResults.test.tsx src/datasets/CandidateView.test.tsx
+          src/datasets/IndexedLibraryResults.test.tsx src/datasets/ResearchTable.test.tsx
+          src/viewer/StructureViewer.test.tsx
       - name: Restore reviewed retained candidates into isolated scope
         env:
           GH_TOKEN: ${{ github.token }}
@@ -912,6 +920,9 @@ jobs:
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_candidate_inspection_desktop.py
+          if [[ '${{ needs.scope.outputs.result_theme_only }}' == 'true' ]]; then
+            uv run --locked ruff check server_tests/test_native_result_theme_browser.py
+          fi
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           families=(stat6)
           if [[ '${{ needs.scope.outputs.screening_desktop_only }}' != 'true' ]]; then
@@ -932,11 +943,13 @@ jobs:
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-candidate-inspection/state
         run: |
           google-chrome --version
-          scenario=test_retained_candidate_desktop_workspaces
-          if [[ '${{ needs.scope.outputs.screening_desktop_only }}' == 'true' ]]; then
-            scenario=test_retained_screening_desktop
+          scenario=server_tests/test_candidate_inspection_desktop.py::test_retained_candidate_desktop_workspaces
+          if [[ '${{ needs.scope.outputs.result_theme_only }}' == 'true' ]]; then
+            scenario=server_tests/test_native_result_theme_browser.py::test_native_result_controls_follow_theme
+          elif [[ '${{ needs.scope.outputs.screening_desktop_only }}' == 'true' ]]; then
+            scenario=server_tests/test_candidate_inspection_desktop.py::test_retained_screening_desktop
           fi
-          uv run --locked python -m pytest -x -q "server_tests/test_candidate_inspection_desktop.py::$scenario"
+          uv run --locked python -m pytest -x -q "$scenario"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

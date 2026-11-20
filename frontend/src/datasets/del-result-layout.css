@@ -36,10 +36,6 @@
     padding: 6px 10px;
   }
 
-  [data-del-results] .dataset-download-menu > div {
-    top: calc(100% + 5px);
-  }
-
   [data-del-results]
     .dataset-table-region:is(
       [data-table-view="counts"],

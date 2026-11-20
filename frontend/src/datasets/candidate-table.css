@@ -2,10 +2,6 @@
   container-type: inline-size;
 }
 
-.dataset-candidate-table .dataset-panel-title strong {
-  color: var(--ink);
-}
-
 .dataset-candidate-table .research-table th,
 .dataset-candidate-table .research-table td {
   padding: 10px 5px;
