@@ -151,10 +151,12 @@ it.each([
       .spyOn(client.api, "submit")
       .mockResolvedValue({ id: "not-used" } as never);
     render(<UtilityTask tool={tool} language="en" onCreated={vi.fn()} />);
-    expect(
-      screen.getAllByRole("button", { name: "Upload structure image" }),
-    ).toHaveLength(1);
-    const surface = document.querySelector(".utility-image-entry")!;
+    const uploadLabel =
+      tool === "screen" ? "Upload library image" : "Upload structure image";
+    expect(screen.getAllByRole("button", { name: uploadLabel })).toHaveLength(1);
+    if (tool === "screen")
+      expect(screen.getByRole("button", { name: "Upload query image" })).toBeVisible();
+    const surface = screen.getByRole("button", { name: uploadLabel }).closest(".image-molecule-input")!;
     fireEvent.paste(surface, {
       clipboardData: {
         files: [new File(["transport"], "stat6.png", { type: "image/png" })],

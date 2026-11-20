@@ -13,40 +13,111 @@
   background: #ffffffed;
   z-index: 5;
 }
-@media (min-width: 1000px) {
-  .application.is-embedded[data-xdde-drawing] {
+@media (min-width: 800px) {
+  .application.is-embedded {
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    padding: 0 12px 8px;
+    padding: 0 10px 6px;
   }
-  [data-xdde-drawing] .app-header {
-    flex: 0 0 46px;
-    height: 46px;
+  .application.is-embedded .app-header {
+    flex: 0 0 42px;
+    height: 42px;
   }
-  [data-xdde-drawing] .brand-icon {
+  .is-embedded .brand-icon {
     width: 30px;
     height: 30px;
   }
-  [data-xdde-drawing] .brand h1 {
+  .is-embedded .brand-icon svg {
+    width: 18px;
+  }
+  .is-embedded .brand h1 {
     font-size: 16px;
   }
-  [data-xdde-drawing] :is(.brand span, .app-footer, .step-number) {
+  .is-embedded :is(.brand span, .app-footer, .step-number) {
     display: none;
   }
-  [data-xdde-drawing] .workbench {
+  .application.is-embedded .workbench {
     flex: 1 1 auto;
-    grid-template-columns: minmax(290px, 0.85fr) minmax(0, 1.55fr);
+    grid-template-columns: minmax(278px, 0.85fr) minmax(0, 1.55fr);
     border-radius: 10px;
   }
-  [data-xdde-drawing] :is(.input-panel, .output-panel) {
+  .application.is-embedded :is(.input-panel, .output-panel) {
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
-  [data-xdde-drawing] :is(.image-stage, .editor-canvas) {
+  .application.is-embedded .panel-heading {
+    height: 38px;
+    padding-inline: 10px;
+  }
+  .is-embedded .input-panel {
+    border-right: 1px solid var(--border);
+  }
+  .application.is-embedded :is(.image-stage, .editor-canvas) {
     flex: 1 1 auto;
-    height: clamp(300px, calc(100dvh - 214px), 1000px);
+    min-height: 260px;
+    height: calc(100dvh - 174px);
+    margin-inline: 9px;
+  }
+  .application.is-embedded :is(.image-meta, .smiles-output, .output-panel > [role="note"]) {
+    min-height: 35px;
+    height: auto;
+    margin-block: 0;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+  .is-embedded .smiles-output textarea {
+    height: 29px;
+    padding-block: 5px;
+  }
+  .application.is-embedded .panel-footer {
+    min-height: 46px;
+    padding: 5px 10px;
+    gap: 6px;
+  }
+  .is-embedded .input-footer .recognize {
+    min-width: auto;
+    height: 34px;
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+  .is-embedded .examples select {
+    min-width: 0;
+    max-width: 107px;
+  }
+  .is-embedded .export-group {
+    gap: 4px;
+  }
+  .is-embedded .export-group button {
+    min-height: 32px;
+    padding: 5px 7px;
+  }
+}
+@media (min-width: 800px) and (max-width: 999px) {
+  .is-embedded .input-panel .toolbar {
+    gap: 4px;
+  }
+  .is-embedded .input-panel .toolbar > button {
+    width: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+  .is-embedded .input-panel .toolbar > button > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .is-embedded .input-footer .examples > svg {
+    display: none;
+  }
+  .is-embedded .input-footer .recognize {
+    font-size: 12px;
   }
 }
 @media (max-width: 680px), (pointer: coarse) {

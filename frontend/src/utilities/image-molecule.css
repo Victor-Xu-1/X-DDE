@@ -77,6 +77,24 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+@media (min-width: 1040px) {
+  .image-molecule-dialog {
+    width: min(1600px, calc(100vw - 28px));
+    height: min(1000px, calc(100dvh - 28px));
+  }
+  .image-molecule-dialog > header,
+  .image-molecule-dialog > footer {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  .image-molecule-dialog h2 {
+    font-size: 16px;
+  }
+  .image-molecule-dialog > header p {
+    margin-top: 3px;
+    font-size: 12px;
+  }
+}
 @media (max-width: 600px) {
   .image-molecule-dialog {
     width: calc(100vw - 12px);

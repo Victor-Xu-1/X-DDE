@@ -12,6 +12,27 @@ EVIDENCE = Path("outputs/utility-navigation")
 DRAFT = "CC(=O)Nc1ccc(O)cc1"
 
 
+def test_short_desktop_recognition_tools_remain_visible_together():
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    with (
+        platform(Settings.from_env().state_dir, EVIDENCE / "recognition-desktop.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1100, "height": 650})
+        page.route(
+            "**/api/utilities/recognition",
+            lambda route: route.fulfill(json={"available": True}),
+        )
+        page.route("http://127.0.0.1:8940/**", lambda route: route.fulfill(body="Editor"))
+        page.goto(f"{base}/#view=utilities")
+        expect(page.locator(".utility-recognition-frame")).to_be_visible()
+        strip = page.locator(".utility-tabs")
+        expect(strip.get_by_role("button")).to_have_count(6)
+        assert strip.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
+        browser.close()
+
+
 def wait_for_tab_in_view(page, selector):
     page.wait_for_function("""selector => {
       const strip = document.querySelector(".utility-tabs");
@@ -106,7 +127,7 @@ def work_area(panel):
         return {left, right, top, bottom, width, height};
       };
       const one = (selector) => rect(panel.querySelector(selector));
-      const image = '.utility-image-entry > .image-molecule-actions';
+      const image = '.image-molecule-input > .image-molecule-actions';
       return {
         panel: rect(panel),
         input: one('.single-page-main'),

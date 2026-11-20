@@ -492,15 +492,17 @@ UTILITY_NAVIGATION_FILES = {
 UTILITY_NAVIGATION_DIFF = "df3ade6d18c23db03652cf3d15b75dc1ebc76d0ac5ddb8d79a44a877e9c6ec4d"
 
 UTILITY_DESKTOP_FILES = {
+    ".github/workflows/ketcher-depiction-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
-    "docs/frontend-layout.md",
-    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/editors/recognition-host-editor.css",
+    "frontend/src/utilities/UtilityImageTask.test.tsx",
+    "frontend/src/utilities/image-molecule.css",
     "frontend/src/utilities/utilities.css",
-    "frontend/src/utilities/utility-task.css",
+    "server_tests/test_utility_image_browser.py",
     "server_tests/test_utility_navigation_browser.py",
-    "tests/test_molecular_utility_scope.py",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
 }
-UTILITY_DESKTOP_DIFF = "ecad5e50e2869aaef046ae915b975e7a994e84d85325f61395d14fc6bef2b957"
+UTILITY_DESKTOP_DIFF = "1ff5bb050884011bdd61cbf2b8a23cf7cca50e644c24d7dafca0f3d956e24b2b"
 
 
 POTENTIAL_DISPLAY_FILES = {
@@ -1846,7 +1848,7 @@ def main():
     )
     utility_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
-        UTILITY_DESKTOP_FILES, UTILITY_DESKTOP_DIFF,
+        UTILITY_DESKTOP_FILES, UTILITY_DESKTOP_DIFF, scope_pin="UTILITY_DESKTOP_DIFF",
     )
     desktop_help = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
