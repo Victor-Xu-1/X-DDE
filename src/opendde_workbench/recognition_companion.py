@@ -50,21 +50,26 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         if target.resolve() != target or not target.is_file():
             raise ValueError("Native target must be a regular file inside the host")
         original = target.read_bytes()
-        if digest(original) == record["after_sha256"]:
+        original_hash = digest(original)
+        if original_hash == record["after_sha256"]:
             continue
-        changes = record["changes"] if digest(original) == record["before_sha256"] else None
-        if changes is None:
+        final_step = record.get("final_step")
+        if final_step and original_hash == final_step["before_sha256"]:
+            changes = []
+        elif original_hash == record["before_sha256"]:
+            changes = record["changes"]
+        else:
             prior = [item for item in record.get("upgrades", [])
-                     if item["before_sha256"] == digest(original)]
-            if len(prior) == 1:
-                changes = prior[0]["changes"]
-        if changes is None:
-            raise ValueError(f"Unrecognized native source: {record['path']}")
+                     if item["before_sha256"] == original_hash]
+            if len(prior) != 1:
+                raise ValueError(f"Unrecognized native source: {record['path']}")
+            changes = prior[0]["changes"]
         updated = original.decode("utf-8")
-        for change in changes:
-            if updated.count(change["before"]) != 1:
-                raise ValueError("Native hunk no longer matches")
-            updated = updated.replace(change["before"], change["after"], 1)
+        updated = apply_changes(updated, changes)
+        if final_step:
+            if digest(updated.encode("utf-8")) != final_step["before_sha256"]:
+                raise ValueError("Native intermediate does not match the companion")
+            updated = apply_changes(updated, final_step["changes"])
         payload = updated.encode("utf-8")
         if digest(payload) != record["after_sha256"]:
             raise ValueError("Native postimage does not match the companion")
@@ -83,6 +88,14 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         else:
             updates[target] = payload
     return updates
+
+
+def apply_changes(text, changes):
+    for change in changes:
+        if text.count(change["before"]) != 1:
+            raise ValueError("Native hunk no longer matches")
+        text = text.replace(change["before"], change["after"], 1)
+    return text
 
 
 def _replace(path: Path, expected: bytes | None, payload: bytes, owner):

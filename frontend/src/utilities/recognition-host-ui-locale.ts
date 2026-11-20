@@ -56,6 +56,12 @@ const english: Record<string, string> = {
   "无法生成可回读的单行 SMILES，请下载 MOL V3000。": "A readable single-line SMILES could not be generated. Download MOL V3000.",
   "无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。": "The structure and stereochemistry of this SMILES could not be verified. Download MOL V3000.",
   "在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。": "In ChemDraw, use Edit → Paste Special → SMILES.",
+  "编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。":
+    "The editor could not load this structure. Copy the recognized SMILES or download the MOL file.",
+  "编辑器无法载入此结构。请下载识别结果的 MOL 文件。":
+    "The editor could not load this structure. Download the recognized MOL file.",
+  "下载识别结果 MOL": "Download recognized MOL",
+  "识别结果的 SMILES": "SMILES from recognition",
   本地运行: "Runs locally",
   "关闭识别后端？": "Stop recognition service?",
   "正在运行的识别任务会被中断。":

@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "85e1ee1b5ff0e43abccba7baa0bbcf3725debab2d77ca7601391e913e0369356",
+      "after_sha256": "bf9a6a7fc2d4e1c59e7427cdc672f3323e318c8e48c4b61f68a6668178bf0ac5",
       "changes": [
         {
           "before": "const labels = {",
@@ -468,7 +468,40 @@
             }
           ]
         }
-      ]
+      ],
+      "final_step": {
+        "before_sha256": "85e1ee1b5ff0e43abccba7baa0bbcf3725debab2d77ca7601391e913e0369356",
+        "changes": [
+          {
+            "before": "    smilesExport,\n    setSmiles,",
+            "after": "    smilesExport,\n    sourceExport,\n    offerRecognizedSource,\n    setSmiles,"
+          },
+          {
+            "before": "  const exportText = structureReady ? smilesExport?.text ?? \"\" : \"\";\n  const canExportSmiles = Boolean(exportText);",
+            "after": "  const exportText = (structureReady ? smilesExport : sourceExport)?.text ?? \"\";\n  const canExportSmiles = Boolean(exportText);\n  const canExportMol = structureReady || Boolean(sourceExport);"
+          },
+          {
+            "before": "                onError={setEditorError}",
+            "after": "                onError={setEditorError}\n                onLoadFailure={offerRecognizedSource}"
+          },
+          {
+            "before": "          {smilesError ? (",
+            "after": "          {sourceExport && (\n            <p role=\"note\">{text(canExportSmiles\n              ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n              : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}\n          {smilesError ? ("
+          },
+          {
+            "before": "aria-label={text(\"当前结构的 SMILES\")}",
+            "after": "aria-label={text(sourceExport ? \"识别结果的 SMILES\" : \"当前结构的 SMILES\")}"
+          },
+          {
+            "before": "aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady}",
+            "after": "aria-label={text(\"复制 MOL\")}\n                disabled={!canExportMol}"
+          },
+          {
+            "before": "aria-label={text(\"下载 MOL V3000\")}\n                className={smilesError ? \"primary\" : undefined}\n                disabled={!structureReady}",
+            "after": "aria-label={text(sourceExport ? \"下载识别结果 MOL\" : \"下载 MOL V3000\")}\n                className={smilesError || (sourceExport && !canExportSmiles) ? \"primary\" : undefined}\n                disabled={!canExportMol}"
+          }
+        ]
+      }
     },
     {
       "path": "frontend/src/EditorBoundary.tsx",
@@ -527,7 +560,7 @@
     {
       "path": "frontend/src/MoleculeEditor.tsx",
       "before_sha256": "19b904b6435508487afcd3d7b2c0466456a99e57ea8c0eda7da6eee175443941",
-      "after_sha256": "4350972ca0c4e1805285ab8889e7f3d2f677bffc88332c583ac3404afd2a15d6",
+      "after_sha256": "2c620e3116d649caac0b8015f350cbf7ca5e846cf27325a6331d68e93f563101",
       "changes": [
         {
           "before": "import type { Ketcher } from \"ketcher-core\";",
@@ -624,12 +657,37 @@
             }
           ]
         }
-      ]
+      ],
+      "final_step": {
+        "before_sha256": "4350972ca0c4e1805285ab8889e7f3d2f677bffc88332c583ac3404afd2a15d6",
+        "changes": [
+          {
+            "before": "  onError: (message: string) => void;",
+            "after": "  onError: (message: string) => void;\n  onLoadFailure?: (source: string, editor: Ketcher) => Promise<boolean>;"
+          },
+          {
+            "before": "onSmiles, onError, onAvailability, translate }: Props)",
+            "after": "onSmiles, onError, onLoadFailure, onAvailability, translate }: Props)"
+          },
+          {
+            "before": "useRef({ onSmiles, onError, onAvailability });\n  callbacks.current = { onSmiles, onError, onAvailability };",
+            "after": "useRef({ onSmiles, onError, onLoadFailure, onAvailability });\n  callbacks.current = { onSmiles, onError, onLoadFailure, onAvailability };"
+          },
+          {
+            "before": "    const load = ++loadRevision.current;\n    policy.current!",
+            "after": "    const load = ++loadRevision.current;\n    const instance = editor.current;\n    const isCurrent = () => load === loadRevision.current && !lifetime.current?.signal.aborted;\n    policy.current!"
+          },
+          {
+            "before": "      .catch(() => {\n        if (load === loadRevision.current && !lifetime.current?.signal.aborted) {\n          setDisplayError(true);\n          callbacks.current.onError(\"结构编辑器无法载入该分子。\");\n        }\n      });",
+            "after": "      .catch(async () => {\n        if (!isCurrent()) return;\n        setDisplayError(true);\n        const recovered = await callbacks.current.onLoadFailure?.(molfile, instance);\n        if (isCurrent())\n          callbacks.current.onError(recovered ? \"\" : \"结构编辑器无法载入该分子。\");\n      });"
+          }
+        ]
+      }
     },
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "f7e81db583deec5692ca8ad4297f9431182d0b4620ed49343acee6842f5692d3",
+      "after_sha256": "e26f9bdc2f2b93ed34677dde994d4d6e0b0ab16b0596eac985b8d90a193a9683",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -976,7 +1034,52 @@
             }
           ]
         }
-      ]
+      ],
+      "final_step": {
+        "before_sha256": "f7e81db583deec5692ca8ad4297f9431182d0b4620ed49343acee6842f5692d3",
+        "changes": [
+          {
+            "before": "import { readPortableSmiles, recognizedDrawing, SmilesHandoffError } from \"./portable-smiles\";",
+            "after": "import {\n  readPortableSmiles, readRecognizedSource, recognizedDrawing,\n  SmilesHandoffError, type RecognizedSourceExport,\n} from \"./portable-smiles\";"
+          },
+          {
+            "before": "import { api, power, session, type Job, type State } from \"./api\";",
+            "after": "import { api, power, session, type Job, type Result, type State } from \"./api\";"
+          },
+          {
+            "before": "  const [molfile, setMolfile] = useState(\"\");",
+            "after": "  const [molfile, updateMolfile] = useState(\"\");\n  type RecognizedInput = { result: Result; drawing: string };\n  const recognition = useRef<RecognizedInput | null>(null);\n  const [recovered, setRecovered] = useState<{\n    owner: RecognizedInput;\n    value: RecognizedSourceExport;\n  } | null>(null);\n  const sourceExport = recovered?.owner === recognition.current ? recovered.value : null;\n  const clearRecognizedSource = () => {\n    if (!recognition.current) return;\n    recognition.current = null;\n    setRecovered(null);\n  };\n  const setMolfile = (value: string) => {\n    clearRecognizedSource();\n    updateMolfile(value);\n  };"
+          },
+          {
+            "before": "    structureGate.update(ready);",
+            "after": "    structureGate.update(ready);\n    if (ready) clearRecognizedSource();"
+          },
+          {
+            "before": "      setMolfile(recognizedDrawing(job.result));",
+            "after": "      const drawing = recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing };"
+          },
+          {
+            "before": "  const validatedSmiles = () => {",
+            "after": "  const offerRecognizedSource = async (drawing: string, current: Ketcher) => {\n    const source = recognition.current;\n    if (source?.drawing !== drawing || structureGate.available) return false;\n    const safe = await readRecognizedSource(current.structService, source.result);\n    if (!safe || source !== recognition.current || structureGate.available) return false;\n    setRecovered({ owner: source, value: safe });\n    return true;\n  };\n  const validatedSmiles = () => {"
+          },
+          {
+            "before": "  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      if (!editor.current || !structureGate.available) return;\n      const checkpoint = structureGate.checkpoint();\n      const text = format === \"smiles\"\n        ? validatedSmiles()\n        : await editor.current.getMolfile(\"v3000\");\n      structureGate.verify(checkpoint);\n      await navigator.clipboard.writeText(text);",
+            "after": "  const readExport = async (format: \"smiles\" | \"mol\" | \"sdf\") => {\n    const current = editor.current;\n    if (current && structureGate.available) {\n      const checkpoint = structureGate.checkpoint();\n      const text = format === \"smiles\"\n        ? validatedSmiles()\n        : format === \"mol\"\n          ? await current.getMolfile(\"v3000\")\n          : await current.getSdf(\"v3000\");\n      return { text, verify: () => structureGate.verify(checkpoint) };\n    }\n    const source = recognition.current;\n    if (!source || recovered?.owner !== source || format === \"sdf\")\n      throw new MoleculeReadinessError(\"Export is not available.\");\n    const text = format === \"smiles\" ? recovered.value.text : recovered.value.molfile;\n    if (!text) throw new MoleculeReadinessError(\"Export is not available.\");\n    return { text, verify: () => {\n      if (recognition.current !== source || structureGate.available)\n        throw new MoleculeReadinessError(\"The recognized source has changed.\");\n    } };\n  };\n\n  const copy = async (format: \"smiles\" | \"mol\") => {\n    try {\n      const { text, verify } = await readExport(format);\n      verify();\n      await navigator.clipboard.writeText(text);"
+          },
+          {
+            "before": "      if (!editor.current || !structureGate.available) return;\n      const checkpoint = structureGate.checkpoint();\n      const text = format === \"smiles\"\n        ? validatedSmiles() + \"\\n\"\n        : format === \"mol\"\n          ? await editor.current.getMolfile(\"v3000\")\n          : await editor.current.getSdf(\"v3000\");\n      structureGate.verify(checkpoint);",
+            "after": "      const { text, verify } = await readExport(format);\n      verify();\n      const contents = format === \"smiles\" ? text + \"\\n\" : text;"
+          },
+          {
+            "before": "new Blob([text], { type: \"text/plain;charset=utf-8\" })",
+            "after": "new Blob([contents], { type: \"text/plain;charset=utf-8\" })"
+          },
+          {
+            "before": "    smilesExport,\n    duration,",
+            "after": "    smilesExport,\n    sourceExport,\n    offerRecognizedSource,\n    duration,"
+          }
+        ]
+      }
     },
     {
       "path": "frontend/src/useXddeBridge.ts",
@@ -1159,10 +1262,12 @@
     ],
     "recognition-host-ui-locale.ts": [
       "60ca53e251c6fe9fdebd204291fcea8b72a611651abd2ffb27bfb4327cdb91db",
-      "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94"
+      "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94",
+      "c970fa033b034f156eac287afd5d874aeb45a9d15f7ee60e62347b293305e8dd"
     ],
     "portable-smiles.ts": [
-      "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4"
+      "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4",
+      "6a231caceeb321b7b7010fe5686e81ec916287d12f020afc9cfbe236350ced3f"
     ]
   }
 }

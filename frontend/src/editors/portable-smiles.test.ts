@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import {
   readPortableSmiles,
+  readRecognizedSource,
   recognizedDrawing,
   SmilesHandoffError,
 } from "./portable-smiles";
@@ -72,4 +73,53 @@ it("reports a conversion failure as a structure export error", async () => {
   const source = editor(absolute);
   source.getSmiles.mockRejectedValueOnce(new Error("Convert failed"));
   await expect(readPortableSmiles(source)).rejects.toThrow(SmilesHandoffError);
+});
+
+it("recovers a verified source with known chirality and unspecified double bond stereo", async () => {
+  const rawSmiles = "C[C@H](O)CC=CC(Cl)F";
+  const smiles = "C[C@H](O)CC=CC(F)Cl";
+  const result = { rawSmiles, smiles, molfile: generatedMol };
+  const getInChIKey = vi.fn().mockResolvedValue("source-identity");
+
+  const file = recognizedDrawing(result);
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: smiles,
+    molfile: file,
+  });
+  expect(getInChIKey.mock.calls).toEqual([[rawSmiles], [file], [smiles]]);
+});
+
+it("recovers only the structure file when the source has an enhanced stereo group", async () => {
+  const molfile = structure + "M  V30 MDLV30/STERAC1 ATOMS=(2 2 4)\n";
+  const getInChIKey = vi.fn().mockResolvedValue("relative-identity");
+  const result = { rawSmiles: relative, smiles: "C[C@H](O)[C@H](F)Cl", molfile };
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: "",
+    molfile,
+  });
+  expect(getInChIKey.mock.calls).toEqual([[relative], [molfile]]);
+});
+
+it("keeps an unverified or stale source drawing unavailable", async () => {
+  const getInChIKey = vi.fn()
+    .mockResolvedValueOnce("source-identity")
+    .mockResolvedValueOnce("different-drawing");
+  const result = { rawSmiles: absolute, smiles: absolute, molfile: generatedMol };
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toBeNull();
+  await expect(readRecognizedSource({ getInChIKey }, { ...result, rawSmiles: null }))
+    .resolves.toBeNull();
+});
+
+it("does not publish normalized SMILES that differ from the recognized stereochemistry", async () => {
+  const getInChIKey = vi.fn().mockResolvedValueOnce("source-identity")
+    .mockResolvedValueOnce("source-identity").mockResolvedValueOnce("opposite");
+  const result = {
+    rawSmiles: absolute,
+    smiles: absolute.replace("@@", "@"),
+    molfile: generatedMol,
+  };
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: "",
+    molfile: recognizedDrawing(result),
+  });
 });

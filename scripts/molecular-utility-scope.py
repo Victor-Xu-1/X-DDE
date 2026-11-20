@@ -649,17 +649,14 @@ EDITOR_DRAWING_FILES = {
 }
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
 PORTABLE_SMILES_FILES = {
-    ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/editors/portable-smiles.test.ts",
     "frontend/src/editors/portable-smiles.ts",
     "frontend/src/utilities/recognition-host-ui-locale.ts",
-    "pyproject.toml",
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "src/opendde_workbench/recognition_companion.py",
-    "tests/test_molecular_utility_scope.py",
     "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "35a5e901e8b6e3d71cd5d4bed4a3aa8fcda0c5097f93bb51d714a2d10ad8293d"
+PORTABLE_SMILES_DIFF = "3df1e391915c2b371e28c8a0dab72086dc3a413c0e9fa6ffac6017ef01719d88"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
