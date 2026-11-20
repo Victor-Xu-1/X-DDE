@@ -1,4 +1,96 @@
 @media (min-width: 1180px) {
+  [data-del-results] .del-definition-view {
+    gap: 12px;
+  }
+
+  [data-del-results] .del-barcode-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(128px, 100%), 1fr));
+  }
+
+  [data-del-results] .del-barcode-map > div {
+    gap: 4px;
+    padding: 8px 11px;
+    background: var(--surface-muted);
+    border-top-width: 3px;
+    border-radius: 6px;
+  }
+
+  [data-del-results] .del-barcode-map :is(code, span) {
+    color: var(--muted);
+  }
+
+  [data-del-results] .dataset-block-grid {
+    gap: 12px;
+  }
+
+  [data-del-results] .dataset-block-grid article {
+    min-height: 152px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+
+  [data-del-results] .dataset-block-grid .molecule-image {
+    width: 100%;
+    min-height: 0;
+    height: 112px;
+    padding: 4px 0;
+  }
+
+  [data-del-results] .dataset-block-grid .molecule-image img {
+    height: 104px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-heading {
+    padding-block: 4px 8px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-actions {
+    margin-block-end: 8px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-actions .secondary-button {
+    min-height: 34px;
+    padding-block: 4px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-inspector .research-tab-list {
+    margin-block-end: 4px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-inspector .molecule-image {
+    padding-block: 8px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-member-inspector .molecule-drawing-style {
+    margin-block-end: 4px;
+  }
+
+  [data-del-results="del_enumerate"]
+    .dataset-table-region[data-table-view="library"]
+    .dataset-table-toolbar {
+    gap: 8px;
+    margin-block-end: 8px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-library-table
+    :is(.dataset-column-id, .dataset-column-smiles) {
+    padding: 6px 8px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-library-table .molecule-image {
+    width: 130px;
+    max-width: 130px;
+    min-height: 0;
+    height: 72px;
+  }
+
+  [data-del-results="del_enumerate"] .dataset-library-table .molecule-image > img {
+    height: 64px;
+  }
+
   .candidate-inspection-preview[data-del-review] .research-tab-toolbar {
     column-gap: 10px;
     padding-inline: 8px;

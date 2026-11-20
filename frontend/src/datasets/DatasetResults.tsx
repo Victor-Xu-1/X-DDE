@@ -55,6 +55,8 @@ export function DatasetResults({
   const hasPrimary = Boolean(
     tableView || result.candidates.length || result.data_kind === "definition",
   );
+  const enumerated =
+    tableView === "library" && result.operation === "del_enumerate";
   const stats = Object.entries(result.counts)
     .filter(
       ([key, value]) =>
@@ -111,7 +113,8 @@ export function DatasetResults({
       summary={summaryInPreview ? summary : undefined}
     />
   ) : null;
-  const candidateTab = tableView === "enrichment" && candidateView;
+  const candidateTab =
+    (tableView === "enrichment" || enumerated) && candidateView;
   const primary = (
     <>
       {tableView === "enrichment" &&
@@ -172,7 +175,13 @@ export function DatasetResults({
   if (hasPrimary)
     tabs.push({
       id: "results",
-      label: zh ? "结果探索" : "Results",
+      label: enumerated
+        ? zh
+          ? "库成员"
+          : "Library members"
+        : zh
+          ? "结果探索"
+          : "Results",
       content: primary,
     });
   if (candidateTab)
@@ -190,7 +199,9 @@ export function DatasetResults({
   return (
     <div
       className="dataset-results"
-      data-del-results={result.operation?.startsWith("del_") || undefined}
+      data-del-results={
+        result.operation?.startsWith("del_") ? result.operation : undefined
+      }
     >
       {!summaryInPreview && summary}
       {result.operation === "del_count" &&

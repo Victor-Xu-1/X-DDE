@@ -27,6 +27,23 @@ vi.mock("./CandidateView", () => ({
 }));
 afterEach(cleanup);
 const job = { id: "study" } as Job;
+const members: DatasetResult["candidates"] = [
+  {
+    id: "member",
+    source_job: null,
+    source_record: 0,
+    supplier: "",
+    smiles: "",
+    score: 2,
+    raw_score: null,
+    docking_score: null,
+    cnn_score: null,
+    cnn_affinity: null,
+    artifact: null,
+    record: 0,
+    geometry: "none",
+  },
+];
 const data = (
   kind: DatasetResult["data_kind"],
   charts = false,
@@ -154,6 +171,31 @@ it("opens prepared libraries in the shared native member inspector", () => {
   ).toBeVisible();
 });
 
+it("keeps the enumerated member inspector and candidate structures in separate views", () => {
+  render(
+    <DatasetResults
+      job={job}
+      result={{
+        ...data("library"),
+        operation: "del_enumerate",
+        candidates: members,
+      }}
+      language="en"
+    />,
+  );
+  const inspection = screen.getByRole("region", {
+    name: "Library member inspection",
+  });
+  expect(inspection).toBeVisible();
+  expect(screen.queryByText("Native candidates")).toBeNull();
+  fireEvent.click(screen.getByRole("tab", { name: "Candidate structures" }));
+  expect(inspection).not.toBeVisible();
+  expect(screen.getByText("Native candidates")).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "Library members" }));
+  expect(inspection).toBeVisible();
+  expect(screen.getByText("Native candidates")).not.toBeVisible();
+});
+
 it("preserves a quality tab when real primary data and real chart artifacts both exist", () => {
   render(
     <DatasetResults job={job} result={data("library", true)} language="en" />,
@@ -184,23 +226,7 @@ it("opens DEL candidate structures from the result tabs while retaining the comp
         { id: "b", selection: "S2", reference: "R2" },
       ],
     },
-    candidates: [
-      {
-        id: "member",
-        source_job: null,
-        source_record: 0,
-        supplier: "",
-        smiles: "",
-        score: 2,
-        raw_score: null,
-        docking_score: null,
-        cnn_score: null,
-        cnn_affinity: null,
-        artifact: null,
-        record: 0,
-        geometry: "none",
-      },
-    ],
+    candidates: members,
   };
   render(<DatasetResults job={job} result={result} language="en" />);
   expect(screen.queryByText("Native candidates")).toBeNull();
