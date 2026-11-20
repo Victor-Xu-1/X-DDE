@@ -1037,6 +1037,13 @@ FUNCTION_POWER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 FUNCTION_POWER_DIFF = "4f2213a3a30563022318a2ae6d22bb6875b0fbb46b2031743b57393146ac8275"
+DESKTOP_BACKEND_HEADER_FILES = {
+    "frontend/src/studio/header.css",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_BACKEND_HEADER_DIFF = "370293bb3b0a22701d77c2a563c9c2c6bde1862400116c8d13833c25d4515bd7"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1655,6 +1662,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         FUNCTION_POWER_FILES, FUNCTION_POWER_DIFF,
         scope_pin="FUNCTION_POWER_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_BACKEND_HEADER_FILES, DESKTOP_BACKEND_HEADER_DIFF,
+        scope_pin="DESKTOP_BACKEND_HEADER_DIFF",
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,

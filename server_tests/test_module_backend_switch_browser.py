@@ -90,6 +90,60 @@ def verify_narrow_compute_entry(page, base):
     trigger.press("Escape")
 
 
+def verify_desktop_task_power_header(context, base):
+    # The English titles are longer, and Harness has an additional power switch.
+    page = context.new_page()
+    page.add_init_script("localStorage.setItem('opendde-workbench.language', 'en')")
+    toolbar = page.locator(".studio-topbar")
+    search = toolbar.get_by_role("button", name="Search tasks", exact=True)
+    field = toolbar.get_by_role("searchbox", name="Search tasks", exact=True)
+    for tool, owner, title in (
+        ("drugclip.screen", "drugclip", "High-throughput screening"),
+        ("fold", "harness", "Biologics research"),
+    ):
+        page.goto(f"{base}/#view=new&tool={tool}")
+        heading = toolbar.locator(".page-context-title")
+        expect(heading).to_have_text(title)
+        switch = toolbar.locator(f'[data-engine="{owner}"]').get_by_role("switch")
+        for width in (1024, 1152, 1180, 1280, 1440, 1600):
+            page.set_viewport_size({"width": width, "height": 800})
+            expect(switch).to_be_visible()
+            expect(switch).not_to_be_checked()
+            if owner == "harness":
+                local = toolbar.locator('[data-backend-placement="entry"] [data-engine="native-compute"]')
+                if width < 1280:
+                    expect(local).to_be_hidden()
+                else:
+                    expect(local.get_by_role("switch")).not_to_be_checked()
+                    expect(local).to_be_visible()
+            assert heading.evaluate("""title => {
+                const text = document.createRange();
+                text.selectNodeContents(title);
+                const lines = text.getClientRects();
+                return lines.length === 1 && lines[0].right <= title.getBoundingClientRect().right + 1;
+            }"""), (tool, width)
+            assert toolbar.evaluate("""bar => {
+                const bounds = bar.getBoundingClientRect();
+                const parts = Array.from(bar.children).map(el => el.getBoundingClientRect());
+                return parts.every((part, i) => part.left >= bounds.left
+                    && part.right <= bounds.right && (!i || part.left >= parts[i - 1].right));
+            }"""), (tool, width)
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            if width <= 1440:
+                expect(field).to_be_hidden()
+                search.press("Enter")
+                expect(field).to_be_focused()
+                field.press("Escape")
+                expect(search).to_be_focused()
+                expect(field).to_be_hidden()
+            else:
+                expect(search).to_be_hidden()
+                expect(field).to_be_visible()
+        page.set_viewport_size({"width": 1180, "height": 800})
+        page.screenshot(path=EVIDENCE / f"{owner}-desktop-power-1180-en.png")
+    page.close()
+
+
 def verify_composite_tools(page, base):
     page.set_viewport_size({"width": 1280, "height": 800})
     for tool, owner in (("regions", "diffsbdd"), ("pose_exploration", "gnina")):
@@ -568,6 +622,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         verify_shared_power(page, base)
         verify_inline_switch_lifecycle(page, base)
         verify_utilities(page, base, companion, companion_loads)
+        verify_desktop_task_power_header(page.context, base)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
         assert page.request.get(base + "/api/jobs").json() == before
