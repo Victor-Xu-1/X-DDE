@@ -1315,6 +1315,25 @@ CANDIDATE_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 CANDIDATE_DESKTOP_DIFF = "1a4b948f38b1177d491c1715192a1f1d81f811a0b7923703700871ec48d37c0b"
+SCREENING_DESKTOP_FILES = {
+    ".github/workflows/library-member-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/result-handoff-checks.yml",
+    "frontend/src/datasets/CandidateHandoff.tsx",
+    "frontend/src/datasets/CandidateTable.tsx",
+    "frontend/src/datasets/CandidateView.test.tsx",
+    "frontend/src/datasets/CandidateView.tsx",
+    "frontend/src/datasets/DatasetResults.tsx",
+    "frontend/src/datasets/IndexedLibraryResults.tsx",
+    "frontend/src/datasets/IndexedLibraryResults.test.tsx",
+    "frontend/src/datasets/ResearchTable.test.tsx",
+    "frontend/src/datasets/ResearchTable.tsx",
+    "frontend/src/datasets/screening-result-layout.css",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "server_tests/test_candidate_inspection_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SCREENING_DESKTOP_DIFF = "edca4300a2b255ffe9bf7acbc045f7bd5a043e76c671f21c7724c7ab33151212"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
@@ -1883,7 +1902,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         HISTORY_DESKTOP_FILES, HISTORY_DESKTOP_DIFF, scope_pin="HISTORY_DESKTOP_DIFF",
     )
-    candidate_desktop = reviewed_selected(
+    screening_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SCREENING_DESKTOP_FILES, SCREENING_DESKTOP_DIFF, scope_pin="SCREENING_DESKTOP_DIFF",
+    )
+    candidate_desktop = screening_desktop or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
     )
@@ -2010,6 +2033,7 @@ def main():
         output.write("proximity_desktop_only=" + str(proximity_desktop).lower() + "\n")
         output.write("simulation_desktop_only=" + str(simulation_desktop).lower() + "\n")
         output.write("candidate_desktop_only=" + str(candidate_desktop).lower() + "\n")
+        output.write("screening_desktop_only=" + str(screening_desktop).lower() + "\n")
         output.write("del_desktop_only=" + str(del_desktop).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")

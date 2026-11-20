@@ -13,6 +13,15 @@ import { IndexedLibraryResults } from "./IndexedLibraryResults";
 import { DELSeriesContext } from "./DELSeriesContext";
 import { ResearchTabs, type ResearchTab } from "../presentation/ResearchTabs";
 import "./del-result-layout.css";
+import "./screening-result-layout.css";
+
+const screeningOperations = new Set([
+  "drugclip_retrieve",
+  "screening_dock",
+  "library_subset",
+  "library_prepare",
+  "drugclip_index",
+]);
 
 export function DatasetResults({
   job,
@@ -57,6 +66,8 @@ export function DatasetResults({
   );
   const enumerated =
     tableView === "library" && result.operation === "del_enumerate";
+  const screeningReview = screeningOperations.has(result.operation ?? "");
+  const indexed = tableView === "index" || tableView === "library";
   const downloadsWithTabs =
     hasCharts && (tableView === "counts" || tableView === "decoded");
   const downloads = (
@@ -76,7 +87,8 @@ export function DatasetResults({
     )
     .slice(0, 5);
   const summaryInPreview =
-    !tableView && result.candidates.length > 0 && !hasCharts;
+    (screeningReview && indexed) ||
+    (!tableView && result.candidates.length > 0 && !hasCharts);
   const summary = (
     <div className="dataset-result-metrics">
       <span className="dataset-status-complete sr-only">
@@ -116,6 +128,7 @@ export function DatasetResults({
       language={language}
       onCreated={onCreated}
       summary={summaryInPreview ? summary : undefined}
+      screeningReview={screeningReview}
     />
   ) : null;
   const candidateTab =
@@ -140,12 +153,14 @@ export function DatasetResults({
           </p>
         )}
       {!tableView && candidateView}
-      {(tableView === "index" || tableView === "library") && (
+      {indexed && (
         <IndexedLibraryResults
           key={job.id}
           jobId={job.id}
           language={language}
           view={tableView}
+          screeningReview={screeningReview}
+          summary={summaryInPreview ? summary : undefined}
         />
       )}
       {tableView && tableView !== "index" && tableView !== "library" && (
@@ -204,6 +219,7 @@ export function DatasetResults({
   return (
     <div
       className="dataset-results"
+      data-screening-review={screeningReview || undefined}
       data-del-results={
         result.operation?.startsWith("del_") ? result.operation : undefined
       }

@@ -1,5 +1,5 @@
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { MolecularPreview } from "../presentation/MolecularPreview";
 import { Hint } from "../guided/Hint";
 import { ResearchTable, type TableRow } from "./ResearchTable";
@@ -11,10 +11,14 @@ export function IndexedLibraryResults({
   jobId,
   language,
   view = "index",
+  screeningReview = false,
+  summary,
 }: {
   jobId: string;
   language: Language;
   view?: "index" | "library";
+  screeningReview?: boolean;
+  summary?: ReactNode;
 }) {
   const zh = language === "zh",
     [selected, setSelected] = useState<TableRow | null>(null);
@@ -26,9 +30,79 @@ export function IndexedLibraryResults({
   const memberId = selected ? String(selected.id) : null;
   const member = useIndexedMember(jobId, memberId),
     detail = member.detail;
-  const url = member.saved
-    ? `/api/assets/${member.saved.reference.asset_id}`
-    : detail?.url;
+  const url =
+    member.saved && !screeningReview
+      ? `/api/assets/${member.saved.reference.asset_id}`
+      : detail?.url;
+  const originalLabel =
+    detail?.geometry === "unbound_conformer"
+      ? zh
+        ? "原始构象 MOL"
+        : "Original conformer MOL"
+      : zh
+        ? "原始结构 MOL"
+        : "Original structure MOL";
+  const saving = member.phase === "saving";
+  const saveLabel = zh ? "保存为历史文件" : "Save to historical files";
+  const actions = detail && (
+    <div className="dataset-member-tools">
+      <header className="dataset-member-heading">
+        <h3>{detail.label}</h3>
+        <span>{supplierLabel(detail.supplier, zh)}</span>
+      </header>
+      <div className="dataset-member-actions">
+        <span>
+          {detail.geometry === "unbound_conformer"
+            ? zh
+              ? "游离构象"
+              : "Unbound conformer"
+            : detail.geometry === "source_3d"
+              ? zh
+                ? "原始三维结构"
+                : "Original 3D structure"
+              : zh
+                ? "二维结构"
+                : "2D structure"}
+        </span>
+        <Hint label={zh ? "构象说明" : "Conformer help"}>
+          {zh
+            ? "读取分子库实际保存的记录；二维记录不冒充三维构象，导入的三维坐标也不视为已验证的结合姿势。保存为历史文件后，可继续准备、编辑或用于新任务。"
+            : "Reads the actual stored molecular record. A 2D record is not a 3D conformer, and imported 3D coordinates do not establish a validated binding pose. Save a historical file to prepare, edit or use in another task."}
+        </Hint>
+        <a
+          className="secondary-button"
+          href={detail.url}
+          download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
+          title={originalLabel}
+        >
+          {screeningReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
+        </a>
+        {member.saved ? (
+          <span className="dataset-member-saved" role="status">
+            {zh ? "已保存到历史文件" : "Saved to historical files"}
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={saving}
+            title={saveLabel}
+            onClick={() => void member.preserve()}
+          >
+            {saving
+              ? zh
+                ? "正在保存…"
+                : "Saving…"
+              : screeningReview
+                ? zh
+                  ? "保存文件"
+                  : "Save file"
+                : saveLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
   return (
     <StructureWorkbench
       preview={
@@ -62,63 +136,7 @@ export function IndexedLibraryResults({
             </div>
           ) : (
             <>
-              <header className="dataset-member-heading">
-                <h3>{detail.label}</h3>
-                <span>{supplierLabel(detail.supplier, zh)}</span>
-              </header>
-              <div className="dataset-member-actions">
-                <span>
-                  {detail.geometry === "unbound_conformer"
-                    ? zh
-                      ? "游离构象"
-                      : "Unbound conformer"
-                    : detail.geometry === "source_3d"
-                      ? zh
-                        ? "原始三维结构"
-                        : "Original 3D structure"
-                      : zh
-                        ? "二维结构"
-                        : "2D structure"}
-                </span>
-                <Hint label={zh ? "构象说明" : "Conformer help"}>
-                  {zh
-                    ? "读取分子库实际保存的记录；二维记录不冒充三维构象，导入的三维坐标也不视为已验证的结合姿势。保存为历史文件后，可继续准备、编辑或用于新任务。"
-                    : "Reads the actual stored molecular record. A 2D record is not a 3D conformer, and imported 3D coordinates do not establish a validated binding pose. Save a historical file to prepare, edit or use in another task."}
-                </Hint>
-                <a
-                  className="secondary-button"
-                  href={detail.url}
-                  download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
-                >
-                  {detail.geometry === "unbound_conformer"
-                    ? zh
-                      ? "原始构象 MOL"
-                      : "Original conformer MOL"
-                    : zh
-                      ? "原始结构 MOL"
-                      : "Original structure MOL"}
-                </a>
-                {member.saved ? (
-                  <span className="dataset-member-saved" role="status">
-                    {zh ? "已保存到历史文件" : "Saved to historical files"}
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    disabled={member.phase === "saving"}
-                    onClick={() => void member.preserve()}
-                  >
-                    {member.phase === "saving"
-                      ? zh
-                        ? "正在保存…"
-                        : "Saving…"
-                      : zh
-                        ? "保存为历史文件"
-                        : "Save to historical files"}
-                  </button>
-                )}
-              </div>
+              {!screeningReview && actions}
               {member.phase === "error" && (
                 <p role="alert">
                   {zh
@@ -128,8 +146,14 @@ export function IndexedLibraryResults({
               )}
               <MolecularPreview
                 label={detail.label}
+                toolbar={screeningReview ? actions : undefined}
                 language={language}
-                source={{ url: url!, record: 0 }}
+                source={{
+                  url: url!,
+                  record: 0,
+                  sha256: screeningReview ? detail.sha256 : undefined,
+                }}
+                sourceSnapshot={screeningReview}
                 urls={detail.geometry === "source_2d" ? undefined : [url!]}
                 records={detail.geometry === "source_2d" ? undefined : [0]}
                 defaultView={detail.geometry === "source_2d" ? "2d" : "3d"}
@@ -140,9 +164,11 @@ export function IndexedLibraryResults({
       }
     >
       <section>
+        {summary}
         <ResearchTable
           jobId={jobId}
           view={view}
+          showThumbnails={!screeningReview}
           language={language}
           onSelect={setSelected}
           selection={memberId ? [memberId] : []}

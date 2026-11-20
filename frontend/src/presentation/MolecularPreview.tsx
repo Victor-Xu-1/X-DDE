@@ -18,6 +18,7 @@ export function MolecularPreview({
   nativeArtifactSha256,
   nativeArtifactRecord,
   savedAssetSha256,
+  sourceSnapshot = false,
   toolbar,
 }: {
   language: Language;
@@ -32,11 +33,13 @@ export function MolecularPreview({
   nativeArtifactRecord?: number;
   /** Whole-file digest for a selected version in the research file workspace. */
   savedAssetSha256?: string;
+  sourceSnapshot?: boolean;
   nativeScore?: Parameters<typeof StructureViewer>[0]["nativeScore"];
   toolbar?: ReactNode;
 }) {
   const zh = language === "zh";
   const frame = {
+    sourceSnapshot,
     urls: urls ?? [],
     records,
     nativeScore,
@@ -67,7 +70,20 @@ export function MolecularPreview({
     shortLabel: toolbar ? (zh ? "三维" : "3D") : undefined,
     content: (
       <MolecularStructureView
-        viewer={{ ...frame, language, focusModel }}
+        viewer={{
+          ...frame,
+          language,
+          focusModel,
+          structureChecksums:
+            sourceSnapshot &&
+            urls?.length === 1 &&
+            source &&
+            "url" in source &&
+            source.url === urls[0] &&
+            source.sha256
+              ? [source.sha256]
+              : undefined,
+        }}
         savedAssetSha256={savedAssetSha256}
       />
     ),

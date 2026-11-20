@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -189,3 +190,133 @@ def test_retained_candidate_desktop_workspaces(language, theme, width, height):
         assert all(not item["enabled"] and not item["active"] for item in before["engines"])
         (evidence / "receipt.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
         browser.close()
+
+
+@pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1120, 650),
+    ("zh", "dark", 1280, 700),
+])
+def test_retained_screening_desktop(language, theme, width, height):
+    settings = Settings.from_env()
+    assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
+    zh = language == "zh"
+    evidence = Path("outputs/candidate-inspection") / f"screening-{language}"
+    evidence.mkdir(parents=True, exist_ok=True)
+    with (
+        platform(settings.state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": width, "height": height}, accept_downloads=True)
+        page.add_init_script(f"""
+            localStorage.setItem('opendde-workbench.language', '{language}');
+            localStorage.setItem('x-dde-theme', '{theme}');
+        """)
+        writes = []
+        allowed_preserve = None
+        preserves = []
+
+        def readonly(route):
+            if route.request.url == allowed_preserve and route.request.method == "POST":
+                preserves.append(route.request.url)
+                route.continue_()
+                return
+            if route.request.method not in {"GET", "HEAD", "OPTIONS"}:
+                writes.append(route.request.url)
+                route.abort()
+            else:
+                route.continue_()
+
+        page.route("**/api/**", readonly)
+        runtime = f"{base}/api/runtime-controls?include_native=false"
+        before = page.request.get(runtime).json()
+        cases = (
+            "drugclip.screen", "screening.dock", "library.select", "library.import",
+            "drugclip.index",
+        )
+        for capability in cases:
+            job, root, result = load_case(page, base, capability, settings)
+            workspace = page.locator("[data-screening-review] .structure-workbench")
+            rail = workspace.locator(".structure-workbench-details")
+            expect(rail.locator("tbody tr").first).to_be_visible()
+            expect(rail.locator(".molecule-image")).to_have_count(0)
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            if capability in {"library.import", "drugclip.index"}:
+                verify_library_member(page, workspace, base, zh, capability == "drugclip.index")
+                if capability == "drugclip.index":
+                    allowed_preserve = f"{base}/api/datasets/{job}/members/preserve"
+                    verify_index_preservation(page, workspace, allowed_preserve, zh)
+                    allowed_preserve = None
+            else:
+                verify_screening_candidate(page, workspace, root, result, zh)
+            page.screenshot(path=evidence / f"{capability}.png")
+        assert not writes
+        assert len(preserves) == 1
+        assert page.request.get(runtime).json() == before
+        assert all(not item["enabled"] and not item["active"] for item in before["engines"])
+        browser.close()
+
+
+def verify_screening_candidate(page, workspace, root, result, zh):
+    left = workspace.locator(".structure-workbench-view")
+    right = workspace.locator(".structure-workbench-details")
+    frame = left.locator(".viewer-panel iframe:visible")
+    capture = left.get_by_role("button", name="生成三维视图图片" if zh else "Capture 3D view")
+    expect(capture).to_be_enabled(timeout=35000)
+    expect(frame).to_be_in_viewport(ratio=0.97)
+    box, rail = frame.bounding_box(), right.bounding_box()
+    assert box and rail and box["height"] >= 320 and box["x"] + box["width"] < rail["x"]
+
+    original = next(row for row in result["candidates"] if row.get("artifact"))
+    selected_download(page, workspace, root, original, zh)
+    alternative = next(
+        row for row in result["candidates"]
+        if row.get("artifact") and row["id"] != original["id"]
+    )
+    name = alternative.get("display_name") or alternative["id"]
+    search = right.get_by_role("searchbox")
+    search.fill(name)
+    right.get_by_role("button", name=name, exact=True).click()
+    expect(search).to_have_value(name)
+    expect(capture).to_be_enabled(timeout=35000)
+    selected_download(page, workspace, root, alternative, zh)
+
+
+def verify_library_member(page, workspace, base, zh, native_3d):
+    left = workspace.locator(".structure-workbench-view")
+    if native_3d:
+        capture = left.get_by_role("button", name="生成三维视图图片" if zh else "Capture 3D view")
+        expect(capture).to_be_enabled(timeout=35000)
+        expect(left.locator(".viewer-panel iframe")).to_be_in_viewport(ratio=0.97)
+    else:
+        drawing = left.locator('[data-drawing-state="ready"] .figure-preview-sheet')
+        expect(drawing).to_be_in_viewport(ratio=0.97, timeout=35000)
+    label = "下载 MOL" if zh else "Download MOL"
+    source = left.get_by_role("link", name=label, exact=True)
+    expect(source).to_be_in_viewport(ratio=1)
+    path = source.get_attribute("href")
+    assert path and path.startswith("/api/datasets/") and "report_sha256=" in path
+    expected = page.request.get(base + path)
+    assert expected.ok
+    with page.expect_download() as original:
+        source.click()
+    assert original.value.path().read_bytes() == expected.body()
+
+
+def verify_index_preservation(page, workspace, endpoint, zh):
+    left = workspace.locator(".structure-workbench-view")
+    frame = left.locator(".viewer-panel iframe")
+    camera = frame.element_handle()
+    assert camera
+    action = left.get_by_role("button", name="保存文件" if zh else "Save file", exact=True)
+    expect(action).to_be_in_viewport(ratio=1)
+    with page.expect_response(endpoint) as preserve:
+        action.click()
+    assert preserve.value.ok, preserve.value.status
+    expect(left.get_by_text(
+        "已保存到历史文件" if zh else "Saved to historical files", exact=True
+    )).to_be_visible()
+    capture = left.get_by_role("button", name="生成三维视图图片" if zh else "Capture 3D view")
+    expect(capture).to_be_enabled()
+    expect(frame).to_be_in_viewport(ratio=0.97)
+    assert frame.evaluate("(current, original) => current === original", camera)
