@@ -51,12 +51,7 @@
   display: contents;
 }
 @media (min-width: 1180px) {
-  .research-table[data-compact-toolbar] {
-    container: research-rail / inline-size;
-  }
-}
-@container research-rail (max-width: 460px) {
-  .research-table-toolbar {
+  [data-compact-toolbar] .research-table-toolbar {
     gap: 6px;
     padding-block: 8px;
   }
@@ -65,15 +60,15 @@
     min-width: 86px;
     max-width: none;
   }
-  .research-table-toolbar .result-search input {
+  [data-compact-toolbar] .research-table-toolbar .result-search input {
     min-width: 0;
   }
-  .research-table-toolbar .research-table-count {
+  [data-compact-toolbar] .research-table-toolbar .research-table-count {
     white-space: nowrap;
     margin-inline-end: 2px;
   }
-  .research-table-toolbar .research-table-action,
-  .research-table-toolbar .table-columns > summary {
+  [data-compact-toolbar] .research-table-toolbar .research-table-action,
+  [data-compact-toolbar] .research-table-toolbar .table-columns > summary {
     display: inline-grid;
     place-items: center;
     width: 34px;
@@ -85,13 +80,13 @@
     font-size: 14px;
     line-height: 1;
   }
-  .research-table-toolbar .table-columns > summary::marker {
+  [data-compact-toolbar] .research-table-toolbar .table-columns > summary::marker {
     content: "";
   }
-  .research-table-toolbar .research-table-column-icon {
+  [data-compact-toolbar] .research-table-toolbar .research-table-column-icon {
     display: inline-flex;
   }
-  .research-table-toolbar .research-table-action-label {
+  [data-compact-toolbar] .research-table-toolbar .research-table-action-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -99,7 +94,7 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .research-table-toolbar .research-table-context-actions {
+  [data-compact-toolbar] .research-table-toolbar .research-table-context-actions {
     display: flex;
     flex: 1 0 100%;
     gap: 6px;

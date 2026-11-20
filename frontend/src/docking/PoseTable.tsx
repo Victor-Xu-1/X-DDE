@@ -5,6 +5,7 @@ import {
 } from "../presentation/ResearchTable";
 import type { DockingResult } from "./types";
 import { scoreLabel } from "./scoreLabels";
+import "../presentation/spatial-result-review.css";
 type Pose = DockingResult["poses"][number];
 function MetricHeading({
   label,

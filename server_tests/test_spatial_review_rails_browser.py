@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
+from server_tests.test_stat6_pocket_handoff_browser import assert_pocket_desktop_rail
 
 CASES = (
     ("p2rank.detect", ".pocket-result-workspace"),
@@ -58,10 +59,11 @@ def inspect_rail(page, table, evidence, zh):
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1280, 720), ("zh", "dark", 1440, 800),
+    ("en", "light", 1920, 1000),
 ])
 def test_spatial_review_rails(language, theme, width, height):
     zh = language == "zh"
-    folder = Path("outputs/spatial-review-rails") / language
+    folder = Path("outputs/spatial-review-rails") / f"{language}-{width}"
     folder.mkdir(parents=True, exist_ok=True)
     settings = Settings.from_env()
     with platform(settings.state_dir, folder / "service.log") as base, sync_playwright() as pw:
@@ -92,6 +94,8 @@ def test_spatial_review_rails(language, theme, width, height):
             assert canvas["x"] + canvas["width"] <= right["x"]
             assert canvas["height"] >= 355 and canvas["y"] + canvas["height"] <= height
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            if capability == "p2rank.detect":
+                assert_pocket_desktop_rail(result, width)
             page.screenshot(path=folder / f"{capability}.png")
             checked = inspect_rail(page, table, folder, zh)
             observed[capability] = {"canvas": canvas, **checked}

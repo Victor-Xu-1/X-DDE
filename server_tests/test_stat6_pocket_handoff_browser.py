@@ -20,6 +20,21 @@ WARHEAD = (
 FIXTURE_NAME = "STAT6 user warhead handoff fixture.sdf"
 
 
+def assert_pocket_desktop_rail(workspace, width):
+    view = workspace.locator(".structure-workbench-view").bounding_box()
+    details = workspace.locator(".structure-workbench-details").bounding_box()
+    assert view and details
+    assert view["x"] + view["width"] <= details["x"]
+    assert view["width"] > details["width"]
+    if width >= 1180:
+        navigation = workspace.locator(".structure-workbench-toolbar").bounding_box()
+        assert navigation and abs(view["y"] - navigation["y"]) <= 2
+        assert abs(navigation["x"] - details["x"]) <= 2
+        assert navigation["y"] + navigation["height"] <= details["y"]
+    else:
+        assert abs(view["y"] - details["y"]) <= 2
+
+
 @pytest.mark.parametrize(("width", "height", "visible"), [
     (1440, 900, 0.92), (1110, 580, 0.36), (390, 775, 0.44), (320, 568, 0.05),
 ])
@@ -53,9 +68,7 @@ def test_saved_stat6_canvas_leads_pocket_results(width, height, visible):
         details = workspace.locator(".structure-workbench-details").bounding_box()
         assert view and details
         if width > 1000:
-            assert view["x"] + view["width"] <= details["x"]
-            assert view["width"] > details["width"]
-            assert abs(view["y"] - details["y"]) <= 2
+            assert_pocket_desktop_rail(workspace, width)
         else:
             assert view["y"] + view["height"] <= details["y"]
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
