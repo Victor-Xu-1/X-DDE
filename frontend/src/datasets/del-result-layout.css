@@ -289,3 +289,30 @@
     padding-block: 4px 8px;
   }
 }
+
+@media (1080px <= width < 1120px) {
+  .task-history-workspace
+    .detail-panel.has-header-navigation:has([data-del-results])
+    > .task-detail-header {
+    column-gap: 8px;
+
+    h2 {
+      font-size: 17px;
+    }
+  }
+
+  [data-del-results] .candidate-preview-heading,
+  [data-del-results] .candidate-preview-identity,
+  [data-del-results] .candidate-preview-actions {
+    column-gap: 6px;
+  }
+
+  [data-del-results] .candidate-preview-actions .secondary-button {
+    min-inline-size: 36px;
+    padding-inline: 8px;
+  }
+
+  [data-del-results] .candidate-structure-label {
+    display: none;
+  }
+}

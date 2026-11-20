@@ -272,6 +272,7 @@ def check_candidate_tools(page, workspace, frame, zh):
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1080, 650),
     ("en", "warm", 1120, 650),
     ("zh", "dark", 1280, 700),
     ("en", "light", 1440, 900),
