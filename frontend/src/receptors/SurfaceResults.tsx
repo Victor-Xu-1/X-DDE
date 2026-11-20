@@ -37,7 +37,7 @@ export function SurfaceResults({
     }));
   }
   return (
-    <section className="spatial-results surface-results">
+    <section className="spatial-results surface-results spatial-review">
       <StructureWorkbench
         preview={
           <StructureViewer

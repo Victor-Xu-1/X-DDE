@@ -1,11 +1,11 @@
-/* Align pocket navigation with the candidate rail. */
-@media (min-width: 1180px) {
-  .pocket-result-workspace
+/* Keep the candidate switcher beside its scene throughout the desktop layout. */
+@media (min-width: 1080px) {
+  :is(.docking-results, .pocket-result-workspace)
     > .structure-workbench:not([data-workspace-expanded]):has(
       > .structure-workbench-toolbar
     ) {
-    grid-template-rows: auto minmax(0, 1fr);
-    row-gap: 10px;
+    grid-template-rows: auto 1fr;
+    row-gap: 8px;
 
     > .structure-workbench-toolbar {
       grid-area: 1 / 2;
@@ -65,7 +65,7 @@
 @media (min-width: 1080px) and (max-height: 719px) {
   .studio-app .studio-main:has(
     .task-result-content .detail-panel
-      :is(.comparison-result-view, .protein-interface-results, .receptor-results)
+      :is(.comparison-result-view, .protein-interface-results, .receptor-results, .spatial-review)
   ) > .studio-topbar {
     min-height: 52px;
     margin-block: 10px 0;
@@ -75,14 +75,14 @@
 
   .studio-app .studio-content:has(
     .task-result-content .detail-panel
-      :is(.comparison-result-view, .protein-interface-results, .receptor-results)
+      :is(.comparison-result-view, .protein-interface-results, .receptor-results, .spatial-review)
   ) {
     padding-block-start: 10px;
   }
 
   .task-history-workspace
     .detail-panel.has-header-navigation:has(
-      :is(.comparison-result-view, .protein-interface-results, .receptor-results)
+      :is(.comparison-result-view, .protein-interface-results, .receptor-results, .spatial-review)
     ) > .task-detail-header {
     gap: 6px 10px;
     margin-block-end: 10px;
@@ -100,7 +100,7 @@
     }
   }
 
-  .studio-app :is(.comparison-result-view, .protein-interface-results, .receptor-results)
+  .studio-app :is(.comparison-result-view, .protein-interface-results, .receptor-results, .spatial-review)
     > .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr) minmax(285px, 34%);
     gap: 10px 14px;
@@ -152,5 +152,125 @@
   }
   .studio-app .receptor-preview-toolbar > :is(select, button) {
     min-height: 32px;
+  }
+
+  .studio-app .spatial-review
+    > .structure-workbench:not([data-workspace-expanded])
+    > .structure-workbench-view {
+    container: spatial-canvas / inline-size;
+  }
+
+  .studio-app .spatial-review
+    > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr) minmax(310px, 35%);
+  }
+
+  .spatial-review {
+    --short-spatial-stage-reserve: 228px;
+  }
+
+  .docking-results.spatial-review {
+    --short-spatial-stage-reserve: 266px;
+  }
+
+  .studio-app .spatial-review
+    > .structure-workbench:not([data-workspace-expanded])
+    > .structure-workbench-view
+    .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel)
+    > .molecular-stage {
+    height: clamp(320px, calc(100dvh - var(--short-spatial-stage-reserve)), 510px);
+    min-height: 0;
+  }
+
+  .spatial-review .candidate-review-bar {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-block: 0;
+    padding-block: 0 5px;
+  }
+
+  .spatial-review .candidate-review-selector {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .spatial-review .candidate-review-selector nav button {
+    min-width: 30px;
+    min-height: 32px;
+  }
+
+  .studio-app .spatial-review .pocket-next-actions > button {
+    min-height: 34px;
+    padding: 4px 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .spatial-review .spatial-result-summary {
+    gap: 7px;
+    padding: 0 0 10px;
+    border: 0;
+    border-block-end: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  .spatial-review .spatial-summary-metrics > div {
+    padding-block: 5px;
+  }
+
+  .studio-app .spatial-review [data-compact-toolbar] .result-search {
+    gap: 5px;
+    padding-inline: 6px;
+  }
+
+  .studio-app .spatial-review [data-compact-toolbar] .result-search input[type="search"] {
+    min-height: 32px;
+    padding: 5px 6px;
+  }
+
+  @container spatial-canvas (min-width: 420px) {
+    .studio-app .spatial-review
+      .viewer-panel:has(> .viewer-mode-options):not(:popover-open, .pose-comparison .viewer-panel) {
+      --compact-viewer-tools: enabled;
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 6px;
+
+      > * {
+        grid-column: 1 / -1;
+      }
+
+      > .studio-heading,
+      > .viewer-mode-options {
+        position: static;
+        margin: 0 0 5px;
+      }
+
+      > .studio-heading {
+        grid-area: 1 / 2;
+        flex-wrap: nowrap;
+      }
+
+      > .studio-heading > h3 :is(.viewer-title-full, .viewer-title-short) {
+        display: none;
+      }
+
+      > .viewer-mode-options {
+        grid-area: 1 / 1;
+      }
+
+      :is(.viewer-tool-content, .viewer-chain-list) {
+        inset-block-start: 37px;
+      }
+
+      .viewer-chain-list {
+        inset-inline-start: 0;
+      }
+    }
   }
 }

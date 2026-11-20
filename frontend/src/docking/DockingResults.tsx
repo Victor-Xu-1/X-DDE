@@ -13,6 +13,7 @@ import { MolecularPreview } from "../presentation/MolecularPreview";
 import { PoseViolations } from "./PoseViolations";
 import "./results.css";
 import "./DockingResults.css";
+import "../presentation/spatial-result-review.css";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { artifactUrl } from "../api";
 import type { Job, Language } from "../types";
@@ -211,7 +212,7 @@ function DockingWorkspace({ job, result, language }: DockingResultsProps) {
   );
   return wrap(
     <section
-      className="docking-results"
+      className="docking-results spatial-review"
       aria-label={zh ? "结合模式与下一步" : "Binding poses and next steps"}
     >
       <ReceptorRefinementSummary

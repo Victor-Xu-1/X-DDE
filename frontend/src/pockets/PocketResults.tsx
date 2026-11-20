@@ -80,7 +80,7 @@ function PocketWorkspace({
       sameStructure(residue.structure, result.protein),
     ) ?? false;
   return (
-    <section className="operation-results pocket-result-workspace">
+    <section className="operation-results pocket-result-workspace spatial-review">
       <StructureWorkbench
         toolbar={
           selected && (

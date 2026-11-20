@@ -1192,23 +1192,17 @@ SPATIAL_DESKTOP_FILES = {
 SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
 SPATIAL_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/result-handoff-checks.yml",
-    ".github/workflows/selected-pose-checks.yml",
+    "frontend/src/docking/DockingResults.css",
+    "frontend/src/docking/DockingResults.tsx",
     "frontend/src/docking/PoseTable.tsx",
+    "frontend/src/integrations/PotentialResults.tsx",
     "frontend/src/pockets/PocketResults.tsx",
-    "frontend/src/pockets/pocket-results.css",
-    "frontend/src/presentation/ResearchTable.tsx",
-    "frontend/src/presentation/TableColumns.tsx",
     "frontend/src/presentation/research-table.css",
     "frontend/src/presentation/spatial-result-review.css",
     "frontend/src/receptors/SurfaceResults.tsx",
-    "frontend/src/receptors/SurfaceTable.tsx",
-    "server_tests/test_spatial_results_desktop.py",
-    "server_tests/test_spatial_review_rails_browser.py",
-    "server_tests/test_stat6_pocket_handoff_browser.py",
-    "tests/test_molecular_utility_scope.py",
+    "server_tests/test_spatial_canvas_review_browser.py",
 }
-SPATIAL_REVIEW_DIFF = "575a76e54c9ceeaedd599a0e34462132128d115b3e80889acc5a579004756c8b"
+SPATIAL_REVIEW_DIFF = "38f415ca9f8ccf2c1b2547bb7edbcff71a87d5a2d404bf5a516bd65e726bbac4"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
