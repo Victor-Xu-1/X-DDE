@@ -335,6 +335,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "CONTEXTUAL_BACKEND_PANEL_FILES",
         "FUNCTION_POWER_FILES",
         "DESKTOP_BACKEND_HEADER_FILES",
+        "STABLE_MODULE_SWITCH_FILES",
         "DESKTOP_COMPLEX_REVIEW_FILES",
         "SEQUENCE_COMPARISON_FILES",
         "SIMULATION_SHORT_REVIEW_FILES",
