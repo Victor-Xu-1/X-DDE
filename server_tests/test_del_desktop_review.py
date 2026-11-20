@@ -76,7 +76,8 @@ def check_enrichment(page, base, settings, zh, evidence):
     panel.get_by_role(
         "tab", name="图表与质量" if zh else "Charts and quality", exact=True,
     ).click()
-    expect(panel.locator('[role="tabpanel"]:visible .dataset-chart-grid')).to_be_visible(timeout=30_000)
+    charts = panel.locator('[role="tabpanel"]:visible .dataset-chart-grid')
+    expect(charts).to_be_visible(timeout=30_000)
 
 
 def check_candidates(page, base, settings, width, height, zh, evidence):

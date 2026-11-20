@@ -1313,7 +1313,7 @@ DEL_DESKTOP_FILES = {
     "server_tests/test_del_desktop_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-DEL_DESKTOP_DIFF = "b0f6de94560351a026a78f5fa450b3a7cd9f82c9ae20a6f91f756f5ad453404b"
+DEL_DESKTOP_DIFF = "4f8abda85dceb77e81540f1b6a6e7e90b49edc9a58996457959061ab85981dd9"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",
