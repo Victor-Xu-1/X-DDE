@@ -172,7 +172,26 @@ it("exports verified 2D-coordinate CXSMILES as one portable line", async () => {
   await expect(readPortableSmiles(source, result)).rejects.toThrow("无法核对");
 });
 
-it.each(["(0,0,1)", "(0,0,),a:1", "(0,0,),w:1.0", "(a,0,)", "(0,0,);(1,0,)"])(
+it("verifies combined planar coordinates and absolute stereo without flattening the marker", async () => {
+  const rawSmiles = absolute + " |(0,0,;1,0,;2,0,;3,0,;4,0,;5,0,),a:1|";
+  const result = { rawSmiles, smiles: absolute, molfile: generatedMol };
+  const source = editor(rawSmiles);
+  const getInChIKey = source.structService.getInChIKey;
+  getInChIKey.mockReset().mockImplementation(async (value) => {
+    if (value === rawSmiles) throw new Error("Degenerate coordinates");
+    return "verified";
+  });
+  await expect(readPortableSmiles(source, result)).resolves.toBe(absolute);
+  await expect(readRecognizedSource(source.structService, result)).resolves.toEqual({
+    text: absolute,
+    molfile: recognizedDrawing(result),
+  });
+  expect(recognizedDrawing(result)).toContain("  6  5  0  0  1");
+  expect(getInChIKey).toHaveBeenCalledWith(absolute + " |a:1|");
+  expect(getInChIKey).not.toHaveBeenCalledWith(rawSmiles);
+});
+
+it.each(["(0,0,1)", "(0,0,),o1:1", "(0,0,),w:1.0", "(a,0,)", "(0,0,);(1,0,)"])(
   "keeps unrecognized, mixed or spatial CX annotations %s out of plain export",
   async (annotation) => {
     const result = {
@@ -219,6 +238,25 @@ it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognitio
   source.structService.getInChIKey.mockReset().mockResolvedValue("ring-stereo");
   await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
   await expect(readPortableSmiles(source)).rejects.toThrow(SmilesHandoffError);
+});
+
+it("checks ring geometry in the original CXSMILES before using the standard source", async () => {
+  const ring = "O=C1CCCCC=CCCC[C@@H](C)O1";
+  const rawSmiles = ring + " |(0,0,;1,0,),a:11,t:6|";
+  const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
+  const result = { rawSmiles, smiles, molfile: generatedMol };
+  const source = editor(ring + " |t:6|");
+  const key = source.structService.getInChIKey;
+  key.mockReset().mockImplementation(async (value) => {
+    if (value === rawSmiles || value === ring) throw new Error("Stereo ignored");
+    return "trans";
+  });
+  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
+  expect(key).toHaveBeenCalledWith(ring + " |a:11,t:6|");
+  const cis = smiles.replace("/CCCCC", "\\CCCCC");
+  key.mockImplementation(async (value) => value === cis ? "cis" : "trans");
+  await expect(readPortableSmiles(source, { ...result, smiles: cis }))
+    .rejects.toThrow(SmilesHandoffError);
 });
 
 it("rejects a recognized ring isomer that differs from the current drawing", async () => {

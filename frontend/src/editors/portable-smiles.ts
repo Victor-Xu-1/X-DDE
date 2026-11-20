@@ -41,31 +41,32 @@ function isPlanarCoordinateList(value: string) {
   });
 }
 
-/** Remove only drawing coordinates and redundant absolute stereo labels. */
-function plainStereoSmiles(value: string) {
-  if (isPortableLine(value)) return value;
+/** Keep chemical stereo data for comparison, apart from planar drawing coordinates. */
+function stereoSmiles(value: string) {
+  if (isPortableLine(value)) return { text: value, plain: value, identity: value };
   const match = /^(\S+) \|([^|]+)\|$/.exec(value);
   if (!match || !isPortableLine(match[1])) return null;
   const [, text, annotation] = match;
-  const absolute = /^a:\d+(?:,\d+)*$/.test(annotation);
-  return absolute || isPlanarCoordinateList(annotation) ? text : null;
-}
-
-function identityInput(value: string) {
-  // Indigo can infer stereo or fail on degenerate CX drawing coordinates.
-  // Check the 2D depiction separately against the coordinate-free graph.
-  return value.includes(" |(") ? plainStereoSmiles(value) ?? value : value;
-}
-
-function hasOnlyRingAndAbsoluteStereo(value: string) {
-  return /^\S+ \|(?:[act]:\d+(?:,\d+)*)(?:,[act]:\d+(?:,\d+)*)*\|$/.test(value);
+  let stereo = annotation;
+  if (annotation.startsWith("(")) {
+    const coordinates = /^(\([^()]+\))(?:,(.+))?$/.exec(annotation);
+    if (!coordinates || !isPlanarCoordinateList(coordinates[1])) return null;
+    stereo = coordinates[2] ?? "";
+  }
+  if (stereo && !/^[act]:\d+(?:,\d+)*(?:,[act]:\d+(?:,\d+)*)*$/.test(stereo))
+    return null;
+  return {
+    text,
+    plain: /(?:^|,)[ct]:/.test(stereo) ? null : text,
+    identity: stereo ? `${text} |${stereo}|` : text,
+  };
 }
 
 /** Repair the generated V2000 depiction using the same OCR result's stereo. */
 export function recognizedDrawing({ rawSmiles, smiles, molfile }: RecognitionResult) {
   if (!rawSmiles || rawSmiles.length > 100_000) return molfile;
-  const raw = plainStereoSmiles(rawSmiles.trim());
-  if (!raw?.includes("@") || !smiles.includes("@"))
+  const raw = stereoSmiles(rawSmiles.trim());
+  if (!raw?.text.includes("@") || !smiles.includes("@"))
     return molfile;
 
   // RDKit writes flag 0 by default. Indigo interprets flagged wedges in such
@@ -92,9 +93,10 @@ export async function readRecognizedSource(
     return null;
 
   const molfile = recognizedDrawing(result);
+  const source = stereoSmiles(raw);
   let expected: string;
   try {
-    expected = await service.getInChIKey(identityInput(raw));
+    expected = await service.getInChIKey(source?.identity ?? raw);
     if (!expected?.trim() || expected !== await service.getInChIKey(molfile))
       return null;
   } catch {
@@ -106,7 +108,7 @@ export async function readRecognizedSource(
     // depiction. A metadata allowlist alone cannot prove that stripping is safe.
     const text = result.smiles.trim();
     if (
-      plainStereoSmiles(raw) &&
+      source &&
       isPortableLine(text) &&
       !hasRelativeStereo(molfile) &&
       expected === await service.getInChIKey(text)
@@ -146,21 +148,20 @@ export async function readPortableSmiles(
   // Indigo encodes ring double-bond geometry in CXSMILES; the recognizing
   // worker can already express that same bond with slash notation. The caller
   // supplies the recognized result only at its original drawing revision.
-  const original = recognized?.rawSmiles?.trim();
-  const plain = plainStereoSmiles(smiles);
-  const ringStereoSource = !plain && hasOnlyRingAndAbsoluteStereo(smiles)
-    ? recognized : undefined;
+  const raw = recognized?.rawSmiles?.trim();
+  const original = raw ? stereoSmiles(raw) : null;
+  const exported = stereoSmiles(smiles);
   if (
     hasRelativeStereo(mol) ||
     (recognized && hasRelativeStereo(recognized.molfile)) ||
-    (original && !plainStereoSmiles(original)) ||
-    (hasSmilesExtension(smiles) && !plain && !ringStereoSource)
+    (raw && !original) ||
+    (hasSmilesExtension(smiles) && !exported)
   )
     throw new SmilesHandoffError(
       "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。",
     );
 
-  if (!plain && !ringStereoSource)
+  if (!exported || (!exported.plain && !recognized))
     throw new SmilesHandoffError(
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );
@@ -168,17 +169,17 @@ export async function readPortableSmiles(
   try {
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
-    if (ringStereoSource) {
-      const source = await readRecognizedSource(editor.structService, ringStereoSource);
+    if (!exported.plain && recognized) {
+      const source = await readRecognizedSource(editor.structService, recognized);
       if (source?.text && expected === await editor.structService.getInChIKey(source.text))
         return source.text;
-    } else if (plain) {
-      const inputs = new Set([original && identityInput(original), identityInput(smiles), plain]);
+    } else if (exported.plain) {
+      const inputs = new Set([original?.identity, exported.identity, exported.plain]);
       for (const input of inputs) {
         if (input && expected !== await editor.structService.getInChIKey(input))
           throw new Error("Molecular identity changed");
       }
-      return plain;
+      return exported.plain;
     }
   } catch {
     // The MOL path remains available for structures without an InChI round trip.
