@@ -213,3 +213,23 @@ it("reviews the current entity value and the exact selected file without exposin
   ).toHaveAttribute("href", "/api/assets/selected-native-file");
   expect(within(aside).queryByText("STALE_SMILES")).toBeNull();
 });
+
+it("downloads the selected Boltz ligand record from the setup summary", () => {
+  render(
+    <PredictionSetup
+      language="en"
+      components={[
+        { kind: "ligand", value: "", count: 1, ligand_file: "library-file", ligand_record: 7 },
+      ]}
+      model="Boltz-2"
+      seeds={[101]}
+      samples={1}
+      valid
+    >
+      <p>Task form</p>
+    </PredictionSetup>,
+  );
+  fireEvent.click(screen.getByLabelText("Ligand input 1"));
+  expect(screen.getByRole("link", { name: "Download selected structure input" }))
+    .toHaveAttribute("href", "/api/assets/library-file?record=7");
+});

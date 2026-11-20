@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { assetDownloadUrl } from "../research/asset-download";
 import type { Language } from "../types";
 import type { PreviewComponent } from "./PredictionEntityPreview";
 import { usePredictionHeadingFocus } from "./prediction-heading-focus";
@@ -105,7 +106,7 @@ export function PredictionSetup({
                   <div className="prediction-entity-input">
                     {item.ligand_file ? (
                       <a
-                        href={`/api/assets/${encodeURIComponent(item.ligand_file)}`}
+                        href={assetDownloadUrl(item.ligand_file, item.ligand_record)}
                         download
                       >
                         {zh

@@ -96,6 +96,7 @@ PATTERNS = (
 INPUT_PREVIEW_FILES = {
     "frontend/src/guided/desktop-questionnaire.css",
     "frontend/src/presentation/PredictionSetup.tsx",
+    "frontend/src/presentation/PredictionSetup.test.tsx",
     "frontend/src/presentation/PredictionInputPreview.tsx",
     "frontend/src/presentation/PredictionEntityPreview.tsx",
     "frontend/src/presentation/PredictionSourceMolecule.tsx",
