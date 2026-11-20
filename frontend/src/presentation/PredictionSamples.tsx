@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
+import { StarFilled } from "@ant-design/icons";
 import type { Language } from "../types";
 import { PredictionSampleDownload } from "./PredictionSampleDownload";
 import "./prediction-workspace.css";
@@ -127,7 +128,11 @@ export function PredictionSamples({
                   : "Select by this seed's native ranking score"
               }
             >
-              {zh ? "最高排序分" : "Highest ranking"} · {best.sample ?? best.id}
+              <StarFilled className="prediction-best-icon" aria-hidden="true" />
+              <span className="prediction-best-label">
+                {zh ? "最高排序分" : "Highest ranking"} ·{" "}
+                {best.sample ?? best.id}
+              </span>
             </button>
           )}
         </div>

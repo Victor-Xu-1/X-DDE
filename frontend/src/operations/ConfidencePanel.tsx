@@ -113,7 +113,9 @@ export function ConfidencePanel({
       controls={
         <>
           <label className="field">
-            {zh ? "置信度视图" : "Confidence view"}
+            <span className="confidence-view-label">
+              {zh ? "置信度视图" : "Confidence view"}
+            </span>
             <select
               value={metric}
               onChange={(event) =>
@@ -126,7 +128,17 @@ export function ConfidencePanel({
                     !metrics || metrics.includes(id as ConfidenceMetric),
                 )
                 .map(([id, label]) => (
-                  <option value={id} key={id}>
+                  <option
+                    value={id}
+                    key={id}
+                    label={
+                      id === "contacts"
+                        ? zh
+                          ? "接触概率"
+                          : "Contact probability"
+                        : id.toUpperCase()
+                    }
+                  >
                     {label}
                   </option>
                 ))}

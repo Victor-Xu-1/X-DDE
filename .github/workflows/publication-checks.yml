@@ -293,6 +293,7 @@ jobs:
       needs.scope.outputs.native_viewer_changed == 'true' &&
       needs.utility-scope.outputs.desktop_header_only != 'true' &&
       needs.utility-scope.outputs.spatial_desktop_only != 'true' &&
+      needs.utility-scope.outputs.short_structure_review_only != 'true' &&
       needs.utility-scope.outputs.proximity_desktop_only != 'true' &&
       needs.utility-scope.outputs.aligned_comparison_only != 'true' &&
       needs.utility-scope.outputs.paired_figure_only != 'true' &&

@@ -1182,6 +1182,21 @@ SPATIAL_REVIEW_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SPATIAL_REVIEW_DIFF = "575a76e54c9ceeaedd599a0e34462132128d115b3e80889acc5a579004756c8b"
+SHORT_STRUCTURE_REVIEW_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "frontend/src/operations/ConfidencePanel.tsx",
+    "frontend/src/presentation/PredictionSamples.tsx",
+    "frontend/src/presentation/prediction-inspection.css",
+    "frontend/src/presentation/prediction-result-header.css",
+    "frontend/src/structure-comparison/AlignedStructurePair.tsx",
+    "frontend/src/structure-comparison/ComparisonPreview.tsx",
+    "frontend/src/structure-comparison/DisplacementPlot.tsx",
+    "frontend/src/structure-comparison/comparison-result-view.css",
+    "server_tests/test_short_structure_workspace.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SHORT_STRUCTURE_REVIEW_DIFF = "e692b33da20378780d2a6691225aa3b10b632251914ff714e475eb3e55e060fd"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
@@ -1692,6 +1707,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         REFINEMENT_DESKTOP_FILES, REFINEMENT_DESKTOP_DIFF, scope_pin="REFINEMENT_DESKTOP_DIFF",
     )
+    short_structure_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SHORT_STRUCTURE_REVIEW_FILES, SHORT_STRUCTURE_REVIEW_DIFF,
+        scope_pin="SHORT_STRUCTURE_REVIEW_DIFF",
+    )
     spatial_review = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SPATIAL_REVIEW_FILES, SPATIAL_REVIEW_DIFF, scope_pin="SPATIAL_REVIEW_DIFF",
@@ -1834,6 +1854,7 @@ def main():
         output.write("refinement_desktop_only=" + str(refinement_desktop).lower() + "\n")
         output.write("spatial_desktop_only=" + str(spatial_desktop).lower() + "\n")
         output.write("spatial_review_only=" + str(spatial_review).lower() + "\n")
+        output.write("short_structure_review_only=" + str(short_structure_review).lower() + "\n")
         output.write("sequence_desktop_only=" + str(sequence_desktop).lower() + "\n")
         output.write("protein_desktop_only=" + str(protein_desktop).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")
@@ -1861,6 +1882,7 @@ def main():
             or initial_pose_power
             or mobile_viewer or print_labels or utility_desktop or desktop_help
             or refinement_desktop or spatial_desktop or sequence_desktop or protein_desktop
+            or short_structure_review
             or history_desktop or candidate_desktop or simulation_desktop or proximity_desktop
             or utility_result_desktop or runtime_entry or result_handoff_desktop
             or desktop_structure_focus

@@ -47,29 +47,48 @@ export function ComparisonPreview({
   if (comparisonSides.every(hasChecksum)) modes.splice(1, 0, "pair");
   const sides =
     view === "overlay" || view === "pair" ? comparisonSides : [view];
+  const modeLabels = {
+    overlay: [zh ? "已对齐叠合" : "Aligned overlay", zh ? "叠合" : "Overlay"],
+    pair: [
+      zh ? "已对齐并列" : "Aligned side by side",
+      zh ? "并列" : "Side by side",
+    ],
+    reference: [zh ? "参照" : "Reference", zh ? "参照" : "Reference"],
+    moving: [
+      zh ? "已对齐比较结构" : "Aligned comparison",
+      zh ? "比较" : "Aligned",
+    ],
+  };
   return (
     <>
       <div className="comparison-preview-header" ref={headerRef} tabIndex={-1}>
         <div className="comparison-preview-actions">
-          {modes.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className="secondary-button"
-              aria-pressed={view === value}
-              disabled={camera.busy}
-              onClick={() => camera.change(value)}
-            >
-              {
-                {
-                  overlay: zh ? "已对齐叠合" : "Aligned overlay",
-                  pair: zh ? "已对齐并列" : "Aligned side by side",
-                  reference: zh ? "参照" : "Reference",
-                  moving: zh ? "已对齐比较结构" : "Aligned comparison",
-                }[value]
-              }
-            </button>
-          ))}
+          {modes.map((value) => {
+            const [label, short] = modeLabels[value];
+            return (
+              <button
+                key={value}
+                type="button"
+                className="secondary-button comparison-view-mode"
+                aria-label={label}
+                title={label}
+                aria-pressed={view === value}
+                disabled={camera.busy}
+                onClick={() => camera.change(value)}
+              >
+                {label === short ? (
+                  label
+                ) : (
+                  <>
+                    <span className="comparison-label-full">{label}</span>
+                    <span className="comparison-label-short" aria-hidden="true">
+                      {short}
+                    </span>
+                  </>
+                )}
+              </button>
+            );
+          })}
           <div className="comparison-view-actions">
             {view === "pair" && (
               <>
