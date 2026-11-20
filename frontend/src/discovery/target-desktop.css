@@ -10,13 +10,36 @@
   min-width: 0;
 }
 
-.target-activity-workspace .activity-measurement-scope > summary {
+.target-activity-workspace .activity-measurement-scope > summary,
+.sequence-search-results .sequence-search-scope > summary {
   cursor: pointer;
   color: var(--accent);
   font-size: 13px;
 }
 
+.sequence-search-results .sequence-search-scope {
+  margin-bottom: 8px;
+}
+
+.activity-preview-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 8px;
+}
+
+.activity-preview-header .field-help {
+  margin-block: 0;
+}
+
 @media (min-width: 1180px) {
+  .target-evidence-results .research-table,
+  .sequence-search-results .research-table {
+    border-radius: 8px;
+  }
+
   .target-evidence-results > .research-tabs > .research-tab-list {
     margin-block: 6px 10px;
   }
@@ -52,7 +75,9 @@
     column-gap: 16px;
   }
 
-  .target-evidence-results .target-activity-workspace .structure-workbench-details {
+  .target-evidence-results
+    .target-activity-workspace
+    .structure-workbench-details {
     gap: 8px;
   }
 
@@ -71,11 +96,26 @@
   }
 
   .target-activity-workspace .activity-molecule-preview > .field-help {
-    margin-block: 0 6px;
+    margin-block: 6px;
+  }
+
+  .target-evidence-results .activity-molecule-preview .molecule-image {
+    min-height: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
   }
 
   .sequence-search-results .result-inspector > header {
     padding-block: 0 4px;
+  }
+
+  .sequence-search-results .result-inspector,
+  .sequence-search-rail {
+    gap: 10px;
+  }
+
+  .sequence-search-results :is(th, td) {
+    padding-inline: 10px;
   }
 }
 
@@ -85,28 +125,35 @@
     max-height: clamp(144px, calc(100dvh - 510px), 240px);
   }
 
-  .target-evidence-results .activity-molecule-preview .molecule-image {
-    padding-block: 8px;
+  .target-material-references .research-table-scroll {
+    max-height: clamp(148px, calc(100dvh - 525px), 325px);
+  }
+
+  .target-evidence-results .activity-molecule-preview {
+    --activity-figure-height: clamp(220px, calc(100dvh - 495px), 370px);
   }
 
   .target-evidence-results .activity-molecule-preview .molecule-drawing-style {
     margin-block-end: 4px;
   }
 
-  .target-evidence-results .activity-molecule-preview .figure-preview-sheet {
-    height: clamp(235px, calc(100dvh - 451px), 390px);
-  }
-
-  .studio-app .reference-import-results
-    .viewer-panel:not(:popover-open):not(:has(.viewer-error)) .molecular-stage {
-    height: clamp(330px, calc(100dvh - 264px), 575px);
+  .studio-app
+    .reference-import-results
+    .viewer-panel:not(:popover-open):not(:has(.viewer-error))
+    .molecular-stage {
+    height: clamp(330px, calc(100dvh - 338px), 575px);
     min-height: 0;
     border-radius: 8px;
   }
 
-  .studio-app .structure-workbench:has(
-    > .structure-workbench-details > .sequence-search-results[data-search-kind="structure"]
-  ) > .structure-workbench-view .viewer-panel:not(:popover-open) .molecular-stage {
+  .studio-app
+    .structure-workbench:has(
+      > .structure-workbench-details
+        > .sequence-search-results[data-search-kind="structure"]
+    )
+    > .structure-workbench-view
+    .viewer-panel:not(:popover-open)
+    .molecular-stage {
     height: clamp(325px, calc(100dvh - 328px), 540px);
     min-height: 0;
     border-radius: 8px;

@@ -114,6 +114,36 @@ it("does not leave a previous molecule when the source result becomes empty", ()
   ).toBeVisible();
 });
 
+it("imports the selected source record even when compounds share an identifier", () => {
+  const evidence = {
+    asset_id: "activity-analysis",
+    sha256: "a".repeat(64),
+    record: 0,
+    conformer: 0,
+  };
+  const onImport = vi.fn();
+  render(
+    <ActivityResults
+      result={{ ...result, analysis_reference: evidence }}
+      language="en"
+      onImport={onImport}
+    />,
+  );
+  fireEvent.click(screen.getByText("Ki").closest("tr")!);
+  const preview = screen.getByRole("region", {
+    name: "Selected reported molecule",
+  });
+  fireEvent.click(
+    within(preview).getByRole("button", { name: "Import compound" }),
+  );
+  expect(onImport).toHaveBeenCalledExactlyOnceWith({
+    source: "chembl",
+    identifier: "CHEMBL-A",
+    evidence,
+    activity_id: 102,
+  });
+});
+
 it.each(["en", "zh"] as const)(
   "keeps source validity visible without opening optional assay columns in %s",
   (language) => {

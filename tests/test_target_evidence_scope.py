@@ -18,7 +18,7 @@ def test_target_result_and_publication_companions():
 
 @pytest.mark.parametrize("path", [
     "frontend/src/App.tsx", "frontend/src/presentation/ResearchTable.tsx",
-    "frontend/src/discovery/ReferenceImportResults.tsx",
+    "frontend/src/discovery/ReferenceArchivePreview.tsx",
     "frontend/src/discovery/EvidenceSummary.tsx",
     "src/opendde_workbench/discovery/client.py",
     "server_tests/interaction_workspace_case.py",
@@ -50,7 +50,7 @@ def test_unrelated_dataset_and_native_del_jobs_are_delegated():
     workflow = Path(".github/workflows/dataset-discovery-checks.yml").read_text()
     for job in ("contracts", "native-del-data"):
         body = workflow.split(f"  {job}:", 1)[1].split("    steps:", 1)[0]
-        assert "needs: target-ui-scope" in body
+        assert "needs: [target-ui-scope, utility-scope]" in body
         assert "needs.target-ui-scope.outputs.target_evidence_only != 'true'" in body
     body = workflow.split("  discovery-evidence:", 1)[1].split("  source-inputs:", 1)[0]
     assert "server_tests/test_target_evidence_browser.py" in body
@@ -107,6 +107,8 @@ def test_synchronization_callers_delegate_only_the_closed_target_scope():
     for filename, job in (
         ("task-layout-checks.yml", "scoped-layout"),
         ("user-interface-checks.yml", "presentation"),
+        ("structure-layout-checks.yml", "view-alignment"),
+        ("structure-layout-checks.yml", "adjacent-result-consumers"),
     ):
         workflow = Path(f".github/workflows/{filename}").read_text()
         body = workflow.split(f"  {job}:", 1)[1].split("    steps:", 1)[0]

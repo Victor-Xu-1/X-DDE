@@ -1,4 +1,5 @@
 import { MoleculeImage } from "../presentation/MoleculeImage";
+import { useState } from "react";
 import type { Language } from "../types";
 import type { TargetResearchResult } from "./types";
 
@@ -26,23 +27,66 @@ export function ActivityValidityNote({
 export function ActivityMoleculePreview({
   activity,
   language,
+  onImport,
 }: {
   activity: Activity;
   language: Language;
+  onImport?(): void;
 }) {
   const zh = language === "zh";
+  const [copyResult, setCopyResult] = useState<{
+    activityId: number;
+    text: string;
+  } | null>(null);
+  async function copySmiles() {
+    if (!activity.canonical_smiles) return;
+    let text: string;
+    try {
+      await navigator.clipboard.writeText(activity.canonical_smiles);
+      text = zh ? "分子结构已复制。" : "Molecular structure copied.";
+    } catch {
+      text = zh
+        ? "复制失败，请从原始结果读取结构。"
+        : "Copy failed; use the original result.";
+    }
+    setCopyResult({ activityId: activity.activity_id, text });
+  }
   return (
     <section
       className="activity-molecule-preview"
       aria-label={zh ? "选中记录的分子结构" : "Selected reported molecule"}
     >
-      <h3>{activity.molecule_chembl_id}</h3>
-      <p className="field-help" title={activity.assay_description}>
-        {activity.standard_type} {activity.standard_relation ?? ""}{" "}
-        {activity.standard_value ?? "—"} {activity.standard_units ?? ""}
-        {" · "}
-        {activity.assay_chembl_id}
-      </p>
+      <header className="activity-preview-header">
+        <div>
+          <h3>{activity.molecule_chembl_id}</h3>
+          <p className="field-help" title={activity.assay_description}>
+            {activity.standard_type} {activity.standard_relation ?? ""}{" "}
+            {activity.standard_value ?? "—"} {activity.standard_units ?? ""}
+            {" · "}
+            {activity.assay_chembl_id}
+          </p>
+        </div>
+        <div className="evidence-row-actions">
+          {onImport && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={onImport}
+            >
+              {zh ? "导入化合物" : "Import compound"}
+            </button>
+          )}
+          {activity.canonical_smiles && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={copySmiles}
+            >
+              {zh ? "复制分子结构" : "Copy SMILES"}
+            </button>
+          )}
+        </div>
+      </header>
       <ActivityValidityNote
         comment={activity.data_validity_comment}
         language={language}
@@ -67,6 +111,9 @@ export function ActivityMoleculePreview({
             ? "来源记录未提供分子结构。"
             : "The source record does not provide a molecular structure."}
         </p>
+      )}
+      {copyResult?.activityId === activity.activity_id && (
+        <p role="status">{copyResult.text}</p>
       )}
     </section>
   );

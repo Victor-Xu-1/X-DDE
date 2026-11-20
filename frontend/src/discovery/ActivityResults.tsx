@@ -19,7 +19,6 @@ export function ActivityResults({
   onImport?(value: ReferenceSelection): void;
 }) {
   const zh = language === "zh",
-    [message, setMessage] = useState(""),
     [selectedId, setSelectedId] = useState<number | null>(null);
   const value = result.activities;
   if (!value)
@@ -32,17 +31,34 @@ export function ActivityResults({
     );
   const selected =
     value.rows.find((row) => row.activity_id === selectedId) ?? value.rows[0];
+  const evidence = result.analysis_reference;
   return (
     <section className="target-activity-workspace">
       <StructureWorkbench
         preview={
           selected ? (
-            <ActivityMoleculePreview activity={selected} language={language} />
+            <ActivityMoleculePreview
+              activity={selected}
+              language={language}
+              onImport={
+                onImport && evidence
+                  ? () =>
+                      onImport({
+                        source: "chembl",
+                        identifier: selected.molecule_chembl_id,
+                        evidence,
+                        activity_id: selected.activity_id,
+                      })
+                  : undefined
+              }
+            />
           ) : null
         }
       >
         <details className="activity-measurement-scope">
-          <summary>{zh ? "活性记录口径" : "Activity measurement scope"}</summary>
+          <summary>
+            {zh ? "活性记录口径" : "Activity measurement scope"}
+          </summary>
           <p className="field-help">
             {zh
               ? "保留来源样本的端点、关系符、单位和实验。分别解读 IC50、Ki、Kd 与 EC50。"
@@ -125,60 +141,12 @@ export function ActivityResults({
               ),
             },
             {
-              key: "next",
-              label: zh ? "下一步" : "Next step",
-              sortable: false,
-              value: (row) => row.molecule_chembl_id,
-              render: (row) => (
-                <div className="evidence-row-actions">
-                  {onImport && result.analysis_reference && (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() =>
-                        onImport({
-                          source: "chembl",
-                          identifier: row.molecule_chembl_id,
-                          evidence: result.analysis_reference,
-                          activity_id: row.activity_id,
-                        })
-                      }
-                    >
-                      {zh ? "导入化合物" : "Import compound"}
-                    </button>
-                  )}
-                  {row.canonical_smiles && (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() =>
-                        void navigator.clipboard
-                          .writeText(row.canonical_smiles!)
-                          .then(() =>
-                            setMessage(
-                              zh
-                                ? "分子结构已复制。"
-                                : "Molecular structure copied.",
-                            ),
-                          )
-                          .catch(() =>
-                            setMessage(
-                              zh
-                                ? "复制失败，请从原始结果读取结构。"
-                                : "Copy failed; use the original result.",
-                            ),
-                          )
-                      }
-                    >
-                      {zh ? "复制分子结构" : "Copy SMILES"}
-                    </button>
-                  )}
-                </div>
-              ),
+              key: "record",
+              label: zh ? "活性记录编号" : "Activity ID",
+              value: (row) => row.activity_id,
             },
           ]}
         />
-        {message && <p role="status">{message}</p>}
       </StructureWorkbench>
     </section>
   );

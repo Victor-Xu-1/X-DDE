@@ -129,7 +129,7 @@
   max-width: none;
 }
 .target-evidence-results .activity-molecule-preview .figure-preview-sheet {
-  height: clamp(260px, min(48svh, 65vw), 560px);
+  height: var(--activity-figure-height, clamp(260px, min(48svh, 65vw), 560px));
 }
 .target-evidence-results .target-activity-workspace table {
   min-width: 320px;
