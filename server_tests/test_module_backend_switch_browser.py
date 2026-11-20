@@ -524,7 +524,7 @@ def verify_first_module_click_during_status_read(context, base):
             page.set_viewport_size({"width": width, "height": 800})
             status_path = "**/api/runtime-controls?include_native=false"
             pending = []
-            page.route(status_path, pending.append)
+            page.route(status_path, lambda route: pending.append(route))
             with page.expect_request(status_path):
                 page.goto(f"{base}/#view=results&module={module}", wait_until="domcontentloaded")
             trigger, panel = module_power(page)
