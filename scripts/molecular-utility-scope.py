@@ -1546,7 +1546,6 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
 DESKTOP_MOLECULE_RESULTS_DIFF = "d576f4c8e3662ea4b70bb511cf46197783f2d7d1430a6836d2d2ee3cd9d11bce"
 SHORT_CHEMISTRY_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    "frontend/src/admet/AdmetSelectedMolecule.tsx",
     "frontend/src/admet/admet.css",
     "frontend/src/chemistry/LibraryScreenResults.test.tsx",
     "frontend/src/chemistry/LibraryScreenResults.tsx",
@@ -1555,7 +1554,7 @@ SHORT_CHEMISTRY_DESKTOP_FILES = {
     "server_tests/test_short_chemistry_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-SHORT_CHEMISTRY_DESKTOP_DIFF = "1d247b59b1e466d134566d19006b5d356f06c7cd5cf6345c303c5c2bb3c34932"
+SHORT_CHEMISTRY_DESKTOP_DIFF = "6a15bf47c97de719e29574ff6a3925bf1b4e3748b5b41bad36ecdae886190520"
 DESKTOP_MOLECULE_WORKBENCH_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

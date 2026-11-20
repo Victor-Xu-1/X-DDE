@@ -94,14 +94,13 @@ export function AdmetSelectedMolecule({
             <button
               className="secondary-button"
               type="button"
-              aria-label={zh ? "用于分子准备" : "Prepare this molecule"}
               disabled={!selection?.ready}
               onClick={(event) => {
                 if (selection?.ready)
                   onPrepare(selection.reference, event.currentTarget);
               }}
             >
-              {zh ? "准备分子" : "Prepare molecule"}
+              {zh ? "用于分子准备" : "Prepare this molecule"}
             </button>
           )}
         </PoseStudyInput>
