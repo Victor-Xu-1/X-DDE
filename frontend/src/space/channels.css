@@ -92,6 +92,17 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
+@media (min-width: 1080px) and (max-height: 719px) {
+  .channel-table-wrap th {
+    padding-inline: 4px;
+    font-size: 12px;
+    overflow-wrap: normal;
+  }
+  .channel-profile {
+    margin-block-start: 10px;
+    padding-block-start: 8px;
+  }
+}
 @media (max-width: 1100px) {
   .channel-table-wrap {
     max-height: 260px;

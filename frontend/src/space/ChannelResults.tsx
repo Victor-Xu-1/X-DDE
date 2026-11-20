@@ -7,6 +7,7 @@ import { Hint } from "../guided/Hint";
 import { ChannelProfile } from "./ChannelProfile";
 import type { Job, Language } from "../types";
 import type { ChannelResult } from "./types";
+import "../presentation/spatial-result-review.css";
 import "./channels.css";
 import { ResultRow } from "../presentation/ResultRow";
 export function ChannelResults({
@@ -24,7 +25,7 @@ export function ChannelResults({
   const channel = result.channels[selected] ?? result.channels[0];
   return (
     <section
-      className="spatial-results channel-results"
+      className="spatial-results channel-results spatial-review"
       aria-label={zh ? "通道分析结果" : "Channel analysis results"}
     >
       <StructureWorkbench
