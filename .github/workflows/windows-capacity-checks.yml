@@ -19,7 +19,9 @@ jobs:
       scope_only: true
   installer-network-boundary:
     needs: utility-scope
-    if: needs.utility-scope.outputs.sequence_desktop_only != 'true'
+    if: >-
+      needs.utility-scope.outputs.sequence_desktop_only != 'true' &&
+      needs.utility-scope.outputs.simulation_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -36,7 +38,9 @@ jobs:
         run: uv run --locked pytest -q tests/test_install_network.py
   windows-entry:
     needs: utility-scope
-    if: needs.utility-scope.outputs.sequence_desktop_only != 'true'
+    if: >-
+      needs.utility-scope.outputs.sequence_desktop_only != 'true' &&
+      needs.utility-scope.outputs.simulation_desktop_only != 'true'
     runs-on: windows-latest
     timeout-minutes: 15
     steps:

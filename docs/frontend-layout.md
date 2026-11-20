@@ -277,6 +277,11 @@ viewer toolbar. The trajectory timeline remains above the canvas. FEP uses one
 workspace control for the A/B comparison and overlay, so switching modes retains
 the focused layout. **Show analysis panel** restores the split view and its scroll
 positions. Selecting 2D closes expansion when it leaves no visible 3D toolbar.
+On short desktop windows, the native trajectory timeline and FEP pose tools
+leave the canvas and right analysis in view. The trajectory and pose previews
+keep their loading state until Mol* draws committed geometry. The focused Chrome
+check uses archived structures and checks the visible canvas, trajectory frame
+identity, and paired views.
 The manual popover promotes the same DOM without moving or cloning the iframe;
 native browser fullscreen is no longer requested. Background branches are inert
 and keyboard focus stays inside the workspace. An open figure dialog handles its

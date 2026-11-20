@@ -27,6 +27,7 @@ import { maintainBindingDepth } from "./molecular-depth";
 import { ViewportLifetime } from "./viewport-lifetime";
 import { MolecularSurfaces } from "./molecular-surfaces";
 import { MolecularUpdateQueue } from "./molecular-update-queue";
+import { waitForMolecularDraw } from "./molecular-first-draw";
 
 export interface StructureSource {
   url: string;
@@ -295,6 +296,11 @@ export class MolecularController {
       if (initialView) await this.setView(initialView);
       if (this.ligandStructures.length) this.focusLigand();
       else this.reset();
+      if (entries.length && this.plugin.canvas3d)
+        await waitForMolecularDraw(
+          this.plugin.canvas3d,
+          AbortSignal.any([signal, AbortSignal.timeout(30_000)]),
+        );
     });
   }
 

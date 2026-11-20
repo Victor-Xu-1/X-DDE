@@ -19,6 +19,7 @@ export function BoundPoseComparison({
   initialMode = "pair",
   overlayView,
   poseActions,
+  compactTools = false,
 }: {
   sources: StructureSource[];
   labels: readonly [string, string];
@@ -26,6 +27,7 @@ export function BoundPoseComparison({
   initialMode?: "pair" | "overlay";
   overlayView?: ReactNode;
   poseActions?: readonly [ReactNode, ReactNode];
+  compactTools?: boolean;
 }) {
   const zh = language === "zh",
     [mode, setMode] = useState(initialMode);
@@ -53,7 +55,10 @@ export function BoundPoseComparison({
       data-structure-focus-group
       aria-label={zh ? "结合姿势比较" : "Binding pose comparison"}
     >
-      <div className="pose-comparison-toolbar">
+      <div
+        className="pose-comparison-toolbar"
+        data-compact-tools={compactTools || undefined}
+      >
         <div role="group" aria-label={zh ? "比较方式" : "Comparison layout"}>
           <button
             type="button"
@@ -99,6 +104,7 @@ export function BoundPoseComparison({
               aspect={2}
               typography
               structureFraming
+              compactTrigger={compactTools}
               label={zh ? "导出比较图" : "Export comparison"}
               disabled={!both}
               render={(settings) => {
@@ -111,7 +117,11 @@ export function BoundPoseComparison({
           </>
         )}
         {(mode === "pair" || !overlayView) && (
-          <WorkspaceFullscreenControl language={language} structureFocus />
+          <WorkspaceFullscreenControl
+            language={language}
+            structureFocus
+            compact={compactTools}
+          />
         )}
       </div>
       <div ref={panel}>
@@ -130,6 +140,7 @@ export function BoundPoseComparison({
                 </header>
                 <MolecularViewport
                   workspaceControls="hidden"
+                  compactTools={compactTools}
                   sources={sources}
                   language={language}
                   fixedLigand={slot}
@@ -146,6 +157,7 @@ export function BoundPoseComparison({
           (overlayView ?? (
             <MolecularViewport
               workspaceControls="hidden"
+              compactTools={compactTools}
               sources={sources}
               language={language}
               initialLigand="all"

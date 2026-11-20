@@ -83,6 +83,7 @@ export function DynamicsResults({
             />
             <MolecularViewport
               workspaceControls="focus"
+              compactTools
               onExport={() => setPlaying(false)}
               onReady={(ready) => {
                 frameReady.current = ready;
