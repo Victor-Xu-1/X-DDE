@@ -35,14 +35,17 @@ def source(tmp_path):
 def test_check_is_read_only_and_apply_is_idempotent_with_exact_backups(source):
     host, resources, backups = source
     before = {p.relative_to(host): p.read_bytes() for p in host.rglob("*.tsx")}
-    assert len(companion.prepare(host, resources)) == 19
+    planned = companion.prepare(host, resources)
+    assert {path.relative_to(host).as_posix() for path in planned} == {
+        "frontend/src/" + name for name in companion.NATIVE_FILES | companion.ADAPTERS.keys()
+    }
     assert not backups.exists()
     assert all((host / p).read_bytes() == data for p, data in before.items())
     result = companion.apply(host, backups, resources, exclusive_source=True)
-    assert result["changed"] == 19
+    assert result["changed"] == len(planned)
     saved = Path(result["backup"])
     assert all((saved / p).read_bytes() == data for p, data in before.items())
-    assert len(json.loads((saved / "receipt.json").read_text())) == 19
+    assert len(json.loads((saved / "receipt.json").read_text())) == len(planned)
     assert companion.apply(host, backups, resources, exclusive_source=True) == {
         "changed": 0, "already_applied": True,
     }
@@ -232,6 +235,20 @@ def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
         assert 'recognitionReady: () => latest.current.state.phase === "ready"' in handlers[0]
         handler = handlers[0].split("recognize:", 1)[1].split("loadMolecule:", 1)[0]
         assert handler.index('setError("")') < handler.index('foreground.current!.request')
+
+
+def test_native_copy_and_download_use_the_same_verified_smiles_export():
+    manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
+    record = next(item for item in manifest["files"] if item["path"].endswith("useWorkbench.ts"))
+    for changes in [record["changes"], *(item["changes"] for item in record["upgrades"])]:
+        copy = next(item["after"] for item in changes if "const text =" in item["after"]
+                    and "readPortableSmiles" in item["after"] and "getSdf" not in item["after"])
+        download = next(item["after"] for item in changes if "getSdf" in item["after"]
+                        and "readPortableSmiles" in item["after"])
+        for handler in (copy, download):
+            assert "await readPortableSmiles(editor.current)" in handler
+            assert 'await editor.current.getMolfile("v3000")' in handler
+            assert "await editor.current.getSmiles(" not in handler
 
 
 def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():

@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "ed847ffc8a90d75500ae7629426e8b8067f544b08e893fe5fb87d8ef019e6404",
+      "after_sha256": "5fefe932a6f6e60ebca62ebb7b0f3dcb2e5dd82ed680d855cf687ea1ec12da99",
       "changes": [
         {
           "before": "const labels = {",
@@ -206,6 +206,42 @@
         {
           "before": "    <div\n      className={\n        window.parent",
           "after": "    <div\n      data-xdde-drawing={drawingBridgeOrigin() ? \"\" : undefined}\n      className={\n        window.parent"
+        },
+        {
+          "before": "import { useWorkbench } from \"./useWorkbench\";",
+          "after": "import { useWorkbench } from \"./useWorkbench\";\nimport { hasSmilesExtension } from \"./portable-smiles\";"
+        },
+        {
+          "before": "  } = workbench;\n  return (",
+          "after": "  } = workbench;\n  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());\n  return ("
+        },
+        {
+          "before": "          <div className=\"smiles-output\">",
+          "after": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>\n          ) : (\n          <div className=\"smiles-output\">"
+        },
+        {
+          "before": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!structureReady || !smiles.trim()}",
+          "after": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!canExportSmiles}"
+        },
+        {
+          "before": "          <footer className=\"panel-footer export-footer\">",
+          "after": "          )}\n          <footer className=\"panel-footer export-footer\">"
+        },
+        {
+          "before": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+          "after": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!canExportSmiles}"
+        },
+        {
+          "before": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady || !smiles.trim()}",
+          "after": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady}"
+        },
+        {
+          "before": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+          "after": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!canExportSmiles}"
+        },
+        {
+          "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
+          "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
         }
       ],
       "upgrades": [
@@ -219,6 +255,83 @@
             {
               "before": "    <div\n      className={\n        window.parent",
               "after": "    <div\n      data-xdde-drawing={drawingBridgeOrigin() ? \"\" : undefined}\n      className={\n        window.parent"
+            },
+            {
+              "before": "import { useWorkbench } from \"./useWorkbench\";",
+              "after": "import { useWorkbench } from \"./useWorkbench\";\nimport { hasSmilesExtension } from \"./portable-smiles\";"
+            },
+            {
+              "before": "  } = workbench;\n  return (",
+              "after": "  } = workbench;\n  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());\n  return ("
+            },
+            {
+              "before": "          <div className=\"smiles-output\">",
+              "after": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>\n          ) : (\n          <div className=\"smiles-output\">"
+            },
+            {
+              "before": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!structureReady || !smiles.trim()}",
+              "after": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!canExportSmiles}"
+            },
+            {
+              "before": "          <footer className=\"panel-footer export-footer\">",
+              "after": "          )}\n          <footer className=\"panel-footer export-footer\">"
+            },
+            {
+              "before": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!canExportSmiles}"
+            },
+            {
+              "before": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady}"
+            },
+            {
+              "before": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!canExportSmiles}"
+            },
+            {
+              "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
+            }
+          ]
+        },
+        {
+          "before_sha256": "ed847ffc8a90d75500ae7629426e8b8067f544b08e893fe5fb87d8ef019e6404",
+          "changes": [
+            {
+              "before": "import { useWorkbench } from \"./useWorkbench\";",
+              "after": "import { useWorkbench } from \"./useWorkbench\";\nimport { hasSmilesExtension } from \"./portable-smiles\";"
+            },
+            {
+              "before": "  } = workbench;\n  return (",
+              "after": "  } = workbench;\n  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());\n  return ("
+            },
+            {
+              "before": "          <div className=\"smiles-output\">",
+              "after": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>\n          ) : (\n          <div className=\"smiles-output\">"
+            },
+            {
+              "before": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!structureReady || !smiles.trim()}",
+              "after": "              aria-label={text(\"复制当前 SMILES\")}\n              disabled={!canExportSmiles}"
+            },
+            {
+              "before": "          <footer className=\"panel-footer export-footer\">",
+              "after": "          )}\n          <footer className=\"panel-footer export-footer\">"
+            },
+            {
+              "before": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"复制 SMILES\")}\n                disabled={!canExportSmiles}"
+            },
+            {
+              "before": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"复制 MOL\")}\n                disabled={!structureReady}"
+            },
+            {
+              "before": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "                aria-label={text(\"下载 SMILES\")}\n                disabled={!canExportSmiles}"
+            },
+            {
+              "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
+              "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
             }
           ]
         }
@@ -383,7 +496,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "b161bb2e9571ffd48c6acdc5ad31ecdfa6696021f1d09b339dcaa4a0bc2081ca",
+      "after_sha256": "23240aeac6589e3ef2f7b453c1fbc4e8634967854d38fb27b659c4720d094afc",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -460,6 +573,34 @@
         {
           "before": "      setState((value) => ({ ...value, phase: \"busy\", job }));",
           "after": "      setState((value) => ({ ...value, phase: \"busy\", job }));\n      return job;"
+        },
+        {
+          "before": "import type { Ketcher } from \"ketcher-core\";",
+          "after": "import type { Ketcher } from \"ketcher-core\";\nimport { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";"
+        },
+        {
+          "before": "      const current = await editor.current.getSmiles();\n      if (!current.trim()) {\n        setToast(\"当前结构为空。\");\n        return;\n      }\n      const text =\n        format === \"smiles\" ? current : await editor.current.getMolfile(\"v3000\");",
+          "after": "      const text = format === \"smiles\"\n        ? await readPortableSmiles(editor.current)\n        : await editor.current.getMolfile(\"v3000\");"
+        },
+        {
+          "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"复制失败，请检查剪贴板权限。\");",
+          "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");"
+        },
+        {
+          "before": "  const download = async (format: \"smiles\" | \"sdf\") => {",
+          "after": "  const download = async (format: \"smiles\" | \"mol\" | \"sdf\") => {"
+        },
+        {
+          "before": "      const text =\n        format === \"smiles\"\n          ? (await editor.current.getSmiles()) + \"\\n\"\n          : await editor.current.getSdf(\"v3000\");",
+          "after": "      const text = format === \"smiles\"\n        ? (await readPortableSmiles(editor.current)) + \"\\n\"\n        : format === \"mol\"\n          ? await editor.current.getMolfile(\"v3000\")\n          : await editor.current.getSdf(\"v3000\");"
+        },
+        {
+          "before": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : \"sdf\"}`;",
+          "after": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : format}`;"
+        },
+        {
+          "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
+          "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
         }
       ],
       "upgrades": [
@@ -489,6 +630,67 @@
             {
               "before": "      setState((value) => ({ ...value, phase: \"busy\", job }));",
               "after": "      setState((value) => ({ ...value, phase: \"busy\", job }));\n      return job;"
+            },
+            {
+              "before": "import type { Ketcher } from \"ketcher-core\";",
+              "after": "import type { Ketcher } from \"ketcher-core\";\nimport { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";"
+            },
+            {
+              "before": "      const current = await editor.current.getSmiles();\n      if (!current.trim()) {\n        setToast(\"当前结构为空。\");\n        return;\n      }\n      const text =\n        format === \"smiles\" ? current : await editor.current.getMolfile(\"v3000\");",
+              "after": "      const text = format === \"smiles\"\n        ? await readPortableSmiles(editor.current)\n        : await editor.current.getMolfile(\"v3000\");"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "  const download = async (format: \"smiles\" | \"sdf\") => {",
+              "after": "  const download = async (format: \"smiles\" | \"mol\" | \"sdf\") => {"
+            },
+            {
+              "before": "      const text =\n        format === \"smiles\"\n          ? (await editor.current.getSmiles()) + \"\\n\"\n          : await editor.current.getSdf(\"v3000\");",
+              "after": "      const text = format === \"smiles\"\n        ? (await readPortableSmiles(editor.current)) + \"\\n\"\n        : format === \"mol\"\n          ? await editor.current.getMolfile(\"v3000\")\n          : await editor.current.getSdf(\"v3000\");"
+            },
+            {
+              "before": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : \"sdf\"}`;",
+              "after": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : format}`;"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
+            }
+          ]
+        },
+        {
+          "before_sha256": "b161bb2e9571ffd48c6acdc5ad31ecdfa6696021f1d09b339dcaa4a0bc2081ca",
+          "changes": [
+            {
+              "before": "import type { Ketcher } from \"ketcher-core\";",
+              "after": "import type { Ketcher } from \"ketcher-core\";\nimport { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";"
+            },
+            {
+              "before": "      const current = await editor.current.getSmiles();\n      if (!current.trim()) {\n        setToast(\"当前结构为空。\");\n        return;\n      }\n      const text =\n        format === \"smiles\" ? current : await editor.current.getMolfile(\"v3000\");",
+              "after": "      const text = format === \"smiles\"\n        ? await readPortableSmiles(editor.current)\n        : await editor.current.getMolfile(\"v3000\");"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "  const download = async (format: \"smiles\" | \"sdf\") => {",
+              "after": "  const download = async (format: \"smiles\" | \"mol\" | \"sdf\") => {"
+            },
+            {
+              "before": "      const text =\n        format === \"smiles\"\n          ? (await editor.current.getSmiles()) + \"\\n\"\n          : await editor.current.getSdf(\"v3000\");",
+              "after": "      const text = format === \"smiles\"\n        ? (await readPortableSmiles(editor.current)) + \"\\n\"\n        : format === \"mol\"\n          ? await editor.current.getMolfile(\"v3000\")\n          : await editor.current.getSdf(\"v3000\");"
+            },
+            {
+              "before": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : \"sdf\"}`;",
+              "after": "      link.download = `decimer-result.${format === \"smiles\" ? \"smi\" : format}`;"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
             }
           ]
         }
@@ -671,6 +873,9 @@
     ],
     "recognition-locale.ts": [
       "a4605d349eef207de2ad4b66ed4aaeae460b25fa10cf12d30a397c6d5b5d9f13"
+    ],
+    "recognition-host-ui-locale.ts": [
+      "60ca53e251c6fe9fdebd204291fcea8b72a611651abd2ffb27bfb4327cdb91db"
     ]
   }
 }
