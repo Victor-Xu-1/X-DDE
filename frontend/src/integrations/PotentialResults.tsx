@@ -6,6 +6,7 @@ import type { Job, Language } from "../types";
 import type { NativeResult } from "./types";
 import { useState } from "react";
 import "./potential-results.css";
+import "../presentation/spatial-result-review.css";
 
 const metricLabels = new Map([
   ["Ionic strength", "离子强度"],
@@ -25,7 +26,7 @@ export function PotentialResults({
   const [range, setRange] = useState(5);
   if (!result.structure_artifact || !result.potential_artifact) return null;
   return (
-    <section className="spatial-results apbs-result">
+    <section className="spatial-results apbs-result spatial-review">
       <StructureWorkbench
         preview={
           <StructureViewer
