@@ -1046,6 +1046,13 @@ DESKTOP_BACKEND_HEADER_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DESKTOP_BACKEND_HEADER_DIFF = "f7647f3b0c364cffaa104072c19fb54bce826abe8d2e113b3bdfb383df5e1161"
+STABLE_MODULE_SWITCH_FILES = {
+    "frontend/src/utilities/BackendControls.tsx",
+    "frontend/src/utilities/runtime-switch.css",
+    "server_tests/test_module_backend_switch_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+STABLE_MODULE_SWITCH_DIFF = "3747e322a9385f2a259729b8ae9d78d9c6af1ce4d60a32f871cf02df9bc9ae29"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1723,6 +1730,10 @@ def main():
     )
     module_power = (
         desktop_backend_header or persistent_task_power or backend_setup or composed_power
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        STABLE_MODULE_SWITCH_FILES, STABLE_MODULE_SWITCH_DIFF,
+        scope_pin="STABLE_MODULE_SWITCH_DIFF",
     ) or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,

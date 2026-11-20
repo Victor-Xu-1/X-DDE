@@ -141,6 +141,16 @@
   background: transparent;
   border: 1px solid currentColor;
 }
+.studio-app .studio-topbar .backend-controls-trigger.is-module-overview {
+  position: relative;
+  padding-inline-end: 24px;
+}
+.studio-topbar .is-module-overview .backend-module-status {
+  position: absolute;
+  inset: 50% 8px auto auto;
+  margin-inline-start: 0;
+  transform: translateY(-50%);
+}
 @media (max-width: 1200px) {
   .studio-topbar .backend-module-status > span {
     position: absolute;
@@ -192,7 +202,7 @@
     display: none;
   }
 }
-.studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
+.studio-app .studio-topbar .backend-controls-trigger.is-compact {
   display: grid;
   place-items: center;
   width: 36px;
@@ -200,21 +210,21 @@
   padding: 0;
   color: var(--muted);
 }
-.studio-topbar .has-inline-switch .backend-controls-icon {
+.studio-topbar .is-compact .backend-controls-icon {
   display: inline-flex;
 }
-.studio-topbar .has-inline-switch .backend-controls-label {
+.studio-topbar .is-compact .backend-controls-label {
   display: none;
 }
 @media (min-width: 1160px) {
-  .studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
+  .studio-app .studio-topbar .backend-controls-trigger.is-compact {
     display: inline-flex;
     width: auto;
     padding-inline: 10px;
     gap: 5px;
     white-space: nowrap;
   }
-  .studio-topbar .has-inline-switch .backend-controls-label {
+  .studio-topbar .is-compact .backend-controls-label {
     display: inline;
   }
 }

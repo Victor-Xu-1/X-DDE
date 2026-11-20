@@ -156,6 +156,12 @@ export function BackendControls({
       : undefined);
   const readingCurrent = currentCapability && !runtime.catalogue;
   const showInline = Boolean(inline || readingCurrent);
+  // The result list can gain an inline switch after the status request.
+  // Keep its management button in the same place while that happens.
+  const moduleOverview = Boolean(
+    module && inlineSingle && !moduleHasRecognition && !currentCapability,
+  );
+  const compactTrigger = showInline && !moduleOverview;
   const showComputeSwitch = current?.id === "harness" && Boolean(compute);
   return (
     <div
@@ -225,10 +231,20 @@ export function BackendControls({
       )}
       <button
         ref={trigger}
-        className="secondary-button backend-controls-trigger"
+        className={
+          "secondary-button backend-controls-trigger" +
+          (compactTrigger ? " is-compact" : "") +
+          (moduleOverview ? " is-module-overview" : "")
+        }
         type="button"
         aria-label={triggerLabel}
-        title={showInline ? triggerLabel : undefined}
+        title={
+          moduleOverview
+            ? `${triggerLabel} · ${status}`
+            : compactTrigger
+              ? triggerLabel
+              : undefined
+        }
         aria-describedby={module ? statusId : undefined}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -236,17 +252,19 @@ export function BackendControls({
       >
         <ControlOutlined className="backend-controls-icon" aria-hidden="true" />
         <span className="backend-controls-label">
-          {showInline ? (zh ? "后端" : "Backend") : triggerLabel}
+          {compactTrigger ? (zh ? "后端" : "Backend") : triggerLabel}
         </span>
         {module && (
           <span
             id={statusId}
-            className={showInline ? "sr-only" : "backend-module-status"}
+            className={compactTrigger ? "sr-only" : "backend-module-status"}
             data-power={power}
             aria-live="polite"
             title={status}
           >
-            <span>{status}</span>
+            <span className={moduleOverview ? "sr-only" : undefined}>
+              {status}
+            </span>
           </span>
         )}
       </button>
