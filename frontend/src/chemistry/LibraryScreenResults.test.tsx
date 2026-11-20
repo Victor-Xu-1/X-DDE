@@ -221,10 +221,13 @@ it("shows native matched rules and scaffold families without implying safety or 
       language="zh"
     />,
   );
-  expect(screen.getByRole("status")).toHaveTextContent(
-    "已检查 1 / 2 个分子，1 个需核查",
-  );
-  expect(screen.getByText(/不是药效排名/)).toBeVisible();
+  const summary = screen.getByText("已检查 1/2 · 1 个需核查 · 1 个结构组");
+  const coverage = screen.getByText("结构规则已检查 1 / 2 个分子。");
+  expect(summary).toBeVisible();
+  expect(coverage).not.toBeVisible();
+  await userEvent.click(summary);
+  expect(coverage).toBeVisible();
+  expect(screen.getByText(/药效排序需依据独立的活性数据/)).toBeVisible();
   await userEvent.click(screen.getByText("需核查：1 条"));
   expect(screen.getByText("Brenk · review_pattern")).toBeVisible();
   expect(screen.getByText("骨架 1")).toBeVisible();

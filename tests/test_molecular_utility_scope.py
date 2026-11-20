@@ -169,6 +169,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "native_color_figure_only=false\n"
         "result_handoff_desktop_only=false\n"
         "molecule_results_only=false\n"
+        "short_chemistry_desktop_only=false\n"
         "molecule_workbench_only=false\n"
         "ligand_camera_only=false\n"
         "desktop_structure_focus_only=false\n"

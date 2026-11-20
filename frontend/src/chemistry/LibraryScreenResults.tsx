@@ -56,7 +56,28 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
   );
   const inspected = result.rows.filter((row) => row.structural_alerts != null);
   const flagged = inspected.filter((row) => row.structural_alerts!.length > 0);
-  const grouped = result.scaffold_groups != null;
+  const groupCount = result.scaffold_groups?.length;
+  const coverage =
+    inspected.length < result.rows.length
+      ? zh
+        ? `已检查 ${inspected.length}/${result.rows.length}`
+        : `${inspected.length}/${result.rows.length} checked`
+      : null;
+  const evidenceSummary = [
+    alertsRequested ? coverage : null,
+    alertsRequested
+      ? zh
+        ? `${flagged.length} 个需核查`
+        : `${flagged.length} flagged`
+      : null,
+    groupCount === undefined
+      ? null
+      : zh
+        ? `${groupCount} 个结构组`
+        : `${groupCount} chemical families`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <section
       className="library-screen-results"
@@ -113,19 +134,24 @@ function LibraryScreenWorkspace({ job, result, language, onCreated }: Props) {
               />
               {zh ? "只看选中分子" : "Show selected molecules only"}
             </label>
-            {alertsRequested && (
-              <p role="status">
-                {zh
-                  ? `已检查 ${inspected.length} / ${result.rows.length} 个分子，${flagged.length} 个需核查。`
-                  : `Structural rules evaluated for ${inspected.length} / ${result.rows.length} molecules. Review ${flagged.length} flagged.`}
-              </p>
-            )}
-            {grouped && (
-              <p className="field-help">
-                {zh
-                  ? `共 ${result.scaffold_groups!.length} 个结构组；组内按原始顺序选择，不是药效排名。`
-                  : `${result.scaffold_groups!.length} chemical families; representatives follow input order, not activity rank.`}
-              </p>
+            {evidenceSummary && (
+              <details className="library-screen-evidence">
+                <summary>{evidenceSummary}</summary>
+                {alertsRequested && (
+                  <p>
+                    {zh
+                      ? `结构规则已检查 ${inspected.length} / ${result.rows.length} 个分子。`
+                      : `Structural rules evaluated for ${inspected.length} / ${result.rows.length} molecules.`}
+                  </p>
+                )}
+                {groupCount !== undefined && (
+                  <p>
+                    {zh
+                      ? "组内代表按输入顺序选择。药效排序需依据独立的活性数据。"
+                      : "Representatives follow input order. Activity ranking requires separate activity data."}
+                  </p>
+                )}
+              </details>
             )}
             {!active ? (
               <p role="status">

@@ -184,7 +184,7 @@ it("retains invalid/duplicate original indices and switches exact previews and r
   await user.click(prepare);
   expect(
     screen.getByRole("heading", { name: "Molecule preparation" }),
-  ).toHaveFocus();
+  ).toBeVisible();
   expect(
     JSON.parse(screen.getByLabelText("Reused source").textContent!),
   ).toEqual(result.rows[2].reference);

@@ -1544,6 +1544,26 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DESKTOP_MOLECULE_RESULTS_DIFF = "d576f4c8e3662ea4b70bb511cf46197783f2d7d1430a6836d2d2ee3cd9d11bce"
+SHORT_CHEMISTRY_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/admet/AdmetResults.test.tsx",
+    "frontend/src/admet/admet.css",
+    "frontend/src/chemistry/LibraryScreenResults.test.tsx",
+    "frontend/src/chemistry/LibraryScreenResults.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.test.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.tsx",
+    "frontend/src/chemistry/library-screen-results.css",
+    "frontend/src/editors/portable-smiles.test.ts",
+    "frontend/src/editors/portable-smiles.ts",
+    "frontend/src/operations/property-result-views.css",
+    "frontend/src/utilities/recognition-host-ui-locale.ts",
+    "server_tests/test_result_handoffs_desktop.py",
+    "server_tests/test_short_chemistry_desktop.py",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
+    "tests/test_molecular_utility_scope.py",
+    "tests/test_recognition_companion.py",
+}
+SHORT_CHEMISTRY_DESKTOP_DIFF = "c90684d499fee396c92b25bb7b3e5c57b74dc6e7a222d06bd27df35991932c69"
 DESKTOP_MOLECULE_WORKBENCH_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1907,7 +1927,12 @@ def main():
         DESKTOP_MOLECULE_WORKBENCH_FILES, DESKTOP_MOLECULE_WORKBENCH_DIFF,
         scope_pin="DESKTOP_MOLECULE_WORKBENCH_DIFF",
     )
-    molecule_results = molecule_workbench or reviewed_selected(
+    short_chemistry_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SHORT_CHEMISTRY_DESKTOP_FILES, SHORT_CHEMISTRY_DESKTOP_DIFF,
+        scope_pin="SHORT_CHEMISTRY_DESKTOP_DIFF",
+    )
+    molecule_results = short_chemistry_desktop or molecule_workbench or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_MOLECULE_RESULTS_FILES, DESKTOP_MOLECULE_RESULTS_DIFF,
         scope_pin="DESKTOP_MOLECULE_RESULTS_DIFF",
@@ -1966,6 +1991,7 @@ def main():
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("molecule_results_only=" + str(molecule_results).lower() + "\n")
+        output.write("short_chemistry_desktop_only=" + str(short_chemistry_desktop).lower() + "\n")
         output.write("molecule_workbench_only=" + str(molecule_workbench).lower() + "\n")
         output.write("ligand_camera_only=" + str(ligand_camera).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")

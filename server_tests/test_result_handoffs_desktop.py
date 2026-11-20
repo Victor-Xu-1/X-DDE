@@ -124,6 +124,10 @@ def verify_admet(page, base, zh, evidence):
     expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     tabs = page.locator(".admet-candidates .research-tab-list")
     require_no_horizontal_truncation(tabs)
+    viewport = page.viewport_size
+    page.set_viewport_size({"width": 1366, "height": 768})
+    require_no_horizontal_truncation(tabs)
+    page.set_viewport_size(viewport)
     downloads = selected.locator(".admet-molecule-downloads")
     downloads.locator("summary").press("Enter")
     csv_link = downloads.get_by_role(

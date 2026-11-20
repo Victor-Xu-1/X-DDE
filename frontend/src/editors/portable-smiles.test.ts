@@ -1,9 +1,32 @@
 import { expect, it, vi } from "vitest";
-import { readPortableSmiles, SmilesHandoffError } from "./portable-smiles";
+import {
+  readPortableSmiles,
+  recognizedDrawing,
+  SmilesHandoffError,
+} from "./portable-smiles";
 
 const structure = "2000\nM  V30 BEGIN CTAB\nM  V30 END CTAB\nM  END\n";
 const absolute = "N[C@@H](C)C(=O)O";
 const relative = "C[C@H](O)[C@H](F)Cl |&1:1,3|";
+const generatedMol = "\n     RDKit          2D\n\n  6  5  0  0  0  0  0  0  0  0999 V2000\nM  END\n";
+
+it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
+  const molfile = generatedMol.replaceAll("\n", "\r\n");
+  expect(recognizedDrawing({ smiles: absolute, rawSmiles: absolute, molfile })).toBe(
+    molfile.replace("  6  5  0  0  0", "  6  5  0  0  1"),
+  );
+});
+
+it.each([
+  { rawSmiles: relative, smiles: absolute, molfile: generatedMol },
+  { rawSmiles: "FC=CCl", smiles: "FC=CCl", molfile: generatedMol },
+  { rawSmiles: "F/C=C\\Cl", smiles: "F/C=C\\Cl", molfile: generatedMol },
+  { rawSmiles: undefined, smiles: absolute, molfile: generatedMol },
+  { rawSmiles: absolute, smiles: absolute, molfile: generatedMol.replace("V2000", "V3000") },
+  { rawSmiles: absolute, smiles: absolute, molfile: generatedMol.replace("  6  5  0  0  0", "  6  5  0  0  1") },
+])("preserves the depiction without explicit new V2000 absolute stereo", (result) => {
+  expect(recognizedDrawing(result)).toBe(result.molfile);
+});
 
 function editor(smiles: string, mol = structure, readback = "same") {
   const key = vi.fn().mockResolvedValueOnce("same").mockResolvedValueOnce(readback);
