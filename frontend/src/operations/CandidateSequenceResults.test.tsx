@@ -183,6 +183,55 @@ it("resets candidate ownership when a different task replaces the displayed resu
   expect(screen.getByRole("heading", { name: "first" })).toBeVisible();
 });
 
+it("keeps one track and the same selected position when switching sequence sources", async () => {
+  render(
+    <CandidateSequenceResults
+      job={{
+        ...job,
+        request: {
+          operation: "harness",
+          tool: "mpnn",
+          name: "Sequence comparison",
+          payload: { parent_chains: { A: "ACDEF" } },
+          allow_external: false,
+        },
+      }}
+      candidates={[{ chains: { A: "AKDEF" } }, { chains: { A: "ACDE" } }]}
+      structures={[]}
+      language="en"
+    />,
+  );
+  const user = userEvent.setup();
+  const chain = screen.getByRole("region", { name: "Chain A" });
+  const source = within(chain).getByRole("group", { name: "Sequence source" });
+  expect(chain.querySelectorAll(".sequence-track")).toHaveLength(1);
+  await user.click(
+    within(chain).getByRole("button", { name: "C2K" }),
+  );
+  const position = (label: string) =>
+    within(chain).getByRole("button", { name: label });
+  expect(position("Candidate sequence · A · 2 K · C2K")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await user.click(within(source).getByRole("button", { name: "Original" }));
+  expect(position("Original sequence · A · 2 C · C2K")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(chain.querySelectorAll(".sequence-track")).toHaveLength(1);
+  await user.click(
+    within(
+      screen.getByRole("table", { name: "Sequence candidates" }),
+    ).getByRole("button", { name: "Candidate 2" }),
+  );
+  const second = screen.getByRole("region", { name: "Chain A" });
+  expect(within(second).getByText("ACDE")).toBeInTheDocument();
+  expect(
+    within(second).queryByRole("group", { name: "Substitution positions" }),
+  ).not.toBeInTheDocument();
+});
+
 it("switches the native quality status with the selected pose and restores it on task replacement", async () => {
   const candidates = [
     {

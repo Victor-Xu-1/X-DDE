@@ -4,7 +4,7 @@ import type { Job, Language } from "../types";
 import { artifactUrl } from "../api";
 import { ResearchTable } from "../presentation/ResearchTable";
 import { ResearchTabs } from "../presentation/ResearchTabs";
-import { SequenceTrack } from "../presentation/SequenceTrack";
+import { CandidateChainComparison } from "./CandidateChainComparison";
 import { MetricScatter } from "../presentation/MetricScatter";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { ResultTree } from "./StructuredResults";
@@ -65,51 +65,26 @@ export function CandidateSequenceResults({
   const original = record(payload.parent_chains);
   const tree = (
     <div className="result-inspector">
-      {current.chains.map(({ chain, sequence }) => (
-        <section key={chain} className="candidate-chain-view">
-          {typeof original[chain] === "string" && (
-            <SequenceTrack
-              sequence={original[chain] as string}
-              language={language}
-              recordName={`${job.id}:parent:${chain || "sequence"}`}
-              label={
-                (zh ? "原始序列" : "Original sequence") +
-                (chain ? " · " + chain : "")
-              }
-            />
-          )}
-          <SequenceTrack
+      {current.chains.map(({ chain, sequence }) => {
+        const reference = original[chain];
+        return (
+          <CandidateChainComparison
+            key={JSON.stringify([
+              job.id,
+              current.index,
+              chain,
+              sequence,
+              reference,
+            ])}
+            chain={chain}
             sequence={sequence}
-            language={language}
+            reference={typeof reference === "string" ? reference : undefined}
             recordName={`${job.id}:sample-${current.index + 1}:${chain || "sequence"}`}
-            label={
-              (zh ? "候选序列" : "Candidate sequence") +
-              (chain ? " · " + chain : "")
-            }
+            referenceName={`${job.id}:parent:${chain || "sequence"}`}
+            language={language}
           />
-          {typeof original[chain] === "string" &&
-            (original[chain] as string).length === sequence.length && (
-              <p className="field-help">
-                {zh
-                  ? "与原始序列不同的位置："
-                  : "Positions differing from the original: "}
-                {Array.from(sequence)
-                  .flatMap((aa, index) =>
-                    (original[chain] as string)[index] !== aa
-                      ? [
-                          String(index + 1) +
-                            " " +
-                            (original[chain] as string)[index] +
-                            "→" +
-                            aa,
-                        ]
-                      : [],
-                  )
-                  .join(" · ") || (zh ? "无" : "None")}
-              </p>
-            )}
-        </section>
-      ))}
+        );
+      })}
     </div>
   );
   const tabs = [
@@ -196,6 +171,7 @@ export function CandidateSequenceResults({
             rows={rows}
             language={language}
             title={zh ? "序列候选" : "Sequence candidates"}
+            compactToolbar
             rowId={(row) => String(row.index)}
             selected={String(current.index)}
             onSelect={(row) => select(row.index)}

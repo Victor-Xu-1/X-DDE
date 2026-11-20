@@ -16,6 +16,7 @@ export function SequenceTrack({
   label,
   recordName,
   regions = [],
+  showRegionMap = true,
   onSelect,
   selectedPosition,
   unit = "aa",
@@ -26,6 +27,7 @@ export function SequenceTrack({
   label: string;
   recordName?: string;
   regions?: readonly SequenceRegion[];
+  showRegionMap?: boolean;
   onSelect?(position: number): void;
   selectedPosition?: number | null;
   unit?: "aa" | "nt" | "positions";
@@ -103,7 +105,7 @@ export function SequenceTrack({
           {exportButton}
         </header>
       )}
-      {regions.length > 0 && (
+      {showRegionMap && regions.length > 0 && (
         <div
           className="sequence-region-map"
           aria-label={zh ? "序列区域图" : "Sequence region map"}

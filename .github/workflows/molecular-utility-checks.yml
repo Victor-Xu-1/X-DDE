@@ -52,6 +52,9 @@ on:
       - "frontend/src/presentation/spatial-results.css"
       - "server_tests/test_spatial_results_desktop.py"
       - "server_tests/test_sequence_review_desktop.py"
+      - "frontend/src/operations/CandidateChainComparison.tsx"
+      - "frontend/src/operations/CandidateSequenceResults*"
+      - "frontend/src/presentation/sequence-review.css"
       - "server_tests/test_protein_review_desktop.py"
       - ".github/workflows/refinement-input-checks.yml"
       - "frontend/src/utilities/UtilityTask*"
@@ -909,6 +912,7 @@ jobs:
           npx vitest run src/integrations/ScientificResults.test.tsx
           src/integrations/SequenceDesignOverview.test.tsx
           src/operations/CandidateSequenceResults.test.tsx
+          src/presentation/SequenceTrack.test.tsx src/presentation/ResearchTable.test.tsx
       - name: Verify the two retained sequence workspaces in Chrome
         env:
           GH_TOKEN: ${{ github.token }}

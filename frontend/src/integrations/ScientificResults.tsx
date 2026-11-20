@@ -280,6 +280,7 @@ export function ScientificResults({
       rowId={(row) => row.id}
       language={language}
       title={zh ? "研究候选" : "Research candidates"}
+      compactToolbar={Boolean(result.sequence_design)}
       selected={active?.id}
       onSelect={(row) => setSelected(row.id)}
       exportName="scientific-candidates.csv"
