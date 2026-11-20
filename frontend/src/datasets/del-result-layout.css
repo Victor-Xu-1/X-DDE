@@ -291,16 +291,6 @@
 }
 
 @media (1080px <= width < 1120px) {
-  .task-history-workspace
-    .detail-panel.has-header-navigation:has([data-del-results])
-    > .task-detail-header {
-    column-gap: 8px;
-
-    h2 {
-      font-size: 17px;
-    }
-  }
-
   [data-del-results] .candidate-preview-heading,
   [data-del-results] .candidate-preview-identity,
   [data-del-results] .candidate-preview-actions {
