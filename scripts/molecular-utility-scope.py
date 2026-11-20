@@ -492,6 +492,7 @@ UTILITY_NAVIGATION_FILES = {
 UTILITY_NAVIGATION_DIFF = "df3ade6d18c23db03652cf3d15b75dc1ebc76d0ac5ddb8d79a44a877e9c6ec4d"
 
 UTILITY_DESKTOP_FILES = {
+    ".github/workflows/ketcher-depiction-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/editors/recognition-host-editor.css",
     "frontend/src/utilities/UtilityImageTask.test.tsx",
@@ -501,7 +502,7 @@ UTILITY_DESKTOP_FILES = {
     "server_tests/test_utility_navigation_browser.py",
     "src/opendde_workbench/data/recognition_locale/patch.json",
 }
-UTILITY_DESKTOP_DIFF = "c01971d49dbf2ac972cf3c90529a6baa080c52aa31a7c529ba90ca13fc378577"
+UTILITY_DESKTOP_DIFF = "1ff5bb050884011bdd61cbf2b8a23cf7cca50e644c24d7dafca0f3d956e24b2b"
 
 
 POTENTIAL_DISPLAY_FILES = {
