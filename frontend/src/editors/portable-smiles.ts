@@ -6,6 +6,17 @@ type StructureExport = {
   };
 };
 
+type RecognitionResult = {
+  rawSmiles?: string | null;
+  smiles: string;
+  molfile: string;
+};
+
+export type RecognizedSourceExport = {
+  text: string;
+  molfile: string;
+};
+
 export class SmilesHandoffError extends Error {}
 
 /** Indigo can return CXSMILES even from getSmiles(false). */
@@ -18,15 +29,7 @@ function isPortableLine(value: string) {
 }
 
 /** Repair the generated V2000 depiction using the same OCR result's stereo. */
-export function recognizedDrawing({
-  rawSmiles,
-  smiles,
-  molfile,
-}: {
-  rawSmiles?: string | null;
-  smiles: string;
-  molfile: string;
-}) {
+export function recognizedDrawing({ rawSmiles, smiles, molfile }: RecognitionResult) {
   const raw = rawSmiles?.trim() ?? "";
   if (!raw.includes("@") || !isPortableLine(raw) || !smiles.includes("@"))
     return molfile;
@@ -41,6 +44,41 @@ export function recognizedDrawing({
   return lines.join("\n");
 }
 
+function hasRelativeStereo(molfile: string) {
+  return /MDLV30\/STER(?:AC|EL)\d*/.test(molfile);
+}
+
+/** Recover the recognized source if the drawing component cannot load it. */
+export async function readRecognizedSource(
+  service: StructureExport["structService"],
+  result: RecognitionResult,
+): Promise<RecognizedSourceExport | null> {
+  const raw = result.rawSmiles?.trim();
+  if (!raw || raw.length > 100_000 || result.molfile.length > 5 * 1024 ** 2)
+    return null;
+
+  const molfile = recognizedDrawing(result);
+  try {
+    const expected = await service.getInChIKey(raw);
+    if (!expected?.trim() || expected !== await service.getInChIKey(molfile))
+      return null;
+
+    // The worker's canonical SMILES may omit relative groups and other CX data.
+    // Ordinary SMILES is safe only when the original was already a plain line.
+    const text = result.smiles.trim();
+    if (
+      isPortableLine(raw) &&
+      isPortableLine(text) &&
+      !hasRelativeStereo(molfile) &&
+      expected === await service.getInChIKey(text)
+    ) return { text, molfile };
+
+    return { text: "", molfile };
+  } catch {
+    return null;
+  }
+}
+
 export async function readPortableSmiles(editor: StructureExport) {
   let smiles: string;
   let mol: string;
@@ -53,7 +91,7 @@ export async function readPortableSmiles(editor: StructureExport) {
     );
   }
   // AND/OR stereo collections cannot be expressed as an absolute SMILES.
-  if (hasSmilesExtension(smiles) || /MDLV30\/STER(?:AC|EL)\d*/.test(mol))
+  if (hasSmilesExtension(smiles) || hasRelativeStereo(mol))
     throw new SmilesHandoffError(
       "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。",
     );

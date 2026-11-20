@@ -121,6 +121,39 @@ def test_upgrade_hunk_does_not_authorize_an_unrecognized_native_edit(source):
     assert not backups.exists()
 
 
+@pytest.mark.parametrize("installed", ["original", "historical", "localized"])
+def test_final_step_reuses_verified_migrations(source, installed):
+    host, resources, _ = source
+    manifest_path = resources / "patch.json"
+    manifest = json.loads(manifest_path.read_text())
+    record = manifest["files"][0]
+    target = host / record["path"]
+    name = target.name
+    payload = (name + ": current").encode()
+    record["final_step"] = {
+        "before_sha256": record["after_sha256"],
+        "changes": [{"before": "localized", "after": "current"}],
+    }
+    record["after_sha256"] = companion.digest(payload)
+    record["upgrades"] = [{
+        "before_sha256": companion.digest((name + ": historical").encode()),
+        "changes": [{"before": "historical", "after": "localized"}],
+    }]
+    manifest_path.write_text(json.dumps(manifest))
+    target.write_text(name + ": " + installed)
+    assert companion.prepare(host, resources)[target] == payload
+
+    # The final hunk cannot make a broken predecessor appear deployable.
+    record["final_step"]["before_sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest))
+    if installed != "localized":
+        with pytest.raises(ValueError, match="Native intermediate"):
+            companion.prepare(host, resources)
+    else:
+        with pytest.raises(ValueError, match="Unrecognized native source"):
+            companion.prepare(host, resources)
+
+
 def test_manifest_cannot_expand_scope_or_escape_source(source):
     host, resources, _ = source
     manifest = json.loads((resources / "patch.json").read_text())
