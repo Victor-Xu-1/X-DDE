@@ -6,14 +6,14 @@ function scene() {
   return {
     didDraw: new BehaviorSubject(2),
     commitQueueSize: new BehaviorSubject(1),
-    boundingSphereVisible: {
+    boundingSphere: {
       radius: 0,
     },
     requestDraw: vi.fn(),
   };
 }
 
-it("waits for a new draw with visible, committed native geometry", async () => {
+it("waits for a new draw with committed native geometry even when layers are hidden", async () => {
   const source = scene();
   const settled = vi.fn();
   const pending = waitForMolecularDraw(
@@ -26,7 +26,7 @@ it("waits for a new draw with visible, committed native geometry", async () => {
   source.didDraw.next(4);
   await Promise.resolve();
   expect(settled).not.toHaveBeenCalled();
-  source.boundingSphereVisible.radius = 27;
+  source.boundingSphere.radius = 27;
   source.didDraw.next(5);
   await pending;
   expect(settled).toHaveBeenCalledOnce();
