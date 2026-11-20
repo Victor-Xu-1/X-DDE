@@ -1413,10 +1413,11 @@ DESKTOP_MOLECULE_WORKBENCH_FILES = {
     "frontend/src/presentation/ResearchTabs.tsx",
     "frontend/src/presentation/molecule-result-toolbar.css",
     "frontend/src/presentation/research-tabs.css",
+    "scripts/research-tabs-scope.py",
     "server_tests/test_result_handoffs_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_MOLECULE_WORKBENCH_DIFF = "b4643e5e3ff9dfd5b1386add90eac8256a7f192ac29724a97ed6136096702e40"
+DESKTOP_MOLECULE_WORKBENCH_DIFF = "2f1968fa6b1f7b31216c2994f1a9014ec9c9598923cf8fc94f8951449d6a26b0"
 DESKTOP_LIGAND_CAMERA_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",

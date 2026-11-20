@@ -126,7 +126,9 @@ def verify_admet(page, base, zh, evidence):
     require_no_horizontal_truncation(tabs)
     downloads = selected.locator(".admet-molecule-downloads")
     downloads.locator("summary").press("Enter")
-    csv_link = downloads.get_by_role("link", name="下载预测表" if zh else "Download prediction table")
+    csv_link = downloads.get_by_role(
+        "link", name="下载预测表" if zh else "Download prediction table",
+    )
     assert csv_link.get_attribute("href").endswith("name=predictions.csv")
     sdf = downloads.get_by_role("link", name="下载原始分子" if zh else "Download original molecule")
     with page.expect_download() as receipt:
