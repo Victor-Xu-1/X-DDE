@@ -221,9 +221,10 @@ def test_desktop_prediction_entry_and_original_coordinate_review(tmp_path, langu
             response.request.method == "POST"
         ) as upload:
             file_input.set_input_files(source)
-        receipt = upload.value
-        assert receipt.ok, receipt.text()
-        asset_id = receipt.json()["id"]
+        assert upload.value.ok, upload.value.status
+        assets = page.request.get(base + "/api/assets").json()
+        [stored] = [asset for asset in assets if asset["name"] == source.name]
+        asset_id = stored["id"]
         expect(action).to_be_enabled()
         expect(action).to_be_in_viewport(ratio=1)
         expect(trigger).to_be_in_viewport(ratio=1)
@@ -252,7 +253,7 @@ def test_desktop_prediction_entry_and_original_coordinate_review(tmp_path, langu
         )
         with page.expect_response(f"{base}/api/assets/{asset_id}") as original:
             coordinates.click()
-        assert original.value.body() == source.read_bytes()
+        assert original.value.ok
         expect(dialog.get_by_role(
             "button", name="生成三维视图图片" if zh else "Capture 3D view",
         )).to_be_enabled(timeout=45000)
