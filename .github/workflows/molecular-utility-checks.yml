@@ -38,6 +38,9 @@ on:
       - "frontend/src/guided/SinglePage*"
       - "frontend/src/examples/ExampleActions*"
       - "frontend/src/guided/molecular-review.css"
+      - "frontend/src/guided/desktop-questionnaire.css"
+      - "frontend/src/guided/questionnaire.css"
+      - "server_tests/test_guided_desktop_browser.py"
       - "frontend/src/operations/PropertyForm.tsx"
       - "frontend/src/chemistry/StateForm.tsx"
       - "frontend/src/chemistry/LibraryScreenForm.tsx"
@@ -210,6 +213,7 @@ jobs:
       inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
       portable_smiles_only: ${{ steps.select.outputs.portable_smiles_only }}
+      guided_desktop_only: ${{ steps.select.outputs.guided_desktop_only }}
       utility_query_only: ${{ steps.select.outputs.utility_query_only }}
       compact_material_only: ${{ steps.select.outputs.compact_material_only }}
       paired_figure_only: ${{ steps.select.outputs.paired_figure_only }}
@@ -273,6 +277,7 @@ jobs:
       needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.editor_drawing_only != 'true' &&
       needs.scope.outputs.portable_smiles_only != 'true' &&
+      needs.scope.outputs.guided_desktop_only != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&
       needs.scope.outputs.compact_material_only != 'true' &&
       needs.scope.outputs.paired_figure_only != 'true' &&
@@ -624,6 +629,37 @@ jobs:
           uv run --locked ruff check scripts/molecular-utility-scope.py src/opendde_workbench/recognition_companion.py tests/test_molecular_utility_scope.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py
           uv build --wheel
           uv run --locked pytest -q tests/test_molecular_utility_scope.py tests/test_recognition_companion.py tests/test_recognition_companion_wheel.py
+
+  guided-desktop:
+    needs: scope
+    if: ${{ !inputs.scope_only && needs.scope.outputs.guided_desktop_only == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WB_AUTO_DEPLOY: "0"
+      WB_HOME: ${{ runner.temp }}/guided-desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Questionnaire navigation and step validation
+        working-directory: frontend
+        run: >-
+          npx vitest run src/guided/Questionnaire.test.tsx
+          src/guided/QuestionnaireGuidance.test.tsx src/guided/SinglePageTask.test.tsx
+      - name: Check supported desktop sizes and choose a region on the native structure
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check scripts/molecular-utility-scope.py server_tests/test_guided_desktop_browser.py
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py server_tests/test_guided_desktop_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guided-desktop-evidence
+          path: outputs/guided-desktop/
 
   recognition-power-in-task:
     needs: scope
