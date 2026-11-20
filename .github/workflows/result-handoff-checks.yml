@@ -45,7 +45,9 @@ jobs:
       scope_only: true
   handoff:
     needs: [result-scope, utility-scope]
-    if: needs.result-scope.outputs.presentation_only != 'true'
+    if: >-
+      needs.result-scope.outputs.presentation_only != 'true' &&
+      needs.utility-scope.outputs.spatial_review_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

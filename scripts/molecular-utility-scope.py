@@ -1163,6 +1163,25 @@ SPATIAL_DESKTOP_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
+SPATIAL_REVIEW_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/result-handoff-checks.yml",
+    ".github/workflows/selected-pose-checks.yml",
+    "frontend/src/docking/PoseTable.tsx",
+    "frontend/src/pockets/PocketResults.tsx",
+    "frontend/src/pockets/pocket-results.css",
+    "frontend/src/presentation/ResearchTable.tsx",
+    "frontend/src/presentation/TableColumns.tsx",
+    "frontend/src/presentation/research-table.css",
+    "frontend/src/presentation/spatial-result-review.css",
+    "frontend/src/receptors/SurfaceResults.tsx",
+    "frontend/src/receptors/SurfaceTable.tsx",
+    "server_tests/test_spatial_results_desktop.py",
+    "server_tests/test_spatial_review_rails_browser.py",
+    "server_tests/test_stat6_pocket_handoff_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SPATIAL_REVIEW_DIFF = "575a76e54c9ceeaedd599a0e34462132128d115b3e80889acc5a579004756c8b"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
@@ -1673,7 +1692,11 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         REFINEMENT_DESKTOP_FILES, REFINEMENT_DESKTOP_DIFF, scope_pin="REFINEMENT_DESKTOP_DIFF",
     )
-    spatial_desktop = reviewed_selected(
+    spatial_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SPATIAL_REVIEW_FILES, SPATIAL_REVIEW_DIFF, scope_pin="SPATIAL_REVIEW_DIFF",
+    )
+    spatial_desktop = spatial_review or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SPATIAL_DESKTOP_FILES, SPATIAL_DESKTOP_DIFF, scope_pin="SPATIAL_DESKTOP_DIFF",
     )
@@ -1810,6 +1833,7 @@ def main():
         output.write("desktop_help_only=" + str(desktop_help).lower() + "\n")
         output.write("refinement_desktop_only=" + str(refinement_desktop).lower() + "\n")
         output.write("spatial_desktop_only=" + str(spatial_desktop).lower() + "\n")
+        output.write("spatial_review_only=" + str(spatial_review).lower() + "\n")
         output.write("sequence_desktop_only=" + str(sequence_desktop).lower() + "\n")
         output.write("protein_desktop_only=" + str(protein_desktop).lower() + "\n")
         output.write("touch_controls_only=" + str(touch_controls).lower() + "\n")

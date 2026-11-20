@@ -1,4 +1,5 @@
 import type { Language } from "../types";
+import { TableOutlined } from "@ant-design/icons";
 import type { ResearchColumn } from "./ResearchTable";
 import "./table-columns.css";
 
@@ -6,6 +7,7 @@ export function TableColumns<T>({
   columns,
   visible,
   language,
+  compactToolbar = false,
   onToggle,
   onReset,
   onShowAll,
@@ -13,15 +15,29 @@ export function TableColumns<T>({
   columns: readonly ResearchColumn<T>[];
   visible: readonly string[];
   language: Language;
+  compactToolbar?: boolean;
   onToggle(key: string): void;
   onReset(): void;
   onShowAll(): void;
 }) {
   const zh = language === "zh";
+  const label = zh ? "显示指标" : "Columns";
   if (columns.length <= 3) return null;
   return (
     <details className="table-columns">
-      <summary>{zh ? "显示指标" : "Columns"}</summary>
+      <summary title={compactToolbar ? label : undefined}>
+        {compactToolbar ? (
+          <>
+            <TableOutlined
+              className="research-table-column-icon"
+              aria-hidden="true"
+            />
+            <span className="research-table-action-label">{label}</span>
+          </>
+        ) : (
+          label
+        )}
+      </summary>
       <fieldset className="table-column-options">
         <legend className="sr-only">
           {zh ? "选择表格显示的指标" : "Choose visible table metrics"}

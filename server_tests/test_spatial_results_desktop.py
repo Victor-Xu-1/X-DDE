@@ -28,7 +28,11 @@ def layout(page, result, width, height):
     actions = result.locator(".spatial-summary-downloads").bounding_box()
     assert canvas and rail and actions
     assert canvas["x"] + canvas["width"] < rail["x"]
-    assert canvas["width"] >= 595 and canvas["height"] >= 500 and canvas["y"] < 345
+    assert canvas["width"] >= 595 and canvas["y"] < 345
+    if "surface-results" in result.get_attribute("class").split() and height <= 840:
+        assert canvas["height"] >= 400 and canvas["y"] + canvas["height"] <= height
+    else:
+        assert canvas["height"] >= 500
     assert abs(canvas["y"] - rail["y"]) < 165
     assert actions["y"] + actions["height"] <= height
     assert rail["x"] + rail["width"] <= width

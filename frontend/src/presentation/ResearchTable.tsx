@@ -39,6 +39,7 @@ export function ResearchTable<T>({
   initialVisibleColumns,
   compare = true,
   comparisonActions,
+  compactToolbar = false,
   exportName = "research-results.csv",
 }: {
   rows: readonly T[];
@@ -54,6 +55,7 @@ export function ResearchTable<T>({
   compare?: boolean;
   /** Contextual actions for marked records, independent of the numeric comparison. */
   comparisonActions?(rows: readonly T[]): ReactNode;
+  compactToolbar?: boolean;
   exportName?: string;
 }) {
   const zh = language === "zh",
@@ -89,6 +91,11 @@ export function ResearchTable<T>({
   );
   const displayed = visible.slice(currentPage * size, (currentPage + 1) * size);
   const compared = rows.filter((row) => marked.includes(rowId(row)));
+  const compareLabel =
+    (zh ? "对比" : "Compare") +
+    (compared.length ? " (" + compared.length + ")" : "");
+  const contextualActions =
+    compare && compared.length > 0 ? comparisonActions?.(compared) : null;
   function toggleSort(key: string) {
     setSort((previous) => ({
       key,
@@ -145,6 +152,7 @@ export function ResearchTable<T>({
   return (
     <section
       className="research-table"
+      data-compact-toolbar={compactToolbar || undefined}
       aria-label={title}
       aria-describedby={id}
     >
@@ -157,7 +165,15 @@ export function ResearchTable<T>({
           <input
             type="search"
             value={query}
-            placeholder={zh ? "搜索名称或结果…" : "Search names or results…"}
+            placeholder={
+              compactToolbar
+                ? zh
+                  ? "搜索结果…"
+                  : "Search results…"
+                : zh
+                  ? "搜索名称或结果…"
+                  : "Search names or results…"
+            }
             onChange={(e) => {
               setQuery(e.target.value);
               setPage(0);
@@ -170,20 +186,22 @@ export function ResearchTable<T>({
         {compare && rows.length > 1 && (
           <button
             type="button"
-            className="secondary-button"
+            className="secondary-button research-table-action"
+            title={compactToolbar ? compareLabel : undefined}
             disabled={compared.length < 2 || view.shown.length < 2}
             aria-expanded={comparing}
             onClick={() => setComparing(!comparing)}
           >
-            <SwapOutlined aria-hidden="true" /> {zh ? "对比" : "Compare"}
-            {compared.length ? " (" + compared.length + ")" : ""}
+            <SwapOutlined aria-hidden="true" />{" "}
+            <span className="research-table-action-label">{compareLabel}</span>
           </button>
         )}
-        {compare && compared.length > 0 && comparisonActions?.(compared)}
+        {!compactToolbar && contextualActions}
         <TableColumns
           columns={columns}
           visible={view.visible}
           language={language}
+          compactToolbar={compactToolbar}
           onToggle={(key) => {
             if (sort?.key === key) setSort(null);
             setComparing(false);
@@ -198,7 +216,7 @@ export function ResearchTable<T>({
         />
         <button
           type="button"
-          className="secondary-button result-export"
+          className="secondary-button result-export research-table-action"
           title={
             zh
               ? "按当前筛选导出全部原始指标"
@@ -208,8 +226,15 @@ export function ResearchTable<T>({
           onClick={exportRows}
         >
           <DownloadOutlined aria-hidden="true" />{" "}
-          {zh ? "导出筛选结果" : "Export filtered rows"}
+          <span className="research-table-action-label">
+            {zh ? "导出筛选结果" : "Export filtered rows"}
+          </span>
         </button>
+        {compactToolbar && contextualActions && (
+          <div className="research-table-context-actions">
+            {contextualActions}
+          </div>
+        )}
       </div>
       {comparing && compared.length >= 2 && (
         <div
