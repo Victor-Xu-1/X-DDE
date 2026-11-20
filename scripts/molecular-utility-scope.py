@@ -1168,6 +1168,7 @@ SPATIAL_REVIEW_FILES = {
     "frontend/src/docking/DockingResults.tsx",
     "frontend/src/docking/PoseTable.tsx",
     "frontend/src/pockets/PocketResults.tsx",
+    "frontend/src/pockets/pocket-results.css",
     "frontend/src/presentation/ResearchTable.tsx",
     "frontend/src/presentation/TableColumns.tsx",
     "frontend/src/presentation/research-table.css",
@@ -1178,7 +1179,7 @@ SPATIAL_REVIEW_FILES = {
     "server_tests/test_spatial_review_rails_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-SPATIAL_REVIEW_DIFF = "73ed5001576a9cdfa72efd2c00d2380499a1749e7e808d6bd780b3785dd8a925"
+SPATIAL_REVIEW_DIFF = "27700443d4fc8fd2e55d2afcf5b666aa74c2208a7bab81fe8d211d56a6945700"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",

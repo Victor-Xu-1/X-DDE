@@ -96,13 +96,20 @@ function PocketWorkspace({
               language={language}
               onSelect={setRank}
               actions={
-                <button
-                  className="secondary-button pocket-panel-jump"
-                  type="button"
-                  onClick={() => revealPanel(details.current)}
-                >
-                  {zh ? "口袋详情" : "Pocket details"}
-                </button>
+                <>
+                  <Hint label={zh ? "口袋评分说明" : "Pocket scoring help"}>
+                    {zh
+                      ? "位点概率用于比较候选口袋，不是药物结合概率。"
+                      : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
+                  </Hint>
+                  <button
+                    className="secondary-button pocket-panel-jump"
+                    type="button"
+                    onClick={() => revealPanel(details.current)}
+                  >
+                    {zh ? "口袋详情" : "Pocket details"}
+                  </button>
+                </>
               }
             />
           )
@@ -131,17 +138,6 @@ function PocketWorkspace({
         }
       >
         <div className="pocket-candidates">
-          <header className="pocket-result-heading">
-            <h2>{zh ? "候选口袋" : "Candidate pockets"}</h2>
-            <span>
-              {result.native_pocket_count} {zh ? "个候选" : "candidates"}
-            </span>
-            <Hint label={zh ? "口袋评分说明" : "Pocket scoring help"}>
-              {zh
-                ? "位点概率用于比较候选口袋，不是药物结合概率。"
-                : "Site probabilities compare candidate pockets; they are not drug-binding probabilities."}
-            </Hint>
-          </header>
           {!result.pockets.length && (
             <p role="status">
               {zh
@@ -166,6 +162,13 @@ function PocketWorkspace({
                 continueWith("dock", { kind: "predicted", site: selected })
               }
             />
+          )}
+          {result.native_pocket_count > result.pockets.length && (
+            <p className="field-help">
+              {zh
+                ? `显示 ${result.pockets.length} / ${result.native_pocket_count} 个原始候选口袋`
+                : `Showing ${result.pockets.length} of ${result.native_pocket_count} native pockets`}
+            </p>
           )}
           <ResearchTable
             compactToolbar

@@ -22,13 +22,13 @@
 /* Allow for each result header and viewer toolbar on shorter desktop screens. */
 @media (min-width: 1180px) and (max-height: 840px) {
   .pocket-result-workspace {
-    --spatial-stage-reserve: 272px;
+    --spatial-stage-reserve: 257px;
   }
   .docking-results {
-    --spatial-stage-reserve: 342px;
+    --spatial-stage-reserve: 335px;
   }
   .surface-results {
-    --spatial-stage-reserve: 290px;
+    --spatial-stage-reserve: 284px;
   }
   .studio-app
     :is(.pocket-result-workspace, .docking-results, .surface-results)

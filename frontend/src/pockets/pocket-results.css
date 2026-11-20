@@ -1,24 +1,11 @@
-.pocket-result-heading,
 .pocket-selection header {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
-.pocket-result-heading h2,
 .pocket-selection h3 {
   margin: 0;
-}
-.pocket-result-heading > span {
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.pocket-result-heading {
-  margin-block-end: 10px;
-}
-.pocket-result-heading h2 {
-  font-size: 15px;
 }
 .pocket-result-workspace .structure-workbench:not([data-workspace-expanded]) {
   gap: 16px;
