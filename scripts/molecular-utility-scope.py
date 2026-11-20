@@ -1043,7 +1043,7 @@ DESKTOP_BACKEND_HEADER_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_BACKEND_HEADER_DIFF = "370293bb3b0a22701d77c2a563c9c2c6bde1862400116c8d13833c25d4515bd7"
+DESKTOP_BACKEND_HEADER_DIFF = "925e442f71d2aef50dcd4603c6d5844d1a130a0f2f2c5e5c61530962b6e93a3a"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

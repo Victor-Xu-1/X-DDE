@@ -110,7 +110,9 @@ def verify_desktop_task_power_header(context, base):
             expect(switch).to_be_visible()
             expect(switch).not_to_be_checked()
             if owner == "harness":
-                local = toolbar.locator('[data-backend-placement="entry"] [data-engine="native-compute"]')
+                local = toolbar.locator(
+                    '[data-backend-placement="entry"] [data-engine="native-compute"]'
+                )
                 if width < 1280:
                     expect(local).to_be_hidden()
                 else:
@@ -120,7 +122,8 @@ def verify_desktop_task_power_header(context, base):
                 const text = document.createRange();
                 text.selectNodeContents(title);
                 const lines = text.getClientRects();
-                return lines.length === 1 && lines[0].right <= title.getBoundingClientRect().right + 1;
+                return lines.length === 1
+                    && lines[0].right <= title.getBoundingClientRect().right + 1;
             }"""), (tool, width)
             assert toolbar.evaluate("""bar => {
                 const bounds = bar.getBoundingClientRect();
