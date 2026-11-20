@@ -1165,6 +1165,8 @@ SPATIAL_DESKTOP_FILES = {
 SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
 SPATIAL_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/result-handoff-checks.yml",
+    ".github/workflows/selected-pose-checks.yml",
     "frontend/src/docking/PoseTable.tsx",
     "frontend/src/pockets/PocketResults.tsx",
     "frontend/src/pockets/pocket-results.css",
@@ -1179,7 +1181,7 @@ SPATIAL_REVIEW_FILES = {
     "server_tests/test_stat6_pocket_handoff_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-SPATIAL_REVIEW_DIFF = "769b898eb29ff2924197f71a41b203b57b4d6775f569c27a8743405b37fd3f5c"
+SPATIAL_REVIEW_DIFF = "575a76e54c9ceeaedd599a0e34462132128d115b3e80889acc5a579004756c8b"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",

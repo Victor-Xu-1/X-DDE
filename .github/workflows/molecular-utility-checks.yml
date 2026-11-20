@@ -168,6 +168,8 @@ on:
         value: ${{ jobs.scope.outputs.refinement_desktop_only }}
       spatial_desktop_only:
         value: ${{ jobs.scope.outputs.spatial_desktop_only }}
+      spatial_review_only:
+        value: ${{ jobs.scope.outputs.spatial_review_only }}
       sequence_desktop_only:
         value: ${{ jobs.scope.outputs.sequence_desktop_only }}
       protein_desktop_only:
