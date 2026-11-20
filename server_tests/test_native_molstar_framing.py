@@ -93,7 +93,7 @@ def test_molstar_framing_uses_native_outputs(case, language):
             root.get_by_role("slider", name="Trajectory time", exact=True).fill("2")
             expect(viewer).to_have_attribute("data-frame", "2", timeout=45000)
             ready(viewer)
-            coordinates = root.get_by_role("link", name="Download frame ↓", exact=True)
+            coordinates = root.get_by_role("link", name="Download frame", exact=True)
             href = coordinates.get_attribute("href")
             assert href == f"/api/jobs/{identifier}/download?name=repeat-1-frame-0003.pdb"
             original = page.request.get(base + href).body()

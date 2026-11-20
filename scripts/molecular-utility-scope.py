@@ -1331,10 +1331,11 @@ SIMULATION_SHORT_REVIEW_FILES = {
     "frontend/src/simulations/molecular-first-draw.ts",
     "frontend/src/simulations/molstar-controller.ts",
     "frontend/src/simulations/result-workspace.css",
+    "server_tests/test_native_molstar_framing.py",
     "server_tests/test_short_simulation_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-SIMULATION_SHORT_REVIEW_DIFF = "fbeb8b87a29d4ee8fac99d773805c418befb6841fc5430ea3e38ff511f4d7f5e"
+SIMULATION_SHORT_REVIEW_DIFF = "e2aa957ed800ff2ebaab6dcf1d344647d799f19afcb3b33e1b3c1d0f9fc344f9"
 SIMULATION_FOCUS_FILES = {
     ".github/workflows/simulation-view-checks.yml",
     "docs/frontend-layout.md",

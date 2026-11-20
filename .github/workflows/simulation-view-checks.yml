@@ -100,9 +100,9 @@ jobs:
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_native_molstar_framing.py server_tests/test_simulation_structure_focus.py server_tests/test_short_simulation_review.py
           uv run --locked python -m pytest -x -q tests/test_molecular_utility_scope.py
           uv run --locked python -m pytest -x -q \
-            server_tests/test_native_simulation_views.py server_tests/test_native_molstar_framing.py \
-            server_tests/test_fep_diagnostics_browser.py server_tests/test_simulation_structure_focus.py \
-            server_tests/test_short_simulation_review.py -k 'not calculation'
+            server_tests/test_short_simulation_review.py server_tests/test_native_molstar_framing.py \
+            server_tests/test_simulation_structure_focus.py server_tests/test_native_simulation_views.py \
+            server_tests/test_fep_diagnostics_browser.py -k 'not calculation'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
