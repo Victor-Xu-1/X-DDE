@@ -176,7 +176,7 @@
   .studio-app .spatial-review
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
-    .viewer-panel:not(:popover-open, .pose-comparison-panels .viewer-panel)
+    .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel)
     > .molecular-stage {
     height: clamp(320px, calc(100dvh - var(--spatial-stage-reserve)), 510px);
     min-height: 0;
@@ -233,7 +233,7 @@
 
   @container spatial-canvas (min-width: 420px) {
     .studio-app .spatial-review
-      .viewer-panel:has(> .viewer-mode-options):not(:popover-open, .pose-comparison-panels .viewer-panel) {
+      .viewer-panel:has(> .viewer-mode-options):not(:popover-open, .pose-comparison .viewer-panel) {
       --compact-viewer-tools: enabled;
       position: relative;
       display: grid;

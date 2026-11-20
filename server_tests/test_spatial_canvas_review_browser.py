@@ -80,6 +80,24 @@ def review_docking(page, result, zh):
         "link", name="下载所选姿势 SDF" if zh else "Download selected pose SDF",
     ))
     assert artifact == "pose-002.sdf"
+    if not zh:
+        review_docking_comparison(result)
+
+
+def review_docking_comparison(result):
+    stage = result.locator(".molecular-stage").first
+    single = stage.bounding_box()
+    assert single
+    for label in ("Compare Pose 1", "Compare Pose 2"):
+        result.get_by_role("checkbox", name=label, exact=True).check()
+    result.get_by_role("button", name="Compare two poses in 3D", exact=True).click()
+    comparison = result.locator(".pose-comparison")
+    ready(comparison, zh=False)
+    overlay = comparison.locator(".molecular-stage").bounding_box()
+    assert overlay and overlay["height"] > single["height"]
+    comparison.get_by_role("button", name="Return to single pose", exact=True).click()
+    expect(comparison).to_have_count(0)
+    ready(result, zh=False)
 
 
 def review_pocket(result, zh):
