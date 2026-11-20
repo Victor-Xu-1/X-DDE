@@ -81,6 +81,10 @@
     gap: 8px;
   }
 
+  .target-activity-workspace {
+    --activity-table-min-width: 0;
+  }
+
   .target-evidence-results .target-activity-workspace .molecule-record {
     min-width: 108px;
   }

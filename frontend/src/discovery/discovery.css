@@ -132,7 +132,7 @@
   height: var(--activity-figure-height, clamp(260px, min(48svh, 65vw), 560px));
 }
 .target-evidence-results .target-activity-workspace table {
-  min-width: 320px;
+  min-width: var(--activity-table-min-width, 320px);
 }
 html
   body

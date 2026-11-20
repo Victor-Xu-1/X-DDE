@@ -45,7 +45,7 @@ def verify_target(page, base, zh, evidence):
     expect(sequence).to_be_visible()
     row = refs.locator("tbody tr").first
     expect(row).to_be_visible()
-    assert first_view(page, row)["x"] > sequence.bounding_box()["x"]
+    assert first_view(page, row)["x"] > first_view(page, sequence, min_height=200)["x"]
     expect(row.get_by_role("link")).to_have_attribute(
         "href", f"https://www.rcsb.org/structure/{first_reference}",
     )
@@ -61,6 +61,9 @@ def verify_target(page, base, zh, evidence):
     button = preview.get_by_role("button", name="复制分子结构" if zh else "Copy SMILES")
     expect(button).to_be_in_viewport()
     table = result.locator(".target-activity-workspace table")
+    assert result.locator(".target-activity-workspace .research-table-scroll").evaluate(
+        "node => node.scrollWidth <= node.clientWidth + 1"
+    )
     assert first_view(page, table.locator("tbody tr").first)["x"] > drawing["x"] + drawing["width"]
     page.screenshot(path=evidence / "reported-activity.png")
 

@@ -73,6 +73,7 @@ export function TargetMaterials({
           <div className="target-material-layout">
             <div className="target-material-sequence">
               <SequenceTrack
+                compact
                 sequence={m.sequence}
                 label={zh ? "靶点序列" : "Target sequence"}
                 language={language}
