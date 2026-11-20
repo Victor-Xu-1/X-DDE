@@ -41,12 +41,16 @@ export function ActivityResults({
           ) : null
         }
       >
-        <p className="field-help">
-          {zh
-            ? "有限来源样本：保留端点、关系符、单位与实验。IC50、Ki、Kd、EC50 不合并排名。"
-            : "Bounded source sample with endpoints, relations, units and assays retained. IC50, Ki, Kd and EC50 are not pooled."}
-        </p>
+        <details className="activity-measurement-scope">
+          <summary>{zh ? "活性记录口径" : "Activity measurement scope"}</summary>
+          <p className="field-help">
+            {zh
+              ? "保留来源样本的端点、关系符、单位和实验。分别解读 IC50、Ki、Kd 与 EC50。"
+              : "Endpoints, relation signs, units and assays come from a bounded source sample. Interpret IC50, Ki, Kd and EC50 separately."}
+          </p>
+        </details>
         <ResearchTable
+          compactToolbar
           rows={value.rows}
           rowId={(row) => String(row.activity_id)}
           language={language}

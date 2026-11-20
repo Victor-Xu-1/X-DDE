@@ -13,6 +13,7 @@ import { TargetMaterials } from "./TargetMaterials";
 import { ActivityResults } from "./ActivityResults";
 import { EvidenceSummary } from "./EvidenceSummary";
 import "./discovery.css";
+import "./target-desktop.css";
 
 export function TargetResearchResults({
   job,

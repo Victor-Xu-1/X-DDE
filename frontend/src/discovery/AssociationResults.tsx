@@ -37,6 +37,7 @@ export function AssociationResults({
         </Hint>
       </p>
       <ResearchTable
+        compactToolbar
         rows={value.rows}
         language={language}
         title={zh ? "关联证据" : "Association evidence"}

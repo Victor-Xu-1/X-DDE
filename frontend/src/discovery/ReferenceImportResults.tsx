@@ -10,6 +10,7 @@ import { Hint } from "../guided/Hint";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
 import "./reference-import.css";
+import "./target-desktop.css";
 export interface ReferenceImportResult {
   operation: "reference_import";
   source: "pdb" | "chembl";
