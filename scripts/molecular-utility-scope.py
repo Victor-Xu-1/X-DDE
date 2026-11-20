@@ -657,6 +657,14 @@ PORTABLE_SMILES_FILES = {
     "tests/test_recognition_companion.py",
 }
 PORTABLE_SMILES_DIFF = "3639b2d8193690053f1351088ab89f505adf4c1acc445953c5c263dd782a6996"
+GUIDED_DESKTOP_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/guided/desktop-questionnaire.css",
+    "frontend/src/guided/questionnaire.css",
+    "server_tests/test_guided_desktop_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+GUIDED_DESKTOP_DIFF = "a2d225818427a1253f9b8a2da3d20ba87c8fa89587ca7efc71be0d425a4ed57f"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
@@ -1952,6 +1960,10 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PORTABLE_SMILES_FILES, PORTABLE_SMILES_DIFF, scope_pin="PORTABLE_SMILES_DIFF",
     )
+    guided_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        GUIDED_DESKTOP_FILES, GUIDED_DESKTOP_DIFF, scope_pin="GUIDED_DESKTOP_DIFF",
+    )
     utility_query = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         UTILITY_QUERY_FILES, UTILITY_QUERY_DIFF, scope_pin="UTILITY_QUERY_DIFF",
@@ -1977,6 +1989,7 @@ def main():
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
+        output.write("guided_desktop_only=" + str(guided_desktop).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
         output.write("compact_material_only=" + str(compact_material).lower() + "\n")
         output.write("paired_figure_only=" + str(paired_figure).lower() + "\n")
@@ -2062,6 +2075,7 @@ def main():
             or inline_recognition
             or editor_drawing
             or portable_smiles
+            or guided_desktop
             or utility_query
             or compact_material
             or paired_figure
