@@ -290,11 +290,17 @@
   }
 }
 @media (min-width: 1100px) and (max-width: 1279px) {
+  .utility-tabs {
+    gap: 3px;
+  }
+  .studio-app .utility-tabs button {
+    padding-inline: 4px;
+  }
   .utility-editor-tools {
     gap: 6px;
   }
   .utility-drawing-destination {
-    max-width: 139px;
+    max-width: 132px;
   }
 }
 @media (max-width: 760px) {
