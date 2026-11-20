@@ -1334,7 +1334,7 @@ SIMULATION_SHORT_REVIEW_FILES = {
     "server_tests/test_short_simulation_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-SIMULATION_SHORT_REVIEW_DIFF = "658dc799824674bd3321986134314d279af804f5c38c7b19b367a0ebc4e584ae"
+SIMULATION_SHORT_REVIEW_DIFF = "0cfc38ddddd7677fd01b50c533f5dd3f17ed02ae1221258762eea4782786e5e9"
 SIMULATION_FOCUS_FILES = {
     ".github/workflows/simulation-view-checks.yml",
     "docs/frontend-layout.md",

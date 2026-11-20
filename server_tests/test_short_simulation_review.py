@@ -83,7 +83,9 @@ def test_short_native_results(case, language, width, height):
         stage = check_first_screen(page, root)[0]
         rail = root.locator(".structure-workbench-details").bounding_box()
         assert rail and stage["x"] + stage["width"] < rail["x"]
-        assert page.evaluate("window.scrollY === 0 && document.documentElement.scrollWidth <= innerWidth")
+        assert page.evaluate(
+            "window.scrollY === 0 && document.documentElement.scrollWidth <= innerWidth"
+        )
         page.screenshot(path=evidence / f"initial-{language}-{width}.png")
         if dynamics:
             verify_frame(page, base, root, result, zh)
@@ -97,7 +99,9 @@ def test_short_native_results(case, language, width, height):
             assert a["x"] + a["width"] < b["x"] and abs(a["y"] - b["y"]) < 2, (a, b)
             page.screenshot(path=evidence / f"pair-{language}-{width}.png")
             root.get_by_role("button", name="叠加查看" if zh else "Overlay", exact=True).click()
-            select = root.get_by_role("combobox", name="结合姿势显示" if zh else "Binding pose display")
+            select = root.get_by_role("combobox",
+                name="结合姿势显示" if zh else "Binding pose display",
+            )
             select.select_option("b")
             expect(viewport).to_have_attribute("data-ligand", "b")
             check_first_screen(page, root)
