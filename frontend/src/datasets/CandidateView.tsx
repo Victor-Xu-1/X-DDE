@@ -127,11 +127,7 @@ export function CandidateView({
             href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
           >
             <DownloadOutlined aria-hidden="true" />
-            {delReview
-              ? zh
-                ? "结构文件"
-                : "Structure file"
-              : structureDownload}
+            {delReview ? (zh ? "结构" : "Structure") : structureDownload}
           </a>
         )}
         <Hint label={zh ? "预览说明" : "Preview help"}>

@@ -39,7 +39,16 @@ def check_enrichment(page, base, settings, zh, evidence):
     )
     assert abs(comparison.bounding_box()["y"] - search.bounding_box()["y"]) < 12
     assert first.bounding_box()["height"] < 116
-    expect(table.locator("tbody tr").nth(2)).to_be_in_viewport(ratio=0.8)
+    third = table.locator("tbody tr").nth(2)
+    box = third.bounding_box()
+    assert box and box["y"] + box["height"] <= page.viewport_size["height"] + 1
+    expect(third.locator(".dataset-column-member")).to_be_in_viewport(ratio=0.99)
+    expect(third.locator(".dataset-column-score")).to_be_in_viewport(ratio=0.99)
+    member_cell = first.locator(".dataset-column-member")
+    before = member_cell.bounding_box()["x"]
+    table.evaluate("table => { table.scrollLeft = 120; }")
+    assert abs(member_cell.bounding_box()["x"] - before) <= 1
+    table.evaluate("table => { table.scrollLeft = 0; }")
     page.screenshot(path=evidence / "hit-table.png")
 
     def table_request(response, **params):
@@ -83,9 +92,7 @@ def check_enrichment(page, base, settings, zh, evidence):
 def check_candidates(page, base, settings, width, height, zh, evidence):
     panel, _, output = open_example(page, base, settings, "del.candidates", zh)
     attempt = json.loads((output / "result.json").read_bytes())
-    workbench = panel.locator(".structure-workbench").filter(
-        has=panel.locator(".candidate-inspection-preview"),
-    )
+    workbench = panel.locator(".structure-workbench:has([data-del-review])")
     frame = workbench.locator(".structure-workbench-view .viewer-panel iframe:visible")
     figure = workbench.locator(".figure-export-trigger:visible")
     expect(figure).to_be_enabled(timeout=45_000)

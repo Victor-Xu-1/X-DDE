@@ -15,7 +15,9 @@
   }
 
   .dataset-results[data-del-results]
-    .structure-workbench:not([data-workspace-expanded="true"]) {
+    .structure-workbench:not([data-workspace-expanded="true"]):has(
+      [data-del-review]
+    ) {
     column-gap: 16px;
   }
 
@@ -39,13 +41,16 @@
     padding-block: 6px;
   }
 
-  .dataset-table-region[data-table-view="enrichment"] .dataset-table-toolbar {
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
+    .dataset-table-toolbar {
     justify-content: flex-start;
     gap: 8px 14px;
     padding-block: 6px 10px;
   }
 
-  .dataset-table-region[data-table-view="enrichment"]
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
     .dataset-table-toolbar
     input[type="search"] {
     flex: 1 1 180px;
@@ -56,38 +61,48 @@
     padding-block: 5px;
   }
 
-  .dataset-table-region[data-table-view="enrichment"]
+  [data-del-results]
+    .dataset-table-region[data-table-view="enrichment"]
     .dataset-comparison-control
     select {
     min-height: 34px;
     padding-block: 5px;
   }
 
-  .dataset-table-scroll.dataset-enrichment-table th,
-  .dataset-table-scroll.dataset-enrichment-table td {
+  [data-del-results] .dataset-table-scroll.dataset-enrichment-table th,
+  [data-del-results] .dataset-table-scroll.dataset-enrichment-table td {
     padding: 7px 10px;
   }
 
-  .dataset-table-scroll.dataset-enrichment-table .dataset-column-member {
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .dataset-column-member {
     position: sticky;
     inset-inline-start: 0;
     z-index: 1;
     background: var(--surface);
   }
 
-  .dataset-table-scroll.dataset-enrichment-table th.dataset-column-member {
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    th.dataset-column-member {
     z-index: 2;
     background: var(--surface-muted);
   }
 
-  .dataset-table-scroll.dataset-enrichment-table .molecule-image.is-thumbnail {
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .molecule-image.is-thumbnail {
     width: 138px;
     max-width: 138px;
     height: 70px;
     min-height: 0;
   }
 
-  .dataset-table-scroll.dataset-enrichment-table .molecule-image img {
+  [data-del-results]
+    .dataset-table-scroll.dataset-enrichment-table
+    .molecule-image
+    img {
     max-height: 62px;
   }
 }
