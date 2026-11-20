@@ -15,14 +15,17 @@ CASES = ("drugclip.index", "screening.dock", "library.select", "del.candidates")
 
 
 def palette(page):
-    return page.locator("html").evaluate("""root => {
-        const styles = getComputedStyle(root);
+    return page.locator("body").evaluate("""root => {
         const tokens = ['ink', 'muted', 'surface', 'surface-muted', 'accent', 'accent-soft'];
-        return Object.fromEntries(tokens.map(name => {
-          const hex = styles.getPropertyValue('--' + name).trim();
-          const rgb = hex.slice(1).match(/../g).map(c => parseInt(c, 16)).join(', ');
-          return [name, 'rgb(' + rgb + ')'];
+        const probe = document.createElement('span');
+        probe.hidden = true;
+        root.append(probe);
+        const colors = Object.fromEntries(tokens.map(name => {
+          probe.style.color = 'var(--' + name + ')';
+          return [name, getComputedStyle(probe).color];
         }));
+        probe.remove();
+        return colors;
     }""")
 
 
@@ -51,11 +54,15 @@ def check_chains(result, colors):
     expect(menu).to_have_attribute("open", "")
     expect(trigger).to_have_css("background-color", colors["accent-soft"])
     expect(menu.locator("label").first).to_have_css("color", colors["ink"])
-    chain = menu.get_by_role("checkbox").first
+    chains = menu.get_by_role("checkbox")
+    total = chains.count()
+    chain = chains.first
     expect(chain).to_be_checked()
-    chain.uncheck()
+    chain.click()
+    expect(trigger).to_contain_text(f"{total - 1} / {total}")
     expect(chain).not_to_be_checked()
-    chain.check()
+    chain.click()
+    expect(trigger).to_contain_text(f"{total} / {total}")
     expect(chain).to_be_checked()
     trigger.press("Enter")
     expect(menu).not_to_have_attribute("open", "")
@@ -78,6 +85,21 @@ def check_index_member(result, colors, zh):
     expect(footer.locator("span")).to_have_text(re.compile(r"^21–"))
     previous.click()
     expect(footer.locator("span")).to_have_text("1–20")
+
+
+def check_del_definition(page, base, settings, colors):
+    load_case(page, base, "del.library", settings)
+    result = page.locator(".del-definition-view")
+    barcode = result.locator(".del-barcode-map > div").first
+    expect(barcode).to_have_css("background-color", colors["surface-muted"])
+    expect(barcode.locator("strong")).to_have_css("color", colors["ink"])
+    expect(barcode.locator("code")).to_have_css("color", colors["muted"])
+    block = result.locator(".dataset-block-grid article").first
+    expect(block).to_have_css("background-color", colors["surface"])
+    expect(block.locator("strong")).to_have_css("color", colors["ink"])
+    expect(block.locator("code")).to_have_css("color", colors["muted"])
+    expect(block.locator(".molecule-image")).to_have_css("background-color", "rgb(255, 255, 255)")
+    expect(block.locator(".molecule-image img")).to_be_visible(timeout=30000)
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
@@ -138,6 +160,8 @@ def test_native_result_controls_follow_theme(language, theme, width, height):
             page.evaluate("window.scrollTo(0, 0)")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=evidence / f"{capability}.png")
+        check_del_definition(page, base, settings, colors)
+        page.screenshot(path=evidence / "del-library.png")
         assert writes == []
         assert page.request.get(runtime).json() == before
         assert all(not engine["enabled"] and not engine["active"] for engine in before["engines"])

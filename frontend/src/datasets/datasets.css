@@ -865,17 +865,17 @@
   flex: 1 1 140px;
   padding: 14px 16px;
   border-top: 4px solid var(--segment-color);
-  background: #f5f8fe;
+  background: var(--surface-muted);
   display: grid;
   gap: 6px;
 }
 .del-barcode-map code {
   overflow-wrap: anywhere;
   font-size: 11px;
-  color: #7c899b;
+  color: var(--muted);
 }
 .del-barcode-map span {
-  color: #6c7f98;
+  color: var(--muted);
   font-size: 12px;
 }
 .dataset-block-grid {
@@ -887,8 +887,8 @@
 }
 .dataset-block-grid article {
   min-height: 150px;
-  background: white;
-  border-bottom: 1px solid #e0e7f2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
   padding: 16px;
 }
 .dataset-block-grid article > div:first-child {
@@ -905,5 +905,5 @@
 }
 .dataset-block-grid code {
   font-size: 11px;
-  color: #8792a5;
+  color: var(--muted);
 }
