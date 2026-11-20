@@ -1052,7 +1052,7 @@ STABLE_MODULE_SWITCH_FILES = {
     "server_tests/test_module_backend_switch_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-STABLE_MODULE_SWITCH_DIFF = "ceef2639b6f9949bc206530706e69b708ed91f93fc0f2934142c298e649dbebc"
+STABLE_MODULE_SWITCH_DIFF = "2aa820f466f8a7676c9c07f5ae504c52a46c93b1ba1a96e64787eb38fb419342"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

@@ -514,41 +514,34 @@ def verify_desktop_module_power(page, base, groups):
         expect(local_trigger).to_have_accessible_description("任务引擎已关闭")
 
 
-def verify_first_module_click_during_status_read(context, base):
-    for module, inline, width in (
-        ("proximity", "deepternary", 1440),
-        ("simulations", None, 1180),
-    ):
-        page = context.new_page()
-        try:
-            page.set_viewport_size({"width": width, "height": 800})
-            status_path = "**/api/runtime-controls?include_native=false"
-            pending = []
-            page.route(status_path, lambda route: pending.append(route))
-            with page.expect_request(status_path):
-                page.goto(f"{base}/#view=results&module={module}", wait_until="domcontentloaded")
-            trigger, panel = module_power(page)
-            expect(trigger).to_have_accessible_description("正在读取…")
-            bounds = trigger.bounding_box()
-            assert bounds
-            page.mouse.move(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2)
-            page.mouse.down()
-            assert pending
-            page.unroute(status_path)
-            for route in pending:
-                route.continue_()
-            expect(trigger).to_have_accessible_description("任务引擎已关闭")
-            if inline:
-                switch = page.locator(".studio-topbar").get_by_role(
-                    "group", name="本模块后端开关"
-                ).locator(f'[data-engine="{inline}"]').get_by_role("switch")
-                expect(switch).not_to_be_checked()
-            page.mouse.up()
-            expect(panel).to_be_visible()
-            panel.get_by_role("button", name="关闭后端面板").press("Escape")
-            expect(trigger).to_be_focused()
-        finally:
-            page.close()
+def verify_first_module_click_during_status_read(context, base, module, width, inline=None):
+    page = context.new_page()
+    try:
+        page.set_viewport_size({"width": width, "height": 800})
+        status_path = "**/api/runtime-controls?include_native=false"
+        pending = []
+        page.route(status_path, lambda route: pending.append(route), times=1)
+        with page.expect_request(status_path):
+            page.goto(f"{base}/#view=results&module={module}", wait_until="domcontentloaded")
+        trigger, panel = module_power(page)
+        expect(trigger).to_have_accessible_description("正在读取…")
+        bounds = trigger.bounding_box()
+        assert bounds
+        page.mouse.move(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] / 2)
+        page.mouse.down()
+        pending[0].continue_()
+        expect(trigger).to_have_accessible_description("任务引擎已关闭")
+        if inline:
+            switch = page.locator(".studio-topbar").get_by_role(
+                "group", name="本模块后端开关"
+            ).locator(f'[data-engine="{inline}"]').get_by_role("switch")
+            expect(switch).not_to_be_checked()
+        page.mouse.up()
+        expect(panel).to_be_visible()
+        panel.get_by_role("button", name="关闭后端面板").press("Escape")
+        expect(trigger).to_be_focused()
+    finally:
+        page.close()
 
 
 def verify_inline_switch_lifecycle(page, base):
@@ -679,7 +672,8 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         verify_composite_tools(page, base)
         modules = verify_modules(page, base)
         verify_desktop_module_power(page, base, modules)
-        verify_first_module_click_during_status_read(context, base)
+        verify_first_module_click_during_status_read(context, base, "proximity", 1440, "deepternary")
+        verify_first_module_click_during_status_read(context, base, "simulations", 1180)
         verify_result_detail(page, base, fixture.id)
         verify_setup_entry(page, base)
         assert posts == []
