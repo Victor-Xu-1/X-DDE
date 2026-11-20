@@ -205,7 +205,7 @@ export function CandidateView({
         result={result}
         language={language}
         selected={candidate?.id}
-        compactReview={screeningReview}
+        compactReview={inlineToolbar}
         onSelect={(row) => setSelected(result.candidates.indexOf(row))}
       />
     </StructureWorkbench>

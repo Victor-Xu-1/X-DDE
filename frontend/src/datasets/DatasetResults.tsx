@@ -14,6 +14,7 @@ import { DELSeriesContext } from "./DELSeriesContext";
 import { ResearchTabs, type ResearchTab } from "../presentation/ResearchTabs";
 import "./del-result-layout.css";
 import "./screening-result-layout.css";
+import "./result-viewport.css";
 
 const screeningOperations = new Set([
   "drugclip_retrieve",
@@ -88,6 +89,7 @@ export function DatasetResults({
     .slice(0, 5);
   const summaryInPreview =
     (screeningReview && indexed) ||
+    enumerated ||
     (!tableView && result.candidates.length > 0 && !hasCharts);
   const summary = (
     <div className="dataset-result-metrics">
@@ -160,6 +162,7 @@ export function DatasetResults({
           language={language}
           view={tableView}
           screeningReview={screeningReview}
+          compactReview={screeningReview || enumerated}
           summary={summaryInPreview ? summary : undefined}
         />
       )}
