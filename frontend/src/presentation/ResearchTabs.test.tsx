@@ -57,6 +57,38 @@ it("mounts only the chosen controlled view on a fresh molecular source", async (
   expect(screen.getByTestId("native-3d")).toBeVisible();
 });
 
+it("keeps tab navigation and compact result actions independently accessible", async () => {
+  const user = userEvent.setup();
+  const onPrepare = vi.fn();
+  render(
+    <ResearchTabs
+      label="Structure views"
+      toolbar={<button onClick={onPrepare}>Prepare selected molecule</button>}
+      tabs={[
+        {
+          id: "2d",
+          label: "2D structure",
+          shortLabel: "2D",
+          content: "Drawing",
+        },
+        { id: "3d", label: "3D structure", shortLabel: "3D", content: "Model" },
+      ]}
+    />,
+  );
+  const tab = screen.getByRole("tab", { name: "2D structure" });
+  expect(tab).toHaveTextContent("2D");
+  const prepare = screen.getByRole("button", {
+    name: "Prepare selected molecule",
+  });
+  expect(screen.getByRole("tablist")).not.toContainElement(prepare);
+  tab.focus();
+  await user.keyboard("{ArrowRight}");
+  expect(screen.getByRole("tab", { name: "3D structure" })).toHaveFocus();
+  expect(screen.getByRole("tabpanel", { name: "3D structure" })).toBeVisible();
+  await user.click(prepare);
+  expect(onPrepare).toHaveBeenCalledOnce();
+});
+
 function trackGeometry() {
   const state = {
     width: 500,

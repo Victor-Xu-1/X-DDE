@@ -2,6 +2,8 @@
 
 import os
 import subprocess
+from pathlib import Path
+from runpy import run_path
 
 SOURCES = {
     "frontend/src/presentation/ResearchTabs.tsx",
@@ -29,6 +31,16 @@ def selected(changed, event="push"):
     return event in {"push", "pull_request"} and bool(changed & SOURCES) and changed <= FILES
 
 
+def covered_by_molecule_workbench(changed, event, base):
+    scope = run_path(str(Path(__file__).with_name("molecular-utility-scope.py")))
+    return scope["reviewed_selected"](
+        changed, event, base,
+        scope["DESKTOP_MOLECULE_WORKBENCH_FILES"],
+        scope["DESKTOP_MOLECULE_WORKBENCH_DIFF"],
+        scope_pin="DESKTOP_MOLECULE_WORKBENCH_DIFF",
+    )
+
+
 def main():
     base = os.environ.get("BASE", "")
     # First branch pushes may have an empty before SHA; never compare only a fixup.
@@ -43,7 +55,13 @@ def main():
         if base and set(base) != {"0"} else []
     )
     event = os.environ.get("GITHUB_EVENT_NAME", "")
-    if event in {"push", "pull_request"} and set(changed) & SOURCES and set(changed) - FILES:
+    paths = set(changed)
+    if (
+        event in {"push", "pull_request"}
+        and paths & SOURCES
+        and paths - FILES
+        and not covered_by_molecule_workbench(paths, event, base)
+    ):
         raise RuntimeError("Mixed shared-tab changes require their own reviewed CI scope.")
     value = selected(changed, event)
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:

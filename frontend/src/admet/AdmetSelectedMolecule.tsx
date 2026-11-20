@@ -2,6 +2,7 @@ import { artifactUrl } from "../api";
 import type { Language, Job } from "../types";
 import type { MoleculeRef } from "../research/types";
 import { ResearchTabs } from "../presentation/ResearchTabs";
+import { MoleculeResultToolbar } from "../presentation/MoleculeResultToolbar";
 import { MoleculeImage } from "../presentation/MoleculeImage";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { failureReason } from "./labels";
@@ -37,6 +38,7 @@ export function AdmetSelectedMolecule({
   const predictions = {
     id: "predictions",
     label: zh ? "二维结构" : "2D structure",
+    shortLabel: "2D",
     content: (
       <div className="admet-molecule-drawing">
         <MoleculeImage source={source} label={row.name} language={language} />
@@ -46,6 +48,7 @@ export function AdmetSelectedMolecule({
   const structure = {
     id: "structure",
     label: zh ? "三维结构" : "3D structure",
+    shortLabel: "3D",
     content: (
       <StructureViewer
         urls={url ? [url] : []}
@@ -56,80 +59,82 @@ export function AdmetSelectedMolecule({
       />
     ),
   };
+  const toolbar = (
+    <MoleculeResultToolbar
+      name={`#${row.record + 1} · ${row.name}`}
+      status={
+        <>
+          <strong>ADMET-AI</strong> {result.versions["admet-ai"]}
+          {" · "}
+          <span className="admet-predicted-count">
+            {zh ? "已预测" : "Predicted"} {result.predicted_count} /{" "}
+            {result.rows.length}
+          </span>
+        </>
+      }
+    >
+      <details className="admet-molecule-downloads">
+        <summary className="secondary-button">
+          {zh ? "下载" : "Download"}
+        </summary>
+        <div>
+          <a href={artifactUrl(job.id, "predictions.csv")} download>
+            {zh ? "下载预测表" : "Download prediction table"}
+          </a>
+          {url && (
+            <a href={url} download>
+              {zh ? "下载原始分子" : "Download original molecule"}
+            </a>
+          )}
+        </div>
+      </details>
+      {row.status === "predicted" && row.reference && onPrepare && (
+        <PoseStudyInput original={row.reference} language={language}>
+          {(selection) => (
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!selection?.ready}
+              onClick={(event) => {
+                if (selection?.ready)
+                  onPrepare(selection.reference, event.currentTarget);
+              }}
+            >
+              {zh ? "用于分子准备" : "Prepare this molecule"}
+            </button>
+          )}
+        </PoseStudyInput>
+      )}
+    </MoleculeResultToolbar>
+  );
   return (
     <section
       className="admet-selected-molecule"
       aria-label={zh ? "所选分子" : "Selected molecule"}
     >
-      <header className="admet-molecule-header">
-        <div className="admet-molecule-title">
-          <h3>
-            #{row.record + 1} · {row.name}
-          </h3>
-          <p role="status">
-            <strong>ADMET-AI</strong> {result.versions["admet-ai"]}
-            {" · "}
-            {zh ? "已预测" : "Predicted"} {result.predicted_count} /{" "}
-            {result.rows.length}
-          </p>
-        </div>
-        <div className="admet-molecule-actions">
-          <a
-            className="secondary-button"
-            href={artifactUrl(job.id, "predictions.csv")}
-            download
-            aria-label={zh ? "下载预测表" : "Download prediction table"}
-            title={zh ? "下载预测表" : "Download prediction table"}
-          >
-            CSV ↓
-          </a>
-          {url && (
-            <a
-              className="secondary-button"
-              href={url}
-              download
-              aria-label={zh ? "下载原始分子" : "Download original molecule"}
-              title={zh ? "下载原始分子" : "Download original molecule"}
-            >
-              SDF ↓
-            </a>
-          )}
-          {row.status === "predicted" && row.reference && onPrepare && (
-            <PoseStudyInput original={row.reference} language={language}>
-              {(selection) => (
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={!selection?.ready}
-                  onClick={(event) => {
-                    if (selection?.ready)
-                      onPrepare(selection.reference, event.currentTarget);
-                  }}
-                >
-                  {zh ? "用于分子准备" : "Prepare this molecule"}
-                </button>
-              )}
-            </PoseStudyInput>
-          )}
-        </div>
-      </header>
       {row.status === "predicted" ? (
         <ResearchTabs
           active={poseSession?.view}
           onChange={poseSession?.chooseView}
           label={zh ? "分子详情" : "Molecule details"}
           tabs={url ? [predictions, structure] : [predictions]}
+          toolbar={toolbar}
         />
       ) : (
-        <div className="admet-empty">
-          <h4>{zh ? "此记录未得到预测" : "No predictions for this record"}</h4>
-          <p>{failureReason(row.reason, zh)}</p>
-          <p>
-            {zh
-              ? "保留原记录编号，便于修正输入后重新预测。"
-              : "The original record number is retained so you can correct the input and predict again."}
-          </p>
-        </div>
+        <>
+          {toolbar}
+          <div className="admet-empty">
+            <h4>
+              {zh ? "此记录未得到预测" : "No predictions for this record"}
+            </h4>
+            <p>{failureReason(row.reason, zh)}</p>
+            <p>
+              {zh
+                ? "保留原记录编号，便于修正输入后重新预测。"
+                : "The original record number is retained so you can correct the input and predict again."}
+            </p>
+          </div>
+        </>
       )}
     </section>
   );

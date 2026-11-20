@@ -116,12 +116,26 @@ def verify_library(page, base, height, zh, evidence):
 
 
 def verify_admet(page, base, zh, evidence):
+    native = page.request.get(f"{base}/api/jobs/{ADMET}/result").json()
+    row = next(value for value in native["rows"] if value["status"] == "predicted")
     page.goto(f"{base}/#task={ADMET}")
     selected = page.locator(".admet-selected-molecule")
     drawing = selected.locator(".molecule-image[data-drawing-state=ready] img")
     expect(drawing).to_be_visible(timeout=DRAWING_TIMEOUT_MS)
     tabs = page.locator(".admet-candidates .research-tab-list")
     require_no_horizontal_truncation(tabs)
+    downloads = selected.locator(".admet-molecule-downloads")
+    downloads.locator("summary").press("Enter")
+    csv_link = downloads.get_by_role(
+        "link", name="下载预测表" if zh else "Download prediction table",
+    )
+    assert csv_link.get_attribute("href").endswith("name=predictions.csv")
+    sdf = downloads.get_by_role("link", name="下载原始分子" if zh else "Download original molecule")
+    with page.expect_download() as receipt:
+        sdf.click()
+    payload = Path(receipt.value.path()).read_bytes()
+    assert hashlib.sha256(payload).hexdigest() == native["previews_sha256"][row["preview"]]
+    downloads.locator("summary").press("Enter")
     prepare = selected.get_by_role("button", name="用于分子准备" if zh else "Prepare this molecule")
     expect(prepare).to_be_enabled()
     draw_node = drawing.element_handle()
@@ -376,6 +390,16 @@ def test_reviewed_property_poses_open_without_new_calculation(tmp_path, monkeypa
             assert right - left > 0.55
             page.screenshot(path=evidence / f"{job}-native-3d.png")
             if job == RETAINED_3D_PROPERTIES[-1]:
+                page.set_viewport_size({"width": 1280, "height": 720})
+                expect(page.get_by_role("button", name="Run again", exact=True)).to_be_enabled()
+                stage = frame.bounding_box()
+                properties = page.locator(".property-descriptors table").bounding_box()
+                assert stage["height"] >= 350 and stage["y"] + stage["height"] <= 724
+                assert properties["y"] + properties["height"] <= 720
+                assert stage["x"] + stage["width"] < properties["x"]
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                page.screenshot(path=evidence / "property-short-desktop.png")
+                page.set_viewport_size({"width": 1400, "height": 880})
                 verify_ligand_camera_actions(page, inspector, frame, evidence)
         assert len(qualified) == len(RETAINED_3D_PROPERTIES)
         assert not blocked and page.request.get(f"{base}/api/jobs").json() == before

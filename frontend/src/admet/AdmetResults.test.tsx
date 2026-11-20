@@ -240,6 +240,7 @@ it("honors the requested full panel and offers a compact common-endpoint view", 
     screen.getByRole("region", { name: "Predicted properties" }),
   ).getAllByRole("table")[0];
   expect(within(endpointTable).getAllByRole("row")).toHaveLength(2);
+  await user.click(screen.getByText("Download", { selector: "summary" }));
   expect(
     screen.getByRole("link", { name: "Download prediction table" }),
   ).toHaveAttribute("href", "/api/jobs/job/download?name=predictions.csv");
@@ -278,6 +279,7 @@ it("keeps all endpoints reachable when early safety was chosen as the initial vi
   expect(
     screen.getByRole("button", { name: /Solubility.*log mol\/L/ }),
   ).toBeVisible();
+  await user.click(screen.getByText("Download", { selector: "summary" }));
   expect(
     screen.getByRole("link", { name: "Download original molecule" }),
   ).toHaveAttribute("href", "/api/jobs/job/download?name=source-record-2.sdf");

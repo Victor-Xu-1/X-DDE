@@ -2,21 +2,27 @@ import "./research-tabs.css";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useReveal } from "./useReveal";
 import { ActiveIndicator } from "./ActiveIndicator";
+
+export type ResearchTab = {
+  id: string;
+  label: string;
+  shortLabel?: string;
+  content: ReactNode;
+  count?: number;
+};
+
 export function ResearchTabs({
   tabs,
   label,
   active: controlled,
   onChange,
+  toolbar,
 }: {
-  tabs: readonly {
-    id: string;
-    label: string;
-    content: ReactNode;
-    count?: number;
-  }[];
+  tabs: readonly ResearchTab[];
   label: string;
   active?: string;
   onChange?(id: string): void;
+  toolbar?: ReactNode;
 }) {
   const id = useId(),
     [active, setActive] = useState(tabs[0]?.id);
@@ -35,7 +41,12 @@ export function ResearchTabs({
   const panel = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const geometry = JSON.stringify(
-    tabs.map(({ id, label, count }) => [id, label, count]),
+    tabs.map(({ id, label, shortLabel, count }) => [
+      id,
+      label,
+      shortLabel,
+      count,
+    ]),
   );
   useEffect(() => {
     if (current)
@@ -89,56 +100,64 @@ export function ResearchTabs({
     };
   }, [current, geometry]);
   useReveal(panel, current ?? "");
+  const navigation = (
+    <div
+      ref={track}
+      className="research-tab-list"
+      role="tablist"
+      aria-label={label}
+    >
+      {tabs.map((tab, index) => (
+        <button
+          key={tab.id}
+          ref={(el) => {
+            buttons.current[index] = el;
+          }}
+          type="button"
+          role="tab"
+          aria-label={tab.shortLabel ? tab.label : undefined}
+          id={id + "-tab-" + tab.id}
+          aria-selected={current === tab.id}
+          aria-controls={id + "-panel-" + tab.id}
+          tabIndex={current === tab.id ? 0 : -1}
+          onClick={() => {
+            choose(tab.id);
+          }}
+          onKeyDown={(e) => {
+            const next =
+              e.key === "ArrowRight"
+                ? (index + 1) % tabs.length
+                : e.key === "ArrowLeft"
+                  ? (index - 1 + tabs.length) % tabs.length
+                  : e.key === "Home"
+                    ? 0
+                    : e.key === "End"
+                      ? tabs.length - 1
+                      : null;
+            if (next !== null) {
+              e.preventDefault();
+              choose(tabs[next].id);
+              buttons.current[next]?.focus();
+            }
+          }}
+        >
+          {tab.shortLabel ?? tab.label}
+          {tab.count != null && <span>{tab.count}</span>}
+        </button>
+      ))}
+      <ActiveIndicator container={track} selection={current + ":" + geometry} />
+    </div>
+  );
   return (
     <div className="research-tabs">
-      <div
-        ref={track}
-        className="research-tab-list"
-        role="tablist"
-        aria-label={label}
-      >
-        {tabs.map((tab, index) => (
-          <button
-            key={tab.id}
-            ref={(el) => {
-              buttons.current[index] = el;
-            }}
-            type="button"
-            role="tab"
-            id={id + "-tab-" + tab.id}
-            aria-selected={current === tab.id}
-            aria-controls={id + "-panel-" + tab.id}
-            tabIndex={current === tab.id ? 0 : -1}
-            onClick={() => {
-              choose(tab.id);
-            }}
-            onKeyDown={(e) => {
-              const next =
-                e.key === "ArrowRight"
-                  ? (index + 1) % tabs.length
-                  : e.key === "ArrowLeft"
-                    ? (index - 1 + tabs.length) % tabs.length
-                    : e.key === "Home"
-                      ? 0
-                      : e.key === "End"
-                        ? tabs.length - 1
-                        : null;
-              if (next !== null) {
-                e.preventDefault();
-                choose(tabs[next].id);
-                buttons.current[next]?.focus();
-              }
-            }}
-          >
-            {tab.label}
-            {tab.count != null && <span>{tab.count}</span>}
-          </button>
-        ))}
-        <ActiveIndicator
-          container={track}
-          selection={current + ":" + geometry}
-        />
-      </div>
+      {toolbar ? (
+        <div className="research-tab-toolbar">
+          {navigation}
+          {toolbar}
+        </div>
+      ) : (
+        navigation
+      )}
       {tabs.map((tab) => (
         <section
           role="tabpanel"

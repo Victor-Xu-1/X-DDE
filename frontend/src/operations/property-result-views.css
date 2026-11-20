@@ -1,9 +1,20 @@
 .properties-results .result-inspector {
   gap: 8px;
 }
-.properties-results .result-inspector > header h3 {
+.properties-results .structure-workbench-details .research-tab-list {
+  margin-block: 0 8px;
+}
+.properties-results .molecular-preview .research-tab-toolbar > .research-tab-list {
   margin: 0;
-  overflow-wrap: anywhere;
+}
+@media (min-width: 1001px) {
+  .studio-app .properties-results
+    .structure-workbench:not([data-workspace-expanded="true"])
+    .viewer-panel:not(:popover-open) > .molecular-stage {
+    min-height: 350px;
+    height: clamp(350px, calc(100dvh - 366px), 760px);
+    border-radius: 8px;
+  }
 }
 .property-descriptors table {
   width: 100%;

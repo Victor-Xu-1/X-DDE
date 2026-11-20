@@ -1397,6 +1397,27 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 DESKTOP_MOLECULE_RESULTS_DIFF = "d576f4c8e3662ea4b70bb511cf46197783f2d7d1430a6836d2d2ee3cd9d11bce"
+DESKTOP_MOLECULE_WORKBENCH_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "docs/user-guide.md",
+    "frontend/src/admet/AdmetResults.test.tsx",
+    "frontend/src/admet/AdmetSelectedMolecule.tsx",
+    "frontend/src/admet/admet.css",
+    "frontend/src/operations/OperationResults.tsx",
+    "frontend/src/operations/PropertyResults.test.tsx",
+    "frontend/src/operations/PropertyResults.tsx",
+    "frontend/src/operations/property-result-views.css",
+    "frontend/src/presentation/MolecularPreview.tsx",
+    "frontend/src/presentation/MoleculeResultToolbar.tsx",
+    "frontend/src/presentation/ResearchTabs.test.tsx",
+    "frontend/src/presentation/ResearchTabs.tsx",
+    "frontend/src/presentation/molecule-result-toolbar.css",
+    "frontend/src/presentation/research-tabs.css",
+    "scripts/research-tabs-scope.py",
+    "server_tests/test_result_handoffs_desktop.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_MOLECULE_WORKBENCH_DIFF = "2f1968fa6b1f7b31216c2994f1a9014ec9c9598923cf8fc94f8951449d6a26b0"
 DESKTOP_LIGAND_CAMERA_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
@@ -1692,7 +1713,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RUNTIME_ENTRY_FILES, RUNTIME_ENTRY_DIFF, scope_pin="RUNTIME_ENTRY_DIFF",
     )
-    molecule_results = reviewed_selected(
+    molecule_workbench = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_MOLECULE_WORKBENCH_FILES, DESKTOP_MOLECULE_WORKBENCH_DIFF,
+        scope_pin="DESKTOP_MOLECULE_WORKBENCH_DIFF",
+    )
+    molecule_results = molecule_workbench or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_MOLECULE_RESULTS_FILES, DESKTOP_MOLECULE_RESULTS_DIFF,
         scope_pin="DESKTOP_MOLECULE_RESULTS_DIFF",
@@ -1746,6 +1772,7 @@ def main():
         output.write("native_color_figure_only=" + str(native_color_figure).lower() + "\n")
         output.write("result_handoff_desktop_only=" + str(result_handoff_desktop).lower() + "\n")
         output.write("molecule_results_only=" + str(molecule_results).lower() + "\n")
+        output.write("molecule_workbench_only=" + str(molecule_workbench).lower() + "\n")
         output.write("ligand_camera_only=" + str(ligand_camera).lower() + "\n")
         output.write("desktop_structure_focus_only=" + str(desktop_structure_focus).lower() + "\n")
         output.write("runtime_entry_only=" + str(runtime_entry).lower() + "\n")
