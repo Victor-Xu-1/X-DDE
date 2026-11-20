@@ -98,8 +98,10 @@ def check_del_definition(page, base, settings, colors):
     expect(block).to_have_css("background-color", colors["surface"])
     expect(block.locator("strong")).to_have_css("color", colors["ink"])
     expect(block.locator("code")).to_have_css("color", colors["muted"])
-    expect(block.locator(".molecule-image")).to_have_css("background-color", "rgb(255, 255, 255)")
-    expect(block.locator(".molecule-image img")).to_be_visible(timeout=30000)
+    drawing = block.locator(".molecule-image")
+    expect(drawing).to_have_css("background-color", "rgb(255, 255, 255)")
+    drawing.scroll_into_view_if_needed()
+    expect(drawing.locator("img")).to_be_visible(timeout=30000)
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [

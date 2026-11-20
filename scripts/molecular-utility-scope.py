@@ -1345,7 +1345,7 @@ RESULT_THEME_FILES = {
     "server_tests/test_native_result_theme_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-RESULT_THEME_DIFF = "b94de61c120c0a76c5007f0f1c9c1ac956455bc2634a9b8adebca137ac1a48da"
+RESULT_THEME_DIFF = "36d8e6e2a35a394c748f52106a2e3583211b37175d13d496abe42ec7948d8c87"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
