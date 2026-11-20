@@ -159,6 +159,19 @@
     padding-inline: 10px;
   }
 }
+@media (961px <= width < 1000px) {
+  .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
+    margin-inline: 10px;
+    padding-inline: 10px;
+    gap: 6px;
+    > .top-actions {
+      gap: 6px;
+    }
+    .module-workspace-navigation button {
+      padding-inline: 8px;
+    }
+  }
+}
 @media (max-width: 960px) {
   .studio-app .studio-topbar {
     height: 64px;

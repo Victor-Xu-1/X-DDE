@@ -1042,9 +1042,10 @@ DESKTOP_BACKEND_HEADER_FILES = {
     "frontend/src/studio/header.css",
     "frontend/src/utilities/runtime-switch.css",
     "server_tests/test_module_backend_switch_browser.py",
+    "server_tests/test_navigation_shell_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_BACKEND_HEADER_DIFF = "41c79817492ae34d426a5d3585c98fff1b9d06be4e0452851061de098fdf6a5c"
+DESKTOP_BACKEND_HEADER_DIFF = "478bd9bab49d445c141aa62f13ada7b2c4192616d3d7e4cd92d96f357e72e49a"
 CONTEXTUAL_BACKEND_PANEL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
@@ -1641,7 +1642,14 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         BACKEND_STATE_FILES, BACKEND_STATE_DIFF, scope_pin="BACKEND_STATE_DIFF",
     )
-    module_power = persistent_task_power or backend_setup or composed_power or reviewed_selected(
+    desktop_backend_header = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_BACKEND_HEADER_FILES, DESKTOP_BACKEND_HEADER_DIFF,
+        scope_pin="DESKTOP_BACKEND_HEADER_DIFF",
+    )
+    module_power = (
+        desktop_backend_header or persistent_task_power or backend_setup or composed_power
+    ) or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MODULE_POWER_FILES, MODULE_POWER_DIFF,
     ) or reviewed_selected(
@@ -1663,10 +1671,6 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         FUNCTION_POWER_FILES, FUNCTION_POWER_DIFF,
         scope_pin="FUNCTION_POWER_DIFF",
-    ) or reviewed_selected(
-        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
-        DESKTOP_BACKEND_HEADER_FILES, DESKTOP_BACKEND_HEADER_DIFF,
-        scope_pin="DESKTOP_BACKEND_HEADER_DIFF",
     )
     backend_placement = task_power or module_backend or module_power or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
@@ -1684,7 +1688,7 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
     )
-    desktop_header = reviewed_selected(
+    desktop_header = desktop_backend_header or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_HEADER_FILES, DESKTOP_HEADER_DIFF,
     )

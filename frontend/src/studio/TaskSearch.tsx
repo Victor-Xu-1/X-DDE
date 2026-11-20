@@ -43,10 +43,12 @@ export function TaskSearch({
     : [];
   function close() {
     setQuery("");
-    setExpanded(false);
-    if (trigger.current && getComputedStyle(trigger.current).display !== "none")
+    if (trigger.current && getComputedStyle(trigger.current).display !== "none") {
+      setExpanded(false);
       trigger.current.focus();
-    else search.current?.focus();
+    } else {
+      search.current?.focus();
+    }
   }
   return (
     <div
