@@ -729,7 +729,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "4fb4be2f72457a155a0b3a92d321a0b6a5134dbed2838e7e1569087d47daca6f",
+      "after_sha256": "96fc86a0c533d2187822283e9069e94c26c3b1eb35506410a6e47d7d29be6cf5",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1128,15 +1128,31 @@
           "changes": [
             {
               "before": "  readPortableSmiles, readRecognizedSource, recognizedDrawing,",
-              "after": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedDrawing,"
+              "after": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedDrawing, readRecognizedStereoFile,"
             },
             {
               "before": "  type RecognizedInput = { result: Result; drawing: string };",
               "after": "  type RecognizedInput = { result: Result; drawing: string; revision?: number };"
             },
             {
+              "before": "  type RecognizedInput = { result: Result; drawing: string; revision?: number };",
+              "after": "  type RecognizedInput = {\n    result: Result; drawing: string; revision?: number; recovery?: symbol;\n  };"
+            },
+            {
+              "before": "    owner: RecognizedInput;\n    value: RecognizedSourceExport;",
+              "after": "    owner: RecognizedInput;\n    request: symbol;\n    value: RecognizedSourceExport;"
+            },
+            {
+              "before": "  const sourceExport = recovered?.owner === recognition.current ? recovered.value : null;",
+              "after": "  const sourceExport = recovered && recovered.owner === recognition.current &&\n    recovered.owner.recovery === recovered.request ? recovered.value : null;"
+            },
+            {
+              "before": "  const clearRecognizedSource = () => {",
+              "after": "  const revokeRecovery = () => {\n    const source = recognition.current;\n    if (!source?.recovery) return;\n    source.recovery = undefined;\n    setRecovered(null);\n  };\n  const clearRecognizedSource = () => {"
+            },
+            {
               "before": "    if (ready) clearRecognizedSource();\n",
-              "after": ""
+              "after": "    revokeRecovery();\n"
             },
             {
               "before": "      void readPortableSmiles(current).then(",
@@ -1151,8 +1167,28 @@
               "after": "    if (source?.drawing !== drawing || source.revision !== undefined || structureGate.available)\n      return false;"
             },
             {
+              "before": "    const safe = await readRecognizedSource(current.structService, source.result);\n    if (!safe || source !== recognition.current || structureGate.available) return false;\n    setRecovered({ owner: source, value: safe });",
+              "after": "    const request = Symbol();\n    source.recovery = request;\n    const safe = await readRecognizedSource(current.structService, source.result);\n    if (!safe || source !== recognition.current || source.recovery !== request || structureGate.available)\n      return false;\n    setRecovered({ owner: source, request, value: safe });"
+            },
+            {
+              "before": "    if (!source || recovered?.owner !== source || format === \"sdf\")",
+              "after": "    if (!source || recovered?.owner !== source || recovered.request !== source.recovery || format === \"sdf\")"
+            },
+            {
+              "before": "      if (recognition.current !== source || structureGate.available)",
+              "after": "      if (recognition.current !== source || source.recovery !== recovered.request || structureGate.available)"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");",
+              "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");"
+            },
+            {
               "before": "      const text = format === \"smiles\"\n        ? validatedSmiles()\n        : format === \"mol\"\n          ? await current.getMolfile(\"v3000\")\n          : await current.getSdf(\"v3000\");",
-              "after": "      const source = recognition.current;\n      const original = format !== \"smiles\" && source?.revision === checkpoint &&\n        hasRelativeStereo(source.result.molfile)\n        ? await readRecognizedSource(current.structService, source.result)\n        : null;\n      const text = format === \"smiles\"\n        ? validatedSmiles()\n        : original\n          ? format === \"mol\" ? original.molfile : original.molfile.trimEnd() + \"\\n$$$$\\n\"\n          : format === \"mol\"\n            ? await current.getMolfile(\"v3000\")\n            : await current.getSdf(\"v3000\");"
+              "after": "      const source = recognition.current;\n      if (format !== \"smiles\" && source?.revision === checkpoint &&\n          hasRelativeStereo(source.result.molfile)) {\n        const text = await readRecognizedStereoFile(current.structService, source.result, format);\n        return { text, verify: () => structureGate.verify(checkpoint) };\n      }\n      const text = format === \"smiles\"\n        ? validatedSmiles()\n        : format === \"mol\"\n          ? await current.getMolfile(\"v3000\")\n          : await current.getSdf(\"v3000\");"
             },
             {
               "before": "    offerRecognizedSource,",

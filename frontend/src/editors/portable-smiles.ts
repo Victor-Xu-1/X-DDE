@@ -88,6 +88,17 @@ export async function readRecognizedSource(
   }
 }
 
+export async function readRecognizedStereoFile(
+  service: StructureExport["structService"],
+  result: RecognitionResult,
+  format: "mol" | "sdf",
+) {
+  const original = await readRecognizedSource(service, result);
+  if (!original)
+    throw new SmilesHandoffError("无法核对原始立体化学，已停止导出。");
+  return format === "mol" ? original.molfile : original.molfile.trimEnd() + "\n$$$$\n";
+}
+
 export async function readPortableSmiles(
   editor: StructureExport,
   recognized?: RecognitionResult,

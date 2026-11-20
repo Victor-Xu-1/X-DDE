@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import {
   readPortableSmiles,
   readRecognizedSource,
+  readRecognizedStereoFile,
   recognizedDrawing,
   SmilesHandoffError,
 } from "./portable-smiles";
@@ -164,6 +165,21 @@ it("does not flatten a recognized stereo group missing from the editor export", 
     molfile: structure + "M  V30 MDLV30/STEREL1 ATOMS=(2 2 4)\n",
   })).rejects.toThrow(SmilesHandoffError);
   expect(source.structService.getInChIKey).not.toHaveBeenCalled();
+});
+
+it("stops enhanced-stereo file export when the original cannot be verified", async () => {
+  const result = {
+    rawSmiles: relative,
+    smiles: absolute,
+    molfile: structure + "M  V30 MDLV30/STERAC1 ATOMS=(2 2 4)\n",
+  };
+  const source = editor(absolute, structure, "inconsistent");
+  await expect(readRecognizedStereoFile(source.structService, result, "mol"))
+    .rejects.toThrow("无法核对原始立体化学");
+  expect(source.getMolfile).not.toHaveBeenCalled();
+  const getInChIKey = vi.fn().mockResolvedValue("original");
+  await expect(readRecognizedStereoFile({ getInChIKey }, result, "sdf"))
+    .resolves.toBe(result.molfile.trimEnd() + "\n$$$$\n");
 });
 
 it.each(["t:6,o1:3,5", "t:6,w:3.3", "t:6,$label$"])(

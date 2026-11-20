@@ -55,6 +55,8 @@ const english: Record<string, string> = {
   "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。": "Download MOL V3000 to preserve the extended annotations or relative stereochemistry of this structure.",
   "无法生成可回读的单行 SMILES，请下载 MOL V3000。": "A readable single-line SMILES could not be generated. Download MOL V3000.",
   "无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。": "The structure and stereochemistry of this SMILES could not be verified. Download MOL V3000.",
+  "无法核对原始立体化学，已停止导出。":
+    "The original stereochemistry could not be verified. Export was stopped.",
   "在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。": "In ChemDraw, use Edit → Paste Special → SMILES.",
   "编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。":
     "The editor could not load this structure. Copy the recognized SMILES or download the MOL file.",

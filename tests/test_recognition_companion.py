@@ -320,6 +320,10 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
     assert any("readPortableSmiles(current, result)" in item for item in final)
     assert any("source.revision = structureGate.checkpoint()" in item for item in final)
     assert any("hasRelativeStereo(source.result.molfile)" in item for item in final)
+    assert any("const text = await readRecognizedStereoFile(" in item for item in final)
+    assert "    revokeRecovery();\n" in final
+    assert any("source.recovery !== request" in item for item in final)
+    assert any("source.recovery !== recovered.request" in item for item in final)
     assert any(
         "onLoadSuccess={bindRecognizedDrawing}" in item["after"]
         for item in app["final_steps"][-1]["changes"]
