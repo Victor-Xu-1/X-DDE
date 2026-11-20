@@ -59,14 +59,9 @@ export function DELSeriesContext({
   const unit = value?.metadata.count_unit;
   return (
     <div className="field-help dataset-series-context">
-      <p>
-        {zh
-          ? "汇总全部观测成员的计数后计算富集；不按单分子命中条件筛选。不同周期的系列相互重叠，不应相加为独立成员总数。"
-          : "Enrichment uses aggregated counts from all observed members, without molecule-level hit filtering. Series from different cycles overlap and must not be summed as distinct members."}
-      </p>
       {value ? (
-        <p>
-          {zh ? "计数来源：" : "Count source: "}
+        <p className="dataset-series-source">
+          <strong>{zh ? "计数来源" : "Count source"}</strong>
           {unit === "reads"
             ? zh
               ? "原始读段，保留 PCR 偏倚。"
@@ -81,10 +76,7 @@ export function DELSeriesContext({
                   : "source-labelled UMI counts; validity still depends on original reads and sample design."
                 : zh
                   ? "历史来源未记录计数类型。"
-                  : "the historical source did not record its count unit."}{" "}
-          {zh
-            ? "富集和区间不代表亲和力、协同性或生物学重复性。"
-            : "Enrichment and intervals do not establish affinity, cooperativity or biological reproducibility."}
+                  : "the historical source did not record its count unit."}
         </p>
       ) : failure === key ? (
         <p role="alert">
@@ -100,6 +92,19 @@ export function DELSeriesContext({
           {zh ? "正在核对计数来源…" : "Checking count source…"}
         </p>
       )}
+      <details>
+        <summary>{zh ? "解读富集与区间" : "Interpret enrichment and intervals"}</summary>
+        <p>
+          {zh
+            ? "汇总全部观测成员的计数后计算富集。不同周期的系列相互重叠，成员数可能重复。"
+            : "Enrichment uses aggregated counts from all observed members. Series from different cycles can include the same members."}
+        </p>
+        <p>
+          {zh
+            ? "富集和区间描述相对测序计数，亲和力、协同性和生物学重复性需单独验证。"
+            : "Enrichment and intervals describe relative sequencing counts. Affinity, cooperativity and biological reproducibility require separate evidence."}
+        </p>
+      </details>
     </div>
   );
 }

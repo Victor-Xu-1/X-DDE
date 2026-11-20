@@ -55,6 +55,17 @@ export function DatasetResults({
   const hasPrimary = Boolean(
     tableView || result.candidates.length || result.data_kind === "definition",
   );
+  const enumerated =
+    tableView === "library" && result.operation === "del_enumerate";
+  const downloadsWithTabs =
+    hasCharts && (tableView === "counts" || tableView === "decoded");
+  const downloads = (
+    <ResearchDownloads
+      jobId={job.id}
+      artifacts={result.artifacts}
+      language={language}
+    />
+  );
   const stats = Object.entries(result.counts)
     .filter(
       ([key, value]) =>
@@ -77,11 +88,7 @@ export function DatasetResults({
           <strong>{value.toLocaleString()}</strong>
         </div>
       ))}
-      <ResearchDownloads
-        jobId={job.id}
-        artifacts={result.artifacts}
-        language={language}
-      />
+      {!downloadsWithTabs && downloads}
     </div>
   );
   const comparisonControl = available &&
@@ -111,7 +118,8 @@ export function DatasetResults({
       summary={summaryInPreview ? summary : undefined}
     />
   ) : null;
-  const candidateTab = tableView === "enrichment" && candidateView;
+  const candidateTab =
+    (tableView === "enrichment" || enumerated) && candidateView;
   const primary = (
     <>
       {tableView === "enrichment" &&
@@ -172,7 +180,13 @@ export function DatasetResults({
   if (hasPrimary)
     tabs.push({
       id: "results",
-      label: zh ? "结果探索" : "Results",
+      label: enumerated
+        ? zh
+          ? "库成员"
+          : "Library members"
+        : zh
+          ? "结果探索"
+          : "Results",
       content: primary,
     });
   if (candidateTab)
@@ -190,7 +204,9 @@ export function DatasetResults({
   return (
     <div
       className="dataset-results"
-      data-del-results={result.operation?.startsWith("del_") || undefined}
+      data-del-results={
+        result.operation?.startsWith("del_") ? result.operation : undefined
+      }
     >
       {!summaryInPreview && summary}
       {result.operation === "del_count" &&
@@ -214,6 +230,7 @@ export function DatasetResults({
           key={`views:${job.id}`}
           label={zh ? "研究结果视图" : "Research result views"}
           tabs={tabs}
+          toolbar={downloadsWithTabs ? downloads : undefined}
         />
       ) : (
         tabs[0]?.content
