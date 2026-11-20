@@ -125,6 +125,18 @@ it("does not publish normalized SMILES that differ from the recognized stereoche
   });
 });
 
+it("keeps a verified MOL available when the plain-text reader rejects the SMILES", async () => {
+  const getInChIKey = vi.fn()
+    .mockResolvedValueOnce("source-identity")
+    .mockResolvedValueOnce("source-identity")
+    .mockRejectedValueOnce(new Error("Unsupported SMILES"));
+  const result = { rawSmiles: absolute, smiles: absolute, molfile: generatedMol };
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: "",
+    molfile: recognizedDrawing(result),
+  });
+});
+
 it("recovers ordinary text from the same recognized absolute CX group", async () => {
   const rawSmiles = absolute + " |a:1|";
   const result = { rawSmiles, smiles: absolute, molfile: generatedMol };
@@ -136,6 +148,67 @@ it("recovers ordinary text from the same recognized absolute CX group", async ()
   expect(getInChIKey.mock.calls).toEqual([
     [rawSmiles], [recognizedDrawing(result)], [absolute],
   ]);
+});
+
+it("exports verified 2D-coordinate CXSMILES as one portable line", async () => {
+  const rawSmiles = absolute + " |(-1.2,.3,;0,0,0;1.2,0,;2,0,;3,0,;4,0,)|";
+  const result = { rawSmiles, smiles: absolute, molfile: generatedMol };
+  const molfile = recognizedDrawing(result);
+  expect(molfile).toContain("  6  5  0  0  1");
+  const getInChIKey = vi.fn(async (value: string) => {
+    if (value === rawSmiles) throw new Error("Indigo cannot interpret the drawing coordinates");
+    return "absolute-identity";
+  });
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: absolute,
+    molfile,
+  });
+  expect(getInChIKey).not.toHaveBeenCalledWith(rawSmiles);
+  const source = editor(rawSmiles);
+  source.structService.getInChIKey.mockReset().mockImplementation(getInChIKey);
+  await expect(readPortableSmiles(source, result)).resolves.toBe(absolute);
+  source.structService.getInChIKey.mockImplementation(async (value) =>
+    value === structure ? "different-stereo" : "absolute-identity");
+  await expect(readPortableSmiles(source, result)).rejects.toThrow("无法核对");
+});
+
+it.each(["(0,0,1)", "(0,0,),a:1", "(0,0,),w:1.0", "(a,0,)", "(0,0,);(1,0,)"])(
+  "keeps unrecognized, mixed or spatial CX annotations %s out of plain export",
+  async (annotation) => {
+    const result = {
+      rawSmiles: absolute + " |" + annotation + "|",
+      smiles: absolute,
+      molfile: generatedMol,
+    };
+    const getInChIKey = vi.fn().mockResolvedValue("absolute-identity");
+    await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+      text: "",
+      molfile: generatedMol,
+    });
+    await expect(readPortableSmiles(editor(absolute), result)).rejects.toThrow("扩展注释");
+  },
+);
+
+it("rejects a portable editor export if the recognized original has different stereo", async () => {
+  const other = absolute.replace("@@", "@");
+  const source = editor(other, structure);
+  source.structService.getInChIKey.mockReset()
+    .mockImplementation(async (value) => value === absolute ? "original" : "opposite");
+  await expect(readPortableSmiles(source, {
+    rawSmiles: absolute,
+    smiles: absolute,
+    molfile: generatedMol,
+  })).rejects.toThrow("无法核对");
+  // An actual edit has a new revision and must export its own current stereo.
+  await expect(readPortableSmiles(source)).resolves.toBe(other);
+});
+
+it("rejects an absolute-only extension when the plain output loses stereo", async () => {
+  const withoutMarks = "NC(C)C(=O)O";
+  const source = editor(withoutMarks + " |a:1|");
+  source.structService.getInChIKey.mockReset()
+    .mockImplementation(async (value) => value === withoutMarks ? "unspecified" : "specified");
+  await expect(readPortableSmiles(source)).rejects.toThrow("无法核对");
 });
 
 it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognition result", async (stereo) => {
