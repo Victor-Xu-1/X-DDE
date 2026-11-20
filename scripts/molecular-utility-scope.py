@@ -1354,7 +1354,7 @@ COMPACT_RESULT_HEADER_FILES = {
     "server_tests/test_compact_result_header_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-COMPACT_RESULT_HEADER_DIFF = "c88081645b671292889de3205027f32ac4f8548330e188fe26c593413e51b082"
+COMPACT_RESULT_HEADER_DIFF = "86f945dee472b7cfc1bd9cb5d6e7a3c071227d988e5086c28120003457417d3d"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",

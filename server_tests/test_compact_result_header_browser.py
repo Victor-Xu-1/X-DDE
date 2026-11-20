@@ -92,7 +92,9 @@ def test_retained_result_headers_at_desktop_sizes(language, theme, width, height
                 expect(title).to_have_text(task_title)
                 page.screenshot(path=evidence / f"{capability}.png")
                 back.press("Enter")
-                history = page.get_by_role("heading", name="任务结果" if zh else "Task results")
+                history = page.get_by_role(
+                    "heading", name="任务结果" if zh else "Task results", level=2, exact=True,
+                )
                 expect(history).to_be_focused()
                 expect(header).to_have_count(0)
             else:
