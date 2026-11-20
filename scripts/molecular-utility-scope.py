@@ -657,7 +657,7 @@ PORTABLE_SMILES_FILES = {
     "tests/test_molecular_utility_scope.py",
     "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "c81d275fa3b69fd9a24e8ef20e2a4ef44d28ec88cda8c11e9b3f79c3cc465079"
+PORTABLE_SMILES_DIFF = "35a5e901e8b6e3d71cd5d4bed4a3aa8fcda0c5097f93bb51d714a2d10ad8293d"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
