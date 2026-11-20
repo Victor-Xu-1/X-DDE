@@ -241,14 +241,19 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
     manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
     record = next(item for item in manifest["files"] if item["path"].endswith("useWorkbench.ts"))
     for changes in [record["changes"], *(item["changes"] for item in record["upgrades"])]:
-        copy = next(item["after"] for item in changes if "const text =" in item["after"]
-                    and "readPortableSmiles" in item["after"] and "getSdf" not in item["after"])
-        download = next(item["after"] for item in changes if "getSdf" in item["after"]
-                        and "readPortableSmiles" in item["after"])
-        for handler in (copy, download):
-            assert "await readPortableSmiles(editor.current)" in handler
-            assert 'await editor.current.getMolfile("v3000")' in handler
-            assert "await editor.current.getSmiles(" not in handler
+        updated = [item["after"] for item in changes]
+        preparation = next(text for text in updated if "const validatedSmiles =" in text)
+        assert "readPortableSmiles(current).then(" in preparation
+        assert "structureGate.verify(smilesExport.revision)" in preparation
+        assert "return smilesExport.text" in preparation
+        assert '? validatedSmiles()' in updated
+        assert '? validatedSmiles() + "\\n"' in updated
+        assert '      setMolfile(recognizedDrawing(job.result));\n      setSmiles("");' in updated
+
+    app = next(item for item in manifest["files"] if item["path"].endswith("/App.tsx"))
+    for changes in [app["changes"], *(item["changes"] for item in app["upgrades"])]:
+        assert any("smilesExport?.text" in item["after"] for item in changes)
+        assert any("value={exportText}" in item["after"] for item in changes)
 
 
 def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():

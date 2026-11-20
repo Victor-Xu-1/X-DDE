@@ -1561,8 +1561,9 @@ SHORT_CHEMISTRY_DESKTOP_FILES = {
     "server_tests/test_short_chemistry_desktop.py",
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "tests/test_molecular_utility_scope.py",
+    "tests/test_recognition_companion.py",
 }
-SHORT_CHEMISTRY_DESKTOP_DIFF = "d6532968c2fb2c7dd5e907d3bfa4af4c6855a65065db7547556796fd90284230"
+SHORT_CHEMISTRY_DESKTOP_DIFF = "c90684d499fee396c92b25bb7b3e5c57b74dc6e7a222d06bd27df35991932c69"
 DESKTOP_MOLECULE_WORKBENCH_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
