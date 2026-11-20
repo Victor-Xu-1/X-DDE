@@ -663,7 +663,7 @@ GUIDED_DESKTOP_FILES = {
     "frontend/src/guided/questionnaire.css",
     "server_tests/test_guided_desktop_browser.py",
 }
-GUIDED_DESKTOP_DIFF = "9fbcb30d03685a6281114ea03e2331c0bbda0abb777fc287bd6d1a57fe370b6b"
+GUIDED_DESKTOP_DIFF = "a4f4e88fee360f2c6fe3d68acec9ae1ca4168589b09901259a7905a3f6a04326"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",

@@ -8,7 +8,6 @@ from playwright.sync_api import expect, sync_playwright
 from opendde_workbench.examples.stat6 import catalogue
 from server_tests.browser_platform import platform
 
-
 CASES = (
     "boltz.predict",
     "gnina.dock",
@@ -47,7 +46,7 @@ def geometry(form, height):
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1120, 650),
     ("zh", "dark", 1280, 700),
-    ("en", "white", 1440, 900),
+    ("en", "light", 1440, 900),
 ])
 def test_desktop_guide_keeps_navigation_and_native_structure_in_view(
     tmp_path, language, theme, width, height,
@@ -86,6 +85,7 @@ def test_desktop_guide_keeps_navigation_and_native_structure_in_view(
         back_name = "上一步" if zh else "Back"
         for tool in CASES:
             form = open_task(page, base, tool)
+            expect(page.locator("html")).to_have_attribute("data-theme", theme)
             step, _, _ = geometry(form, height)
             action = form.get_by_role("button", name=next_name, exact=True)
             expect(action).to_be_in_viewport(ratio=1)
