@@ -59,7 +59,7 @@
 .admet-candidates .research-tab-list button {
   font-size: 13px;
 }
-@media (min-width: 1001px) and (max-width: 1320px) {
+@media (min-width: 1001px) {
   .admet-candidates .research-tab-list {
     gap: 6px;
     align-items: stretch;

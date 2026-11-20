@@ -13,6 +13,34 @@ export function hasSmilesExtension(value: string) {
   return value.includes("|");
 }
 
+function isPortableLine(value: string) {
+  return /^[\x21-\x7e]+$/.test(value) && !/[>|]/.test(value);
+}
+
+/** Repair the generated V2000 depiction using the same OCR result's stereo. */
+export function recognizedDrawing({
+  rawSmiles,
+  smiles,
+  molfile,
+}: {
+  rawSmiles?: string | null;
+  smiles: string;
+  molfile: string;
+}) {
+  const raw = rawSmiles?.trim() ?? "";
+  if (!raw.includes("@") || !isPortableLine(raw) || !smiles.includes("@"))
+    return molfile;
+
+  // RDKit writes flag 0 by default. Indigo interprets flagged wedges in such
+  // V2000 files as a mixture, even when the source SMILES defines absolute stereo.
+  // Preserve all coordinates and bond flags, including unspecified stereochemistry.
+  const lines = molfile.split("\n");
+  const counts = lines[3];
+  if (!counts || !/^.{12}  0.{18} V2000\s*$/.test(counts)) return molfile;
+  lines[3] = counts.slice(0, 12) + "  1" + counts.slice(15);
+  return lines.join("\n");
+}
+
 export async function readPortableSmiles(editor: StructureExport) {
   let smiles: string;
   let mol: string;
@@ -30,7 +58,7 @@ export async function readPortableSmiles(editor: StructureExport) {
       "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。",
     );
 
-  if (!/^[\x21-\x7e]+$/.test(smiles) || smiles.includes(">"))
+  if (!isPortableLine(smiles))
     throw new SmilesHandoffError(
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );

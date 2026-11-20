@@ -71,6 +71,9 @@ def verify_handoff(page, root, scene, zh):
     form = page.locator(".state-preparation-handoff")
     expect(form.get_by_role(
         "heading", name="分子准备" if zh else "Molecule preparation"
+    )).to_be_visible()
+    expect(form.get_by_role(
+        "heading", name="1. 选择分子" if zh else "1. Choose molecule"
     )).to_be_focused()
     form.get_by_role(
         "button", name="返回性质预测" if zh else "Back to predictions"

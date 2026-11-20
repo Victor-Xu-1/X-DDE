@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "5fefe932a6f6e60ebca62ebb7b0f3dcb2e5dd82ed680d855cf687ea1ec12da99",
+      "after_sha256": "85e1ee1b5ff0e43abccba7baa0bbcf3725debab2d77ca7601391e913e0369356",
       "changes": [
         {
           "before": "const labels = {",
@@ -242,6 +242,38 @@
         {
           "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
           "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
+        },
+        {
+          "before": "import { hasSmilesExtension } from \"./portable-smiles\";\n",
+          "after": ""
+        },
+        {
+          "before": "    smiles,\n    setSmiles,",
+          "after": "    smilesExport,\n    setSmiles,"
+        },
+        {
+          "before": "  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());",
+          "after": "  const smilesError = structureReady ? smilesExport?.error : undefined;\n  const exportText = structureReady ? smilesExport?.text ?? \"\" : \"\";\n  const canExportSmiles = Boolean(exportText);"
+        },
+        {
+          "before": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>",
+          "after": "          {smilesError ? (\n            <p role=\"note\">{text(smilesError)}</p>"
+        },
+        {
+          "before": "              value={smiles}",
+          "after": "              value={exportText}"
+        },
+        {
+          "before": "              title={text(\"复制当前 SMILES\")}",
+          "after": "              title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}"
+        },
+        {
+          "before": "                aria-label={text(\"复制 SMILES\")}\n",
+          "after": "                aria-label={text(\"复制 SMILES\")}\n                title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}\n"
+        },
+        {
+          "before": "className={extendedSmiles ? \"primary\" : undefined}",
+          "after": "className={smilesError ? \"primary\" : undefined}"
         }
       ],
       "upgrades": [
@@ -291,6 +323,38 @@
             {
               "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
               "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
+            },
+            {
+              "before": "import { hasSmilesExtension } from \"./portable-smiles\";\n",
+              "after": ""
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smilesExport,\n    setSmiles,"
+            },
+            {
+              "before": "  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());",
+              "after": "  const smilesError = structureReady ? smilesExport?.error : undefined;\n  const exportText = structureReady ? smilesExport?.text ?? \"\" : \"\";\n  const canExportSmiles = Boolean(exportText);"
+            },
+            {
+              "before": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>",
+              "after": "          {smilesError ? (\n            <p role=\"note\">{text(smilesError)}</p>"
+            },
+            {
+              "before": "              value={smiles}",
+              "after": "              value={exportText}"
+            },
+            {
+              "before": "              title={text(\"复制当前 SMILES\")}",
+              "after": "              title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}"
+            },
+            {
+              "before": "                aria-label={text(\"复制 SMILES\")}\n",
+              "after": "                aria-label={text(\"复制 SMILES\")}\n                title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}\n"
+            },
+            {
+              "before": "className={extendedSmiles ? \"primary\" : undefined}",
+              "after": "className={smilesError ? \"primary\" : undefined}"
             }
           ]
         },
@@ -332,6 +396,75 @@
             {
               "before": "              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady || !smiles.trim()}",
               "after": "              <button\n                aria-label={text(\"下载 MOL V3000\")}\n                className={extendedSmiles ? \"primary\" : undefined}\n                disabled={!structureReady}\n                onClick={() => void download(\"mol\")}\n              >\n                <Download size={16} />\n                <span>MOL</span>\n              </button>\n              <button\n                aria-label={text(\"下载 SDF\")}\n                disabled={!structureReady}"
+            },
+            {
+              "before": "import { hasSmilesExtension } from \"./portable-smiles\";\n",
+              "after": ""
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smilesExport,\n    setSmiles,"
+            },
+            {
+              "before": "  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());",
+              "after": "  const smilesError = structureReady ? smilesExport?.error : undefined;\n  const exportText = structureReady ? smilesExport?.text ?? \"\" : \"\";\n  const canExportSmiles = Boolean(exportText);"
+            },
+            {
+              "before": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>",
+              "after": "          {smilesError ? (\n            <p role=\"note\">{text(smilesError)}</p>"
+            },
+            {
+              "before": "              value={smiles}",
+              "after": "              value={exportText}"
+            },
+            {
+              "before": "              title={text(\"复制当前 SMILES\")}",
+              "after": "              title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}"
+            },
+            {
+              "before": "                aria-label={text(\"复制 SMILES\")}\n",
+              "after": "                aria-label={text(\"复制 SMILES\")}\n                title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}\n"
+            },
+            {
+              "before": "className={extendedSmiles ? \"primary\" : undefined}",
+              "after": "className={smilesError ? \"primary\" : undefined}"
+            }
+          ]
+        },
+        {
+          "before_sha256": "5fefe932a6f6e60ebca62ebb7b0f3dcb2e5dd82ed680d855cf687ea1ec12da99",
+          "changes": [
+            {
+              "before": "import { hasSmilesExtension } from \"./portable-smiles\";\n",
+              "after": ""
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smilesExport,\n    setSmiles,"
+            },
+            {
+              "before": "  const extendedSmiles = hasSmilesExtension(smiles);\n  const canExportSmiles = structureReady && !extendedSmiles && Boolean(smiles.trim());",
+              "after": "  const smilesError = structureReady ? smilesExport?.error : undefined;\n  const exportText = structureReady ? smilesExport?.text ?? \"\" : \"\";\n  const canExportSmiles = Boolean(exportText);"
+            },
+            {
+              "before": "          {extendedSmiles ? (\n            <p role=\"note\">{text(\"请用 MOL V3000 保留此结构的扩展注释或相对手性。\")}</p>",
+              "after": "          {smilesError ? (\n            <p role=\"note\">{text(smilesError)}</p>"
+            },
+            {
+              "before": "              value={smiles}",
+              "after": "              value={exportText}"
+            },
+            {
+              "before": "              title={text(\"复制当前 SMILES\")}",
+              "after": "              title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}"
+            },
+            {
+              "before": "                aria-label={text(\"复制 SMILES\")}\n",
+              "after": "                aria-label={text(\"复制 SMILES\")}\n                title={text(\"在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。\")}\n"
+            },
+            {
+              "before": "className={extendedSmiles ? \"primary\" : undefined}",
+              "after": "className={smilesError ? \"primary\" : undefined}"
             }
           ]
         }
@@ -496,7 +629,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "23240aeac6589e3ef2f7b453c1fbc4e8634967854d38fb27b659c4720d094afc",
+      "after_sha256": "f7e81db583deec5692ca8ad4297f9431182d0b4620ed49343acee6842f5692d3",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -601,6 +734,42 @@
         {
           "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
           "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
+        },
+        {
+          "before": "import { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";",
+          "after": "import { readPortableSmiles, recognizedDrawing, SmilesHandoffError } from \"./portable-smiles\";"
+        },
+        {
+          "before": "  const [structureReady, updateStructureReady] = useState(false);\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    updateStructureReady(ready);\n  };",
+          "after": "  const [drawingRevision, setDrawingRevision] = useState<number | null>(null);\n  const structureReady = drawingRevision !== null;\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    setDrawingRevision(ready ? structureGate.checkpoint() : null);\n  };\n  const [preparedSmiles, setPreparedSmiles] = useState<{\n    revision: number;\n    text?: string;\n    error?: string;\n  } | null>(null);\n  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;"
+        },
+        {
+          "before": "      setMolfile(job.result.molfile);\n      setSmiles(job.result.smiles);",
+          "after": "      setMolfile(recognizedDrawing(job.result));\n      setSmiles(\"\");"
+        },
+        {
+          "before": "  const copy = async (format: \"smiles\" | \"mol\") => {",
+          "after": "  useEffect(() => {\n    const current = editor.current;\n    if (!current || drawingRevision === null) return;\n    let disposed = false;\n    const timer = window.setTimeout(() => {\n      void readPortableSmiles(current).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },\n        (error: unknown) => {\n          if (!disposed) setPreparedSmiles({\n            revision: drawingRevision,\n            error: error instanceof SmilesHandoffError\n              ? error.message\n              : \"无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。\",\n          });\n        },\n      );\n    }, 160);\n    return () => {\n      disposed = true;\n      clearTimeout(timer);\n    };\n  }, [drawingRevision]);\n\n  const validatedSmiles = () => {\n    if (!smilesExport?.text)\n      throw new MoleculeReadinessError(\"SMILES export is not ready.\");\n    structureGate.verify(smilesExport.revision);\n    return smilesExport.text;\n  };\n  const copy = async (format: \"smiles\" | \"mol\") => {"
+        },
+        {
+          "before": "? await readPortableSmiles(editor.current)",
+          "after": "? validatedSmiles()"
+        },
+        {
+          "before": "? (await readPortableSmiles(editor.current)) + \"\\n\"",
+          "after": "? validatedSmiles() + \"\\n\""
+        },
+        {
+          "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");",
+          "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");"
+        },
+        {
+          "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");",
+          "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");"
+        },
+        {
+          "before": "    smiles,\n    setSmiles,",
+          "after": "    smiles,\n    setSmiles,\n    smilesExport,"
         }
       ],
       "upgrades": [
@@ -658,6 +827,42 @@
             {
               "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
               "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
+            },
+            {
+              "before": "import { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";",
+              "after": "import { readPortableSmiles, recognizedDrawing, SmilesHandoffError } from \"./portable-smiles\";"
+            },
+            {
+              "before": "  const [structureReady, updateStructureReady] = useState(false);\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    updateStructureReady(ready);\n  };",
+              "after": "  const [drawingRevision, setDrawingRevision] = useState<number | null>(null);\n  const structureReady = drawingRevision !== null;\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    setDrawingRevision(ready ? structureGate.checkpoint() : null);\n  };\n  const [preparedSmiles, setPreparedSmiles] = useState<{\n    revision: number;\n    text?: string;\n    error?: string;\n  } | null>(null);\n  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;"
+            },
+            {
+              "before": "      setMolfile(job.result.molfile);\n      setSmiles(job.result.smiles);",
+              "after": "      setMolfile(recognizedDrawing(job.result));\n      setSmiles(\"\");"
+            },
+            {
+              "before": "  const copy = async (format: \"smiles\" | \"mol\") => {",
+              "after": "  useEffect(() => {\n    const current = editor.current;\n    if (!current || drawingRevision === null) return;\n    let disposed = false;\n    const timer = window.setTimeout(() => {\n      void readPortableSmiles(current).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },\n        (error: unknown) => {\n          if (!disposed) setPreparedSmiles({\n            revision: drawingRevision,\n            error: error instanceof SmilesHandoffError\n              ? error.message\n              : \"无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。\",\n          });\n        },\n      );\n    }, 160);\n    return () => {\n      disposed = true;\n      clearTimeout(timer);\n    };\n  }, [drawingRevision]);\n\n  const validatedSmiles = () => {\n    if (!smilesExport?.text)\n      throw new MoleculeReadinessError(\"SMILES export is not ready.\");\n    structureGate.verify(smilesExport.revision);\n    return smilesExport.text;\n  };\n  const copy = async (format: \"smiles\" | \"mol\") => {"
+            },
+            {
+              "before": "? await readPortableSmiles(editor.current)",
+              "after": "? validatedSmiles()"
+            },
+            {
+              "before": "? (await readPortableSmiles(editor.current)) + \"\\n\"",
+              "after": "? validatedSmiles() + \"\\n\""
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");"
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smiles,\n    setSmiles,\n    smilesExport,"
             }
           ]
         },
@@ -691,6 +896,83 @@
             {
               "before": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\" : \"结构导出失败。\");",
               "after": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");"
+            },
+            {
+              "before": "import { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";",
+              "after": "import { readPortableSmiles, recognizedDrawing, SmilesHandoffError } from \"./portable-smiles\";"
+            },
+            {
+              "before": "  const [structureReady, updateStructureReady] = useState(false);\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    updateStructureReady(ready);\n  };",
+              "after": "  const [drawingRevision, setDrawingRevision] = useState<number | null>(null);\n  const structureReady = drawingRevision !== null;\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    setDrawingRevision(ready ? structureGate.checkpoint() : null);\n  };\n  const [preparedSmiles, setPreparedSmiles] = useState<{\n    revision: number;\n    text?: string;\n    error?: string;\n  } | null>(null);\n  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;"
+            },
+            {
+              "before": "      setMolfile(job.result.molfile);\n      setSmiles(job.result.smiles);",
+              "after": "      setMolfile(recognizedDrawing(job.result));\n      setSmiles(\"\");"
+            },
+            {
+              "before": "  const copy = async (format: \"smiles\" | \"mol\") => {",
+              "after": "  useEffect(() => {\n    const current = editor.current;\n    if (!current || drawingRevision === null) return;\n    let disposed = false;\n    const timer = window.setTimeout(() => {\n      void readPortableSmiles(current).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },\n        (error: unknown) => {\n          if (!disposed) setPreparedSmiles({\n            revision: drawingRevision,\n            error: error instanceof SmilesHandoffError\n              ? error.message\n              : \"无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。\",\n          });\n        },\n      );\n    }, 160);\n    return () => {\n      disposed = true;\n      clearTimeout(timer);\n    };\n  }, [drawingRevision]);\n\n  const validatedSmiles = () => {\n    if (!smilesExport?.text)\n      throw new MoleculeReadinessError(\"SMILES export is not ready.\");\n    structureGate.verify(smilesExport.revision);\n    return smilesExport.text;\n  };\n  const copy = async (format: \"smiles\" | \"mol\") => {"
+            },
+            {
+              "before": "? await readPortableSmiles(editor.current)",
+              "after": "? validatedSmiles()"
+            },
+            {
+              "before": "? (await readPortableSmiles(editor.current)) + \"\\n\"",
+              "after": "? validatedSmiles() + \"\\n\""
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");"
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smiles,\n    setSmiles,\n    smilesExport,"
+            }
+          ]
+        },
+        {
+          "before_sha256": "23240aeac6589e3ef2f7b453c1fbc4e8634967854d38fb27b659c4720d094afc",
+          "changes": [
+            {
+              "before": "import { readPortableSmiles, SmilesHandoffError } from \"./portable-smiles\";",
+              "after": "import { readPortableSmiles, recognizedDrawing, SmilesHandoffError } from \"./portable-smiles\";"
+            },
+            {
+              "before": "  const [structureReady, updateStructureReady] = useState(false);\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    updateStructureReady(ready);\n  };",
+              "after": "  const [drawingRevision, setDrawingRevision] = useState<number | null>(null);\n  const structureReady = drawingRevision !== null;\n  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    setDrawingRevision(ready ? structureGate.checkpoint() : null);\n  };\n  const [preparedSmiles, setPreparedSmiles] = useState<{\n    revision: number;\n    text?: string;\n    error?: string;\n  } | null>(null);\n  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;"
+            },
+            {
+              "before": "      setMolfile(job.result.molfile);\n      setSmiles(job.result.smiles);",
+              "after": "      setMolfile(recognizedDrawing(job.result));\n      setSmiles(\"\");"
+            },
+            {
+              "before": "  const copy = async (format: \"smiles\" | \"mol\") => {",
+              "after": "  useEffect(() => {\n    const current = editor.current;\n    if (!current || drawingRevision === null) return;\n    let disposed = false;\n    const timer = window.setTimeout(() => {\n      void readPortableSmiles(current).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },\n        (error: unknown) => {\n          if (!disposed) setPreparedSmiles({\n            revision: drawingRevision,\n            error: error instanceof SmilesHandoffError\n              ? error.message\n              : \"无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。\",\n          });\n        },\n      );\n    }, 160);\n    return () => {\n      disposed = true;\n      clearTimeout(timer);\n    };\n  }, [drawingRevision]);\n\n  const validatedSmiles = () => {\n    if (!smilesExport?.text)\n      throw new MoleculeReadinessError(\"SMILES export is not ready.\");\n    structureGate.verify(smilesExport.revision);\n    return smilesExport.text;\n  };\n  const copy = async (format: \"smiles\" | \"mol\") => {"
+            },
+            {
+              "before": "? await readPortableSmiles(editor.current)",
+              "after": "? validatedSmiles()"
+            },
+            {
+              "before": "? (await readPortableSmiles(editor.current)) + \"\\n\"",
+              "after": "? validatedSmiles() + \"\\n\""
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"复制失败，请检查剪贴板权限。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"复制失败，请检查剪贴板权限。\");"
+            },
+            {
+              "before": "      setError(error instanceof SmilesHandoffError ? error.message\n        : error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n          : \"结构导出失败。\");",
+              "after": "      setError(error instanceof MoleculeReadinessError ? \"结构已更新，请核对后重试。\"\n        : \"结构导出失败。\");"
+            },
+            {
+              "before": "    smiles,\n    setSmiles,",
+              "after": "    smiles,\n    setSmiles,\n    smilesExport,"
             }
           ]
         }
@@ -875,7 +1157,11 @@
       "a4605d349eef207de2ad4b66ed4aaeae460b25fa10cf12d30a397c6d5b5d9f13"
     ],
     "recognition-host-ui-locale.ts": [
-      "60ca53e251c6fe9fdebd204291fcea8b72a611651abd2ffb27bfb4327cdb91db"
+      "60ca53e251c6fe9fdebd204291fcea8b72a611651abd2ffb27bfb4327cdb91db",
+      "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94"
+    ],
+    "portable-smiles.ts": [
+      "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4"
     ]
   }
 }

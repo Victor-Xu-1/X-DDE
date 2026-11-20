@@ -6,6 +6,7 @@ import {
   InputActionScope,
   useInputActionScope,
 } from "../guided/InputActionScope";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { defaults } from "./generated";
 import type { MoleculeRef } from "../research/types";
 import type { Job } from "../types";
@@ -83,14 +84,16 @@ it.each([false, true])(
       />
     );
     render(
-      inherited ? (
-        <InputActionScope>
-          <ParentStatus />
-          {form}
-        </InputActionScope>
-      ) : (
-        form
-      ),
+      <TaskPresentationContext.Provider value={{ layout: "single" }}>
+        {inherited ? (
+          <InputActionScope>
+            <ParentStatus />
+            {form}
+          </InputActionScope>
+        ) : (
+          form
+        )}
+      </TaskPresentationContext.Provider>,
     );
     const user = userEvent.setup();
     expect(

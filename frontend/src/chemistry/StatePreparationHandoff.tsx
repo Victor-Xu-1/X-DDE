@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useContext, useLayoutEffect, useRef, useState } from "react";
 import {
   InputActionScope,
   useInputActionScope,
 } from "../guided/InputActionScope";
+import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { FollowupBackendControl } from "../utilities/TaskBackendControl";
 import type { MoleculeRef } from "../research/types";
 import type { Job, Language } from "../types";
@@ -59,8 +60,12 @@ function PreparationForm({
   const scope = useInputActionScope()!;
   const zh = language === "zh";
   const title = zh ? "分子准备" : "Molecule preparation";
+  const singlePage = useContext(TaskPresentationContext)?.layout === "single";
   const heading = useRef<HTMLHeadingElement>(null);
-  useLayoutEffect(() => heading.current?.focus(), []);
+  useLayoutEffect(() => {
+    // The guided form already focuses its active step heading.
+    if (singlePage) heading.current?.focus();
+  }, [singlePage]);
   return (
     <section className="state-preparation-handoff" aria-label={title}>
       <header className="state-preparation-heading">
@@ -75,7 +80,7 @@ function PreparationForm({
           {backLabel}
         </button>
         <div className="state-preparation-title">
-          <h3 ref={heading} tabIndex={-1}>
+          <h3 ref={heading} tabIndex={singlePage ? -1 : undefined}>
             {title}
           </h3>
           <span>{input.label}</span>

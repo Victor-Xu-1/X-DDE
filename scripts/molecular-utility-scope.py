@@ -1546,15 +1546,23 @@ DESKTOP_MOLECULE_RESULTS_FILES = {
 DESKTOP_MOLECULE_RESULTS_DIFF = "d576f4c8e3662ea4b70bb511cf46197783f2d7d1430a6836d2d2ee3cd9d11bce"
 SHORT_CHEMISTRY_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/admet/AdmetResults.test.tsx",
     "frontend/src/admet/admet.css",
     "frontend/src/chemistry/LibraryScreenResults.test.tsx",
     "frontend/src/chemistry/LibraryScreenResults.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.test.tsx",
+    "frontend/src/chemistry/StatePreparationHandoff.tsx",
     "frontend/src/chemistry/library-screen-results.css",
+    "frontend/src/editors/portable-smiles.test.ts",
+    "frontend/src/editors/portable-smiles.ts",
     "frontend/src/operations/property-result-views.css",
+    "frontend/src/utilities/recognition-host-ui-locale.ts",
+    "server_tests/test_result_handoffs_desktop.py",
     "server_tests/test_short_chemistry_desktop.py",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
     "tests/test_molecular_utility_scope.py",
 }
-SHORT_CHEMISTRY_DESKTOP_DIFF = "6a15bf47c97de719e29574ff6a3925bf1b4e3748b5b41bad36ecdae886190520"
+SHORT_CHEMISTRY_DESKTOP_DIFF = "d6532968c2fb2c7dd5e907d3bfa4af4c6855a65065db7547556796fd90284230"
 DESKTOP_MOLECULE_WORKBENCH_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",

@@ -596,7 +596,9 @@ jobs:
 
   recognition-smiles-export:
     needs: scope
-    if: ${{ !inputs.scope_only && needs.scope.outputs.portable_smiles_only == 'true' }}
+    if: >-
+      ${{ !inputs.scope_only && (needs.scope.outputs.portable_smiles_only == 'true' ||
+      needs.scope.outputs.short_chemistry_desktop_only == 'true') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
