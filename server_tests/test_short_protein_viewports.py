@@ -50,6 +50,8 @@ def inspect_comparison(page, base, height, zh, evidence):
     job = open_result(page, base, "rmsd")
     result = page.locator(".detail-panel .comparison-result-view")
     overlay = canvas_in_workspace(result, ready(result, zh), height, 350, 455)
+    tabs = result.locator(".comparison-analysis .research-tab-list")
+    assert tabs.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
     pair = result.get_by_role("button", name="已对齐并列" if zh else "Aligned side by side")
     pair.click()
     match = result.get_by_role("button", name="匹配视角" if zh else "Match views")
@@ -80,7 +82,8 @@ def inspect_comparison(page, base, height, zh, evidence):
             expect(button).to_be_in_viewport()
             with page.expect_download() as downloaded:
                 button.click()
-            assert hashlib.sha256(Path(downloaded.value.path()).read_bytes()).hexdigest() == source[name]
+            contents = Path(downloaded.value.path()).read_bytes()
+            assert hashlib.sha256(contents).hexdigest() == source[name]
         figure = result.get_by_role("button", name="Export comparison ↓", exact=True)
         expect(figure).to_be_in_viewport()
         inspect_png(export_figure(page, figure, evidence, "comparison", "en"))
