@@ -1202,7 +1202,7 @@ SPATIAL_REVIEW_FILES = {
     "frontend/src/receptors/SurfaceResults.tsx",
     "server_tests/test_spatial_canvas_review_browser.py",
 }
-SPATIAL_REVIEW_DIFF = "203c9b493635b2d0a27ae19a2e11bd2823ba88a32ff64efbb091dd21b0d90724"
+SPATIAL_REVIEW_DIFF = "38f415ca9f8ccf2c1b2547bb7edbcff71a87d5a2d404bf5a516bd65e726bbac4"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",

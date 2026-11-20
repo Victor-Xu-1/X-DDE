@@ -166,11 +166,11 @@
   }
 
   .spatial-review {
-    --spatial-stage-reserve: 228px;
+    --short-spatial-stage-reserve: 228px;
   }
 
   .docking-results.spatial-review {
-    --spatial-stage-reserve: 266px;
+    --short-spatial-stage-reserve: 266px;
   }
 
   .studio-app .spatial-review
@@ -178,7 +178,7 @@
     > .structure-workbench-view
     .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel)
     > .molecular-stage {
-    height: clamp(320px, calc(100dvh - var(--spatial-stage-reserve)), 510px);
+    height: clamp(320px, calc(100dvh - var(--short-spatial-stage-reserve)), 510px);
     min-height: 0;
   }
 
