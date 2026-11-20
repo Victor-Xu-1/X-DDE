@@ -232,6 +232,48 @@ html
       min-width: 102px;
       padding-inline: 8px 20px;
     }
+    .viewer-mode-options .viewer-mode-short {
+      display: inline;
+    }
+    .viewer-mode-options .viewer-mode-short + .viewer-mode-full {
+      display: none;
+    }
+    .prediction-sample-bar:has(.prediction-best-sample):has(> .prediction-confidence-metrics) {
+      display: grid;
+      grid-template-columns: max-content minmax(140px, 1fr) minmax(295px, 1.65fr) auto;
+      gap: 6px 10px;
+
+      .prediction-seed-picker select {
+        width: 100px;
+      }
+      .prediction-sample-picker nav,
+      .prediction-sample-options {
+        min-width: 0;
+      }
+      .prediction-sample-caption {
+        flex: none;
+        gap: 5px;
+      }
+      > .prediction-confidence-metrics {
+        grid-column: 3;
+        grid-row: 1;
+      }
+      .prediction-sample-download {
+        grid-column: 4;
+        grid-row: 1;
+      }
+      .prediction-best-icon {
+        display: inline-flex;
+      }
+      .prediction-best-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    }
   }
   .prediction-result .prediction-confidence-toolbar {
     flex-wrap: nowrap;
@@ -265,9 +307,13 @@ html
     .structure-workbench:not([data-workspace-expanded])
     .viewer-panel
     .molecular-stage {
-    height: clamp(345px, calc(100dvh - 354px), 510px);
+    height: clamp(340px, calc(100dvh - var(--prediction-stage-reserve, 354px)), 510px);
     min-height: 0;
   }
+}
+
+.prediction-best-icon {
+  display: none;
 }
 
 @media (max-width: 600px) {
@@ -281,6 +327,9 @@ html
 }
 
 @media (1180px <= width <= 1250px) and (max-height: 840px) {
+  .prediction-result {
+    --prediction-stage-reserve: 369px;
+  }
   .prediction-result .structure-workbench:not([data-workspace-expanded]) {
     .prediction-sample-bar {
       grid-template-columns: max-content minmax(0, 1fr) minmax(290px, 1.8fr) auto;
@@ -303,14 +352,11 @@ html
       font-size: 16px;
     }
   }
-  html
-    body
-    .studio-app
-    .prediction-result
-    .structure-workbench:not([data-workspace-expanded])
-    .viewer-panel
-    .molecular-stage {
-    height: clamp(340px, calc(100dvh - 369px), 490px);
+}
+
+@media (1180px <= width <= 1320px) and (max-height: 840px) {
+  .prediction-result:has(.prediction-best-sample) {
+    --prediction-stage-reserve: 374px;
   }
 }
 

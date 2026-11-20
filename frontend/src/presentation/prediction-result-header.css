@@ -92,6 +92,14 @@
   .prediction-result-actions .prediction-archive-label {
     font-size: 13px;
   }
+  .prediction-result-actions:has(> .task-backend-control + .secondary-button) {
+    .prediction-archive-label {
+      display: none;
+    }
+    .prediction-archive-icon {
+      display: inline-flex;
+    }
+  }
 }
 @media (1180px <= width <= 1240px) and (max-height: 840px) {
   .prediction-result-heading:has(.task-backend-control) {

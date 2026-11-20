@@ -71,6 +71,25 @@ def inspect_prediction(page, base, width, height, zh, evidence):
     return {"canvas": canvas, "confidence": chart}
 
 
+def inspect_boltz_fallback(page, base, height, evidence):
+    open_result(page, base, "boltz.predict")
+    result = page.locator(".prediction-result")
+    expect(result.locator(".prediction-result-method")).to_contain_text("Boltz-2")
+    expect(result.locator(".confidence-empty")).to_contain_text("No PAE matrix")
+    capture = result.get_by_role("button", name="Capture 3D view", exact=True)
+    expect(capture).to_be_enabled(timeout=30000)
+    sample = result.get_by_role("button", name="Sample structure-002", exact=True)
+    sample.click()
+    expect(sample).to_have_attribute("aria-pressed", "true")
+    expect(result.locator(".confidence-empty")).to_contain_text("structure-002")
+    expect(capture).to_be_enabled(timeout=30000)
+    iframe = result.locator(".molecular-stage iframe")
+    canvas = inspect_canvas(iframe, height, 340)
+    expect(result.get_by_role("button", name="Download all data", exact=True)).to_be_in_viewport()
+    page.screenshot(path=evidence / "boltz.png")
+    return canvas
+
+
 def inspect_displacements(result, height):
     plot = result.locator(".comparison-analysis .research-plot-canvas")
     expect(plot).to_have_attribute("aria-busy", "false")
@@ -180,6 +199,8 @@ def test_short_desktop_structure_workspaces(language, theme, width, height):
             "prediction": inspect_prediction(page, base, width, height, zh, evidence),
             "alignment": inspect_alignment(page, base, width, height, zh, evidence),
         }
+        if width == 1280:
+            observed["boltz"] = inspect_boltz_fallback(page, base, height, evidence)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         assert page.request.get(power_url).json() == before and not writes
         (evidence / "layout.json").write_text(json.dumps(observed, indent=2), encoding="utf-8")

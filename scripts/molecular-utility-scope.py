@@ -1186,6 +1186,7 @@ SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/publication-checks.yml",
     "frontend/src/operations/ConfidencePanel.tsx",
+    "frontend/src/presentation/PredictionSamples.tsx",
     "frontend/src/presentation/prediction-inspection.css",
     "frontend/src/presentation/prediction-result-header.css",
     "frontend/src/structure-comparison/AlignedStructurePair.tsx",
@@ -1195,7 +1196,7 @@ SHORT_STRUCTURE_REVIEW_FILES = {
     "server_tests/test_short_structure_workspace.py",
     "tests/test_molecular_utility_scope.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "3fcf1d1c0e2d080e9116da39abdda25dd4a9cda60a0b4d4c633e4079070d43e9"
+SHORT_STRUCTURE_REVIEW_DIFF = "325b6949b6a066bca28a62d7b8b6af863e50b44c6b7d52a22044b4e9a7227368"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
