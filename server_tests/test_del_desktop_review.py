@@ -177,7 +177,9 @@ def check_evidence_tables(page, base, settings, zh, evidence):
             expect(interpretation).not_to_have_attribute("open", "")
             interpretation.locator("summary").press("Space")
             expect(interpretation.locator("p").last).to_contain_text(
-                "生物学重复性需单独验证" if zh else "biological reproducibility require separate evidence"
+                "生物学重复性需单独验证"
+                if zh
+                else "biological reproducibility require separate evidence"
             )
 
 

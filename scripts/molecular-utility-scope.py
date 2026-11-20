@@ -1334,7 +1334,7 @@ DEL_RESULT_WORKSPACES_FILES = {
     "server_tests/test_del_desktop_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-DEL_RESULT_WORKSPACES_DIFF = "3c4de5efb005ecd80f8b995f8667efa23dd381cfcbf0827ff647f63ba6aff6b6"
+DEL_RESULT_WORKSPACES_DIFF = "e070e3dace14bca03740bb59eaa6cb4529cf93870769bd52a74e4a5ebf25b24f"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",
