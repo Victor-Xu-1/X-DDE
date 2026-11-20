@@ -1343,8 +1343,9 @@ RESULT_THEME_FILES = {
     "frontend/src/datasets/screening-result-layout.css",
     "frontend/src/viewer/chain-controls.css",
     "server_tests/test_native_result_theme_browser.py",
+    "tests/test_molecular_utility_scope.py",
 }
-RESULT_THEME_DIFF = "b22bf11bd6603e676ca424c0dd913e312e5b6e4858d29fbb8073b95561c5a7fc"
+RESULT_THEME_DIFF = "81e7fae19a2712a012a8a805a872165b4d93a7e127741d2877256067841e4b4e"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
