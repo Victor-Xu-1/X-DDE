@@ -39,3 +39,9 @@ Canvas operations have one in-memory lifetime, separate from scientific scheduli
 The native small-molecule zoom/centering API is supplied by the companion adapter; a hidden canvas is fitted once it becomes visible, and a material work-area resize refits the view without changing the drawing. Normal drawing and manual layout do not trigger whole-graph rearrangement. Ketcher's redundant image-recognition and unverified 3D-viewer buttons are hidden in this 2D input editor. X-DDE's existing managed 3D previews remain the authority for computed/minimized poses; a 2D drawing is not presented as a calculated 3D result.
 
 Refs #235. Candidate validation and installed-browser acceptance must be recorded separately.
+
+## Copying to ChemDraw
+
+Use **Copy SMILES**, then **Edit → Paste Special → SMILES** in ChemDraw. The recognition editor copies a single isomeric SMILES line and checks it against a read-back of the current structure. At the initial recognition revision it also checks the recognized source. Subsequent edits export from the current drawing.
+
+A recognized result with absolute stereo labels or planar drawing coordinates can be exported as plain SMILES when the read-back agrees. Download **MOL** for relative stereo groups, ambiguous bonds or any structure whose plain SMILES cannot be verified. Open the file in ChemDraw to keep the available bond and stereochemical annotations. Compare stereochemical wedges and double bonds against the source image before using an OCR result.
