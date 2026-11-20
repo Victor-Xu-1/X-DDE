@@ -187,46 +187,9 @@
   padding-inline-start: 8px;
   border-inline-start: 1px solid var(--line);
 }
-@media (max-width: 1159px) {
+@media (width < 1280px) {
   .studio-topbar .task-backend-compute {
     display: none;
-  }
-}
-@media (min-width: 1160px) {
-  .studio-topbar:has(.task-backend-compute) > .page-context .page-context-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-@media (1160px <= width <= 1440px) {
-  .studio-app .studio-topbar:has(.task-backend-compute) {
-    > .task-search {
-      position: static;
-      flex: none;
-      min-width: 0;
-    }
-    :is(.compact-search-trigger, .compact-search-close) {
-      display: grid;
-    }
-    .has-inline-switch .backend-controls-trigger {
-      width: 36px;
-      padding: 0;
-    }
-    .has-inline-switch .backend-controls-label {
-      display: none;
-    }
-    .task-search .global-search {
-      display: none;
-    }
-    .task-search .global-search.is-expanded {
-      display: flex;
-      position: absolute;
-      inset: 12px 24px auto;
-      width: auto;
-      height: 44px;
-      z-index: 2;
-    }
   }
 }
 .studio-app .studio-topbar .has-inline-switch .backend-controls-trigger {
@@ -253,6 +216,15 @@
   }
   .studio-topbar .has-inline-switch .backend-controls-label {
     display: inline;
+  }
+}
+@media (1280px <= width <= 1440px) {
+  .studio-app .studio-topbar:has(.task-backend-compute) .backend-controls-trigger {
+    width: 36px;
+    padding: 0;
+  }
+  .studio-topbar:has(.task-backend-compute) .backend-controls-label {
+    display: none;
   }
 }
 .studio-topbar
@@ -286,30 +258,6 @@
   .studio-topbar .backend-controls.has-inline-switch > .task-backend-control {
     padding-inline-end: 0;
     border-inline-end: 0;
-  }
-}
-@media (961px <= width <= 1100px) {
-  .studio-app
-    .studio-topbar:has(.task-backend-control[data-backend-placement="entry"]) {
-    > .task-search {
-      position: static;
-      flex: none;
-      min-width: 0;
-    }
-    :is(.compact-search-trigger, .compact-search-close) {
-      display: grid;
-    }
-    .task-search .global-search {
-      display: none;
-    }
-    .task-search .global-search.is-expanded {
-      display: flex;
-      position: absolute;
-      inset: 12px 24px auto;
-      width: auto;
-      height: 44px;
-      z-index: 2;
-    }
   }
 }
 @media (max-width: 600px) {

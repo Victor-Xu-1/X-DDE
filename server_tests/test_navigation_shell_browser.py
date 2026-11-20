@@ -90,13 +90,14 @@ def capture(page, name):
 def desktop_header_geometry(header):
     return header.evaluate("""bar => {
         const selectors = [
-            '.page-context', '.module-workspace-navigation', '.global-search', '.top-actions',
+            '.page-context', '.module-workspace-navigation', '.task-search', '.top-actions',
         ];
         const parts = selectors.map(selector => bar.querySelector(selector))
             .filter(Boolean).map(node => node.getBoundingClientRect())
             .filter(rect => rect.width > 0 && rect.height > 0);
         const bounds = bar.getBoundingClientRect();
-        const search = bar.querySelector('.global-search').getBoundingClientRect();
+        const field = bar.querySelector('.global-search').getBoundingClientRect();
+        const trigger = bar.querySelector('.compact-search-trigger').getBoundingClientRect();
         const title = bar.querySelector('.page-context-title');
         const titleBounds = title.getBoundingClientRect();
         const text = document.createRange();
@@ -107,7 +108,8 @@ def desktop_header_geometry(header):
             titleFits: Array.from(text.getClientRects()).every(rect =>
                 rect.left >= titleBounds.left - 1 && rect.right <= titleBounds.right + 1),
             headerHeight: bounds.height,
-            searchWidth: search.width,
+            searchWidth: field.width || trigger.width,
+            compactSearch: trigger.width > 0,
         };
     }""")
 
@@ -117,7 +119,10 @@ def record_desktop_header(page, header, measurements, state):
     title = header.locator(".page-context-title").inner_text()
     geometry = desktop_header_geometry(header)
     assert geometry["separated"] and geometry["inside"], (width, title, state, geometry)
-    assert geometry["titleFits"] and geometry["searchWidth"] >= 149, (width, title, state)
+    min_search_width = 36 if geometry["compactSearch"] else 149
+    assert geometry["titleFits"] and geometry["searchWidth"] >= min_search_width, (
+        width, title, state, geometry,
+    )
     assert geometry["headerHeight"] <= 90, (width, title, state, geometry)
     assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
     measurements.append({"width": width, "title": title, "state": state, **geometry})
@@ -164,6 +169,9 @@ def test_desktop_header_keeps_search_and_actions_separate(shell_page, language):
     field = header.get_by_role(
         "searchbox", name="搜索任务" if language == "zh" else "Search tasks", exact=True
     )
+    search = header.get_by_role(
+        "button", name="搜索任务" if language == "zh" else "Search tasks", exact=True
+    )
     backend = header.get_by_role(
         "button", name="后端管理" if language == "zh" else "Backend controls", exact=True
     )
@@ -179,7 +187,6 @@ def test_desktop_header_keeps_search_and_actions_separate(shell_page, language):
             title = labels[0 if language == "zh" else 1]
             nav.get_by_role("button", name=title, exact=True).click()
             expect(header.locator(".page-context-title")).to_have_text(title)
-            expect(field).to_be_visible()
             record_desktop_header(page, header, measurements, "module")
     verify_retained_desktop_headers(page, base, header, field, language, measurements)
 
@@ -196,6 +203,8 @@ def test_desktop_header_keeps_search_and_actions_separate(shell_page, language):
     expect(backend).to_be_focused()
     expect(panel).to_have_count(0)
 
+    if search.is_visible():
+        search.click()
     field.click()
     expect(header.locator(".global-search")).not_to_have_css("box-shadow", "none")
     field.fill(history["job_id"])

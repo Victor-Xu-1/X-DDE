@@ -43,15 +43,24 @@ export function TaskSearch({
     : [];
   function close() {
     setQuery("");
-    setExpanded(false);
-    if (trigger.current && getComputedStyle(trigger.current).display !== "none")
+    if (trigger.current && getComputedStyle(trigger.current).display !== "none") {
+      setExpanded(false);
       trigger.current.focus();
-    else search.current?.focus();
+    } else {
+      search.current?.focus();
+    }
   }
   return (
     <div
       className="task-search"
       ref={container}
+      onBlur={(event) => {
+        if (
+          event.relatedTarget &&
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setExpanded(false);
+      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();
@@ -103,6 +112,7 @@ export function TaskSearch({
           value={query}
           aria-expanded={Boolean(query.trim())}
           aria-controls={query.trim() ? "task-search-results" : undefined}
+          onFocus={() => setExpanded(true)}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={zh ? "搜索任务名称" : "Search tasks by name or ID"}
         />

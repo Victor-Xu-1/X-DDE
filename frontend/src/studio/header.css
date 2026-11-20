@@ -107,6 +107,71 @@
     margin-inline-start: 0;
   }
 }
+@media (min-width: 961px) {
+  .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
+    > .page-context {
+      flex: none;
+      max-width: none;
+      white-space: nowrap;
+    }
+    > .task-search {
+      flex: 1 1 18rem;
+      min-width: 0;
+      max-width: 400px;
+    }
+    .task-search .global-search {
+      width: 100%;
+    }
+  }
+}
+/* Give the title, navigation and power controls priority on desktop. */
+@media (961px <= width < 1440px) {
+  .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
+    > .task-search {
+      position: static;
+      flex: none;
+    }
+    :is(.compact-search-trigger, .compact-search-close) {
+      display: grid;
+    }
+    .task-search .global-search {
+      display: none;
+    }
+    .task-search .global-search.is-expanded {
+      display: flex;
+      position: absolute;
+      inset: 12px 24px auto;
+      width: auto;
+      max-width: none;
+      height: 44px;
+      z-index: 2;
+    }
+  }
+}
+@media (961px <= width < 1200px) {
+  .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
+    margin-inline: 16px;
+    padding-inline: 16px;
+    gap: 8px;
+  }
+  .studio-app .studio-topbar:has([data-backend-placement="entry"])
+    .module-workspace-navigation button {
+    padding-inline: 10px;
+  }
+}
+@media (961px <= width < 1000px) {
+  .studio-app .studio-topbar:has([data-backend-placement="entry"]) {
+    margin-inline: 10px;
+    padding-inline: 10px;
+    gap: 6px;
+    > .top-actions {
+      gap: 6px;
+    }
+    .module-workspace-navigation button {
+      padding-inline: 8px;
+    }
+  }
+}
 @media (max-width: 960px) {
   .studio-app .studio-topbar {
     height: 64px;
