@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
+from server_tests.publication_browser_helpers import export_figure, inspect_png
 from server_tests.test_archived_comparison_browser import read_camera
 
 
@@ -27,7 +28,7 @@ def inspect_canvas(frame, height, minimum):
     return box
 
 
-def inspect_prediction(page, base, height, zh, evidence):
+def inspect_prediction(page, base, width, height, zh, evidence):
     open_result(page, base, "predict")
     result = page.locator(".prediction-result")
     frame = result.locator(".structure-workbench .molecular-stage iframe")
@@ -39,11 +40,15 @@ def inspect_prediction(page, base, height, zh, evidence):
     matrix = result.locator(".confidence-panel .research-plot .main-svg").first
     expect(matrix).to_be_visible()
     assert metric.input_value() == "pae"
-    canvas = inspect_canvas(frame, height, 355)
+    canvas = inspect_canvas(frame, height, 340)
     chart = matrix.bounding_box()
     assert chart and chart["x"] > canvas["x"] + canvas["width"]
     assert chart["y"] + chart["height"] <= height + 2 and chart["height"] >= 240
     coloring = result.get_by_role("combobox", name="结构着色" if zh else "Structure coloring")
+    settings = result.get_by_role("button", name="显示选项" if zh else "Display options")
+    disclosed = settings.is_visible()
+    if disclosed:
+        settings.click()
     expect(coloring).to_have_value("confidence")
     original_camera = read_camera(frame)
     coloring.select_option("chain")
@@ -51,6 +56,8 @@ def inspect_prediction(page, base, height, zh, evidence):
     assert read_camera(frame) == pytest.approx(original_camera, abs=1e-6)
     coloring.select_option("confidence")
     expect(capture).to_be_enabled()
+    if disclosed:
+        coloring.press("Escape")
     borders = result.get_by_role("checkbox", name="链边界" if zh else "Chain borders")
     original = borders.is_checked()
     borders.set_checked(not original)
@@ -58,11 +65,22 @@ def inspect_prediction(page, base, height, zh, evidence):
     expect(result.get_by_role(
         "button", name="下载全部数据" if zh else "Download all data", exact=True,
     )).to_be_in_viewport()
+    if width <= 1240:
+        expect(result.locator(".prediction-archive-icon")).to_be_visible()
     page.screenshot(path=evidence / "prediction.png")
     return {"canvas": canvas, "confidence": chart}
 
 
-def inspect_alignment(page, base, height, zh, evidence):
+def inspect_displacements(result, height):
+    plot = result.locator(".comparison-analysis .research-plot-canvas")
+    expect(plot).to_have_attribute("aria-busy", "false")
+    box = plot.bounding_box()
+    assert box and box["height"] >= 200
+    assert box["y"] + box["height"] <= height + 2
+    return box
+
+
+def inspect_alignment(page, base, width, height, zh, evidence):
     job = open_result(page, base, "rmsd")
     result = page.locator(".comparison-result-view")
     capture = result.get_by_role(
@@ -70,6 +88,7 @@ def inspect_alignment(page, base, height, zh, evidence):
     )
     expect(capture).to_be_enabled(timeout=30000)
     overlay = inspect_canvas(result.locator(".molecular-stage iframe"), height, 380)
+    overlay_chart = inspect_displacements(result, height)
     pair = result.get_by_role(
         "button", name="已对齐并列" if zh else "Aligned side by side", exact=True,
     )
@@ -82,30 +101,59 @@ def inspect_alignment(page, base, height, zh, evidence):
     left, right = boxes
     assert left["x"] + left["width"] < right["x"]
     assert abs(left["y"] - right["y"]) < 2 and abs(left["height"] - right["height"]) < 2
+    paired_chart = inspect_displacements(result, height)
+    result.get_by_role("button", name="放大" if zh else "Zoom in", exact=True).first.click()
+    assert read_camera(frames.first) != pytest.approx(read_camera(frames.last), abs=1e-6)
     match.click()
     expect(match).to_be_enabled()
-    assert read_camera(frames.first) == pytest.approx(read_camera(frames.last), abs=1e-6)
+    matched = read_camera(frames.first)
+    assert read_camera(frames.last) == pytest.approx(matched, abs=1e-6)
+    result.get_by_role(
+        "button", name="已对齐叠合" if zh else "Aligned overlay", exact=True,
+    ).click()
+    expect(capture).to_be_enabled(timeout=30000)
+    pair.click()
+    expect(match).to_be_enabled(timeout=45000)
+    for frame in frames.all():
+        assert read_camera(frame) == pytest.approx(matched, abs=1e-6)
     native = page.request.get(f"{base}/api/jobs/{job}/result").json()["artifact_sha256"]
-    with page.expect_download() as downloaded:
-        result.get_by_role(
-            "button", name="下载参照结构 CIF" if zh else "Download Reference structure CIF",
-            exact=True,
-        ).click()
-    data = Path(downloaded.value.path()).read_bytes()
-    assert hashlib.sha256(data).hexdigest() == native["reference-selected.cif"]
-    expect(result.get_by_role(
+    downloads = (
+        ("reference-selected.cif", "下载参照结构 CIF", "Download Reference structure CIF"),
+        ("moving-aligned.cif", "下载已对齐比较结构 CIF", "Download Aligned comparison CIF"),
+    )
+    for artifact, cn, en in downloads:
+        button = result.get_by_role("button", name=cn if zh else en, exact=True)
+        if width == 1280 and artifact == "reference-selected.cif":
+            page.route(
+                f"{base}/api/jobs/{job}/download?name={artifact}",
+                lambda route: route.fulfill(content_type="chemical/x-cif", body="fixture mismatch"),
+                times=1,
+            )
+            button.click()
+            expect(result.get_by_role("alert").filter(
+                has_text="Could not verify the saved file.",
+            )).to_be_visible()
+        with page.expect_download() as downloaded:
+            button.click()
+        data = Path(downloaded.value.path()).read_bytes()
+        assert hashlib.sha256(data).hexdigest() == native[artifact]
+    figure = result.get_by_role(
         "button", name="导出比较图 ↓" if zh else "Export comparison ↓", exact=True,
-    )).to_be_in_viewport()
+    )
+    expect(figure).to_be_in_viewport()
+    if width == 1280:
+        inspect_png(export_figure(page, figure, evidence, "aligned-pair", "en"))
     page.screenshot(path=evidence / "alignment.png")
-    return {"overlay": overlay, "pair": boxes}
+    return {"overlay": overlay, "pair": boxes, "overlay_chart": overlay_chart,
+            "paired_chart": paired_chart}
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
-    ("en", "warm", 1280, 720), ("zh", "dark", 1440, 800),
+    ("en", "warm", 1180, 720), ("en", "warm", 1280, 720), ("zh", "dark", 1440, 800),
 ])
 def test_short_desktop_structure_workspaces(language, theme, width, height):
     zh = language == "zh"
-    evidence = Path("outputs/short-structure-workspace") / language
+    evidence = Path("outputs/short-structure-workspace") / f"{language}-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
     settings = Settings.from_env()
     with platform(settings.state_dir, evidence / "platform.log") as base, sync_playwright() as pw:
@@ -123,8 +171,8 @@ def test_short_desktop_structure_workspaces(language, theme, width, height):
         power_url = base + "/api/runtime-controls?include_native=false"
         before = page.request.get(power_url).json()
         observed = {
-            "prediction": inspect_prediction(page, base, height, zh, evidence),
-            "alignment": inspect_alignment(page, base, height, zh, evidence),
+            "prediction": inspect_prediction(page, base, width, height, zh, evidence),
+            "alignment": inspect_alignment(page, base, width, height, zh, evidence),
         }
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         assert page.request.get(power_url).json() == before and not writes

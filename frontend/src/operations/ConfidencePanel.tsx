@@ -128,7 +128,17 @@ export function ConfidencePanel({
                     !metrics || metrics.includes(id as ConfidenceMetric),
                 )
                 .map(([id, label]) => (
-                  <option value={id} key={id}>
+                  <option
+                    value={id}
+                    key={id}
+                    label={
+                      id === "contacts"
+                        ? zh
+                          ? "接触概率"
+                          : "Contact probability"
+                        : id.toUpperCase()
+                    }
+                  >
                     {label}
                   </option>
                 ))}

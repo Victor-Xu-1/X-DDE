@@ -1007,7 +1007,7 @@ jobs:
           npx vitest run src/studio/PredictionResults.test.tsx
           src/presentation/PredictionPlotSize.test.tsx src/presentation/PredictionSamples.test.tsx
           src/operations/ConfidencePanel.test.tsx src/operations/StructureComparisonResults.test.tsx
-          src/structure-comparison/ComparisonScene.test.ts
+          src/structure-comparison/ComparisonScene.test.ts src/integrations/ScientificResults.test.tsx
       - name: Native prediction and aligned structures in desktop Chrome
         env:
           GH_TOKEN: ${{ github.token }}

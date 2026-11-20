@@ -94,6 +94,9 @@
   }
 }
 @media (1180px <= width <= 1240px) and (max-height: 840px) {
+  .prediction-result-heading:has(.task-backend-control) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
   .prediction-result-actions .prediction-archive-label {
     display: none;
   }
