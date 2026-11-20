@@ -154,6 +154,33 @@ def test_final_step_reuses_verified_migrations(source, installed):
             companion.prepare(host, resources)
 
 
+@pytest.mark.parametrize("installed", ["original", "localized", "previous"])
+def test_companion_can_start_at_each_verified_intermediate(source, installed):
+    host, resources, _ = source
+    manifest_path = resources / "patch.json"
+    manifest = json.loads(manifest_path.read_text())
+    record = manifest["files"][0]
+    target = host / record["path"]
+    prefix = target.name + ": "
+    payload = (prefix + "current").encode()
+    record["final_steps"] = [
+        {
+            "before_sha256": companion.digest((prefix + before).encode()),
+            "changes": [{"before": before, "after": after}],
+        }
+        for before, after in [("localized", "previous"), ("previous", "current")]
+    ]
+    record["after_sha256"] = companion.digest(payload)
+    manifest_path.write_text(json.dumps(manifest))
+    target.write_text(prefix + installed)
+    assert companion.prepare(host, resources)[target] == payload
+
+    record["final_steps"].append(record["final_steps"][1])
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="Duplicate native intermediate"):
+        companion.prepare(host, resources)
+
+
 def test_manifest_cannot_expand_scope_or_escape_source(source):
     host, resources, _ = source
     manifest = json.loads((resources / "patch.json").read_text())
@@ -287,6 +314,20 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
     for changes in [app["changes"], *(item["changes"] for item in app["upgrades"])]:
         assert any("smilesExport?.text" in item["after"] for item in changes)
         assert any("value={exportText}" in item["after"] for item in changes)
+
+    final = [item["after"] for item in record["final_steps"][-1]["changes"]]
+    assert any("source?.revision === drawingRevision" in item for item in final)
+    assert any("readPortableSmiles(current, result)" in item for item in final)
+    assert any("source.revision = structureGate.checkpoint()" in item for item in final)
+    assert any("hasRelativeStereo(source.result.molfile)" in item for item in final)
+    assert any("const text = await readRecognizedStereoFile(" in item for item in final)
+    assert "    revokeRecovery();\n" in final
+    assert any("source.recovery !== request" in item for item in final)
+    assert any("source.recovery !== recovered.request" in item for item in final)
+    assert any(
+        "onLoadSuccess={bindRecognizedDrawing}" in item["after"]
+        for item in app["final_steps"][-1]["changes"]
+    )
 
 
 def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():

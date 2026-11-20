@@ -6,7 +6,7 @@ type StructureExport = {
   };
 };
 
-type RecognitionResult = {
+export type RecognitionResult = {
   rawSmiles?: string | null;
   smiles: string;
   molfile: string;
@@ -28,10 +28,19 @@ function isPortableLine(value: string) {
   return /^[\x21-\x7e]+$/.test(value) && !/[>|]/.test(value);
 }
 
+function absoluteSmiles(value: string) {
+  const text = value.replace(/ \|a:\d+(?:,\d+)*\|$/, "");
+  return isPortableLine(text) ? text : null;
+}
+
+function hasOnlyRingAndAbsoluteStereo(value: string) {
+  return /^\S+ \|(?:[act]:\d+(?:,\d+)*)(?:,[act]:\d+(?:,\d+)*)*\|$/.test(value);
+}
+
 /** Repair the generated V2000 depiction using the same OCR result's stereo. */
 export function recognizedDrawing({ rawSmiles, smiles, molfile }: RecognitionResult) {
-  const raw = rawSmiles?.trim() ?? "";
-  if (!raw.includes("@") || !isPortableLine(raw) || !smiles.includes("@"))
+  const raw = absoluteSmiles(rawSmiles?.trim() ?? "");
+  if (!raw?.includes("@") || !smiles.includes("@"))
     return molfile;
 
   // RDKit writes flag 0 by default. Indigo interprets flagged wedges in such
@@ -44,7 +53,7 @@ export function recognizedDrawing({ rawSmiles, smiles, molfile }: RecognitionRes
   return lines.join("\n");
 }
 
-function hasRelativeStereo(molfile: string) {
+export function hasRelativeStereo(molfile: string) {
   return /MDLV30\/STER(?:AC|EL)\d*/.test(molfile);
 }
 
@@ -63,11 +72,11 @@ export async function readRecognizedSource(
     if (!expected?.trim() || expected !== await service.getInChIKey(molfile))
       return null;
 
-    // The worker's canonical SMILES may omit relative groups and other CX data.
-    // Ordinary SMILES is safe only when the original was already a plain line.
+    // An explicit absolute group may be redundant with @/@@. Keep all other
+    // extended annotations out of the plain export, even when InChI ignores them.
     const text = result.smiles.trim();
     if (
-      isPortableLine(raw) &&
+      absoluteSmiles(raw) &&
       isPortableLine(text) &&
       !hasRelativeStereo(molfile) &&
       expected === await service.getInChIKey(text)
@@ -79,7 +88,21 @@ export async function readRecognizedSource(
   }
 }
 
-export async function readPortableSmiles(editor: StructureExport) {
+export async function readRecognizedStereoFile(
+  service: StructureExport["structService"],
+  result: RecognitionResult,
+  format: "mol" | "sdf",
+) {
+  const original = await readRecognizedSource(service, result);
+  if (!original)
+    throw new SmilesHandoffError("无法核对原始立体化学，已停止导出。");
+  return format === "mol" ? original.molfile : original.molfile.trimEnd() + "\n$$$$\n";
+}
+
+export async function readPortableSmiles(
+  editor: StructureExport,
+  recognized?: RecognitionResult,
+) {
   let smiles: string;
   let mol: string;
   try {
@@ -90,21 +113,32 @@ export async function readPortableSmiles(editor: StructureExport) {
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );
   }
-  // AND/OR stereo collections cannot be expressed as an absolute SMILES.
-  if (hasSmilesExtension(smiles) || hasRelativeStereo(mol))
+  // Indigo encodes ring double-bond geometry in CXSMILES; the recognizing
+  // worker can already express that same bond with slash notation. The caller
+  // supplies the recognized result only at its original drawing revision.
+  const extended = hasSmilesExtension(smiles);
+  if (
+    hasRelativeStereo(mol) ||
+    (recognized && hasRelativeStereo(recognized.molfile)) ||
+    (extended && !(recognized && hasOnlyRingAndAbsoluteStereo(smiles)))
+  )
     throw new SmilesHandoffError(
       "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。",
     );
 
-  if (!isPortableLine(smiles))
+  if (!extended && !isPortableLine(smiles))
     throw new SmilesHandoffError(
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );
 
   try {
     const expected = await editor.structService.getInChIKey(mol);
-    const exported = await editor.structService.getInChIKey(smiles);
-    if (expected?.trim() && expected === exported) return smiles;
+    const candidate = extended && recognized
+      ? (await readRecognizedSource(editor.structService, recognized))?.text
+      : smiles;
+    if (expected?.trim() && candidate &&
+        expected === await editor.structService.getInChIKey(candidate))
+      return candidate;
   } catch {
     // The MOL path remains available for structures without an InChI round trip.
   }
