@@ -1214,19 +1214,17 @@ SPATIAL_REVIEW_FILES = {
 SPATIAL_REVIEW_DIFF = "575a76e54c9ceeaedd599a0e34462132128d115b3e80889acc5a579004756c8b"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/publication-checks.yml",
-    "frontend/src/operations/ConfidencePanel.tsx",
-    "frontend/src/presentation/PredictionSamples.tsx",
-    "frontend/src/presentation/prediction-inspection.css",
-    "frontend/src/presentation/prediction-result-header.css",
-    "frontend/src/structure-comparison/AlignedStructurePair.tsx",
+    ".github/workflows/protein-interface-checks.yml",
+    "frontend/src/integrations/ProteinInterfaceResults.tsx",
+    "frontend/src/integrations/interaction-workspace.css",
+    "frontend/src/presentation/spatial-result-review.css",
     "frontend/src/structure-comparison/ComparisonPreview.tsx",
-    "frontend/src/structure-comparison/DisplacementPlot.tsx",
+    "frontend/src/structure-comparison/ComparisonResults.tsx",
     "frontend/src/structure-comparison/comparison-result-view.css",
-    "server_tests/test_short_structure_workspace.py",
-    "tests/test_molecular_utility_scope.py",
+    "frontend/src/viewer/StructurePairFigure.tsx",
+    "server_tests/test_short_protein_viewports.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "e692b33da20378780d2a6691225aa3b10b632251914ff714e475eb3e55e060fd"
+SHORT_STRUCTURE_REVIEW_DIFF = "5bc1ed47dcbf217a5662df1d20cce2d5912b6f61fff4b6de58f50924fc18d46f"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",

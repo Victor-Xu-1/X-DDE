@@ -52,6 +52,8 @@ on:
       - "server_tests/test_refinement_review_browser.py"
       - "frontend/src/presentation/SpatialResultSummary.tsx"
       - "frontend/src/presentation/spatial-results.css"
+      - "frontend/src/presentation/spatial-result-review.css"
+      - "server_tests/test_short_protein_viewports.py"
       - "server_tests/test_spatial_results_desktop.py"
       - "server_tests/test_sequence_review_desktop.py"
       - "frontend/src/operations/CandidateChainComparison.tsx"
@@ -1093,21 +1095,20 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Prediction, confidence and comparison components
+      - name: Protein interface, aligned structures and receptor workspace components
         working-directory: frontend
         run: >-
-          npx vitest run src/studio/PredictionResults.test.tsx
-          src/presentation/PredictionPlotSize.test.tsx src/presentation/PredictionSamples.test.tsx
-          src/operations/ConfidencePanel.test.tsx src/operations/StructureComparisonResults.test.tsx
-          src/structure-comparison/ComparisonScene.test.ts src/integrations/ScientificResults.test.tsx
-      - name: Native prediction and aligned structures in desktop Chrome
+          npx vitest run src/integrations/ProteinInterfaceResults.test.tsx
+          src/receptors/ReceptorResults.test.tsx src/operations/StructureComparisonResults.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx
+      - name: Inspect three retained protein results in short desktop Chrome
         env:
           GH_TOKEN: ${{ github.token }}
           WB_HOME: ${{ runner.temp }}/short-structure-review
           WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_short_structure_workspace.py
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_short_protein_viewports.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${#source[@]}" -eq 2
@@ -1115,12 +1116,12 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
-          .venv/bin/python -m pytest -x -q server_tests/test_short_structure_workspace.py
+          .venv/bin/python -m pytest -x -q server_tests/test_short_protein_viewports.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: short-structure-workspace
-          path: outputs/short-structure-workspace/
+          name: short-protein-viewports
+          path: outputs/short-protein-viewports/
 
   desktop-refinement:
     needs: scope

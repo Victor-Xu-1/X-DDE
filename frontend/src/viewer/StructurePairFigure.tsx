@@ -31,12 +31,14 @@ export function StructurePairFigure({
   language,
   filename,
   disabled = false,
+  compactTrigger = false,
 }: {
   figure: ReturnType<typeof useStructurePairFigure>;
   labels: readonly [string, string];
   language: Language;
   filename: string;
   disabled?: boolean;
+  compactTrigger?: boolean;
 }) {
   const zh = language === "zh";
   const [a, b] = figure.pair;
@@ -47,6 +49,7 @@ export function StructurePairFigure({
       sourceKey={JSON.stringify([a?.sourceKey, b?.sourceKey, labels])}
       sourceReady={Boolean(a && b)}
       disabled={disabled}
+      compactTrigger={compactTrigger}
       format="png"
       aspect={2}
       typography

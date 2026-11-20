@@ -205,6 +205,63 @@
     border-radius: 10px;
   }
 }
+@media (min-width: 1080px) and (max-height: 719px) {
+  .protein-interface-results
+    .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-rows: auto auto;
+    height: auto;
+    align-items: start;
+
+    > .structure-workbench-view {
+      grid-row: 1;
+    }
+    > .structure-workbench-sequence {
+      grid-column: 1 / -1;
+    }
+    .viewer-panel:not(:popover-open) {
+      height: auto;
+    }
+    .research-table-scroll {
+      max-height: max(145px, calc(100dvh - 410px));
+    }
+  }
+
+  .studio-app .protein-interface-results
+    .structure-workbench:not([data-workspace-expanded])
+    .viewer-panel:not(:popover-open) .molecular-stage {
+    flex: none;
+    height: clamp(300px, calc(100dvh - 244px), 480px);
+    min-height: 0;
+  }
+
+  .interface-summary {
+    padding: 9px 10px;
+    gap: 6px;
+  }
+  .interface-summary .spatial-summary-metrics {
+    gap: 6px;
+  }
+  .interface-summary .spatial-summary-metrics > div {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding-block: 5px;
+  }
+  .interface-summary .spatial-summary-metrics dd {
+    text-align: start;
+  }
+  .protein-interface-results .research-table-toolbar {
+    gap: 5px;
+    padding-block: 4px;
+  }
+  .studio-app .protein-interface-results
+    .research-table-toolbar :is(.research-table-action, .table-columns > summary) {
+    min-height: 30px;
+    padding: 4px 5px;
+    font-size: 11px;
+  }
+}
+
 html
   body
   .studio-app

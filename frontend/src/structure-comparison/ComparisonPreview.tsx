@@ -110,6 +110,7 @@ export function ComparisonPreview({
                   filename={`X-DDE-alignment-${jobId.slice(0, 8)}`}
                   language={language}
                   disabled={camera.busy}
+                  compactTrigger
                 />
               </>
             )}
