@@ -579,7 +579,8 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         sync_playwright() as driver,
     ):
         chromium = driver.chromium.launch(channel="chrome")
-        page = chromium.new_page(viewport={"width": 1450, "height": 950})
+        context = chromium.new_context(viewport={"width": 1450, "height": 950})
+        page = context.new_page()
         companion = {
             "available": True,
             "port": 8940,
@@ -625,7 +626,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
             if request.method == "POST" and request.url.startswith(base + "/api/"):
                 posts.append(request.url.removeprefix(base))
 
-        page.context.on("request", record)
+        context.on("request", record)
         checked = verify_catalogue(page, base, state)
         verify_narrow_compute_entry(page, base)
         verify_composite_tools(page, base)
@@ -637,7 +638,7 @@ def test_contextual_switches_bind_to_runtime_authority(tmp_path):
         verify_shared_power(page, base)
         verify_inline_switch_lifecycle(page, base)
         verify_utilities(page, base, companion, companion_loads)
-        verify_desktop_task_power_header(page.context, base)
+        verify_desktop_task_power_header(context, base)
         after = page.request.get(base + "/api/runtime-controls").json()
         assert all(not entry["enabled"] and not entry["active"] for entry in after["engines"])
         assert page.request.get(base + "/api/jobs").json() == before
