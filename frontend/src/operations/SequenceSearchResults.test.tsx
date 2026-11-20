@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { sequenceHits } from "./native-report";
 import { NativeReport } from "./NativeReport";
@@ -23,7 +23,10 @@ it("reads native structure-search hits that have no sequence-alignment metric", 
   ).toBeVisible();
   expect(screen.getByText("52.341")).toBeVisible();
   expect(screen.queryByRole("button", { name: /identity/ })).toBeNull();
-  expect(screen.getByText(/not TM-score, RMSD, affinity/)).toBeVisible();
+  fireEvent.click(screen.getByText("Interpret search results"));
+  expect(
+    screen.getByText(/The 3D viewer shows the query structure/),
+  ).toBeVisible();
 });
 it("preserves native sequence-search metrics and never replaces missing values with zero", () => {
   const text =
@@ -41,6 +44,9 @@ it("preserves native sequence-search metrics and never replaces missing values w
       zh={false}
     />,
   );
+  expect(screen.getAllByRole("columnheader")).toHaveLength(2);
+  fireEvent.click(screen.getByText("Columns"));
+  fireEvent.click(screen.getByRole("button", { name: "All metrics" }));
   expect(screen.getAllByText("—")).toHaveLength(2);
   view.unmount();
   expect(sequenceHits("1. **CONTROL1** (score=1e999, length=5)")).toEqual([]);

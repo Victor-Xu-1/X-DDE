@@ -1,0 +1,165 @@
+.target-material-layout,
+.sequence-search-rail {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.target-material-layout > *,
+.sequence-search-rail > * {
+  min-width: 0;
+}
+
+.target-activity-workspace .activity-measurement-scope > summary,
+.sequence-search-results .sequence-search-scope > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.sequence-search-results .sequence-search-scope {
+  margin-bottom: 8px;
+}
+
+.activity-preview-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 8px;
+}
+
+.activity-preview-header .field-help {
+  margin-block: 0;
+}
+
+@media (min-width: 1180px) {
+  .target-evidence-results .research-table,
+  .sequence-search-results .research-table {
+    border-radius: 8px;
+  }
+
+  .target-evidence-results > .research-tabs > .research-tab-list {
+    margin-block: 6px 10px;
+  }
+
+  .target-evidence-results .evidence-material-toolbar {
+    margin-block-end: 0;
+  }
+
+  .target-evidence-results .target-material-layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr);
+    align-items: start;
+  }
+
+  .target-material-references h3,
+  .activity-molecule-preview h3 {
+    margin-block: 0 6px;
+  }
+
+  .target-evidence-results .target-material-references table {
+    min-width: 0;
+  }
+
+  .target-material-references td {
+    overflow-wrap: anywhere;
+  }
+
+  .target-material-references .research-table-scroll {
+    max-height: min(42vh, 410px);
+  }
+
+  .target-evidence-results .target-activity-workspace .structure-workbench,
+  .sequence-search-results .structure-workbench {
+    column-gap: 16px;
+  }
+
+  .target-evidence-results
+    .target-activity-workspace
+    .structure-workbench-details {
+    gap: 8px;
+  }
+
+  .target-activity-workspace {
+    --activity-table-min-width: 0;
+  }
+
+  .target-evidence-results .target-activity-workspace .molecule-record {
+    min-width: 108px;
+  }
+
+  .target-evidence-results .target-activity-workspace td .molecule-image {
+    width: 116px;
+    height: 69px;
+    min-height: 0;
+  }
+
+  .target-evidence-results .target-activity-workspace td .molecule-image > img {
+    height: 61px;
+  }
+
+  .target-activity-workspace .activity-molecule-preview > .field-help {
+    margin-block: 6px;
+  }
+
+  .target-evidence-results .activity-molecule-preview .molecule-image {
+    min-height: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .sequence-search-results .result-inspector > header {
+    padding-block: 0 4px;
+  }
+
+  .sequence-search-results .result-inspector,
+  .sequence-search-rail {
+    gap: 10px;
+  }
+
+  .sequence-search-results :is(th, td) {
+    padding-inline: 10px;
+  }
+}
+
+@media (min-width: 1180px) and (max-height: 860px) {
+  .target-evidence-results .target-material-sequence .sequence-track-scroll,
+  .sequence-search-results .sequence-track-scroll {
+    max-height: clamp(144px, calc(100dvh - 510px), 240px);
+  }
+
+  .target-material-references .research-table-scroll {
+    max-height: clamp(148px, calc(100dvh - 525px), 325px);
+  }
+
+  .target-evidence-results .activity-molecule-preview {
+    --activity-figure-height: clamp(220px, calc(100dvh - 495px), 370px);
+  }
+
+  .target-evidence-results .activity-molecule-preview .molecule-drawing-style {
+    margin-block-end: 4px;
+  }
+
+  .studio-app
+    .reference-import-results
+    .viewer-panel:not(:popover-open):not(:has(.viewer-error))
+    .molecular-stage {
+    height: clamp(330px, calc(100dvh - 338px), 575px);
+    min-height: 0;
+    border-radius: 8px;
+  }
+
+  .studio-app
+    .structure-workbench:has(
+      > .structure-workbench-details
+        > .sequence-search-results[data-search-kind="structure"]
+    )
+    > .structure-workbench-view
+    .viewer-panel:not(:popover-open)
+    .molecular-stage {
+    height: clamp(325px, calc(100dvh - 328px), 540px);
+    min-height: 0;
+    border-radius: 8px;
+  }
+}
