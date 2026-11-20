@@ -62,18 +62,25 @@ function stereoSmiles(value: string) {
   };
 }
 
-/** Repair the generated V2000 depiction using the same OCR result's stereo. */
+/** Repair the generated depiction using the same OCR result's absolute stereo. */
 export function recognizedDrawing({ rawSmiles, smiles, molfile }: RecognitionResult) {
   if (!rawSmiles || rawSmiles.length > 100_000) return molfile;
   const raw = stereoSmiles(rawSmiles.trim());
-  if (!raw?.text.includes("@") || !smiles.includes("@"))
+  if (!raw?.text.includes("@") || !smiles.includes("@") || hasRelativeStereo(molfile))
     return molfile;
 
-  // RDKit writes flag 0 by default. Indigo interprets flagged wedges in such
-  // V2000 files as a mixture, even when the source SMILES defines absolute stereo.
+  // RDKit writes flag 0 by default. Indigo interprets wedged centers outside
+  // an explicit STEABS collection as a mixture unless the chiral flag is set.
   // Preserve all coordinates and bond flags, including unspecified stereochemistry.
   const lines = molfile.split("\n");
   const counts = lines[3];
+  if (counts && /^.{33} V3000\s*$/.test(counts) &&
+      lines[4]?.trimEnd() === "M  V30 BEGIN CTAB") {
+    const v30Counts = /^(M  V30 COUNTS (?:\d+ ){4})0(\r?)$/.exec(lines[5] ?? "");
+    if (!v30Counts) return molfile;
+    lines[5] = v30Counts[1] + "1" + v30Counts[2];
+    return lines.join("\n");
+  }
   if (!counts || !/^.{12}  0.{18} V2000\s*$/.test(counts)) return molfile;
   lines[3] = counts.slice(0, 12) + "  1" + counts.slice(15);
   return lines.join("\n");

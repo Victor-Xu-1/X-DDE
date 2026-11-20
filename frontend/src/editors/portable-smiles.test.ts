@@ -11,6 +11,14 @@ const structure = "2000\nM  V30 BEGIN CTAB\nM  V30 END CTAB\nM  END\n";
 const absolute = "N[C@@H](C)C(=O)O";
 const relative = "C[C@H](O)[C@H](F)Cl |&1:1,3|";
 const generatedMol = "\n     RDKit          2D\n\n  6  5  0  0  0  0  0  0  0  0999 V2000\nM  END\n";
+const twoCenters = "C[C@H](O)[C@H](F)Cl";
+const partialAbsoluteMol = [
+  "", "     RDKit          2D", "",
+  "  0  0  0  0  0  0  0  0  0  0999 V3000",
+  "M  V30 BEGIN CTAB", "M  V30 COUNTS 6 5 0 0 0",
+  "M  V30 BEGIN COLLECTION", "M  V30 MDLV30/STEABS ATOMS=(1 2)",
+  "M  V30 END COLLECTION", "M  V30 END CTAB", "M  END", "",
+].join("\n");
 
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
   const molfile = generatedMol.replaceAll("\n", "\r\n");
@@ -28,6 +36,35 @@ it.each([
   { rawSmiles: absolute, smiles: absolute, molfile: generatedMol.replace("  6  5  0  0  0", "  6  5  0  0  1") },
 ])("preserves the depiction without explicit new V2000 absolute stereo", (result) => {
   expect(recognizedDrawing(result)).toBe(result.molfile);
+});
+
+it.each(["\n", "\r\n"])("marks ungrouped V3000 centers absolute and retains the collection", (newline) => {
+  const molfile = partialAbsoluteMol.replaceAll("\n", newline);
+  expect(recognizedDrawing({ rawSmiles: twoCenters + " |a:1|", smiles: twoCenters, molfile }))
+    .toBe(molfile.replace("COUNTS 6 5 0 0 0", "COUNTS 6 5 0 0 1"));
+});
+
+it.each(["STERAC1", "STEREL1"])("preserves the V3000 flag when a relative collection %s exists", (group) => {
+  const molfile = partialAbsoluteMol.replace(
+    "M  V30 END COLLECTION",
+    `M  V30 MDLV30/${group} ATOMS=(1 4)\nM  V30 END COLLECTION`,
+  );
+  expect(recognizedDrawing({ rawSmiles: twoCenters + " |a:1|", smiles: twoCenters, molfile }))
+    .toBe(molfile);
+});
+
+it("keeps recovery and normal export on the same corrected V3000 stereo", async () => {
+  const rawSmiles = twoCenters + " |a:1|";
+  const result = { rawSmiles, smiles: twoCenters, molfile: partialAbsoluteMol };
+  const fixed = partialAbsoluteMol.replace("COUNTS 6 5 0 0 0", "COUNTS 6 5 0 0 1");
+  const source = editor(twoCenters, fixed);
+  source.structService.getInChIKey.mockReset().mockImplementation(async (value: string) =>
+    value === partialAbsoluteMol ? "relative" : "absolute");
+  await expect(readPortableSmiles(source, result)).resolves.toBe(twoCenters);
+  await expect(readRecognizedSource(source.structService, result)).resolves.toEqual({
+    text: twoCenters,
+    molfile: fixed,
+  });
 });
 
 function editor(smiles: string, mol = structure, readback = "same") {
