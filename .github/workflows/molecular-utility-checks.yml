@@ -224,6 +224,7 @@ jobs:
       proximity_desktop_only: ${{ steps.select.outputs.proximity_desktop_only }}
       result_handoff_desktop_only: ${{ steps.select.outputs.result_handoff_desktop_only }}
       molecule_results_only: ${{ steps.select.outputs.molecule_results_only }}
+      short_chemistry_desktop_only: ${{ steps.select.outputs.short_chemistry_desktop_only }}
       molecule_workbench_only: ${{ steps.select.outputs.molecule_workbench_only }}
       ligand_camera_only: ${{ steps.select.outputs.ligand_camera_only }}
       desktop_structure_focus_only: ${{ steps.select.outputs.desktop_structure_focus_only }}
@@ -1202,7 +1203,7 @@ jobs:
           src/TaskDetail.actions.test.tsx src/TaskDetail.test.tsx
           src/operations/useTaskSubmit.test.ts
       - name: Candidate paging, selected properties and exact source handoffs
-        if: needs.scope.outputs.molecule_results_only == 'true' && needs.scope.outputs.molecule_workbench_only != 'true'
+        if: needs.scope.outputs.molecule_results_only == 'true' && needs.scope.outputs.molecule_workbench_only != 'true' && needs.scope.outputs.short_chemistry_desktop_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/chemistry/LibraryScreenResults.test.tsx
@@ -1210,6 +1211,13 @@ jobs:
           src/chemistry/StatePreparationHandoff.test.tsx src/admet/AdmetResults.test.tsx
           src/pockets/PocketResults.test.tsx src/docking/DockingResults.test.tsx
           src/diffsbdd/DiffResults.test.tsx
+      - name: Short desktop molecule inspection and preparation continuity
+        if: needs.scope.outputs.short_chemistry_desktop_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/chemistry/LibraryScreenResults.test.tsx
+          src/chemistry/StatePreparationHandoff.test.tsx src/admet/AdmetResults.test.tsx
+          src/operations/PropertyResults.test.tsx
       - name: Compact molecule views, keyboard actions and exact downloads
         if: needs.scope.outputs.molecule_workbench_only == 'true'
         working-directory: frontend
@@ -1228,6 +1236,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           LIGAND_CAMERA_ONLY: ${{ needs.scope.outputs.ligand_camera_only }}
+          SHORT_CHEMISTRY_DESKTOP_ONLY: ${{ needs.scope.outputs.short_chemistry_desktop_only }}
         run: |
           uv sync --locked --group dev --group browser
           if [[ "$LIGAND_CAMERA_ONLY" != true ]]; then
@@ -1248,6 +1257,10 @@ jobs:
           run_selection=()
           if [[ "$LIGAND_CAMERA_ONLY" == true ]]; then
             run_selection=(-k reviewed_property_poses_open_without_new_calculation)
+          fi
+          if [[ "$SHORT_CHEMISTRY_DESKTOP_ONLY" == true ]]; then
+            uv run --locked ruff check server_tests/test_short_chemistry_desktop.py
+            run_selection+=(server_tests/test_short_chemistry_desktop.py)
           fi
           uv run --locked python -m pytest -x -q server_tests/test_result_handoffs_desktop.py "${run_selection[@]}"
       - uses: actions/upload-artifact@v4

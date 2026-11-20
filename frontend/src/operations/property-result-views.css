@@ -4,16 +4,49 @@
 .properties-results .structure-workbench-details .research-tab-list {
   margin-block: 0 8px;
 }
-.properties-results .molecular-preview .research-tab-toolbar > .research-tab-list {
+.properties-results
+  .molecular-preview
+  .research-tab-toolbar
+  > .research-tab-list {
   margin: 0;
 }
 @media (min-width: 1001px) {
-  .studio-app .properties-results
+  .properties-results .molecule-image:not(.is-thumbnail) {
+    border-radius: 8px;
+  }
+
+  .studio-app
+    .properties-results
     .structure-workbench:not([data-workspace-expanded="true"])
-    .viewer-panel:not(:popover-open) > .molecular-stage {
+    .viewer-panel:not(:popover-open)
+    > .molecular-stage {
     min-height: 350px;
     height: clamp(350px, calc(100dvh - 366px), 760px);
     border-radius: 8px;
+  }
+}
+@media (min-width: 1001px) and (max-height: 820px) {
+  .properties-results .molecule-image:not(.is-thumbnail) {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+}
+
+@media (min-width: 1001px) and (max-width: 1200px) and (max-height: 760px) {
+  .studio-app
+    .properties-results
+    .structure-workbench:not([data-workspace-expanded="true"])
+    .viewer-panel:not(:popover-open) {
+    > .studio-heading {
+      margin-block: 0 4px;
+    }
+    :is(.viewer-heading-actions, .viewer-mode-options) :is(button, summary) {
+      min-height: 34px;
+    }
+    > .molecular-stage {
+      min-height: 300px;
+      height: clamp(300px, calc(100dvh - 405px), 435px);
+    }
   }
 }
 .property-descriptors table {

@@ -18,9 +18,9 @@
   margin: 0;
 }
 .admet-results .structure-workbench:not([data-workspace-expanded]) {
-  grid-template-columns: minmax(0, 1.7fr) minmax(380px, 1fr);
-  height: max(535px, calc(100dvh - 225px));
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  height: max(450px, calc(100dvh - 230px));
+  gap: 16px;
   align-items: stretch;
 }
 .admet-results
@@ -54,8 +54,6 @@
 .admet-candidates .research-tab-list {
   flex-shrink: 0;
   margin-bottom: 10px;
-}
-.admet-candidates .research-tab-list {
   gap: 8px;
 }
 .admet-candidates .research-tab-list button {
@@ -119,6 +117,7 @@
   min-width: 0;
   min-height: 0;
   padding: 0;
+  border-radius: 8px;
 }
 .admet-molecule-drawing .molecule-drawing-style {
   align-self: end;
@@ -167,6 +166,7 @@ html body .studio-app .admet-results .molecular-stage {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  border-radius: 8px;
 }
 .admet-endpoints table {
   font-variant-numeric: tabular-nums;
@@ -264,6 +264,37 @@ html
   .studio-content:has(> .tool-center.is-result .admet-results)
   > .module-task-picker {
   display: none;
+}
+@media (min-width: 1001px) and (max-height: 820px) {
+  .admet-selected-molecule .molecule-result-actions .secondary-button {
+    min-height: 32px;
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+  .admet-selected-molecule .molecule-result-identity h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .studio-app
+    .admet-results
+    .structure-workbench:not([data-workspace-expanded])
+    .viewer-panel:not(:popover-open) {
+    > .studio-heading {
+      margin-block: 0 4px;
+    }
+    :is(.viewer-heading-actions, .viewer-mode-options) :is(button, summary) {
+      min-height: 34px;
+    }
+    > .molecular-stage {
+      border-radius: 8px;
+    }
+  }
+  .admet-endpoint-scroll :is(th, td) {
+    padding-block: 7px;
+  }
 }
 @media (max-width: 1000px) {
   .admet-results .structure-workbench:not([data-workspace-expanded]) {
