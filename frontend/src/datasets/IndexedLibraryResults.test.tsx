@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { IndexedLibraryResults } from "./IndexedLibraryResults";
 import * as transport from "../api";
@@ -22,16 +23,19 @@ vi.mock("../presentation/MolecularPreview", () => ({
     urls,
     source,
     sourceSnapshot,
+    toolbar,
   }: {
     urls?: string[];
     source: { url: string; sha256?: string };
     sourceSnapshot?: boolean;
+    toolbar?: ReactNode;
   }) => (
     <div
       data-testid="member-preview"
       data-snapshot={sourceSnapshot}
       data-sha256={source.sha256}
     >
+      {toolbar}
       {urls?.length
         ? `Native preview: ${urls[0]}`
         : `Native 2D only: ${source.url}`}
@@ -112,9 +116,22 @@ it("refuses a record URL with a mismatched native report instead of opening anot
   expect(screen.queryByText(/Native preview/)).toBeNull();
 });
 
-it("binds a screening index display to the original digest until it is explicitly saved", async () => {
+it("keeps a screening index on the verified original before and after explicitly saving", async () => {
   vi.spyOn(transport, "request").mockResolvedValue(detail);
-  const preserve = vi.spyOn(transport.api, "post");
+  const asset = "23456789-2345-2345-2345-234567890abc";
+  const version = "34567890-3456-3456-3456-345678901abc";
+  const preserve = vi.spyOn(transport.api, "post").mockResolvedValue({
+    id: version,
+    kind: "molecule",
+    source_job: job,
+    reference: {
+      asset_id: asset,
+      version_id: version,
+      record: 0,
+      conformer: 0,
+      sha256: sha,
+    },
+  });
   render(<IndexedLibraryResults jobId={job} language="en" screeningReview />);
   fireEvent.click(
     screen.getByRole("button", { name: "Select native record index" }),
@@ -124,6 +141,17 @@ it("binds a screening index display to the original digest until it is explicitl
   expect(preview).toHaveAttribute("data-sha256", sha);
   expect(preview).toHaveTextContent(nativeUrl);
   expect(preserve).not.toHaveBeenCalled();
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Save file" }));
+  expect(await screen.findByText("Saved to historical files")).toBeVisible();
+  expect(preserve).toHaveBeenCalledExactlyOnceWith(
+    `/datasets/${job}/members/preserve`,
+    { member_id: detail.id, report_sha256: detail.report_sha256 },
+  );
+  expect(screen.getByTestId("member-preview")).toBe(preview);
+  expect(preview).toHaveTextContent(nativeUrl);
+  expect(preview).toHaveAttribute("data-snapshot", "true");
 });
 
 it("inspects a prepared 2D library without pretending it is a calculated 3D conformer", async () => {

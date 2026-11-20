@@ -30,9 +30,10 @@ export function IndexedLibraryResults({
   const memberId = selected ? String(selected.id) : null;
   const member = useIndexedMember(jobId, memberId),
     detail = member.detail;
-  const url = member.saved
-    ? `/api/assets/${member.saved.reference.asset_id}`
-    : detail?.url;
+  const url =
+    member.saved && !screeningReview
+      ? `/api/assets/${member.saved.reference.asset_id}`
+      : detail?.url;
   const originalLabel =
     detail?.geometry === "unbound_conformer"
       ? zh
@@ -72,7 +73,6 @@ export function IndexedLibraryResults({
           className="secondary-button"
           href={detail.url}
           download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
-          aria-label={originalLabel}
           title={originalLabel}
         >
           {screeningReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
@@ -86,7 +86,6 @@ export function IndexedLibraryResults({
             type="button"
             className="secondary-button"
             disabled={saving}
-            aria-label={saving ? undefined : saveLabel}
             title={saveLabel}
             onClick={() => void member.preserve()}
           >
@@ -154,7 +153,7 @@ export function IndexedLibraryResults({
                   record: 0,
                   sha256: screeningReview ? detail.sha256 : undefined,
                 }}
-                sourceSnapshot={screeningReview && !member.saved}
+                sourceSnapshot={screeningReview}
                 urls={detail.geometry === "source_2d" ? undefined : [url!]}
                 records={detail.geometry === "source_2d" ? undefined : [0]}
                 defaultView={detail.geometry === "source_2d" ? "2d" : "3d"}

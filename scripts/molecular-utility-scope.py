@@ -1333,7 +1333,7 @@ SCREENING_DESKTOP_FILES = {
     "server_tests/test_candidate_inspection_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-SCREENING_DESKTOP_DIFF = "7e47be22fe2eaa8f2ad8babc6a375c19f0809c6e9a4fea926d8f93d85c4f50c0"
+SCREENING_DESKTOP_DIFF = "edca4300a2b255ffe9bf7acbc045f7bd5a043e76c671f21c7724c7ab33151212"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
