@@ -53,9 +53,14 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
         original_hash = digest(original)
         if original_hash == record["after_sha256"]:
             continue
-        final_step = record.get("final_step")
-        if final_step and original_hash == final_step["before_sha256"]:
+        legacy_step = record.get("final_step")
+        final_steps = record.get("final_steps", [legacy_step] if legacy_step else [])
+        step_index = {step["before_sha256"]: i for i, step in enumerate(final_steps)}
+        if len(step_index) != len(final_steps):
+            raise ValueError("Duplicate native intermediate")
+        if original_hash in step_index:
             changes = []
+            final_steps = final_steps[step_index[original_hash]:]
         elif original_hash == record["before_sha256"]:
             changes = record["changes"]
         else:
@@ -66,7 +71,7 @@ def prepare(host: Path, resources: Path = RESOURCES) -> dict[Path, bytes]:
             changes = prior[0]["changes"]
         updated = original.decode("utf-8")
         updated = apply_changes(updated, changes)
-        if final_step:
+        for final_step in final_steps:
             if digest(updated.encode("utf-8")) != final_step["before_sha256"]:
                 raise ValueError("Native intermediate does not match the companion")
             updated = apply_changes(updated, final_step["changes"])

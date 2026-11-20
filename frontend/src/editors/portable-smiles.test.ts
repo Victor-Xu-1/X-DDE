@@ -123,3 +123,56 @@ it("does not publish normalized SMILES that differ from the recognized stereoche
     molfile: recognizedDrawing(result),
   });
 });
+
+it("recovers ordinary text from the same recognized absolute CX group", async () => {
+  const rawSmiles = absolute + " |a:1|";
+  const result = { rawSmiles, smiles: absolute, molfile: generatedMol };
+  const getInChIKey = vi.fn().mockResolvedValue("absolute-identity");
+  await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toEqual({
+    text: absolute,
+    molfile: recognizedDrawing(result),
+  });
+  expect(getInChIKey.mock.calls).toEqual([
+    [rawSmiles], [recognizedDrawing(result)], [absolute],
+  ]);
+});
+
+it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognition result", async (stereo) => {
+  const encoded = "O=C1CCCCC=CCCC[C@@H](C)O1 |" + stereo + ":6|";
+  const smiles = stereo === "c" ? "C[C@@H]1CCC/C=C\\CCCCC(=O)O1" : "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
+  const result = { rawSmiles: smiles, smiles, molfile: generatedMol };
+  const source = editor(encoded);
+  source.structService.getInChIKey.mockReset().mockResolvedValue("ring-stereo");
+  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
+  await expect(readPortableSmiles(source)).rejects.toThrow(SmilesHandoffError);
+});
+
+it("rejects a recognized ring isomer that differs from the current drawing", async () => {
+  const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
+  const source = editor("O=C1CCCCC=CCCC[C@@H](C)O1 |c:6|");
+  source.structService.getInChIKey.mockReset()
+    .mockImplementation(async (value) => value === structure ? "cis" : "trans");
+  await expect(readPortableSmiles(source, { rawSmiles: smiles, smiles, molfile: generatedMol }))
+    .rejects.toThrow(SmilesHandoffError);
+});
+
+it("does not flatten a recognized stereo group missing from the editor export", async () => {
+  const source = editor(absolute);
+  await expect(readPortableSmiles(source, {
+    rawSmiles: relative,
+    smiles: absolute,
+    molfile: structure + "M  V30 MDLV30/STEREL1 ATOMS=(2 2 4)\n",
+  })).rejects.toThrow(SmilesHandoffError);
+  expect(source.structService.getInChIKey).not.toHaveBeenCalled();
+});
+
+it.each(["t:6,o1:3,5", "t:6,w:3.3", "t:6,$label$"])(
+  "keeps additional stereo or annotation %s in the structure file",
+  async (extension) => {
+    const source = editor("O=C1CCCCC=CCCC[C@@H](C)O1 |" + extension + "|");
+    await expect(readPortableSmiles(source, {
+      rawSmiles: absolute, smiles: absolute, molfile: generatedMol,
+    })).rejects.toThrow(SmilesHandoffError);
+    expect(source.structService.getInChIKey).not.toHaveBeenCalled();
+  },
+);

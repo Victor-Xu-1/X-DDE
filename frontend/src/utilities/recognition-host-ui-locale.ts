@@ -88,6 +88,8 @@ const english: Record<string, string> = {
     "Paste an image or choose an image file.",
   "当前结构为空。": "The structure is empty.",
   "SMILES 已复制": "SMILES copied",
+  "SMILES 已复制。在 ChemDraw 中选择性粘贴为 SMILES。":
+    "SMILES copied. In ChemDraw, use Paste Special → SMILES.",
   "MOL 已复制": "MOL copied",
   "复制失败，请检查剪贴板权限。": "Copy failed. Check clipboard permission.",
   "结构导出失败。": "The structure could not be exported.",

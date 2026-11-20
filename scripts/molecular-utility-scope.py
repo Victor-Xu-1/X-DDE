@@ -656,7 +656,7 @@ PORTABLE_SMILES_FILES = {
     "src/opendde_workbench/recognition_companion.py",
     "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "3df1e391915c2b371e28c8a0dab72086dc3a413c0e9fa6ffac6017ef01719d88"
+PORTABLE_SMILES_DIFF = "efd9776cdd227721e9e71b6d9920c34d599e862b7f7ee8397be03199dbf4ca96"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
