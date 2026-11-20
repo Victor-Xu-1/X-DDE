@@ -9,6 +9,7 @@ import type { SceneInfo } from "../viewer/protocol";
 import type { ProteinInterfaceResult } from "./types";
 import { ProteinInterfaceContacts } from "./ProteinInterfaceContacts";
 import "./interaction-workspace.css";
+import "../presentation/spatial-result-review.css";
 
 type Props = {
   job: Job;

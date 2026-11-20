@@ -23,6 +23,7 @@ import {
 } from "./types";
 import "./comparison.css";
 import "./comparison-result-view.css";
+import "../presentation/spatial-result-review.css";
 
 type ComparisonResultProps = {
   job: Job;

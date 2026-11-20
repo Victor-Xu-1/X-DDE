@@ -40,6 +40,10 @@
   margin-inline-start: auto;
 }
 
+.comparison-view-actions .viewer-figure-icon {
+  display: none;
+}
+
 .studio-app .comparison-view-actions > button {
   min-height: 32px;
   padding: 5px 9px;
@@ -210,7 +214,8 @@
   }
 }
 
-@media (1180px <= width <= 1600px) and (max-height: 900px) {
+@media (1080px <= width < 1180px) and (max-height: 719px),
+  (1180px <= width <= 1600px) and (max-height: 900px) {
   .comparison-result-view
     > .structure-workbench:not([data-workspace-expanded="true"]) {
     .comparison-label-full {
@@ -310,5 +315,53 @@
       padding-inline: 6px;
       font-size: 11px;
     }
+  }
+}
+
+@media (min-width: 1080px) and (max-height: 719px) {
+  .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded]) {
+    .comparison-preview-actions > button {
+      padding-inline: 6px;
+    }
+    .comparison-view-actions .figure-export-trigger {
+      display: inline-grid;
+      place-items: center;
+      min-width: 32px;
+      min-height: 32px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .comparison-view-actions .viewer-figure-label {
+      display: none;
+    }
+    .comparison-view-actions .viewer-figure-icon {
+      display: inline-flex;
+      font-size: 15px;
+    }
+    .aligned-structure-heading .comparison-label-short {
+      display: inline;
+    }
+  }
+  .comparison-summary {
+    padding: 9px 10px;
+    gap: 6px;
+  }
+  .comparison-summary .spatial-summary-metrics > div {
+    gap: 4px;
+    padding-block: 5px;
+  }
+  .studio-app .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded])
+    .viewer-panel:not(:popover-open) .molecular-stage {
+    min-height: 0;
+    height: clamp(305px, calc(100dvh - 270px), 480px);
+  }
+  .studio-app .comparison-result-view
+    > .structure-workbench:not([data-workspace-expanded])
+    .aligned-structure-pair .viewer-panel:not(:popover-open) .molecular-stage {
+    height: clamp(290px, calc(100dvh - 323px), 430px);
   }
 }
