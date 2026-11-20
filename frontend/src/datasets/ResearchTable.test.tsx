@@ -14,6 +14,43 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("keeps library selection and data available without rendering duplicate thumbnails", async () => {
+  vi.spyOn(transport, "request").mockResolvedValue({
+    rows: [
+      {
+        id: "record-7",
+        display_name: "CHEMBL487451",
+        smiles: "c1ccccc1",
+        mw: 78.11,
+      },
+    ],
+    total: 1,
+    offset: 0,
+    has_more: false,
+  });
+  const select = vi.fn();
+  render(
+    <ResearchTable
+      jobId="study"
+      view="library"
+      language="en"
+      showThumbnails={false}
+      onSelect={select}
+    />,
+  );
+  await userEvent
+    .setup()
+    .click(await screen.findByRole("button", { name: "CHEMBL487451" }));
+  expect(screen.queryByRole("columnheader", { name: "Structure" })).toBeNull();
+  expect(screen.getByRole("columnheader", { name: "MW" })).toBeVisible();
+  expect(select).toHaveBeenCalledWith(
+    expect.objectContaining({
+      id: "record-7",
+      smiles: "c1ccccc1",
+    }),
+  );
+});
+
 it.each([
   ["en", "Literature binding report"],
   ["zh", "文献结合报告"],

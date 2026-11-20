@@ -124,6 +124,7 @@ export function ResearchTable({
   onRowsLoaded,
   defaultPrioritized = false,
   comparisonControl,
+  showThumbnails = true,
 }: {
   jobId: string;
   view: keyof typeof views;
@@ -135,6 +136,7 @@ export function ResearchTable({
   onRowsLoaded?(rows: TableRow[]): void;
   defaultPrioritized?: boolean;
   comparisonControl?: ReactNode;
+  showThumbnails?: boolean;
 }) {
   const receiver = useRef(onRowsLoaded);
   receiver.current = onRowsLoaded;
@@ -193,7 +195,7 @@ export function ResearchTable({
     return () => c.abort();
   }, [jobId, view, comparison, offset, search, filter, seriesKind]);
   const selected = new Set(selection);
-  const columns: readonly string[] =
+  const viewColumns: readonly string[] =
     view === "enrichment" &&
     page?.rows.some((row) => row.supporting_samples != null)
       ? [
@@ -203,6 +205,9 @@ export function ResearchTable({
           "flags",
         ]
       : views[view];
+  const columns = showThumbnails
+    ? viewColumns
+    : viewColumns.filter((key) => key !== "smiles");
   function choose(id: string) {
     onSelection?.(
       selected.has(id)

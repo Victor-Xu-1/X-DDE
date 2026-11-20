@@ -21,11 +21,17 @@ vi.mock("../presentation/MolecularPreview", () => ({
   MolecularPreview: ({
     urls,
     source,
+    sourceSnapshot,
   }: {
     urls?: string[];
-    source: { url: string };
+    source: { url: string; sha256?: string };
+    sourceSnapshot?: boolean;
   }) => (
-    <div>
+    <div
+      data-testid="member-preview"
+      data-snapshot={sourceSnapshot}
+      data-sha256={source.sha256}
+    >
       {urls?.length
         ? `Native preview: ${urls[0]}`
         : `Native 2D only: ${source.url}`}
@@ -104,6 +110,20 @@ it("refuses a record URL with a mismatched native report instead of opening anot
     "could not be loaded",
   );
   expect(screen.queryByText(/Native preview/)).toBeNull();
+});
+
+it("binds a screening index display to the original digest until it is explicitly saved", async () => {
+  vi.spyOn(transport, "request").mockResolvedValue(detail);
+  const preserve = vi.spyOn(transport.api, "post");
+  render(<IndexedLibraryResults jobId={job} language="en" screeningReview />);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Select native record index" }),
+  );
+  const preview = await screen.findByTestId("member-preview");
+  expect(preview).toHaveAttribute("data-snapshot", "true");
+  expect(preview).toHaveAttribute("data-sha256", sha);
+  expect(preview).toHaveTextContent(nativeUrl);
+  expect(preserve).not.toHaveBeenCalled();
 });
 
 it("inspects a prepared 2D library without pretending it is a calculated 3D conformer", async () => {

@@ -43,7 +43,7 @@ jobs:
         run: python3 scripts/del-ci-scope.py
   contracts:
     needs: [scope, utility-scope]
-    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -69,7 +69,7 @@ jobs:
         run: uv run --locked pytest -q tests/test_dataset_member_inspection.py tests/test_dataset_member_view.py
   native:
     needs: [scope, utility-scope]
-    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true'
+    if: needs.scope.outputs.del_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

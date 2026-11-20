@@ -18,15 +18,18 @@ export function CandidateView({
   language,
   onCreated,
   summary,
+  screeningReview = false,
 }: {
   job: Job;
   result: DatasetResult;
   language: Language;
   onCreated?(job: Job): void;
   summary?: ReactNode;
+  screeningReview?: boolean;
 }) {
   const sourceSnapshot = useContext(TemplatePreviewContext);
   const delReview = result.operation?.startsWith("del_");
+  const inlineToolbar = delReview || screeningReview;
   const zh = language === "zh",
     initial = Math.max(
       0,
@@ -70,9 +73,14 @@ export function CandidateView({
   const nativeArtifact =
     candidate?.geometry === "unbound_conformer" &&
     (result.operation === "del_candidates" ||
-      result.operation === "drugclip_retrieve")
+      result.operation === "drugclip_retrieve" ||
+      result.operation === "library_subset")
       ? result.artifacts.find(
-          (file) => file.name === candidate.artifact && file.format === "sdf",
+          (file) =>
+            file.name === candidate.artifact &&
+            file.format === "sdf" &&
+            (result.operation !== "library_subset" ||
+              file.role === "unbound_candidates"),
         )
       : undefined;
   const frame = {
@@ -127,7 +135,7 @@ export function CandidateView({
             href={`/api/datasets/${job.id}/candidate-structure?compound=${encodeURIComponent(candidate.id)}`}
           >
             <DownloadOutlined aria-hidden="true" />
-            {delReview ? (zh ? "结构" : "Structure") : structureDownload}
+            {inlineToolbar ? (zh ? "结构" : "Structure") : structureDownload}
           </a>
         )}
         <Hint label={zh ? "预览说明" : "Preview help"}>
@@ -145,7 +153,7 @@ export function CandidateView({
           className="dataset-preview-pane candidate-inspection-preview"
           data-del-review={delReview || undefined}
         >
-          {(!delReview || !source) && heading}
+          {(!inlineToolbar || !source) && heading}
           {source ? (
             <MolecularPreview
               key={candidate.id}
@@ -155,7 +163,7 @@ export function CandidateView({
               nativeArtifactSha256={frame.nativeArtifactSha256}
               nativeArtifactRecord={frame.nativeArtifactRecord}
               source={source}
-              toolbar={delReview ? heading : undefined}
+              toolbar={inlineToolbar ? heading : undefined}
               label={candidate.display_name || candidate.id}
               defaultView={has3d ? "3d" : "2d"}
               focusModel={
@@ -197,6 +205,7 @@ export function CandidateView({
         result={result}
         language={language}
         selected={candidate?.id}
+        compactReview={screeningReview}
         onSelect={(row) => setSelected(result.candidates.indexOf(row))}
       />
     </StructureWorkbench>
@@ -207,7 +216,6 @@ export function CandidateView({
         content
       ) : (
         <CandidateHandoff
-          key={candidate?.id}
           job={job}
           candidate={candidate}
           language={language}

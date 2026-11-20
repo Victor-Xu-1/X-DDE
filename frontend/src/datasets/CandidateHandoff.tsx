@@ -95,12 +95,16 @@ export function CandidateHandoff({
   receptorArtifact?: string;
 }) {
   const zh = language === "zh",
-    [notice, setNotice] = useState("");
+    [submittedSource, setSubmittedSource] = useState<string | null>(null);
   const session = usePoseSession();
-  const handoff = usePoseHandoff<Action>(
-    session?.plan.key ??
-      JSON.stringify([job.id, candidate?.artifact, candidate?.record]),
-  );
+  const sourceKey = JSON.stringify([
+    job.id,
+    candidate?.id,
+    candidate?.artifact,
+    candidate?.record,
+    session?.plan.key,
+  ]);
+  const handoff = usePoseHandoff<Action>(sourceKey);
   const action = handoff.value?.action;
   const input = handoff.value?.selection;
   const molecular: PoseAssetTarget | null = candidate?.artifact
@@ -122,7 +126,7 @@ export function CandidateHandoff({
   const complex = paired ? assets.object(paired) : undefined;
   function created(value: Job) {
     onCreated?.(value);
-    setNotice(zh ? "新研究任务已提交。" : "The new study has been submitted.");
+    setSubmittedSource(sourceKey);
   }
   const inputProtein =
     input?.displayed && input.receptor !== undefined
@@ -302,7 +306,11 @@ export function CandidateHandoff({
           </button>
         </div>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {submittedSource === sourceKey && (
+        <p role="status">
+          {zh ? "新研究任务已提交。" : "The new study has been submitted."}
+        </p>
+      )}
     </>
   );
 }

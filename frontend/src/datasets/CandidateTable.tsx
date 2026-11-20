@@ -14,11 +14,13 @@ export function CandidateTable({
   language,
   selected,
   onSelect,
+  compactReview = false,
 }: {
   result: DatasetResult;
   language: Language;
   selected: string | undefined;
   onSelect(row: DatasetCandidate): void;
+  compactReview?: boolean;
 }) {
   const zh = language === "zh";
   const docking = result.program === "gnina";
@@ -33,7 +35,7 @@ export function CandidateTable({
       value: (row) => row.display_name || row.id,
       render: (row) => (
         <div className="dataset-candidate-member">
-          {row.smiles && (
+          {!compactReview && row.smiles && (
             <MoleculeImage
               source={{ smiles: row.smiles }}
               language={language}
@@ -138,7 +140,7 @@ export function CandidateTable({
       </div>
       <ResearchTable
         rows={result.candidates}
-        compactToolbar={result.operation?.startsWith("del_")}
+        compactToolbar={compactReview || result.operation?.startsWith("del_")}
         columns={columns}
         rowId={(row) => row.id}
         title={zh ? "候选分子" : "Candidates"}

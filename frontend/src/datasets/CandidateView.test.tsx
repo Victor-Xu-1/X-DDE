@@ -196,3 +196,45 @@ it("retains the selected unbound screening record through 2D, 3D and handoff", (
     }),
   );
 });
+
+it("keeps the screening filter and exact record when changing the selected candidate", () => {
+  const data = {
+    ...result(
+      candidate("CHEMBL487451", "unbound_conformer", 0),
+      candidate("CHEMBL520539", "unbound_conformer", 2),
+      candidate("Other candidate", "unbound_conformer", 3),
+    ),
+    operation: "library_subset" as const,
+    artifacts: [
+      {
+        name: "candidates.sdf",
+        format: "sdf" as const,
+        sha256: "a".repeat(64),
+        size: 400,
+        role: "unbound_candidates",
+      },
+    ],
+  };
+  render(
+    <CandidateView job={job} language="en" result={data} screeningReview />,
+  );
+  const filter = screen.getByRole("searchbox");
+  fireEvent.change(filter, { target: { value: "CHEMBL" } });
+  expect(screen.queryByRole("button", { name: "Other candidate" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "CHEMBL520539" }));
+  expect(screen.getByRole("searchbox")).toBe(filter);
+  expect(filter).toHaveValue("CHEMBL");
+  expect(
+    screen.getByRole("link", { name: "Download original result structure" }),
+  ).toHaveAttribute(
+    "href",
+    "/api/datasets/native-panel/candidate-structure?compound=CHEMBL520539",
+  );
+  expect(probes.structure).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      records: [2],
+      nativeArtifactSha256: "a".repeat(64),
+      nativeArtifactRecord: 2,
+    }),
+  );
+});
