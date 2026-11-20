@@ -166,6 +166,7 @@
     > .structure-workbench:not([data-workspace-expanded])
     .proximity-assembly-preview
     .viewer-panel:has(> .viewer-mode-options):not(:has(.viewer-attachment-count)) {
+    --compact-viewer-tools: enabled;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;

@@ -21,7 +21,7 @@
   }
 }
 
-@container native-viewer (max-width: 560px) {
+@container native-viewer (max-width: 560px) or style(--compact-viewer-tools: enabled) {
   .viewer-panel {
     > .studio-heading,
     > .viewer-mode-options {

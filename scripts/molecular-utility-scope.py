@@ -1337,11 +1337,12 @@ DESKTOP_COMPLEX_REVIEW_FILES = {
     "frontend/src/receptors/receptors.css",
     "frontend/src/studio/Header.tsx",
     "frontend/src/studio/header.css",
+    "frontend/src/viewer/viewer-tool-group.css",
     "server_tests/test_navigation_shell_browser.py",
     "server_tests/test_proximity_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_COMPLEX_REVIEW_DIFF = "87e63466a989428e1eeb2ff3bf592453dfad4b664002530decfebbc5d396fe76"
+DESKTOP_COMPLEX_REVIEW_DIFF = "7ab1ed04764708d149e138c6f9d9dff6036597a66ce4fe1a8b5c354e83978f79"
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
