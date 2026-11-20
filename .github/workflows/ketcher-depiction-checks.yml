@@ -71,6 +71,7 @@ jobs:
       needs.reference-scope.outputs.reference_only != 'true' &&
       needs.utility-scope.outputs.runtime_switch_only != 'true' &&
       needs.utility-scope.outputs.recognition_power_only != 'true' &&
+      needs.utility-scope.outputs.utility_desktop_only != 'true' &&
       needs.utility-scope.outputs.editor_drawing_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15

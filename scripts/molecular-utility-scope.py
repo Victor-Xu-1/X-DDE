@@ -501,7 +501,7 @@ UTILITY_DESKTOP_FILES = {
     "server_tests/test_utility_navigation_browser.py",
     "src/opendde_workbench/data/recognition_locale/patch.json",
 }
-UTILITY_DESKTOP_DIFF = "6fc34fa5eb02aa1d9b0a357211783b29c78b8ca856a904be26a5930235c07bed"
+UTILITY_DESKTOP_DIFF = "c01971d49dbf2ac972cf3c90529a6baa080c52aa31a7c529ba90ca13fc378577"
 
 
 POTENTIAL_DISPLAY_FILES = {

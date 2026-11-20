@@ -169,6 +169,8 @@ on:
         value: ${{ jobs.scope.outputs.mobile_viewer_only }}
       recognition_power_only:
         value: ${{ jobs.scope.outputs.recognition_power_only }}
+      utility_desktop_only:
+        value: ${{ jobs.scope.outputs.utility_desktop_only }}
       result_header_only:
         value: ${{ jobs.scope.outputs.result_header_only }}
       refinement_desktop_only:
