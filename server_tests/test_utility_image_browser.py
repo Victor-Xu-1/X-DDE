@@ -278,6 +278,32 @@ def test_explicit_power_edit_and_nested_query_ownership(compiled_image, width):
         browser.close()
 
 
+def test_short_desktop_image_dialog_leaves_room_for_the_editor(compiled_image):
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+        "AwMCAO+a9XcAAAAASUVORK5CYII="
+    )
+    with image_hosts(compiled_image) as (uploads, power_commands), sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1100, "height": 650})
+        page.goto("http://127.0.0.1:4322/")
+        primary = page.locator(".utility-image-entry:not([data-image-target])")
+        primary.locator(':scope > input[type="file"]').set_input_files({
+            "name": "desktop-screenshot.png", "mimeType": "image/png", "buffer": png,
+        })
+        dialog = page.get_by_role("dialog")
+        expect(dialog).to_be_visible()
+        editor = dialog.locator("iframe").bounding_box()
+        apply = dialog.get_by_role("button", name="Use this molecule").bounding_box()
+        assert editor["height"] >= 455 and editor["y"] + editor["height"] <= apply["y"]
+        assert apply["y"] + apply["height"] <= 650
+        expect(dialog.frame_locator("iframe").get_by_role("switch")).not_to_be_checked()
+        page.get_by_role("button", name="Close image recognition").click()
+        expect(dialog).to_have_count(0)
+        assert not uploads and not power_commands
+        browser.close()
+
+
 def test_legacy_recognition_power_keeps_the_import_and_draft(compiled_image):
     with (
         image_hosts(compiled_image, idle_power=False) as (uploads, power_commands),
