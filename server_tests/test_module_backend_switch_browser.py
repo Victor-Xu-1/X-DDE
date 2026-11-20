@@ -160,6 +160,12 @@ def verify_desktop_task_power_header(context, base):
     field.press("Escape")
     expect(search).to_be_focused()
     expect(field).to_be_hidden()
+    page.set_viewport_size({"width": 1440, "height": 800})
+    field.fill("unfocused query")
+    field.press("Tab")
+    expect(field).not_to_be_focused()
+    page.set_viewport_size({"width": 1180, "height": 800})
+    expect(field).to_be_hidden()
     page.close()
 
 

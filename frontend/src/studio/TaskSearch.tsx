@@ -54,6 +54,13 @@ export function TaskSearch({
     <div
       className="task-search"
       ref={container}
+      onBlur={(event) => {
+        if (
+          event.relatedTarget &&
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setExpanded(false);
+      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();
