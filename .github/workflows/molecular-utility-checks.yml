@@ -892,7 +892,7 @@ jobs:
         run: |
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_del_desktop_review.py
           uv run --locked pytest -x -q tests/test_molecular_utility_scope.py
-          uv run --locked pytest -x -q server_tests/test_del_desktop_review.py
+          uv run --locked python -m pytest -x -q server_tests/test_del_desktop_review.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
