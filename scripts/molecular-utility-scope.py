@@ -662,8 +662,9 @@ GUIDED_DESKTOP_FILES = {
     "frontend/src/guided/desktop-questionnaire.css",
     "frontend/src/guided/questionnaire.css",
     "server_tests/test_guided_desktop_browser.py",
+    "tests/test_molecular_utility_scope.py",
 }
-GUIDED_DESKTOP_DIFF = "079ae62278e009c42201bb8b7529fe92c2e2f0bf7079787f8381d98be166c11b"
+GUIDED_DESKTOP_DIFF = "a2d225818427a1253f9b8a2da3d20ba87c8fa89587ca7efc71be0d425a4ed57f"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",

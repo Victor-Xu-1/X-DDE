@@ -194,15 +194,17 @@
     }
 
     .tool-center .questionnaire > fieldset:not([hidden]):has(
-      > .reference-material:nth-child(2):nth-last-child(2) + .reference-material:last-child
+      > :is(.reference-material, .diff-reference):nth-child(2):nth-last-child(2)
+      + :is(.reference-material, .diff-reference):last-child
     ) {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 12px;
 
-      > .reference-material {
-        margin-block: 4px 0;
+      > .diff-reference {
+        margin: 0;
+        min-width: 0;
       }
     }
 

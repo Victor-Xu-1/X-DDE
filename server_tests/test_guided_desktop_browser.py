@@ -1,6 +1,8 @@
 """Focused desktop input acceptance with a public structure and no compute jobs."""
 
+import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -18,6 +20,7 @@ CASES = (
     "apbs.potential",
     "deepternary.model",
 )
+UPLOAD_CHUNK = re.compile(r"/api/assets/uploads/[0-9a-f-]{36}")
 
 
 def open_task(page, base, tool):
@@ -72,9 +75,18 @@ def test_desktop_guide_keeps_navigation_and_native_structure_in_view(
 
         def guard(route):
             request = route.request
-            if request.method in {"GET", "HEAD", "OPTIONS"} or (
-                request.method == "POST" and request.url == base + "/api/assets"
-            ):
+            path = urlsplit(request.url).path
+            upload = request.url.startswith(base + "/") and (
+                (request.method == "POST" and (
+                    path in {"/api/assets", "/api/assets/uploads"}
+                    or (
+                        path.endswith("/complete") and
+                        UPLOAD_CHUNK.fullmatch(path.removesuffix("/complete"))
+                    )
+                ))
+                or (request.method == "PUT" and UPLOAD_CHUNK.fullmatch(path))
+            )
+            if request.method in {"GET", "HEAD", "OPTIONS"} or upload:
                 route.continue_()
             else:
                 unexpected_writes.append(request.url)
@@ -95,8 +107,9 @@ def test_desktop_guide_keeps_navigation_and_native_structure_in_view(
                 assert step.evaluate("element => element.scrollTop") > 0
                 geometry(form, height)
             if width <= 1280 and tool == "gnina.dock":
-                first, second = [node.bounding_box() for node in
-                                 step.locator("> .reference-material").all()]
+                materials = step.locator(".diff-reference > .reference-material")
+                expect(materials).to_have_count(2)
+                first, second = (node.bounding_box() for node in materials.all())
                 assert first and second and abs(first["y"] - second["y"]) <= 1
                 assert first["x"] + first["width"] < second["x"]
             if tool in {"gnina.dock", "deepternary.model"}:
@@ -109,6 +122,7 @@ def test_desktop_guide_keeps_navigation_and_native_structure_in_view(
         source = catalogue.ROOT / "inputs/9BIG.cif"
         step.locator('input[type="file"]').set_input_files(source)
         action = form.get_by_role("button", name=next_name, exact=True)
+        expect(step.locator(".selected-file:visible")).to_contain_text(source.name, timeout=20000)
         expect(action).to_be_enabled(timeout=20000)
         action.click()
         step, bounds, footer = geometry(form, height)
