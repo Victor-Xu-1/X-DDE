@@ -127,7 +127,7 @@ def work_area(panel):
         return {left, right, top, bottom, width, height};
       };
       const one = (selector) => rect(panel.querySelector(selector));
-      const image = '.utility-image-entry > .image-molecule-actions';
+      const image = '.image-molecule-input > .image-molecule-actions';
       return {
         panel: rect(panel),
         input: one('.single-page-main'),
