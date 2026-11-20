@@ -77,6 +77,9 @@ def inspect_displacements(result, height):
     box = plot.bounding_box()
     assert box and box["height"] >= 200
     assert box["y"] + box["height"] <= height + 2
+    axis = plot.locator(".xtitle").bounding_box()
+    legend = plot.locator(".legend").bounding_box()
+    assert axis and legend and legend["y"] + legend["height"] < axis["y"]
     return box
 
 
@@ -108,9 +111,12 @@ def inspect_alignment(page, base, width, height, zh, evidence):
     expect(match).to_be_enabled()
     matched = read_camera(frames.first)
     assert read_camera(frames.last) == pytest.approx(matched, abs=1e-6)
-    result.get_by_role(
+    overlay_mode = result.get_by_role(
         "button", name="已对齐叠合" if zh else "Aligned overlay", exact=True,
-    ).click()
+    )
+    overlay_mode.click()
+    expect(overlay_mode).to_have_attribute("aria-pressed", "true", timeout=15000)
+    expect(frames).to_have_count(0)
     expect(capture).to_be_enabled(timeout=30000)
     pair.click()
     expect(match).to_be_enabled(timeout=45000)

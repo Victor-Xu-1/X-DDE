@@ -58,7 +58,18 @@ export function DisplacementPlot({
         };
       })}
       layout={{
-        ...(compact ? { margin: { l: 51, r: 10, t: 12, b: 52 } } : {}),
+        ...(compact
+          ? {
+              margin: { l: 51, r: 10, t: 30, b: 48 },
+              legend: {
+                orientation: "h",
+                x: 0,
+                y: 1.02,
+                yanchor: "bottom",
+                font: { size: 10 },
+              },
+            }
+          : {}),
         xaxis: {
           title: { text: zh ? "匹配 Cα 的顺序" : "Matched Cα index" },
           zeroline: false,

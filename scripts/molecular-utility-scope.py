@@ -1195,7 +1195,7 @@ SHORT_STRUCTURE_REVIEW_FILES = {
     "server_tests/test_short_structure_workspace.py",
     "tests/test_molecular_utility_scope.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "8c02fd152368cbd730d0e42d577224164d9f8c00337db15138b4a1fdc693afd9"
+SHORT_STRUCTURE_REVIEW_DIFF = "3fcf1d1c0e2d080e9116da39abdda25dd4a9cda60a0b4d4c633e4079070d43e9"
 SEQUENCE_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/property-model-review-checks.yml",
