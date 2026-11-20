@@ -212,9 +212,9 @@
   }
 }
 
-@media (min-width: 1080px) {
+@media (width > 1000px) {
   .module-template.is-preview [data-del-results] {
-    --dataset-stage-height: clamp(290px, calc(100dvh - 350px), 610px);
+    --dataset-stage-height: clamp(260px, calc(100dvh - 350px), 610px);
   }
 
   [data-del-results]
@@ -223,7 +223,7 @@
     ) {
     grid-template-columns: minmax(0, 1fr) minmax(282px, 36%);
     column-gap: 16px;
-    --dataset-drawing-height: clamp(240px, calc(100dvh - 408px), 540px);
+    --dataset-drawing-height: clamp(190px, calc(100dvh - 408px), 540px);
   }
 
   [data-del-results]
@@ -287,22 +287,5 @@
     .dataset-table-toolbar {
     gap: 6px;
     padding-block: 4px 8px;
-  }
-}
-
-@media (1080px <= width < 1120px) {
-  [data-del-results] .candidate-preview-heading,
-  [data-del-results] .candidate-preview-identity,
-  [data-del-results] .candidate-preview-actions {
-    column-gap: 6px;
-  }
-
-  [data-del-results] .candidate-preview-actions .secondary-button {
-    min-inline-size: 36px;
-    padding-inline: 8px;
-  }
-
-  [data-del-results] .candidate-structure-label {
-    display: none;
   }
 }

@@ -1,4 +1,4 @@
-@media (min-width: 1080px) {
+@media (width > 1000px) {
   [data-screening-review] .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr) minmax(282px, 36%);
     column-gap: 16px;

@@ -270,7 +270,7 @@ html
   display: none;
 }
 
-@media (min-width: 1080px) and (max-height: 719px) {
+@media (width > 1000px) and (max-height: 719px) {
   .plip-result-workspace.spatial-review {
     --short-spatial-stage-reserve: 254px;
   }
@@ -332,6 +332,36 @@ html
 
   .plip-result-workspace .research-table-footer {
     padding-block: 6px;
+  }
+
+  @media (width < 1080px) {
+    .plip-result-workspace [data-compact-toolbar] {
+      --compact-table-tools: enabled;
+    }
+
+    .studio-app .plip-result-workspace
+      > .structure-workbench:not([data-workspace-expanded]) {
+      grid-template-columns: minmax(0, 1fr) minmax(282px, 36%);
+      gap: 10px 16px;
+
+      .viewer-panel:not(:popover-open) {
+        > :is(.studio-heading, .viewer-mode-options) {
+          margin-block: 0 5px;
+        }
+
+        :is(.viewer-heading-actions, .viewer-mode-options) :is(button, summary) {
+          min-height: 32px;
+          min-width: 32px;
+        }
+
+        > .molecular-stage {
+          flex: none;
+          height: clamp(280px, calc(100dvh - 316px), 510px);
+          min-height: 0;
+          border-radius: 8px;
+        }
+      }
+    }
   }
 }
 
