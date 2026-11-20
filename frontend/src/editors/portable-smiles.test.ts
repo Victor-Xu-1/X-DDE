@@ -268,6 +268,17 @@ it("rejects a recognized ring isomer that differs from the current drawing", asy
     .rejects.toThrow(SmilesHandoffError);
 });
 
+it("rejects a ring annotation that disagrees with the editor's MOL and recognition", async () => {
+  const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
+  const editorCx = "O=C1CCCCC=CCCC[C@@H](C)O1 |c:6|";
+  const source = editor(editorCx);
+  const key = source.structService.getInChIKey;
+  key.mockReset().mockImplementation(async (value) => value === editorCx ? "cis" : "trans");
+  await expect(readPortableSmiles(source, { rawSmiles: smiles, smiles, molfile: generatedMol }))
+    .rejects.toThrow(SmilesHandoffError);
+  expect(key.mock.calls).toEqual([[structure], [editorCx]]);
+});
+
 it("does not flatten a recognized stereo group missing from the editor export", async () => {
   const source = editor(absolute);
   await expect(readPortableSmiles(source, {

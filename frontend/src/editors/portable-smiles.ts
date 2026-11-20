@@ -170,6 +170,8 @@ export async function readPortableSmiles(
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
     if (!exported.plain && recognized) {
+      if (expected !== await editor.structService.getInChIKey(exported.identity))
+        throw new Error("Editor ring stereochemistry changed");
       const source = await readRecognizedSource(editor.structService, recognized);
       if (source?.text && expected === await editor.structService.getInChIKey(source.text))
         return source.text;
