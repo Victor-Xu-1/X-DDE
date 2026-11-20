@@ -509,8 +509,14 @@ def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
         "frontend/src/presentation/PredictionEntityPreview.tsx",
         "frontend/src/integrations/ScientificForm.tsx",
         "server_tests/test_prediction_input_preview_browser.py",
+        "frontend/src/guided/desktop-questionnaire.css",
+        "frontend/src/presentation/PredictionSourceMolecule.tsx",
+        "frontend/src/presentation/prediction-input-inspector.css",
+        "frontend/src/presentation/prediction-setup-summary.css",
+        ".github/workflows/molecular-utility-checks.yml",
     ]
     assert scope.selected(changes)
+    assert scope.prediction_only(changes)
     assert scope.input_preview_only(changes)
     assert scope.input_preview_only(changes, "pull_request")
     assert not scope.input_preview_only(changes, "workflow_dispatch")
@@ -523,12 +529,15 @@ def test_input_preview_delegation_keeps_only_its_direct_consumer_checks():
         "frontend/src/another-preview.tsx",
     ]:
         assert not scope.input_preview_only(changes + [unrelated])
+        assert not scope.prediction_only(changes + [unrelated])
 
 
 def test_preview_regressions_are_detected_independently_of_batch_delegation():
     for path in [
         "frontend/src/presentation/PredictionInputPreview.test.tsx",
         "frontend/src/presentation/prediction-input-preview.css",
+        "frontend/src/presentation/prediction-input-inspector.css",
+        "frontend/src/presentation/PredictionSourceMolecule.tsx",
         "frontend/src/integrations/ScientificForm.tsx",
         "server_tests/test_prediction_input_preview_browser.py",
     ]:

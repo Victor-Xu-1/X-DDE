@@ -1,11 +1,54 @@
-.prediction-setup:has(> .prediction-calculation-details) {
-  top: 100px;
-}
-
 .prediction-calculation-details {
   border-top: 1px solid var(--line);
   padding-top: 12px;
   margin-top: 8px;
+}
+
+/* The action remains reachable while sequences, calculation details or drafts scroll. */
+@media (min-width: 1080px) and (min-height: 620px) {
+  .prediction-setup-layout:has(.questionnaire > fieldset[aria-labelledby]:not([hidden]))
+    .prediction-setup {
+    padding: 12px;
+    border-radius: 12px;
+
+    > h2 {
+      flex-shrink: 0;
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    > .prediction-setup-content {
+      flex: 1 1 0;
+      min-block-size: 0;
+      position: relative;
+      overflow: auto;
+      scrollbar-gutter: stable;
+      padding-inline: 3px;
+    }
+
+    > .prediction-preview-open {
+      flex-shrink: 0;
+      min-height: 36px;
+      margin-top: 8px;
+    }
+
+    dl > div {
+      padding-block: 7px;
+    }
+
+    .prediction-entity-summary {
+      margin-block: 4px 8px;
+    }
+
+    .prediction-entity-summary summary {
+      padding-block: 5px;
+    }
+
+    .prediction-setup-status {
+      margin-block: 8px 0;
+      padding-block-start: 7px;
+    }
+  }
 }
 
 .prediction-setup-warning {

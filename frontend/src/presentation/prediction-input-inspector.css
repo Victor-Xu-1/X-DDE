@@ -1,0 +1,199 @@
+.prediction-input-inspector,
+.prediction-input-sidebar,
+.prediction-input-panel {
+  min-inline-size: 0;
+}
+
+.prediction-input-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 0 14px;
+}
+
+.prediction-input-choices button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  text-align: start;
+  font-size: 13px;
+}
+
+.prediction-input-choices button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.prediction-input-choices small {
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.prediction-input-source {
+  display: inline-block;
+  margin-block-end: 12px;
+  font-size: 13px;
+}
+
+.prediction-input-panel > h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.prediction-input-panel .prediction-preview-entity-body {
+  padding: 0;
+}
+
+@media (min-width: 1080px) and (min-height: 620px) {
+  .prediction-input-preview:has(.prediction-input-inspector) {
+    --preview-space: 16px;
+    width: min(1280px, calc(100vw - 40px));
+    height: min(820px, calc(100dvh - 32px));
+    border-radius: 14px;
+
+    > :is(header, footer) {
+      margin: 0;
+      padding-block: 12px;
+    }
+
+    > .prediction-input-preview-body {
+      display: flex;
+      flex: 1 1 0;
+      overflow: hidden;
+      padding-block: 12px;
+    }
+  }
+
+  .prediction-input-inspector {
+    display: grid;
+    flex: 1 1 0;
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 25%);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .prediction-input-panel {
+    grid-area: 1 / 1;
+    container-type: size;
+    overflow: auto;
+    scrollbar-gutter: stable;
+    min-block-size: 0;
+    padding: 5px 8px;
+  }
+
+  .prediction-input-sidebar {
+    grid-area: 1 / 2;
+    overflow: auto;
+    scrollbar-gutter: stable;
+    min-block-size: 0;
+    padding: 5px 4px 0 14px;
+    border-inline-start: 1px solid var(--line);
+  }
+
+  .prediction-input-sidebar .prediction-preview-settings {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .prediction-input-sidebar .prediction-preview-settings > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .prediction-input-sidebar .prediction-preview-settings dt {
+    margin: 0;
+  }
+
+  .prediction-input-sidebar .prediction-preview-settings dd {
+    text-align: end;
+  }
+
+  .prediction-input-choices {
+    display: grid;
+  }
+
+  .prediction-input-panel .molecule-image {
+    padding: 8px;
+    border-radius: 9px;
+  }
+
+  .prediction-input-panel .figure-preview-sheet {
+    height: clamp(220px, calc(100cqh - 128px), 540px);
+  }
+
+  .prediction-input-panel .research-tab-list {
+    margin: 0 0 5px;
+
+    > button {
+      min-height: 34px;
+      padding-block: 5px;
+    }
+  }
+
+  .prediction-input-panel:has(.research-tabs) > h3,
+  .prediction-input-panel .viewer-panel:not(:popover-open) > .studio-heading > h3 {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .prediction-input-preview .prediction-input-panel .viewer-panel:not(:popover-open) {
+    --compact-viewer-tools: enabled;
+    padding: 0;
+
+    > :is(.studio-heading, .viewer-mode-options) {
+      margin: 0 0 5px;
+    }
+
+    :is(.viewer-heading-actions, .viewer-mode-options) :is(button, summary) {
+      min-height: 32px;
+    }
+
+    > .molecular-stage {
+      height: clamp(260px, calc(100cqh - 116px), 590px);
+      min-height: 0;
+      border-radius: 8px;
+    }
+  }
+
+  .prediction-input-panel .viewer-panel:has(> .viewer-mode-options):not(:popover-open) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 8px;
+    position: relative;
+
+    > * {
+      grid-column: 1 / -1;
+    }
+
+    > .studio-heading {
+      grid-area: 1 / 2;
+      position: static;
+    }
+
+    > .viewer-mode-options {
+      grid-area: 1 / 1;
+      position: static;
+    }
+
+    .viewer-tool-content {
+      inset-block-start: 37px;
+    }
+  }
+}

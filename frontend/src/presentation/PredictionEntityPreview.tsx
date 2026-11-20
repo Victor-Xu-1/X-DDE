@@ -3,13 +3,21 @@ import { normalizeProtein } from "../form-model";
 import type { Component, Language } from "../types";
 import { MoleculeImage } from "./MoleculeImage";
 import { SequenceTrack } from "./SequenceTrack";
+import { PredictionSourceMolecule } from "./PredictionSourceMolecule";
 import { assetDownloadUrl } from "../research/asset-download";
 import type { ReactNode } from "react";
 
 /** Optional display metadata supplied by a form; never part of a new task schema. */
 export type PreviewComponent = Component & { ligand_record?: number };
 
-/** Current input values only. Display never changes source bytes or prepares a conformer. */
+type PreviewDetails = {
+  item: PreviewComponent;
+  language: Language;
+  showMetadata?: boolean;
+  emptyMessage?: ReactNode;
+  children?: ReactNode;
+};
+
 export function PredictionEntityPreview({
   item,
   index,
@@ -17,45 +25,15 @@ export function PredictionEntityPreview({
   initiallyExpanded = index === 0,
   title,
   summary,
-  showMetadata = false,
-  emptyMessage,
-  children,
-}: {
-  item: PreviewComponent;
+  ...details
+}: PreviewDetails & {
   index: number;
-  language: Language;
   initiallyExpanded?: boolean;
   title?: string;
   summary?: ReactNode;
-  showMetadata?: boolean;
-  emptyMessage?: ReactNode;
-  children?: ReactNode;
 }) {
   const zh = language === "zh";
-  const name = entityInfo[item.kind].name[zh ? 0 : 1];
-  const label = title ?? `${name} ${index + 1}`;
-  const sequence = normalizeProtein(item.value);
-  const polymer = ["protein", "dna", "rna"].includes(item.kind);
-  const alphabet =
-    item.kind === "dna"
-      ? /^[ATGCNX]+$/
-      : item.kind === "rna"
-        ? /^[AUGCNX]+$/
-        : /^[ACDEFGHIKLMNPQRSTVWYX]+$/;
-  const ccd = /^CCD_[A-Za-z0-9]{1,8}$/.test(item.value.trim());
-  const source = item.ligand_file
-    ? {
-        url: assetDownloadUrl(item.ligand_file, item.ligand_record),
-      }
-    : item.kind === "ligand" && item.value.trim() && !ccd
-      ? { smiles: item.value }
-      : null;
-  const files = [
-    [item.source_sequence, zh ? "原始序列文件" : "Source sequence file"],
-    [item.unpaired_msa, zh ? "单链 MSA 文件" : "Unpaired MSA file"],
-    [item.paired_msa, zh ? "配对 MSA 文件" : "Paired MSA file"],
-    [item.template_hits, zh ? "模板文件" : "Template file"],
-  ].filter(([id]) => Boolean(id));
+  const label = title ?? predictionEntityLabel(item, index, language);
   return (
     <details className="prediction-preview-entity" open={initiallyExpanded}>
       <summary>
@@ -71,109 +49,172 @@ export function PredictionEntityPreview({
           ›
         </span>
       </summary>
-      <div className="prediction-preview-entity-body">
-        {showMetadata ||
-        item.chain_ids?.length ||
-        item.modifications?.length ? (
-          <dl className="prediction-preview-metadata">
-            {showMetadata && (
-              <>
-                <div>
-                  <dt>{zh ? "类型" : "Type"}</dt>
-                  <dd>
-                    {name}
-                    {!!item.chain_ids?.length &&
-                      ` · ${zh ? "链" : "Chain"} ${item.chain_ids.join(", ")}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt>{zh ? "副本数" : "Copies"}</dt>
-                  <dd>{item.count}</dd>
-                </div>
-                {!item.modifications?.length && (
-                  <div>
-                    <dt>{zh ? "输入位置修饰" : "Input modifications"}</dt>
-                    <dd>{zh ? "无" : "None"}</dd>
-                  </div>
-                )}
-              </>
-            )}
-            {!showMetadata && !!item.chain_ids?.length && (
+      <PredictionEntityContent
+        item={item}
+        label={label}
+        language={language}
+        {...details}
+      />
+    </details>
+  );
+}
+
+export function predictionEntityLabel(
+  item: PreviewComponent,
+  index: number,
+  language: Language,
+) {
+  return `${entityInfo[item.kind].name[language === "zh" ? 0 : 1]} ${index + 1}`;
+}
+
+/** Display uses the current input values and the original record when supplied. */
+export function PredictionEntityContent({
+  item,
+  language,
+  label,
+  showMetadata = false,
+  emptyMessage,
+  children,
+  originalCoordinates = false,
+}: PreviewDetails & {
+  label: string;
+  originalCoordinates?: boolean;
+}) {
+  const zh = language === "zh";
+  const name = entityInfo[item.kind].name[zh ? 0 : 1];
+  const sequence = normalizeProtein(item.value);
+  const polymer = ["protein", "dna", "rna"].includes(item.kind);
+  const alphabet =
+    item.kind === "dna"
+      ? /^[ATGCNX]+$/
+      : item.kind === "rna"
+        ? /^[AUGCNX]+$/
+        : /^[ACDEFGHIKLMNPQRSTVWYX]+$/;
+  const ccd = /^CCD_[A-Za-z0-9]{1,8}$/.test(item.value.trim());
+  const inputUrl = item.ligand_file
+    ? assetDownloadUrl(item.ligand_file, item.ligand_record)
+    : null;
+  const source = inputUrl
+    ? { url: inputUrl }
+    : item.kind === "ligand" && item.value.trim() && !ccd
+      ? { smiles: item.value }
+      : null;
+  const files = [
+    [item.source_sequence, zh ? "原始序列文件" : "Source sequence file"],
+    [item.unpaired_msa, zh ? "单链 MSA 文件" : "Unpaired MSA file"],
+    [item.paired_msa, zh ? "配对 MSA 文件" : "Paired MSA file"],
+    [item.template_hits, zh ? "模板文件" : "Template file"],
+  ].filter(([id]) => Boolean(id));
+  return (
+    <div className="prediction-preview-entity-body">
+      {showMetadata ||
+      item.chain_ids?.length ||
+      item.modifications?.length ? (
+        <dl className="prediction-preview-metadata">
+          {showMetadata && (
+            <>
               <div>
-                <dt>{zh ? "链" : "Chains"}</dt>
-                <dd>{item.chain_ids.join(", ")}</dd>
-              </div>
-            )}
-            {!!item.modifications?.length && (
-              <div>
-                <dt>{zh ? "输入位置修饰" : "Input modifications"}</dt>
+                <dt>{zh ? "类型" : "Type"}</dt>
                 <dd>
-                  {item.modifications
-                    .map((m) => `${m.position}: ${m.ccd}`)
-                    .join(" · ")}
+                  {name}
+                  {!!item.chain_ids?.length &&
+                    ` · ${zh ? "链" : "Chain"} ${item.chain_ids.join(", ")}`}
                 </dd>
               </div>
-            )}
-          </dl>
-        ) : null}
-        {item.ligand_file ? (
-          <>
-            {item.ligand_record !== undefined && (
-              <p>
-                {zh ? "文件中的分子条目" : "Molecular record in file"}:{" "}
-                {Number.isSafeInteger(item.ligand_record) &&
-                item.ligand_record >= 0
-                  ? item.ligand_record + 1
-                  : "—"}
-              </p>
-            )}
+              <div>
+                <dt>{zh ? "副本数" : "Copies"}</dt>
+                <dd>{item.count}</dd>
+              </div>
+              {!item.modifications?.length && (
+                <div>
+                  <dt>{zh ? "输入位置修饰" : "Input modifications"}</dt>
+                  <dd>{zh ? "无" : "None"}</dd>
+                </div>
+              )}
+            </>
+          )}
+          {!showMetadata && !!item.chain_ids?.length && (
+            <div>
+              <dt>{zh ? "链" : "Chains"}</dt>
+              <dd>{item.chain_ids.join(", ")}</dd>
+            </div>
+          )}
+          {!!item.modifications?.length && (
+            <div>
+              <dt>{zh ? "输入位置修饰" : "Input modifications"}</dt>
+              <dd>
+                {item.modifications
+                  .map((m) => `${m.position}: ${m.ccd}`)
+                  .join(" · ")}
+              </dd>
+            </div>
+          )}
+        </dl>
+      ) : null}
+      {inputUrl ? (
+        <>
+          {item.ligand_record !== undefined && (
+            <p>
+              {zh ? "文件中的分子条目" : "Molecular record in file"}:{" "}
+              {Number.isSafeInteger(item.ligand_record) &&
+              item.ligand_record >= 0
+                ? item.ligand_record + 1
+                : "—"}
+            </p>
+          )}
+          {originalCoordinates ? (
+            <PredictionSourceMolecule
+              url={inputUrl}
+              label={label}
+              language={language}
+            />
+          ) : (
             <MoleculeImage source={source} language={language} label={label} />
-            <a
-              href={assetDownloadUrl(item.ligand_file, item.ligand_record)}
-              download
-            >
+          )}
+          {!originalCoordinates && (
+            <a href={inputUrl} download>
               {zh ? "下载已选结构文件" : "Download selected structure input"}
             </a>
-          </>
-        ) : polymer && alphabet.test(sequence) ? (
-          <SequenceTrack
-            sequence={sequence}
-            language={language}
-            label={label}
-            unit={item.kind === "protein" ? "aa" : "nt"}
-            compact={showMetadata}
-          />
-        ) : item.kind === "ligand" && source ? (
-          <>
-            <MoleculeImage source={source} language={language} label={label} />
-            <details className="prediction-preview-source">
-              <summary>SMILES</summary>
-              <pre>{item.value}</pre>
-            </details>
-          </>
-        ) : item.value.trim() ? (
-          <pre>{item.value}</pre>
-        ) : (
-          <p>
-            {emptyMessage ??
-              (zh
-                ? "请在任务步骤中填写这项材料。"
-                : "Provide this input in the task form.")}
-          </p>
-        )}
-        {files.length > 0 && (
-          <ul className="prediction-preview-files">
-            {files.map(([id, name]) => (
-              <li key={String(id) + name}>
-                <a href={`/api/assets/${encodeURIComponent(id!)}`} download>
-                  {name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-        {children}
-      </div>
-    </details>
+          )}
+        </>
+      ) : polymer && alphabet.test(sequence) ? (
+        <SequenceTrack
+          sequence={sequence}
+          language={language}
+          label={label}
+          unit={item.kind === "protein" ? "aa" : "nt"}
+          compact={showMetadata}
+        />
+      ) : item.kind === "ligand" && source ? (
+        <>
+          <MoleculeImage source={source} language={language} label={label} />
+          <details className="prediction-preview-source">
+            <summary>SMILES</summary>
+            <pre>{item.value}</pre>
+          </details>
+        </>
+      ) : item.value.trim() ? (
+        <pre>{item.value}</pre>
+      ) : (
+        <p>
+          {emptyMessage ??
+            (zh
+              ? "请在任务步骤中填写这项材料。"
+              : "Provide this input in the task form.")}
+        </p>
+      )}
+      {files.length > 0 && (
+        <ul className="prediction-preview-files">
+          {files.map(([id, name]) => (
+            <li key={String(id) + name}>
+              <a href={`/api/assets/${encodeURIComponent(id!)}`} download>
+                {name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {children}
+    </div>
   );
 }

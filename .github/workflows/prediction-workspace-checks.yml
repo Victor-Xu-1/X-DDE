@@ -92,6 +92,7 @@ on:
       - "server_tests/test_boltz_final_review_browser.py"
       - "frontend/src/integrations/mol1-job-*"
       - "frontend/src/guided/Questionnaire.tsx"
+      - "frontend/src/guided/desktop-questionnaire.css"
       - "server_tests/test_mol1_final_review_browser.py"
       - "server_tests/test_job_review_layout_browser.py"
       - "server_tests/job_review_scene_case.py"
@@ -350,6 +351,7 @@ jobs:
           npx vitest run src/presentation/PredictionInputPreview.test.tsx
           src/presentation/PredictionSetup.test.tsx src/presentation/SequenceTrack.test.tsx
           src/presentation/MoleculeImage.test.tsx src/guided/MolecularInputs.test.tsx
+          src/studio/HomeWorkspace.test.tsx
           src/TaskForm.test.tsx src/integrations/Mol1Form.test.tsx src/integrations/ScientificForm.test.tsx
       - name: Final review, exact task payload and shared dialog/questionnaire consumers
         if: needs.scope.outputs.final_review_changed == 'true' && needs.scope.outputs.job_review_layout != 'true'
@@ -469,7 +471,7 @@ jobs:
       - if: needs.scope.outputs.draft_compatibility_only != 'true'
         run: uv run --locked playwright install chromium --with-deps
       - name: Native Chrome for setup summaries
-        if: needs.scope.outputs.setup_summary == 'true'
+        if: needs.scope.outputs.setup_summary == 'true' || needs.scope.outputs.input_preview == 'true'
         run: uv run --locked playwright install chrome --with-deps
       - name: Prepare the existing native drawing component in isolated CI state
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && (needs.scope.outputs.entity_inputs == 'true' || needs.scope.outputs.preview_changed == 'true' || needs.scope.outputs.drafts_changed == 'true' || needs.scope.outputs.final_review_changed == 'true' || needs.scope.outputs.boltz_review_changed == 'true' || needs.scope.outputs.opendde_review_changed == 'true')
@@ -498,7 +500,14 @@ jobs:
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_workspace_browser.py
       - name: Bilingual current inputs, native Ketcher depiction, return to edit and no submission
         if: needs.scope.outputs.reference_review_only != 'true' && needs.scope.outputs.sample_export_only != 'true' && needs.scope.outputs.preview_changed == 'true' && needs.scope.outputs.result_layout_only != 'true'
-        run: uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
+        run: |
+          uv run --locked ruff check server_tests/test_prediction_input_preview_browser.py
+          uv run --locked python -m pytest -x -q server_tests/test_prediction_input_preview_browser.py
+      - name: Check the shared desktop scope routes prediction inputs to this workflow
+        if: needs.scope.outputs.input_preview == 'true'
+        run: |
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py
+          uv run --locked python -m pytest -q tests/test_molecular_utility_scope.py
       - name: Guided setup, expandable settings and current values across all prediction forms
         if: needs.scope.outputs.setup_summary == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_setup_browser.py

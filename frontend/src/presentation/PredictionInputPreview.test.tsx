@@ -37,6 +37,14 @@ vi.mock("./MoleculeImage", () => ({
     <div data-testid="native-drawing" data-source={JSON.stringify(source)} />
   ),
 }));
+vi.mock("../viewer/StructureViewer", () => ({
+  StructureViewer: ({ urls, sourceSnapshot }: {
+    urls: string[];
+    sourceSnapshot: boolean;
+  }) => (
+    <div data-testid="original-coordinates" data-url={urls[0]} data-readonly={sourceSnapshot} />
+  ),
+}));
 const original = Object.getOwnPropertyDescriptor(
   HTMLDialogElement.prototype,
   "showModal",
@@ -205,6 +213,7 @@ it("retains multiple FASTA records for correction and does not invent a sequence
     }),
   ).toBeVisible();
   expect(dialog.querySelectorAll("[data-position]")).toHaveLength(0);
+  fireEvent.click(within(dialog).getByRole("button", { name: /^Small molecule \/ ligand 2/ }));
   expect(dialog).toHaveTextContent("CCD_NAG");
   expect(within(dialog).queryByTestId("native-drawing")).toBeNull();
 });
@@ -261,7 +270,7 @@ it("uses the shared single-FASTA normalization and retains a nonzero selected mo
   const dialog = screen.getByRole("dialog");
   expect(dialog.querySelectorAll("[data-position]")).toHaveLength(8);
   fireEvent.click(
-    within(dialog).getByText("Small molecule / ligand 2", { exact: true }),
+    within(dialog).getByRole("button", { name: /^Small molecule \/ ligand 2/ }),
   );
   expect(within(dialog).getByTestId("native-drawing")).toHaveAttribute(
     "data-source",
@@ -274,4 +283,9 @@ it("uses the shared single-FASTA normalization and retains a nonzero selected mo
   ).toHaveAttribute("href", "/api/assets/library-file?record=7");
   expect(dialog).toHaveTextContent("Molecular record in file: 8");
   expect(dialog).not.toHaveTextContent("stale");
+  expect(within(dialog).queryByTestId("original-coordinates")).toBeNull();
+  fireEvent.click(within(dialog).getByRole("tab", { name: "Source 3D coordinates" }));
+  const coordinates = within(dialog).getByTestId("original-coordinates");
+  expect(coordinates).toHaveAttribute("data-url", "/api/assets/library-file?record=7");
+  expect(coordinates).toHaveAttribute("data-readonly", "true");
 });
