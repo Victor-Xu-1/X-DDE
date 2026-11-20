@@ -71,7 +71,8 @@ def check_chains(result, colors):
 def check_index_member(result, colors, zh):
     expect(result.locator(".dataset-member-heading h3")).to_have_css("color", colors["ink"])
     expect(result.locator(".dataset-member-heading > span")).to_have_css("color", colors["muted"])
-    expect(result.locator(".dataset-member-actions > span")).to_have_css("color", colors["muted"])
+    geometry = result.get_by_text("游离构象" if zh else "Unbound conformer", exact=True)
+    expect(geometry).to_have_css("color", colors["muted"])
     header = result.locator(".dataset-table-scroll th").first
     expect(header).to_have_css("color", colors["muted"])
     expect(header).to_have_css("background-color", colors["surface-muted"])
