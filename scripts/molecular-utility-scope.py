@@ -1385,7 +1385,7 @@ DEL_MEDIUM_DESKTOP_FILES = {
     "frontend/src/datasets/screening-result-layout.css",
     "server_tests/test_del_desktop_review.py",
 }
-DEL_MEDIUM_DESKTOP_DIFF = "24986a29526a634ec5827ffba3445f12e327701a43d8b62c9de23d508c7f78dc"
+DEL_MEDIUM_DESKTOP_DIFF = "c101d65b710d042879539d387ef1824ca7ba9023ca7983b5d17006e75dd9e179"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",

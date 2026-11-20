@@ -285,7 +285,7 @@ def test_del_retained_result_layout(language, theme, width, height):
         panel = page.locator(".dataset-results")
         workspace = panel.locator(".structure-workbench:has([data-del-review])")
         frame = workspace.locator(".molecular-stage iframe")
-        figure = workspace.locator(".figure-export-trigger")
+        figure = workspace.locator(".viewer-panel .figure-export-trigger")
         expect(figure).to_be_enabled(timeout=45_000)
         expect(frame).to_be_in_viewport(ratio=0.99)
         box = frame.bounding_box()
