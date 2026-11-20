@@ -269,6 +269,72 @@ html
   > .module-task-picker {
   display: none;
 }
+
+@media (min-width: 1080px) and (max-height: 719px) {
+  .plip-result-workspace.spatial-review {
+    --short-spatial-stage-reserve: 254px;
+  }
+
+  .plip-result-workspace .interaction-result-method {
+    margin-block-end: 4px;
+  }
+
+  .studio-app .plip-result-workspace
+    > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-rows: auto auto;
+    height: auto;
+    align-items: start;
+
+    > .structure-workbench-view {
+      grid-area: 1 / 1;
+    }
+    > .structure-workbench-details {
+      grid-area: 1 / 2;
+    }
+    > .structure-workbench-sequence {
+      grid-area: 2 / 1 / auto / -1;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .viewer-panel {
+      height: auto;
+    }
+
+    .research-table-scroll {
+      max-height: clamp(160px, calc(100dvh - 395px), 360px);
+    }
+  }
+
+  .plip-result-workspace .interaction-review-region {
+    gap: 8px;
+  }
+
+  .plip-result-workspace .research-table :is(th, td) {
+    padding: 7px 5px;
+  }
+
+  .plip-result-workspace .research-table :is(th, .column-sort) {
+    white-space: normal;
+  }
+
+  .plip-result-workspace .research-table .numeric-cell {
+    white-space: nowrap;
+  }
+
+  .plip-result-workspace .research-table-scroll th.numeric-cell {
+    width: 94px;
+  }
+
+  .plip-result-workspace .research-table-scroll .column-sort {
+    gap: 4px;
+  }
+
+  .plip-result-workspace .research-table-footer {
+    padding-block: 6px;
+  }
+}
+
 @media (max-width: 1000px) {
   .contact-workspace .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr);

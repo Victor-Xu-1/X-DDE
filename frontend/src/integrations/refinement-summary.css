@@ -58,3 +58,18 @@
     border-radius: 10px;
   }
 }
+
+@media (min-width: 1080px) and (max-height: 719px) {
+  .is-refinement-result .refinement-summary {
+    padding: 0 0 10px;
+    border: 0;
+    border-block-end: 1px solid var(--line);
+    border-radius: 0;
+  }
+  .is-refinement-result .refinement-summary h3 {
+    margin-block-end: 6px;
+  }
+  .is-refinement-result .refinement-summary :is(th, td) {
+    padding-block: 6px;
+  }
+}

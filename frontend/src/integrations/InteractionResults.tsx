@@ -10,6 +10,7 @@ import {
   interactionResidueKey,
   interactionResidueLabel,
 } from "./interaction-residue";
+import "../presentation/spatial-result-review.css";
 import "./interaction-workspace.css";
 
 export const interactionNames: Record<string, [string, string]> = {
@@ -88,7 +89,10 @@ function InteractionWorkspace({
   }
   return (
     <section
-      className="interaction-results plip-result-workspace contact-workspace"
+      className={
+        "interaction-results plip-result-workspace contact-workspace" +
+        (result.structure_artifact ? " spatial-review" : "")
+      }
       aria-label={zh ? "配体相互作用结果" : "Ligand interaction results"}
     >
       <header className="interaction-result-method" ref={header}>
@@ -176,6 +180,7 @@ function InteractionWorkspace({
             </button>
           )}
           <ResearchTable<InteractionRow>
+            compactToolbar
             language={language}
             title={zh ? "关键相互作用" : "Key interactions"}
             rows={rows}

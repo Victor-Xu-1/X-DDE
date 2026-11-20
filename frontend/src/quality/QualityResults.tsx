@@ -12,6 +12,7 @@ import {
 } from "./assessment";
 import { QualityAssessmentBar } from "./QualityAssessmentBar";
 import "../presentation/result-inspection.css";
+import "../presentation/spatial-result-review.css";
 import "./quality-results.css";
 
 interface QualityResultsProps {
@@ -40,7 +41,9 @@ function QualityWorkspace({ job, result, language }: QualityResultsProps) {
   const review = useRef<HTMLElement>(null);
   return (
     <section
-      className="discovery-results quality-results"
+      className={
+        "discovery-results quality-results" + (hasPreview ? " spatial-review" : "")
+      }
       aria-label={zh ? "构象与姿势质控结果" : "Pose quality results"}
     >
       <StructureWorkbench
