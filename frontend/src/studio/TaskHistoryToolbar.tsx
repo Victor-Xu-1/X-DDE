@@ -36,6 +36,8 @@ export function TaskHistoryToolbar({
   onClearProject(): void;
 }) {
   const zh = language === "zh";
+  const backLabel = zh ? "返回任务结果" : "Back to task results";
+  const refreshLabel = zh ? "刷新任务" : "Refresh tasks";
   const submitting = useInputActionScope()?.action === "submission";
   const researchModule = researchModules.find((value) => value.id === module);
   return (
@@ -61,7 +63,7 @@ export function TaskHistoryToolbar({
               type="button"
               className="secondary-button"
               onClick={onRefresh}
-              aria-label={zh ? "刷新任务" : "Refresh tasks"}
+              aria-label={refreshLabel}
             >
               <ReloadOutlined />
             </button>
@@ -85,15 +87,18 @@ export function TaskHistoryToolbar({
             className="secondary-button"
             onClick={onHistory}
             disabled={submitting}
+            aria-label={backLabel}
+            title={backLabel}
           >
             <ArrowLeftOutlined aria-hidden="true" />
-            {zh ? "返回任务结果" : "Back to task results"}
+            <span className="task-result-back-label">{backLabel}</span>
           </button>
           <button
             type="button"
             className="secondary-button"
             onClick={onRefresh}
-            aria-label={zh ? "刷新任务" : "Refresh tasks"}
+            aria-label={refreshLabel}
+            title={refreshLabel}
           >
             <ReloadOutlined aria-hidden="true" />
           </button>

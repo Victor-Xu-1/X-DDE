@@ -1346,6 +1346,15 @@ RESULT_THEME_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_THEME_DIFF = "05e73fb8725f59ca0e348580817ef4a34839574d27a5b8f9a830749d349848ea"
+COMPACT_RESULT_HEADER_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/studio/TaskHistoryToolbar.tsx",
+    "frontend/src/studio/task-history.css",
+    "server_tests/test_compact_result_header_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+COMPACT_RESULT_HEADER_DIFF = "e42c40fe17d359f9e622e21009df66ed519427374d0099dc21e44ba85211e97c"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
@@ -1932,9 +1941,16 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RESULT_THEME_FILES, RESULT_THEME_DIFF, scope_pin="RESULT_THEME_DIFF",
     )
-    candidate_desktop = result_theme or screening_desktop or reviewed_selected(
+    compact_result_header = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
-        CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
+        COMPACT_RESULT_HEADER_FILES, COMPACT_RESULT_HEADER_DIFF,
+        scope_pin="COMPACT_RESULT_HEADER_DIFF",
+    )
+    candidate_desktop = (
+        compact_result_header or result_theme or screening_desktop or reviewed_selected(
+            set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+            CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
+        )
     )
     del_desktop = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
@@ -2065,6 +2081,7 @@ def main():
         output.write("screening_desktop_only=" + str(screening_desktop).lower() + "\n")
         output.write("del_desktop_only=" + str(del_desktop).lower() + "\n")
         output.write("result_theme_only=" + str(result_theme).lower() + "\n")
+        output.write("compact_result_header_only=" + str(compact_result_header).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -2074,6 +2091,7 @@ def main():
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not history_desktop
+            and not compact_result_header
             and not desktop_complex_review
             and not result_handoff_desktop
             and not recognition_entry

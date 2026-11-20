@@ -180,6 +180,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "proximity_desktop_only=false\nsimulation_desktop_only=false\n"
         "candidate_desktop_only=false\nscreening_desktop_only=false\ndel_desktop_only=false\n"
         "result_theme_only=false\n"
+        "compact_result_header_only=false\n"
         "history_desktop_only=false\n"
         "initial_pose_power_only=false\n"
         "backend_placement_only=false\ntask_power_only=false\nmodule_backend_only=false\n"
