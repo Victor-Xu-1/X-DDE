@@ -66,9 +66,10 @@
 }
 .proximity-result-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 20px;
+  gap: 4px 12px;
 }
 .proximity-result-heading h2 {
   font-size: 16px;
@@ -86,6 +87,15 @@
 .proximity-result-overview .proximity-summary dd {
   font-size: 17px;
   font-variant-numeric: tabular-nums;
+}
+.proximity-result-overview .proximity-summary > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.proximity-result-overview .proximity-summary dt {
+  margin: 0;
 }
 .proximity-preview-heading,
 .proximity-preview-identity {
@@ -123,6 +133,78 @@
   padding: 6px 0;
   border: 0;
   background: transparent;
+}
+@media (min-width: 1180px) {
+  .proximity-comparison .proximity-checks {
+    gap: 4px 12px;
+  }
+  .proximity-comparison .proximity-checks div {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+  }
+  .proximity-assembly-preview > .research-tabs > .research-tab-list {
+    margin-block-end: 4px;
+  }
+  .studio-app .proximity-assembly-preview [role="tab"] {
+    min-height: 34px;
+    padding-block: 6px;
+  }
+  .studio-app .proximity-assembly-preview .viewer-panel {
+    > .studio-heading {
+      margin-block: 0 4px;
+    }
+    :is(.viewer-heading-actions, .viewer-mode-options)
+      > :is(button, .viewer-tool-group > button),
+    .viewer-mode-options .viewer-chain-menu > summary {
+      min-height: 34px;
+    }
+  }
+}
+@media (1180px <= width <= 1360px) and (max-height: 840px) {
+  .studio-app
+    .proximity-results
+    > .structure-workbench:not([data-workspace-expanded])
+    .proximity-assembly-preview
+    .viewer-panel:has(> .viewer-mode-options):not(:has(.viewer-attachment-count)) {
+    --compact-viewer-tools: enabled;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+
+    > * {
+      grid-column: 1 / -1;
+    }
+    > .studio-heading {
+      grid-area: 1 / 2;
+      margin: 0 0 4px;
+      flex-wrap: nowrap;
+    }
+    > .viewer-mode-options {
+      grid-area: 1 / 1;
+      gap: 4px;
+      margin: 0 0 4px;
+    }
+    > .viewer-mode-options button {
+      padding-inline: 6px;
+    }
+    > .viewer-mode-options .viewer-chain-menu > summary {
+      white-space: nowrap;
+    }
+    .viewer-heading-actions :is(button, .viewer-tool-trigger) {
+      min-width: 34px;
+      min-height: 34px;
+    }
+    :is(.viewer-title-full, .viewer-figure-label, .viewer-mode-short + .viewer-mode-full) {
+      display: none;
+    }
+    .viewer-mode-short {
+      display: inline;
+    }
+    .viewer-figure-icon {
+      display: inline-flex;
+    }
+  }
 }
 .proximity-partner-layout > * {
   min-width: 0;

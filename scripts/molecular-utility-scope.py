@@ -1327,6 +1327,26 @@ PROXIMITY_DESKTOP_FILES = {
     "server_tests/test_proximity_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
+DESKTOP_COMPLEX_REVIEW_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/proximity-checks.yml",
+    ".github/workflows/viewer-checks.yml",
+    "frontend/src/presentation/spatial-result-review.css",
+    "frontend/src/presentation/workspace-expansion.ts",
+    "frontend/src/proximity/Results.tsx",
+    "frontend/src/proximity/proximity.css",
+    "frontend/src/receptors/ReceptorResults.tsx",
+    "frontend/src/receptors/receptors.css",
+    "frontend/src/studio/Header.tsx",
+    "frontend/src/studio/header.css",
+    "frontend/src/viewer/viewer-tool-group.css",
+    "server_tests/test_navigation_shell_browser.py",
+    "server_tests/test_proximity_desktop.py",
+    "server_tests/test_receptor_workspace_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+DESKTOP_COMPLEX_REVIEW_DIFF = "d1c23268559e84c23d7fae887c2979eead1610e3cc7976f947a790fe7bce71c8"
 PROXIMITY_DESKTOP_DIFF = "9cb76c048bcdf962e004a89833a760c7484c3a8fe56f46a27ef0c70ad02edb30"
 PROXIMITY_PAIR_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
@@ -1688,7 +1708,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         MOBILE_HEADER_FILES, MOBILE_HEADER_DIFF,
     )
-    desktop_header = desktop_backend_header or reviewed_selected(
+    desktop_complex_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        DESKTOP_COMPLEX_REVIEW_FILES, DESKTOP_COMPLEX_REVIEW_DIFF,
+        scope_pin="DESKTOP_COMPLEX_REVIEW_DIFF",
+    )
+    desktop_header = desktop_complex_review or desktop_backend_header or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DESKTOP_HEADER_FILES, DESKTOP_HEADER_DIFF,
     )
@@ -1756,7 +1781,7 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
     )
-    proximity_desktop = reviewed_selected(
+    proximity_desktop = desktop_complex_review or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         PROXIMITY_DESKTOP_FILES, PROXIMITY_DESKTOP_DIFF, scope_pin="PROXIMITY_DESKTOP_DIFF",
     ) or reviewed_selected(
@@ -1848,6 +1873,7 @@ def main():
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not history_desktop
+            and not desktop_complex_review
             and not result_handoff_desktop
             and not recognition_entry
             and not inline_recognition
@@ -1859,6 +1885,7 @@ def main():
         output.write("compact_example_only=" + str(compact_example).lower() + "\n")
         output.write("mobile_header_only=" + str(mobile_header).lower() + "\n")
         output.write("desktop_header_only=" + str(desktop_header).lower() + "\n")
+        output.write("desktop_complex_review_only=" + str(desktop_complex_review).lower() + "\n")
         output.write("mobile_viewer_only=" + str(mobile_viewer).lower() + "\n")
         output.write("print_labels_only=" + str(print_labels).lower() + "\n")
         output.write("recognition_power_only=" + str(recognition_power).lower() + "\n")

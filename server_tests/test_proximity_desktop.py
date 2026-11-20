@@ -49,9 +49,12 @@ def inspect_layout(page, frame, width, height):
     canvas = frame.bounding_box()
     details = page.locator(".proximity-results .structure-workbench-details").bounding_box()
     assert canvas and details
-    assert canvas["width"] >= (575 if width == 1280 else 775)
-    assert canvas["height"] >= 500 and (height - canvas["y"]) >= 320
-    assert 0 < canvas["y"] < 480 and canvas["x"] + canvas["width"] < details["x"]
+    assert canvas["width"] >= {1180: 480, 1280: 575, 1600: 775}[width]
+    if height <= 840:
+        assert canvas["height"] >= 355 and canvas["y"] + canvas["height"] <= height + 2
+    else:
+        assert canvas["height"] >= 500 and height - canvas["y"] >= 320
+    assert 0 < canvas["y"] < 380 and canvas["x"] + canvas["width"] < details["x"]
     assert frame.evaluate("node => getComputedStyle(node.parentElement).borderRadius") == "8px"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
 
@@ -61,6 +64,23 @@ def double_column(dialog):
         timeout=20000
     )
     dialog.get_by_role("combobox", name="Figure width").select_option("183")
+
+
+def verify_viewer_disclosures(page, preview):
+    disclosures = ((".viewer-mode-options", "input"), (".viewer-heading-actions", "select"))
+    for region, control in disclosures:
+        tool = preview.locator(region).locator(".viewer-tool-group")
+        trigger = tool.locator(".viewer-tool-trigger")
+        settings = tool.locator(".viewer-tool-content")
+        field = settings.locator(control).first
+        trigger.press("Enter")
+        expect(trigger).to_have_attribute("aria-expanded", "true")
+        expect(field).to_be_in_viewport()
+        page.keyboard.press("Tab")
+        expect(field).to_be_focused()
+        field.press("Escape")
+        expect(settings).to_be_hidden()
+        expect(trigger).to_be_focused()
 
 
 def inspect_molecular_vector(path):
@@ -144,6 +164,7 @@ def inspect_pair(page, table, preview, rows, result, language, evidence):
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1180, 720),
     ("en", "warm", 1280, 800),
     ("zh", "dark", 1600, 900),
 ])
@@ -201,9 +222,11 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
             "node => node.scrollWidth <= node.clientWidth + 1"
         )
         expect(preview.locator(".proximity-check-fail")).to_be_visible()
+        if width == 1280:
+            verify_viewer_disclosures(page, preview)
         page.screenshot(path=evidence / "workspace.png")
         check_downloads(page, preview, rows[0], result, zh)
-        if not zh:
+        if not zh and width == 1280:
             png = export_figure(page, capture, evidence, "native-complex", language)
             inspect_png(png)
 
@@ -219,7 +242,7 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
         expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=35000)
         expect(drawing.locator("img")).to_be_visible()
         page.screenshot(path=evidence / "selected-ligand-2d.png")
-        if not zh:
+        if not zh and width == 1280:
             vector = export_figure(
                 page, drawing.locator(".figure-export-trigger"), evidence,
                 "selected-ligand", language, format="SVG", configure=double_column,
@@ -228,7 +251,7 @@ def test_native_ternary_desktop_workspace(tmp_path, monkeypatch, language, theme
         preview.get_by_role("tab", name="连接位点" if zh else "Attachment sites").press("Enter")
         frame, _ = native_view(preview, rows[1]["complex_artifact"])
         canvas = frame.bounding_box()
-        assert canvas and canvas["width"] >= (575 if width == 1280 else 775)
+        assert canvas and canvas["width"] >= {1180: 480, 1280: 575, 1600: 775}[width]
         geometry = result["proximity"]["attachment_geometry"]["assemblies"]
         bonds = next(row["bonds"] for row in geometry if row["id"] == rows[1]["id"])
         cuts = page.locator(".structure-workbench-details .attachment-directions")

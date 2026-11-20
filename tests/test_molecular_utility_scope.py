@@ -184,6 +184,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "recognition_entry_only=false\n"
         "native_state_only=false\ncompact_example_only=false\nmobile_header_only=false\n"
         "desktop_header_only=false\n"
+        "desktop_complex_review_only=false\n"
         "mobile_viewer_only=false\nprint_labels_only=false\nrecognition_power_only=false\n"
         "recognition_access_only=false\n"
         "potential_display_only=false\nutility_navigation_only=false\n"
@@ -334,6 +335,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "CONTEXTUAL_BACKEND_PANEL_FILES",
         "FUNCTION_POWER_FILES",
         "DESKTOP_BACKEND_HEADER_FILES",
+        "DESKTOP_COMPLEX_REVIEW_FILES",
         "COMPACT_MATERIAL_FILES",
         "DESKTOP_MOLECULE_RESULTS_FILES",
         "DESKTOP_MOLECULE_WORKBENCH_FILES",

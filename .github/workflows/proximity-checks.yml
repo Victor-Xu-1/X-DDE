@@ -62,6 +62,7 @@ jobs:
         working-directory: frontend
         run: >-
           npx vitest run src/proximity/Results.test.tsx
+          src/receptors/ReceptorResults.test.tsx src/presentation/ResearchTable.test.tsx
           src/viewer/StructureViewer.test.tsx src/presentation/WorkspaceFullscreenControl.test.tsx
       - name: Restore an immutable native result for read-only Chrome checks
         env:

@@ -129,16 +129,24 @@ def record_desktop_header(page, header, measurements, state):
 
 
 def verify_retained_desktop_headers(page, base, header, field, language, measurements):
+    search = header.get_by_role(
+        "button", name="搜索任务" if language == "zh" else "Search tasks", exact=True
+    )
+
     def inspect(state, selector):
         expect(page.locator(selector)).to_be_visible(timeout=45000)
         for width in (961, 1280):
             page.set_viewport_size({"width": width, "height": 800})
             record_desktop_header(page, header, measurements, state)
             expect(header.locator(".module-workspace-navigation button:visible")).to_have_count(2)
-            field.click()
+            compact = search.is_visible()
+            if compact:
+                search.click()
+            else:
+                field.click()
             expect(field).to_be_focused()
             field.press("Escape")
-            expect(field).to_be_focused()
+            expect(search if compact else field).to_be_focused()
 
     for operation, selector in (
         ("predict", ".prediction-result"),
@@ -151,6 +159,14 @@ def verify_retained_desktop_headers(page, base, header, field, language, measure
         job = response.json()["pin"]["job_id"]
         page.goto(base + "/#task=" + job)
         inspect(operation, selector)
+        if operation == "biopython.ensemble":
+            page.set_viewport_size({"width": 1180, "height": 720})
+            root = page.locator(selector)
+            expect(root.locator(".figure-export-trigger")).to_be_enabled(timeout=35000)
+            frame = root.locator(".molecular-stage iframe")
+            bounds = frame.bounding_box()
+            assert bounds and bounds["height"] >= 440 and bounds["y"] + bounds["height"] <= 722
+            expect(root.locator(".receptor-member-table tbody tr").first).to_be_in_viewport()
 
     page.goto(base + "/#view=new&tool=workflows")
     example = "示例结果" if language == "zh" else "Example results"

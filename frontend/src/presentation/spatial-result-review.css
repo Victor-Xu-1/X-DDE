@@ -20,6 +20,19 @@
 }
 
 /* Allow for each result header and viewer toolbar on shorter desktop screens. */
+.studio-app .studio-content:has(
+  .task-result-content > .detail-panel > .operation-results >
+    :is(.proximity-results, .receptor-results)
+) {
+  padding-block-start: 12px;
+}
+.task-history-workspace
+  .has-header-navigation:has(> .operation-results > :is(.proximity-results, .receptor-results))
+  > .task-detail-header {
+  gap: 6px 12px;
+  margin-block-end: 8px;
+}
+
 @media (min-width: 1180px) and (max-height: 840px) {
   .pocket-result-workspace {
     --spatial-stage-reserve: 257px;
@@ -30,11 +43,18 @@
   .surface-results {
     --spatial-stage-reserve: 284px;
   }
+  .proximity-results {
+    --spatial-stage-reserve: 365px;
+  }
+  .receptor-results {
+    --spatial-stage-reserve: 280px;
+  }
   .studio-app
-    :is(.pocket-result-workspace, .docking-results, .surface-results)
+    :is(.pocket-result-workspace, .docking-results, .surface-results,
+        .proximity-results, .receptor-results)
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
-    .viewer-panel:not(.pose-comparison-panels .viewer-panel)
+    .viewer-panel:not(:is(.pose-comparison-panels, .proximity-compare-panels) .viewer-panel)
     .molecular-stage {
     height: clamp(355px, calc(100dvh - var(--spatial-stage-reserve)), 535px);
     min-height: 0;

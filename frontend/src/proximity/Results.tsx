@@ -15,6 +15,7 @@ import { ResultsPreview } from "./ResultsPreview";
 import { AssemblyComparison } from "./AssemblyComparison";
 import { AttachmentDirections } from "./AttachmentDirections";
 import { useAssemblyComparison } from "./useAssemblyComparison";
+import "../presentation/spatial-result-review.css";
 import "./proximity.css";
 
 function assemblyLabel(id: string, zh: boolean, selected = false) {
@@ -138,12 +139,9 @@ function ProximityResultWorkspace({
   const overview = (
     <section className="proximity-result-overview">
       <div className="proximity-result-heading">
-        <h2>
-          {mechanismLabels[result.mechanism][zh ? 0 : 1]} ·{" "}
-          {zh ? "三元装配" : "Ternary assemblies"}
-        </h2>
+        <h2>{zh ? "三元装配" : "Ternary assemblies"}</h2>
         <span className="proximity-caption">
-          {zh ? "结构假设" : "Structural hypotheses"}
+          {mechanismLabels[result.mechanism][zh ? 0 : 1]}
         </span>
       </div>
       <dl className="proximity-summary">
@@ -239,6 +237,7 @@ function ProximityResultWorkspace({
               rowId={(r) => r.id}
               language={language}
               title={zh ? "装配比较" : "Compare assemblies"}
+              compactToolbar
               selected={pair ? null : active.id}
               initialVisibleColumns={["id", "geometry", "clashes"]}
               onSelect={(r) => inspect(r.id)}
