@@ -33,6 +33,16 @@ export function IndexedLibraryResults({
   const url = member.saved
     ? `/api/assets/${member.saved.reference.asset_id}`
     : detail?.url;
+  const originalLabel =
+    detail?.geometry === "unbound_conformer"
+      ? zh
+        ? "原始构象 MOL"
+        : "Original conformer MOL"
+      : zh
+        ? "原始结构 MOL"
+        : "Original structure MOL";
+  const saving = member.phase === "saving";
+  const saveLabel = zh ? "保存为历史文件" : "Save to historical files";
   const actions = detail && (
     <div className="dataset-member-tools">
       <header className="dataset-member-heading">
@@ -62,14 +72,10 @@ export function IndexedLibraryResults({
           className="secondary-button"
           href={detail.url}
           download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
+          aria-label={originalLabel}
+          title={originalLabel}
         >
-          {detail.geometry === "unbound_conformer"
-            ? zh
-              ? "原始构象 MOL"
-              : "Original conformer MOL"
-            : zh
-              ? "原始结构 MOL"
-              : "Original structure MOL"}
+          {screeningReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
         </a>
         {member.saved ? (
           <span className="dataset-member-saved" role="status">
@@ -79,16 +85,20 @@ export function IndexedLibraryResults({
           <button
             type="button"
             className="secondary-button"
-            disabled={member.phase === "saving"}
+            disabled={saving}
+            aria-label={saving ? undefined : saveLabel}
+            title={saveLabel}
             onClick={() => void member.preserve()}
           >
-            {member.phase === "saving"
+            {saving
               ? zh
                 ? "正在保存…"
                 : "Saving…"
-              : zh
-                ? "保存为历史文件"
-                : "Save to historical files"}
+              : screeningReview
+                ? zh
+                  ? "保存文件"
+                  : "Save file"
+                : saveLabel}
           </button>
         )}
       </div>

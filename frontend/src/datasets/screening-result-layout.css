@@ -158,6 +158,12 @@
       }
     }
 
+    .dataset-member-inspector
+      .viewer-panel:not(:popover-open)
+      > .molecular-stage {
+      height: clamp(280px, calc(100dvh - 345px), 610px);
+    }
+
     .viewer-panel:has(> .viewer-mode-options):not(:popover-open) {
       position: relative;
       display: grid;
