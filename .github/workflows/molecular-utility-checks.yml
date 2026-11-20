@@ -872,6 +872,7 @@ jobs:
           npx vitest run src/datasets/DatasetResults.test.tsx src/datasets/ResearchTable.test.tsx
           src/datasets/IndexedLibraryResults.test.tsx src/datasets/CandidateView.test.tsx
           src/datasets/CandidateTable.test.tsx src/datasets/DELCandidateEvidence.test.tsx
+          src/diffsbdd/GeneratedCandidates.test.tsx
       - name: Set isolated DEL state paths
         run: |
           echo "WB_HOME=$RUNNER_TEMP/x-dde-del-desktop" >> "$GITHUB_ENV"

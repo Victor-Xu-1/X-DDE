@@ -1300,7 +1300,9 @@ CANDIDATE_DESKTOP_FILES = {
 CANDIDATE_DESKTOP_DIFF = "1a4b948f38b1177d491c1715192a1f1d81f811a0b7923703700871ec48d37c0b"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
+    ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/library-member-checks.yml",
+    ".github/workflows/molecular-preview-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/windows-capacity-checks.yml",
     "docs/frontend-layout.md",
@@ -1310,10 +1312,11 @@ DEL_DESKTOP_FILES = {
     "frontend/src/datasets/DatasetResults.tsx",
     "frontend/src/datasets/ResearchTable.tsx",
     "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/presentation/MolecularPreview.tsx",
     "server_tests/test_del_desktop_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-DEL_DESKTOP_DIFF = "3b84bd4b251b89548c99b78e93a63c51de29d27dc1b95b3d5cd32c990c909b44"
+DEL_DESKTOP_DIFF = "b86d8f29cf59a255ab692dddb78e5171aa59e64c519dc6467b1b648fa271bcd3"
 SIMULATION_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/simulation-checks.yml",

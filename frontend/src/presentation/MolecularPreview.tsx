@@ -56,7 +56,7 @@ export function MolecularPreview({
   const drawing = {
     id: "2d",
     label: zh ? "二维结构" : "2D structure",
-    shortLabel: toolbar ? "2D" : undefined,
+    shortLabel: toolbar ? (zh ? "二维" : "2D") : undefined,
     content: (
       <MoleculeImage source={source} label={label} language={language} />
     ),
@@ -64,7 +64,7 @@ export function MolecularPreview({
   const structure = {
     id: "3d",
     label: zh ? "三维结构" : "3D structure",
-    shortLabel: toolbar ? "3D" : undefined,
+    shortLabel: toolbar ? (zh ? "三维" : "3D") : undefined,
     content: (
       <MolecularStructureView
         viewer={{ ...frame, language, focusModel }}

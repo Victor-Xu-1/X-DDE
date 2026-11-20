@@ -103,6 +103,15 @@ def check_candidates(page, base, settings, width, height, zh, evidence):
     assert box["x"] + box["width"] < rail["x"] and rail["x"] + rail["width"] <= width
     assert box["y"] >= 0 and box["y"] + box["height"] <= height + 1
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    preview = workbench.locator(".molecular-preview")
+    drawing = preview.get_by_role(
+        "tab", name="二维结构" if zh else "2D structure", exact=True,
+    )
+    structure = preview.get_by_role(
+        "tab", name="三维结构" if zh else "3D structure", exact=True,
+    )
+    expect(drawing).to_have_text("二维" if zh else "2D")
+    expect(structure).to_have_text("三维" if zh else "3D")
     page.screenshot(path=evidence / "candidate-review.png")
     dataset_candidate(page, workbench, frame, figure, output, attempt, "del.candidates", zh)
     if not zh:
