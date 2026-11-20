@@ -13,7 +13,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   installer-network-boundary:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
@@ -29,6 +35,8 @@ jobs:
       - name: Explicit installer networking cannot change scientific execution or offline builds
         run: uv run --locked pytest -q tests/test_install_network.py
   windows-entry:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: windows-latest
     timeout-minutes: 15
     steps:

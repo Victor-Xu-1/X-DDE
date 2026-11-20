@@ -913,6 +913,7 @@ jobs:
           src/integrations/SequenceDesignOverview.test.tsx
           src/operations/CandidateSequenceResults.test.tsx
           src/presentation/SequenceTrack.test.tsx src/presentation/ResearchTable.test.tsx
+          src/research/SequenceFilePreview.test.tsx
       - name: Verify the two retained sequence workspaces in Chrome
         env:
           GH_TOKEN: ${{ github.token }}

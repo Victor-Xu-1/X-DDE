@@ -116,7 +116,11 @@ jobs:
           path: server_tests/evidence/prepared-inputs
   result-inspection:
     needs: [workflow-scope, utility-scope]
-    if: needs.workflow-scope.outputs.prepared_inputs_only != 'true' && needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.workflow-scope.outputs.workflow_only != 'true'
+    if: >-
+      needs.workflow-scope.outputs.prepared_inputs_only != 'true' &&
+      needs.utility-scope.outputs.runtime_switch_only != 'true' &&
+      needs.utility-scope.outputs.sequence_desktop_only != 'true' &&
+      needs.workflow-scope.outputs.workflow_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

@@ -13,7 +13,13 @@ on:
 permissions:
   contents: read
 jobs:
+  utility-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   assessment:
+    needs: utility-scope
+    if: needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

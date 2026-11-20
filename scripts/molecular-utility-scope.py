@@ -1222,7 +1222,11 @@ SEQUENCE_DESKTOP_FILES = {
 }
 SEQUENCE_DESKTOP_DIFF = "837cec103f0a77a977f32810bd325992192533c6fc16b18a271a083aac074615"
 SEQUENCE_COMPARISON_FILES = {
+    ".github/workflows/fold-assessment-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/sequence-result-checks.yml",
+    ".github/workflows/windows-capacity-checks.yml",
+    ".github/workflows/workspace-preview-checks.yml",
     "frontend/src/integrations/ScientificResults.tsx",
     "frontend/src/operations/CandidateChainComparison.tsx",
     "frontend/src/operations/CandidateSequenceResults.test.tsx",
@@ -1232,7 +1236,7 @@ SEQUENCE_COMPARISON_FILES = {
     "server_tests/test_sequence_review_desktop.py",
     "tests/test_molecular_utility_scope.py",
 }
-SEQUENCE_COMPARISON_DIFF = "97e018f56008abea02dfa73c3f3c17c97029d765fff412ebc551f6e4ac0d3c69"
+SEQUENCE_COMPARISON_DIFF = "ec203137621150ee406b0ea3b6569b7e7747dda958b17a7483e223874330ae19"
 PROTEIN_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
