@@ -234,6 +234,20 @@ def test_native_foreground_retry_clears_the_old_error_at_its_explicit_entry():
         assert handler.index('setError("")') < handler.index('foreground.current!.request')
 
 
+def test_native_copy_and_download_use_the_same_verified_smiles_export():
+    manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
+    record = next(item for item in manifest["files"] if item["path"].endswith("useWorkbench.ts"))
+    for changes in [record["changes"], *(item["changes"] for item in record["upgrades"])]:
+        copy = next(item["after"] for item in changes if "const text =" in item["after"]
+                    and "readPortableSmiles" in item["after"] and "getSdf" not in item["after"])
+        download = next(item["after"] for item in changes if "getSdf" in item["after"]
+                        and "readPortableSmiles" in item["after"])
+        for handler in (copy, download):
+            assert "await readPortableSmiles(editor.current)" in handler
+            assert 'await editor.current.getMolfile("v3000")' in handler
+            assert "await editor.current.getSmiles(" not in handler
+
+
 def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():
     manifest = json.loads((companion.RESOURCES / "patch.json").read_text())
     record = next(item for item in manifest["files"] if item["path"].endswith("MoleculeEditor.tsx"))

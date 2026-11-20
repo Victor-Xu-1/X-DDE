@@ -50,6 +50,11 @@ const english: Record<string, string> = {
   "复制 MOL": "Copy MOL",
   "下载 SMILES": "Download SMILES",
   "下载 SDF": "Download SDF",
+  "下载 MOL V3000": "Download MOL V3000",
+  "请用 MOL V3000 保留此结构的扩展注释或相对手性。": "MOL V3000 preserves this structure's extended annotations or relative stereochemistry.",
+  "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。": "Download MOL V3000 to preserve the extended annotations or relative stereochemistry of this structure.",
+  "无法生成可回读的单行 SMILES，请下载 MOL V3000。": "A readable single-line SMILES could not be generated. Download MOL V3000.",
+  "无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。": "The structure and stereochemistry of this SMILES could not be verified. Download MOL V3000.",
   本地运行: "Runs locally",
   "关闭识别后端？": "Stop recognition service?",
   "正在运行的识别任务会被中断。":

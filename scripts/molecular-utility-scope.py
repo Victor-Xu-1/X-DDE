@@ -646,6 +646,17 @@ EDITOR_DRAWING_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
+PORTABLE_SMILES_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/editors/portable-smiles.test.ts",
+    "frontend/src/editors/portable-smiles.ts",
+    "frontend/src/utilities/recognition-host-ui-locale.ts",
+    "pyproject.toml",
+    "src/opendde_workbench/data/recognition_locale/patch.json",
+    "src/opendde_workbench/recognition_companion.py",
+    "tests/test_recognition_companion.py",
+}
+PORTABLE_SMILES_DIFF = "548966e34b1bfc6183c49dfbe8b6d4fd04469a48cfe0fa12c198b245f5591f8c"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/chemistry/LibraryScreenForm.tsx",
@@ -1918,6 +1929,9 @@ def main():
     editor_drawing = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         EDITOR_DRAWING_FILES, EDITOR_DRAWING_DIFF, scope_pin="EDITOR_DRAWING_DIFF",
+    ) or reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        PORTABLE_SMILES_FILES, PORTABLE_SMILES_DIFF, scope_pin="PORTABLE_SMILES_DIFF",
     )
     utility_query = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
