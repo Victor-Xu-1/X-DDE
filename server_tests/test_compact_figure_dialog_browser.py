@@ -209,10 +209,13 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
             if example:
                 assert layout["optionsFit"], layout
                 assert layout["preview"]["height"] >= 345, layout
-                assert 0 <= layout["previewControls"]["top"] - layout["preview"]["bottom"] <= 12, layout
-                assert layout["spec"]["bottom"] <= layout["body"]["bottom"] + 1, layout
+                gap = layout["previewControls"]["top"] - layout["preview"]["bottom"]
+                assert 0 <= gap <= 12, layout
+                visible_top = layout["body"]["top"]
+                visible_bottom = layout["body"]["bottom"] + 1
+                assert layout["spec"]["bottom"] <= visible_bottom, layout
                 assert all(
-                    layout["body"]["top"] <= label["top"] <= label["bottom"] <= layout["body"]["bottom"] + 1
+                    visible_top <= label["top"] <= label["bottom"] <= visible_bottom
                     for label in layout["labels"]
                 ), layout
                 figure = layout["fittedImage"]
