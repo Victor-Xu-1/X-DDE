@@ -378,6 +378,22 @@
   }
 }
 
+@media (1001px <= width < 1120px) and (max-height: 719px) {
+  .studio-app .comparison-view-actions .comparison-match-views {
+    display: inline-grid;
+    place-items: center;
+    min-width: 32px;
+    padding-inline: 4px;
+  }
+  .comparison-match-views .comparison-match-icon {
+    display: inline-flex;
+    font-size: 15px;
+  }
+  .comparison-match-views .comparison-match-label {
+    display: none;
+  }
+}
+
 @media (1001px <= width < 1080px) and (max-height: 719px) {
   .studio-app .studio-main:has(.detail-panel .comparison-result-view) > .studio-topbar {
     min-height: 52px;
@@ -419,29 +435,19 @@
     .comparison-preview-context {
       overflow-wrap: anywhere;
     }
-    .comparison-view-actions .comparison-match-views {
-      display: inline-grid;
-      place-items: center;
-      min-width: 32px;
-      padding-inline: 4px;
-    }
-    .comparison-match-views .comparison-match-icon {
-      display: inline-flex;
-      font-size: 15px;
-    }
-    .comparison-match-views .comparison-match-label {
-      display: none;
-    }
     .aligned-structure-pair {
       gap: 8px;
     }
     .aligned-structure-pair .studio-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(32px, auto) minmax(30px, auto);
       margin-block-end: 3px;
-      flex-wrap: wrap;
       gap: 3px 5px;
     }
     .aligned-structure-pair .viewer-heading-actions {
       gap: 3px;
+      justify-content: start;
     }
     .aligned-structure-pair :is(.viewer-heading-actions > button, .viewer-tool-trigger) {
       min-height: 30px;

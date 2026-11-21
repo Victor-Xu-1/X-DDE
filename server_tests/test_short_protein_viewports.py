@@ -49,7 +49,10 @@ def inspect_interface(page, base, height, zh, evidence):
 def inspect_comparison(page, base, height, zh, evidence):
     job = open_result(page, base, "rmsd")
     result = page.locator(".detail-panel .comparison-result-view")
-    overlay = canvas_in_workspace(result, ready(result, zh), height, 350, 455)
+    compact = page.viewport_size["width"] < 1080
+    overlay = canvas_in_workspace(
+        result, ready(result, zh), height, 300 if compact else 350, 400 if compact else 455
+    )
     tabs = result.locator(".comparison-analysis .research-tab-list")
     assert tabs.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
     pair = result.get_by_role("button", name="已对齐并列" if zh else "Aligned side by side")
@@ -60,8 +63,12 @@ def inspect_comparison(page, base, height, zh, evidence):
     frames = result.locator(".aligned-structure-pair " + SCENE)
     expect(frames).to_have_count(2)
     a, b = frames.first, frames.last
-    left, right = (canvas_in_workspace(result, item, height, 310, 220) for item in (a, b))
+    left, right = (
+        canvas_in_workspace(result, item, height, 230 if compact else 310, 200 if compact else 220)
+        for item in (a, b)
+    )
     assert abs(left["y"] - right["y"]) < 2 and left["x"] + left["width"] < right["x"]
+    assert abs(left["width"] - right["width"]) < 2
     handles = [a.element_handle(), b.element_handle()]
     expand = result.locator(".comparison-view-actions [data-workspace-expand]")
     expand.click()
@@ -129,12 +136,15 @@ def inspect_receptors(page, base, height, zh, evidence):
     return box
 
 
-@pytest.mark.parametrize(("language", "theme", "width", "height"), [
-    ("en", "warm", 1120, 650), ("zh", "dark", 1280, 700),
+@pytest.mark.parametrize(("language", "theme", "width", "height", "kinds"), [
+    ("en", "warm", 1120, 650, ("interface", "comparison", "receptors")),
+    ("zh", "dark", 1280, 700, ("interface", "comparison", "receptors")),
+    ("en", "warm", 1001, 600, ("comparison",)),
+    ("zh", "dark", 1001, 580, ("comparison",)),
 ])
-def test_short_protein_viewports(language, theme, width, height):
+def test_short_protein_viewports(language, theme, width, height, kinds):
     zh = language == "zh"
-    evidence = Path("outputs/short-protein-viewports") / language
+    evidence = Path("outputs/short-protein-viewports") / f"{language}-{width}-{height}"
     evidence.mkdir(parents=True, exist_ok=True)
     with (
         platform(Settings.from_env().state_dir, evidence / "platform.log") as base,
@@ -153,11 +163,12 @@ def test_short_protein_viewports(language, theme, width, height):
         ))
         power_url = base + "/api/runtime-controls?include_native=false"
         power = page.request.get(power_url).json()
-        observed = {
-            "interface": inspect_interface(page, base, height, zh, evidence),
-            "comparison": inspect_comparison(page, base, height, zh, evidence),
-            "receptors": inspect_receptors(page, base, height, zh, evidence),
+        inspectors = {
+            "interface": inspect_interface,
+            "comparison": inspect_comparison,
+            "receptors": inspect_receptors,
         }
+        observed = {kind: inspectors[kind](page, base, height, zh, evidence) for kind in kinds}
         assert not writes and page.request.get(power_url).json() == power
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
         (evidence / "layout.json").write_text(json.dumps(observed, indent=2), encoding="utf-8")
