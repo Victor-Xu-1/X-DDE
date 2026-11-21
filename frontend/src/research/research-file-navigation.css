@@ -118,7 +118,7 @@
     padding-block: 6px;
   }
   .research-file-library .research-node-list {
-    max-height: clamp(160px, calc(100dvh - 432px), 420px);
+    max-height: clamp(260px, calc(100dvh - 400px), 520px);
   }
   .research-inspector-heading {
     display: flex;
@@ -127,7 +127,7 @@
     gap: 8px 12px;
     align-items: center;
     > h2 {
-      flex: 1 1 215px;
+      flex: 1 1 160px;
       margin: 0;
     }
     > .editor-toolbar {
@@ -179,6 +179,7 @@
       gap: 4px 8px;
     }
     .research-inspector-heading > h2 {
+      flex-basis: 215px;
       font-size: 16px;
       line-height: 1.28;
     }
@@ -196,6 +197,9 @@
       min-height: 32px;
       padding: 4px 8px;
       font-size: 12px;
+    }
+    .research-file-library .research-node-list {
+      max-height: clamp(132px, calc(100dvh - 450px), 340px);
     }
     .research-file-actions button {
       min-height: 32px;

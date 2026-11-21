@@ -50,14 +50,14 @@ _DESKTOP_BLOBS = {
     ),
     "frontend/src/research/research-file-navigation.css": (
         "22e90d313e3fee9a5b4f67e8577745b0e9d8f5cb",
-        "8842e176bf4c64f32f43a842c5d918132cb59914",
+        "88ce79ce75965dfe21e1c7a00761084606220a3a",
     ),
     "server_tests/test_workspace_preview_browser.py": (
         "f46274c954d11efd73e818b172c78d51c027a45e",
-        "7eeb6801d5a07166fc339a4c774ce5f838174484",
+        "842a052147a94643f7e0a48c1a23eb41fbc80d84",
     ),
 }
-_DESKTOP_SELECTOR_SHA = "fe875d8cbb1e2dffd86c993a2124e4cc7d23fba6a3a97059cb6b90abf68f37f9"
+_DESKTOP_SELECTOR_SHA = "29c10fd48357fb80b23231c2c319250358978f486d24dcf9f55ec7a7ec358a18"
 _INSPECTION_FILES = {
     ".github/workflows/example-result-set-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",

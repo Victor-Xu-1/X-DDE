@@ -54,16 +54,27 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         upload = toolbar.locator("input[type=file]")
         expect(upload).to_be_enabled()
-        expect(upload).to_be_in_viewport()
+        expect(upload).to_be_in_viewport(ratio=1)
         refresh = toolbar.get_by_role("button", name="刷新" if zh else "Refresh", exact=True)
         expect(refresh).to_be_enabled()
-        expect(refresh).to_be_in_viewport()
+        expect(refresh).to_be_in_viewport(ratio=1)
         expect(preview.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
         page.screenshot(path=evidence / f"desktop-file-{width}.png")
         measurements.append({
             "width": width, "height": height, "viewer": viewer_box,
             "visible": visible, "file_list": file_list,
         })
+
+    page.set_viewport_size({"width": 1110, "height": 580})
+    search = library.get_by_role("searchbox")
+    search.fill("fixture-with-no-matching-research-file")
+    expect(library.locator(".research-node-list li")).to_have_count(0)
+    chooser_input = toolbar.locator("input[type=file]")
+    expect(chooser_input).to_be_in_viewport(ratio=1)
+    with page.expect_file_chooser():
+        chooser_input.click()
+    search.fill("")
+    expect(library.locator(".research-node-list li").first).to_be_visible()
 
     page.set_viewport_size({"width": 1280, "height": 800})
     original = frame.element_handle()
@@ -198,7 +209,8 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
         page.evaluate("window.scrollTo(0, 0)")
         drawing_box = warhead.locator(".figure-preview-sheet").bounding_box()
         assert drawing_box and drawing_box["width"] >= 345
-        assert 600 - drawing_box["y"] >= 220, drawing_box
+        visible_drawing = min(drawing_box["height"], 600 - drawing_box["y"])
+        assert visible_drawing >= 220, drawing_box
         expect(files).to_be_in_viewport()
         page.screenshot(path=evidence / "desktop-warhead-1001.png")
         page.set_viewport_size({"width": 1440, "height": 1000})
