@@ -22,10 +22,7 @@ const partialAbsoluteMol = [
 ].join("\n");
 
 it.each([
-  "FC(Cl)=[C@AL1]=C(Br)I",
-  "FC(Cl)=[C@AL2]=C(Br)I",
   "FC(Cl)=[C@@]=C(Br)I",
-  "[C@AL1](=C(F)Cl)=C(Br)I",
   "[C@](=C(F)Cl)=C(Br)I",
   "FC(Cl)=[C@@](=C(Br)I)",
   "FC(Cl)=[C@@]=C(Br)I.C1.C1",
@@ -41,6 +38,34 @@ it.each([
   await expect(readRecognizedStereoFile(service, result, "mol")).rejects.toThrow(SmilesHandoffError);
   await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
   expect(service.getInChIKey).not.toHaveBeenCalled();
+});
+
+it.each([
+  ["FC(Cl)=[C@AL1]=C(Br)I", "FC(Cl)=[C@]=C(Br)I"],
+  ["FC(Cl)=[C@AL2]=C(Br)I", "FC(Cl)=[C@@]=C(Br)I"],
+  ["FC(Cl)=[C@AL2]=C(I)Br", "FC(Cl)=[C@@]=C(I)Br"],
+  ["[C@AL1](=C(F)Cl)=C(Br)I", "[C@](=C(F)Cl)=C(Br)I"],
+  ["F[C@H](C)C(Cl)=[13C@AL2:3]=C(Br)I", "F[C@H](C)C(Cl)=[13C@@:3]=C(Br)I"],
+])("exports equivalent axial shorthand with the original traversal for %s", async (rawSmiles, text) => {
+  const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
+  const source = editor(result.smiles);
+  await expect(readRecognizedSource(source.structService, result))
+    .resolves.toEqual({ text, molfile: "", sourceOnly: "allene" });
+  await expect(readRecognizedStereoFile(source.structService, result, "mol")).rejects.toThrow(SmilesHandoffError);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  expect(result.rawSmiles).toBe(rawSmiles);
+});
+
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)I.C[C@AL2](F)Cl",
+  "FC(Cl)=[C@AL1]=C(Br)I.[C@AL3]",
+  "FC(Cl)=[C@AL1]=C(Br)I.[Si@AL1](=C(F)Cl)=C(Br)I",
+  "F[C@AL1](=C(Br)I)=C(Cl)F",
+  "F[C@](=C(Br)I)=C(Cl)F",
+  "C=1[C@AL1]=1",
+])("withholds unclassified axial notation in %s", (rawSmiles) => {
+  expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
+    .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
 
 it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact", () => {

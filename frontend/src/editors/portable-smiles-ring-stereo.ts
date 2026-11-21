@@ -59,18 +59,48 @@ function bondPositions(text: string) {
   return current >= 0 && !branches.length && !rings.size && !pending ? { atoms, bonds } : null;
 }
 
-export function hasAlleneShorthand(text: string) {
-  const chiralCarbon = /\[(?:\d+)?C@@?(?:[+-]\d*|:\d+)*\]/;
-  if (!chiralCarbon.test(text)) return false;
+const alleneClass = /^(\[\d*C)@AL([12])((?:[+-]\d*|:\d+)*\])$/;
+const shorthandCarbon = /\[\d*C@@?(?:[+-]\d*|:\d+)*\]/;
+const other = (bond: Bond, atom: number) => bond.from === atom ? bond.to : bond.from;
+
+function indexNeighbors(bonds: Bond[]) {
+  const neighbors = new Map<number, Bond[]>();
+  for (const bond of bonds) {
+    for (const atom of [bond.from, bond.to]) {
+      const adjacent = neighbors.get(atom) ?? [];
+      adjacent.push(bond);
+      neighbors.set(atom, adjacent);
+    }
+  }
+  return neighbors;
+}
+
+/** Preserve SMILES traversal. Some readers handle axial parity only in shorthand. */
+export function alleneHandoffSmiles(text: string) {
+  if (!text.includes("@AL") && !shorthandCarbon.test(text)) return false;
   const graph = bondPositions(text);
   if (!graph) return null;
-  const doubleBonds = new Map<number, number>();
-  for (const bond of graph.bonds) {
-    if (bond.token !== "=") continue;
-    for (const atom of [bond.from, bond.to])
-      doubleBonds.set(atom, (doubleBonds.get(atom) ?? 0) + 1);
+  const neighbors = indexNeighbors(graph.bonds);
+  let found = false;
+  for (const [index, atom] of graph.atoms.entries()) {
+    const explicit = atom.includes("@AL");
+    if (!explicit && !shorthandCarbon.test(atom)) continue;
+    const bonds = neighbors.get(index);
+    const doubleBonds = bonds?.filter((bond) => bond.token === "=");
+    if (!explicit && doubleBonds?.length !== 2) continue;
+    if ((explicit && !alleneClass.test(atom)) || bonds?.length !== 2 || doubleBonds?.length !== 2)
+      return null;
+    const first = other(bonds[0], index);
+    const second = other(bonds[1], index);
+    if (first === index || second === index || first === second) return null;
+    found = true;
   }
-  return graph.atoms.some((atom, index) => chiralCarbon.test(atom) && doubleBonds.get(index) === 2);
+  if (!found) return false;
+  // OpenSMILES defines @AL1 and @AL2 as @ and @@ at an allene center.
+  return text.replace(/\[[^\[\]]+\]/g, (atom) =>
+    atom.replace(alleneClass, (_, prefix, parity, suffix) =>
+      `${prefix}${parity === "1" ? "@" : "@@"}${suffix}`),
+  );
 }
 
 export function ringStereoEntries(annotation: string) {
@@ -84,15 +114,7 @@ export function writeRingStereo(text: string, annotation: string) {
   const graph = bondPositions(text);
   if (!graph) return null;
   const { bonds } = graph;
-  const neighbors = new Map<number, Bond[]>();
-  for (const bond of bonds) {
-    for (const end of [bond.from, bond.to]) {
-      const adjacent = neighbors.get(end) ?? [];
-      adjacent.push(bond);
-      neighbors.set(end, adjacent);
-    }
-  }
-  const other = (bond: Bond, atom: number) => bond.from === atom ? bond.to : bond.from;
+  const neighbors = indexNeighbors(bonds);
   const reference = (atom: number, opposite: number) => neighbors.get(atom)
     ?.filter((bond) => other(bond, atom) !== opposite)
     .sort((a, b) => other(a, atom) - other(b, atom))[0];

@@ -1,4 +1,4 @@
-import { hasAlleneShorthand, ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
+import { alleneHandoffSmiles, ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
 
 type StructureExport = {
   getSmiles(isExtended?: boolean): Promise<string>;
@@ -41,11 +41,10 @@ export function recognizedStereoSource({ rawSmiles }: RecognitionResult): Recogn
       /(?:^|,)\^[1-7]:/.test(annotation ?? ""))
     return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
   const body = molecule.split(/\s/, 1)[0];
-  const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(body) ||
-    hasAlleneShorthand(body);
+  const axial = alleneHandoffSmiles(body);
   if (axial === false) return null;
   return {
-    text: axial && raw.length <= 100_000 && isPortableLine(raw) ? raw : "",
+    text: axial && raw.length <= 100_000 && isPortableLine(raw) ? axial : "",
     molfile: "",
     sourceOnly: axial ? "allene" : "unverified-stereo",
   };
