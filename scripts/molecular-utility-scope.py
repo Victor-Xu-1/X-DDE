@@ -679,7 +679,7 @@ GENERATED_DESKTOP_FILES = {
     "frontend/src/presentation/pose-review-workspace.css",
     "tests/test_molecular_utility_scope.py",
 }
-GENERATED_DESKTOP_DIFF = "72332a7d1a3ff67d628fb91bb3e8c2035af594074b4932b6b0977211ba4a220e"
+GENERATED_DESKTOP_DIFF = "023aa5a686f535c800f645a378becc9a1b7eeb8762975dddbad078d46b51bd67"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",

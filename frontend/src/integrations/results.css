@@ -50,6 +50,12 @@
   color: var(--muted);
 }
 
+@media (width > 1000px) {
+  .scientific-results.generated-review-workspace .research-table .molecule-image.is-thumbnail {
+    width: 148px;
+  }
+}
+
 @media (width > 1000px) and (height <= 720px) {
   .generated-selection {
     font-size: 12px;
