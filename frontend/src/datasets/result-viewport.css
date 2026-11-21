@@ -105,6 +105,7 @@
 
     .figure-preview-sheet {
       height: var(--dataset-drawing-height, clamp(240px, calc(100dvh - 350px), 540px));
+      min-height: 0;
     }
 
     .viewer-panel:not(:popover-open) {
@@ -165,5 +166,15 @@
         inset-block-start: 37px;
       }
     }
+  }
+}
+
+@media (1000px < width < 1024px) {
+  .studio-app [data-del-results]
+    .structure-workbench:not([data-workspace-expanded])
+    .candidate-inspection-preview
+    .viewer-panel:not(:popover-open)
+    > .molecular-stage {
+    max-height: max(240px, calc(100dvh - 350px));
   }
 }

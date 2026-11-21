@@ -96,8 +96,11 @@ def verify_result_workspace(page, capability, zh, *, del_candidates=False):
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "light", 1001, 650),
+    ("en", "warm", 1024, 600),
     ("en", "warm", 1024, 650),
     ("zh", "dark", 1024, 650),
+    ("en", "light", 1024, 720),
     ("en", "warm", 1080, 650),
     ("zh", "dark", 1120, 650),
     ("en", "light", 1440, 900),
@@ -105,7 +108,9 @@ def verify_result_workspace(page, capability, zh, *, del_candidates=False):
 def test_retained_result_headers_at_desktop_sizes(language, theme, width, height):
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
-    evidence = Path("outputs/candidate-inspection") / f"result-workbench-{width}-{language}"
+    evidence = Path("outputs/candidate-inspection") / (
+        f"result-workbench-{width}x{height}-{language}"
+    )
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     writes = []
