@@ -7,6 +7,7 @@ export function FigureViewport({
   language,
   transparent,
   caption,
+  exportPreview = false,
   ready,
   label,
 }: {
@@ -14,6 +15,7 @@ export function FigureViewport({
   language: Language;
   transparent: boolean;
   caption?: string;
+  exportPreview?: boolean;
   ready: boolean;
   label?: string;
 }) {
@@ -49,7 +51,7 @@ export function FigureViewport({
     <>
       <div
         ref={viewport}
-        className={`figure-preview-sheet ${transparent ? "is-transparent" : ""}`}
+        className={`figure-viewport ${exportPreview ? "figure-export-canvas" : "figure-preview-sheet"} ${transparent ? "is-transparent" : ""}`}
         data-zoom={zoom}
         data-dragging={dragging}
         role="region"

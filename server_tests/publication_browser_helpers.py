@@ -27,7 +27,7 @@ def export_figure(
         ),
     )
     try:
-        image = dialog.locator(".figure-preview-sheet img")
+        image = dialog.locator(".figure-export-canvas img")
         expect(image).to_be_visible(timeout=45000)
         export = dialog.get_by_role(
             "button", name=("导出 " if language == "zh" else "Export ") + format, exact=True

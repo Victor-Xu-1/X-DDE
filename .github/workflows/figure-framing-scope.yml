@@ -57,9 +57,9 @@ jobs:
                 frontend/src/publication/publication.css|frontend/src/publication/FigureDialog.tsx|frontend/src/publication/FigurePreview.tsx|frontend/src/publication/FigureViewport.tsx)
                   compact_changed=true
                   ;;
-                frontend/src/admet/admet.css|frontend/src/datasets/result-viewport.css|frontend/src/discovery/discovery.css|frontend/src/discovery/reference-import.css|frontend/src/presentation/prediction-input-inspector.css) ;;
                 server_tests/test_compact_figure_dialog_browser.py) compact_changed=true ;;
-                .github/workflows/figure-framing-scope.yml|.github/workflows/publication-checks.yml|.github/workflows/dataset-discovery-checks.yml|.github/workflows/structure-layout-checks.yml|.github/workflows/workspace-preview-checks.yml) ;;
+                server_tests/publication_browser_helpers.py|server_tests/test_publication_controls_browser.py|server_tests/test_native_color_key_publication_browser.py) ;;
+                .github/workflows/figure-framing-scope.yml|.github/workflows/publication-checks.yml|.github/workflows/workspace-preview-checks.yml) ;;
                 pyproject.toml|uv.lock|frontend/package.json|frontend/package-lock.json|install.sh|install.ps1) ;;
                 *) compact=false ;;
               esac
@@ -67,7 +67,7 @@ jobs:
             [[ "$compact_changed" == true ]] || compact=false
             # The compact replay replaces broader jobs only for this figure layout delta.
             product_diff=$(git diff-tree -r --raw --no-abbrev --no-commit-id "$BASE" HEAD -- frontend/src | sha256sum)
-            [[ "${product_diff%% *}" == b5759dc725c08401d94317fa0bd128d2f5d9800318cd3bb1913feb5b64cf1c68 ]] || compact=false
+            [[ "${product_diff%% *}" == 1b15bc141cd70fbd1a2dc41488fd95398af58f4aee1cbb7fa2e732d71ab3ecbe ]] || compact=false
           fi
           echo "framing_only=$only" >> "$GITHUB_OUTPUT"
           echo "compact_only=$compact" >> "$GITHUB_OUTPUT"

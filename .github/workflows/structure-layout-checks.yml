@@ -125,8 +125,6 @@ on:
 permissions:
   contents: read
 jobs:
-  framing-scope:
-    uses: ./.github/workflows/figure-framing-scope.yml
   workspace-scope:
     uses: ./.github/workflows/workspace-preview-checks.yml
     with:
@@ -261,9 +259,8 @@ jobs:
             outputs/reference-preview
             server_tests/evidence/hydrogen-policy
   view-alignment:
-    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope, workspace-scope, framing-scope]
-    # Compact export overlays are exercised against the native views in publication-checks.yml.
-    if: needs.framing-scope.outputs.compact_only != 'true' && needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.prediction-scope.outputs.target_evidence_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope, workspace-scope]
+    if: needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.prediction-scope.outputs.target_evidence_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.prediction-scope.outputs.prediction_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
@@ -330,8 +327,8 @@ jobs:
           name: structure-workbench-evidence
           path: outputs/structure-workbench/**
   adjacent-result-consumers:
-    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope, workspace-scope, framing-scope]
-    if: needs.framing-scope.outputs.compact_only != 'true' && needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.prediction-scope.outputs.target_evidence_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
+    needs: [scope, model-context, prediction-scope, guidance-scope, utility-scope, workspace-scope]
+    if: needs.workspace-scope.outputs.file_navigation_only != 'true' && needs.prediction-scope.outputs.confidence_frame != 'true' && needs.utility-scope.outputs.utility_only != 'true' && needs.prediction-scope.outputs.target_evidence_only != 'true' && (needs.scope.outputs.admet_result_only != 'true' && needs.scope.outputs.interaction_only != 'true' && needs.scope.outputs.del_only != 'true' && needs.model-context.outputs.model_context_only != 'true' && needs.scope.outputs.native_receptor_only != 'true' && needs.guidance-scope.outputs.guidance_only != 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:

@@ -35,7 +35,7 @@ OBSERVE_FIGURES = """(() => {
 
 
 def colored_footer(dialog, palette):
-    return dialog.locator(".figure-preview-sheet img").evaluate(
+    return dialog.locator(".figure-export-canvas img").evaluate(
         """(image, palette) => {
           const canvas=document.createElement('canvas');
           canvas.width=image.naturalWidth;

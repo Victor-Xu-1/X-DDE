@@ -130,7 +130,7 @@
     border-radius: 9px;
   }
 
-  .prediction-input-panel .molecule-inspection-view > .figure-preview-sheet {
+  .prediction-input-panel .figure-preview-sheet {
     height: clamp(220px, calc(100cqh - 128px), 540px);
   }
 

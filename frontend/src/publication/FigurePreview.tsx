@@ -45,6 +45,7 @@ export function FigurePreview({
         language={language}
         transparent={transparent}
         caption={zh ? "预览缩放不改变下载尺寸" : "Zoom is for preview only"}
+        exportPreview
         ready={state.ready}
       >
         {state.preview && (

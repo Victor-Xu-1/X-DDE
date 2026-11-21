@@ -99,8 +99,6 @@ on:
 permissions:
   contents: read
 jobs:
-  framing-scope:
-    uses: ./.github/workflows/figure-framing-scope.yml
   utility-scope:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
@@ -224,8 +222,8 @@ jobs:
           python -m pytest -q server_tests/test_docking_candidate_inputs.py
           server_tests/test_docking_receptor_handoff.py
   contracts:
-    needs: [target-ui-scope, utility-scope, framing-scope]
-    if: needs.framing-scope.outputs.compact_only != 'true' && needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
+    needs: [target-ui-scope, utility-scope]
+    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -299,8 +297,8 @@ jobs:
           npx vitest run src/datasets/CandidateView.test.tsx
           src/datasets/CandidateTable.test.tsx src/datasets/CandidateHandoff.test.tsx
   native-del-data:
-    needs: [target-ui-scope, utility-scope, framing-scope]
-    if: needs.framing-scope.outputs.compact_only != 'true' && needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
+    needs: [target-ui-scope, utility-scope]
+    if: needs.utility-scope.outputs.runtime_switch_only != 'true' && needs.utility-scope.outputs.candidate_desktop_only != 'true' && needs.utility-scope.outputs.del_desktop_only != 'true' && needs.target-ui-scope.outputs.target_evidence_only != 'true' && (github.event_name == 'push' || github.event_name == 'pull_request' || inputs.engine == 'contracts')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

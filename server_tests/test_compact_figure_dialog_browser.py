@@ -54,7 +54,7 @@ def geometry(dialog):
             return {left, right, top, bottom, width, height};
           };
           const body = dialog.querySelector('.figure-export-layout');
-          const preview = body.querySelector('.figure-preview-sheet');
+          const preview = body.querySelector('.figure-export-canvas');
           const options = body.querySelector('.figure-export-options');
           const action = dialog.querySelector('footer button');
           const out = action.getBoundingClientRect();
@@ -119,7 +119,7 @@ def assert_options_fit(dialog):
 
 def check_short_body_scroll(page, dialog, before):
     assert before["canScroll"]
-    preview_canvas = dialog.locator(".figure-preview-sheet")
+    preview_canvas = dialog.locator(".figure-export-canvas")
     dialog.get_by_role("button", name="Zoom in preview", exact=True).click()
     expect(preview_canvas).to_have_attribute("data-zoom", "2")
     expect(preview_canvas).to_have_attribute("tabindex", "0")
@@ -205,9 +205,9 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
                 assert layout["preview"]["height"] >= 345, layout
                 assert 0 <= layout["previewControls"]["top"] - layout["preview"]["bottom"] <= 12, layout
                 zoom.click()
-                expect(dialog.locator(".figure-preview-sheet")).to_have_attribute("data-zoom", "2")
+                expect(dialog.locator(".figure-export-canvas")).to_have_attribute("data-zoom", "2")
                 dialog.get_by_role("button", name="适应窗口" if zh else "Fit preview").click()
-                expect(dialog.locator(".figure-preview-sheet")).to_have_attribute("data-zoom", "1")
+                expect(dialog.locator(".figure-export-canvas")).to_have_attribute("data-zoom", "1")
             if width == 320:
                 check_short_body_scroll(page, dialog, layout)
             if format == "SVG" and not example:
