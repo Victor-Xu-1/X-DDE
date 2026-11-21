@@ -48,6 +48,10 @@ A recognized result can combine planar drawing coordinates with absolute stereo 
 
 An edited drawing can also export ring E/Z geometry. The editor expresses indexed ring geometry with ordinary directional bonds and reads it back through the native chemistry engine. It enables copy only when the recovered geometry and molecular identity agree with the current drawing.
 
+For a chiral structure with a monovalent radical, the editor allows plain SMILES when reading the bracket atom restores the same radical on the same atom. Drawings with a separately specified spin state can use the structure-file export. When the recognized source itself supplies an explicit radical annotation that the drawing path cannot verify, the original image stays available and the converted exports are withheld.
+
 For recognized absolute configurations, the derived V2000 or V3000 drawing carries the absolute chiral flag. In V3000 this also covers explicitly specified centers outside a partial `STEABS` collection. Drawings containing relative or mixture collections retain their flags and use the structure-file export.
 
 When the recognizer returns allene stereochemistry that the drawing pipeline cannot preserve, the image utility offers the original single-line SMILES with its original atom order and stereo marker. Review the imported structure in ChemDraw. The incompatible drawing, MOL/SDF export and task transfer are unavailable for that recognition. If the drawing reader cannot classify shorthand stereochemistry or the source uses annotations outside a single ordinary SMILES line, the utility withholds export and explains the limitation.
+
+Recognized square-planar, trigonal-bipyramidal and octahedral assignments are withheld from converted exports when the drawing and import path cannot verify their configuration.

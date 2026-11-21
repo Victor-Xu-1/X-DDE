@@ -7,7 +7,7 @@ type StructureExport = {
     getInChIKey(structure: string): Promise<string>;
   };
 };
-type ReadSmiles = (structure: string) => Promise<string>;
+type ReadStructure = (structure: string, format?: "ket") => Promise<string>;
 
 export type RecognitionResult = {
   rawSmiles?: string | null;
@@ -32,13 +32,17 @@ function isPortableLine(value: string) {
   return /^[\x21-\x7e]+$/.test(value) && !/[>|]/.test(value);
 }
 
-/** Keep the original atom order and axial marker when MOL drops allene stereo. */
+/** Keep export on the recognized source when the drawing cannot retain its stereo. */
 export function recognizedStereoSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
   const raw = rawSmiles?.trim();
   if (!raw) return null;
-  const molecule = raw.split(/\s|\|/, 1)[0];
-  const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(molecule) ||
-    hasAlleneShorthand(molecule);
+  const [molecule, annotation] = raw.split("|", 2);
+  if (/\[(?:\d+)?[A-Z][a-z]?@(?:SP|TB|OH)\d/.test(molecule) ||
+      /(?:^|,)\^[1-7]:/.test(annotation ?? ""))
+    return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
+  const body = molecule.split(/\s/, 1)[0];
+  const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(body) ||
+    hasAlleneShorthand(body);
   if (axial === false) return null;
   return {
     text: axial && raw.length <= 100_000 && isPortableLine(raw) ? raw : "",
@@ -62,7 +66,7 @@ function isPlanarCoordinateList(value: string) {
 
 /** Keep chemical stereo data for comparison, apart from planar drawing coordinates. */
 function stereoSmiles(value: string) {
-  if (isPortableLine(value)) return { text: value, plain: value, identity: value, stereo: "" };
+  if (isPortableLine(value)) return { text: value, plain: value, identity: value, stereo: "", radical: false };
   const match = /^(\S+) \|([^|]+)\|$/.exec(value);
   if (!match || !isPortableLine(match[1])) return null;
   const [, text, annotation] = match;
@@ -72,18 +76,38 @@ function stereoSmiles(value: string) {
     if (!coordinates || !isPlanarCoordinateList(coordinates[1])) return null;
     stereo = coordinates[2] ?? "";
   }
-  if (stereo && !/^[act]:\d+(?:,\d+)*(?:,[act]:\d+(?:,\d+)*)*$/.test(stereo))
+  if (stereo && !/^(?:[act]|\^[1-7]):\d+(?:,\d+)*(?:,(?:[act]|\^[1-7]):\d+(?:,\d+)*)*$/.test(stereo))
     return null;
   return {
     text,
     plain: /(?:^|,)[ct]:/.test(stereo) ? null : text,
     identity: stereo ? `${text} |${stereo}|` : text,
     stereo,
+    radical: /(?:^|,)\^[1-7]:/.test(stereo),
   };
 }
 
+/** Indigo's KET conversion retains the input atom order within a molecule.
+ * Compare the inferred positions to the original CXSMILES indices. */
+async function preservesRadical(
+  read: ReadStructure,
+  from: NonNullable<ReturnType<typeof stereoSmiles>>,
+) {
+  if (!from.plain || from.plain.includes(".") || /(?:^|,)\^[2-7]:/.test(from.stereo)) return false;
+  const expected = [...from.stereo.matchAll(/(?:^|,)\^1:(\d+(?:,\d+)*)/g)]
+    .flatMap(([, indices]) => indices.split(",").map(Number)).sort((a, b) => a - b);
+  const molecules = Object.values(JSON.parse(await read(from.plain, "ket")))
+    .filter((node): node is {type: "molecule"; atoms: {radical?: number}[]} =>
+      typeof node === "object" && node !== null && "type" in node && node.type === "molecule");
+  if (molecules.length !== 1 || !Array.isArray(molecules[0].atoms)) return false;
+  const observed = molecules[0].atoms.flatMap((atom, index) => atom.radical ? [[index, atom.radical]] : []);
+  // KET uses MDL radical code 2 for a doublet.
+  return observed.length === expected.length &&
+    observed.every(([index, state], i) => index === expected[i] && state === 2);
+}
+
 async function readStandardRingStereo(
-  readSmiles: ReadSmiles,
+  readSmiles: ReadStructure,
   service: StructureExport["structService"],
   exported: NonNullable<ReturnType<typeof stereoSmiles>>,
   expected: string,
@@ -133,6 +157,10 @@ export function hasRelativeStereo(molfile: string) {
   return /MDLV30\/STER(?:AC|EL)\d*/.test(molfile);
 }
 
+function hasMolRadical(molfile: string) {
+  return /(?:^M  RAD\s+\d|\bRAD=[1-9]\d*\b)/m.test(molfile);
+}
+
 /** Recover the recognized source if the drawing component cannot load it. */
 export async function readRecognizedSource(
   service: StructureExport["structService"],
@@ -145,6 +173,9 @@ export async function readRecognizedSource(
     return null;
 
   const molfile = recognizedDrawing(result);
+  // The rejected drawing cannot corroborate radical spin. The fallback
+  // compares only InChIKeys, which are insufficient for that file.
+  if (hasMolRadical(molfile)) return null;
   const source = stereoSmiles(raw);
   let expected: string;
   try {
@@ -186,7 +217,7 @@ export async function readRecognizedStereoFile(
 export async function readPortableSmiles(
   editor: StructureExport,
   recognized?: RecognitionResult,
-  readSmiles?: ReadSmiles,
+  readSmiles?: ReadStructure,
 ) {
   if (recognized && recognizedStereoSource(recognized))
     throw new SmilesHandoffError("绘图组件无法核对原始 SMILES 的立体化学。");
@@ -222,6 +253,12 @@ export async function readPortableSmiles(
   try {
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
+    if (exported.radical || hasMolRadical(mol)) {
+      if (!exported.radical || !readSmiles || !exported.plain ||
+          stereoSmiles((await readSmiles(mol)).trim())?.identity !== exported.identity ||
+          !await preservesRadical(readSmiles, exported))
+        throw new Error("Radical annotation cannot round trip");
+    }
     if (!exported.plain) {
       if (expected !== await editor.structService.getInChIKey(exported.identity))
         throw new Error("Editor ring stereochemistry changed");

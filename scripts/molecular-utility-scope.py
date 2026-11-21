@@ -649,16 +649,12 @@ EDITOR_DRAWING_FILES = {
 }
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
 PORTABLE_SMILES_FILES = {
-    "frontend/src/editors/portable-smiles-ring-stereo.ts",
     "docs/recognition-locale.md",
     "frontend/src/editors/portable-smiles.test.ts",
     "frontend/src/editors/portable-smiles.ts",
-    "frontend/src/utilities/recognition-host-ui-locale.ts",
-    "pyproject.toml",
     "src/opendde_workbench/data/recognition_locale/patch.json",
-    "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "2bf3cb3ae2ff4400ec05ba8c2c283853fa933c418541f9279111c6f8b793a516"
+PORTABLE_SMILES_DIFF = "42f1883a1636e83db7a81039aed1f4952a5955b1da18cf3f5b5ffaf7ad9af2de"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",

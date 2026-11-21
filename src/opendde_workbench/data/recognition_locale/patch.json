@@ -742,7 +742,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "1d249fd170a974358823bd66762068feb6cd8253f588a276bd6fdc9678264d98",
+      "after_sha256": "88326190a4d0aebe91837747cde4ab121a71114e587371a8f2a950cba3e2c00b",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1278,6 +1278,19 @@
               "after": "    error: inputBridgeOrigin() && sourceExport?.sourceOnly\n      ? \"绘图组件无法核对原始 SMILES 的立体化学。\"\n      : error,\n    setError,"
             }
           ]
+        },
+        {
+          "before_sha256": "1d249fd170a974358823bd66762068feb6cd8253f588a276bd6fdc9678264d98",
+          "changes": [
+            {
+              "before": "      const readSmiles = async (struct: string) => (await current.structService.convert({\n        struct, output_format: ChemicalMimeType.DaylightSmiles,\n      })).struct;",
+              "after": "      const readStructure = async (struct: string, format?: \"ket\") => (await current.structService.convert({\n        struct, output_format: format === \"ket\" ? ChemicalMimeType.KET : ChemicalMimeType.DaylightSmiles,\n      })).struct;"
+            },
+            {
+              "before": "readPortableSmiles(current, result, readSmiles)",
+              "after": "readPortableSmiles(current, result, readStructure)"
+            }
+          ]
         }
       ]
     },
@@ -1475,7 +1488,8 @@
       "d9d1b64daec1b9a980fe0844c1bccb029aab1f403741689749481587673d6819",
       "813263c570475cb93b40edb51af74e34e30480c4c58c9552411d2c10bf9faf77",
       "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211",
-      "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf"
+      "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf",
+      "ef1662af5bad34a26ff89a389f81df9f79f38b03d137adb58f64bc6d64f6683c"
     ],
     "portable-smiles-ring-stereo.ts": [
       "463dfd1a642eca37a922756a72f84f9812ca608fe3f6f9f7a1fb8329c9d19326"
