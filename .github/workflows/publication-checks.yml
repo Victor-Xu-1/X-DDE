@@ -584,15 +584,26 @@ jobs:
       - name: Shared figure and molecular drawing controls
         working-directory: frontend
         run: npx vitest run src/publication/FigureExport.test.tsx src/presentation/MoleculeImage.test.tsx
-      - name: Shared export in saved files, structure drawings and scientific color keys
+      - name: Shared export in saved files and scientific color keys
         run: |
           uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -x -q \
-            server_tests/test_publication_controls_browser.py::test_ketcher_preview_matches_download_and_mobile_settings \
             server_tests/test_native_color_key_publication_browser.py::test_retained_native_figure_includes_applied_color_key
           uv run --locked python server_tests/prepare_workspace_preview_cases.py
           uv run --locked python -m pytest -x -q \
             server_tests/test_workspace_preview_browser.py::test_native_selected_file_previews_and_exact_record_switching
+      - name: Archival Ketcher drawing and export settings
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WB_HOME: ${{ runner.temp }}/x-dde-compact-archive
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-compact-archive/state
+        run: |
+          gh release download examples-v1 --repo "$GITHUB_REPOSITORY" \
+            --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
+          uv run --locked python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          uv run --locked python -m pytest -x -q \
+            server_tests/test_publication_controls_browser.py::test_ketcher_preview_matches_download_and_mobile_settings
       - uses: actions/upload-artifact@v4
         if: always()
         with:
