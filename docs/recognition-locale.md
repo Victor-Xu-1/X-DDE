@@ -46,4 +46,6 @@ Use **Copy SMILES**, then **Edit → Paste Special → SMILES** in ChemDraw. The
 
 A recognized result can combine planar drawing coordinates with absolute stereo labels. The export verifies the absolute configuration without the drawing coordinates and keeps the isomeric markers in plain SMILES. For ring E/Z geometry stored in an extension, the editor uses the recognized source's standard slash notation only when its geometry agrees with both the source and current drawing. Download **MOL** for relative stereo groups, ambiguous bonds or any structure whose plain SMILES cannot be verified. Open the file in ChemDraw to keep the available bond and stereochemical annotations. Compare stereochemical wedges and double bonds against the source image before using an OCR result.
 
+An edited drawing can also export ring E/Z geometry. The editor expresses indexed ring geometry with ordinary directional bonds and reads it back through the native chemistry engine. It enables copy only when the recovered geometry and molecular identity agree with the current drawing.
+
 For recognized absolute configurations, the derived V2000 or V3000 drawing carries the absolute chiral flag. In V3000 this also covers explicitly specified centers outside a partial `STEABS` collection. Drawings containing relative or mixture collections retain their flags and use the structure-file export.
