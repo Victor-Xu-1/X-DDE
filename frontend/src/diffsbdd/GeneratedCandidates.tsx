@@ -180,6 +180,7 @@ export function GeneratedCandidates({
                 : "Molecules in this result"
           }
           language={language}
+          compactToolbar={generated}
           selected={selected ? String(selected.record) : null}
           onSelect={onSelect}
           initialVisibleColumns={

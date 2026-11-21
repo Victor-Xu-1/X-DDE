@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 jobs:
+  result-scope:
+    uses: ./.github/workflows/molecular-utility-checks.yml
+    with:
+      scope_only: true
   scope:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -35,8 +39,11 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python3 scripts/receptor-workspace-scope.py
   reference-pocket:
-    needs: scope
-    if: needs.scope.outputs.review_only != 'true' && needs.scope.outputs.receptor_workspace_only != 'true'
+    needs: [scope, result-scope]
+    if: >-
+      needs.scope.outputs.review_only != 'true' &&
+      needs.scope.outputs.receptor_workspace_only != 'true' &&
+      needs.result-scope.outputs.generated_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:

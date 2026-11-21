@@ -323,6 +323,8 @@ it("keeps declared stereochemistry separate from unbound 3D geometry when select
   expect(selected().urls).toEqual([
     "/api/jobs/native-study/download?name=molecule-002.sdf",
   ]);
+  expect(selected().nativeArtifactSha256).toBe("a".repeat(64));
+  expect(screen.getByRole("button", { name: "Download selected candidate SDF" })).toBeVisible();
   expect(
     screen.getByRole("link", { name: "molecule-002.sdf" }),
   ).toHaveAttribute(
@@ -336,4 +338,6 @@ it("keeps declared stereochemistry separate from unbound 3D geometry when select
   expect(selected().urls).toEqual([
     "/api/jobs/native-study/download?name=explicit-configuration.sdf",
   ]);
+  expect(selected().nativeArtifactSha256).toBeUndefined();
+  expect(screen.queryByRole("button", { name: "Download selected candidate SDF" })).toBeNull();
 });

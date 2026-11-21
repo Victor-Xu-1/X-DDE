@@ -15,6 +15,7 @@ on:
       - "frontend/src/presentation/molecular-record*"
       - "frontend/src/presentation/artifact-digest*"
       - "frontend/src/presentation/MolecularPreview.tsx"
+      - "frontend/src/presentation/compact-structure-review.css"
       - "frontend/src/examples/review-highlights*"
       - "frontend/src/diffsbdd/generated-metrics*"
       - "frontend/src/diffsbdd/generated-columns*"
@@ -47,6 +48,22 @@ jobs:
     uses: ./.github/workflows/workspace-preview-checks.yml
     with:
       scope_only: true
+  desktop-generated-review:
+    needs: result-scope
+    if: needs.result-scope.outputs.generated_desktop_only == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix frontend && npm run build --prefix frontend
+      - name: Generated candidates, native source selection and quality warnings
+        working-directory: frontend
+        run: >-
+          npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx
+          src/diffsbdd/DiffResults.test.tsx src/integrations/ScientificResults.test.tsx
   candidate-results:
     needs: [framing-scope, result-scope, workspace-scope]
     if: >-
@@ -61,6 +78,7 @@ jobs:
       needs.result-scope.outputs.paired_figure_only != 'true' &&
       needs.result-scope.outputs.native_color_figure_only != 'true' &&
       needs.result-scope.outputs.candidate_desktop_only != 'true' &&
+      needs.result-scope.outputs.generated_desktop_only != 'true' &&
       needs.result-scope.outputs.del_desktop_only != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20

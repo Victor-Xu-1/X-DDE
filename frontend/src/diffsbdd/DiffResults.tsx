@@ -281,6 +281,7 @@ export function DiffResults({
     designing && records.length > 0 && targetArtifact;
   return wrap(
     <section
+      className={showCandidateWorkbench ? "generated-review-workspace" : undefined}
       aria-label={
         zh ? "DiffSBDD 结果与下一步" : "DiffSBDD results and next steps"
       }

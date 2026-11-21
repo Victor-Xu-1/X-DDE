@@ -71,6 +71,7 @@ jobs:
       needs.scope.outputs.managed_compute_only != 'true' &&
       needs.utility-scope.outputs.refinement_desktop_only != 'true' &&
       needs.utility-scope.outputs.paired_figure_only != 'true' &&
+      needs.utility-scope.outputs.generated_desktop_only != 'true' &&
       needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 15
