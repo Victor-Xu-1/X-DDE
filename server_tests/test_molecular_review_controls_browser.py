@@ -41,12 +41,12 @@ def open_input(page, base, kind, zh):
 
 
 @pytest.mark.parametrize("language", ["en", "zh"])
-def test_utility_readiness_keeps_actions_in_the_first_screen(tmp_path, language):
+def test_utility_readiness_keeps_actions_in_the_first_screen(language):
     evidence = EVIDENCE / "utility-readiness" / language
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
     with (
-        platform(tmp_path / "state", evidence / "service.log") as base,
+        platform(Settings.from_env().state_dir, evidence / "service.log") as base,
         sync_playwright() as driver,
     ):
         browser = driver.chromium.launch(channel="chrome")
