@@ -687,7 +687,7 @@ COMPACT_MATERIAL_FILES = {
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_molecular_review_controls_browser.py",
 }
-COMPACT_MATERIAL_DIFF = "d3041c8233c9aa7ce809a95eeeab47064b9cc73377e4b37e9d99025d0ee24676"
+COMPACT_MATERIAL_DIFF = "ef05a6da53c881dad7286c7bb5c5187568c6cda2495cbd5e94cbd8873c6e5977"
 
 
 PAIRED_FIGURE_FILES = {

@@ -45,7 +45,10 @@ def test_utility_readiness_keeps_actions_in_the_first_screen(tmp_path, language)
     evidence = EVIDENCE / "utility-readiness" / language
     evidence.mkdir(parents=True, exist_ok=True)
     zh = language == "zh"
-    with platform(tmp_path / "state", evidence / "service.log") as base, sync_playwright() as driver:
+    with (
+        platform(tmp_path / "state", evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
         browser = driver.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": 1110, "height": 600}, reduced_motion="reduce")
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
