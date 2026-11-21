@@ -157,16 +157,16 @@
 
   .studio-app .generated-review-workspace
     :is(.generated-candidate-table, .optimization-candidate-table) .molecule-record {
-    grid-template-columns: 64px minmax(0, 1fr);
-    align-items: center;
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 3px;
     width: 100%;
     min-width: 0;
     padding: 0;
   }
 
   .generated-review-workspace .molecule-record .molecule-image.is-thumbnail {
-    width: 100%;
+    width: min(100%, 76px);
     height: 50px;
     padding: 2px;
   }
