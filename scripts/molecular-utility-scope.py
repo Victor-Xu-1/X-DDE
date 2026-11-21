@@ -670,6 +670,7 @@ GENERATED_DESKTOP_FILES = {
     ".github/workflows/reference-pocket-checks.yml",
     "frontend/src/diffsbdd/DiffResults.tsx",
     "frontend/src/diffsbdd/GeneratedCandidates.css",
+    "frontend/src/diffsbdd/GeneratedCandidates.test.tsx",
     "frontend/src/diffsbdd/GeneratedCandidates.tsx",
     "frontend/src/diffsbdd/GeneratedMetricsView.tsx",
     "frontend/src/integrations/ScientificResults.test.tsx",
@@ -679,7 +680,7 @@ GENERATED_DESKTOP_FILES = {
     "frontend/src/presentation/pose-review-workspace.css",
     "tests/test_molecular_utility_scope.py",
 }
-GENERATED_DESKTOP_DIFF = "023aa5a686f535c800f645a378becc9a1b7eeb8762975dddbad078d46b51bd67"
+GENERATED_DESKTOP_DIFF = "9f5fefb0965dd1efc8a612c5a9e57447d9451f42644a1408272af0f399b61804"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
