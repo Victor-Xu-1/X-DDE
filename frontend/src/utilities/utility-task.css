@@ -467,14 +467,16 @@
       padding-block: 8px;
     }
   }
+}
 
+@media (min-width: 1001px) and (max-height: 760px) {
   .studio-app .molecular-utility .single-page-task:has(.molecular-input-review) {
     .single-page-main > .single-page-field {
       margin-block-end: 6px;
     }
 
     .single-page-main {
-      max-height: clamp(240px, calc(100dvh - 342px), 504px);
+      max-height: clamp(200px, calc(100dvh - 366px), 504px);
       overflow-y: auto;
       overscroll-behavior-y: contain;
       scrollbar-width: thin;
