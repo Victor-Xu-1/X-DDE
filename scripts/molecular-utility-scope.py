@@ -655,13 +655,14 @@ PORTABLE_SMILES_FILES = {
 PORTABLE_SMILES_DIFF = "36b573c76a597e4fe3e769c42c38aa2f4342ec787e9d21431c9c037b2dbb856a"
 ARCHIVED_POSE_REVIEW_FILES = {
     ".github/workflows/ligand-energy-scope.yml",
+    ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/poses/ClusterResults.tsx",
     "frontend/src/poses/ClusterTables.tsx",
     "frontend/src/presentation/pose-review-workspace.css",
     "frontend/src/viewer/MinimizedPoseResults.tsx",
     "frontend/src/viewer/MinimizedPoseResults.test.tsx",
 }
-ARCHIVED_POSE_REVIEW_DIFF = "404f1162fbed21f63d3f613b37e65c0a9d1829064c865597c296728e306392e3"
+ARCHIVED_POSE_REVIEW_DIFF = "52091f75433d3c651ef984a7b623914a2f77337e16b032a2baed8fe18d9459bb"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
@@ -2073,6 +2074,7 @@ def main():
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
+        output.write("archived_pose_review_only=" + str(archived_pose_review).lower() + "\n")
         output.write("guided_desktop_only=" + str(guided_desktop).lower() + "\n")
         output.write("prediction_input_layout=" + str(prediction_input_layout).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
