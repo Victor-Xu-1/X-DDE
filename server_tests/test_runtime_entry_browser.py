@@ -108,7 +108,9 @@ def test_short_runtime_catalogue_fits_and_filters_without_power_requests(tmp_pat
               top: bounds.top,
               bottom: bounds.bottom,
               widthFits: element.scrollWidth <= element.clientWidth + 1,
-              visibleRows: rows.filter(row => row.getBoundingClientRect().bottom <= usableBottom).length,
+              visibleRows: rows.filter(
+                row => row.getBoundingClientRect().bottom <= usableBottom
+              ).length,
               rowFont: getComputedStyle(rows[0].querySelector('th')).fontFamily,
             };
         }""")
