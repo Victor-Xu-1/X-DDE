@@ -498,7 +498,7 @@ def test_paste_query_on_the_purpose_field_preserves_the_library(
         expect(page.locator(".molecular-input-review figcaption")).to_have_text(
             "Query molecule · Record 1"
         )
-        assert len(uploads) == 2 and b"Nc1ccccc1" in uploads[1]
+        assert len(uploads) == 2 and b"Controlled protocol fixture\nM  END\n" in uploads[1]
         assert hashlib.sha256(base64.b64decode(png)).hexdigest().encode() in uploads[1]
         assert not jobs and power_commands == [(8940, True)]
         browser.close()
