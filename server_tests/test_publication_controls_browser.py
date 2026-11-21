@@ -130,14 +130,14 @@ def test_ketcher_preview_matches_download_and_mobile_settings(language):
             ).to_be_disabled()
             page.screenshot(path=EVIDENCE / (language + "-mobile-layout-choice.png"))
             width.select_option("183")
-        expect(dialog.locator(".figure-preview-sheet img")).to_be_visible(timeout=45000)
+        expect(dialog.locator(".figure-export-canvas img")).to_be_visible(timeout=45000)
         expect(
             dialog.get_by_role(
                 "button", name="导出 SVG" if language == "zh" else "Export SVG", exact=True
             )
         ).to_be_enabled(timeout=45000)
         assert (
-            dialog.locator(".figure-preview-sheet").evaluate(
+            dialog.locator(".figure-export-canvas").evaluate(
                 "node => getComputedStyle(node.querySelector('img')).animationName"
             )
             == "none"

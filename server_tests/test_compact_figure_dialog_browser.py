@@ -1,6 +1,7 @@
 """The native figure stays in view alongside reachable close and download controls."""
 
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -14,9 +15,19 @@ from server_tests.test_navigation_shell_browser import open_navigation
 EVIDENCE = Path("outputs/publication-browser/compact-dialog")
 
 
-def trigger_for(page, base, language, format):
+def trigger_for(page, base, language, format, example):
     zh = language == "zh"
     name = "文献图导出 ↓" if zh else "Export figure ↓"
+    if example:
+        case = page.request.get(base + "/api/examples/" + example).json()
+        page.goto(base + "/#task=" + case["pin"]["job_id"])
+        selector = {
+            "library.import": ".dataset-member-inspector .molecule-image",
+            "drugclip.index": ".dataset-member-inspector .viewer-panel",
+            "screening.dock": ".candidate-inspection-preview .viewer-panel",
+            "admet.predict": ".admet-molecule-drawing .molecule-image",
+        }[example]
+        return page.locator(selector).get_by_role("button", name=name, exact=True)
     if format == "SVG":
         case = page.request.get(base + "/api/examples/caver.paths").json()
         page.goto(base + "/#task=" + case["pin"]["job_id"])
@@ -43,7 +54,11 @@ def geometry(dialog):
             return {left, right, top, bottom, width, height};
           };
           const body = dialog.querySelector('.figure-export-layout');
-          const preview = body.querySelector('.figure-preview-sheet');
+          const preview = body.querySelector('.figure-export-canvas');
+          const image = preview.querySelector('img');
+          const imageScale = image ? Math.min(image.clientWidth / image.naturalWidth,
+                                               image.clientHeight / image.naturalHeight) : 0;
+          const options = body.querySelector('.figure-export-options');
           const action = dialog.querySelector('footer button');
           const out = action.getBoundingClientRect();
           const hit = document.elementFromPoint(out.x + out.width / 2, out.y + out.height / 2);
@@ -52,7 +67,11 @@ def geometry(dialog):
             header: rect(dialog.querySelector(':scope > header')),
             actionReachable: hit === action || action.contains(hit),
             previewControls: rect(body.querySelector('.figure-view-toolbar')),
-            options: rect(body.querySelector('.figure-export-options')),
+            fittedImage: imageScale && {width: image.naturalWidth * imageScale,
+                                       height: image.naturalHeight * imageScale},
+            options: rect(options),
+            optionsFit: options.scrollHeight <= options.clientHeight + 1,
+            spec: rect(options.querySelector('.figure-output-spec')),
             documentWidth: document.documentElement.clientWidth,
             viewportHeight: innerHeight,
             horizontalBody: body.scrollWidth > body.clientWidth,
@@ -106,7 +125,7 @@ def assert_options_fit(dialog):
 
 def check_short_body_scroll(page, dialog, before):
     assert before["canScroll"]
-    preview_canvas = dialog.locator(".figure-preview-sheet")
+    preview_canvas = dialog.locator(".figure-export-canvas")
     dialog.get_by_role("button", name="Zoom in preview", exact=True).click()
     expect(preview_canvas).to_have_attribute("data-zoom", "2")
     expect(preview_canvas).to_have_attribute("tabindex", "0")
@@ -129,18 +148,22 @@ def check_short_body_scroll(page, dialog, before):
 
 
 @pytest.mark.parametrize(
-    ("language", "format", "width", "height"),
+    ("language", "format", "width", "height", "example"),
     [
-        ("zh", "PNG", 390, 775),
-        ("en", "PNG", 320, 568),
-        ("en", "PNG", 568, 320),
-        ("en", "PNG", 1110, 580),
-        ("en", "SVG", 390, 775),
+        ("zh", "PNG", 390, 775, None),
+        ("en", "PNG", 320, 568, None),
+        ("en", "PNG", 568, 320, None),
+        ("en", "PNG", 1110, 580, None),
+        ("en", "SVG", 390, 775, None),
+        ("en", "SVG", 1001, 600, "library.import"),
+        ("en", "PNG", 1001, 600, "drugclip.index"),
+        ("zh", "PNG", 1024, 600, "screening.dock"),
+        ("en", "SVG", 1001, 600, "admet.predict"),
     ],
 )
-def test_native_figure_stays_accessible_in_short_windows(language, format, width, height):
+def test_native_figure_stays_accessible_in_short_windows(language, format, width, height, example):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
-    key = f"{language}-{format.lower()}-{width}"
+    key = f"{language}-{format.lower()}-{width}-{example or 'default'}"
     zh = language == "zh"
     settings = Settings.from_env()
     with platform(settings.state_dir, EVIDENCE / (key + ".log")) as base, sync_playwright() as p:
@@ -153,7 +176,7 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
         )
         page.goto(base)
         jobs = page.request.get(base + "/api/jobs").json()
-        launcher = trigger_for(page, base, language, format)
+        launcher = trigger_for(page, base, language, format, example)
         expect(launcher).to_be_enabled(timeout=45000)
         launcher.press("Enter")
         dialog = page.get_by_role("dialog")
@@ -181,11 +204,32 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
             dialog.locator(".figure-export-layout").evaluate("el => { el.scrollTop = 0; }")
             layout = geometry(dialog)
             assert_first_screen(layout, stacked=width <= 390)
-            if width <= 390:
+            if width <= 390 or example:
                 assert_options_fit(dialog)
+            if example:
+                assert layout["optionsFit"], layout
+                assert layout["preview"]["height"] >= 345, layout
+                gap = layout["previewControls"]["top"] - layout["preview"]["bottom"]
+                assert 0 <= gap <= 12, layout
+                visible_top = layout["body"]["top"]
+                visible_bottom = layout["body"]["bottom"] + 1
+                assert layout["spec"]["bottom"] <= visible_bottom, layout
+                assert all(
+                    visible_top <= label["top"] <= label["bottom"] <= visible_bottom
+                    for label in layout["labels"]
+                ), layout
+                figure = layout["fittedImage"]
+                assert figure and (
+                    figure["width"] >= layout["preview"]["width"] * 0.85
+                    or figure["height"] >= layout["preview"]["height"] * 0.85
+                ), layout
+                zoom.click()
+                expect(dialog.locator(".figure-export-canvas")).to_have_attribute("data-zoom", "2")
+                dialog.get_by_role("button", name="适应窗口" if zh else "Fit preview").click()
+                expect(dialog.locator(".figure-export-canvas")).to_have_attribute("data-zoom", "1")
             if width == 320:
                 check_short_body_scroll(page, dialog, layout)
-            if format == "SVG":
+            if format == "SVG" and not example:
                 page.set_viewport_size({"width": 1440, "height": 900})
                 desktop = geometry(dialog)
                 assert_first_screen(desktop, stacked=False)
@@ -203,6 +247,10 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
         expect(launcher).to_be_focused()
         if format == "PNG":
             inspect_png(figure, dpi=300, width=1051)
+        elif example:
+            root = ET.fromstring(figure.read_bytes())
+            assert root.attrib["width"] == "89mm"
+            assert len(root.findall(".//{http://www.w3.org/2000/svg}path")) > 10
         else:
             inspect_svg(figure, "Å")
         assert page.request.get(base + "/api/jobs").json() == jobs

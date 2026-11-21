@@ -6,14 +6,16 @@ export function FigureViewport({
   children,
   language,
   transparent,
-  widthMm,
+  caption,
+  exportPreview = false,
   ready,
   label,
 }: {
   children: ReactNode;
   language: Language;
   transparent: boolean;
-  widthMm?: number;
+  caption?: string;
+  exportPreview?: boolean;
   ready: boolean;
   label?: string;
 }) {
@@ -49,7 +51,7 @@ export function FigureViewport({
     <>
       <div
         ref={viewport}
-        className={`figure-preview-sheet ${transparent ? "is-transparent" : ""}`}
+        className={`figure-viewport ${exportPreview ? "figure-export-canvas" : "figure-preview-sheet"} ${transparent ? "is-transparent" : ""}`}
         data-zoom={zoom}
         data-dragging={dragging}
         role="region"
@@ -111,9 +113,7 @@ export function FigureViewport({
         </div>
       </div>
       <div className="figure-view-toolbar">
-        {widthMm !== undefined && (
-          <span className="figure-preview-width">{widthMm} mm</span>
-        )}
+        {caption && <span className="figure-preview-caption">{caption}</span>}
         <div role="group" aria-label={zh ? "预览查看" : "Preview viewing"}>
           <button
             type="button"
