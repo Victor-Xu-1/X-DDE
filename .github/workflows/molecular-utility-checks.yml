@@ -553,26 +553,24 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Verified file identity and utility input ownership
+      - name: Utility readiness, guided form continuity and direct state consumers
         working-directory: frontend
         run: >-
-          npx vitest run src/operations/AssetPicker.test.tsx
-          src/diffsbdd/ReferencePicker.test.tsx src/diffsbdd/ReferencePickerUpload.test.tsx
-          src/diffsbdd/ReferencePickerLifecycle.test.tsx src/utilities/ImageMoleculeInput.action.test.tsx
-          src/chemistry/LibraryScreenForm.test.tsx src/chemistry/MolecularToolReview.test.tsx
-          src/operations/PropertyForm.test.tsx src/admet/AdmetForm.test.tsx
-      - name: Check selection disclosure and query handoff in Chrome
+          npx vitest run src/guided/SinglePageTask.test.tsx src/guided/Questionnaire.test.tsx
+          src/utilities/UtilitySinglePage.test.tsx src/utilities/UtilityImageTask.test.tsx
+          src/chemistry/StateForm.test.tsx src/chemistry/MolecularToolReview.test.tsx
+      - name: Check first-screen actions and retry in desktop Chrome
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_utility_image_browser.py
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_molecular_review_controls_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
-          uv run --locked python -m pytest -xq server_tests/test_utility_image_browser.py \
-            -k 'similarity_query or 1440' --basetemp "$RUNNER_TEMP/compact-material"
+          uv run --locked python -m pytest -xq server_tests/test_molecular_review_controls_browser.py \
+            -k utility_readiness --basetemp "$RUNNER_TEMP/compact-material"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: compact-utility-material-browser-evidence
-          path: outputs/utility-image/
+          path: outputs/utility-navigation/utility-readiness/
           if-no-files-found: warn
 
   editor-drawing-handoff:

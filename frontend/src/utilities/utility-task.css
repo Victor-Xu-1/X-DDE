@@ -107,7 +107,10 @@
   flex: 1;
 }
 .molecular-utility .single-page-task .questionnaire-actions {
+  flex-wrap: wrap;
+  align-items: center;
   margin-top: 8px;
+  padding-top: 8px;
 }
 .single-page-main,
 .single-page-preview {
@@ -225,14 +228,10 @@
   margin: 0;
 }
 .single-page-readiness {
+  flex: 1 1 94px;
   min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
   color: var(--muted);
   font-size: 12px;
-  flex-basis: 100%;
 }
 .single-page-readiness > details {
   max-width: 440px;
@@ -240,13 +239,27 @@
 }
 .single-page-readiness > details > summary {
   cursor: pointer;
-  padding: 4px 0;
+  padding-block: 8px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
-.single-page-readiness > button {
+.single-page-readiness:has(details[open]) {
+  flex-basis: 100%;
+}
+.single-page-readiness-details {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding-block: 4px 8px;
+  overflow-wrap: anywhere;
+}
+.single-page-readiness-details > .secondary-button {
   width: auto;
   min-height: 32px;
+  max-width: 100%;
   padding: 4px 12px;
   font-size: 12px;
+  white-space: normal;
 }
 .utility-task-result {
   flex: 1;
@@ -363,10 +376,6 @@
       min-height: 32px;
       padding: 4px 8px;
     }
-    .single-page-readiness {
-      flex: 1 1 235px;
-      gap: 4px 8px;
-    }
   }
   /* Allocate a separate left-hand stage once a molecular input is ready. */
   :is(.utility-task-fields, .utility-task-fields > .utility-image-entry) >
@@ -416,7 +425,16 @@
     grid-row: 4;
     margin-top: 0;
     padding-top: 8px;
-    align-items: end;
+    align-items: center;
+  }
+  .molecular-utility .single-page-task:has(.molecular-input-review)
+    .questionnaire-actions > .primary-button {
+    max-width: 70%;
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: normal;
   }
 }
 
@@ -461,37 +479,6 @@
       overscroll-behavior-y: contain;
       scrollbar-width: thin;
       padding-inline-end: 4px;
-    }
-
-    .questionnaire-actions:has(> .single-page-readiness) {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas: "status details" "recheck run";
-      gap: 4px 8px;
-      align-items: center;
-      align-content: start;
-      padding-block-start: 6px;
-
-      .single-page-readiness {
-        display: contents;
-      }
-      .single-page-readiness > span {
-        grid-area: status;
-      }
-      .single-page-readiness > details {
-        grid-area: details;
-      }
-      .single-page-readiness > button {
-        grid-area: recheck;
-        min-width: 0;
-        padding-inline: 6px;
-        font-size: 11px;
-        white-space: normal;
-      }
-      > .primary-button {
-        grid-area: run;
-        max-width: none;
-      }
     }
   }
 }
