@@ -305,6 +305,31 @@ it("rejects a recognized ring isomer that differs from the current drawing", asy
     .rejects.toThrow(SmilesHandoffError);
 });
 
+it.each(["c", "t"])("exports edited absolute stereochemistry and ring geometry %s without an OCR fallback", async (stereo) => {
+  const base = "CC[C@H]1OC(=O)CCCCC=CCCC1";
+  const annotated = base + " |" + stereo + ":10|";
+  const expected = "CC[C@H]1OC(=O)CCCC\\C=C" + (stereo === "c" ? "/" : "\\") + "CCC1";
+  const source = editor(annotated);
+  source.structService.getInChIKey.mockReset().mockResolvedValue("edited-structure");
+  const readSmiles = vi.fn(async (value: string) => value === expected ? annotated : value);
+
+  await expect(readPortableSmiles(source, undefined, readSmiles)).resolves.toBe(expected);
+  expect(readSmiles.mock.calls).toEqual([[annotated], [expected]]);
+  expect(source.structService.getInChIKey).toHaveBeenCalledWith(expected);
+});
+
+it.each(["opposite", "discarded"])("blocks edited SMILES when the readback gives %s ring geometry", async (failure) => {
+  const base = "CC[C@H]1OC(=O)CCCCC=CCCC1";
+  const annotated = base + " |t:10|";
+  const source = editor(annotated);
+  source.structService.getInChIKey.mockReset().mockResolvedValue("same-key");
+  const readSmiles = vi.fn(async (value: string) => failure === "discarded"
+    ? base
+    : value === annotated ? annotated : base + " |c:10|");
+
+  await expect(readPortableSmiles(source, undefined, readSmiles)).rejects.toThrow(SmilesHandoffError);
+});
+
 it("rejects a ring annotation that disagrees with the editor's MOL and recognition", async () => {
   const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
   const editorCx = "O=C1CCCCC=CCCC[C@@H](C)O1 |c:6|";

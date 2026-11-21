@@ -20,6 +20,7 @@ ADAPTERS = {
     "recognition-host-ui-locale.ts": "frontend/src/utilities/recognition-host-ui-locale.ts",
     "recognition-host-editor.ts": "frontend/src/editors/recognition-host-editor.ts",
     "portable-smiles.ts": "frontend/src/editors/portable-smiles.ts",
+    "portable-smiles-ring-stereo.ts": "frontend/src/editors/portable-smiles-ring-stereo.ts",
     "ketcher-contract.ts": "frontend/src/editors/ketcher-contract.ts",
     "ketcher-appearance.ts": "frontend/src/editors/ketcher-appearance.ts",
     "ketcher-hydrogens.ts": "frontend/src/editors/ketcher-hydrogens.ts",

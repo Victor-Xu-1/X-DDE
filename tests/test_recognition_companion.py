@@ -315,9 +315,12 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
         assert any("smilesExport?.text" in item["after"] for item in changes)
         assert any("value={exportText}" in item["after"] for item in changes)
 
-    final = [item["after"] for item in record["final_steps"][-1]["changes"]]
+    final = [item["after"] for step in record["final_steps"] for item in step["changes"]]
     assert any("source?.revision === drawingRevision" in item for item in final)
     assert any("readPortableSmiles(current, result)" in item for item in final)
+    edit_export = [item["after"] for item in record["final_steps"][-1]["changes"]]
+    assert any("readPortableSmiles(current, result, readSmiles)" in item for item in edit_export)
+    assert any("output_format: ChemicalMimeType.DaylightSmiles" in item for item in edit_export)
     assert any("source.revision = structureGate.checkpoint()" in item for item in final)
     assert any("hasRelativeStereo(source.result.molfile)" in item for item in final)
     assert any("const text = await readRecognizedStereoFile(" in item for item in final)

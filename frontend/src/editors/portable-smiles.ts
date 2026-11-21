@@ -1,3 +1,5 @@
+import { ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
+
 type StructureExport = {
   getSmiles(isExtended?: boolean): Promise<string>;
   getMolfile(format: "v3000"): Promise<string>;
@@ -5,6 +7,7 @@ type StructureExport = {
     getInChIKey(structure: string): Promise<string>;
   };
 };
+type ReadSmiles = (structure: string) => Promise<string>;
 
 export type RecognitionResult = {
   rawSmiles?: string | null;
@@ -43,7 +46,7 @@ function isPlanarCoordinateList(value: string) {
 
 /** Keep chemical stereo data for comparison, apart from planar drawing coordinates. */
 function stereoSmiles(value: string) {
-  if (isPortableLine(value)) return { text: value, plain: value, identity: value };
+  if (isPortableLine(value)) return { text: value, plain: value, identity: value, stereo: "" };
   const match = /^(\S+) \|([^|]+)\|$/.exec(value);
   if (!match || !isPortableLine(match[1])) return null;
   const [, text, annotation] = match;
@@ -59,7 +62,31 @@ function stereoSmiles(value: string) {
     text,
     plain: /(?:^|,)[ct]:/.test(stereo) ? null : text,
     identity: stereo ? `${text} |${stereo}|` : text,
+    stereo,
   };
+}
+
+async function readStandardRingStereo(
+  readSmiles: ReadSmiles,
+  service: StructureExport["structService"],
+  exported: NonNullable<ReturnType<typeof stereoSmiles>>,
+  expected: string,
+) {
+  const candidate = writeRingStereo(exported.text, exported.stereo);
+  if (!candidate) return null;
+  try {
+    const read = async (struct: string) => stereoSmiles((await readSmiles(struct)).trim());
+    const reference = await read(exported.identity);
+    const restored = await read(candidate);
+    if (reference?.identity && reference.identity === restored?.identity &&
+        ringStereoEntries(reference.stereo).length === ringStereoEntries(exported.stereo).length &&
+        expected === await service.getInChIKey(candidate)) {
+      return candidate;
+    }
+  } catch {
+    // A native reader can decline unfamiliar directional stereo.
+  }
+  return null;
 }
 
 /** Repair the generated depiction using the same OCR result's absolute stereo. */
@@ -141,6 +168,7 @@ export async function readRecognizedStereoFile(
 export async function readPortableSmiles(
   editor: StructureExport,
   recognized?: RecognitionResult,
+  readSmiles?: ReadSmiles,
 ) {
   let smiles: string;
   let mol: string;
@@ -152,9 +180,7 @@ export async function readPortableSmiles(
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );
   }
-  // Indigo encodes ring double-bond geometry in CXSMILES; the recognizing
-  // worker can already express that same bond with slash notation. The caller
-  // supplies the recognized result only at its original drawing revision.
+  // The recognized source is available only at its original drawing revision.
   const raw = recognized?.rawSmiles?.trim();
   const original = raw ? stereoSmiles(raw) : null;
   const exported = stereoSmiles(smiles);
@@ -168,7 +194,7 @@ export async function readPortableSmiles(
       "此结构含扩展注释或相对手性，请下载 MOL V3000 保留完整结构。",
     );
 
-  if (!exported || (!exported.plain && !recognized))
+  if (!exported)
     throw new SmilesHandoffError(
       "无法生成可回读的单行 SMILES，请下载 MOL V3000。",
     );
@@ -176,13 +202,21 @@ export async function readPortableSmiles(
   try {
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
-    if (!exported.plain && recognized) {
+    if (!exported.plain) {
       if (expected !== await editor.structService.getInChIKey(exported.identity))
         throw new Error("Editor ring stereochemistry changed");
-      const source = await readRecognizedSource(editor.structService, recognized);
-      if (source?.text && expected === await editor.structService.getInChIKey(source.text))
-        return source.text;
-    } else if (exported.plain) {
+      if (original && expected !== await editor.structService.getInChIKey(original.identity))
+        throw new Error("Recognized ring stereochemistry changed");
+      if (recognized) {
+        const source = await readRecognizedSource(editor.structService, recognized);
+        if (source?.text && expected === await editor.structService.getInChIKey(source.text))
+          return source.text;
+      }
+      if (readSmiles) {
+        const standard = await readStandardRingStereo(readSmiles, editor.structService, exported, expected);
+        if (standard) return standard;
+      }
+    } else {
       const inputs = new Set([original?.identity, exported.identity, exported.plain]);
       for (const input of inputs) {
         if (input && expected !== await editor.structService.getInChIKey(input))
