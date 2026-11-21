@@ -3,6 +3,7 @@ import {
   readPortableSmiles,
   readRecognizedSource,
   readRecognizedStereoFile,
+  recognizedAlleneSource,
   recognizedDrawing,
   SmilesHandoffError,
 } from "./portable-smiles";
@@ -19,6 +20,31 @@ const partialAbsoluteMol = [
   "M  V30 BEGIN COLLECTION", "M  V30 MDLV30/STEABS ATOMS=(1 2)",
   "M  V30 END COLLECTION", "M  V30 END CTAB", "M  END", "",
 ].join("\n");
+
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)I",
+  "FC(Cl)=[C@AL2]=C(Br)I",
+  "FC(Cl)=[C@@]=C(Br)I",
+  "[C@AL1](=C(F)Cl)=C(Br)I",
+])("retains the original axial marker and atom order for %s", async (rawSmiles) => {
+  const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
+  const source = editor(result.smiles);
+  const service = source.structService;
+  await expect(readRecognizedSource(service, result)).resolves.toEqual({
+    text: rawSmiles, molfile: "", allene: true,
+  });
+  await expect(readRecognizedStereoFile(service, result, "mol")).rejects.toThrow(SmilesHandoffError);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  expect(service.getInChIKey).not.toHaveBeenCalled();
+});
+
+it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact", () => {
+  const result = { smiles: "CC", molfile: generatedMol };
+  expect(recognizedAlleneSource({
+    ...result, rawSmiles: "FC(Cl)=[C@AL1]=C(Br)I |w:1.0|",
+  })).toEqual({ text: "", molfile: "", allene: true });
+  expect(recognizedAlleneSource({ ...result, rawSmiles: "Cl[C@TH1](F)(Br)I" })).toBeNull();
+});
 
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
   const molfile = generatedMol.replaceAll("\n", "\r\n");

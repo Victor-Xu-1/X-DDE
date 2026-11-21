@@ -62,6 +62,12 @@ const english: Record<string, string> = {
     "The editor could not load this structure. Copy the recognized SMILES or download the MOL file.",
   "编辑器无法载入此结构。请下载识别结果的 MOL 文件。":
     "The editor could not load this structure. Download the recognized MOL file.",
+  "绘图组件无法保留累积双键手性。":
+    "The editor cannot preserve allene stereochemistry.",
+  "可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。":
+    "Copy the original SMILES and check the allene configuration in ChemDraw.",
+  "累积双键手性与扩展注释无法安全导出。":
+    "The allene stereochemistry and extended annotations cannot be exported safely.",
   "下载识别结果 MOL": "Download recognized MOL",
   "识别结果的 SMILES": "SMILES from recognition",
   本地运行: "Runs locally",

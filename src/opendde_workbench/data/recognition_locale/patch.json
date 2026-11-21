@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "cbbe05317496d09b606f3fe5f202a52bbbf02cab38e599d4c8cf77704e494280",
+      "after_sha256": "0d0fb56dc3f83e3e0bc3c17fc11b8a139e3b1c004c114787fe8bc40e4c3ab641",
       "changes": [
         {
           "before": "const labels = {",
@@ -515,6 +515,19 @@
               "after": "                onLoadFailure={offerRecognizedSource}\n                onLoadSuccess={bindRecognizedDrawing}"
             }
           ]
+        },
+        {
+          "before_sha256": "cbbe05317496d09b606f3fe5f202a52bbbf02cab38e599d4c8cf77704e494280",
+          "changes": [
+            {
+              "before": "  const canExportMol = structureReady || Boolean(sourceExport);",
+              "after": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);"
+            },
+            {
+              "before": "          {sourceExport && (\n            <p role=\"note\">{text(canExportSmiles\n              ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n              : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}",
+              "after": "          {sourceExport && (\n            <p role=\"note\">{text(sourceExport.allene\n              ? canExportSmiles\n                ? \"可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。\"\n                : \"累积双键手性与扩展注释无法安全导出。\"\n              : canExportSmiles\n                ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n                : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}"
+            }
+          ]
         }
       ]
     },
@@ -729,7 +742,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "2c956d56fc4dfc76f0b7f139a016638a3ace0a6708e5b0f0c09378818fc7beb2",
+      "after_sha256": "7ef6066e6bcd0497e9b1c64696285d15efe5e3cb04be332018bb48da7311bbe0",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1212,6 +1225,43 @@
               "after": "      const readSmiles = async (struct: string) => (await current.structService.convert({\n        struct, output_format: ChemicalMimeType.DaylightSmiles,\n      })).struct;\n      void readPortableSmiles(current, result, readSmiles).then("
             }
           ]
+        },
+        {
+          "before_sha256": "2c956d56fc4dfc76f0b7f139a016638a3ace0a6708e5b0f0c09378818fc7beb2",
+          "changes": [
+            {
+              "before": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedDrawing, readRecognizedStereoFile,",
+              "after": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedAlleneSource,\n  recognizedDrawing, readRecognizedStereoFile,"
+            },
+            {
+              "before": "    result: Result; drawing: string; revision?: number; recovery?: symbol;",
+              "after": "    result: Result; drawing: string; revision?: number; recovery?: symbol;\n    sourceOnly?: RecognizedSourceExport;"
+            },
+            {
+              "before": "  const sourceExport = recovered && recovered.owner === recognition.current &&\n    recovered.owner.recovery === recovered.request ? recovered.value : null;",
+              "after": "  const currentSourceExport = () => {\n    const source = recognition.current;\n    return source?.sourceOnly ?? (recovered && recovered.owner === source &&\n      recovered.owner.recovery === recovered.request ? recovered.value : null);\n  };\n  const sourceExport = currentSourceExport();"
+            },
+            {
+              "before": "    structureGate.update(ready);\n    revokeRecovery();",
+              "after": "    structureGate.update(ready);\n    if (ready && recognition.current?.sourceOnly) clearRecognizedSource();\n    revokeRecovery();"
+            },
+            {
+              "before": "      const drawing = recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing };",
+              "after": "      const sourceOnly = recognizedAlleneSource(job.result);\n      const drawing = sourceOnly ? \"\" : recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing, sourceOnly: sourceOnly ?? undefined };"
+            },
+            {
+              "before": "    const source = recognition.current;\n    if (!source || recovered?.owner !== source || recovered.request !== source.recovery || format === \"sdf\")\n      throw new MoleculeReadinessError(\"Export is not available.\");\n    const text = format === \"smiles\" ? recovered.value.text : recovered.value.molfile;",
+              "after": "    const source = recognition.current;\n    const fallback = currentSourceExport();\n    if (!source || !fallback || format === \"sdf\")\n      throw new MoleculeReadinessError(\"Export is not available.\");\n    const text = format === \"smiles\" ? fallback.text : fallback.molfile;"
+            },
+            {
+              "before": "      if (recognition.current !== source || source.recovery !== recovered.request || structureGate.available)",
+              "after": "      if (recognition.current !== source || currentSourceExport() !== fallback || structureGate.available)"
+            },
+            {
+              "before": "    error,\n    setError,",
+              "after": "    error: inputBridgeOrigin() && sourceExport?.allene\n      ? \"绘图组件无法保留累积双键手性。\"\n      : error,\n    setError,"
+            }
+          ]
         }
       ]
     },
@@ -1398,7 +1448,8 @@
       "60ca53e251c6fe9fdebd204291fcea8b72a611651abd2ffb27bfb4327cdb91db",
       "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94",
       "c970fa033b034f156eac287afd5d874aeb45a9d15f7ee60e62347b293305e8dd",
-      "42f97ca5ee3e2de2cb9a82046abb450df10c1484acb6e3666d34bade841ee68d"
+      "42f97ca5ee3e2de2cb9a82046abb450df10c1484acb6e3666d34bade841ee68d",
+      "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc"
     ],
     "portable-smiles.ts": [
       "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4",
@@ -1407,7 +1458,8 @@
       "9ffbd00ced901908232192f74ca44c3eb2e38d58af954aa1d3aafcb654b5a5e3",
       "d9d1b64daec1b9a980fe0844c1bccb029aab1f403741689749481587673d6819",
       "813263c570475cb93b40edb51af74e34e30480c4c58c9552411d2c10bf9faf77",
-      "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211"
+      "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211",
+      "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf"
     ]
   }
 }

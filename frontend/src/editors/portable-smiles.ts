@@ -18,6 +18,7 @@ export type RecognitionResult = {
 export type RecognizedSourceExport = {
   text: string;
   molfile: string;
+  allene?: true;
 };
 
 export class SmilesHandoffError extends Error {}
@@ -29,6 +30,21 @@ export function hasSmilesExtension(value: string) {
 
 function isPortableLine(value: string) {
   return /^[\x21-\x7e]+$/.test(value) && !/[>|]/.test(value);
+}
+
+/** Keep the original atom order and axial marker when MOL drops allene stereo. */
+export function recognizedAlleneSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
+  const raw = rawSmiles?.trim();
+  if (!raw) return null;
+  const molecule = raw.split(/\s|\|/, 1)[0];
+  const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(molecule) ||
+    /=\[(?:\d+)?C@@?\]=/.test(molecule);
+  if (!axial) return null;
+  return {
+    text: raw.length <= 100_000 && isPortableLine(raw) ? raw : "",
+    molfile: "",
+    allene: true,
+  };
 }
 
 const coordinateNumber = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
@@ -122,6 +138,8 @@ export async function readRecognizedSource(
   service: StructureExport["structService"],
   result: RecognitionResult,
 ): Promise<RecognizedSourceExport | null> {
+  const allene = recognizedAlleneSource(result);
+  if (allene) return allene;
   const raw = result.rawSmiles?.trim();
   if (!raw || raw.length > 100_000 || result.molfile.length > 5 * 1024 ** 2)
     return null;
@@ -160,7 +178,7 @@ export async function readRecognizedStereoFile(
   format: "mol" | "sdf",
 ) {
   const original = await readRecognizedSource(service, result);
-  if (!original)
+  if (!original?.molfile)
     throw new SmilesHandoffError("无法核对原始立体化学，已停止导出。");
   return format === "mol" ? original.molfile : original.molfile.trimEnd() + "\n$$$$\n";
 }
@@ -170,6 +188,8 @@ export async function readPortableSmiles(
   recognized?: RecognitionResult,
   readSmiles?: ReadSmiles,
 ) {
+  if (recognized && recognizedAlleneSource(recognized))
+    throw new SmilesHandoffError("绘图组件无法保留累积双键手性。");
   let smiles: string;
   let mol: string;
   try {
