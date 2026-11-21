@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import struct
 from pathlib import Path
 
 import pytest
@@ -69,6 +70,7 @@ def inspect_comparison(page, base, height, zh, evidence):
     )
     assert abs(left["y"] - right["y"]) < 2 and left["x"] + left["width"] < right["x"]
     assert abs(left["width"] - right["width"]) < 2
+    page.screenshot(path=evidence / "paired-first-screen.png")
     handles = [a.element_handle(), b.element_handle()]
     expand = result.locator(".comparison-view-actions [data-workspace-expand]")
     expand.click()
@@ -76,8 +78,25 @@ def inspect_comparison(page, base, height, zh, evidence):
     expand.click()
     expect(result.locator('[data-workspace-expanded="true"]')).to_have_count(0)
     assert all(handle.evaluate("el => el.isConnected") for handle in handles)
+    if compact:
+        zoom_before = read_camera(a)[3]
+        result.locator(".aligned-structure-pair > section").first.get_by_role(
+            "button", name="放大" if zh else "Zoom in", exact=True
+        ).click()
+        page.wait_for_function("""initial => {
+            const frame = document.querySelector('.aligned-structure-pair .molecular-stage iframe');
+            const view = frame?.contentDocument.querySelector('canvas')?._3dmol_viewer;
+            return view && Math.abs(view.getView()[3] - initial) > 0.01;
+        }""", arg=zoom_before)
     match.click()
     expect(match).to_be_enabled()
+    page.wait_for_function("""() => {
+        const frames = [...document.querySelectorAll('.aligned-structure-pair iframe')];
+        if (frames.length !== 2) return false;
+        const views = frames.map(f => f.contentDocument.querySelector('canvas')
+            ?._3dmol_viewer?.getView());
+        return views.every(Boolean) && views[0].every((v, i) => Math.abs(v - views[1][i]) < 1e-6);
+    }""")
     assert read_camera(a) == pytest.approx(read_camera(b), abs=1e-6)
     menus = result.locator(".aligned-structure-pair .viewer-chain-menu")
     label = menus.first.locator("summary")
@@ -94,21 +113,27 @@ def inspect_comparison(page, base, height, zh, evidence):
     expect(label).to_contain_text("2 / 2")
     expect(checkbox).to_be_checked()
     label.click()
-    if not zh:
+    if compact or not zh:
         source = page.request.get(f"{base}/api/jobs/{job}/result").json()["artifact_sha256"]
         for label, name in (
-            ("Reference structure", "reference-selected.cif"),
-            ("Aligned comparison", "moving-aligned.cif"),
+            ("下载参照结构 CIF" if zh else "Download Reference structure CIF",
+             "reference-selected.cif"),
+            ("下载已对齐比较结构 CIF" if zh else "Download Aligned comparison CIF",
+             "moving-aligned.cif"),
         ):
-            button = result.get_by_role("button", name=f"Download {label} CIF", exact=True)
+            button = result.get_by_role("button", name=label, exact=True)
             expect(button).to_be_in_viewport()
             with page.expect_download() as downloaded:
                 button.click()
             contents = Path(downloaded.value.path()).read_bytes()
             assert hashlib.sha256(contents).hexdigest() == source[name]
-        figure = result.get_by_role("button", name="Export comparison ↓", exact=True)
+        figure = result.get_by_role(
+            "button", name="导出比较图 ↓" if zh else "Export comparison ↓", exact=True
+        )
         expect(figure).to_be_in_viewport()
-        inspect_png(export_figure(page, figure, evidence, "comparison", "en"))
+        png = export_figure(page, figure, evidence, "comparison", "zh" if zh else "en")
+        inspect_png(png)
+        assert struct.unpack(">II", png.read_bytes()[16:24]) == (2102, 1051)
     page.screenshot(path=evidence / "aligned-comparison.png")
     return {"overlay": overlay, "pair": [left, right]}
 
@@ -139,8 +164,8 @@ def inspect_receptors(page, base, height, zh, evidence):
 @pytest.mark.parametrize(("language", "theme", "width", "height", "kinds"), [
     ("en", "warm", 1120, 650, ("interface", "comparison", "receptors")),
     ("zh", "dark", 1280, 700, ("interface", "comparison", "receptors")),
-    ("en", "warm", 1001, 600, ("comparison",)),
-    ("zh", "dark", 1001, 580, ("comparison",)),
+    pytest.param("en", "warm", 1001, 600, ("comparison",), id="paired_short_en"),
+    pytest.param("zh", "dark", 1001, 580, ("comparison",), id="paired_short_zh"),
 ])
 def test_short_protein_viewports(language, theme, width, height, kinds):
     zh = language == "zh"
