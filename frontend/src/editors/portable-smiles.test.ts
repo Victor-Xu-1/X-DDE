@@ -3,6 +3,7 @@ import {
   readPortableSmiles,
   readRecognizedSource,
   readRecognizedStereoFile,
+  recognizedStereoSource,
   recognizedDrawing,
   SmilesHandoffError,
 } from "./portable-smiles";
@@ -19,6 +20,43 @@ const partialAbsoluteMol = [
   "M  V30 BEGIN COLLECTION", "M  V30 MDLV30/STEABS ATOMS=(1 2)",
   "M  V30 END COLLECTION", "M  V30 END CTAB", "M  END", "",
 ].join("\n");
+
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)I",
+  "FC(Cl)=[C@AL2]=C(Br)I",
+  "FC(Cl)=[C@@]=C(Br)I",
+  "[C@AL1](=C(F)Cl)=C(Br)I",
+  "[C@](=C(F)Cl)=C(Br)I",
+  "FC(Cl)=[C@@](=C(Br)I)",
+  "FC(Cl)=[C@@]=C(Br)I.C1.C1",
+  "FC(Cl)=[C@@]=C(Br)I.C(C.O)N",
+  "FC(Cl)=[C@@]=C(Br)C=1CCCCC=1",
+])("retains the original axial marker and atom order for %s", async (rawSmiles) => {
+  const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
+  const source = editor(result.smiles);
+  const service = source.structService;
+  await expect(readRecognizedSource(service, result)).resolves.toEqual({
+    text: rawSmiles, molfile: "", sourceOnly: "allene",
+  });
+  await expect(readRecognizedStereoFile(service, result, "mol")).rejects.toThrow(SmilesHandoffError);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  expect(service.getInChIKey).not.toHaveBeenCalled();
+});
+
+it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact", () => {
+  const result = { smiles: "CC", molfile: generatedMol };
+  expect(recognizedStereoSource({
+    ...result, rawSmiles: "FC(Cl)=[C@AL1]=C(Br)I |w:1.0|",
+  })).toEqual({ text: "", molfile: "", sourceOnly: "allene" });
+  expect(recognizedStereoSource({ ...result, rawSmiles: "Cl[C@TH1](F)(Br)I" })).toBeNull();
+  expect(recognizedStereoSource({ ...result, rawSmiles: "Cl[C@](F)(Br)I" })).toBeNull();
+});
+
+it("withholds a shorthand recognition when the bond reader cannot classify its stereo", () => {
+  const rawSmiles = "FC(Cl)=[C@@]=C(Br)C%(101)CCCCC%(101)";
+  expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
+    .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
+});
 
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
   const molfile = generatedMol.replaceAll("\n", "\r\n");

@@ -318,19 +318,23 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
     final = [item["after"] for step in record["final_steps"] for item in step["changes"]]
     assert any("source?.revision === drawingRevision" in item for item in final)
     assert any("readPortableSmiles(current, result)" in item for item in final)
-    edit_export = [item["after"] for item in record["final_steps"][-1]["changes"]]
-    assert any("readPortableSmiles(current, result, readSmiles)" in item for item in edit_export)
-    assert any("output_format: ChemicalMimeType.DaylightSmiles" in item for item in edit_export)
+    assert any("readPortableSmiles(current, result, readSmiles)" in item for item in final)
+    assert any("output_format: ChemicalMimeType.DaylightSmiles" in item for item in final)
     assert any("source.revision = structureGate.checkpoint()" in item for item in final)
     assert any("hasRelativeStereo(source.result.molfile)" in item for item in final)
     assert any("const text = await readRecognizedStereoFile(" in item for item in final)
     assert "    revokeRecovery();\n" in final
     assert any("source.recovery !== request" in item for item in final)
     assert any("source.recovery !== recovered.request" in item for item in final)
+    app_final = [item["after"] for step in app["final_steps"] for item in step["changes"]]
+    assert any("onLoadSuccess={bindRecognizedDrawing}" in item for item in app_final)
     assert any(
-        "onLoadSuccess={bindRecognizedDrawing}" in item["after"]
-        for item in app["final_steps"][-1]["changes"]
+        'const drawing = sourceOnly ? "" : recognizedDrawing(job.result)' in item for item in final
     )
+    assert any("inputBridgeOrigin() && sourceExport?.sourceOnly" in item for item in final)
+    assert any("currentSourceExport() !== fallback" in item for item in final)
+    assert any("recognitionDrawingOwner.current !== drawingOwner.current" in item for item in final)
+    assert any("Boolean(sourceExport?.molfile)" in item for item in app_final)
 
 
 def test_native_provider_serializes_before_any_service_consumer_can_bind_convert():
