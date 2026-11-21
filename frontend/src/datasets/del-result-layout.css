@@ -27,33 +27,6 @@
   margin-block-start: 6px;
 }
 
-.dataset-enumeration-counts {
-  align-self: center;
-}
-.dataset-enumeration-counts[open] {
-  flex-basis: 100%;
-}
-.dataset-enumeration-counts > summary {
-  width: fit-content;
-  cursor: pointer;
-  color: var(--accent);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 13px;
-}
-.dataset-enumeration-values {
-  display: grid;
-  gap: 4px;
-  padding-block-start: 6px;
-}
-.dataset-enumeration-values > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
 @media (min-width: 1180px) {
   [data-del-results] > .dataset-result-metrics {
     column-gap: 11px;
@@ -340,32 +313,6 @@
       display: none;
     }
 
-    .dataset-member-tools {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) fit-content(48%);
-      align-items: center;
-    }
-
-    .dataset-member-heading {
-      display: grid;
-      gap: 1px;
-    }
-
-    .dataset-member-heading h3 {
-      overflow-wrap: anywhere;
-      line-height: 1.3;
-    }
-
-    .dataset-member-origin {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2px 8px;
-    }
-
-    .dataset-member-actions {
-      justify-content: flex-end;
-    }
-
     .dataset-table-region[data-table-view="library"] > .dataset-table-toolbar {
       flex-wrap: nowrap;
 
@@ -415,66 +362,6 @@
   .detail-panel.has-header-navigation [data-del-results="del_candidates"] {
     --dataset-stage-height: clamp(280px, calc(100dvh - 297px), 610px);
     --dataset-edge-stage-reserve: 322px;
-  }
-
-  .studio-app
-    [data-del-results="del_enumerate"]
-    .structure-workbench:not([data-workspace-expanded="true"])
-    .structure-workbench-view
-    .molecule-image:has(> .molecule-inspection-view) {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 4px 6px;
-    padding: 4px 3px;
-    background: var(--surface);
-
-    > .molecule-inspection-view {
-      display: contents;
-    }
-
-    > .molecule-inspection-view > .figure-preview-sheet {
-      grid-area: 1 / 1 / auto / -1;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-    }
-
-    > .molecule-drawing-style {
-      grid-area: 2 / 1;
-      flex-wrap: wrap;
-      justify-self: start;
-      gap: 2px 5px;
-      margin: 0;
-      line-height: 1.1;
-    }
-
-    > .molecule-drawing-style select {
-      max-width: min(122px, 100%);
-      padding-block: 3px;
-    }
-
-    > .molecule-inspection-view > .figure-view-toolbar {
-      grid-area: 2 / 2;
-      margin: 0;
-
-      button {
-        padding-inline: 4px;
-        min-width: 23px;
-        font-size: 11px;
-      }
-
-      div > span {
-        min-width: 21px;
-      }
-    }
-
-    > .figure-export-trigger {
-      grid-area: 2 / 3;
-      padding-inline: 4px;
-      font-size: 12px;
-    }
-
-    > .secondary-button {
-      grid-column: 1 / -1;
-    }
   }
 }
 

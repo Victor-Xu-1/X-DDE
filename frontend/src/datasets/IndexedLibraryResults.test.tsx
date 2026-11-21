@@ -140,6 +140,10 @@ it("keeps a screening index on the verified original before and after explicitly
   expect(preview).toHaveAttribute("data-snapshot", "true");
   expect(preview).toHaveAttribute("data-sha256", sha);
   expect(preview).toHaveTextContent(nativeUrl);
+  const identity = screen.getByRole("heading", { name: detail.label }).parentElement;
+  expect(identity).toHaveTextContent("Research library");
+  expect(identity).toHaveTextContent("Unbound conformer");
+  expect(screen.getByRole("link", { name: "Download MOL" })).toHaveAttribute("href", nativeUrl);
   expect(preserve).not.toHaveBeenCalled();
   await userEvent
     .setup()

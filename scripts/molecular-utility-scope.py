@@ -1319,24 +1319,19 @@ CANDIDATE_DESKTOP_FILES = {
 }
 CANDIDATE_DESKTOP_DIFF = "1a4b948f38b1177d491c1715192a1f1d81f811a0b7923703700871ec48d37c0b"
 SCREENING_DESKTOP_FILES = {
-    ".github/workflows/library-member-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/result-handoff-checks.yml",
-    "frontend/src/datasets/CandidateHandoff.tsx",
-    "frontend/src/datasets/CandidateTable.tsx",
-    "frontend/src/datasets/CandidateView.test.tsx",
-    "frontend/src/datasets/CandidateView.tsx",
+    "frontend/src/datasets/DatasetResults.test.tsx",
     "frontend/src/datasets/DatasetResults.tsx",
-    "frontend/src/datasets/IndexedLibraryResults.tsx",
     "frontend/src/datasets/IndexedLibraryResults.test.tsx",
-    "frontend/src/datasets/ResearchTable.test.tsx",
+    "frontend/src/datasets/IndexedLibraryResults.tsx",
     "frontend/src/datasets/ResearchTable.tsx",
+    "frontend/src/datasets/del-result-layout.css",
+    "frontend/src/datasets/result-viewport.css",
     "frontend/src/datasets/screening-result-layout.css",
-    "frontend/src/presentation/MolecularPreview.tsx",
     "server_tests/test_candidate_inspection_desktop.py",
-    "tests/test_molecular_utility_scope.py",
+    "server_tests/test_del_desktop_review.py",
 }
-SCREENING_DESKTOP_DIFF = "edca4300a2b255ffe9bf7acbc045f7bd5a043e76c671f21c7724c7ab33151212"
+SCREENING_DESKTOP_DIFF = "f3ac93f3dcf0b2b0ba05e528fa4f440a54f17cebf5fa683aba6f485bf6f44ece"
 RESULT_THEME_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/datasets/CandidateView.css",

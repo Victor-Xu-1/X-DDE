@@ -195,12 +195,14 @@ def test_retained_candidate_desktop_workspaces(language, theme, width, height):
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1120, 650),
     ("zh", "dark", 1280, 700),
+    ("en", "warm", 1001, 600),
+    ("zh", "dark", 1024, 600),
 ])
 def test_retained_screening_desktop(language, theme, width, height):
     settings = Settings.from_env()
     assert settings.state_dir.resolve().is_relative_to(Path(os.environ["RUNNER_TEMP"]).resolve())
     zh = language == "zh"
-    evidence = Path("outputs/candidate-inspection") / f"screening-{language}"
+    evidence = Path("outputs/candidate-inspection") / f"screening-{language}-{width}x{height}"
     evidence.mkdir(parents=True, exist_ok=True)
     with (
         platform(settings.state_dir, evidence / "service.log") as base,
@@ -241,6 +243,11 @@ def test_retained_screening_desktop(language, theme, width, height):
             expect(rail.locator("tbody tr").first).to_be_visible()
             expect(rail.locator(".molecule-image")).to_have_count(0)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+            if height == 600:
+                page.evaluate("window.scrollTo(0, 0)")
+                verify_short_screening_first_screen(
+                    workspace, height, zh, two_dimensional=capability == "library.import"
+                )
             if capability in {"library.import", "drugclip.index"}:
                 verify_library_member(page, workspace, base, zh, capability == "drugclip.index")
                 if capability == "drugclip.index":
@@ -248,7 +255,7 @@ def test_retained_screening_desktop(language, theme, width, height):
                     verify_index_preservation(page, workspace, allowed_preserve, zh)
                     allowed_preserve = None
             else:
-                verify_screening_candidate(page, workspace, root, result, zh)
+                verify_screening_candidate(page, workspace, root, result, zh, height)
             page.screenshot(path=evidence / f"{capability}.png")
         assert not writes
         assert len(preserves) == 1
@@ -257,7 +264,51 @@ def test_retained_screening_desktop(language, theme, width, height):
         browser.close()
 
 
-def verify_screening_candidate(page, workspace, root, result, zh):
+def verify_short_screening_first_screen(workspace, height, zh, *, two_dimensional):
+    right = workspace.locator(".structure-workbench-details")
+    counts = right.locator(".dataset-result-counts")
+    downloads = right.locator(".dataset-download-menu")
+    first = right.locator("tbody tr").first
+    a, b, row = (
+        counts.locator("summary").bounding_box(),
+        downloads.locator("summary").bounding_box(),
+        first.bounding_box(),
+    )
+    assert a and b and row
+    assert abs(a["y"] - b["y"]) <= 3
+    assert row["y"] + row["height"] <= height + 1
+    counts.locator("summary").press("Space")
+    expect(counts).to_have_attribute("open", "")
+    expect(counts.locator(".dataset-count-values strong").first).to_be_visible()
+    counts.locator("summary").press("Space")
+    expect(counts).not_to_have_attribute("open", "")
+    downloads.locator("summary").press("Enter")
+    expect(downloads).to_have_attribute("open", "")
+    assert downloads.locator("a[href]").count() > 0
+    downloads.locator("summary").press("Enter")
+
+    left = workspace.locator(".structure-workbench-view")
+    if not two_dimensional:
+        frame = left.locator(".molecular-stage iframe")
+        expect(frame).to_be_in_viewport(ratio=0.99)
+        box = frame.bounding_box()
+        assert box and box["height"] >= 290
+        return
+    drawing = left.locator(".figure-preview-sheet")
+    expect(drawing).to_be_in_viewport(ratio=0.99)
+    dimensions = drawing.bounding_box()
+    assert dimensions and dimensions["height"] >= 245
+    expect(left.locator(".figure-export-trigger")).to_be_in_viewport(ratio=0.99)
+    line_weight = "二维图线条粗细" if zh else "2D drawing line weight"
+    expect(left.get_by_role("combobox", name=line_weight)).to_be_in_viewport(ratio=0.99)
+    zoom = left.get_by_role("button", name="放大预览" if zh else "Zoom in preview")
+    expect(zoom).to_be_in_viewport(ratio=0.99)
+    zoom.click()
+    expect(drawing).to_have_attribute("data-zoom", "2")
+    left.get_by_role("button", name="适应窗口" if zh else "Fit preview").click()
+
+
+def verify_screening_candidate(page, workspace, root, result, zh, height):
     left = workspace.locator(".structure-workbench-view")
     right = workspace.locator(".structure-workbench-details")
     frame = left.locator(".viewer-panel iframe:visible")
@@ -265,7 +316,8 @@ def verify_screening_candidate(page, workspace, root, result, zh):
     expect(capture).to_be_enabled(timeout=35000)
     expect(frame).to_be_in_viewport(ratio=0.97)
     box, rail = frame.bounding_box(), right.bounding_box()
-    assert box and rail and box["height"] >= 320 and box["x"] + box["width"] < rail["x"]
+    minimum = 290 if height == 600 else 320
+    assert box and rail and box["height"] >= minimum and box["x"] + box["width"] < rail["x"]
 
     original = next(row for row in result["candidates"] if row.get("artifact"))
     selected_download(page, workspace, root, original, zh)

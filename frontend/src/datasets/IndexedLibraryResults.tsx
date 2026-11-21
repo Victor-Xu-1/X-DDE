@@ -78,14 +78,16 @@ export function IndexedLibraryResults({
         : zh
           ? "二维结构"
           : "2D structure";
-  const groupSource = compactReview && !screeningReview;
+  const groupSource = compactReview;
   const actions = detail && (
     <div className="dataset-member-tools">
       <header className="dataset-member-heading">
         <h3>{detail.label}</h3>
         {groupSource ? (
           <div className="dataset-member-origin">
-            <span>{supplierLabel(detail.supplier, zh)}</span>
+            <span className="dataset-member-supplier">
+              {supplierLabel(detail.supplier, zh)}
+            </span>
             <span>{geometry}</span>
           </div>
         ) : (
@@ -141,6 +143,7 @@ export function IndexedLibraryResults({
       preview={
         <section
           className="dataset-member-inspector"
+          data-member-view={view}
           aria-label={zh ? "分子库成员结构检查" : "Library member inspection"}
           aria-busy={Boolean(memberId) && member.phase === "loading"}
         >

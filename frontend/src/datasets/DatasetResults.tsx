@@ -68,6 +68,7 @@ export function DatasetResults({
   const enumerated =
     tableView === "library" && result.operation === "del_enumerate";
   const screeningReview = screeningOperations.has(result.operation ?? "");
+  const countsDisclosure = enumerated || screeningReview;
   const indexed = tableView === "index" || tableView === "library";
   const downloadsWithTabs =
     hasCharts && (tableView === "counts" || tableView === "decoded");
@@ -78,15 +79,13 @@ export function DatasetResults({
       language={language}
     />
   );
-  const stats = Object.entries(result.counts)
-    .filter(
-      ([key, value]) =>
-        names[key] &&
-        key !== "shards" &&
-        !(result.operation === "del_count" && key === "member_sample_pairs") &&
-        !(key === "unresolved_structures" && value === 0),
-    )
-    .slice(0, 5);
+  const stats = Object.entries(result.counts).filter(
+    ([key, value]) =>
+      names[key] &&
+      key !== "shards" &&
+      !(result.operation === "del_count" && key === "member_sample_pairs") &&
+      !(key === "unresolved_structures" && value === 0),
+  );
   const summaryInPreview =
     (screeningReview && indexed) ||
     enumerated ||
@@ -100,7 +99,15 @@ export function DatasetResults({
         "unresolved_structures",
       ].includes(key) && value > 0,
   );
-  const metrics = stats.map(([key, value]) => (
+  let countsLabel = zh ? "筛选统计" : "Counts";
+  if (enumerated) countsLabel = zh ? "成员统计" : "Library counts";
+  if (reviewCounts)
+    countsLabel = zh
+      ? enumerated
+        ? "核查成员统计"
+        : "核查筛选统计"
+      : "Review counts";
+  const metrics = (countsDisclosure ? stats : stats.slice(0, 5)).map(([key, value]) => (
     <div key={key}>
       <span>{names[key][zh ? 0 : 1]}</span>
       <strong>{value.toLocaleString()}</strong>
@@ -111,18 +118,10 @@ export function DatasetResults({
       <span className="dataset-status-complete sr-only">
         {zh ? "已完成" : "Complete"}
       </span>
-      {enumerated && stats.length ? (
-        <details className="dataset-enumeration-counts">
-          <summary>
-            {reviewCounts
-              ? zh
-                ? "核查成员统计"
-                : "Review counts"
-              : zh
-                ? "成员统计"
-                : "Library counts"}
-          </summary>
-          <div className="dataset-enumeration-values">{metrics}</div>
+      {countsDisclosure && stats.length ? (
+        <details className="dataset-result-counts">
+          <summary>{countsLabel}</summary>
+          <div className="dataset-count-values">{metrics}</div>
         </details>
       ) : (
         metrics
