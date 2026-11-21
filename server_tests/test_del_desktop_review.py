@@ -313,3 +313,62 @@ def test_del_retained_result_layout(language, theme, width, height):
             source.click()
         assert original.value.path().read_bytes() == content.body()
         check_library_members(page, panel, zh, evidence)
+
+
+def check_short_drawing(active, workspace, zh):
+    sheet = active.locator(".figure-preview-sheet")
+    image = sheet.locator("img")
+    expect(image).to_be_visible(timeout=30_000)
+    expect(sheet).to_be_in_viewport(ratio=0.99)
+    expect(active.locator(".figure-export-trigger")).to_be_in_viewport(ratio=0.98)
+    bounds = sheet.bounding_box()
+    rail = workspace.locator(":scope > .structure-workbench-details").bounding_box()
+    assert bounds and rail and bounds["height"] >= 245, bounds
+    assert bounds["x"] + bounds["width"] < rail["x"]
+    first = workspace.locator(".structure-workbench-details tbody tr").first
+    expect(first.locator("td").first).to_be_in_viewport(ratio=0.99)
+    heavy = "二维图线条粗细" if zh else "2D drawing line weight"
+    expect(active.get_by_role("combobox", name=heavy)).to_be_in_viewport(ratio=0.99)
+    zoom = active.get_by_role("button", name="放大预览" if zh else "Zoom in preview")
+    zoom.click()
+    expect(sheet).to_have_attribute("data-zoom", "2")
+    active.get_by_role("button", name="适应窗口" if zh else "Fit preview").click()
+    expect(sheet).to_have_attribute("data-zoom", "1")
+
+
+@pytest.mark.parametrize(("language", "theme"), [("en", "warm"), ("zh", "dark")])
+def test_del_first_screen_at_1024_by_600(language, theme):
+    settings = Settings.from_env()
+    zh = language == "zh"
+    evidence = Path("outputs/del-desktop-review") / f"short-{language}-1024"
+    with del_browser(settings, evidence, language, theme, 1024, 600) as (page, base):
+        load_case(page, base, "del.enumerate", settings)
+        panel = page.locator(".dataset-results")
+        workspace = panel.locator(".structure-workbench:visible")
+        active = workspace.locator(".dataset-member-inspector")
+        check_short_drawing(active, workspace, zh)
+        count_group = workspace.locator(".dataset-enumeration-counts")
+        count_group.locator("summary").press("Space")
+        expect(count_group).to_have_attribute("open", "")
+        expect(count_group.locator(".dataset-enumeration-values")).to_contain_text(
+            "解析结构" if zh else "Resolved structures",
+        )
+        count_group.locator("summary").press("Space")
+        expect(count_group).not_to_have_attribute("open", "")
+        page.screenshot(path=evidence / "library-first-screen.png")
+
+        panel.get_by_role("tab", name="候选结构" if zh else "Candidate structures").click()
+        active = workspace.locator(".candidate-inspection-preview")
+        check_short_drawing(active, workspace, zh)
+        page.screenshot(path=evidence / "candidate-drawing-first-screen.png")
+
+        load_case(page, base, "del.candidates", settings)
+        scene = workspace.locator(".molecular-stage iframe")
+        expect(scene).to_be_in_viewport(ratio=0.99, timeout=45_000)
+        box = scene.bounding_box()
+        rail = workspace.locator(":scope > .structure-workbench-details").bounding_box()
+        assert box and rail and box["height"] >= 290
+        assert box["x"] + box["width"] < rail["x"]
+        expect(workspace.locator(".research-table td").first).to_be_in_viewport()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+        page.screenshot(path=evidence / "candidate-3d-first-screen.png")

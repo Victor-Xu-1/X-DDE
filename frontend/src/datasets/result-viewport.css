@@ -175,6 +175,9 @@
     .candidate-inspection-preview
     .viewer-panel:not(:popover-open)
     > .molecular-stage {
-    max-height: max(240px, calc(100dvh - 350px));
+    max-height: max(
+      240px,
+      calc(100dvh - var(--dataset-edge-stage-reserve, 350px))
+    );
   }
 }

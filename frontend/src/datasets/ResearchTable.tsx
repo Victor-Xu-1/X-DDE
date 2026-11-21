@@ -148,6 +148,14 @@ export function ResearchTable({
     [seriesKind, setSeriesKind] = useState("all"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const searchLabel =
+    view === "series"
+      ? zh
+        ? "搜索砌块"
+        : "Search building blocks"
+      : zh
+        ? "搜索成员或货号"
+        : "Search members or IDs";
   const queryKey = JSON.stringify([
     jobId,
     view,
@@ -224,23 +232,13 @@ export function ResearchTable({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={
-            view === "series"
+            view === "library"
               ? zh
-                ? "搜索砌块"
-                : "Search building blocks"
-              : zh
-                ? "搜索成员或货号"
-                : "Search members or IDs"
+                ? "搜索成员"
+                : "Search members"
+              : searchLabel
           }
-          aria-label={
-            view === "series"
-              ? zh
-                ? "搜索砌块"
-                : "Search building blocks"
-              : zh
-                ? "搜索成员或货号"
-                : "Search members or IDs"
-          }
+          aria-label={searchLabel}
         />
         {view === "series" && (
           <label>

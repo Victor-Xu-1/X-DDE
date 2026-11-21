@@ -1,4 +1,8 @@
-import { DownloadOutlined, LoadingOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  LoadingOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useCallback, useState, type ReactNode } from "react";
 import { MolecularPreview } from "../presentation/MolecularPreview";
@@ -47,7 +51,11 @@ export function IndexedLibraryResults({
         : "Original structure MOL";
   const saving = member.phase === "saving";
   const saveLabel = zh ? "保存为历史文件" : "Save to historical files";
-  const downloadAction = compactReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel;
+  const downloadAction = compactReview
+    ? zh
+      ? "下载 MOL"
+      : "Download MOL"
+    : originalLabel;
   const SaveIcon = saving ? LoadingOutlined : SaveOutlined;
   const saveAction = saving
     ? zh
@@ -58,26 +66,34 @@ export function IndexedLibraryResults({
         ? "保存文件"
         : "Save file"
       : saveLabel;
+  const geometry =
+    detail?.geometry === "unbound_conformer"
+      ? zh
+        ? "游离构象"
+        : "Unbound conformer"
+      : detail?.geometry === "source_3d"
+        ? zh
+          ? "原始三维结构"
+          : "Original 3D structure"
+        : zh
+          ? "二维结构"
+          : "2D structure";
+  const groupSource = compactReview && !screeningReview;
   const actions = detail && (
     <div className="dataset-member-tools">
       <header className="dataset-member-heading">
         <h3>{detail.label}</h3>
-        <span>{supplierLabel(detail.supplier, zh)}</span>
+        {groupSource ? (
+          <div className="dataset-member-origin">
+            <span>{supplierLabel(detail.supplier, zh)}</span>
+            <span>{geometry}</span>
+          </div>
+        ) : (
+          <span>{supplierLabel(detail.supplier, zh)}</span>
+        )}
       </header>
       <div className="dataset-member-actions">
-        <span>
-          {detail.geometry === "unbound_conformer"
-            ? zh
-              ? "游离构象"
-              : "Unbound conformer"
-            : detail.geometry === "source_3d"
-              ? zh
-                ? "原始三维结构"
-                : "Original 3D structure"
-              : zh
-                ? "二维结构"
-                : "2D structure"}
-        </span>
+        {!groupSource && <span>{geometry}</span>}
         <Hint label={zh ? "构象说明" : "Conformer help"}>
           {zh
             ? "读取分子库实际保存的记录；二维记录不冒充三维构象，导入的三维坐标也不视为已验证的结合姿势。保存为历史文件后，可继续准备、编辑或用于新任务。"
@@ -90,7 +106,10 @@ export function IndexedLibraryResults({
           title={originalLabel}
           aria-label={downloadAction}
         >
-          <DownloadOutlined className="dataset-member-action-icon" aria-hidden="true" />
+          <DownloadOutlined
+            className="dataset-member-action-icon"
+            aria-hidden="true"
+          />
           <span className="dataset-member-action-label">{downloadAction}</span>
         </a>
         {member.saved ? (
@@ -107,7 +126,10 @@ export function IndexedLibraryResults({
             aria-label={saveAction}
             onClick={() => void member.preserve()}
           >
-            <SaveIcon className="dataset-member-action-icon" aria-hidden="true" />
+            <SaveIcon
+              className="dataset-member-action-icon"
+              aria-hidden="true"
+            />
             <span className="dataset-member-action-label">{saveAction}</span>
           </button>
         )}
