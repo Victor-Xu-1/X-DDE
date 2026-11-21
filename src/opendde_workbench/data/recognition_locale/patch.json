@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "50115dbb761b6f1d0eafd058e8860d52da5510beb301a9cdbbfadaf8e5b055ee",
+      "after_sha256": "17bb74e99d10e728c20e37802dca654976983c5fe5b57514aba163c3162bfb46",
       "changes": [
         {
           "before": "const labels = {",
@@ -528,6 +528,15 @@
               "after": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);\n  const sourceNote = sourceExport?.sourceOnly === \"unverified-stereo\"\n    ? \"绘图组件无法核对原始 SMILES 的立体化学。\"\n    : sourceExport?.sourceOnly === \"allene\"\n      ? canExportSmiles\n        ? \"可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。\"\n        : \"累积双键手性与扩展注释无法安全导出。\"\n      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n        : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\";"
             }
           ]
+        },
+        {
+          "before_sha256": "50115dbb761b6f1d0eafd058e8860d52da5510beb301a9cdbbfadaf8e5b055ee",
+          "changes": [
+            {
+              "before": "      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"",
+              "after": "      : canExportSmiles\n        ? canExportMol\n          ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n          : \"已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。\""
+            }
+          ]
         }
       ]
     },
@@ -742,7 +751,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "88326190a4d0aebe91837747cde4ab121a71114e587371a8f2a950cba3e2c00b",
+      "after_sha256": "41880a5ea038bdffc06b4496009b5a7040e35aa948de7b7ce59df12f96c8a9a3",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1291,6 +1300,23 @@
               "after": "readPortableSmiles(current, result, readStructure)"
             }
           ]
+        },
+        {
+          "before_sha256": "88326190a4d0aebe91837747cde4ab121a71114e587371a8f2a950cba3e2c00b",
+          "changes": [
+            {
+              "before": "const MAX_BYTES = 10 * 1024 * 1024;\n",
+              "after": "const MAX_BYTES = 10 * 1024 * 1024;\nconst readStructure = async (editor: Ketcher, struct: string, format?: \"ket\") =>\n  (await editor.structService.convert({\n    struct, output_format: format === \"ket\" ? ChemicalMimeType.KET : ChemicalMimeType.DaylightSmiles,\n  })).struct;\n"
+            },
+            {
+              "before": "      const readStructure = async (struct: string, format?: \"ket\") => (await current.structService.convert({\n        struct, output_format: format === \"ket\" ? ChemicalMimeType.KET : ChemicalMimeType.DaylightSmiles,\n      })).struct;\n      void readPortableSmiles(current, result, readStructure).then(",
+              "after": "      void readPortableSmiles(current, result, (struct, format) => readStructure(current, struct, format)).then("
+            },
+            {
+              "before": "    const safe = await readRecognizedSource(current.structService, source.result);",
+              "after": "    const safe = await readRecognizedSource(current.structService, source.result,\n      (struct) => readStructure(current, struct));"
+            }
+          ]
         }
       ]
     },
@@ -1478,7 +1504,8 @@
       "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94",
       "c970fa033b034f156eac287afd5d874aeb45a9d15f7ee60e62347b293305e8dd",
       "42f97ca5ee3e2de2cb9a82046abb450df10c1484acb6e3666d34bade841ee68d",
-      "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc"
+      "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc",
+      "5b20e10d1d3973b3eced16405f3088267dd37fbb795359dd0de73c8174605f42"
     ],
     "portable-smiles.ts": [
       "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4",
@@ -1490,7 +1517,8 @@
       "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211",
       "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf",
       "ef1662af5bad34a26ff89a389f81df9f79f38b03d137adb58f64bc6d64f6683c",
-      "389d5a4108582111960945b92f7d24eb96b38b021e5a0352d3ce0ef16ef1b8f6"
+      "389d5a4108582111960945b92f7d24eb96b38b021e5a0352d3ce0ef16ef1b8f6",
+      "c2f11eb078aae0304e9e6d92b96dde94a31d8e6904466a1ba98ee9b33cee288c"
     ],
     "portable-smiles-ring-stereo.ts": [
       "463dfd1a642eca37a922756a72f84f9812ca608fe3f6f9f7a1fb8329c9d19326",

@@ -281,6 +281,58 @@ it("recovers only the structure file when the source has an enhanced stereo grou
   expect(getInChIKey.mock.calls).toEqual([[relative], [molfile]]);
 });
 
+const ringBody = "O=C1CCCCC=CCCC[C@@H](C)O1";
+const ringResult = {
+  rawSmiles: ringBody + " |(0,0,;1,0,),t:6,a:11|",
+  smiles: "C[C@H]1OC(=O)CCCCC=CCCC1",
+  molfile: generatedMol,
+};
+const ringDeclared = ringBody + " |t:6,a:11|";
+const ringStandard = "O=C1CCCC\\C=C\\CCC[C@@H](C)O1";
+
+function ringRecovery({
+  normalizedKey = "unassigned", drawingKey = "unassigned",
+  readBack = "O=C1O[C@H](C)CCCC=CCCCC1 |t:8|",
+} = {}) {
+  const keys = new Map([
+    [ringDeclared, "trans"], [ringStandard, "trans"], [ringBody, "unassigned"],
+    [ringResult.smiles, normalizedKey], [recognizedDrawing(ringResult), drawingKey],
+  ]);
+  const getInChIKey = vi.fn(async (input: string) => keys.get(input) ?? "");
+  const read = vi.fn(async (input: string) =>
+    input === ringDeclared ? "O=C1O[C@H](C)CCCC=CCCCC1 |t:8|" : readBack,
+  );
+  return { service: { getInChIKey }, read };
+}
+
+it("recovers plain ring geometry and absolute stereo from a planar source", async () => {
+  const { service, read } = ringRecovery();
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toEqual({
+    text: ringStandard, molfile: "",
+  });
+  expect(read.mock.calls).toEqual([[ringDeclared], [ringStandard]]);
+  await expect(readRecognizedStereoFile(service, ringResult, "mol"))
+    .rejects.toThrow(SmilesHandoffError);
+});
+
+it.each([
+  { drawingKey: "different molecule" },
+  { normalizedKey: "cis" },
+  { readBack: "O=C1O[C@H](C)CCCC=CCCCC1 |c:8|" },
+  { readBack: "O=C1O[C@@H](C)CCCC=CCCCC1 |t:8|" },
+  { readBack: "O=C1O[C@H](C)CCCC=CCCCC1" },
+])("withholds source recovery when the original stereo cannot be corroborated (%j)", async (keys) => {
+  const { service, read } = ringRecovery(keys);
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toBeNull();
+});
+
+it("keeps both exports when the native MOL retains the original ring geometry", async () => {
+  const { service, read } = ringRecovery({ drawingKey: "trans" });
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toEqual({
+    text: ringStandard, molfile: recognizedDrawing(ringResult),
+  });
+});
+
 it("keeps an unverified or stale source drawing unavailable", async () => {
   const getInChIKey = vi.fn()
     .mockResolvedValueOnce("source-identity")

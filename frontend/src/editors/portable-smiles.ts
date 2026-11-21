@@ -164,6 +164,7 @@ function hasMolRadical(molfile: string) {
 export async function readRecognizedSource(
   service: StructureExport["structService"],
   result: RecognitionResult,
+  readSmiles?: ReadStructure,
 ): Promise<RecognizedSourceExport | null> {
   const sourceOnly = recognizedStereoSource(result);
   if (sourceOnly) return sourceOnly;
@@ -177,18 +178,36 @@ export async function readRecognizedSource(
   if (hasMolRadical(molfile)) return null;
   const source = stereoSmiles(raw);
   let expected: string;
+  let fileKey: string;
   try {
     expected = await service.getInChIKey(source?.identity ?? raw);
-    if (!expected?.trim() || expected !== await service.getInChIKey(molfile))
-      return null;
+    if (!expected?.trim()) return null;
+    fileKey = await service.getInChIKey(molfile);
   } catch {
     return null;
+  }
+
+  const text = result.smiles.trim();
+  if (expected !== fileKey) {
+    // Some normalized recognition results retain the chiral centers but omit
+    // the source's ring geometry. Recover only from an otherwise matching pair.
+    if (!readSmiles || source?.plain !== null || !isPortableLine(text) ||
+        hasRelativeStereo(molfile) || !fileKey?.trim())
+      return null;
+    try {
+      const bodyKey = await service.getInChIKey(source.text);
+      if (bodyKey !== fileKey || bodyKey !== await service.getInChIKey(text))
+        return null;
+      const standard = await readStandardRingStereo(readSmiles, service, source, expected);
+      return standard ? { text: standard, molfile: "" } : null;
+    } catch {
+      return null;
+    }
   }
 
   try {
     // Verify the recognized graph as read, including stereo inferred from its
     // depiction. A metadata allowlist alone cannot prove that stripping is safe.
-    const text = result.smiles.trim();
     if (
       source &&
       isPortableLine(text) &&
@@ -196,6 +215,10 @@ export async function readRecognizedSource(
       expected === await service.getInChIKey(text)
     ) return { text, molfile };
 
+    if (readSmiles && source?.plain === null && !hasRelativeStereo(molfile)) {
+      const standard = await readStandardRingStereo(readSmiles, service, source, expected);
+      if (standard) return { text: standard, molfile };
+    }
   } catch {
     // A reader failure for the text does not invalidate the verified MOL.
   }
