@@ -1,4 +1,4 @@
-import { ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
+import { hasAlleneShorthand, ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
 
 type StructureExport = {
   getSmiles(isExtended?: boolean): Promise<string>;
@@ -38,7 +38,7 @@ export function recognizedAlleneSource({ rawSmiles }: RecognitionResult): Recogn
   if (!raw) return null;
   const molecule = raw.split(/\s|\|/, 1)[0];
   const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(molecule) ||
-    /=\[(?:\d+)?C@@?\]=/.test(molecule);
+    hasAlleneShorthand(molecule);
   if (!axial) return null;
   return {
     text: raw.length <= 100_000 && isPortableLine(raw) ? raw : "",

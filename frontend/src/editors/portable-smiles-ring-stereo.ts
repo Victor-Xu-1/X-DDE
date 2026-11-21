@@ -8,7 +8,7 @@ function bondPositions(text: string) {
   const bonds: Bond[] = [];
   const branches: number[] = [];
   const rings = new Map<string, { atom: number; bond: BondPosition }>();
-  let atomCount = 0;
+  const atoms: string[] = [];
   let current = -1;
   let pending: BondPosition | undefined;
   let cursor = 0;
@@ -45,7 +45,8 @@ function bondPositions(text: string) {
       if (current < 0 || pending || branches.length || rings.size) return null;
       current = -1;
     } else {
-      const next = atomCount++;
+      const next = atoms.length;
+      atoms.push(token);
       if (current >= 0) {
         bonds.push({ from: current, to: next, ...(pending ?? { offset, token: "" }) });
       }
@@ -53,7 +54,21 @@ function bondPositions(text: string) {
       pending = undefined;
     }
   }
-  return current >= 0 && !branches.length && !rings.size && !pending ? bonds : null;
+  return current >= 0 && !branches.length && !rings.size && !pending ? { atoms, bonds } : null;
+}
+
+export function hasAlleneShorthand(text: string) {
+  const chiralCarbon = /\[(?:\d+)?C@@?(?:[+-]\d*|:\d+)*\]/;
+  if (!chiralCarbon.test(text)) return false;
+  const graph = bondPositions(text);
+  if (!graph) return false;
+  const doubleBonds = new Map<number, number>();
+  for (const bond of graph.bonds) {
+    if (bond.token !== "=") continue;
+    for (const atom of [bond.from, bond.to])
+      doubleBonds.set(atom, (doubleBonds.get(atom) ?? 0) + 1);
+  }
+  return graph.atoms.some((atom, index) => chiralCarbon.test(atom) && doubleBonds.get(index) === 2);
 }
 
 export function ringStereoEntries(annotation: string) {
@@ -64,8 +79,9 @@ export function ringStereoEntries(annotation: string) {
 
 /** Translate only indexed ring geometry. The caller must verify the result. */
 export function writeRingStereo(text: string, annotation: string) {
-  const bonds = bondPositions(text);
-  if (!bonds) return null;
+  const graph = bondPositions(text);
+  if (!graph) return null;
+  const { bonds } = graph;
   const neighbors = new Map<number, Bond[]>();
   for (const bond of bonds) {
     for (const end of [bond.from, bond.to]) {

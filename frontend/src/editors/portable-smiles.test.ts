@@ -26,6 +26,8 @@ it.each([
   "FC(Cl)=[C@AL2]=C(Br)I",
   "FC(Cl)=[C@@]=C(Br)I",
   "[C@AL1](=C(F)Cl)=C(Br)I",
+  "[C@](=C(F)Cl)=C(Br)I",
+  "FC(Cl)=[C@@](=C(Br)I)",
 ])("retains the original axial marker and atom order for %s", async (rawSmiles) => {
   const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
   const source = editor(result.smiles);
@@ -44,6 +46,7 @@ it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact"
     ...result, rawSmiles: "FC(Cl)=[C@AL1]=C(Br)I |w:1.0|",
   })).toEqual({ text: "", molfile: "", allene: true });
   expect(recognizedAlleneSource({ ...result, rawSmiles: "Cl[C@TH1](F)(Br)I" })).toBeNull();
+  expect(recognizedAlleneSource({ ...result, rawSmiles: "Cl[C@](F)(Br)I" })).toBeNull();
 });
 
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
