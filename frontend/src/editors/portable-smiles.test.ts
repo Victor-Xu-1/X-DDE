@@ -106,14 +106,20 @@ it.each([
 it.each([
   ["FC(Cl)=[C@AL1]=C(F)[C@TH2H](Br)I", "FC(Cl)=[C@]=C(F)[C@@H](Br)I"],
   ["[13C@TH1](F)(Cl)(Br)C(Cl)=[C@AL2]=C(Br)I", "[13C@](F)(Cl)(Br)C(Cl)=[C@@]=C(Br)I"],
+  ["C[P@TH1](=O)(F)C(Cl)=[C@AL2]=C(Br)I", "C[P@](=O)(F)C(Cl)=[C@@]=C(Br)I"],
 ])("retains both tetrahedral and axial stereo in %s", (rawSmiles, text) => {
   expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
     .toEqual({ text, molfile: "", sourceOnly: "allene" });
 });
 
-it("does not reinterpret an explicit tetrahedral marker as an allene", () => {
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)CC(Cl)=[C@TH1]=C(Br)I",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1](F)=O",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1H](F)=O",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1H2]F",
+])("does not reinterpret an inconsistent tetrahedral center in %s", (rawSmiles) => {
   expect(recognizedStereoSource({
-    rawSmiles: "FC(Cl)=[C@AL1]=C(Br)CC(Cl)=[C@TH1]=C(Br)I",
+    rawSmiles,
     smiles: "CC", molfile: generatedMol,
   })).toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
