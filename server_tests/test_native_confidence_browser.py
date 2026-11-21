@@ -17,6 +17,7 @@ from opendde_workbench.settings import Settings
 from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 from server_tests.native_confidence_case import native_case
+from server_tests.publication_browser_helpers import export_figure, inspect_png
 
 
 @pytest.mark.parametrize("language,theme,width,height", [
@@ -423,5 +424,13 @@ def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, he
         )
         restored = stage.evaluate(camera)
         assert restored == pytest.approx(adjusted, abs=1)
+        if width >= 1001:
+            trigger = viewer.get_by_role(
+                "button", name="文献图导出 ↓" if zh else "Export figure ↓", exact=True
+            )
+            png = export_figure(page, trigger, evidence, "compact-prediction", language)
+            inspect_png(png)
+            assert stage.evaluate("(node, original) => node === original", original)
+            assert stage.evaluate(camera) == pytest.approx(restored, abs=1)
         assert not writes
         browser.close()

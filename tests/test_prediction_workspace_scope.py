@@ -19,6 +19,7 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
         "frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts",
         "frontend/src/examples/ExampleActions.tsx",
         "src/opendde_workbench/confidence.py", "frontend/src/App.tsx",
+        "frontend/src/channels/channel-results.css",
     ):
         assert not scope.result_layout_only(changed | {unrelated})
     workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
@@ -28,6 +29,11 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
     examples = Path(".github/workflows/example-result-set-checks.yml").read_text()
     assert "prediction_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}" in examples
     assert examples.count("needs.scope.outputs.prediction_layout != 'true'") == 2
+    figures = Path(".github/workflows/publication-checks.yml").read_text()
+    assert ("prediction_result_layout: "
+            "${{ steps.prediction_scope.outputs.result_layout_only }}") in figures
+    assert "Compact prediction structure, camera continuity and native research PNG" in figures
+    assert "short_prediction_result_stage and not 320" in figures
 
 
 def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():

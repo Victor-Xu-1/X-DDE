@@ -1192,6 +1192,7 @@ RESULT_LAYOUT_SOURCES = {
 }
 RESULT_LAYOUT_FILES = RESULT_LAYOUT_SOURCES | {
     ".github/workflows/example-result-set-checks.yml",
+    ".github/workflows/publication-checks.yml",
     "frontend/src/operations/ConfidencePanel.test.tsx",
     "frontend/src/examples/ExampleJobResult.test.tsx",
     "server_tests/test_native_confidence_browser.py",
