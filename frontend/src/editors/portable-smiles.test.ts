@@ -192,6 +192,16 @@ it("requires a structure file when a writer drops the drawing's radical annotati
   await expect(readPortableSmiles(editor(radicalSmiles, mol))).rejects.toThrow(SmilesHandoffError);
 });
 
+it.each(["M  RAD  1   4   1", "M  V30 4 C 0 0 0 0 RAD=1"])(
+  "withholds a rejected radical drawing even if its InChIKey would match (%s)",
+  async (record) => {
+    const getInChIKey = vi.fn().mockResolvedValue("same");
+    const result = { rawSmiles: radicalSmiles, smiles: radicalSmiles, molfile: `${record}\nM  END\n` };
+    await expect(readRecognizedSource({ getInChIKey }, result)).resolves.toBeNull();
+    expect(getInChIKey).not.toHaveBeenCalled();
+  },
+);
+
 it.each([
   [relative, structure],
   [absolute, structure + "M  V30 MDLV30/STERAC1 ATOMS=(2 2 4)\n"],

@@ -157,6 +157,10 @@ export function hasRelativeStereo(molfile: string) {
   return /MDLV30\/STER(?:AC|EL)\d*/.test(molfile);
 }
 
+function hasMolRadical(molfile: string) {
+  return /(?:^M  RAD\s+\d|\bRAD=[1-9]\d*\b)/m.test(molfile);
+}
+
 /** Recover the recognized source if the drawing component cannot load it. */
 export async function readRecognizedSource(
   service: StructureExport["structService"],
@@ -169,6 +173,9 @@ export async function readRecognizedSource(
     return null;
 
   const molfile = recognizedDrawing(result);
+  // The rejected drawing cannot corroborate radical spin. The fallback
+  // compares only InChIKeys, which are insufficient for that file.
+  if (hasMolRadical(molfile)) return null;
   const source = stereoSmiles(raw);
   let expected: string;
   try {
@@ -246,7 +253,7 @@ export async function readPortableSmiles(
   try {
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
-    if (exported.radical || /\bRAD=[1-9]\d*\b/.test(mol)) {
+    if (exported.radical || hasMolRadical(mol)) {
       if (!exported.radical || !readSmiles || !exported.plain ||
           stereoSmiles((await readSmiles(mol)).trim())?.identity !== exported.identity ||
           !await preservesRadical(readSmiles, exported))
