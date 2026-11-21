@@ -2,12 +2,14 @@ import {
   alleneHandoffSmiles, directionalRingStereoBonds, ringStereoEntries, writeRingStereo,
 } from "./portable-smiles-ring-stereo";
 
+type StructureReader = {
+  getInChIKey(structure: string): Promise<string>;
+  layout?(data: { struct: string; output_format: string }): Promise<{ struct: string }>;
+};
 type StructureExport = {
   getSmiles(isExtended?: boolean): Promise<string>;
   getMolfile(format: "v3000"): Promise<string>;
-  structService: {
-    getInChIKey(structure: string): Promise<string>;
-  };
+  structService: StructureReader;
 };
 type ReadStructure = (structure: string, format?: "ket") => Promise<string>;
 
@@ -211,6 +213,26 @@ async function readRecognizedRing(
   return { text, molfile: fileKey === expected ? molfile : "" };
 }
 
+/** Rebuild a file when applying the absolute flag changes the native reading. */
+async function recoverAbsoluteDrawing(
+  service: StructureReader,
+  result: RecognitionResult,
+  depiction: string,
+  text: string,
+  expected: string,
+) {
+  if (!service.layout || !isPortableLine(text) || !text.includes("@") ||
+      expected !== await service.getInChIKey(text)) return null;
+
+  const inspected = await service.layout({ struct: depiction, output_format: "chemical/x-indigo-ket" });
+  if (expected !== await service.getInChIKey(inspected.struct)) return null;
+  const derived = await service.layout({ struct: text, output_format: "chemical/x-mdl-molfile" });
+  const molfile = recognizedDrawing({ ...result, molfile: derived.struct });
+  if (!/^M  END\s*$/m.test(molfile) || hasRelativeStereo(molfile) ||
+      hasMolRadical(molfile) || expected !== await service.getInChIKey(molfile)) return null;
+  return { text, molfile };
+}
+
 /** Recover and verify a representation of the recognized structure. */
 export async function readRecognizedSource(
   service: StructureExport["structService"],
@@ -246,7 +268,13 @@ export async function readRecognizedSource(
       return await readRecognizedRing(service, indexed, text, molfile, readSmiles);
     }
     expected = await service.getInChIKey(source?.identity ?? raw);
-    if (!expected?.trim() || expected !== await service.getInChIKey(molfile)) return null;
+    if (!expected?.trim()) return null;
+    if (expected !== await service.getInChIKey(molfile)) {
+      // This recovery applies to the generated absolute depiction only. In
+      // particular, a changed drawing or enhanced stereo stays protected.
+      if (drawing !== undefined || molfile === result.molfile || source?.stereo !== "") return null;
+      return await recoverAbsoluteDrawing(service, result, molfile, text, expected);
+    }
   } catch {
     return null;
   }
