@@ -1,4 +1,4 @@
-"""Keep the reviewed catalogue CSS transition on the component presentation gate."""
+"""Route the reviewed catalogue layout and its direct consumers to the component gate."""
 
 import os
 from hashlib import sha256
@@ -7,15 +7,22 @@ from runpy import run_path
 
 scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
 _WORKFLOW = ".github/workflows/case-bundle-checks.yml"
+_INSTALLATION = ".github/workflows/installation-checks.yml"
 _SCRIPT = "scripts/component-presentation-scope.py"
 _FILES = {
-    _WORKFLOW,
+    _INSTALLATION,
     _SCRIPT,
+    "frontend/src/deployment/ComponentCard.tsx",
+    "frontend/src/deployment/ComponentLibrary.test.tsx",
+    "frontend/src/deployment/ComponentLibrary.tsx",
     "frontend/src/deployment/components.css",
+    "frontend/src/deployment/deployment.test.tsx",
+    "server_tests/test_component_layout_browser.py",
     "server_tests/test_component_presentation_browser.py",
 }
-_WORKFLOW_BLOBS = ("e1eb6477c1b18dc149fa4a9a8d27df8a68a61cab", "cdf54ad96c5420fb63b046e670e105855ed79e3b")
-_SELECTOR_SHA = "c5cfb398bced56e575e3a8e606c3dc54316113f5eba3aa75b9e3a92e9e58d6f2"
+_WORKFLOW_BLOBS = ("cdf54ad96c5420fb63b046e670e105855ed79e3b", "cdf54ad96c5420fb63b046e670e105855ed79e3b")
+_INSTALLATION_BLOBS = ("6a8ba5d380064d0b93696709b61ed198238b0743", "96fd8880a879d15ca48e5715fa5795d3a23f1f6d")
+_SELECTOR_SHA = "69567429a39387931226c55feeeca3857035e4b6f59cbbd9e73ffb729dc46b23"
 
 
 def presentation_only(base, event, ref):
@@ -30,6 +37,8 @@ def presentation_only(base, event, ref):
         return False
     blob = scope["git_blob"]
     if (blob(base, _WORKFLOW), blob("HEAD", _WORKFLOW)) != _WORKFLOW_BLOBS:
+        return False
+    if (blob(base, _INSTALLATION), blob("HEAD", _INSTALLATION)) != _INSTALLATION_BLOBS:
         return False
     source = git("show", f"HEAD:{_SCRIPT}")
     mask = f'_SELECTOR_SHA = "{_SELECTOR_SHA}"'.encode()

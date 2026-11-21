@@ -57,15 +57,13 @@ export function ComponentCard({
         <span className={`component-icon is-${kind}`} aria-hidden="true">
           <Icon />
         </span>
-        <span className="component-category">
-          {groupLabel || kinds[kind][zh ? 0 : 1]}
-        </span>
-      </div>
-      <div className="component-title">
-        {groupLabel && (
-          <span className="component-kind">{kinds[kind][zh ? 0 : 1]}</span>
-        )}
-        <h3 title={p.name}>{title}</h3>
+        <div className="component-title">
+          <h3 title={p.name}>{title}</h3>
+          <span className="component-category">
+            {kinds[kind][zh ? 0 : 1]}
+            {groupLabel && ` · ${groupLabel}`}
+          </span>
+        </div>
       </div>
       <p title={description}>{description}</p>
       {(!installed || kind !== "runtime") && (

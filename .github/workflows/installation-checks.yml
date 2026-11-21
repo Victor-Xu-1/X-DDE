@@ -48,7 +48,21 @@ on:
         default: ubuntu-24.04
         options: [ubuntu-24.04, ubuntu-22.04]
 jobs:
+  component-scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      presentation_only: ${{ steps.scope.outputs.component_presentation_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python scripts/component-presentation-scope.py
   deployment:
+    needs: component-scope
+    if: needs.component-scope.outputs.presentation_only != 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4

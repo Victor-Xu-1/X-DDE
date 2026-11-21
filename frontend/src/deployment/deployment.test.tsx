@@ -33,6 +33,12 @@ function panel(
     />,
   );
 }
+function chooseComponentGroup(label: string) {
+  const option = screen.getByRole<HTMLOptionElement>("option", { name: label });
+  fireEvent.change(screen.getByRole("combobox", { name: "组件分组" }), {
+    target: { value: option.value },
+  });
+}
 it("maps Windows locations without altering Linux paths", () => {
   expect(linuxLocation("E:\\OpenDDE\\Workbench")).toBe(
     "/mnt/e/OpenDDE/Workbench",
@@ -131,12 +137,12 @@ it("group filters retain native model choices and fallback components", () => {
       packageOf("future-tool"),
     ]),
   );
-  fireEvent.click(screen.getByRole("button", { name: "小分子生成与优化" }));
+  chooseComponentGroup("小分子生成与优化");
   expect(screen.getAllByRole("article")).toHaveLength(1);
   expect(screen.getByRole("heading", { name: "diffsbdd" })).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "其他组件" }));
+  chooseComponentGroup("其他组件");
   expect(screen.getByRole("article", { name: "future-tool" })).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "全部" }));
+  chooseComponentGroup("全部组件");
   expect(screen.getAllByRole("article")).toHaveLength(3);
 });
 it("shows each main component once and deploys only the selected research group", async () => {
@@ -159,7 +165,7 @@ it("shows each main component once and deploys only the selected research group"
     screen.getByRole("article", { name: "OpenDDE 抗体预测模型" }),
   ).not.toBeVisible();
   expect(screen.queryByRole("button", { name: "部署推荐组合" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "结构与复合物预测" }));
+  chooseComponentGroup("结构与复合物预测");
   expect(mainCards()).toHaveLength(2);
   fireEvent.click(screen.getByRole("button", { name: "部署推荐组合" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(3));
