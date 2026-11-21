@@ -199,6 +199,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "spatial_desktop_only=false\n"
         "spatial_review_only=false\n"
         "short_structure_review_only=false\n"
+        "short_paired_comparison_only=false\n"
         "sequence_desktop_only=false\n"
         "protein_desktop_only=false\n"
         "touch_controls_only=false\n"
@@ -206,6 +207,17 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         f"utility_only={str(not mixed).lower()}\n"
     )
     assert calls[0] == ["git", "merge-base", "origin/main", "HEAD"]
+
+
+def test_short_paired_comparison_leaves_unrelated_viewers_and_engines_in_their_own_gates():
+    paths = scope["SHORT_PAIRED_COMPARISON_FILES"]
+    checked = scope["reviewed_selected"]
+    pin = scope["SHORT_PAIRED_COMPARISON_DIFF"]
+    for unrelated in ("frontend/src/viewer/frame.ts", "src/opendde_workbench/deployment.py"):
+        assert not checked(paths | {unrelated}, "pull_request", "", paths, pin)
+    workflow = Path(".github/workflows/molecular-utility-checks.yml").read_text()
+    assert "Aligned protein scenes, matched cameras, original CIFs and 600 dpi PNG" in workflow
+    assert "-k paired_short" in workflow
 
 
 @pytest.mark.parametrize("name", [

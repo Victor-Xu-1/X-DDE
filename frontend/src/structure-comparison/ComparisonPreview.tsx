@@ -1,4 +1,5 @@
 import type { Ref } from "react";
+import { AimOutlined } from "@ant-design/icons";
 import { artifactUrl } from "../api";
 import { WorkspaceFullscreenControl } from "../presentation/WorkspaceFullscreenControl";
 import type { Language } from "../types";
@@ -38,6 +39,7 @@ export function ComparisonPreview({
   onUse?: () => void;
 }) {
   const zh = language === "zh";
+  const matchViews = zh ? "匹配视角" : "Match views";
   const camera = useComparisonView();
   const figure = useStructurePairFigure();
   const { view } = camera;
@@ -94,11 +96,14 @@ export function ComparisonPreview({
               <>
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="secondary-button comparison-match-views"
+                  aria-label={matchViews}
+                  title={matchViews}
                   disabled={!camera.pairReady || camera.busy}
                   onClick={camera.matchViews}
                 >
-                  {zh ? "匹配视角" : "Match views"}
+                  <AimOutlined className="comparison-match-icon" aria-hidden="true" />
+                  <span className="comparison-match-label">{matchViews}</span>
                 </button>
                 <StructurePairFigure
                   figure={figure}

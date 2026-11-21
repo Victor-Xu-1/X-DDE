@@ -227,6 +227,7 @@ jobs:
       spatial_desktop_only: ${{ steps.select.outputs.spatial_desktop_only }}
       spatial_review_only: ${{ steps.select.outputs.spatial_review_only }}
       short_structure_review_only: ${{ steps.select.outputs.short_structure_review_only }}
+      short_paired_comparison_only: ${{ steps.select.outputs.short_paired_comparison_only }}
       sequence_desktop_only: ${{ steps.select.outputs.sequence_desktop_only }}
       protein_desktop_only: ${{ steps.select.outputs.protein_desktop_only }}
       history_desktop_only: ${{ steps.select.outputs.history_desktop_only }}
@@ -1187,12 +1188,20 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Protein interface, aligned structures and receptor workspace components
+        if: needs.scope.outputs.short_paired_comparison_only != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/integrations/ProteinInterfaceResults.test.tsx
           src/receptors/ReceptorResults.test.tsx src/operations/StructureComparisonResults.test.tsx
           src/presentation/WorkspaceFullscreenControl.test.tsx
-      - name: Inspect three retained protein results in short desktop Chrome
+      - name: Paired structure state, camera and figure consumers
+        if: needs.scope.outputs.short_paired_comparison_only == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/structure-comparison/ComparisonScene.test.ts
+          src/viewer/structure-camera.test.tsx src/viewer/StructureViewer.test.tsx
+          src/presentation/WorkspaceFullscreenControl.test.tsx src/publication/FigureExport.test.tsx
+      - name: Prepare the sealed protein results and browser checks without inference
         env:
           GH_TOKEN: ${{ github.token }}
           WB_HOME: ${{ runner.temp }}/short-structure-review
@@ -1207,7 +1216,20 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
+      - name: Inspect three retained protein results in short desktop Chrome
+        if: needs.scope.outputs.short_paired_comparison_only != 'true'
+        env:
+          WB_HOME: ${{ runner.temp }}/short-structure-review
+          WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
+        run: .venv/bin/python -m pytest -x -q server_tests/test_short_protein_viewports.py
+      - name: Aligned protein scenes, matched cameras, original CIFs and 600 dpi PNG
+        if: needs.scope.outputs.short_paired_comparison_only == 'true'
+        env:
+          WB_HOME: ${{ runner.temp }}/short-structure-review
+          WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
+        run: >-
           .venv/bin/python -m pytest -x -q server_tests/test_short_protein_viewports.py
+          -k paired_short
       - uses: actions/upload-artifact@v4
         if: always()
         with:
