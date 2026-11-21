@@ -394,3 +394,153 @@ html
     margin-bottom: 3px;
   }
 }
+
+@media (1001px <= width < 1180px) and (max-height: 720px) {
+  .prediction-result:has(.prediction-sample-options > button:not(:only-child)) {
+    --short-prediction-stage-reserve: 354px;
+  }
+  .prediction-result .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1.65fr) minmax(273px, 1fr);
+    gap: 6px 12px;
+
+    > .structure-workbench-details {
+      padding-inline-start: 10px;
+      max-height: clamp(292px, calc(100dvh - 270px), 460px);
+    }
+
+    .prediction-sample-bar {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr) auto;
+      gap: 3px 8px;
+      padding-block: 2px 5px;
+    }
+    .prediction-seed-picker select {
+      width: 108px;
+      min-height: 30px;
+      height: 30px;
+    }
+    .prediction-sample-picker nav {
+      min-width: 0;
+    }
+    .prediction-sample-picker button {
+      min-height: 30px;
+      height: 30px;
+    }
+    .prediction-sample-picker .prediction-best-sample {
+      min-width: 20px;
+      min-height: 24px;
+      height: 24px;
+    }
+    .prediction-sample-picker .prediction-best-icon {
+      display: inline-flex;
+    }
+    .prediction-sample-picker .prediction-best-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .prediction-sample-picker nav:has(> button:first-child:disabled):has(> button:last-child:disabled)
+      > button {
+      display: none;
+    }
+    .prediction-sample-options {
+      padding-block: 1px;
+    }
+    :is(.prediction-confidence-metrics, .prediction-overlay-status) {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .prediction-confidence-metrics {
+      gap: 6px;
+    }
+    .prediction-confidence-metrics > div {
+      padding: 3px 7px;
+    }
+    .prediction-confidence-metrics dd {
+      font-size: 16px;
+    }
+    .prediction-sample-download {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    .prediction-model-download {
+      padding-block: 5px;
+    }
+    .prediction-sample-bar:has(.prediction-sample-options > button:only-child):has(
+        > .prediction-confidence-metrics
+      ) {
+      grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
+
+      .prediction-seed-picker select {
+        width: 92px;
+      }
+      > .prediction-confidence-metrics {
+        grid-column: 3;
+        grid-row: 1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .prediction-confidence-metrics > div {
+        display: grid;
+        gap: 0;
+        min-width: 0;
+      }
+      .prediction-confidence-metrics dt {
+        overflow-wrap: anywhere;
+      }
+      .prediction-sample-download {
+        grid-column: 4;
+      }
+    }
+    .viewer-panel > :is(.studio-heading, .viewer-modes) {
+      margin-bottom: 3px;
+    }
+    :is(.viewer-heading-actions, .viewer-mode-options)
+      :is(button:not(.viewer-tool-content button), .viewer-chain-menu > summary) {
+      min-height: 34px;
+    }
+    .viewer-heading-actions > button,
+    .viewer-heading-actions .viewer-tool-trigger {
+      min-width: 34px;
+    }
+  }
+
+  .prediction-result .prediction-confidence-toolbar {
+    flex-wrap: nowrap;
+    gap: 4px 8px;
+  }
+  .prediction-result .prediction-confidence-toolbar .field {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+  }
+  .prediction-result .confidence-view-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .prediction-result .prediction-confidence-toolbar select {
+    width: 100%;
+    min-height: 32px;
+  }
+  .prediction-result .prediction-confidence-toolbar .confidence-chain-borders {
+    display: inline-flex;
+    flex: none;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  html body .studio-app .prediction-result
+    .structure-workbench:not([data-workspace-expanded]) .viewer-panel .molecular-stage {
+    height: clamp(246px, calc(100dvh - var(--short-prediction-stage-reserve, 342px)), 430px);
+    min-height: 0;
+    border-radius: 8px;
+  }
+}

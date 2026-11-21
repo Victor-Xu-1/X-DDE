@@ -511,7 +511,7 @@ jobs:
       - name: Guided setup, expandable settings and current values across all prediction forms
         if: needs.scope.outputs.setup_summary == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_setup_browser.py
-      - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
+      - name: Retained STAT6 scores, Plotly interactions, compact canvas and byte-exact downloads
         if: needs.scope.outputs.confidence_changed == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
       - name: NumPy native interchange and bilingual real Plotly/WebGL linkage without inference

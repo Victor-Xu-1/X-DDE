@@ -119,6 +119,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
+      prediction_result_layout: ${{ steps.prediction_scope.outputs.prediction_publication_layout }}
       research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
       native_viewer_changed: ${{ steps.native_viewer.outputs.changed }}
       print_labels_changed: ${{ steps.print_labels.outputs.changed }}
@@ -126,6 +127,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - id: prediction_scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/prediction-workspace-scope.py
       - id: change
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
@@ -439,6 +444,7 @@ jobs:
       - run: npm ci --prefix frontend && python scripts/generate-plotly-css.py --check && npm run build --prefix frontend
       - run: uv sync --locked --group dev --group browser
       - name: Physical figures, native capture restoration and direct questionnaire/chart consumers
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         working-directory: frontend
         run: >-
           npx vitest run src/publication/settings-svg.test.ts src/publication/png-resolution.test.ts
@@ -459,7 +465,15 @@ jobs:
           src/viewer/source-layout.test.ts
           src/examples/guide.test.ts src/examples/TemplateStepHelp.test.tsx
           src/viewer/donor-hydrogens.test.ts src/viewer/contacts.test.ts
+      - name: Prediction figure resolution, scene capture and workspace focus
+        if: needs.scope.outputs.prediction_result_layout == 'true'
+        working-directory: frontend
+        run: >-
+          npx vitest run src/publication/FigureExport.test.tsx src/publication/png-resolution.test.ts
+          src/viewer/useViewerSnapshot.test.ts src/viewer/capture.test.ts
+          src/presentation/WorkspaceFullscreenControl.test.tsx src/viewer/StructureViewer.test.tsx
       - name: Existing bootstrap and request-origin security contracts
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         run: >-
           uv run --locked pytest -q
           tests/test_api_security.py::test_ui_bootstrap_is_not_stored_across_releases
@@ -481,13 +495,22 @@ jobs:
           PY
           )"
           echo "WB_REVIEWED_STAT6_ARCHIVE=$archive_path" >> "$GITHUB_ENV"
-          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          if [[ '${{ needs.scope.outputs.prediction_result_layout }}' != 'true' ]]; then
+            uv run --locked python server_tests/prepare_visual_components.py --components ketcher
+          fi
       - name: Real desktop and narrow structure, candidate controls, native exit and figure downloads
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         env:
           WB_HOME: ${{ runner.temp }}/x-dde-fullscreen
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-fullscreen/state
         run: uv run --locked python -m pytest -q server_tests/test_workspace_fullscreen_browser.py
+      - name: Compact prediction structure, camera continuity and native research PNG
+        if: needs.scope.outputs.prediction_result_layout == 'true'
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
+          -k 'short_prediction_result_stage and not 320'
       - name: Restore archival native annotation results; no scientific execution
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -496,11 +519,13 @@ jobs:
           .venv/bin/python server_tests/download_publication_cases.py --annotations
           gh release download examples-v1 --repo "$GITHUB_REPOSITORY" --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
       - name: Restore case data and managed editor in isolated CI state
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         run: |
           .venv/bin/python server_tests/prepare_layout_cases.py "$RUNNER_TEMP/x-dde-public-cases-v1.zip"
           .venv/bin/python server_tests/prepare_visual_components.py --components ketcher public-pose-examples
           .venv/bin/python server_tests/restore_publication_cases.py --annotations
       - name: Bilingual native figure downloads, retained views and responsive questionnaires
+        if: needs.scope.outputs.prediction_result_layout != 'true'
         run: >-
           uv run --locked python -m pytest -x -q server_tests/test_native_annotation_browser.py
           server_tests/test_publication_browser.py
@@ -512,6 +537,7 @@ jobs:
           path: |
             outputs/publication-browser/**
             outputs/workspace-fullscreen/**
+            outputs/native-confidence/stage-*/**
 
   molecular-framing:
     needs: framing-scope
