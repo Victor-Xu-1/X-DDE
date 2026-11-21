@@ -32,11 +32,13 @@ function isPortableLine(value: string) {
   return /^[\x21-\x7e]+$/.test(value) && !/[>|]/.test(value);
 }
 
-/** Keep the original atom order and axial marker when MOL drops allene stereo. */
+/** Keep export on the recognized source when the drawing cannot retain its stereo. */
 export function recognizedStereoSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
   const raw = rawSmiles?.trim();
   if (!raw) return null;
   const molecule = raw.split(/\s|\|/, 1)[0];
+  if (/\[(?:\d+)?[A-Z][a-z]?@(?:SP|TB|OH)\d/.test(molecule))
+    return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
   const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(molecule) ||
     hasAlleneShorthand(molecule);
   if (axial === false) return null;
@@ -62,7 +64,7 @@ function isPlanarCoordinateList(value: string) {
 
 /** Keep chemical stereo data for comparison, apart from planar drawing coordinates. */
 function stereoSmiles(value: string) {
-  if (isPortableLine(value)) return { text: value, plain: value, identity: value, stereo: "" };
+  if (isPortableLine(value)) return { text: value, plain: value, identity: value, stereo: "", radical: false };
   const match = /^(\S+) \|([^|]+)\|$/.exec(value);
   if (!match || !isPortableLine(match[1])) return null;
   const [, text, annotation] = match;
@@ -72,14 +74,27 @@ function stereoSmiles(value: string) {
     if (!coordinates || !isPlanarCoordinateList(coordinates[1])) return null;
     stereo = coordinates[2] ?? "";
   }
-  if (stereo && !/^[act]:\d+(?:,\d+)*(?:,[act]:\d+(?:,\d+)*)*$/.test(stereo))
+  if (stereo && !/^(?:[act]|\^[1-3]):\d+(?:,\d+)*(?:,(?:[act]|\^[1-3]):\d+(?:,\d+)*)*$/.test(stereo))
     return null;
   return {
     text,
     plain: /(?:^|,)[ct]:/.test(stereo) ? null : text,
     identity: stereo ? `${text} |${stereo}|` : text,
     stereo,
+    radical: /(?:^|,)\^[1-3]:/.test(stereo),
   };
+}
+
+/** A bracket atom can imply a radical in plain SMILES. Check its full
+ * annotation on read-back, since InChI alone can miss spin-state changes. */
+async function preservesRadical(
+  readSmiles: ReadSmiles,
+  extended: string,
+  plain: string,
+) {
+  const read = async (value: string) => stereoSmiles((await readSmiles(value)).trim());
+  const annotated = await read(extended);
+  return Boolean(annotated?.radical && annotated.identity === (await read(plain))?.identity);
 }
 
 async function readStandardRingStereo(
@@ -146,6 +161,8 @@ export async function readRecognizedSource(
 
   const molfile = recognizedDrawing(result);
   const source = stereoSmiles(raw);
+  // InChI alone cannot verify an explicit spin assignment in a rejected drawing.
+  if (source?.radical) return null;
   let expected: string;
   try {
     expected = await service.getInChIKey(source?.identity ?? raw);
@@ -222,6 +239,14 @@ export async function readPortableSmiles(
   try {
     const expected = await editor.structService.getInChIKey(mol);
     if (!expected?.trim()) throw new Error("Unverified drawing");
+    if (exported.radical) {
+      if (!readSmiles || !exported.plain ||
+          stereoSmiles((await readSmiles(mol)).trim())?.identity !== exported.identity ||
+          !await preservesRadical(readSmiles, exported.identity, exported.plain))
+        throw new Error("Radical annotation cannot round trip");
+    }
+    if (original?.radical && original.identity !== exported.identity)
+      throw new Error("Recognized radical annotation cannot be matched to the drawing");
     if (!exported.plain) {
       if (expected !== await editor.structService.getInChIKey(exported.identity))
         throw new Error("Editor ring stereochemistry changed");

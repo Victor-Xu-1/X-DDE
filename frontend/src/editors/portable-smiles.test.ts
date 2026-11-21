@@ -58,6 +58,21 @@ it("withholds a shorthand recognition when the bond reader cannot classify its s
     .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
 
+it.each([
+  "Cl[Pt@SP1](F)(Br)I",
+  "S[As@TB2](F)(Cl)(Br)I",
+  "F[Co@OH2](Cl)(Br)(I)(N)O",
+])("withholds converted files when the drawing reader cannot verify %s", async (rawSmiles) => {
+  const source = editor("CC");
+  const result = { rawSmiles, smiles: "CC", molfile: generatedMol };
+  await expect(readRecognizedSource(source.structService, result)).resolves.toEqual({
+    text: "", molfile: "", sourceOnly: "unverified-stereo",
+  });
+  await expect(readRecognizedStereoFile(source.structService, result, "sdf")).rejects.toThrow(SmilesHandoffError);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  expect(source.structService.getInChIKey).not.toHaveBeenCalled();
+});
+
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {
   const molfile = generatedMol.replaceAll("\n", "\r\n");
   expect(recognizedDrawing({ smiles: absolute, rawSmiles: absolute, molfile })).toBe(
@@ -120,6 +135,38 @@ it("exports one clean line while preserving the chirality and verifies the round
   expect(source.getSmiles).toHaveBeenCalledWith(false);
   expect(source.getMolfile).toHaveBeenCalledWith("v3000");
   expect(source.structService.getInChIKey.mock.calls).toEqual([[structure], [absolute]]);
+});
+
+const radicalSmiles = "C[C@@H](C[CH2])O";
+const annotatedRadical = radicalSmiles + " |^1:3|";
+const readBackRadical = "C[C@H](O)C[CH2] |^1:4|";
+
+it("exports a chiral radical when the bracket atom restores the same annotation", async () => {
+  const source = editor(annotatedRadical);
+  const read = vi.fn(async (input: string) =>
+    input === structure ? annotatedRadical : readBackRadical);
+  await expect(readPortableSmiles(source, undefined, read)).resolves.toBe(radicalSmiles);
+  expect(read.mock.calls).toEqual([[structure], [annotatedRadical], [radicalSmiles]]);
+});
+
+it.each([
+  ["different spin", annotatedRadical, readBackRadical.replace("^1", "^3")],
+  ["different atom", annotatedRadical, readBackRadical.replace(":4", ":2")],
+  ["missing from the drawing", radicalSmiles, readBackRadical],
+  ["missing on read-back", annotatedRadical, radicalSmiles],
+])("requires MOL if the radical is %s despite a matching InChIKey", async (_, molText, plainText) => {
+  const source = editor(annotatedRadical);
+  const read = vi.fn(async (input: string) =>
+    input === structure ? molText : input === radicalSmiles ? plainText : readBackRadical);
+  await expect(readPortableSmiles(source, undefined, read)).rejects.toThrow(SmilesHandoffError);
+});
+
+it("cannot omit a recognized explicit spin assignment missing from the drawing", async () => {
+  const result = {rawSmiles: annotatedRadical, smiles: radicalSmiles, molfile: structure};
+  await expect(readPortableSmiles(editor(radicalSmiles), result)).rejects.toThrow(SmilesHandoffError);
+  const getInChIKey = vi.fn().mockResolvedValue("same");
+  await expect(readRecognizedSource({getInChIKey}, result)).resolves.toBeNull();
+  expect(getInChIKey).not.toHaveBeenCalled();
 });
 
 it.each([
