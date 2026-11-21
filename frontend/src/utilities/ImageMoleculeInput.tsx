@@ -1,3 +1,4 @@
+import { PictureOutlined } from "@ant-design/icons";
 import { useContext, useRef, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { Language } from "../types";
@@ -32,6 +33,7 @@ export function ImageMoleculeInput({
   uploadButton,
   controlsFirst = false,
   automatic = false,
+  pasteLabel,
   cancelOnEdit = false,
   review,
   onSourceEdit,
@@ -48,6 +50,7 @@ export function ImageMoleculeInput({
   uploadButton?: RefObject<HTMLButtonElement | null>;
   controlsFirst?: boolean;
   automatic?: boolean;
+  pasteLabel?: string;
   cancelOnEdit?: boolean;
   review?: { molecule: ImageMolecule; image: File };
   onSourceEdit?(): void;
@@ -107,6 +110,16 @@ export function ImageMoleculeInput({
       : "Press Ctrl+V here, or drop an image.",
   };
   if (!enabled && !inputOwner) return <>{children}</>;
+  const uploadLabel =
+    target !== "molecule"
+      ? imageActions[target][0][zh ? 0 : 1]
+      : automatic
+        ? zh
+          ? "上传结构图"
+          : "Upload structure image"
+        : zh
+          ? "从结构图片输入"
+          : "Input from structure image";
   const controls = (
     <>
       <div className="image-molecule-actions">
@@ -114,20 +127,24 @@ export function ImageMoleculeInput({
           ref={trigger}
           type="button"
           className="secondary-button"
+          aria-label={uploadLabel}
+          title={target === "molecule" ? undefined : uploadLabel}
           disabled={session.disabled}
           onClick={() => {
             if (session.choose()) picker.current?.click();
           }}
         >
-          {target !== "molecule"
-            ? imageActions[target][0][zh ? 0 : 1]
-            : automatic
-              ? zh
-                ? "上传结构图"
-                : "Upload structure image"
-              : zh
-                ? "从结构图片输入"
-                : "Input from structure image"}
+          {target === "molecule" ? (
+            uploadLabel
+          ) : (
+            <>
+              <PictureOutlined
+                className="image-source-icon"
+                aria-hidden="true"
+              />
+              <span className="image-source-label">{uploadLabel}</span>
+            </>
+          )}
         </button>
         <button
           type="button"
@@ -135,11 +152,12 @@ export function ImageMoleculeInput({
           disabled={session.disabled}
           onClick={() => void session.paste()}
         >
-          {target === "molecule"
-            ? zh
-              ? "粘贴截图"
-              : "Paste screenshot"
-            : imageActions[target][1][zh ? 0 : 1]}
+          {pasteLabel ??
+            (target === "molecule"
+              ? zh
+                ? "粘贴截图"
+                : "Paste screenshot"
+              : imageActions[target][1][zh ? 0 : 1])}
         </button>
         {target === "molecule" && (
           <span>

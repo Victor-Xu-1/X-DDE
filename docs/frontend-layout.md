@@ -114,6 +114,15 @@ The utility library selector uses a compact purpose dropdown while retaining
 all native modes, query requirements and rule explanations. Guided research
 forms keep their existing choice cards.
 
+The desktop library selector places the library source and purpose side by side
+until it has a structure to show. The structure then opens on the left, with
+compact selected-file summaries and controls on the right. In short desktop
+windows, the file controls can scroll beside the preview and the Run button stays
+in the action row. Paste a screenshot in the purpose area to add a query. After
+a successful import, an existing substructure search keeps its purpose. A
+library-only selection switches to similarity search and keeps its library.
+Running the selection remains a separate action.
+
 Each entity in the setup summary expands to its current sequence or structure
 identifier. An uploaded structure takes precedence over any retained text and
 downloads from its selected immutable asset; no internal file path is displayed.

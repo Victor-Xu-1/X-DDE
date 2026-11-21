@@ -17,7 +17,7 @@ const utilityTabs = [
     "Image recognition",
   ],
   ["admet", "ADMET 预测", "ADMET prediction", "ADMET"],
-  ["brain", "透脑评估", "Brain penetration"],
+  ["brain", "透脑评估", "Brain penetration", "BBB"],
   ["properties", "分子性质", "Molecular properties", "Properties"],
   [
     "screen",
