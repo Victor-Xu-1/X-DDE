@@ -71,15 +71,16 @@ it("keeps query validation and explicit Run when the compact selection purpose c
   await user.click(
     screen.getByRole("button", { name: "Choose molecular file" }),
   );
-  const purpose = screen.getByRole("combobox", {
-    name: "What should this selection do?",
-  });
-  await user.selectOptions(purpose, "similarity");
+  const purpose = () =>
+    screen.getByRole("combobox", { name: "What should this selection do?" });
+  await user.selectOptions(purpose(), "similarity");
+  expect(purpose()).toHaveValue("similarity");
   const run = screen.getByRole("button", { name: "Run library selection" });
   expect(run).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Choose molecule" }));
   expect(run).toBeEnabled();
-  await user.selectOptions(purpose, "inventory");
+  await user.selectOptions(purpose(), "inventory");
+  expect(purpose()).toHaveValue("inventory");
   expect(screen.queryByRole("button", { name: "Choose molecule" })).toBeNull();
   expect(send).not.toHaveBeenCalled();
   await user.click(run);

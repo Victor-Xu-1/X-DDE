@@ -108,18 +108,18 @@ function StateFields({
         >
           <option value="supplied">
             {zh
-              ? "保留当前化学状态，生成三维构象（推荐）"
-              : "Keep the supplied state; generate 3D conformers (recommended)"}
+              ? "保留当前状态，生成三维构象"
+              : "Current state + 3D conformers"}
           </option>
           <option value="physiological">
             {zh
-              ? "探索近生理 pH 的化学状态与构象"
-              : "Explore states and conformers near physiological pH"}
+              ? "近生理 pH 的状态与构象"
+              : "States and conformers near physiological pH"}
           </option>
           <option value="explore">
             {zh
               ? "扩大 pH 范围，探索更多状态"
-              : "Explore more states across a wider pH range"}
+              : "More states across a wider pH range"}
           </option>
         </select>
       </label>

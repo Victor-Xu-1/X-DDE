@@ -16,9 +16,11 @@ afterEach(cleanup);
 function Composer({
   submit,
   ready = true,
+  onRecheck,
 }: {
   submit(): Promise<Job | undefined>;
   ready?: boolean;
+  onRecheck?(): void;
 }) {
   const [value, setValue] = useState("");
   return (
@@ -38,6 +40,7 @@ function Composer({
         busy={false}
         error=""
         unavailable="Service is off"
+        onCheckEnvironment={onRecheck}
         submitLabel="Calculate"
         onSubmit={submit}
         steps={[
@@ -145,6 +148,32 @@ it("never enables or submits an unavailable service", async () => {
   expect(screen.getByText("Service is off")).not.toBeVisible();
   expect(screen.getByRole("button", { name: "Calculate" })).toBeDisabled();
   expect(submit).not.toHaveBeenCalled();
+});
+
+it("opens readiness details and retries without submitting or losing the molecule", async () => {
+  const user = userEvent.setup();
+  const submit = vi.fn();
+  const recheck = vi.fn();
+  const { rerender } = render(
+    <Composer submit={submit} ready={false} onRecheck={recheck} />,
+  );
+  const molecule = screen.getByLabelText("Molecule");
+  await user.type(molecule, "STAT6");
+  const summary = screen.getByText("Tool is not ready").closest("summary")!;
+  expect(recheck).not.toHaveBeenCalled();
+  await user.click(summary);
+  expect(screen.getByText("Service is off")).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Check environment again" }),
+  );
+  expect(recheck).toHaveBeenCalledOnce();
+  expect(submit).not.toHaveBeenCalled();
+  expect(molecule).toHaveValue("STAT6");
+  expect(screen.getByRole("button", { name: "Calculate" })).toBeDisabled();
+  rerender(<Composer submit={submit} ready onRecheck={recheck} />);
+  expect(screen.queryByText("Tool is not ready")).toBeNull();
+  expect(screen.getByRole("button", { name: "Calculate" })).toBeEnabled();
+  expect(molecule).toHaveValue("STAT6");
 });
 
 it("invalidates the prior output when an asynchronous image callback replaces the input", async () => {

@@ -40,6 +40,63 @@ def open_input(page, base, kind, zh):
     return panel.locator(".molecular-input-review .molecule-image:visible")
 
 
+@pytest.mark.parametrize("language", ["en", "zh"])
+def test_utility_readiness_keeps_actions_in_the_first_screen(language):
+    evidence = EVIDENCE / "utility-readiness" / language
+    evidence.mkdir(parents=True, exist_ok=True)
+    zh = language == "zh"
+    with (
+        platform(Settings.from_env().state_dir, evidence / "service.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1110, "height": 600}, reduced_motion="reduce")
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language', '{language}')")
+        writes = []
+        page.on("request", lambda req: writes.append(req.url)
+                if req.method == "POST" and "/api/" in req.url else None)
+        drawing = open_input(page, base, "utility", zh)
+        expect(drawing).to_have_attribute("data-drawing-state", "ready", timeout=45000)
+        panel = page.locator('[data-utility="properties"]')
+        readiness = panel.locator(".single-page-readiness details")
+        summary = readiness.locator("summary")
+        expect(summary).to_have_text("工具尚未就绪" if zh else "Tool is not ready")
+        expect(readiness).not_to_have_attribute("open", "")
+        retry = readiness.get_by_role(
+            "button", name="重新检查计算环境" if zh else "Check environment again", exact=True,
+        )
+        expect(retry).not_to_be_visible()
+        submit = panel.locator('.questionnaire-actions button[type="submit"]')
+        expect(submit).to_be_disabled()
+        drawing.evaluate("""node => {
+          for (let parent = node; parent; parent = parent.parentElement) {
+            parent.scrollTo({top: 0, left: 0, behavior: 'instant'});
+          }
+          window.scrollTo({top: 0, left: 0, behavior: 'instant'});
+        }""")
+        stage, action = drawing.bounding_box(), submit.bounding_box()
+        assert stage and action
+        assert stage["x"] + stage["width"] < action["x"]
+        assert stage["height"] >= 320 and stage["y"] + stage["height"] <= 601
+        assert action["y"] >= 0 and action["y"] + action["height"] <= 601
+        page.screenshot(path=evidence / "selected-structure.png")
+
+        img = drawing.get_by_role("img")
+        original = img.get_attribute("src")
+        summary.click()
+        expect(retry).to_be_enabled()
+        with page.expect_response("**/api/capabilities/properties") as response:
+            retry.click()
+        assert response.value.ok
+        expect(summary).to_have_text("工具尚未就绪" if zh else "Tool is not ready")
+        expect(readiness).to_have_attribute("open", "")
+        expect(img).to_have_attribute("src", original)
+        expect(panel.get_by_role("textbox", name="SMILES", exact=True)).to_have_value(DRAFT)
+        expect(submit).to_be_disabled()
+        assert not writes
+        browser.close()
+
+
 @pytest.mark.parametrize(("kind", "language", "width", "height"), [
     ("utility", "en", 1110, 580),
     ("utility", "en", 320, 568),

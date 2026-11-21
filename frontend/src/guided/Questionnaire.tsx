@@ -17,6 +17,7 @@ import { availabilityError } from "./task-availability";
 import { EnvironmentRecheck } from "./EnvironmentRecheck";
 import { TaskPresentationContext } from "./TaskPresentation";
 import { SinglePageFields } from "./SinglePageFields";
+import { SinglePageReadiness } from "./SinglePageReadiness";
 import { GuidedQuestionFields } from "./GuidedQuestionFields";
 export interface QuestionStep {
   title: string;
@@ -243,32 +244,14 @@ export function GuidedSteps<T extends { id: string }>({
         )}
         {(singlePage || current < resultIndex) && (
           <div className="questionnaire-actions">
-            {singlePage && !ready && (
-              <div className="single-page-readiness">
-                <span role="status">
-                  {ready === undefined
-                    ? zh
-                      ? "正在检查工具…"
-                      : "Checking tool…"
-                    : zh
-                      ? "工具尚未就绪"
-                      : "Tool is not ready"}
-                </span>
-                {ready === false && unavailable && (
-                  <details>
-                    <summary>{zh ? "查看原因" : "View details"}</summary>
-                    {unavailable}
-                  </details>
-                )}
-                {!preview && (
-                  <EnvironmentRecheck
-                    ready={ready}
-                    onRecheck={onCheckEnvironment}
-                    language={language}
-                    busy={busy}
-                  />
-                )}
-              </div>
+            {singlePage && (
+              <SinglePageReadiness
+                ready={ready}
+                unavailable={unavailable}
+                onRecheck={preview ? undefined : onCheckEnvironment}
+                language={language}
+                busy={busy}
+              />
             )}
             {!singlePage && current > 0 && (
               <button

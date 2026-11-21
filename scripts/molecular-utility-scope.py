@@ -679,18 +679,15 @@ UTILITY_QUERY_FILES = {
 UTILITY_QUERY_DIFF = "7d47e8f1c3b95b1261bce31f088e1f916dc27512941a1130bc7a83fff0d85273"
 COMPACT_MATERIAL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    "frontend/src/diffsbdd/ReferencePicker.test.tsx",
-    "frontend/src/diffsbdd/ReferencePicker.tsx",
-    "frontend/src/operations/AssetPicker.test.tsx",
-    "frontend/src/operations/AssetPicker.tsx",
-    "frontend/src/research/MaterialInput.tsx",
-    "frontend/src/utilities/ImageMoleculeInput.action.test.tsx",
-    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/chemistry/StateForm.tsx",
+    "frontend/src/guided/Questionnaire.tsx",
+    "frontend/src/guided/SinglePageReadiness.tsx",
+    "frontend/src/guided/SinglePageTask.test.tsx",
+    "frontend/src/utilities/UtilitySinglePage.test.tsx",
     "frontend/src/utilities/utility-task.css",
-    "server_tests/test_utility_image_browser.py",
-    "tests/test_molecular_utility_scope.py",
+    "server_tests/test_molecular_review_controls_browser.py",
 }
-COMPACT_MATERIAL_DIFF = "cc68067d25e467d58255f67d6bcdb27f7435e86595ca9d4e9ce323749dbd9e13"
+COMPACT_MATERIAL_DIFF = "29a8e09eb6b4c9757c798219adb95f81db3526dd45f0c439c5f4a8b73ab848a0"
 
 
 PAIRED_FIGURE_FILES = {
