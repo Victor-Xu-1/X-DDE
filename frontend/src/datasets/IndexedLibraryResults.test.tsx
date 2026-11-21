@@ -144,6 +144,8 @@ it("keeps a screening index on the verified original before and after explicitly
   expect(identity).toHaveTextContent("Research library");
   expect(identity).toHaveTextContent("Unbound conformer");
   expect(screen.getByRole("link", { name: "Download MOL" })).toHaveAttribute("href", nativeUrl);
+  await userEvent.setup().click(screen.getByRole("button", { name: "Source and conformer" }));
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Source Research library");
   expect(preserve).not.toHaveBeenCalled();
   await userEvent
     .setup()

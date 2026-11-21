@@ -79,6 +79,15 @@ export function IndexedLibraryResults({
           ? "二维结构"
           : "2D structure";
   const groupSource = compactReview;
+  const indexedSource = screeningReview && view === "index";
+  const supplier = detail ? supplierLabel(detail.supplier, zh) : "";
+  const sourceHelp = indexedSource
+    ? zh
+      ? "来源与构象"
+      : "Source and conformer"
+    : zh
+      ? "构象说明"
+      : "Conformer help";
   const actions = detail && (
     <div className="dataset-member-tools">
       <header className="dataset-member-heading">
@@ -86,17 +95,24 @@ export function IndexedLibraryResults({
         {groupSource ? (
           <div className="dataset-member-origin">
             <span className="dataset-member-supplier">
-              {supplierLabel(detail.supplier, zh)}
+              {supplier}
             </span>
             <span>{geometry}</span>
           </div>
         ) : (
-          <span>{supplierLabel(detail.supplier, zh)}</span>
+          <span>{supplier}</span>
         )}
       </header>
       <div className="dataset-member-actions">
         {!groupSource && <span>{geometry}</span>}
-        <Hint label={zh ? "构象说明" : "Conformer help"}>
+        <Hint label={sourceHelp}>
+          {indexedSource && (
+            <>
+              {zh ? "来源 " : "Source "}
+              <strong>{supplier}</strong>
+              <br />
+            </>
+          )}
           {zh
             ? "读取分子库实际保存的记录；二维记录不冒充三维构象，导入的三维坐标也不视为已验证的结合姿势。保存为历史文件后，可继续准备、编辑或用于新任务。"
             : "Reads the actual stored molecular record. A 2D record is not a 3D conformer, and imported 3D coordinates do not establish a validated binding pose. Save a historical file to prepare, edit or use in another task."}

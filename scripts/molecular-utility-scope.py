@@ -1331,7 +1331,7 @@ SCREENING_DESKTOP_FILES = {
     "server_tests/test_candidate_inspection_desktop.py",
     "server_tests/test_del_desktop_review.py",
 }
-SCREENING_DESKTOP_DIFF = "9436ab2f4257f007c35ffc8cb16731259f2720fdbcbccb9a30e5fb21638b0af4"
+SCREENING_DESKTOP_DIFF = "67a98e8086a3ed80e28346f75387aa2678967362b91a1bd0ca90218e857d2564"
 RESULT_THEME_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/datasets/CandidateView.css",

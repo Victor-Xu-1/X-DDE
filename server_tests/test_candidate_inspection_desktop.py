@@ -251,6 +251,8 @@ def test_retained_screening_desktop(language, theme, width, height):
             if capability in {"library.import", "drugclip.index"}:
                 verify_library_member(page, workspace, base, zh, capability == "drugclip.index")
                 if capability == "drugclip.index":
+                    if height == 600:
+                        verify_index_source_after_filter(page, workspace, zh)
                     allowed_preserve = f"{base}/api/datasets/{job}/members/preserve"
                     verify_index_preservation(page, workspace, allowed_preserve, zh)
                     allowed_preserve = None
@@ -370,3 +372,19 @@ def verify_index_preservation(page, workspace, endpoint, zh):
     expect(capture).to_be_enabled()
     expect(frame).to_be_in_viewport(ratio=0.97)
     assert frame.evaluate("(current, original) => current === original", camera)
+
+
+def verify_index_source_after_filter(page, workspace, zh):
+    right = workspace.locator(".structure-workbench-details")
+    rows = right.locator("tbody tr")
+    supplier = rows.first.locator(".dataset-column-supplier").inner_text()
+    search = right.get_by_role("searchbox")
+    search.fill("no-result-screening-source-check")
+    expect(rows).to_have_count(0)
+    help_label = "来源与构象" if zh else "Source and conformer"
+    help_button = workspace.get_by_role("button", name=help_label)
+    help_button.focus()
+    expect(page.get_by_role("tooltip")).to_contain_text(supplier)
+    help_button.press("Escape")
+    search.clear()
+    expect(rows.first).to_be_visible()
