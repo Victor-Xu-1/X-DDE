@@ -45,8 +45,11 @@ export function recognizedStereoSource({ rawSmiles }: RecognitionResult): Recogn
   const body = molecule.split(/\s/, 1)[0];
   const axial = alleneHandoffSmiles(body);
   if (axial === false) return null;
+  // In the source-only path the line carries the stereo. Remove a suffix only
+  // when it consists entirely of planar display coordinates.
+  const portable = axial && raw.length <= 100_000 && stereoSmiles(raw)?.stereo === "";
   return {
-    text: axial && raw.length <= 100_000 && isPortableLine(raw) ? axial : "",
+    text: portable ? axial : "",
     molfile: "",
     sourceOnly: axial ? "allene" : "unverified-stereo",
   };

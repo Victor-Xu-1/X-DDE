@@ -60,6 +60,7 @@ function bondPositions(text: string) {
 }
 
 const alleneClass = /^(\[\d*C)@AL([12])((?:[+-]\d*|:\d+)*\])$/;
+const tetrahedralClass = /^(\[\d*[A-Z][a-z]?)@TH([12])((H1?)?(?:[+-]\d*|:\d+)*\])$/;
 const shorthandCarbon = /\[\d*C@@?(?:[+-]\d*|:\d+)*\]/;
 const other = (bond: Bond, atom: number) => bond.from === atom ? bond.to : bond.from;
 
@@ -73,6 +74,17 @@ function indexNeighbors(bonds: Bond[]) {
     }
   }
   return neighbors;
+}
+
+function canAbbreviateTetrahedral(atom: string, index: number, bonds: Bond[]) {
+  const match = tetrahedralClass.exec(atom);
+  if (!match) return false;
+  const neighbors = new Set(bonds.map((bond) => other(bond, index)));
+  const carbon = match[1].endsWith("C");
+  return !neighbors.has(index) && neighbors.size === bonds.length &&
+    neighbors.size + Number(Boolean(match[4])) === 4 &&
+    bonds.filter((bond) => bond.token === "=").length < 2 &&
+    (!carbon || bonds.every((bond) => !/[=#$:]/.test(bond.token)));
 }
 
 /** A directed double bond belongs to a ring if its endpoints connect without it. */
@@ -125,10 +137,17 @@ export function alleneHandoffSmiles(text: string) {
     found = true;
   }
   if (!found) return false;
-  // OpenSMILES defines @AL1 and @AL2 as @ and @@ at an allene center.
+  // Shorthand at a cumulated double-bond center denotes axial stereo.
+  // Refuse to reinterpret an inconsistent explicit tetrahedral class.
+  if (graph.atoms.some((atom, index) =>
+    atom.includes("@TH") && !canAbbreviateTetrahedral(atom, index, neighbors.get(index) ?? []),
+  )) return null;
+
+  // OpenSMILES parity is unchanged by these substitutions in the same atom order.
+  const shorthand = (_: string, prefix: string, parity: string, suffix: string) =>
+    prefix + (parity === "1" ? "@" : "@@") + suffix;
   return text.replace(/\[[^\[\]]+\]/g, (atom) =>
-    atom.replace(alleneClass, (_, prefix, parity, suffix) =>
-      `${prefix}${parity === "1" ? "@" : "@@"}${suffix}`),
+    atom.replace(alleneClass, shorthand).replace(tetrahedralClass, shorthand),
   );
 }
 

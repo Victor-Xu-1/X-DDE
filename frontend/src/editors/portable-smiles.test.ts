@@ -79,6 +79,51 @@ it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact"
   expect(recognizedStereoSource({ ...result, rawSmiles: "Cl[C@](F)(Br)I" })).toBeNull();
 });
 
+it.each([
+  ["@AL1", "@"],
+  ["@AL2", "@@"],
+])("exports axial %s when the extension contains only planar coordinates", (explicit, short) => {
+  const coordinates = "(0,0,;1,1,;2,0,0;3,0,;4,1,;5,1,;6,0,)";
+  expect(recognizedStereoSource({
+    rawSmiles: `FC(Cl)=[C${explicit}]=C(Br)I |${coordinates}|`,
+    smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol,
+  })).toEqual({ text: `FC(Cl)=[C${short}]=C(Br)I`, molfile: "", sourceOnly: "allene" });
+});
+
+it.each([
+  "(0,0,;1,1,0.5)",
+  "(0,0,;1,1,),w:1.0",
+  "(0,0,;1,1,),&1:3",
+  "(0,0,;1,1,),a:3",
+  "(0,0,;1,1,broken)",
+])("withholds axial export when the extension is not pure planar coordinates (%s)", (extension) => {
+  expect(recognizedStereoSource({
+    rawSmiles: `FC(Cl)=[C@AL1]=C(Br)I |${extension}|`,
+    smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol,
+  })?.text).toBe("");
+});
+
+it.each([
+  ["FC(Cl)=[C@AL1]=C(F)[C@TH2H](Br)I", "FC(Cl)=[C@]=C(F)[C@@H](Br)I"],
+  ["[13C@TH1](F)(Cl)(Br)C(Cl)=[C@AL2]=C(Br)I", "[13C@](F)(Cl)(Br)C(Cl)=[C@@]=C(Br)I"],
+  ["C[P@TH1](=O)(F)C(Cl)=[C@AL2]=C(Br)I", "C[P@](=O)(F)C(Cl)=[C@@]=C(Br)I"],
+])("retains both tetrahedral and axial stereo in %s", (rawSmiles, text) => {
+  expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
+    .toEqual({ text, molfile: "", sourceOnly: "allene" });
+});
+
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)CC(Cl)=[C@TH1]=C(Br)I",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1](F)=O",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1H](F)=O",
+  "FC(Cl)=[C@AL1]=C(Br)[C@TH1H2]F",
+])("does not reinterpret an inconsistent tetrahedral center in %s", (rawSmiles) => {
+  expect(recognizedStereoSource({
+    rawSmiles,
+    smiles: "CC", molfile: generatedMol,
+  })).toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
+});
+
 it("withholds a shorthand recognition when the bond reader cannot classify its stereo", () => {
   const rawSmiles = "FC(Cl)=[C@@]=C(Br)C%(101)CCCCC%(101)";
   expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))

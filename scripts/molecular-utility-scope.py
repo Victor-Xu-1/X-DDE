@@ -653,10 +653,9 @@ PORTABLE_SMILES_FILES = {
     "frontend/src/editors/portable-smiles-ring-stereo.ts",
     "frontend/src/editors/portable-smiles.test.ts",
     "frontend/src/editors/portable-smiles.ts",
-    "frontend/src/utilities/recognition-host-ui-locale.ts",
     "src/opendde_workbench/data/recognition_locale/patch.json",
 }
-PORTABLE_SMILES_DIFF = "016efb2c17830b971425d62cb133ecc724fee4dda8aac8b21f9125913b0b51ff"
+PORTABLE_SMILES_DIFF = "36b573c76a597e4fe3e769c42c38aa2f4342ec787e9d21431c9c037b2dbb856a"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
