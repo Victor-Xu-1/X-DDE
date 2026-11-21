@@ -14,18 +14,20 @@ const utilityTabs = [
     "image",
     "图片识别与编辑",
     "Image recognition & editor",
+    "图片识别",
     "Image recognition",
   ],
-  ["admet", "ADMET 预测", "ADMET prediction", "ADMET"],
-  ["brain", "透脑评估", "Brain penetration", "BBB"],
-  ["properties", "分子性质", "Molecular properties", "Properties"],
+  ["admet", "ADMET 预测", "ADMET prediction", "ADMET", "ADMET"],
+  ["brain", "透脑评估", "Brain penetration", "透脑评估", "BBB"],
+  ["properties", "分子性质", "Molecular properties", "分子性质", "Properties"],
   [
     "screen",
     "相似性与结构筛查",
     "Similarity & structural alerts",
+    "结构筛查",
     "Similarity",
   ],
-  ["states", "质子化与互变异构", "Protonation & tautomers", "Protonation"],
+  ["states", "质子化与互变异构", "Protonation & tautomers", "质子化与互变", "Protonation"],
 ] as const;
 type Utility = (typeof utilityTabs)[number][0];
 
@@ -111,7 +113,7 @@ export function UtilityWorkspace({
           className="utility-tabs"
           aria-label={zh ? "小工具分类" : "Utility tools"}
         >
-          {utilityTabs.map(([id, cn, en, short]) => (
+          {utilityTabs.map(([id, cn, en, shortCn, shortEn]) => (
             <button
               key={id}
               type="button"
@@ -121,18 +123,10 @@ export function UtilityWorkspace({
               aria-pressed={active === id}
               onClick={() => selectUtility(id)}
             >
-              {short && !zh ? (
-                <>
-                  <span className="utility-tab-full">{en}</span>
-                  <span className="utility-tab-compact" aria-hidden="true">
-                    {short}
-                  </span>
-                </>
-              ) : zh ? (
-                cn
-              ) : (
-                en
-              )}
+              <span className="utility-tab-full">{zh ? cn : en}</span>
+              <span className="utility-tab-compact" aria-hidden="true">
+                {zh ? shortCn : shortEn}
+              </span>
             </button>
           ))}
         </nav>

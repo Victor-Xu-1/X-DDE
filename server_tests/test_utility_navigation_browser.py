@@ -12,24 +12,41 @@ EVIDENCE = Path("outputs/utility-navigation")
 DRAFT = "CC(=O)Nc1ccc(O)cc1"
 
 
-def test_short_desktop_recognition_tools_remain_visible_together():
+@pytest.mark.parametrize(("language", "height"), [("en", 600), ("zh", 580)])
+def test_short_desktop_recognition_tools_remain_visible_together(language, height):
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     with (
         platform(Settings.from_env().state_dir, EVIDENCE / "recognition-desktop.log") as base,
         sync_playwright() as driver,
     ):
         browser = driver.chromium.launch(channel="chrome")
-        page = browser.new_page(viewport={"width": 1100, "height": 650})
+        page = browser.new_page(viewport={"width": 1001, "height": height})
+        page.add_init_script(
+            f"localStorage.setItem('opendde-workbench.language', '{language}')"
+        )
         page.route(
             "**/api/utilities/recognition",
             lambda route: route.fulfill(json={"available": True}),
         )
-        page.route("http://127.0.0.1:8940/**", lambda route: route.fulfill(body="Editor"))
+        page.route("http://127.0.0.1:8940/**", lambda route: route.fulfill(
+            content_type="text/html", body="""<!doctype html><script>
+            window.addEventListener("message", ({data, origin, source}) => {
+              if (data.type === "xdde-drawing:connect") {
+                source.postMessage({
+                  type: "xdde-drawing:state", id: data.id, available: false,
+                }, origin);
+              }
+            });
+            </script>""",
+        ))
         page.goto(f"{base}/#view=utilities")
-        expect(page.locator(".utility-recognition-frame")).to_be_visible()
+        frame = page.locator(".utility-recognition-frame")
+        expect(frame).to_be_visible()
+        expect(page.locator(".utility-drawing-destination")).to_be_disabled()
         strip = page.locator(".utility-tabs")
         expect(strip.get_by_role("button")).to_have_count(6)
         assert strip.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
+        assert frame.bounding_box()["height"] >= 440
         browser.close()
 
 
