@@ -656,8 +656,9 @@ PORTABLE_SMILES_FILES = {
     "frontend/src/utilities/recognition-host-ui-locale.ts",
     "pyproject.toml",
     "src/opendde_workbench/data/recognition_locale/patch.json",
+    "tests/test_recognition_companion.py",
 }
-PORTABLE_SMILES_DIFF = "973eadd5b2abea41a03d1a6b011de275be0caf475424643f3a896afc450c6e8f"
+PORTABLE_SMILES_DIFF = "393fa5c5f51f2af2a769cb9274bcab92a0dcdc5d30c9d65a97c9990d20a6b9b7"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
