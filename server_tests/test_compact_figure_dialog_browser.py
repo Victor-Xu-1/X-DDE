@@ -55,6 +55,9 @@ def geometry(dialog):
           };
           const body = dialog.querySelector('.figure-export-layout');
           const preview = body.querySelector('.figure-export-canvas');
+          const image = preview.querySelector('img');
+          const imageScale = image ? Math.min(image.clientWidth / image.naturalWidth,
+                                               image.clientHeight / image.naturalHeight) : 0;
           const options = body.querySelector('.figure-export-options');
           const action = dialog.querySelector('footer button');
           const out = action.getBoundingClientRect();
@@ -64,8 +67,11 @@ def geometry(dialog):
             header: rect(dialog.querySelector(':scope > header')),
             actionReachable: hit === action || action.contains(hit),
             previewControls: rect(body.querySelector('.figure-view-toolbar')),
+            fittedImage: imageScale && {width: image.naturalWidth * imageScale,
+                                       height: image.naturalHeight * imageScale},
             options: rect(options),
             optionsFit: options.scrollHeight <= options.clientHeight + 1,
+            spec: rect(options.querySelector('.figure-output-spec')),
             documentWidth: document.documentElement.clientWidth,
             viewportHeight: innerHeight,
             horizontalBody: body.scrollWidth > body.clientWidth,
@@ -204,6 +210,16 @@ def test_native_figure_stays_accessible_in_short_windows(language, format, width
                 assert layout["optionsFit"], layout
                 assert layout["preview"]["height"] >= 345, layout
                 assert 0 <= layout["previewControls"]["top"] - layout["preview"]["bottom"] <= 12, layout
+                assert layout["spec"]["bottom"] <= layout["body"]["bottom"] + 1, layout
+                assert all(
+                    layout["body"]["top"] <= label["top"] <= label["bottom"] <= layout["body"]["bottom"] + 1
+                    for label in layout["labels"]
+                ), layout
+                figure = layout["fittedImage"]
+                assert figure and (
+                    figure["width"] >= layout["preview"]["width"] * 0.85
+                    or figure["height"] >= layout["preview"]["height"] * 0.85
+                ), layout
                 zoom.click()
                 expect(dialog.locator(".figure-export-canvas")).to_have_attribute("data-zoom", "2")
                 dialog.get_by_role("button", name="适应窗口" if zh else "Fit preview").click()
