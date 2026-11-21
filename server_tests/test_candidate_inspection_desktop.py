@@ -268,24 +268,22 @@ def verify_short_screening_first_screen(workspace, height, zh, *, two_dimensiona
     right = workspace.locator(".structure-workbench-details")
     counts = right.locator(".dataset-result-counts")
     downloads = right.locator(".dataset-download-menu")
+    count_toggle = counts.locator(":scope > summary")
+    download_toggle = downloads.locator(":scope > summary")
     first = right.locator("tbody tr").first
-    a, b, row = (
-        counts.locator("summary").bounding_box(),
-        downloads.locator("summary").bounding_box(),
-        first.bounding_box(),
-    )
+    a, b, row = count_toggle.bounding_box(), download_toggle.bounding_box(), first.bounding_box()
     assert a and b and row
     assert abs(a["y"] - b["y"]) <= 3
     assert row["y"] + row["height"] <= height + 1
-    counts.locator("summary").press("Space")
+    count_toggle.press("Space")
     expect(counts).to_have_attribute("open", "")
     expect(counts.locator(".dataset-count-values strong").first).to_be_visible()
-    counts.locator("summary").press("Space")
+    count_toggle.press("Space")
     expect(counts).not_to_have_attribute("open", "")
-    downloads.locator("summary").press("Enter")
+    download_toggle.press("Enter")
     expect(downloads).to_have_attribute("open", "")
     assert downloads.locator("a[href]").count() > 0
-    downloads.locator("summary").press("Enter")
+    download_toggle.press("Enter")
 
     left = workspace.locator(".structure-workbench-view")
     if not two_dimensional:
