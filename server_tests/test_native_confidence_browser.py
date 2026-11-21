@@ -290,7 +290,12 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         result = page.get_by_role(
             "region", name="模板的真实结果" if zh else "Actual template result"
         )
-        expect(result.locator('.prediction-example-source')).to_contain_text("OpenDDE")
+        expect(result).to_be_visible(timeout=30000)
+        guide = page.locator(".example-preview-toolbar .example-guide")
+        guide.get_by_label("模板说明与来源" if zh else "Template guide & sources").click()
+        expect(guide.locator(".example-result-source")).to_contain_text("OpenDDE")
+        page.keyboard.press("Escape")
+        expect(guide.locator(".example-result-source")).to_be_hidden()
         expect(picker).to_be_hidden()
         export = result.locator(".viewer-panel").get_by_role(
             "button", name="文献图导出 ↓" if zh else "Export figure ↓"
