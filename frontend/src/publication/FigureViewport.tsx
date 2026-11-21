@@ -6,14 +6,14 @@ export function FigureViewport({
   children,
   language,
   transparent,
-  widthMm,
+  caption,
   ready,
   label,
 }: {
   children: ReactNode;
   language: Language;
   transparent: boolean;
-  widthMm?: number;
+  caption?: string;
   ready: boolean;
   label?: string;
 }) {
@@ -111,9 +111,7 @@ export function FigureViewport({
         </div>
       </div>
       <div className="figure-view-toolbar">
-        {widthMm !== undefined && (
-          <span className="figure-preview-width">{widthMm} mm</span>
-        )}
+        {caption && <span className="figure-preview-caption">{caption}</span>}
         <div role="group" aria-label={zh ? "预览查看" : "Preview viewing"}>
           <button
             type="button"

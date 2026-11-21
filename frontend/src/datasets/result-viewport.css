@@ -163,7 +163,7 @@
       padding: 8px;
     }
 
-    .figure-preview-sheet {
+    .molecule-inspection-view > .figure-preview-sheet {
       height: var(--dataset-drawing-height, clamp(240px, calc(100dvh - 350px), 540px));
       min-height: 0;
     }

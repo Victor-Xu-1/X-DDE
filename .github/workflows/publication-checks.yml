@@ -579,7 +579,11 @@ jobs:
           google-chrome --version
           uv run --locked ruff check server_tests/test_compact_figure_dialog_browser.py
           uv run --locked python server_tests/prepare_quality_context_cases.py
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m pytest -x -q server_tests/test_compact_figure_dialog_browser.py
+      - name: Shared figure and molecular drawing controls
+        working-directory: frontend
+        run: npx vitest run src/publication/FigureExport.test.tsx src/presentation/MoleculeImage.test.tsx
       - uses: actions/upload-artifact@v4
         if: always()
         with:

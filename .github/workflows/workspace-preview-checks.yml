@@ -45,6 +45,8 @@ on:
 permissions:
   contents: read
 jobs:
+  framing-scope:
+    uses: ./.github/workflows/figure-framing-scope.yml
   utility-scope:
     uses: ./.github/workflows/molecular-utility-checks.yml
     with:
@@ -67,9 +69,10 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: python scripts/research-file-navigation-scope.py
   workspace:
-    needs: [reference-scope, utility-scope]
+    needs: [reference-scope, utility-scope, framing-scope]
     if: >-
       !inputs.scope_only &&
+      needs.framing-scope.outputs.compact_only != 'true' &&
       needs.reference-scope.outputs.reference_only != 'true' &&
       needs.utility-scope.outputs.sequence_desktop_only != 'true'
     runs-on: ubuntu-24.04

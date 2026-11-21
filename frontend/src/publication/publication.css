@@ -66,7 +66,7 @@
 }
 .figure-export-dialog .figure-preview {
   display: grid;
-  grid-template-rows: auto minmax(100px, 1fr) auto auto auto;
+  grid-template-rows: auto minmax(100px, 1fr) auto auto;
   min-height: 0;
 }
 .figure-export-options {
@@ -101,6 +101,7 @@
 .figure-export-dialog .figure-preview-sheet {
   height: auto;
   min-height: 0;
+  border-radius: 8px;
 }
 .figure-export-dialog .figure-preview-sheet[data-zoom="1"] {
   overscroll-behavior: auto;
@@ -185,17 +186,9 @@
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
-.figure-preview-width {
-  text-align: center;
-  margin: 0;
+.figure-preview-caption {
   color: var(--muted);
   font-size: 12px;
-}
-.figure-preview-scale-note {
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted);
-  margin: 6px 0 0;
 }
 .figure-preview-placeholder {
   display: grid;
@@ -269,11 +262,35 @@
 .figure-export-dialog:focus {
   outline: none;
 }
+@media (min-width: 900px) and (max-height: 720px) {
+  .figure-export-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(242px, 26vw, 300px);
+    padding-block: 10px;
+  }
+  .figure-export-dialog fieldset {
+    gap: 8px;
+  }
+  .figure-export-dialog fieldset > label:not(.figure-background) {
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 1.05fr);
+    align-items: center;
+    gap: 8px;
+  }
+  .figure-export-dialog fieldset select {
+    width: 100%;
+    min-width: 0;
+  }
+  .figure-export-dialog .figure-preview-image-space {
+    padding: 12px;
+  }
+  .figure-output-spec {
+    margin-top: 12px;
+  }
+}
 @media (max-height: 440px) {
   .figure-export-dialog .figure-view-toolbar {
     margin-top: 4px;
   }
-  .figure-export-dialog .figure-preview-scale-note {
+  .figure-export-dialog .figure-preview-caption {
     display: none;
   }
   .figure-export-layout {
@@ -293,7 +310,7 @@
     padding: 10px 14px 14px;
   }
   .figure-export-dialog .figure-preview {
-    grid-template-rows: auto clamp(148px, 40dvh, 320px) auto auto auto;
+    grid-template-rows: auto clamp(148px, 40dvh, 320px) auto auto;
   }
   .figure-export-options {
     overflow: visible;
@@ -320,9 +337,6 @@
   }
   .figure-output-spec {
     margin: 8px 0 0;
-  }
-  .figure-export-options > .field-help {
-    display: none;
   }
   .figure-export-dialog .figure-preview-image-space {
     padding: 12px;

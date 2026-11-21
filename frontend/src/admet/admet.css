@@ -145,7 +145,7 @@
   flex-direction: column;
   min-height: 0;
 }
-.admet-molecule-drawing .figure-preview-sheet {
+.admet-molecule-drawing .molecule-inspection-view > .figure-preview-sheet {
   height: auto;
   flex: 1 1 auto;
   min-height: 260px;
@@ -320,7 +320,7 @@ html
   .admet-selected-molecule {
     min-height: 510px;
   }
-  .admet-molecule-drawing .figure-preview-sheet {
+  .admet-molecule-drawing .molecule-inspection-view > .figure-preview-sheet {
     height: clamp(320px, 50dvh, 480px);
   }
   html body .studio-app .admet-results .molecular-stage {

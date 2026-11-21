@@ -6,13 +6,11 @@ export function FigurePreview({
   state,
   language,
   transparent,
-  widthMm,
   valid,
 }: {
   state: ReturnType<typeof useFigurePreview>;
   language: Language;
   transparent: boolean;
-  widthMm: number;
   valid: boolean;
 }) {
   const zh = language === "zh";
@@ -46,7 +44,7 @@ export function FigurePreview({
       <FigureViewport
         language={language}
         transparent={transparent}
-        widthMm={widthMm}
+        caption={zh ? "预览缩放不改变下载尺寸" : "Zoom is for preview only"}
         ready={state.ready}
       >
         {state.preview && (
@@ -73,11 +71,6 @@ export function FigurePreview({
           </div>
         )}
       </FigureViewport>
-      <p className="figure-preview-scale-note">
-        {zh
-          ? "放大仅影响预览；下载保留版面尺寸。"
-          : "Viewing zoom does not change the downloaded print dimensions."}
-      </p>
       {state.error && (
         <div role="alert">
           <p>

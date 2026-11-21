@@ -10,7 +10,7 @@
   background: var(--surface);
 }
 
-.reference-import-results .molecule-image .figure-preview-sheet {
+.reference-import-results .molecule-inspection-view > .figure-preview-sheet {
   height: clamp(300px, 57svh, 680px);
   color: #475569;
 }
@@ -31,7 +31,7 @@
 }
 
 @media (max-width: 760px) {
-  .reference-import-results .molecule-image .figure-preview-sheet {
+  .reference-import-results .molecule-inspection-view > .figure-preview-sheet {
     height: clamp(260px, min(48svh, 65vw), 560px);
   }
 }
@@ -42,7 +42,7 @@
 
 .reference-import-results
   .molecule-image[data-drawing-state="unavailable"]
-  .figure-preview-sheet {
+  .molecule-inspection-view > .figure-preview-sheet {
   height: 180px;
   min-height: 180px;
 }

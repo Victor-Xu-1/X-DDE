@@ -96,7 +96,6 @@ export function FigureDialog({
           state={state}
           language={language}
           transparent={settings.transparent}
-          widthMm={settings.widthMm}
           valid={!!size}
         />
         <div className="figure-export-options">
@@ -222,11 +221,6 @@ export function FigureDialog({
               : zh
                 ? "图件过大，请选择 89 mm 或 300 dpi。"
                 : "Figure is too large. Choose 89 mm or 300 dpi."}
-          </p>
-          <p className="field-help">
-            {zh
-              ? "保留当前视角、结构和原始数值；导出参数仅影响图件。"
-              : "Retains the current view, structures and original values. Export settings affect the figure only."}
           </p>
         </div>
       </div>
