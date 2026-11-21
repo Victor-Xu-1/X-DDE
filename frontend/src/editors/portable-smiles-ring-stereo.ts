@@ -42,7 +42,7 @@ function bondPositions(text: string) {
       if (!branches.length || pending) return null;
       current = branches.pop()!;
     } else if (token === ".") {
-      if (current < 0 || pending || branches.length || rings.size) return null;
+      if (current < 0 || pending) return null;
       current = -1;
     } else {
       const next = atoms.length;

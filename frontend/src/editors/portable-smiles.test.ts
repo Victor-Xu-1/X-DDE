@@ -28,6 +28,8 @@ it.each([
   "[C@AL1](=C(F)Cl)=C(Br)I",
   "[C@](=C(F)Cl)=C(Br)I",
   "FC(Cl)=[C@@](=C(Br)I)",
+  "FC(Cl)=[C@@]=C(Br)I.C1.C1",
+  "FC(Cl)=[C@@]=C(Br)I.C(C.O)N",
 ])("retains the original axial marker and atom order for %s", async (rawSmiles) => {
   const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
   const source = editor(result.smiles);

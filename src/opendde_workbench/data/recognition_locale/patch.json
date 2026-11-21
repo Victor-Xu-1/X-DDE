@@ -742,7 +742,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "7ef6066e6bcd0497e9b1c64696285d15efe5e3cb04be332018bb48da7311bbe0",
+      "after_sha256": "a8256c9ade7cd3b18372d30bf79cd3319559700cf5a514f6f945dab78fd5a8b1",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1242,8 +1242,24 @@
               "after": "  const currentSourceExport = () => {\n    const source = recognition.current;\n    return source?.sourceOnly ?? (recovered && recovered.owner === source &&\n      recovered.owner.recovery === recovered.request ? recovered.value : null);\n  };\n  const sourceExport = currentSourceExport();"
             },
             {
-              "before": "    structureGate.update(ready);\n    revokeRecovery();",
-              "after": "    structureGate.update(ready);\n    if (ready && recognition.current?.sourceOnly) clearRecognizedSource();\n    revokeRecovery();"
+              "before": "  const structureGate = useRef(moleculeReadiness()).current;\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    revokeRecovery();",
+              "after": "  const structureGate = useRef(moleculeReadiness()).current;\n  const drawingOwner = useRef(0);\n  const recognitionDrawingOwner = useRef(0);\n  const setStructureReady = (ready: boolean) => {\n    structureGate.update(ready);\n    if (ready) {\n      drawingOwner.current++;\n      if (recognition.current?.sourceOnly) clearRecognizedSource();\n    }\n    revokeRecovery();"
+            },
+            {
+              "before": "    if (resume && next.job) activeJob.current = next.job.id;",
+              "after": "    if (resume && next.job && !activeJob.current && drawingOwner.current === 0)\n      activeJob.current = next.job.id;"
+            },
+            {
+              "before": "    completed.current = job.id;\n    if (job.status",
+              "after": "    completed.current = job.id;\n    if (recognitionDrawingOwner.current !== drawingOwner.current) return;\n    if (job.status"
+            },
+            {
+              "before": "    const generation = ++recognitionGeneration.current;\n    setSubmitting(true);",
+              "after": "    const generation = ++recognitionGeneration.current;\n    const owner = drawingOwner.current;\n    setSubmitting(true);"
+            },
+            {
+              "before": "      activeJob.current = job.id;\n      completed.current = null;",
+              "after": "      activeJob.current = job.id;\n      recognitionDrawingOwner.current = owner;\n      completed.current = null;"
             },
             {
               "before": "      const drawing = recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing };",
@@ -1451,9 +1467,6 @@
       "42f97ca5ee3e2de2cb9a82046abb450df10c1484acb6e3666d34bade841ee68d",
       "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc"
     ],
-    "portable-smiles-ring-stereo.ts": [
-      "463dfd1a642eca37a922756a72f84f9812ca608fe3f6f9f7a1fb8329c9d19326"
-    ],
     "portable-smiles.ts": [
       "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4",
       "6a231caceeb321b7b7010fe5686e81ec916287d12f020afc9cfbe236350ced3f",
@@ -1463,6 +1476,9 @@
       "813263c570475cb93b40edb51af74e34e30480c4c58c9552411d2c10bf9faf77",
       "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211",
       "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf"
+    ],
+    "portable-smiles-ring-stereo.ts": [
+      "463dfd1a642eca37a922756a72f84f9812ca608fe3f6f9f7a1fb8329c9d19326"
     ]
   }
 }

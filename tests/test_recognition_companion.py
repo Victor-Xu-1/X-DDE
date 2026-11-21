@@ -333,6 +333,7 @@ def test_native_copy_and_download_use_the_same_verified_smiles_export():
     )
     assert any("inputBridgeOrigin() && sourceExport?.allene" in item for item in final)
     assert any("currentSourceExport() !== fallback" in item for item in final)
+    assert any("recognitionDrawingOwner.current !== drawingOwner.current" in item for item in final)
     assert any("Boolean(sourceExport?.molfile)" in item for item in app_final)
 
 
