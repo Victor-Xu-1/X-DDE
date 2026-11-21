@@ -13,7 +13,8 @@
   background: #ffffffed;
   z-index: 5;
 }
-@media (min-width: 730px) {
+/* Narrow desktop embeds can use two panels before the wider host layout takes over. */
+@media (min-width: 800px), (min-width: 730px) and (not (pointer: coarse)) {
   .application.is-embedded {
     min-height: 100dvh;
     display: flex;
@@ -95,12 +96,12 @@
     padding: 5px 7px;
   }
 }
-@media (min-width: 730px) and (max-height: 480px) {
+@media (min-width: 730px) and (max-height: 480px) and (not (pointer: coarse)) {
   .application.is-embedded :is(.image-stage, .editor-canvas) {
     flex-basis: 220px;
   }
 }
-@media (730px <= width <= 820px) {
+@media (730px <= width <= 820px) and (not (pointer: coarse)) {
   .application.is-embedded .editor-canvas {
     margin-inline: 5px;
   }
@@ -114,7 +115,7 @@
     min-width: 54px;
   }
 }
-@media (min-width: 730px) and (max-width: 999px) {
+@media (800px <= width <= 999px), (730px <= width < 800px) and (not (pointer: coarse)) {
   .is-embedded .input-panel .toolbar {
     gap: 4px;
   }
