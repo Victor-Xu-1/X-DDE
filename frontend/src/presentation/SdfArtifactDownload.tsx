@@ -13,6 +13,7 @@ export function SdfArtifactDownload({
   filename,
   language,
   label,
+  displayLabel,
   errorLabel,
   className,
 }: {
@@ -22,6 +23,7 @@ export function SdfArtifactDownload({
   filename: string;
   language: Language;
   label: string;
+  displayLabel?: string;
   errorLabel: string;
   className?: string;
 }) {
@@ -62,6 +64,8 @@ export function SdfArtifactDownload({
     <div className={className}>
       <button
         type="button"
+        title={displayLabel ? label : undefined}
+        aria-label={displayLabel && state !== "busy" ? label : undefined}
         disabled={state === "busy"}
         onClick={() => void download()}
       >
@@ -69,7 +73,7 @@ export function SdfArtifactDownload({
           ? language === "zh"
             ? "正在核对…"
             : "Verifying…"
-          : label}
+          : (displayLabel ?? label)}
       </button>
       {state === "error" && <p role="alert">{errorLabel}</p>}
     </div>

@@ -669,18 +669,22 @@ GENERATED_DESKTOP_FILES = {
     ".github/workflows/property-model-review-checks.yml",
     ".github/workflows/reference-pocket-checks.yml",
     "frontend/src/diffsbdd/DiffResults.tsx",
+    "frontend/src/diffsbdd/GeneratedCandidateDownload.tsx",
     "frontend/src/diffsbdd/GeneratedCandidates.css",
     "frontend/src/diffsbdd/GeneratedCandidates.test.tsx",
     "frontend/src/diffsbdd/GeneratedCandidates.tsx",
     "frontend/src/diffsbdd/GeneratedMetricsView.tsx",
+    "frontend/src/diffsbdd/generated-columns.tsx",
     "frontend/src/integrations/ScientificResults.test.tsx",
     "frontend/src/integrations/ScientificResults.tsx",
     "frontend/src/integrations/results.css",
+    "frontend/src/presentation/SdfArtifactDownload.tsx",
     "frontend/src/presentation/compact-structure-review.css",
     "frontend/src/presentation/pose-review-workspace.css",
+    "server_tests/test_generated_quality_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-GENERATED_DESKTOP_DIFF = "9f5fefb0965dd1efc8a612c5a9e57447d9451f42644a1408272af0f399b61804"
+GENERATED_DESKTOP_DIFF = "c09ad3db10c1643206f961383f7514014de59dee7b13bc66f20990a6dfda2bf7"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",

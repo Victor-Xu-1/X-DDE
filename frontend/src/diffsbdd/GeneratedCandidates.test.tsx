@@ -381,7 +381,7 @@ it("puts optimization descriptors first without changing native record identity 
   });
   const headers = within(table).getAllByRole("columnheader");
   expect(headers).toHaveLength(5);
-  ["Select for comparison", "Candidate molecule", "QED", "SA", "ΔQED"].forEach(
+  ["Select for comparison", "Candidate", "QED", "SA", "ΔQED"].forEach(
     (name, index) => {
       expect(headers[index]).toHaveAccessibleName(name);
     },

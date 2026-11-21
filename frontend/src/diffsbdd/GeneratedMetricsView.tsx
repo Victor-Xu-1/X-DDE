@@ -63,6 +63,11 @@ export function GeneratedMetricsView({
             : "Potential steric clashes: inspect and refine the pose before downstream research."}
         </p>
       )}
+      <p className="field-help">
+        {zh
+          ? "近接仅检查条件口袋。完整受体姿势和立体化学需独立质控。"
+          : "Proximity covers the conditioning pocket. Verify full-receptor poses and stereochemistry separately."}
+      </p>
       <details>
         <summary>{zh ? "更多构象指标" : "More structure metrics"}</summary>
         <dl className="native-result-metrics generated-primary-metrics">
@@ -79,11 +84,6 @@ export function GeneratedMetricsView({
             <dd>{active.pocket_atom_pairs_under_1_2_angstrom}</dd>
           </div>
         </dl>
-        <p className="field-help">
-          {zh
-            ? "近接仅检查条件口袋。完整受体姿势和立体化学需独立质控。"
-            : "Proximity covers the conditioning pocket. Verify full-receptor poses and stereochemistry separately."}
-        </p>
         <dl className="native-result-metrics">
           <div>
             <dt>LogP</dt>
