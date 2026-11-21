@@ -119,7 +119,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       native_receptor_only: ${{ steps.change.outputs.native_receptor_only }}
-      prediction_result_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}
+      prediction_result_layout: ${{ steps.prediction_scope.outputs.prediction_publication_layout }}
       research_tabs_only: ${{ steps.tabs.outputs.research_tabs_only }}
       native_viewer_changed: ${{ steps.native_viewer.outputs.changed }}
       print_labels_changed: ${{ steps.print_labels.outputs.changed }}

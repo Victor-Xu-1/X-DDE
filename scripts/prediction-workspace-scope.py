@@ -1210,6 +1210,31 @@ def result_layout_only(changed, event="push"):
             and set(changed).issubset(RESULT_LAYOUT_FILES))
 
 
+PREDICTION_PUBLICATION_LAYOUT_SOURCES = {
+    "frontend/src/presentation/PredictionResultHeader.tsx",
+    "frontend/src/presentation/prediction-inspection.css",
+    "frontend/src/presentation/prediction-result-header.css",
+}
+PREDICTION_PUBLICATION_LAYOUT_FILES = PREDICTION_PUBLICATION_LAYOUT_SOURCES | {
+    ".github/workflows/prediction-workspace-checks.yml",
+    ".github/workflows/publication-checks.yml",
+    "scripts/prediction-workspace-scope.py",
+    "server_tests/test_native_confidence_browser.py",
+    "tests/test_prediction_workspace_scope.py",
+}
+
+
+def prediction_publication_layout_only(changed, base, event="push"):
+    paths = set(changed)
+    if event not in {"push", "pull_request"} or not paths & PREDICTION_PUBLICATION_LAYOUT_SOURCES:
+        return False
+    versions = runpy.run_path("scripts/docking-result-scope.py")
+    mirrors = paths - PREDICTION_PUBLICATION_LAYOUT_FILES
+    return mirrors <= versions["VERSION_FILES"] and (
+        not mirrors or bool(base) and versions["only_version_mirrors"](base, mirrors)
+    )
+
+
 def selected(changed, event="push"):
     if input_preview_only(changed, event):
         return True
@@ -1359,6 +1384,9 @@ def main():
             ),
             "result_layout_only": result_layout_only(
                 changed, os.environ.get("GITHUB_EVENT_NAME", "push")
+            ),
+            "prediction_publication_layout": prediction_publication_layout_only(
+                changed, base, os.environ.get("GITHUB_EVENT_NAME", "push")
             ),
             "draft_compatibility": draft_compatibility_changed(changed),
             "draft_compatibility_only": draft_compatibility_only(
