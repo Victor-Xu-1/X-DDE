@@ -1,4 +1,6 @@
-import { alleneHandoffSmiles, ringStereoEntries, writeRingStereo } from "./portable-smiles-ring-stereo";
+import {
+  alleneHandoffSmiles, hasDirectionalRingStereo, ringStereoEntries, writeRingStereo,
+} from "./portable-smiles-ring-stereo";
 
 type StructureExport = {
   getSmiles(isExtended?: boolean): Promise<string>;
@@ -161,7 +163,10 @@ function hasMolRadical(molfile: string) {
 }
 
 export function hasRecognizedRingStereo(result: RecognitionResult) {
-  return stereoSmiles(result.rawSmiles?.trim() ?? "")?.plain === null;
+  const raw = result.rawSmiles?.trim();
+  if (!raw || raw.length > 100_000) return false;
+  const source = stereoSmiles(raw);
+  return Boolean(source && (source.plain === null || hasDirectionalRingStereo(source.text)));
 }
 
 async function readRecognizedRing(
@@ -222,8 +227,16 @@ export async function readRecognizedSource(
   const text = result.smiles.trim();
   let expected: string;
   try {
-    if (source?.plain === null)
-      return readSmiles ? await readRecognizedRing(service, source, text, molfile, readSmiles) : null;
+    if (source && hasRecognizedRingStereo(result)) {
+      if (!readSmiles) return null;
+      const indexed = source.plain === null ? source :
+        stereoSmiles((await readSmiles(source.identity)).trim());
+      if (indexed?.plain !== null) return null;
+      if (source !== indexed &&
+          await service.getInChIKey(source.identity) !== await service.getInChIKey(indexed.identity))
+        return null;
+      return await readRecognizedRing(service, indexed, text, molfile, readSmiles);
+    }
     expected = await service.getInChIKey(source?.identity ?? raw);
     if (!expected?.trim() || expected !== await service.getInChIKey(molfile)) return null;
   } catch {
@@ -343,8 +356,14 @@ export async function readRecognizedRingDrawing(
   result: RecognitionResult,
   readSmiles?: ReadStructure,
 ): Promise<RecognizedSourceExport> {
-  if (!readSmiles) return { text: "", molfile: "" };
-  const drawing = await editor.getMolfile("v3000");
-  return await readRecognizedSource(editor.structService, result, readSmiles, drawing)
-    ?? { text: "", molfile: "" };
+  if (readSmiles) {
+    try {
+      const drawing = await editor.getMolfile("v3000");
+      const value = await readRecognizedSource(editor.structService, result, readSmiles, drawing);
+      if (value) return value;
+    } catch {
+      // The current drawing could not produce a verifiable snapshot.
+    }
+  }
+  return { text: "", molfile: "" };
 }

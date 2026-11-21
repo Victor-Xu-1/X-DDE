@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { hasDirectionalRingStereo } from "./portable-smiles-ring-stereo";
 import {
   readPortableSmiles,
   readRecognizedRingDrawing,
@@ -291,6 +292,17 @@ const ringResult = {
 const ringDeclared = ringBody + " |t:6,a:11|";
 const ringStandard = "O=C1CCCC\\C=C\\CCC[C@@H](C)O1";
 
+it.each([
+  [ringStandard, true],
+  ["C/C1=C/CCCCCC1", true],
+  ["C1CCC/C=C/CC1.C/C=C/C", true],
+  ["C/C=C/c1ccccc1", false],
+  ["C1CC=CCC1.C/C=C/C", false],
+  ["C/C=C/C", false],
+])("identifies directional syntax on a ring bond in %s", (text, ring) => {
+  expect(hasDirectionalRingStereo(text)).toBe(ring);
+});
+
 function ringRecovery({
   normalizedKey = "unassigned", drawingKey = "unassigned",
   unspecifiedKey = "unassigned",
@@ -343,6 +355,15 @@ it("offers verified text but withholds a loadable drawing that omits ring geomet
   await expect(readRecognizedRingDrawing(canvas, ringResult, read))
     .resolves.toEqual({ text: ringStandard, molfile: "" });
   await expect(readPortableSmiles(canvas, ringResult, read)).resolves.toBe(ringStandard);
+});
+
+it("passes equivalent directional input through the same native ring verification", async () => {
+  const { service } = ringRecovery();
+  const read = vi.fn(async () => ringDeclared);
+  const result = { ...ringResult, rawSmiles: ringStandard };
+  const canvas = { ...editor(ringBody), structService: service };
+  await expect(readRecognizedRingDrawing(canvas, result, read))
+    .resolves.toEqual({ text: ringStandard, molfile: "" });
 });
 
 it("rejects a partly represented declaration even when other rings distinguish its key", async () => {
@@ -485,13 +506,16 @@ it("rejects an absolute-only extension when the plain output loses stereo", asyn
   await expect(readPortableSmiles(source)).rejects.toThrow("无法核对");
 });
 
-it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognition result", async (stereo) => {
+it.each(["c", "t"])("uses standard ring stereo %s when no source annotation needs recovery", async (stereo) => {
   const encoded = "O=C1CCCCC=CCCC[C@@H](C)O1 |" + stereo + ":6|";
   const smiles = stereo === "c" ? "C[C@@H]1CCC/C=C\\CCCCC(=O)O1" : "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
-  const result = { rawSmiles: smiles, smiles, molfile: generatedMol };
+  const result = { smiles, molfile: generatedMol };
   const source = editor(encoded);
   source.structService.getInChIKey.mockReset().mockResolvedValue("ring-stereo");
-  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  const read = vi.fn(async () => encoded);
+  const expected = "O=C1CCCC\\C=C" + (stereo === "c" ? "/" : "\\") + "CCC[C@@H](C)O1";
+  await expect(readPortableSmiles(source, result, read)).resolves.toBe(expected);
   await expect(readPortableSmiles(source)).rejects.toThrow(SmilesHandoffError);
 });
 
@@ -547,7 +571,7 @@ it("rejects a ring annotation that disagrees with the editor's MOL and recogniti
   key.mockReset().mockImplementation(async (value) => value === editorCx ? "cis" : "trans");
   await expect(readPortableSmiles(source, { rawSmiles: smiles, smiles, molfile: generatedMol }))
     .rejects.toThrow(SmilesHandoffError);
-  expect(key.mock.calls).toEqual([[structure], [editorCx]]);
+  expect(key.mock.calls).toEqual([]);
 });
 
 it("does not flatten a recognized stereo group missing from the editor export", async () => {
