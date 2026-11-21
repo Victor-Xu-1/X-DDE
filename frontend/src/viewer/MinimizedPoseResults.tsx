@@ -17,7 +17,7 @@ export function MinimizedPoseResults({
     method: PoseEnergy["method"];
     converged: boolean;
     artifact: string;
-    artifact_sha256?: string;
+    artifact_sha256: string;
   };
   language: Language;
 }) {
@@ -36,7 +36,6 @@ export function MinimizedPoseResults({
             source={{ url, sha256: data.artifact_sha256 }}
             urls={[url]}
             nativeArtifactSha256={data.artifact_sha256}
-            sourceSnapshot={!data.artifact_sha256}
             defaultView="3d"
           />
         }

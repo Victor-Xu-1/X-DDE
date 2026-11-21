@@ -662,7 +662,7 @@ ARCHIVED_POSE_REVIEW_FILES = {
     "frontend/src/viewer/MinimizedPoseResults.tsx",
     "frontend/src/viewer/MinimizedPoseResults.test.tsx",
 }
-ARCHIVED_POSE_REVIEW_DIFF = "52091f75433d3c651ef984a7b623914a2f77337e16b032a2baed8fe18d9459bb"
+ARCHIVED_POSE_REVIEW_DIFF = "f5010cb71c2ecde7dc012264275db3c586a90699296198436c3370220c26f770"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
