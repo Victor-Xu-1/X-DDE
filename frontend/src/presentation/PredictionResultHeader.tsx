@@ -41,6 +41,12 @@ export function PredictionResultHeader({
   const zh = language === "zh";
   const t = translator(language);
   const date = new Date(job.created_at);
+  const submitted = Number.isFinite(date.getTime())
+    ? date.toLocaleString(zh ? "zh-CN" : "en", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : null;
   const request = job.request;
   const model = predictionMethodLabel(request);
   return (
@@ -62,16 +68,16 @@ export function PredictionResultHeader({
           <h2 className="result-task-name">{title}</h2>
         </div>
         <div className="prediction-result-meta">
-          <span className={`status ${job.status}`}>{t(job.status)}</span>
-          {Number.isFinite(date.getTime()) && (
-            <span>
+          <span
+            className={`status ${job.status}`}
+            title={submitted ? (zh ? "提交于 " : "Submitted ") + submitted : undefined}
+          >
+            {t(job.status)}
+          </span>
+          {submitted && (
+            <span className="prediction-result-submission">
               {zh ? "提交于" : "Submitted"}{" "}
-              <time dateTime={job.created_at}>
-                {date.toLocaleString(zh ? "zh-CN" : "en", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              </time>
+              <time dateTime={job.created_at}>{submitted}</time>
             </span>
           )}
           {model && (

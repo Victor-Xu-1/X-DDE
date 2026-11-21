@@ -512,8 +512,13 @@ jobs:
         if: needs.scope.outputs.setup_summary == 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_prediction_setup_browser.py
       - name: Retained native STAT6 scores, actual Plotly geometry and byte-exact downloads
-        if: needs.scope.outputs.confidence_changed == 'true'
+        if: needs.scope.outputs.confidence_changed == 'true' && needs.scope.outputs.result_layout_only != 'true'
         run: uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
+      - name: Retained desktop and compact canvas, downloads and fullscreen controls
+        if: needs.scope.outputs.result_layout_only == 'true'
+        run: >-
+          uv run --locked python -m pytest -x -q server_tests/test_native_confidence_browser.py
+          -k short_prediction_result_stage
       - name: NumPy native interchange and bilingual real Plotly/WebGL linkage without inference
         if: needs.scope.outputs.boltz_confidence == 'true'
         run: >-
