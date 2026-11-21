@@ -56,8 +56,14 @@ it.each([
   expect(result.rawSmiles).toBe(rawSmiles);
 });
 
-it("withholds invalid explicit axial notation even alongside a valid allene", () => {
-  const rawSmiles = "FC(Cl)=[C@AL1]=C(Br)I.C[C@AL2](F)Cl";
+it.each([
+  "FC(Cl)=[C@AL1]=C(Br)I.C[C@AL2](F)Cl",
+  "FC(Cl)=[C@AL1]=C(Br)I.[C@AL3]",
+  "FC(Cl)=[C@AL1]=C(Br)I.[Si@AL1](=C(F)Cl)=C(Br)I",
+  "F[C@AL1](=C(Br)I)=C(Cl)F",
+  "F[C@](=C(Br)I)=C(Cl)F",
+  "C=1[C@AL1]=1",
+])("withholds unclassified axial notation in %s", (rawSmiles) => {
   expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
     .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
