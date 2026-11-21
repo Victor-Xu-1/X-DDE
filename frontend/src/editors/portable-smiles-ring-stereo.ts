@@ -60,6 +60,7 @@ function bondPositions(text: string) {
 }
 
 const alleneClass = /^(\[\d*C)@AL([12])((?:[+-]\d*|:\d+)*\])$/;
+const tetrahedralClass = /^(\[\d*[A-Z][a-z]?)@TH([12])((?:H\d*)?(?:[+-]\d*|:\d+)*\])$/;
 const shorthandCarbon = /\[\d*C@@?(?:[+-]\d*|:\d+)*\]/;
 const other = (bond: Bond, atom: number) => bond.from === atom ? bond.to : bond.from;
 
@@ -125,10 +126,18 @@ export function alleneHandoffSmiles(text: string) {
     found = true;
   }
   if (!found) return false;
-  // OpenSMILES defines @AL1 and @AL2 as @ and @@ at an allene center.
+  // Shorthand at a cumulated double-bond center denotes axial stereo.
+  // Refuse to reinterpret an inconsistent explicit tetrahedral class.
+  if (graph.atoms.some((atom, index) =>
+    atom.includes("@TH") && (!tetrahedralClass.test(atom) ||
+      (neighbors.get(index)?.filter((bond) => bond.token === "=").length ?? 0) > 1),
+  )) return null;
+
+  // OpenSMILES parity is unchanged by these substitutions in the same atom order.
+  const shorthand = (_: string, prefix: string, parity: string, suffix: string) =>
+    prefix + (parity === "1" ? "@" : "@@") + suffix;
   return text.replace(/\[[^\[\]]+\]/g, (atom) =>
-    atom.replace(alleneClass, (_, prefix, parity, suffix) =>
-      `${prefix}${parity === "1" ? "@" : "@@"}${suffix}`),
+    atom.replace(alleneClass, shorthand).replace(tetrahedralClass, shorthand),
   );
 }
 
