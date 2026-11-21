@@ -91,17 +91,42 @@ export function DatasetResults({
     (screeningReview && indexed) ||
     enumerated ||
     (!tableView && result.candidates.length > 0 && !hasCharts);
+  const reviewCounts = stats.some(
+    ([key, value]) =>
+      [
+        "failed",
+        "rejected",
+        "rejected_records",
+        "unresolved_structures",
+      ].includes(key) && value > 0,
+  );
+  const metrics = stats.map(([key, value]) => (
+    <div key={key}>
+      <span>{names[key][zh ? 0 : 1]}</span>
+      <strong>{value.toLocaleString()}</strong>
+    </div>
+  ));
   const summary = (
     <div className="dataset-result-metrics">
       <span className="dataset-status-complete sr-only">
         {zh ? "已完成" : "Complete"}
       </span>
-      {stats.map(([key, value]) => (
-        <div key={key}>
-          <span>{names[key][zh ? 0 : 1]}</span>
-          <strong>{value.toLocaleString()}</strong>
-        </div>
-      ))}
+      {enumerated && stats.length ? (
+        <details className="dataset-enumeration-counts">
+          <summary>
+            {reviewCounts
+              ? zh
+                ? "核查成员统计"
+                : "Review counts"
+              : zh
+                ? "成员统计"
+                : "Library counts"}
+          </summary>
+          <div className="dataset-enumeration-values">{metrics}</div>
+        </details>
+      ) : (
+        metrics
+      )}
       {!downloadsWithTabs && downloads}
     </div>
   );

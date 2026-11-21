@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { DatasetResults } from "./DatasetResults";
 import type { DatasetResult } from "./types";
@@ -194,6 +200,34 @@ it("keeps the enumerated member inspector and candidate structures in separate v
   fireEvent.click(screen.getByRole("tab", { name: "Library members" }));
   expect(inspection).toBeVisible();
   expect(screen.getByText("Native candidates")).not.toBeVisible();
+});
+
+it("flags rejected library records while keeping exact result counts available", () => {
+  render(
+    <DatasetResults
+      job={job}
+      result={{
+        ...data("library"),
+        operation: "del_enumerate",
+        counts: {
+          enumerated: 4,
+          failed: 0,
+          source_records: 5,
+          rejected_records: 1,
+        },
+      }}
+      language="en"
+    />,
+  );
+  const counts = screen
+    .getByText("Review counts", { selector: "summary" })
+    .closest("details")!;
+  expect(counts).not.toHaveAttribute("open");
+  expect(within(counts).getByText("Resolved structures")).not.toBeVisible();
+  counts.setAttribute("open", "");
+  expect(within(counts).getByText("Rejected records")).toBeVisible();
+  expect(within(counts).getByText("1", { exact: true })).toBeVisible();
+  expect(within(counts).getByText("Resolved structures")).toBeVisible();
 });
 
 it("preserves a quality tab when real primary data and real chart artifacts both exist", () => {
