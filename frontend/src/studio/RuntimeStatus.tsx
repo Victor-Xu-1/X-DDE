@@ -20,6 +20,7 @@ export function RuntimeStatus({
   const connected = Boolean(health && !connectionError);
   const platformReady =
     connected && (health?.platform?.ready ?? health?.worker_ready);
+  const freeStorage = health?.free_disk_gib;
   // Existing installed servers expose only the historical OpenDDE snapshot.
   const engines: Record<string, EngineStatus> =
     health?.environments ??
@@ -72,30 +73,29 @@ export function RuntimeStatus({
                     ? "平台服务未就绪"
                     : "Platform service unavailable"}
           </span>
-          {health?.worker_error && (
-            <p role="alert">
-              {zh
-                ? "任务服务暂不可用；已有文件已保留，请待服务恢复后再提交。"
-                : "Task service unavailable. Existing files are retained; submit after the service recovers."}
-            </p>
-          )}
-
-          <button className="secondary-button" onClick={onSetup}>
-            {zh ? "管理集成环境" : "Manage integrated environments"}
-          </button>
         </article>
         <article className="studio-panel">
           <DatabaseOutlined />
-          <h3>{zh ? "X-DDE 研究数据" : "X-DDE research data"}</h3>
+          <h3>{zh ? "研究存储" : "Research storage"}</h3>
           <p>
-            {health?.free_disk_gib ?? "—"} GiB {zh ? "可用" : "free"}
+            {freeStorage == null
+              ? "—"
+              : `${freeStorage} GiB ${zh ? "可用" : "free"}`}
           </p>
         </article>
       </div>
+      {health?.worker_error && (
+        <p className="error-box" role="alert">
+          {zh
+            ? "任务服务暂不可用；已有文件已保留，请待服务恢复后再提交。"
+            : "Task service unavailable. Existing files are retained; submit after the service recovers."}
+        </p>
+      )}
       <EnvironmentStatusTable
         engines={engines}
         connected={connected}
         language={language}
+        onSetup={onSetup}
       />
     </section>
   );

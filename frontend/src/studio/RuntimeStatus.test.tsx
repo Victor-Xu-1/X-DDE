@@ -101,6 +101,7 @@ it("shows a loading state before the server responds", () => {
   );
   expect(screen.getByText("正在连接 X-DDE…", { exact: true })).toBeVisible();
   expect(screen.queryByText("平台服务就绪", { exact: true })).toBeNull();
+  expect(screen.queryByRole("searchbox")).toBeNull();
 });
 
 it("marks stale readiness after disconnection and provides reconnect", () => {
@@ -140,3 +141,39 @@ it("can inspect existing server snapshots without inventing engine availability"
   expect(screen.getByRole("row", { name: /结构与复合物预测/ })).toBeVisible();
   expect(screen.queryByRole("row", { name: /小分子生成与优化/ })).toBeNull();
 });
+
+it.each([
+  [
+    "en",
+    "Search integrated environments",
+    " DIFFSBDD ",
+    "No matching environments.",
+  ],
+  ["zh", "搜索集成环境", "小分子生成", "没有匹配的集成环境。"],
+] as const)(
+  "filters the runtime catalogue by software or research use in %s",
+  (language, name, query, empty) => {
+    render(
+      <RuntimeStatus
+        language={language}
+        health={health}
+        connectionError={false}
+        onRefresh={vi.fn()}
+        onSetup={vi.fn()}
+      />,
+    );
+    const search = screen.getByRole("searchbox", { name });
+    fireEvent.change(search, { target: { value: query } });
+    const rows = screen.getAllByRole("row");
+    expect(rows).toHaveLength(2);
+    expect(within(rows[1]).getByRole("rowheader")).toHaveTextContent(
+      "DiffSBDD",
+    );
+    expect(within(rows[1]).getByText("1 / 2")).toBeVisible();
+    fireEvent.change(search, { target: { value: "no-such-environment" } });
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent(empty);
+    fireEvent.change(search, { target: { value: "" } });
+    expect(screen.getAllByRole("row")).toHaveLength(4);
+  },
+);
