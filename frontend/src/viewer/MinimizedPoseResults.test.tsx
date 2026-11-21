@@ -4,7 +4,14 @@ import type { Job } from "../types";
 import { MinimizedPoseResults } from "./MinimizedPoseResults";
 
 vi.mock("../presentation/MolecularPreview", () => ({
-  MolecularPreview: () => <div>3D structure</div>,
+  MolecularPreview: ({ nativeArtifactSha256 }: {
+    nativeArtifactSha256?: string;
+  }) => (
+    <div
+      data-testid="saved-pose-preview"
+      data-digest={nativeArtifactSha256}
+    />
+  ),
 }));
 
 it.each(["en", "zh"] as const)(
@@ -20,11 +27,15 @@ it.each(["en", "zh"] as const)(
           method: "MMFF94s",
           converged: true,
           artifact: "minimized.sdf",
+          artifact_sha256: "a".repeat(64),
         }}
       />,
     );
     expect(screen.getByText(/186\.64/)).toBeVisible();
     expect(screen.getByText(/24\.25/)).toBeVisible();
+    expect(screen.getByTestId("saved-pose-preview")).toHaveAttribute(
+      "data-digest", "a".repeat(64),
+    );
     expect(
       screen.getByText(
         language === "zh" ? /不考虑蛋白/ : /does not include the protein/,

@@ -653,6 +653,16 @@ PORTABLE_SMILES_FILES = {
     "src/opendde_workbench/data/recognition_locale/patch.json",
 }
 PORTABLE_SMILES_DIFF = "36b573c76a597e4fe3e769c42c38aa2f4342ec787e9d21431c9c037b2dbb856a"
+ARCHIVED_POSE_REVIEW_FILES = {
+    ".github/workflows/ligand-energy-scope.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    "frontend/src/poses/ClusterResults.tsx",
+    "frontend/src/poses/ClusterTables.tsx",
+    "frontend/src/presentation/pose-review-workspace.css",
+    "frontend/src/viewer/MinimizedPoseResults.tsx",
+    "frontend/src/viewer/MinimizedPoseResults.test.tsx",
+}
+ARCHIVED_POSE_REVIEW_DIFF = "f5010cb71c2ecde7dc012264275db3c586a90699296198436c3370220c26f770"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
@@ -2045,6 +2055,11 @@ def main():
         NATIVE_COLOR_FIGURE_FILES, NATIVE_COLOR_FIGURE_DIFF,
         scope_pin="NATIVE_COLOR_FIGURE_DIFF",
     )
+    archived_pose_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        ARCHIVED_POSE_REVIEW_FILES, ARCHIVED_POSE_REVIEW_DIFF,
+        scope_pin="ARCHIVED_POSE_REVIEW_DIFF",
+    )
     prediction_input_layout = (
         "frontend/src/guided/desktop-questionnaire.css" in changed
         and run_path(str(Path(__file__).with_name("prediction-workspace-scope.py")))[
@@ -2059,6 +2074,7 @@ def main():
         output.write("inline_recognition_only=" + str(inline_recognition).lower() + "\n")
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
+        output.write("archived_pose_review_only=" + str(archived_pose_review).lower() + "\n")
         output.write("guided_desktop_only=" + str(guided_desktop).lower() + "\n")
         output.write("prediction_input_layout=" + str(prediction_input_layout).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
@@ -2156,6 +2172,7 @@ def main():
             or compact_material
             or paired_figure
             or native_color_figure
+            or archived_pose_review
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

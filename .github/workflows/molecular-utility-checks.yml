@@ -213,6 +213,7 @@ jobs:
       inline_recognition_only: ${{ steps.select.outputs.inline_recognition_only }}
       editor_drawing_only: ${{ steps.select.outputs.editor_drawing_only }}
       portable_smiles_only: ${{ steps.select.outputs.portable_smiles_only }}
+      archived_pose_review_only: ${{ steps.select.outputs.archived_pose_review_only }}
       guided_desktop_only: ${{ steps.select.outputs.guided_desktop_only }}
       prediction_input_layout: ${{ steps.select.outputs.prediction_input_layout }}
       utility_query_only: ${{ steps.select.outputs.utility_query_only }}
@@ -282,6 +283,7 @@ jobs:
       needs.scope.outputs.inline_recognition_only != 'true' &&
       needs.scope.outputs.editor_drawing_only != 'true' &&
       needs.scope.outputs.portable_smiles_only != 'true' &&
+      needs.scope.outputs.archived_pose_review_only != 'true' &&
       needs.scope.outputs.guided_desktop_only != 'true' &&
       needs.scope.outputs.prediction_input_layout != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&

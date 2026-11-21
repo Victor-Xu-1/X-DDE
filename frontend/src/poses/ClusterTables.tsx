@@ -30,6 +30,7 @@ export function ClusterPoseTable({
       selected={String(selected)}
       onSelect={onSelect}
       compare={false}
+      compactToolbar
       columns={[
         { key: "pose", label: zh ? "姿势" : "Pose", value: (r) => r.index + 1 },
         {
