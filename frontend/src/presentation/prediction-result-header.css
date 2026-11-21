@@ -169,6 +169,63 @@
 .prediction-archive-icon {
   display: none;
 }
+
+@media (1001px <= width < 1180px) and (max-height: 720px) {
+  .prediction-result-heading,
+  .prediction-result-heading:has(.task-backend-control) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
+    gap: 4px 12px;
+    align-items: center;
+    padding-block: 3px 5px;
+  }
+  .prediction-result-title {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .studio-app .prediction-result-heading .prediction-result-back {
+    flex: 0 0 32px;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0;
+  }
+  .prediction-result-back > span:not([role="img"]) {
+    display: none;
+  }
+  .prediction-result-heading .result-task-name {
+    font-size: 16px;
+  }
+  .prediction-result-meta {
+    gap: 4px 8px;
+    font-size: 12px;
+  }
+  .prediction-result-submission {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .prediction-result-actions {
+    gap: 4px 6px;
+  }
+  .studio-app .prediction-result .prediction-result-actions {
+    > .secondary-button,
+    .prediction-archive-download > .primary-button {
+      min-height: 32px;
+      padding: 4px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+  }
+  .prediction-result-actions > .task-backend-control {
+    min-width: 0;
+  }
+  .prediction-result-actions .prediction-archive-label {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 400px) {
   .prediction-result-actions > .task-backend-control {
     flex-basis: auto;

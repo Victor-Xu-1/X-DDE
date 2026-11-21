@@ -310,8 +310,10 @@ def test_prediction_example_prioritizes_the_recorded_result_and_returns_to_setup
         browser.close()
 
 
-@pytest.mark.parametrize(("width", "height"), [(1110, 580), (320, 568)])
-def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, height):
+@pytest.mark.parametrize(("width", "height", "language"), [
+    (1001, 600, "en"), (1110, 580, "zh"), (320, 568, "en"),
+])
+def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, height, language):
     """A structural canvas is the leading work area, with no nested viewer scroll."""
     evidence = Path("outputs/native-confidence") / f"stage-{width}"
     evidence.mkdir(parents=True, exist_ok=True)
@@ -322,6 +324,8 @@ def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, he
         page = browser.new_page(
             viewport={"width": width, "height": height}, reduced_motion="reduce"
         )
+        zh = language == "zh"
+        page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         writes = []
         page.on(
             "request",
@@ -334,15 +338,24 @@ def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, he
         viewer = page.locator(".prediction-result .viewer-panel:visible")
         modes = viewer.locator(".viewer-modes").first
         expect(modes).to_be_visible(timeout=45000)
+        capture = viewer.get_by_role(
+            "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True
+        )
+        expect(capture).to_be_enabled(timeout=45000)
+        page.evaluate("document.fonts.ready")
         before = page.evaluate("""() => {
           const viewer=document.querySelector('.prediction-result .viewer-panel');
           const work=viewer.closest('.structure-workbench');
           const panel=work.querySelector('.structure-workbench-view');
-          const rect=(el)=>{const r=el.getBoundingClientRect();return [r.top,r.bottom,r.height];};
+          const rect=(el)=>{
+            const r=el.getBoundingClientRect();
+            return [r.top,r.bottom,r.height,r.left,r.right];
+          };
           const stage=rect(viewer.querySelector('.molecular-stage'));
           return {
             stage, heading:rect(viewer.querySelector('.studio-heading')),
             modes:rect(viewer.querySelector('.viewer-modes')),
+            details:rect(work.querySelector('.structure-workbench-details')),
             scrolled:panel.scrollHeight-panel.clientHeight,
             overflow:document.documentElement.scrollWidth>innerWidth+1,
           };
@@ -350,17 +363,24 @@ def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, he
         assert not before["overflow"] and before["scrolled"] <= 1, before
         assert before["heading"][1] <= before["modes"][0] + 1, before
         assert before["modes"][1] <= before["stage"][0] + 1, before
-        assert before["stage"][2] >= 319, before
-        if width == 1110:
-            assert before["stage"][0] <= height - 64, before
+        if width >= 1001:
+            bottom = min(height, before["stage"][1])
+            assert bottom - before["stage"][0] >= 230, before
+            assert before["stage"][4] < before["details"][3], before
+            for selector in (
+                ".prediction-sample-download button", ".prediction-archive-download button",
+            ):
+                button = page.locator(".prediction-result " + selector).first.bounding_box()
+                assert button and 0 <= button["y"] and button["y"] + button["height"] <= height
         else:
+            assert before["stage"][2] >= 319, before
             assert before["stage"][0] < height + 64, before
         page.screenshot(path=evidence / "initial.png")
 
         camera = """node => node.contentDocument.querySelector('canvas')
           ._3dmol_viewer.getView()"""
         original = stage.element_handle()
-        zoom = viewer.get_by_role("button", name="Zoom in", exact=True)
+        zoom = viewer.get_by_role("button", name="放大" if zh else "Zoom in", exact=True)
         nominal = stage.evaluate(camera)
         zoom.click()
         page.wait_for_function(
@@ -372,7 +392,9 @@ def test_short_prediction_result_stage_keeps_native_controls(tmp_path, width, he
             arg=nominal[3],
         )
         adjusted = stage.evaluate(camera)
-        expand = viewer.get_by_role("button", name="Expand research workspace", exact=True)
+        expand = viewer.get_by_role(
+            "button", name="展开研究工作区" if zh else "Expand research workspace", exact=True
+        )
         expand.click()
         expect(page.locator(".structure-workbench[data-workspace-expanded]")).to_be_visible()
         assert stage.evaluate("(node, original) => node === original", original)
