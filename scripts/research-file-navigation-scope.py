@@ -44,36 +44,20 @@ _NAVIGATION = {
     "server_tests/test_workspace_versions_browser.py",
 }
 _DESKTOP_BLOBS = {
-    "frontend/src/research/ResearchWorkspaceExpansionExit.tsx": (
-        None,
-        "c8abd142206ba94d312f5ff5c85237c5d17655ff",
-    ),
-    "frontend/src/research/ResearchWorkspaceFileToolbar.tsx": (
-        None,
-        "997c1def9463b23601a531160ddf5d46257044cc",
-    ),
-    "frontend/src/research/ResearchWorkspace.test.tsx": (
-        "1f8d731715777b7d31d3fc9c225e70ad570580e3",
-        "dc5a899bc0db020df8e0b26542c3adb607a0901f",
-    ),
     "frontend/src/research/ResearchWorkspace.tsx": (
-        "c6967f858394254815617030bc87ba5b51e5715d",
         "121bcec0f124a0a69456cd4a6faa3cd39b119d99",
+        "2d6d4cdebe92f2b3b144a2a82ab92cd43485f2a3",
     ),
     "frontend/src/research/research-file-navigation.css": (
-        "86fd03960b16b935ed36e60d525838fb84f92709",
-        "0011ca8c2b625b9e58713176d6c1ec2ff44678c6",
-    ),
-    "frontend/src/research/research.css": (
-        "20a242f615e62c6885783a82271c9d6277aa97ae",
-        "d990fd2786a90627c85d091155c4793abb49e0dc",
+        "22e90d313e3fee9a5b4f67e8577745b0e9d8f5cb",
+        "8842e176bf4c64f32f43a842c5d918132cb59914",
     ),
     "server_tests/test_workspace_preview_browser.py": (
-        "d7f5e981687b3307fbb26b31cac1094653fbfc80",
-        "879cda35f75b258588e947bc91ddc079b4e22190",
+        "f46274c954d11efd73e818b172c78d51c027a45e",
+        "7eeb6801d5a07166fc339a4c774ce5f838174484",
     ),
 }
-_DESKTOP_SELECTOR_SHA = "4c7cf85fc7b9fa6d5afaaa9f024f91e60c37cc369efb49006716e94df588f44a"
+_DESKTOP_SELECTOR_SHA = "fe875d8cbb1e2dffd86c993a2124e4cc7d23fba6a3a97059cb6b90abf68f37f9"
 _INSPECTION_FILES = {
     ".github/workflows/example-result-set-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
