@@ -1,4 +1,4 @@
-"""Keep the reviewed catalogue CSS transition on the component presentation gate."""
+"""Route the reviewed catalogue layout and its direct consumers to the component gate."""
 
 import os
 from hashlib import sha256
@@ -9,13 +9,17 @@ scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
 _WORKFLOW = ".github/workflows/case-bundle-checks.yml"
 _SCRIPT = "scripts/component-presentation-scope.py"
 _FILES = {
-    _WORKFLOW,
     _SCRIPT,
+    "frontend/src/deployment/ComponentCard.tsx",
+    "frontend/src/deployment/ComponentLibrary.test.tsx",
+    "frontend/src/deployment/ComponentLibrary.tsx",
     "frontend/src/deployment/components.css",
+    "frontend/src/deployment/deployment.test.tsx",
+    "server_tests/test_component_layout_browser.py",
     "server_tests/test_component_presentation_browser.py",
 }
-_WORKFLOW_BLOBS = ("e1eb6477c1b18dc149fa4a9a8d27df8a68a61cab", "cdf54ad96c5420fb63b046e670e105855ed79e3b")
-_SELECTOR_SHA = "c5cfb398bced56e575e3a8e606c3dc54316113f5eba3aa75b9e3a92e9e58d6f2"
+_WORKFLOW_BLOBS = ("cdf54ad96c5420fb63b046e670e105855ed79e3b", "cdf54ad96c5420fb63b046e670e105855ed79e3b")
+_SELECTOR_SHA = "b3e1cb78b7f5089435f916eff67e2471138d6dd99d305c8c097f62c5fe569b61"
 
 
 def presentation_only(base, event, ref):

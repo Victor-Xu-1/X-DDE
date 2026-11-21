@@ -35,8 +35,9 @@ it.each([true, false])(
       />,
     );
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", {
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: zh ? "组件分组" : "Component group" }),
+      screen.getByRole("option", {
         name: zh ? "动力学与结合自由能" : "Dynamics and binding free energy",
       }),
     );
@@ -70,8 +71,9 @@ it("keeps the recommended installation separate from visible alternate engines",
     />,
   );
   const user = userEvent.setup();
-  await user.click(
-    screen.getByRole("button", { name: "Dynamics and binding free energy" }),
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Component group" }),
+    screen.getByRole("option", { name: "Dynamics and binding free energy" }),
   );
   await user.click(
     screen.getByRole("button", { name: "Install recommended bundle" }),

@@ -10,21 +10,28 @@ from opendde_workbench.deployment.manager import DeploymentManager
 from server_tests.browser_platform import platform
 
 
-def open_components(page, base, language, width):
+def open_components(page, base, language):
     zh = language == "zh"
     page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
     page.goto(base)
-    if width < 1024:
-        page.get_by_role(
-            "button", name="打开研究导航" if zh else "Open research navigation"
-        ).click()
-    page.get_by_role("button", name="设置与帮助" if zh else "Settings and help").click()
+    navigation = page.get_by_role(
+        "button", name="打开研究导航" if zh else "Open research navigation"
+    )
+    settings = page.get_by_role("button", name="设置与帮助" if zh else "Settings and help")
+    navigation.or_(settings).first.wait_for()
+    if navigation.is_visible():
+        navigation.click()
+    settings.click()
     page.get_by_role(
         "menuitem", name="安装与运行" if zh else "Installation and runtime"
     ).click()
 
 
 @pytest.mark.parametrize(("language", "width", "height", "columns"), [
+    ("en", 1001, 650, 3),
+    ("en", 1024, 600, 3),
+    ("zh", 1024, 600, 3),
+    ("en", 1080, 650, 3),
     ("en", 1280, 720, 4),
     ("zh", 1600, 900, 5),
 ])
@@ -41,7 +48,7 @@ def test_desktop_catalogue_keeps_first_row_actions_visible(
             mutations = []
             page.on("request", lambda request: mutations.append(request.url)
                     if request.method == "POST" else None)
-            open_components(page, base, language, width)
+            open_components(page, base, language)
             library = page.locator(".component-library")
             grid = library.locator(":scope > .component-grid")
             cards = grid.get_by_role("article")
@@ -67,7 +74,7 @@ def test_desktop_catalogue_keeps_first_row_actions_visible(
             row = [box for box in boxes if abs(box["top"] - boxes[0]["top"]) <= 1]
             assert len(row) == columns
             assert all(box["actions"]["bottom"] <= height for box in row), row
-            assert all(abs(box["height"] - box["width"]) <= 32 for box in row), row
+            assert all(0.7 <= box["width"] / box["height"] <= 1.4 for box in row), row
             assert all(box["textFits"] for box in boxes)
             expect(cards.first).to_have_css("border-top-left-radius", "10px")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
@@ -81,6 +88,20 @@ def test_desktop_catalogue_keeps_first_row_actions_visible(
             expect(location.get_by_role("textbox")).to_be_visible()
             selector.select_option(original)
             expect(location.get_by_role("textbox")).to_have_count(0)
+
+            zh = language == "zh"
+            groups = library.get_by_role("combobox", name="组件分组" if zh else "Component group")
+            expect(groups).to_have_value("all")
+            groups.select_option(label="动力学与结合自由能" if zh else "Dynamics and binding free energy")
+            expect(cards).to_have_count(3)
+            expect(library.get_by_role(
+                "button", name="部署推荐组合" if zh else "Install recommended bundle",
+            )).to_be_visible()
+            selected_box = cards.first.bounding_box()
+            assert selected_box and abs(selected_box["width"] - row[0]["width"]) <= 1
+            groups.select_option("all")
+            expect(cards.first).to_be_visible()
+            assert cards.count() > 3
             assert not mutations
             browser.close()
 
@@ -107,14 +128,12 @@ def test_visible_engine_comparison_and_installed_controls(tmp_path, language, wi
                 lambda request: mutations.append(request.url) if request.method == "POST" else None,
             )
             page.route("**/api/deployment", lambda route: route.fulfill(json=catalog))
-            open_components(page, base, language, width)
+            open_components(page, base, language)
             page.get_by_role(
-                "button",
-                name="Dynamics and binding free energy"
-                if language == "en"
-                else "动力学与结合自由能",
-                exact=True,
-            ).click()
+                "combobox", name="组件分组" if language == "zh" else "Component group",
+            ).select_option(
+                label="动力学与结合自由能" if language == "zh" else "Dynamics and binding free energy",
+            )
             grid = page.locator(".component-library > .component-grid")
             cards = grid.get_by_role("article")
             expect(cards).to_have_count(3)
@@ -199,7 +218,7 @@ def test_old_component_failure_retains_recovery_controls(tmp_path, language, wid
             page.route("**/api/**", deployment_control)
             page.route("**/api/deployment", deployment_read)
             try:
-                open_components(page, base, language, width)
+                open_components(page, base, language)
                 activity = page.locator(".deployment-progress")
                 expect(activity.get_by_role("article")).to_have_count(1)
                 expect(activity.get_by_text(message, exact=True)).to_be_visible()

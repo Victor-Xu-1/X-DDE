@@ -159,7 +159,10 @@ it("shows each main component once and deploys only the selected research group"
     screen.getByRole("article", { name: "OpenDDE 抗体预测模型" }),
   ).not.toBeVisible();
   expect(screen.queryByRole("button", { name: "部署推荐组合" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "结构与复合物预测" }));
+  const group = screen.getByRole<HTMLOptionElement>("option", { name: "结构与复合物预测" });
+  fireEvent.change(screen.getByRole("combobox", { name: "组件分组" }), {
+    target: { value: group.value },
+  });
   expect(mainCards()).toHaveLength(2);
   fireEvent.click(screen.getByRole("button", { name: "部署推荐组合" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(3));

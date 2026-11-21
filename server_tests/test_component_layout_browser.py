@@ -61,21 +61,16 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
             page.get_by_role("button", name="设置与帮助", exact=True).click()
             page.get_by_role("menuitem", name="安装与运行", exact=True).click()
             expect(page.locator(".component-grid > .component-card:visible").first).to_be_visible()
-            groups = (
-                page.get_by_role("navigation", name="组件分组")
-                .get_by_role("button")
-                .all_text_contents()
-            )
+            picker = page.get_by_role("combobox", name="组件分组")
+            groups = picker.locator("option").all_text_contents()
             for width in (1440, 1920, 2560, 768, 390):
                 page.set_viewport_size({"width": width, "height": 1000})
-                page.get_by_role("button", name="全部", exact=True).click()
+                picker.select_option("all")
                 all_cards = card_geometry(page, ".component-grid > .component-card")
                 check_cards(all_cards, width)
                 assert len({card["name"] for card in all_cards}) == len(all_cards)
                 for group in groups:
-                    page.get_by_role("navigation", name="组件分组").get_by_role(
-                        "button", name=group, exact=True
-                    ).click()
+                    picker.select_option(label=group)
                     cards = card_geometry(page, ".component-grid > .component-card")
                     check_cards(cards, width)
                     assert not re.search(r"drug\s*clip", page.locator("main").inner_text(), re.I)
@@ -98,7 +93,7 @@ def test_component_cards_groups_and_runtime_desktop_mobile():
                         path=str(evidence / f"components-{width}-{groups.index(group)}.png")
                     )
                     rows.append({"width": width, "group": group, "cards": cards, "grid": geometry})
-                page.get_by_role("button", name="全部", exact=True).click()
+                picker.select_option("all")
                 optional = page.locator(".component-additions > summary")
                 if optional.count():
                     optional.click()

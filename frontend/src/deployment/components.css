@@ -14,38 +14,39 @@
   min-width: 0;
 }
 .component-overview,
-.component-group-heading {
+.component-overview-title,
+.component-overview-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
 }
-.component-overview > span {
+.component-overview {
+  margin-bottom: 14px;
+}
+.component-overview-title {
+  justify-content: flex-start;
+  gap: 6px 12px;
+}
+.component-overview-title > span {
   color: var(--muted);
   font-size: 13px;
 }
-.component-filters {
-  display: flex;
-  flex-wrap: wrap;
+.component-overview-controls {
   gap: 8px;
-  margin: 14px 0 20px;
+  max-width: 100%;
 }
-.deployment-workspace .component-filters button {
-  padding: 8px 12px;
-  white-space: nowrap;
-}
-.deployment-workspace .component-filters button[aria-pressed="true"] {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-.component-group-heading {
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.component-group-heading h3 {
-  margin: 0;
-  font-size: 15px;
+.deployment-workspace .component-group-select {
+  width: min(100%, 292px);
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
 }
 .deployment-workspace .component-bundle {
   padding: 7px 11px;
@@ -61,33 +62,33 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   min-height: 320px;
   aspect-ratio: 1;
-  padding: 18px;
+  padding: 14px;
   margin: 0;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--surface);
   box-shadow: none;
 }
 .component-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   min-width: 0;
 }
 .component-icon {
   display: grid;
   place-items: center;
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: var(--accent-soft);
   color: var(--accent);
-  font-size: 20px;
+  font-size: 17px;
 }
 .component-icon.is-model {
   background: color-mix(in srgb, var(--violet) 10%, var(--surface));
@@ -102,40 +103,34 @@
   color: #ac854b;
 }
 .component-category {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.component-title {
-  min-height: 60px;
-}
-.component-kind {
   display: block;
   color: var(--muted);
-  font-size: 11px;
-  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.component-title {
+  min-width: 0;
 }
 .deployment-workspace .component-card h3 {
   font-size: 15px;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.35;
   margin: 0;
   overflow-wrap: anywhere;
 }
 .deployment-workspace .component-card p {
   font-size: 13px;
-  line-height: 1.65;
+  line-height: 1.5;
   color: var(--muted);
   margin: 0;
-  min-height: 42px;
-  flex: 1;
+  flex: 1 0 auto;
   overflow-wrap: anywhere;
 }
 .deployment-workspace .component-card .component-size {
   font-size: 12px;
   line-height: 1.6;
   color: var(--muted);
-  min-height: 20px;
   overflow-wrap: anywhere;
 }
 .deployment-workspace .component-card .component-actions {
@@ -144,7 +139,7 @@
   justify-content: space-between;
   gap: 8px;
   border-top: 1px solid var(--line);
-  padding-top: 12px;
+  padding-top: 8px;
   margin-top: auto;
 }
 .deployment-workspace .component-primary {
@@ -333,7 +328,12 @@
   margin-top: 16px;
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1000px) {
+  .studio-app .combined-workspace:has(> :not([hidden]) > .deployment-workspace) > .workspace-tabs {
+    min-height: 0;
+    padding-block: 0;
+    margin-bottom: 12px;
+  }
   .deployment-workspace:has(> .compute-service-panel) {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -358,7 +358,7 @@
       "directory directory"
       "custom custom"
       "hint hint";
-    align-content: center;
+    align-content: start;
     align-items: center;
     gap: 0 8px;
   }
@@ -369,7 +369,7 @@
     grid-template-areas:
       "state controls"
       "help help";
-    align-content: center;
+    align-content: start;
     gap: 8px;
   }
   .deployment-workspace > .field-help {
@@ -387,6 +387,7 @@
   }
   .deployment-workspace > :is(.install-location, .compute-service-panel) {
     min-width: 0;
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 12px 14px;
   }
@@ -436,41 +437,32 @@
   .compute-service-panel .field-help {
     grid-area: help;
   }
-}
-
-@container (min-width: 940px) {
-  .component-filters {
-    gap: 6px;
-    margin: 10px 0 14px;
-  }
-  .deployment-workspace .component-filters button {
-    padding: 6px 10px;
-  }
-  .deployment-workspace .component-library:not(:has(> .component-group-heading)) .component-grid {
-    grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+  .deployment-workspace .component-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 224px), 1fr));
     gap: 12px;
   }
   .deployment-workspace .component-card {
-    gap: 8px;
-    min-height: 248px;
+    min-height: clamp(210px, 25cqw, 248px);
     aspect-ratio: auto;
-    padding: 14px;
-    border-radius: 10px;
   }
-  .component-icon {
-    flex-basis: 32px;
-    width: 32px;
-    height: 32px;
-    font-size: 17px;
+  @container (width < 940px) {
+    .deployment-workspace > .compute-service-panel {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "state" "controls" "help";
+      gap: 6px;
+    }
+    .compute-service-panel .component-actions {
+      justify-content: flex-start;
+      max-inline-size: none;
+    }
+    .compute-service-panel .field-help {
+      font-size: 12px;
+      line-height: 1.45;
+    }
   }
-  .component-title {
-    min-height: 0;
-  }
-  .deployment-workspace .component-card p {
-    flex: 1 0 auto;
-    min-height: 0;
-  }
-  .deployment-workspace .component-card .component-actions {
-    padding-top: 8px;
+  @container (min-width: 940px) {
+    .deployment-workspace .component-card {
+      min-height: 248px;
+    }
   }
 }

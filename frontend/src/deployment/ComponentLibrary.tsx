@@ -62,58 +62,50 @@ export function ComponentLibrary({
   return (
     <section className="component-library">
       <div className="component-overview">
-        <h2>{zh ? "组件" : "Components"}</h2>
-        <span
-          title={
-            zh
-              ? "安装状态不等同于模型或计算服务就绪。"
-              : "Installed files do not imply compute readiness."
-          }
-        >
-          {zh ? "已安装" : "Installed"}{" "}
-          {data.packages.filter((p) => data.installed[p.id]).length}/
-          {data.packages.length}
-        </span>
-      </div>
-      <nav
-        className="component-filters"
-        aria-label={zh ? "组件分组" : "Component groups"}
-      >
-        <button
-          aria-pressed={filter === "all"}
-          onClick={() => setFilter("all")}
-        >
-          {zh ? "全部" : "All"}
-        </button>
-        {groups.map((group) => (
-          <button
-            key={group.id}
-            aria-pressed={filter === group.id}
-            onClick={() => setFilter(group.id)}
+        <div className="component-overview-title">
+          <h2>{zh ? "组件" : "Components"}</h2>
+          <span
+            title={
+              zh
+                ? "安装状态不等同于模型或计算服务就绪。"
+                : "Installed files do not imply compute readiness."
+            }
           >
-            {group.title[zh ? 0 : 1]}
-          </button>
-        ))}
-      </nav>
-      {selectedGroup && (
-        <header className="component-group-heading">
-          <h3>{selectedGroup.title[zh ? 0 : 1]}</h3>
-          <ComponentBundle
-            data={data}
-            zh={zh}
-            busy={busy}
-            execute={execute}
-            install={install}
-            recommended={selectedGroup.recommended.filter((id) =>
-              selectedGroup.packages.some((p) => p.id === id),
-            )}
-            description={selectedGroup.recommendation[zh ? 0 : 1]}
-          />
-        </header>
-      )}
-      <div className="component-grid">
-        {cards(mainEntries)}
+            {zh ? "已安装" : "Installed"}{" "}
+            {data.packages.filter((p) => data.installed[p.id]).length}/
+            {data.packages.length}
+          </span>
+        </div>
+        <div className="component-overview-controls">
+          <select
+            className="component-group-select"
+            aria-label={zh ? "组件分组" : "Component group"}
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+          >
+            <option value="all">{zh ? "全部组件" : "All components"}</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.title[zh ? 0 : 1]}
+              </option>
+            ))}
+          </select>
+          {selectedGroup && (
+            <ComponentBundle
+              data={data}
+              zh={zh}
+              busy={busy}
+              execute={execute}
+              install={install}
+              recommended={selectedGroup.recommended.filter((id) =>
+                selectedGroup.packages.some((p) => p.id === id),
+              )}
+              description={selectedGroup.recommendation[zh ? 0 : 1]}
+            />
+          )}
+        </div>
       </div>
+      <div className="component-grid">{cards(mainEntries)}</div>
       {optionalEntries.length > 0 && (
         <details
           className="component-additions"
