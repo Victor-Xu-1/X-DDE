@@ -19,6 +19,7 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
         "frontend/src/TaskForm.tsx", "frontend/src/viewer/scene.ts",
         "frontend/src/examples/ExampleActions.tsx",
         "src/opendde_workbench/confidence.py", "frontend/src/App.tsx",
+        "frontend/src/channels/channel-results.css",
     ):
         assert not scope.result_layout_only(changed | {unrelated})
     workflow = Path(".github/workflows/prediction-workspace-checks.yml").read_text()
@@ -28,6 +29,39 @@ def test_prediction_result_layout_delegates_only_its_native_result_consumers():
     examples = Path(".github/workflows/example-result-set-checks.yml").read_text()
     assert "prediction_layout: ${{ steps.prediction_scope.outputs.result_layout_only }}" in examples
     assert examples.count("needs.scope.outputs.prediction_layout != 'true'") == 2
+
+
+def test_prediction_publication_layout_excludes_shared_paths_and_dependency_edits(monkeypatch):
+    checked = []
+
+    def mirrors_only(base, paths):
+        checked.append(paths)
+        return base == "version-only"
+
+    monkeypatch.setattr(scope.runpy, "run_path", lambda _: {
+        "VERSION_FILES": {"frontend/package.json", "frontend/package-lock.json"},
+        "only_version_mirrors": mirrors_only,
+    })
+    layout = scope.PREDICTION_PUBLICATION_LAYOUT_FILES
+    select = scope.prediction_publication_layout_only
+    assert select(layout, "")
+    assert not select(layout, "", "workflow_dispatch")
+    for shared in (
+        "frontend/src/examples/ExampleJobResult.tsx",
+        "frontend/src/operations/ConfidencePanel.tsx",
+        "frontend/src/channels/channel-results.css",
+        "frontend/src/publication/FigureExport.tsx",
+    ):
+        assert not select(layout | {shared}, "version-only")
+    package = {"frontend/package.json", "frontend/package-lock.json"}
+    assert select(layout | package, "version-only", "pull_request")
+    assert not select(layout | package, "dependency-edits")
+    assert checked == [package, package]
+    figures = Path(".github/workflows/publication-checks.yml").read_text()
+    assert ("prediction_result_layout: "
+            "${{ steps.prediction_scope.outputs.prediction_publication_layout }}") in figures
+    assert "Compact prediction structure, camera continuity and native research PNG" in figures
+    assert "short_prediction_result_stage and not 320" in figures
 
 
 def test_draft_compatibility_only_scope_has_real_wheel_checks_without_unrelated_browsers():
