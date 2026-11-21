@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "17bb74e99d10e728c20e37802dca654976983c5fe5b57514aba163c3162bfb46",
+      "after_sha256": "d7bf32d4f887a7136e2016d19bbaa1106668f11ae7649a157fc2db239db0c2b1",
       "changes": [
         {
           "before": "const labels = {",
@@ -535,6 +535,22 @@
             {
               "before": "      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"",
               "after": "      : canExportSmiles\n        ? canExportMol\n          ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n          : \"已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。\""
+            },
+            {
+              "before": "    structureReady,",
+              "after": "    structureReady,\n    drawingFileReady,"
+            },
+            {
+              "before": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);",
+              "after": "  const canExportMol = (structureReady && drawingFileReady) || Boolean(sourceExport?.molfile);"
+            },
+            {
+              "before": "          {sourceExport && <p role=\"note\">{text(sourceNote)}</p>}",
+              "after": "          {sourceExport && <p role=\"note\">{text(sourceNote)}</p>}\n          {structureReady && canExportSmiles && !drawingFileReady && (\n            <p role=\"note\">{text(\"已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。\")}</p>\n          )}"
+            },
+            {
+              "before": "                disabled={!structureReady}\n                onClick={() => void download(\"sdf\")}",
+              "after": "                disabled={!structureReady || !drawingFileReady}\n                onClick={() => void download(\"sdf\")}"
             }
           ]
         }
@@ -751,7 +767,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "41880a5ea038bdffc06b4496009b5a7040e35aa948de7b7ce59df12f96c8a9a3",
+      "after_sha256": "f0f3cc47bea68218b4618bf5ae3fbd980e3c2180eb3d6cb7105de75795dfd4ea",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1315,6 +1331,30 @@
             {
               "before": "    const safe = await readRecognizedSource(current.structService, source.result);",
               "after": "    const safe = await readRecognizedSource(current.structService, source.result,\n      (struct) => readStructure(current, struct));"
+            },
+            {
+              "before": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedStereoSource,",
+              "after": "  hasRecognizedRingStereo, hasRelativeStereo, readPortableSmiles,\n  readRecognizedRingDrawing, readRecognizedSource, recognizedStereoSource,"
+            },
+            {
+              "before": "    text?: string;\n    error?: string;",
+              "after": "    text?: string;\n    ringMol?: string;\n    error?: string;"
+            },
+            {
+              "before": "  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;",
+              "after": "  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;\n  const ringSourceAt = (revision: number | null) => {\n    const source = recognition.current;\n    return source && source.revision === revision && hasRecognizedRingStereo(source.result)\n      ? source.result : undefined;\n  };\n  const drawingFileReady = !ringSourceAt(drawingRevision) || Boolean(smilesExport?.ringMol);"
+            },
+            {
+              "before": "      void readPortableSmiles(current, result, (struct, format) => readStructure(current, struct, format)).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },",
+              "after": "      const read = (struct: string, format?: \"ket\") => readStructure(current, struct, format);\n      const prepare = async () => {\n        if (result && hasRecognizedRingStereo(result)) {\n          const { text, molfile } = await readRecognizedRingDrawing(current, result, read);\n          return { text, ringMol: molfile, error: text ? undefined : \"无法核对双键构型，已停止导出。\" };\n        }\n        return { text: await readPortableSmiles(current, result, read) };\n      };\n      void prepare().then(\n        (value) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, ...value });\n        },"
+            },
+            {
+              "before": "      const source = recognition.current;\n      if (format !== \"smiles\" && source?.revision === checkpoint",
+              "after": "      if (format !== \"smiles\" && ringSourceAt(checkpoint)) {\n        const molfile = smilesExport?.ringMol;\n        if (!molfile) throw new SmilesHandoffError(\"无法核对双键构型，已停止导出。\");\n        const text = format === \"mol\" ? molfile : molfile.trimEnd() + \"\\n$$$$\\n\";\n        return { text, verify: () => structureGate.verify(checkpoint) };\n      }\n      const source = recognition.current;\n      if (format !== \"smiles\" && source?.revision === checkpoint"
+            },
+            {
+              "before": "    structureReady,\n    setStructureReady,",
+              "after": "    structureReady,\n    drawingFileReady,\n    setStructureReady,"
             }
           ]
         }
@@ -1323,7 +1363,7 @@
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "2b62318446422f3e645b2add9e8aee1d69074a20522080f333d74e6a8b3c286a",
+      "after_sha256": "0eacccda51cf6a773a7b79fe1c7319e87a6c1ad90874c60d842d87821bbf592b",
       "changes": [
         {
           "before": "          const molfile = await editor.getMolfile();",
@@ -1475,6 +1515,21 @@
             {
               "before": "  }, [origin, work.editorReady]);",
               "after": "  }, [origin, drawingOrigin, work.editorReady]);"
+            }
+          ]
+        }
+      ],
+      "final_steps": [
+        {
+          "before_sha256": "2b62318446422f3e645b2add9e8aee1d69074a20522080f333d74e6a8b3c286a",
+          "changes": [
+            {
+              "before": "          latest.current.structureGate.available &&",
+              "after": "          latest.current.structureGate.available &&\n          latest.current.drawingFileReady &&"
+            },
+            {
+              "before": "work.editorReady, work.structureReady, work.file",
+              "after": "work.editorReady, work.structureReady, work.drawingFileReady, work.file"
             }
           ]
         }

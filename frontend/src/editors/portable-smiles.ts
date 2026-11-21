@@ -160,49 +160,74 @@ function hasMolRadical(molfile: string) {
   return /(?:^M  RAD\s+\d|\bRAD=[1-9]\d*\b)/m.test(molfile);
 }
 
-/** Recover the recognized source if the drawing component cannot load it. */
+export function hasRecognizedRingStereo(result: RecognitionResult) {
+  return stereoSmiles(result.rawSmiles?.trim() ?? "")?.plain === null;
+}
+
+async function readRecognizedRing(
+  service: StructureExport["structService"],
+  source: NonNullable<ReturnType<typeof stereoSmiles>>,
+  normalized: string,
+  molfile: string,
+  readSmiles: ReadStructure,
+): Promise<RecognizedSourceExport | null> {
+  if (!isPortableLine(normalized) || source.radical || hasRelativeStereo(molfile))
+    return null;
+  const rings = ringStereoEntries(source.stereo)
+    .map(([index, cis]) => `${cis ? "c" : "t"}:${index}`);
+  if (rings.length === 0 || rings.length > 16) return null;
+  const absolute = source.stereo.match(/(?:^|,)a:\d+(?:,\d+)*/g)
+    ?.map((item) => item.replace(/^,/, "")) ?? [];
+  const identity = (entries: string[]) => {
+    const labels = [...absolute, ...entries].join(",");
+    return labels ? `${source.text} |${labels}|` : source.text;
+  };
+  const key = (text: string) => service.getInChIKey(text);
+  const expected = await key(source.identity);
+  const unspecified = await key(identity([]));
+  if (!expected?.trim() || !unspecified?.trim() || expected === unspecified) return null;
+  // An overall key can preserve one configured bond and ignore another. Prove
+  // that removing any one declared configuration changes the native identity.
+  if (rings.length > 1) {
+    for (const index of rings.keys()) {
+      const without = await key(identity(rings.filter((_, entry) => entry !== index)));
+      if (!without?.trim() || without === expected) return null;
+    }
+  }
+  const fileKey = await key(molfile);
+  const textKey = await key(normalized);
+  const agrees = (value: string) => value === expected || value === unspecified;
+  if (!agrees(fileKey) || !agrees(textKey)) return null;
+  const text = await readStandardRingStereo(readSmiles, service, source, expected);
+  if (!text) return null;
+  return { text, molfile: fileKey === expected ? molfile : "" };
+}
+
+/** Recover and verify a representation of the recognized structure. */
 export async function readRecognizedSource(
   service: StructureExport["structService"],
   result: RecognitionResult,
   readSmiles?: ReadStructure,
+  drawing?: string,
 ): Promise<RecognizedSourceExport | null> {
   const sourceOnly = recognizedStereoSource(result);
   if (sourceOnly) return sourceOnly;
   const raw = result.rawSmiles?.trim();
-  if (!raw || raw.length > 100_000 || result.molfile.length > 5 * 1024 ** 2)
-    return null;
-
-  const molfile = recognizedDrawing(result);
+  const molfile = drawing ?? recognizedDrawing(result);
+  if (!raw || raw.length > 100_000 || molfile.length > 5 * 1024 ** 2) return null;
   // The rejected drawing cannot corroborate radical spin. The fallback
   // compares only InChIKeys, which are insufficient for that file.
   if (hasMolRadical(molfile)) return null;
   const source = stereoSmiles(raw);
+  const text = result.smiles.trim();
   let expected: string;
-  let fileKey: string;
   try {
+    if (source?.plain === null)
+      return readSmiles ? await readRecognizedRing(service, source, text, molfile, readSmiles) : null;
     expected = await service.getInChIKey(source?.identity ?? raw);
-    if (!expected?.trim()) return null;
-    fileKey = await service.getInChIKey(molfile);
+    if (!expected?.trim() || expected !== await service.getInChIKey(molfile)) return null;
   } catch {
     return null;
-  }
-
-  const text = result.smiles.trim();
-  if (expected !== fileKey) {
-    // Some normalized recognition results retain the chiral centers but omit
-    // the source's ring geometry. Recover only from an otherwise matching pair.
-    if (!readSmiles || source?.plain !== null || !isPortableLine(text) ||
-        hasRelativeStereo(molfile) || !fileKey?.trim())
-      return null;
-    try {
-      const bodyKey = await service.getInChIKey(source.text);
-      if (bodyKey !== fileKey || bodyKey !== await service.getInChIKey(text))
-        return null;
-      const standard = await readStandardRingStereo(readSmiles, service, source, expected);
-      return standard ? { text: standard, molfile: "" } : null;
-    } catch {
-      return null;
-    }
   }
 
   try {
@@ -215,10 +240,6 @@ export async function readRecognizedSource(
       expected === await service.getInChIKey(text)
     ) return { text, molfile };
 
-    if (readSmiles && source?.plain === null && !hasRelativeStereo(molfile)) {
-      const standard = await readStandardRingStereo(readSmiles, service, source, expected);
-      if (standard) return { text: standard, molfile };
-    }
   } catch {
     // A reader failure for the text does not invalidate the verified MOL.
   }
@@ -243,6 +264,11 @@ export async function readPortableSmiles(
 ) {
   if (recognized && recognizedStereoSource(recognized))
     throw new SmilesHandoffError("绘图组件无法核对原始 SMILES 的立体化学。");
+  if (recognized && hasRecognizedRingStereo(recognized)) {
+    const { text } = await readRecognizedRingDrawing(editor, recognized, readSmiles);
+    if (text) return text;
+    throw new SmilesHandoffError("无法核对双键构型，已停止导出。");
+  }
   let smiles: string;
   let mol: string;
   try {
@@ -309,4 +335,16 @@ export async function readPortableSmiles(
   throw new SmilesHandoffError(
     "无法核对 SMILES 的结构与立体化学，请下载 MOL V3000。",
   );
+}
+
+/** Keep the native file and portable text on the same drawing revision. */
+export async function readRecognizedRingDrawing(
+  editor: StructureExport,
+  result: RecognitionResult,
+  readSmiles?: ReadStructure,
+): Promise<RecognizedSourceExport> {
+  if (!readSmiles) return { text: "", molfile: "" };
+  const drawing = await editor.getMolfile("v3000");
+  return await readRecognizedSource(editor.structService, result, readSmiles, drawing)
+    ?? { text: "", molfile: "" };
 }

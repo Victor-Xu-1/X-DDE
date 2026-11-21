@@ -48,7 +48,7 @@ A recognized result can combine planar drawing coordinates with absolute stereo 
 
 An edited drawing can also export ring E/Z geometry. The editor expresses indexed ring geometry with ordinary directional bonds and reads it back through the native chemistry engine. It enables copy only when the recovered geometry and molecular identity agree with the current drawing.
 
-If a recognized ring configuration is missing from the generated drawing, the image utility can still offer SMILES from the recognition result. The ring geometry and absolute configuration must survive a read-back, and the drawing and normalized recognition text must agree with the recognized structure before ring geometry is applied. A drawing that lost the geometry cannot be downloaded as MOL or SDF.
+If a recognized ring configuration is missing from the generated drawing, the image utility can still offer SMILES from the recognition result. Each declared ring configuration must be distinguishable by the native reader and survive a read-back with the absolute configuration. The active drawing and normalized recognition text must corroborate the source structure. A drawing that lost the declared geometry is unavailable for MOL/SDF export and task transfer.
 
 For a chiral structure with a monovalent radical, the editor allows plain SMILES when reading the bracket atom restores the same radical on the same atom. Drawings with a separately specified spin state can use the structure-file export. When the recognized source itself supplies an explicit radical annotation that the drawing path cannot verify, the original image stays available and the converted exports are withheld.
 

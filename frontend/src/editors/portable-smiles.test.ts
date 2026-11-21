@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import {
   readPortableSmiles,
+  readRecognizedRingDrawing,
   readRecognizedSource,
   readRecognizedStereoFile,
   recognizedStereoSource,
@@ -292,11 +293,13 @@ const ringStandard = "O=C1CCCC\\C=C\\CCC[C@@H](C)O1";
 
 function ringRecovery({
   normalizedKey = "unassigned", drawingKey = "unassigned",
+  unspecifiedKey = "unassigned",
   readBack = "O=C1O[C@H](C)CCCC=CCCCC1 |t:8|",
 } = {}) {
   const keys = new Map([
-    [ringDeclared, "trans"], [ringStandard, "trans"], [ringBody, "unassigned"],
+    [ringDeclared, "trans"], [ringStandard, "trans"], [ringBody + " |a:11|", unspecifiedKey],
     [ringResult.smiles, normalizedKey], [recognizedDrawing(ringResult), drawingKey],
+    [structure, drawingKey],
   ]);
   const getInChIKey = vi.fn(async (input: string) => keys.get(input) ?? "");
   const read = vi.fn(async (input: string) =>
@@ -318,6 +321,7 @@ it("recovers plain ring geometry and absolute stereo from a planar source", asyn
 it.each([
   { drawingKey: "different molecule" },
   { normalizedKey: "cis" },
+  { unspecifiedKey: "trans", drawingKey: "trans", normalizedKey: "trans" },
   { readBack: "O=C1O[C@H](C)CCCC=CCCCC1 |c:8|" },
   { readBack: "O=C1O[C@@H](C)CCCC=CCCCC1 |t:8|" },
   { readBack: "O=C1O[C@H](C)CCCC=CCCCC1" },
@@ -331,6 +335,25 @@ it("keeps both exports when the native MOL retains the original ring geometry", 
   await expect(readRecognizedSource(service, ringResult, read)).resolves.toEqual({
     text: ringStandard, molfile: recognizedDrawing(ringResult),
   });
+});
+
+it("offers verified text but withholds a loadable drawing that omits ring geometry", async () => {
+  const { service, read } = ringRecovery();
+  const canvas = { ...editor(ringBody), structService: service };
+  await expect(readRecognizedRingDrawing(canvas, ringResult, read))
+    .resolves.toEqual({ text: ringStandard, molfile: "" });
+  await expect(readPortableSmiles(canvas, ringResult, read)).resolves.toBe(ringStandard);
+});
+
+it("rejects a partly represented declaration even when other rings distinguish its key", async () => {
+  const { service, read } = ringRecovery();
+  const rawSmiles = ringResult.rawSmiles.replace("t:6", "t:6,8");
+  service.getInChIKey.mockImplementation(async (value) =>
+    value === ringBody + " |t:6,8,a:11|" || value === ringBody + " |a:11,t:6|"
+      ? "trans" : "unassigned");
+  await expect(readRecognizedSource(service, { ...ringResult, rawSmiles }, read))
+    .resolves.toBeNull();
+  expect(read).not.toHaveBeenCalled();
 });
 
 it("keeps an unverified or stale source drawing unavailable", async () => {
@@ -473,21 +496,12 @@ it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognitio
 });
 
 it("checks ring geometry in the original CXSMILES before using the standard source", async () => {
-  const ring = "O=C1CCCCC=CCCC[C@@H](C)O1";
-  const rawSmiles = ring + " |(0,0,;1,0,),a:11,t:6|";
-  const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
-  const result = { rawSmiles, smiles, molfile: generatedMol };
-  const source = editor(ring + " |t:6|");
-  const key = source.structService.getInChIKey;
-  key.mockReset().mockImplementation(async (value) => {
-    if (value === rawSmiles || value === ring) throw new Error("Stereo ignored");
-    return "trans";
-  });
-  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
-  expect(key).toHaveBeenCalledWith(ring + " |a:11,t:6|");
-  const cis = smiles.replace("/CCCCC", "\\CCCCC");
-  key.mockImplementation(async (value) => value === cis ? "cis" : "trans");
-  await expect(readPortableSmiles(source, { ...result, smiles: cis }))
+  const { service, read } = ringRecovery({ drawingKey: "trans" });
+  const source = { ...editor(ringBody + " |t:6|"), structService: service };
+  await expect(readPortableSmiles(source, ringResult, read)).resolves.toBe(ringStandard);
+  expect(service.getInChIKey).toHaveBeenCalledWith(ringDeclared);
+  const bad = ringRecovery({ drawingKey: "trans", normalizedKey: "cis" });
+  await expect(readPortableSmiles({ ...source, structService: bad.service }, ringResult, bad.read))
     .rejects.toThrow(SmilesHandoffError);
 });
 
