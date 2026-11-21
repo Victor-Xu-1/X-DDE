@@ -76,15 +76,14 @@ function indexNeighbors(bonds: Bond[]) {
 }
 
 /** A directed double bond belongs to a ring if its endpoints connect without it. */
-export function hasDirectionalRingStereo(text: string) {
-  if (!/[/\\]/.test(text)) return false;
+export function directionalRingStereoBonds(text: string) {
+  if (!/[/\\]/.test(text)) return [];
   const graph = bondPositions(text);
-  if (!graph) return false;
+  if (!graph) return [];
   const neighbors = indexNeighbors(graph.bonds);
   const directed = (atom: number) => neighbors.get(atom)
     ?.some((bond) => bond.token === "/" || bond.token === "\\");
-  return graph.bonds.some((double) => {
-    if (double.token !== "=" || !directed(double.from) || !directed(double.to)) return false;
+  const inRing = (double: Bond) => {
     const visited = new Set([double.from]);
     const pending = [double.from];
     for (const atom of pending) {
@@ -98,7 +97,11 @@ export function hasDirectionalRingStereo(text: string) {
       }
     }
     return false;
-  });
+  };
+  return graph.bonds.flatMap((bond, index) =>
+    bond.token === "=" && directed(bond.from) && directed(bond.to) && inRing(bond)
+      ? [index] : [],
+  );
 }
 
 /** Preserve SMILES traversal. Some readers handle axial parity only in shorthand. */

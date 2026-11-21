@@ -1,5 +1,5 @@
 import {
-  alleneHandoffSmiles, hasDirectionalRingStereo, ringStereoEntries, writeRingStereo,
+  alleneHandoffSmiles, directionalRingStereoBonds, ringStereoEntries, writeRingStereo,
 } from "./portable-smiles-ring-stereo";
 
 type StructureExport = {
@@ -166,7 +166,7 @@ export function hasRecognizedRingStereo(result: RecognitionResult) {
   const raw = result.rawSmiles?.trim();
   if (!raw || raw.length > 100_000) return false;
   const source = stereoSmiles(raw);
-  return Boolean(source && (source.plain === null || hasDirectionalRingStereo(source.text)));
+  return Boolean(source && (source.plain === null || directionalRingStereoBonds(source.text).length));
 }
 
 async function readRecognizedRing(
@@ -227,14 +227,19 @@ export async function readRecognizedSource(
   const text = result.smiles.trim();
   let expected: string;
   try {
-    if (source && hasRecognizedRingStereo(result)) {
+    const directional = source ? directionalRingStereoBonds(source.text) : [];
+    if (source && (source.plain === null || directional.length)) {
       if (!readSmiles) return null;
-      const indexed = source.plain === null ? source :
+      const indexed = directional.length === 0 ? source :
         stereoSmiles((await readSmiles(source.identity)).trim());
       if (indexed?.plain !== null) return null;
-      if (source !== indexed &&
-          await service.getInChIKey(source.identity) !== await service.getInChIKey(indexed.identity))
-        return null;
+      if (source !== indexed) {
+        const explicit = ringStereoEntries(source.stereo).map(([index]) => index);
+        const declared = new Set([...directional, ...explicit]);
+        if (declared.size !== ringStereoEntries(indexed.stereo).length ||
+            await service.getInChIKey(source.identity) !== await service.getInChIKey(indexed.identity))
+          return null;
+      }
       return await readRecognizedRing(service, indexed, text, molfile, readSmiles);
     }
     expected = await service.getInChIKey(source?.identity ?? raw);

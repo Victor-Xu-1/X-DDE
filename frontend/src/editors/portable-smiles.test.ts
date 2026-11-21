@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { hasDirectionalRingStereo } from "./portable-smiles-ring-stereo";
+import { directionalRingStereoBonds } from "./portable-smiles-ring-stereo";
 import {
   readPortableSmiles,
   readRecognizedRingDrawing,
@@ -300,7 +300,7 @@ it.each([
   ["C1CC=CCC1.C/C=C/C", false],
   ["C/C=C/C", false],
 ])("identifies directional syntax on a ring bond in %s", (text, ring) => {
-  expect(hasDirectionalRingStereo(text)).toBe(ring);
+  expect(Boolean(directionalRingStereoBonds(text).length)).toBe(ring);
 });
 
 function ringRecovery({
@@ -364,6 +364,17 @@ it("passes equivalent directional input through the same native ring verificatio
   const canvas = { ...editor(ringBody), structService: service };
   await expect(readRecognizedRingDrawing(canvas, result, read))
     .resolves.toEqual({ text: ringStandard, molfile: "" });
+});
+
+it("withholds a directional source if native conversion drops one of its ring declarations", async () => {
+  const { service } = ringRecovery();
+  const rawSmiles = ringStandard + ".C1CC/C=C/CC1";
+  expect(directionalRingStereoBonds(rawSmiles)).toHaveLength(2);
+  const read = vi.fn(async () => ringDeclared);
+  await expect(readRecognizedSource(service, { ...ringResult, rawSmiles }, read))
+    .resolves.toBeNull();
+  expect(read).toHaveBeenCalledExactlyOnceWith(rawSmiles);
+  expect(service.getInChIKey).not.toHaveBeenCalled();
 });
 
 it("rejects a partly represented declaration even when other rings distinguish its key", async () => {
