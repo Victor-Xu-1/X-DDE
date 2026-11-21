@@ -255,7 +255,7 @@
   border-top: 1px solid var(--line);
 }
 .figure-export-dialog > footer > .primary-button {
-  min-height: 44px;
+  block-size: 44px;
 }
 .figure-export-dialog .text-button {
   color: var(--muted, #65748c);

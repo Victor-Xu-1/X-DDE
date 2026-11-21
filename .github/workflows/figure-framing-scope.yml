@@ -67,7 +67,7 @@ jobs:
             [[ "$compact_changed" == true ]] || compact=false
             # The compact replay replaces broader jobs only for this figure layout delta.
             product_diff=$(git diff-tree -r --raw --no-abbrev --no-commit-id "$BASE" HEAD -- frontend/src | sha256sum)
-            [[ "${product_diff%% *}" == 1b15bc141cd70fbd1a2dc41488fd95398af58f4aee1cbb7fa2e732d71ab3ecbe ]] || compact=false
+            [[ "${product_diff%% *}" == 7e5751d4be3d4316ff71183e0530bf14d7ba92f43dbbdb03fb06e3f822c81764 ]] || compact=false
           fi
           echo "framing_only=$only" >> "$GITHUB_OUTPUT"
           echo "compact_only=$compact" >> "$GITHUB_OUTPUT"
