@@ -11,7 +11,7 @@ import type { AssetKind } from "../operations/types";
 import { ChoiceCards } from "../guided/ChoiceCards";
 import "./material-input.css";
 
-const desktopQuery = "(min-width: 1100px)";
+const desktopQuery = "(width > 1000px)";
 function subscribeToDesktop(change: () => void) {
   const media = window.matchMedia?.(desktopQuery);
   media?.addEventListener("change", change);

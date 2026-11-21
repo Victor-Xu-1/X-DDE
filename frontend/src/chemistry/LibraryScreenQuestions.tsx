@@ -3,7 +3,7 @@ import { Hint } from "../guided/Hint";
 import { ReferencePicker } from "../diffsbdd/ReferencePicker";
 import type { Language } from "../types";
 import type { MoleculeRef } from "../research/types";
-import { useContext, useState } from "react";
+import { useContext, useLayoutEffect, useRef, useState } from "react";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 import type { UtilityDrawingOffer } from "../utilities/UtilityDrawingContext";
 import {
@@ -36,6 +36,13 @@ export function ScreenPurpose({
   const presentation = useContext(TaskPresentationContext);
   const [querySession, setQuerySession] = useState(0);
   const [imageInput, setImageInput] = useState<UtilityImageValue | null>(null);
+  const purposeField = useRef<HTMLSelectElement>(null);
+  const restorePurposeFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (!restorePurposeFocus.current) return;
+    restorePurposeFocus.current = false;
+    purposeField.current?.focus({ preventScroll: true });
+  }, [querySession]);
   const purposeLabel = zh
     ? "这次希望找什么？"
     : "What should this selection do?";
@@ -64,43 +71,53 @@ export function ScreenPurpose({
       uploadKey={imageInput?.key}
     />
   );
+  const purpose =
+    presentation?.layout === "single" ? (
+      <label className="field">
+        {purposeLabel}
+        <select
+          ref={purposeField}
+          value={mode}
+          onChange={(event) => {
+            const selected = purposes.find(
+              (option) => option.value === event.target.value,
+            );
+            if (selected) {
+              restorePurposeFocus.current =
+                document.activeElement === event.currentTarget;
+              setImageInput(null);
+              setQuerySession((key) => key + 1);
+              onMode(selected.value);
+            }
+          }}
+        >
+          {purposes.map((option) => (
+            <option key={option.value} value={option.value} title={option.hint}>
+              {option.title}
+            </option>
+          ))}
+        </select>
+      </label>
+    ) : (
+      <ChoiceCards<ScreenMode>
+        label={purposeLabel}
+        value={mode}
+        onChange={onMode}
+        options={purposes}
+      />
+    );
+
+  const fields = (
+    <>
+      {purpose}
+      {requiresQuery && queryInput}
+    </>
+  );
+  const shortcutLabel = zh
+    ? "粘贴截图查相似"
+    : "Paste screenshot to find similar";
   return (
     <>
-      {presentation?.layout === "single" ? (
-        <label className="field">
-          {purposeLabel}
-          <select
-            value={mode}
-            onChange={(event) => {
-              const selected = purposes.find(
-                (option) => option.value === event.target.value,
-              );
-              if (selected) {
-                setImageInput(null);
-                setQuerySession((key) => key + 1);
-                onMode(selected.value);
-              }
-            }}
-          >
-            {purposes.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                title={option.hint}
-              >
-                {option.title}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : (
-        <ChoiceCards<ScreenMode>
-          label={purposeLabel}
-          value={mode}
-          onChange={onMode}
-          options={purposes}
-        />
-      )}
       {presentation?.imageEntry === "workspace" ? (
         <UtilityImageInput
           key={querySession}
@@ -109,15 +126,16 @@ export function ScreenPurpose({
           active={presentation.active !== false}
           drawing={drawing}
           value={query?.asset_id ?? ""}
+          pasteLabel={requiresQuery ? undefined : shortcutLabel}
           onLoaded={(value) => {
             setImageInput(value);
             onQuery(value.reference);
           }}
         >
-          {requiresQuery && queryInput}
+          {fields}
         </UtilityImageInput>
       ) : (
-        requiresQuery && queryInput
+        fields
       )}
       {presentation?.layout !== "single" && (
         <Hint label={zh ? "选择的依据是什么？" : "What is selection based on?"}>

@@ -63,6 +63,7 @@ export function UtilityImageInput({
   value,
   onLoaded,
   target = "molecule",
+  pasteLabel,
   drawing,
   children,
 }: {
@@ -71,6 +72,7 @@ export function UtilityImageInput({
   value: string;
   onLoaded(value: UtilityImageValue): void;
   target?: ImageInputTarget;
+  pasteLabel?: string;
   drawing?: UtilityDrawingOffer | null;
   children: ReactNode;
 }) {
@@ -157,6 +159,7 @@ export function UtilityImageInput({
         }
         language={language}
         target={target}
+        pasteLabel={pasteLabel}
         uploadButton={uploadButton}
         enabled={active}
         disabled={upload.busy}

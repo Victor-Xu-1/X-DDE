@@ -524,13 +524,14 @@ jobs:
           src/utilities/ImageRecognition.test.tsx src/utilities/ImageMoleculeInput.test.tsx
           src/utilities/ImageMoleculeInput.action.test.tsx src/chemistry/LibraryScreenForm.test.tsx
           src/chemistry/LibraryScreenTemplate.test.tsx src/chemistry/MolecularToolReview.test.tsx
+          src/operations/AssetPicker.test.tsx src/diffsbdd/ReferencePicker.test.tsx
       - name: Verify query handoff and retained library in Chrome
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_utility_image_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           uv run --locked python -m pytest -xq server_tests/test_utility_image_browser.py \
-            -k 'editor_drawing or 1440' --basetemp "$RUNNER_TEMP/utility-query"
+            -k 'editor_drawing or purpose_field or 1440' --basetemp "$RUNNER_TEMP/utility-query"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

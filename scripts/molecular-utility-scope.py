@@ -665,18 +665,17 @@ GUIDED_DESKTOP_FILES = {
 GUIDED_DESKTOP_DIFF = "a2d225818427a1253f9b8a2da3d20ba87c8fa89587ca7efc71be0d425a4ed57f"
 UTILITY_QUERY_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    "frontend/src/chemistry/LibraryScreenForm.tsx",
+    "docs/frontend-layout.md",
     "frontend/src/chemistry/LibraryScreenQuestions.tsx",
+    "frontend/src/research/MaterialInput.tsx",
     "frontend/src/utilities/ImageMoleculeInput.tsx",
     "frontend/src/utilities/UtilityImageInput.tsx",
     "frontend/src/utilities/UtilityWorkspace.tsx",
-    "frontend/src/utilities/useRecognitionDrawing.ts",
     "frontend/src/utilities/utility-task.css",
+    "frontend/src/utilities/utilities.css",
     "server_tests/test_utility_image_browser.py",
-    "tests/fixtures/utility_image/browser.tsx",
-    "tests/test_molecular_utility_scope.py",
 }
-UTILITY_QUERY_DIFF = "3e4afa4c99c61dd9446469052ab8916e7394452efd14613597e020a66f41abac"
+UTILITY_QUERY_DIFF = "3630e2d453235cf969472fca6552db0fbf2bc8a9f69c00355610de38a5cb85d6"
 COMPACT_MATERIAL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/diffsbdd/ReferencePicker.test.tsx",

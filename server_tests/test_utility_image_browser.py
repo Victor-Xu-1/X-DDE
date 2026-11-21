@@ -437,3 +437,68 @@ def test_editor_drawing_becomes_the_similarity_query_without_replacing_the_libra
         expect(query_upload).to_be_focused()
         assert not jobs and not power_commands
         browser.close()
+
+
+@pytest.mark.parametrize(("initial_mode", "resolved_mode"), [
+    ("inventory", "similarity"),
+    ("substructure", "substructure"),
+])
+def test_paste_query_on_the_purpose_field_preserves_the_library(
+    compiled_image, initial_mode, resolved_mode,
+):
+    png = (
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+        "AwMCAO+a9XcAAAAASUVORK5CYII="
+    )
+    with image_hosts(compiled_image) as (uploads, power_commands), sync_playwright() as driver:
+        browser = driver.chromium.launch(channel="chrome")
+        page = browser.new_page(viewport={"width": 1024, "height": 650})
+        jobs = []
+        page.on("request", lambda req: jobs.append(req.url) if "/api/jobs" in req.url else None)
+        page.goto("http://127.0.0.1:4322/?audit=drawing")
+        page.get_by_role("button", name="Similarity & structural alerts", exact=True).click()
+        library = page.locator('[data-image-target="library"]:visible')
+        query = page.locator('[data-image-target="query"]:visible')
+        retained = library.locator('[data-material-selection="summary"]').get_by_text(
+            "retained-library.sdf", exact=True,
+        )
+        purpose = page.get_by_label("What should this selection do?")
+        purpose.focus()
+        purpose.select_option(initial_mode)
+        expect(purpose).to_be_focused()
+        shortcut = "Paste screenshot to find similar" if initial_mode == "inventory" else (
+            "Paste query image"
+        )
+        expect(query.get_by_role("button", name=shortcut, exact=True)).to_be_visible()
+        library.locator('input[type="file"][accept=".sdf"]').set_input_files({
+            "name": "retained-library.sdf",
+            "mimeType": "chemical/x-mdl-sdfile",
+            "buffer": b"Original library records\nM  END\n$$$$\n",
+        })
+        expect(retained).to_be_visible()
+        expect(library.get_by_role("switch", name="DECIMER")).not_to_be_checked()
+        purpose.focus()
+        purpose.evaluate("""(field, image) => {
+          const bytes = Uint8Array.from(atob(image), c => c.charCodeAt(0));
+          const clipboardData = new DataTransfer();
+          clipboardData.items.add(new File([bytes], 'query.png', { type:'image/png' }));
+          field.dispatchEvent(new ClipboardEvent('paste', {
+            bubbles:true, cancelable:true, clipboardData
+          }));
+        }""", png)
+        dialog = page.get_by_role("dialog")
+        expect(dialog.locator('footer [role="status"]')).to_have_text("query.png")
+        expect(purpose).to_have_value(initial_mode)
+        assert len(uploads) == 1 and not power_commands
+        dialog.frame_locator("iframe").get_by_role("switch", name="Recognition backend").click()
+        expect(dialog).to_have_count(0)
+        expect(purpose).to_have_value(resolved_mode)
+        expect(retained).to_be_visible()
+        expect(query.locator('[data-material-selection="summary"]')).to_contain_text("Record 1")
+        expect(page.locator(".molecular-input-review figcaption")).to_have_text(
+            "Query molecule · Record 1"
+        )
+        assert len(uploads) == 2 and b"Nc1ccccc1" in uploads[1]
+        assert hashlib.sha256(base64.b64decode(png)).hexdigest().encode() in uploads[1]
+        assert not jobs and power_commands == [(8940, True)]
+        browser.close()
