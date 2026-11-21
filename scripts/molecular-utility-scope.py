@@ -683,10 +683,11 @@ COMPACT_MATERIAL_FILES = {
     "frontend/src/guided/Questionnaire.tsx",
     "frontend/src/guided/SinglePageReadiness.tsx",
     "frontend/src/guided/SinglePageTask.test.tsx",
+    "frontend/src/utilities/UtilitySinglePage.test.tsx",
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_molecular_review_controls_browser.py",
 }
-COMPACT_MATERIAL_DIFF = "28787fe6affa4aa93ff720c149cc81e6c4381e94228e90162ff2e7f1408baea6"
+COMPACT_MATERIAL_DIFF = "d3041c8233c9aa7ce809a95eeeab47064b9cc73377e4b37e9d99025d0ee24676"
 
 
 PAIRED_FIGURE_FILES = {
