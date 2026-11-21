@@ -39,12 +39,23 @@
   }
 
   .studio-app .generated-review-workspace .research-table :is(th, td) {
-    padding: 6px 7px;
+    padding: 6px;
+  }
+
+  .studio-app .generated-review-workspace .research-table .mark-cell {
+    width: 24px;
+    padding-inline-end: 0;
   }
 
   .generated-review-workspace .research-table :is(.column-header-content, .column-sort) {
     gap: 4px;
     white-space: normal;
+  }
+
+  .studio-app .generated-review-workspace .research-table .column-sort {
+    min-height: 28px;
+    min-width: 0;
+    padding: 1px 0;
   }
 
   .studio-app :is(.pose-review-workspace, .generated-review-workspace) > .structure-workbench:not([data-workspace-expanded]) {

@@ -58,12 +58,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
       - name: Generated candidates, native source selection and quality warnings
         working-directory: frontend
         run: >-
           npx vitest run src/diffsbdd/GeneratedCandidates.test.tsx
           src/diffsbdd/DiffResults.test.tsx src/integrations/ScientificResults.test.tsx
+      - name: Verify the generated result scope preserves other focused checks
+        run: |
+          uv sync --locked --group dev
+          uv run --locked pytest -q tests/test_molecular_utility_scope.py
+
   candidate-results:
     needs: [framing-scope, result-scope, workspace-scope]
     if: >-
