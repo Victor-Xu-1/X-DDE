@@ -41,11 +41,12 @@ def verify_header(header, compact, zh):
     return back, refresh, title
 
 
-def verify_result_workspace(page, capability, zh):
+def verify_result_workspace(page, capability, zh, *, del_candidates=False):
     workbench = page.locator(".detail-panel .structure-workbench:visible")
     if capability == "del.enumerate":
-        preview = workbench.locator(".structure-workbench-view .figure-preview-sheet")
-        preview.scroll_into_view_if_needed()
+        panel = ".candidate-inspection-preview" if del_candidates else ".dataset-member-inspector"
+        preview = workbench.locator(f"{panel} .figure-preview-sheet:visible")
+        preview.evaluate("node => node.scrollIntoView({block: 'center'})")
         image = preview.locator("img")
         expect(image).to_be_visible(timeout=35_000)
         image.evaluate("node => node.decode()")
@@ -142,7 +143,7 @@ def test_retained_result_headers_at_desktop_sizes(language, theme, width, height
                     page.get_by_role(
                         "tab", name="候选结构" if zh else "Candidate structures", exact=True,
                     ).click()
-                    verify_result_workspace(page, capability, zh)
+                    verify_result_workspace(page, capability, zh, del_candidates=True)
             if capability == "drugclip.index":
                 preview = page.locator(".dataset-member-inspector .molecular-stage iframe")
                 capture = page.get_by_role(

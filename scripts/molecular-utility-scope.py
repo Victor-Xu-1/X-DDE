@@ -1357,7 +1357,7 @@ DESKTOP_RESULT_LAYOUT_FILES = {
     "server_tests/test_compact_result_header_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-DESKTOP_RESULT_LAYOUT_DIFF = "f4d476df43c169eff841ccd930de7584a7769226bca8e01a8ccee34dfb8b0176"
+DESKTOP_RESULT_LAYOUT_DIFF = "9ff38cf36ccfe21fb873c5f0c6693cff5827498d1a142900333d6e57df1921e0"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
