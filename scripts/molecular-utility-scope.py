@@ -653,6 +653,15 @@ PORTABLE_SMILES_FILES = {
     "src/opendde_workbench/data/recognition_locale/patch.json",
 }
 PORTABLE_SMILES_DIFF = "36b573c76a597e4fe3e769c42c38aa2f4342ec787e9d21431c9c037b2dbb856a"
+ARCHIVED_POSE_REVIEW_FILES = {
+    ".github/workflows/ligand-energy-scope.yml",
+    "frontend/src/poses/ClusterResults.tsx",
+    "frontend/src/poses/ClusterTables.tsx",
+    "frontend/src/presentation/pose-review-workspace.css",
+    "frontend/src/viewer/MinimizedPoseResults.tsx",
+    "frontend/src/viewer/MinimizedPoseResults.test.tsx",
+}
+ARCHIVED_POSE_REVIEW_DIFF = "404f1162fbed21f63d3f613b37e65c0a9d1829064c865597c296728e306392e3"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
@@ -2045,6 +2054,11 @@ def main():
         NATIVE_COLOR_FIGURE_FILES, NATIVE_COLOR_FIGURE_DIFF,
         scope_pin="NATIVE_COLOR_FIGURE_DIFF",
     )
+    archived_pose_review = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        ARCHIVED_POSE_REVIEW_FILES, ARCHIVED_POSE_REVIEW_DIFF,
+        scope_pin="ARCHIVED_POSE_REVIEW_DIFF",
+    )
     prediction_input_layout = (
         "frontend/src/guided/desktop-questionnaire.css" in changed
         and run_path(str(Path(__file__).with_name("prediction-workspace-scope.py")))[
@@ -2156,6 +2170,7 @@ def main():
             or compact_material
             or paired_figure
             or native_color_figure
+            or archived_pose_review
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

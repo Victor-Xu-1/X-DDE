@@ -4,7 +4,16 @@ import type { Job } from "../types";
 import { MinimizedPoseResults } from "./MinimizedPoseResults";
 
 vi.mock("../presentation/MolecularPreview", () => ({
-  MolecularPreview: () => <div>3D structure</div>,
+  MolecularPreview: ({ nativeArtifactSha256, sourceSnapshot }: {
+    nativeArtifactSha256?: string;
+    sourceSnapshot?: boolean;
+  }) => (
+    <div
+      data-testid="saved-pose-preview"
+      data-digest={nativeArtifactSha256}
+      data-source-snapshot={sourceSnapshot}
+    />
+  ),
 }));
 
 it.each(["en", "zh"] as const)(
@@ -20,11 +29,20 @@ it.each(["en", "zh"] as const)(
           method: "MMFF94s",
           converged: true,
           artifact: "minimized.sdf",
+          artifact_sha256: language === "en" ? "a".repeat(64) : undefined,
         }}
       />,
     );
     expect(screen.getByText(/186\.64/)).toBeVisible();
     expect(screen.getByText(/24\.25/)).toBeVisible();
+    expect(screen.getByTestId("saved-pose-preview")).toHaveAttribute(
+      "data-source-snapshot", language === "en" ? "false" : "true",
+    );
+    if (language === "en") {
+      expect(screen.getByTestId("saved-pose-preview")).toHaveAttribute(
+        "data-digest", "a".repeat(64),
+      );
+    }
     expect(
       screen.getByText(
         language === "zh" ? /不考虑蛋白/ : /does not include the protein/,

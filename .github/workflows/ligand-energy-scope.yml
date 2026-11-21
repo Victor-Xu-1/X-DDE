@@ -1,9 +1,13 @@
-name: Ligand-only minimization result scope
+name: Archived pose result inspection
 on:
   pull_request:
     paths: &paths
       - 'frontend/src/viewer/MinimizedPoseResults.tsx'
       - 'frontend/src/viewer/MinimizedPoseResults.test.tsx'
+      - 'frontend/src/poses/ClusterResults.tsx'
+      - 'frontend/src/poses/ClusterResults.test.tsx'
+      - 'frontend/src/poses/ClusterTables.tsx'
+      - 'frontend/src/presentation/pose-review-workspace.css'
       - '.github/workflows/ligand-energy-scope.yml'
   push:
     paths: *paths
@@ -19,6 +23,6 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Ligand-only scope and source download
+      - name: Archived pose, cluster selection and source download
         working-directory: frontend
-        run: npx vitest run src/viewer/MinimizedPoseResults.test.tsx
+        run: npx vitest run src/viewer/MinimizedPoseResults.test.tsx src/poses/ClusterResults.test.tsx

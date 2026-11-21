@@ -15,6 +15,7 @@ import { ClusterMatrix } from "./ClusterMatrix";
 import { ClusterCoverage } from "./ClusterCoverage";
 import { ClusterPoseTable, ClusterPairTable } from "./ClusterTables";
 import "./cluster.css";
+import "../presentation/pose-review-workspace.css";
 export function ClusterResults({
   job,
   result,
@@ -39,37 +40,9 @@ export function ClusterResults({
   }
   return (
     <section
-      className="cluster-results"
+      className="cluster-results pose-review-workspace"
       aria-label={zh ? "结合模式分群结果" : "Binding mode clustering results"}
     >
-      <div className="section-heading">
-        <h2>
-          {result.clusters.length} {zh ? "个姿势组" : "pose groups"}
-        </h2>
-        <Hint
-          label={zh ? "如何解读分群？" : "How should clusters be interpreted?"}
-        >
-          {zh
-            ? "以已对齐受体为共同坐标；配体不单独移动叠合。相同化学状态按所选几何/残基接触尺度分群。代表是原始姿势中的中心样本，簇内数量不是结合概率、药效或自由能。"
-            : "Receptors define the common frame; ligands are not independently fitted. Identical chemical states cluster at the selected geometric/contact resolution. Representatives are original medoids. Counts are not binding probabilities, potency or free energies."}
-        </Hint>
-      </div>
-      <ClusterCoverage result={result} language={language} />
-      <div className="cluster-downloads">
-        {(["clusters.csv", "pairs.csv", "contacts.csv"] as const).map(
-          (name, i) => (
-            <a key={name} href={url(name)} download>
-              {zh
-                ? ["下载分群表", "下载两两比较", "下载全部接触"][i]
-                : [
-                    "Download clusters",
-                    "Download pair comparisons",
-                    "Download all contacts",
-                  ][i]}
-            </a>
-          ),
-        )}
-      </div>
       <StructureWorkbench
         preview={
           row && (
@@ -126,7 +99,27 @@ export function ClusterResults({
                   focusModel={1}
                 />
               )}
-              <div className="cluster-downloads">
+            </div>
+          )
+        }
+      >
+        <div className="cluster-analysis">
+          <div className="cluster-overview">
+            <div className="section-heading">
+              <h2>
+                {result.clusters.length} {zh ? "个姿势组" : "pose groups"}
+              </h2>
+              <Hint
+                label={zh ? "如何解读分群？" : "How should clusters be interpreted?"}
+              >
+                {zh
+                  ? "以已对齐受体为共同坐标；配体不单独移动叠合。相同化学状态按所选几何/残基接触尺度分群。代表是原始姿势中的中心样本，簇内数量不是结合概率、药效或自由能。"
+                  : "Receptors define the common frame; ligands are not independently fitted. Identical chemical states cluster at the selected geometric/contact resolution. Representatives are original medoids. Counts are not binding probabilities, potency or free energies."}
+              </Hint>
+            </div>
+            <ClusterCoverage result={result} language={language} />
+            {row && (
+              <div className="cluster-downloads cluster-selected-downloads">
                 <a href={url(row.pose_artifact)} download>
                   {zh ? "下载原始姿势" : "Download original pose"}
                 </a>
@@ -134,17 +127,32 @@ export function ClusterResults({
                   {zh ? "下载配套受体" : "Download paired receptor"}
                 </a>
               </div>
-            </div>
-          )
-        }
-      >
-        <div className="cluster-analysis">
+            )}
+          </div>
           <ClusterPoseTable
             result={result}
             language={language}
             selected={selected}
             onSelect={select}
           />
+          <details className="cluster-export">
+            <summary>{zh ? "下载分群结果" : "Download clustering files"}</summary>
+            <div className="cluster-downloads">
+              {(["clusters.csv", "pairs.csv", "contacts.csv"] as const).map(
+                (name, i) => (
+                  <a key={name} href={url(name)} download>
+                    {zh
+                      ? ["下载分群表", "下载两两比较", "下载全部接触"][i]
+                      : [
+                          "Download clusters",
+                          "Download pair comparisons",
+                          "Download all contacts",
+                        ][i]}
+                  </a>
+                ),
+              )}
+            </div>
+          </details>
           <ClusterMatrix
             value={result}
             language={language}

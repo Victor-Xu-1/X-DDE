@@ -1,0 +1,115 @@
+.minimized-pose-context {
+  color: var(--muted);
+}
+
+.minimized-pose-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.minimized-pose-metrics > div {
+  background: var(--surface-muted);
+  padding: 10px;
+}
+
+.minimized-pose-metrics dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.minimized-pose-metrics dd {
+  margin: 3px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (width > 1000px) and (height <= 720px) {
+  .studio-app .studio-main:has(.task-result-content .pose-review-workspace)
+    > .studio-topbar {
+    min-height: 52px;
+    margin-block: 10px 0;
+    padding-block: 4px;
+    border-radius: 14px;
+  }
+
+  .studio-app .studio-content:has(.task-result-content .pose-review-workspace) {
+    padding-block-start: 10px;
+  }
+
+  .task-result-content > .detail-panel:has(.pose-review-workspace) {
+    padding: 12px 14px 16px;
+  }
+
+  .task-result-content .detail-panel:has(.pose-review-workspace) > .task-detail-header {
+    gap: 6px 10px;
+    margin-block-end: 8px;
+  }
+
+  .studio-app .pose-review-workspace > .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr) minmax(288px, 39%);
+    gap: 12px;
+  }
+
+  .pose-review-workspace :is(.cluster-analysis, .structure-workbench-details) {
+    gap: 10px;
+  }
+
+  .pose-review-workspace .cluster-overview .section-heading {
+    margin-block: 0 4px;
+  }
+
+  .pose-review-workspace .cluster-overview h2 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .pose-review-workspace .cluster-coverage dl {
+    gap: 4px 10px;
+    margin-block: 4px;
+    font-size: 12px;
+  }
+
+  .pose-review-workspace .cluster-comparison-note {
+    margin-block: 4px 0;
+    font-size: 12px;
+  }
+
+  .pose-review-workspace .cluster-selected-downloads {
+    gap: 4px 12px;
+    margin-block: 6px 0;
+    font-size: 12px;
+  }
+
+  .pose-review-workspace .research-tab-list > button {
+    min-height: 32px;
+    padding-block: 4px;
+  }
+
+  .studio-app .pose-review-workspace .viewer-panel:not(:popover-open) {
+    --compact-viewer-tools: enabled;
+
+    > .molecular-stage {
+      height: clamp(270px, calc(100dvh - 275px), 445px);
+      min-height: 0;
+      border-radius: 8px;
+    }
+
+    > .studio-heading {
+      gap: 4px 8px;
+      margin-block-end: 5px;
+    }
+
+    .viewer-heading-actions :is(button, .viewer-tool-trigger),
+    .viewer-mode-options :is(button, .viewer-tool-trigger, .viewer-chain-menu > summary) {
+      min-height: 32px;
+      padding-block: 4px;
+    }
+  }
+
+  .pose-review-workspace [data-compact-toolbar] {
+    --compact-table-tools: enabled;
+  }
+}
