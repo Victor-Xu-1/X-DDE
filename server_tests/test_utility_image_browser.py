@@ -459,9 +459,9 @@ def test_paste_query_on_the_purpose_field_preserves_the_library(
         page.get_by_role("button", name="Similarity & structural alerts", exact=True).click()
         library = page.locator('[data-image-target="library"]:visible')
         query = page.locator('[data-image-target="query"]:visible')
-        retained = library.locator('[data-material-selection="summary"]').get_by_text(
-            "retained-library.sdf", exact=True,
-        )
+        retained = library.locator(
+            '[data-material-selection="summary"] .reference-material-summary'
+        ).get_by_text("retained-library.sdf", exact=True)
         purpose = page.get_by_label("What should this selection do?")
         purpose.focus()
         purpose.select_option(initial_mode)
