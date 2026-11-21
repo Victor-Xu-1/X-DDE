@@ -931,6 +931,9 @@ jobs:
         run: |
           uv sync --locked --group dev --group browser
           uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_candidate_inspection_desktop.py
+          if [[ '${{ needs.scope.outputs.screening_desktop_only }}' == 'true' ]]; then
+            uv run --locked ruff check server_tests/test_del_desktop_review.py
+          fi
           if [[ '${{ needs.scope.outputs.result_theme_only }}' == 'true' ]]; then
             uv run --locked ruff check server_tests/test_native_result_theme_browser.py
           fi
@@ -938,10 +941,7 @@ jobs:
             uv run --locked ruff check server_tests/test_compact_result_header_browser.py
           fi
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
-          families=(stat6)
-          if [[ '${{ needs.scope.outputs.screening_desktop_only }}' != 'true' ]]; then
-            families+=(del)
-          fi
+          families=(stat6 del)
           for family in "${families[@]}"; do
             readarray -t source < <(.venv/bin/python -c "from opendde_workbench.examples.${family}_bundle_release import URL; print('\\n'.join(URL.rsplit('/', 2)[-2:]))")
             test "${#source[@]}" -eq 2
@@ -957,15 +957,18 @@ jobs:
           WB_STATE_DIR: ${{ runner.temp }}/x-dde-candidate-inspection/state
         run: |
           google-chrome --version
-          scenario=server_tests/test_candidate_inspection_desktop.py::test_retained_candidate_desktop_workspaces
+          scenarios=(server_tests/test_candidate_inspection_desktop.py::test_retained_candidate_desktop_workspaces)
           if [[ '${{ needs.scope.outputs.desktop_result_layout_only }}' == 'true' ]]; then
-            scenario=server_tests/test_compact_result_header_browser.py::test_retained_result_headers_at_desktop_sizes
+            scenarios=(server_tests/test_compact_result_header_browser.py::test_retained_result_headers_at_desktop_sizes)
           elif [[ '${{ needs.scope.outputs.result_theme_only }}' == 'true' ]]; then
-            scenario=server_tests/test_native_result_theme_browser.py::test_native_result_controls_follow_theme
+            scenarios=(server_tests/test_native_result_theme_browser.py::test_native_result_controls_follow_theme)
           elif [[ '${{ needs.scope.outputs.screening_desktop_only }}' == 'true' ]]; then
-            scenario=server_tests/test_candidate_inspection_desktop.py::test_retained_screening_desktop
+            scenarios=(
+              server_tests/test_candidate_inspection_desktop.py::test_retained_screening_desktop
+              server_tests/test_del_desktop_review.py::test_del_first_screen_at_1024_by_600
+            )
           fi
-          uv run --locked python -m pytest -x -q "$scenario"
+          uv run --locked python -m pytest -x -q "${scenarios[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

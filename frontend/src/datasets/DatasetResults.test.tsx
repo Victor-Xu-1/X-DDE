@@ -54,7 +54,7 @@ const data = (
   kind: DatasetResult["data_kind"],
   charts = false,
 ): DatasetResult => ({
-  operation: "drugclip_index",
+  operation: kind === "index" ? "drugclip_index" : "del_validate",
   program: "drugclip",
   version: "1",
   schema_version: 1,
@@ -84,7 +84,10 @@ const data = (
 it("presents actual indexed members without placeholder plots, dead tabs or shard counters", () => {
   render(<DatasetResults job={job} result={data("index")} language="en" />);
   expect(screen.getByText("Native members: index")).toBeVisible();
-  expect(screen.getByText("Searchable molecules")).toBeVisible();
+  const counts = screen.getByText("Counts", { selector: "summary" }).parentElement!;
+  expect(counts).not.toHaveAttribute("open");
+  counts.setAttribute("open", "");
+  expect(within(counts).getByText("Searchable molecules")).toBeVisible();
   expect(screen.queryByText("Molecule shards")).toBeNull();
   expect(screen.queryByText("Unresolved structures")).toBeNull();
   expect(screen.queryByText("Native chart")).toBeNull();
@@ -228,6 +231,36 @@ it("flags rejected library records while keeping exact result counts available",
   expect(within(counts).getByText("Rejected records")).toBeVisible();
   expect(within(counts).getByText("1", { exact: true })).toBeVisible();
   expect(within(counts).getByText("Resolved structures")).toBeVisible();
+});
+
+it("keeps screening counts and result downloads together and flags late failures", () => {
+  const result: DatasetResult = {
+    ...data("index"),
+    operation: "drugclip_index",
+    artifacts: [{
+      name: "members.csv",
+      role: "compound_library",
+      format: "csv",
+      sha256: "c".repeat(64),
+      size: 100,
+    }],
+    counts: {
+      source_records: 50,
+      valid_records: 49,
+      unique_compounds: 48,
+      duplicate_chemical_records: 1,
+      indexed: 47,
+      rejected: 2,
+    },
+  };
+  render(<DatasetResults job={job} result={result} language="en" />);
+  const counts = screen.getByText("Review counts", { selector: "summary" }).parentElement!;
+  expect(counts).not.toHaveAttribute("open");
+  expect(within(counts).getByText("Searchable molecules")).not.toBeVisible();
+  expect(within(counts.parentElement!).getByText("Download results")).toBeVisible();
+  counts.setAttribute("open", "");
+  expect(within(counts).getByText("Encoding rejections")).toBeVisible();
+  expect(within(counts).getByText("47", { exact: true })).toBeVisible();
 });
 
 it("preserves a quality tab when real primary data and real chart artifacts both exist", () => {

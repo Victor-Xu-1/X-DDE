@@ -232,7 +232,7 @@ export function ResearchTable({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={
-            view === "library"
+            view === "library" || view === "index"
               ? zh
                 ? "搜索成员"
                 : "Search members"
@@ -405,6 +405,9 @@ export function ResearchTable({
                           <button
                             type="button"
                             className="dataset-row-title"
+                            title={format(
+                              key === "id" ? row.display_name || row.id : row[key],
+                            )}
                             onClick={(e) => {
                               e.stopPropagation();
                               onSelect?.(row);
@@ -417,7 +420,12 @@ export function ResearchTable({
                             )}
                           </button>
                         ) : (
-                          <span className="dataset-row-title">
+                          <span
+                            className="dataset-row-title"
+                            title={format(
+                              key === "id" ? row.display_name || row.id : row[key],
+                            )}
+                          >
                             {format(
                               key === "id"
                                 ? row.display_name || row.id

@@ -347,10 +347,10 @@ def test_del_first_screen_at_1024_by_600(language, theme):
         workspace = panel.locator(".structure-workbench:visible")
         active = workspace.locator(".dataset-member-inspector")
         check_short_drawing(active, workspace, zh)
-        count_group = workspace.locator(".dataset-enumeration-counts")
+        count_group = workspace.locator(".dataset-result-counts")
         count_group.locator("summary").press("Space")
         expect(count_group).to_have_attribute("open", "")
-        expect(count_group.locator(".dataset-enumeration-values")).to_contain_text(
+        expect(count_group.locator(".dataset-count-values")).to_contain_text(
             "解析结构" if zh else "Resolved structures",
         )
         count_group.locator("summary").press("Space")
