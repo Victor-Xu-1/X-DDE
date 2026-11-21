@@ -538,6 +538,13 @@ Candidate review keeps the retained conformer and its native export on the left,
 with members and sample evidence on the right. The short desktop regression uses
 the original archived DEL006 results in Chrome.
 
+On narrow desktop windows, screening, indexed libraries, DEL members and saved
+PLIP results keep a wider native canvas on the left and the result list on the
+right. Indexed library file actions use labeled icons when horizontal space is
+limited. Binding-pose, free-conformer and 2D labels stay visible. The desktop
+check reads the original member file and uses the contact list to select the
+corresponding residue in the loaded viewer.
+
 DEL model validation uses one full-width composition: observed/predicted points
 beside the native holdout metrics, stacked on compact screens. The displayed
 baseline comparison uses only finite native RMSE values; application predictions

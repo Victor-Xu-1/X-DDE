@@ -1,3 +1,4 @@
+import { DownloadOutlined, LoadingOutlined, SaveOutlined } from "@ant-design/icons";
 import { StructureWorkbench } from "../presentation/StructureWorkbench";
 import { useCallback, useState, type ReactNode } from "react";
 import { MolecularPreview } from "../presentation/MolecularPreview";
@@ -46,6 +47,17 @@ export function IndexedLibraryResults({
         : "Original structure MOL";
   const saving = member.phase === "saving";
   const saveLabel = zh ? "保存为历史文件" : "Save to historical files";
+  const downloadAction = compactReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel;
+  const SaveIcon = saving ? LoadingOutlined : SaveOutlined;
+  const saveAction = saving
+    ? zh
+      ? "正在保存…"
+      : "Saving…"
+    : compactReview
+      ? zh
+        ? "保存文件"
+        : "Save file"
+      : saveLabel;
   const actions = detail && (
     <div className="dataset-member-tools">
       <header className="dataset-member-heading">
@@ -76,8 +88,10 @@ export function IndexedLibraryResults({
           href={detail.url}
           download={`${detail.label.replace(/[\\/:*?"<>|]/g, "_")}.mol`}
           title={originalLabel}
+          aria-label={downloadAction}
         >
-          {compactReview ? (zh ? "下载 MOL" : "Download MOL") : originalLabel}
+          <DownloadOutlined className="dataset-member-action-icon" aria-hidden="true" />
+          <span className="dataset-member-action-label">{downloadAction}</span>
         </a>
         {member.saved ? (
           <span className="dataset-member-saved" role="status">
@@ -88,18 +102,13 @@ export function IndexedLibraryResults({
             type="button"
             className="secondary-button"
             disabled={saving}
+            aria-busy={saving || undefined}
             title={saveLabel}
+            aria-label={saveAction}
             onClick={() => void member.preserve()}
           >
-            {saving
-              ? zh
-                ? "正在保存…"
-                : "Saving…"
-              : compactReview
-                ? zh
-                  ? "保存文件"
-                  : "Save file"
-                : saveLabel}
+            <SaveIcon className="dataset-member-action-icon" aria-hidden="true" />
+            <span className="dataset-member-action-label">{saveAction}</span>
           </button>
         )}
       </div>

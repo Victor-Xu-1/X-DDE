@@ -1346,15 +1346,18 @@ RESULT_THEME_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 RESULT_THEME_DIFF = "05e73fb8725f59ca0e348580817ef4a34839574d27a5b8f9a830749d349848ea"
-COMPACT_RESULT_HEADER_FILES = {
+DESKTOP_RESULT_LAYOUT_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/datasets/IndexedLibraryResults.tsx",
     "frontend/src/datasets/del-result-layout.css",
-    "frontend/src/studio/TaskHistoryToolbar.tsx",
-    "frontend/src/studio/task-history.css",
+    "frontend/src/datasets/result-viewport.css",
+    "frontend/src/datasets/screening-result-layout.css",
+    "frontend/src/integrations/interaction-workspace.css",
     "server_tests/test_compact_result_header_browser.py",
     "tests/test_molecular_utility_scope.py",
 }
-COMPACT_RESULT_HEADER_DIFF = "e42c40fe17d359f9e622e21009df66ed519427374d0099dc21e44ba85211e97c"
+DESKTOP_RESULT_LAYOUT_DIFF = "d521c2d7023300a7e341080a4373c6c28bc5d41d085b3a38b5763ad8c4fb87c0"
 DEL_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",
@@ -1941,13 +1944,13 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         RESULT_THEME_FILES, RESULT_THEME_DIFF, scope_pin="RESULT_THEME_DIFF",
     )
-    compact_result_header = reviewed_selected(
+    desktop_result_layout = reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
-        COMPACT_RESULT_HEADER_FILES, COMPACT_RESULT_HEADER_DIFF,
-        scope_pin="COMPACT_RESULT_HEADER_DIFF",
+        DESKTOP_RESULT_LAYOUT_FILES, DESKTOP_RESULT_LAYOUT_DIFF,
+        scope_pin="DESKTOP_RESULT_LAYOUT_DIFF",
     )
     candidate_desktop = (
-        compact_result_header or result_theme or screening_desktop or reviewed_selected(
+        desktop_result_layout or result_theme or screening_desktop or reviewed_selected(
             set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
             CANDIDATE_DESKTOP_FILES, CANDIDATE_DESKTOP_DIFF, scope_pin="CANDIDATE_DESKTOP_DIFF",
         )
@@ -2081,7 +2084,7 @@ def main():
         output.write("screening_desktop_only=" + str(screening_desktop).lower() + "\n")
         output.write("del_desktop_only=" + str(del_desktop).lower() + "\n")
         output.write("result_theme_only=" + str(result_theme).lower() + "\n")
-        output.write("compact_result_header_only=" + str(compact_result_header).lower() + "\n")
+        output.write("desktop_result_layout_only=" + str(desktop_result_layout).lower() + "\n")
         output.write("history_desktop_only=" + str(history_desktop).lower() + "\n")
         output.write("initial_pose_power_only=" + str(initial_pose_power).lower() + "\n")
         output.write("backend_placement_only=" + str(backend_placement).lower() + "\n")
@@ -2091,7 +2094,7 @@ def main():
         output.write("composed_power_only=" + str(composed_power).lower() + "\n")
         power_changed = (
             not history_desktop
-            and not compact_result_header
+            and not desktop_result_layout
             and not desktop_complex_review
             and not result_handoff_desktop
             and not recognition_entry
