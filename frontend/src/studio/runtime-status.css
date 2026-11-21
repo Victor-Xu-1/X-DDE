@@ -1,47 +1,118 @@
+.runtime-workspace {
+  min-width: 0;
+}
 .runtime-summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 32px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
 }
 .runtime-summary > .studio-panel {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 7px;
   min-width: 0;
   padding: 0;
-}
-.runtime-summary > .studio-panel:last-child {
-  margin-left: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .runtime-summary h3,
 .runtime-summary p {
   margin: 0;
+  font-size: 13px;
+}
+.runtime-summary p {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .runtime-summary .anticon {
   color: var(--accent);
 }
 .runtime-environments {
-  padding-top: 20px;
+  margin-block-start: 12px;
 }
-.runtime-environments h3 {
+.runtime-environment-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-block-end: 8px;
+}
+.runtime-environment-header h3 {
   margin: 0;
+  font-size: 15px;
+}
+.runtime-environment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.runtime-environments .runtime-environment-actions > input[type="search"] {
+  width: min(100%, 215px);
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.runtime-workspace .runtime-environment-actions > button {
+  flex-shrink: 0;
+  min-height: 34px;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  .runtime-environment-actions {
+    flex-wrap: wrap;
+  }
+}
+.runtime-table-empty {
+  margin: 0;
+  padding: 16px 0;
+  color: var(--muted);
 }
 .runtime-environments .table-scroll {
   max-height: 70vh;
   overflow: auto;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
 }
 .runtime-environments table {
-  min-width: 640px;
+  min-width: 600px;
   width: 100%;
-  border-collapse: collapse;
+  table-layout: fixed;
+  border-spacing: 0;
 }
-.runtime-environments th,
-.runtime-environments td {
-  padding: 12px 14px;
+.runtime-identity-column {
+  width: 38%;
+}
+.runtime-status-column {
+  width: 24%;
+}
+.runtime-model-column {
+  width: 14%;
+}
+.runtime-environments .table-scroll th,
+.runtime-environments .table-scroll td {
+  padding: 7px 10px;
   text-align: left;
   border-bottom: 1px solid var(--line);
   font-size: 13px;
@@ -51,29 +122,50 @@
   top: 0;
   background: var(--surface-muted);
   z-index: 1;
-  white-space: nowrap;
 }
-.runtime-environments tbody th {
-  font-weight: 500;
-  font-family: var(--font);
+.runtime-environments .table-scroll tbody th {
+  background: transparent;
   color: var(--ink);
-  max-width: 300px;
+  font-family: var(--font);
+  font-weight: 600;
+  line-height: 1.3;
 }
-.runtime-environments td:nth-child(4) {
+.runtime-environments tbody th small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.runtime-environments tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.runtime-model-count {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.runtime-environments .runtime-table-power {
-  min-width: 150px;
-}
-.runtime-environments .status {
+.runtime-model-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   white-space: nowrap;
 }
-@media (max-width: 720px) {
-  .runtime-summary {
-    gap: 16px;
+.runtime-environments .status {
+  padding: 3px 6px;
+  font-size: 11px;
+  white-space: normal;
+}
+.runtime-environments .runtime-switch-status > small {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 1000px) {
+  .studio-app .combined-workspace:has(> .runtime-workspace) > .workspace-tabs {
+    min-height: 0;
+    padding-block: 0;
+    margin-bottom: 12px;
   }
-  .runtime-summary > .studio-panel:last-child {
-    margin-left: 0;
+  .runtime-environments .table-scroll {
+    max-height: min(70vh, max(270px, calc(100dvh - 284px)));
   }
 }

@@ -1671,20 +1671,13 @@ DESKTOP_STRUCTURE_FOCUS_FILES = {
 }
 DESKTOP_STRUCTURE_FOCUS_DIFF = "88474b366eef4a88030b9446e5a5511b02ce57a160f300fb3667e923f8723f10"
 RUNTIME_ENTRY_FILES = {
-    ".github/workflows/molecular-utility-checks.yml",
-    "frontend/src/App.tsx",
     "frontend/src/studio/EnvironmentStatusTable.tsx",
-    "frontend/src/studio/EnvironmentWorkspace.tsx",
+    "frontend/src/studio/RuntimeStatus.test.tsx",
+    "frontend/src/studio/RuntimeStatus.tsx",
     "frontend/src/studio/runtime-status.css",
-    "frontend/src/utilities/BackendPowerSwitch.tsx",
-    "frontend/src/utilities/RuntimeSwitch.tsx",
-    "frontend/src/studio/environment-route.ts",
-    "frontend/src/studio/task-entry-route.test.ts",
-    "frontend/src/studio/task-entry-route.ts",
     "server_tests/test_runtime_entry_browser.py",
-    "tests/test_molecular_utility_scope.py",
 }
-RUNTIME_ENTRY_DIFF = "36c46e01103946be2ab2400daaacdccb76e179b40bae2f5c2da860eecf780458"
+RUNTIME_ENTRY_DIFF = "2dcf9b5448d0bab04938040e93733f2294259e41ec0ec79c31edf82b1a681278"
 MODULE_POWER_CONSUMERS = (
     MODULE_POWER_FILES | INLINE_MODULE_POWER_FILES | RESULT_MODULE_POWER_FILES
     | CONTEXTUAL_BACKEND_PANEL_FILES
