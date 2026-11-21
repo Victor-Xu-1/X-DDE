@@ -58,8 +58,17 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         )
         page.goto(base + "/#task=" + identifier)
         panel = page.locator(".confidence-panel")
-        coloring = page.get_by_role("combobox", name="结构着色" if zh else "Structure coloring")
-        expect(coloring).to_have_value("confidence", timeout=30000)
+        viewer = page.locator(".viewer-panel")
+        expect(viewer.locator(".viewer-mode-options")).to_be_visible(timeout=30000)
+        display = viewer.get_by_role("button", name="显示选项" if zh else "Display options")
+        coloring = viewer.get_by_role("combobox", name="结构着色" if zh else "Structure coloring")
+
+        def show_coloring():
+            if display.is_visible() and display.get_attribute("aria-expanded") == "false":
+                display.click()
+            return coloring
+
+        expect(show_coloring()).to_have_value("confidence", timeout=30000)
         sequence = page.get_by_role(
             "region", name="结构中的残基" if zh else "Residues in structure"
         )
@@ -119,11 +128,10 @@ def test_retained_atom_confidence_uses_native_fraction_scale(
         else:
             assert panel_bounds["y"] >= view_bounds["y"] + view_bounds["height"]
         expect(matrix.locator(".shapelayer path")).to_have_count(2)
-        coloring.select_option("chain")
+        show_coloring().select_option("chain")
         expect(first).to_have_attribute("aria-checked", "true")
-        coloring.select_option("confidence")
+        show_coloring().select_option("confidence")
         sequence.screenshot(path=str(evidence / "linked-sequence.png"))
-        viewer = page.locator(".viewer-panel")
         iframe = viewer.locator("iframe").element_handle()
         viewer.get_by_role(
             "button", name="展开研究工作区" if zh else "Expand research workspace"
