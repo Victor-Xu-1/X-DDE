@@ -209,7 +209,7 @@
   .prediction-result-actions {
     gap: 4px 6px;
   }
-  .studio-app .prediction-result .prediction-result-actions {
+  .studio-app .prediction-result-heading .prediction-result-actions {
     > .secondary-button,
     .prediction-archive-download > .primary-button {
       min-height: 32px;
