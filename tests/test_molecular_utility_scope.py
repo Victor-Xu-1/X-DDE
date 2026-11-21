@@ -163,6 +163,7 @@ def test_refreshed_utility_scope_uses_the_reviewed_main_diff(
         "inline_recognition_only=false\n"
         "editor_drawing_only=false\n"
         "portable_smiles_only=false\n"
+        "archived_pose_review_only=false\n"
         "guided_desktop_only=false\n"
         "prediction_input_layout=false\n"
         "utility_query_only=false\n"
