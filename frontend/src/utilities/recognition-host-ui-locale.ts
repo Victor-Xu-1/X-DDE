@@ -60,6 +60,10 @@ const english: Record<string, string> = {
   "在 ChemDraw 中使用「编辑 → 选择性粘贴 → SMILES」。": "In ChemDraw, use Edit → Paste Special → SMILES.",
   "编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。":
     "The editor could not load this structure. Copy the recognized SMILES or download the MOL file.",
+  "已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。":
+    "Copy the verified SMILES to ChemDraw to retain the recognized double-bond geometry.",
+  "无法核对双键构型，已停止导出。":
+    "The double-bond configuration could not be verified. Export is unavailable.",
   "编辑器无法载入此结构。请下载识别结果的 MOL 文件。":
     "The editor could not load this structure. Download the recognized MOL file.",
   "绘图组件无法核对原始 SMILES 的立体化学。":
