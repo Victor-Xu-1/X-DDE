@@ -59,8 +59,11 @@ function bondPositions(text: string) {
   return current >= 0 && !branches.length && !rings.size && !pending ? { atoms, bonds } : null;
 }
 
-export function hasAlleneShorthand(text: string) {
-  const chiralCarbon = /\[(?:\d+)?C@@?(?:[+-]\d*|:\d+)*\]/;
+const alleneClass = /^(\[\d*C)@AL([12])((?:[+-]\d*|:\d+)*\])$/;
+
+/** Preserve SMILES traversal. Some readers handle axial parity only in shorthand. */
+export function alleneHandoffSmiles(text: string) {
+  const chiralCarbon = /\[\d*C(?:@AL[12]|@@?)(?:[+-]\d*|:\d+)*\]/;
   if (!chiralCarbon.test(text)) return false;
   const graph = bondPositions(text);
   if (!graph) return null;
@@ -70,7 +73,15 @@ export function hasAlleneShorthand(text: string) {
     for (const atom of [bond.from, bond.to])
       doubleBonds.set(atom, (doubleBonds.get(atom) ?? 0) + 1);
   }
-  return graph.atoms.some((atom, index) => chiralCarbon.test(atom) && doubleBonds.get(index) === 2);
+  const isAxial = (atom: string, index: number) =>
+    chiralCarbon.test(atom) && doubleBonds.get(index) === 2;
+  if (graph.atoms.some((atom, index) => alleneClass.test(atom) && !isAxial(atom, index))) return null;
+  if (!graph.atoms.some(isAxial)) return false;
+  // OpenSMILES defines @AL1 and @AL2 as @ and @@ at an allene center.
+  return text.replace(/\[[^\[\]]+\]/g, (atom) =>
+    atom.replace(alleneClass, (_, prefix, parity, suffix) =>
+      `${prefix}${parity === "1" ? "@" : "@@"}${suffix}`),
+  );
 }
 
 export function ringStereoEntries(annotation: string) {
