@@ -443,6 +443,60 @@ it("keeps an unverified or stale source drawing unavailable", async () => {
     .resolves.toBeNull();
 });
 
+const quinine = {
+  rawSmiles: "COc1ccc2nccc([C@@H](O)[C@@H]3C[C@@H]4CCN3C[C@@H]4C=C)c2c1",
+  smiles: "C=C[C@H]1CN2CC[C@H]1C[C@H]2[C@H](O)c1ccnc2ccc(OC)cc12",
+  molfile: generatedMol,
+};
+const rebuiltMol = generatedMol.replace("RDKit", "Indigo");
+const inspectedDrawing = '{"root":{"nodes":[]}}';
+
+function absoluteDrawingRecovery(conflict?: "layout" | "normalized" | "regenerated") {
+  const getInChIKey = vi.fn(async (input: string) => {
+    if (input === recognizedDrawing(quinine)) return "different stereo after chiral flag";
+    if (conflict === "layout" && input === inspectedDrawing ||
+        conflict === "normalized" && input === quinine.smiles ||
+        conflict === "regenerated" && input === recognizedDrawing({ ...quinine, molfile: rebuiltMol }))
+      return "different stereo";
+    return "source identity";
+  });
+  const layout = vi.fn(async ({ output_format }: { output_format: string }) => ({
+    struct: output_format === "chemical/x-indigo-ket" ? inspectedDrawing : rebuiltMol,
+  }));
+  return { getInChIKey, layout };
+}
+
+it("regenerates a recognized absolute drawing after the chiral flag changes its identity", async () => {
+  const service = absoluteDrawingRecovery();
+  await expect(readRecognizedSource(service, quinine)).resolves.toEqual({
+    text: quinine.smiles,
+    molfile: recognizedDrawing({ ...quinine, molfile: rebuiltMol }),
+  });
+  expect(service.layout).toHaveBeenNthCalledWith(1, {
+    struct: recognizedDrawing(quinine), output_format: "chemical/x-indigo-ket",
+  });
+  expect(service.layout).toHaveBeenNthCalledWith(2, {
+    struct: quinine.smiles, output_format: "chemical/x-mdl-molfile",
+  });
+  expect(service.getInChIKey).toHaveBeenCalledWith(inspectedDrawing);
+});
+
+it.each(["layout", "normalized", "regenerated"] as const)(
+  "withholds absolute recovery if the %s structure conflicts with the recognition source",
+  async (conflict) => {
+    const service = absoluteDrawingRecovery(conflict);
+    await expect(readRecognizedSource(service, quinine)).resolves.toBeNull();
+    expect(service.layout).toHaveBeenCalledTimes({ normalized: 0, layout: 1, regenerated: 2 }[conflict]);
+  },
+);
+
+it("does not replace a current drawing with an absolute source recovery", async () => {
+  const service = absoluteDrawingRecovery();
+  await expect(readRecognizedSource(service, quinine, undefined, recognizedDrawing(quinine)))
+    .resolves.toBeNull();
+  expect(service.layout).not.toHaveBeenCalled();
+});
+
 it("does not publish normalized SMILES that differ from the recognized stereochemistry", async () => {
   const getInChIKey = vi.fn().mockResolvedValueOnce("source-identity")
     .mockResolvedValueOnce("source-identity").mockResolvedValueOnce("opposite");
