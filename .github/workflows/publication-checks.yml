@@ -584,12 +584,18 @@ jobs:
       - name: Shared figure and molecular drawing controls
         working-directory: frontend
         run: npx vitest run src/publication/FigureExport.test.tsx src/presentation/MoleculeImage.test.tsx
-      - name: Shared export in saved files and scientific color keys
+      - name: Shared export of scientific color keys
         run: |
           uv run --locked playwright install chromium --with-deps
           uv run --locked python -m pytest -x -q \
             server_tests/test_native_color_key_publication_browser.py::test_retained_native_figure_includes_applied_color_key
+      - name: Shared export from saved research files
+        env:
+          WB_HOME: ${{ runner.temp }}/x-dde-compact-files
+          WB_STATE_DIR: ${{ runner.temp }}/x-dde-compact-files/state
+        run: |
           uv run --locked python server_tests/prepare_workspace_preview_cases.py
+          uv run --locked python server_tests/prepare_visual_components.py --components ketcher
           uv run --locked python -m pytest -x -q \
             server_tests/test_workspace_preview_browser.py::test_native_selected_file_previews_and_exact_record_switching
       - name: Archival Ketcher drawing and export settings
