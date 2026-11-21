@@ -1,6 +1,8 @@
 import { expect, it, vi } from "vitest";
+import { directionalRingStereoBonds } from "./portable-smiles-ring-stereo";
 import {
   readPortableSmiles,
+  readRecognizedRingDrawing,
   readRecognizedSource,
   readRecognizedStereoFile,
   recognizedStereoSource,
@@ -281,6 +283,111 @@ it("recovers only the structure file when the source has an enhanced stereo grou
   expect(getInChIKey.mock.calls).toEqual([[relative], [molfile]]);
 });
 
+const ringBody = "O=C1CCCCC=CCCC[C@@H](C)O1";
+const ringResult = {
+  rawSmiles: ringBody + " |(0,0,;1,0,),t:6,a:11|",
+  smiles: "C[C@H]1OC(=O)CCCCC=CCCC1",
+  molfile: generatedMol,
+};
+const ringDeclared = ringBody + " |t:6,a:11|";
+const ringStandard = "O=C1CCCC\\C=C\\CCC[C@@H](C)O1";
+
+it.each([
+  [ringStandard, true],
+  ["C/C1=C/CCCCCC1", true],
+  ["C1CCC/C=C/CC1.C/C=C/C", true],
+  ["C/C=C/c1ccccc1", false],
+  ["C1CC=CCC1.C/C=C/C", false],
+  ["C/C=C/C", false],
+])("identifies directional syntax on a ring bond in %s", (text, ring) => {
+  expect(Boolean(directionalRingStereoBonds(text).length)).toBe(ring);
+});
+
+function ringRecovery({
+  normalizedKey = "unassigned", drawingKey = "unassigned",
+  unspecifiedKey = "unassigned",
+  readBack = "O=C1O[C@H](C)CCCC=CCCCC1 |t:8|",
+} = {}) {
+  const keys = new Map([
+    [ringDeclared, "trans"], [ringStandard, "trans"], [ringBody + " |a:11|", unspecifiedKey],
+    [ringResult.smiles, normalizedKey], [recognizedDrawing(ringResult), drawingKey],
+    [structure, drawingKey],
+  ]);
+  const getInChIKey = vi.fn(async (input: string) => keys.get(input) ?? "");
+  const read = vi.fn(async (input: string) =>
+    input === ringDeclared ? "O=C1O[C@H](C)CCCC=CCCCC1 |t:8|" : readBack,
+  );
+  return { service: { getInChIKey }, read };
+}
+
+it("recovers plain ring geometry and absolute stereo from a planar source", async () => {
+  const { service, read } = ringRecovery();
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toEqual({
+    text: ringStandard, molfile: "",
+  });
+  expect(read.mock.calls).toEqual([[ringDeclared], [ringStandard]]);
+  await expect(readRecognizedStereoFile(service, ringResult, "mol"))
+    .rejects.toThrow(SmilesHandoffError);
+});
+
+it.each([
+  { drawingKey: "different molecule" },
+  { normalizedKey: "cis" },
+  { unspecifiedKey: "trans", drawingKey: "trans", normalizedKey: "trans" },
+  { readBack: "O=C1O[C@H](C)CCCC=CCCCC1 |c:8|" },
+  { readBack: "O=C1O[C@@H](C)CCCC=CCCCC1 |t:8|" },
+  { readBack: "O=C1O[C@H](C)CCCC=CCCCC1" },
+])("withholds source recovery when the original stereo cannot be corroborated (%j)", async (keys) => {
+  const { service, read } = ringRecovery(keys);
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toBeNull();
+});
+
+it("keeps both exports when the native MOL retains the original ring geometry", async () => {
+  const { service, read } = ringRecovery({ drawingKey: "trans" });
+  await expect(readRecognizedSource(service, ringResult, read)).resolves.toEqual({
+    text: ringStandard, molfile: recognizedDrawing(ringResult),
+  });
+});
+
+it("offers verified text but withholds a loadable drawing that omits ring geometry", async () => {
+  const { service, read } = ringRecovery();
+  const canvas = { ...editor(ringBody), structService: service };
+  await expect(readRecognizedRingDrawing(canvas, ringResult, read))
+    .resolves.toEqual({ text: ringStandard, molfile: "" });
+  await expect(readPortableSmiles(canvas, ringResult, read)).resolves.toBe(ringStandard);
+});
+
+it("passes equivalent directional input through the same native ring verification", async () => {
+  const { service } = ringRecovery();
+  const read = vi.fn(async () => ringDeclared);
+  const result = { ...ringResult, rawSmiles: ringStandard };
+  const canvas = { ...editor(ringBody), structService: service };
+  await expect(readRecognizedRingDrawing(canvas, result, read))
+    .resolves.toEqual({ text: ringStandard, molfile: "" });
+});
+
+it("withholds a directional source if native conversion drops one of its ring declarations", async () => {
+  const { service } = ringRecovery();
+  const rawSmiles = ringStandard + ".C1CC/C=C/CC1";
+  expect(directionalRingStereoBonds(rawSmiles)).toHaveLength(2);
+  const read = vi.fn(async () => ringDeclared);
+  await expect(readRecognizedSource(service, { ...ringResult, rawSmiles }, read))
+    .resolves.toBeNull();
+  expect(read).toHaveBeenCalledExactlyOnceWith(rawSmiles);
+  expect(service.getInChIKey).not.toHaveBeenCalled();
+});
+
+it("rejects a partly represented declaration even when other rings distinguish its key", async () => {
+  const { service, read } = ringRecovery();
+  const rawSmiles = ringResult.rawSmiles.replace("t:6", "t:6,8");
+  service.getInChIKey.mockImplementation(async (value) =>
+    value === ringBody + " |t:6,8,a:11|" || value === ringBody + " |a:11,t:6|"
+      ? "trans" : "unassigned");
+  await expect(readRecognizedSource(service, { ...ringResult, rawSmiles }, read))
+    .resolves.toBeNull();
+  expect(read).not.toHaveBeenCalled();
+});
+
 it("keeps an unverified or stale source drawing unavailable", async () => {
   const getInChIKey = vi.fn()
     .mockResolvedValueOnce("source-identity")
@@ -410,32 +517,26 @@ it("rejects an absolute-only extension when the plain output loses stereo", asyn
   await expect(readPortableSmiles(source)).rejects.toThrow("无法核对");
 });
 
-it.each(["c", "t"])("recovers standard ring stereo %s from a matching recognition result", async (stereo) => {
+it.each(["c", "t"])("uses standard ring stereo %s when no source annotation needs recovery", async (stereo) => {
   const encoded = "O=C1CCCCC=CCCC[C@@H](C)O1 |" + stereo + ":6|";
   const smiles = stereo === "c" ? "C[C@@H]1CCC/C=C\\CCCCC(=O)O1" : "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
-  const result = { rawSmiles: smiles, smiles, molfile: generatedMol };
+  const result = { smiles, molfile: generatedMol };
   const source = editor(encoded);
   source.structService.getInChIKey.mockReset().mockResolvedValue("ring-stereo");
-  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
+  await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
+  const read = vi.fn(async () => encoded);
+  const expected = "O=C1CCCC\\C=C" + (stereo === "c" ? "/" : "\\") + "CCC[C@@H](C)O1";
+  await expect(readPortableSmiles(source, result, read)).resolves.toBe(expected);
   await expect(readPortableSmiles(source)).rejects.toThrow(SmilesHandoffError);
 });
 
 it("checks ring geometry in the original CXSMILES before using the standard source", async () => {
-  const ring = "O=C1CCCCC=CCCC[C@@H](C)O1";
-  const rawSmiles = ring + " |(0,0,;1,0,),a:11,t:6|";
-  const smiles = "C[C@@H]1CCC/C=C/CCCCC(=O)O1";
-  const result = { rawSmiles, smiles, molfile: generatedMol };
-  const source = editor(ring + " |t:6|");
-  const key = source.structService.getInChIKey;
-  key.mockReset().mockImplementation(async (value) => {
-    if (value === rawSmiles || value === ring) throw new Error("Stereo ignored");
-    return "trans";
-  });
-  await expect(readPortableSmiles(source, result)).resolves.toBe(smiles);
-  expect(key).toHaveBeenCalledWith(ring + " |a:11,t:6|");
-  const cis = smiles.replace("/CCCCC", "\\CCCCC");
-  key.mockImplementation(async (value) => value === cis ? "cis" : "trans");
-  await expect(readPortableSmiles(source, { ...result, smiles: cis }))
+  const { service, read } = ringRecovery({ drawingKey: "trans" });
+  const source = { ...editor(ringBody + " |t:6|"), structService: service };
+  await expect(readPortableSmiles(source, ringResult, read)).resolves.toBe(ringStandard);
+  expect(service.getInChIKey).toHaveBeenCalledWith(ringDeclared);
+  const bad = ringRecovery({ drawingKey: "trans", normalizedKey: "cis" });
+  await expect(readPortableSmiles({ ...source, structService: bad.service }, ringResult, bad.read))
     .rejects.toThrow(SmilesHandoffError);
 });
 
@@ -481,7 +582,7 @@ it("rejects a ring annotation that disagrees with the editor's MOL and recogniti
   key.mockReset().mockImplementation(async (value) => value === editorCx ? "cis" : "trans");
   await expect(readPortableSmiles(source, { rawSmiles: smiles, smiles, molfile: generatedMol }))
     .rejects.toThrow(SmilesHandoffError);
-  expect(key.mock.calls).toEqual([[structure], [editorCx]]);
+  expect(key.mock.calls).toEqual([]);
 });
 
 it("does not flatten a recognized stereo group missing from the editor export", async () => {

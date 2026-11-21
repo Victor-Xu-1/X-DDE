@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "50115dbb761b6f1d0eafd058e8860d52da5510beb301a9cdbbfadaf8e5b055ee",
+      "after_sha256": "d7bf32d4f887a7136e2016d19bbaa1106668f11ae7649a157fc2db239db0c2b1",
       "changes": [
         {
           "before": "const labels = {",
@@ -528,6 +528,31 @@
               "after": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);\n  const sourceNote = sourceExport?.sourceOnly === \"unverified-stereo\"\n    ? \"绘图组件无法核对原始 SMILES 的立体化学。\"\n    : sourceExport?.sourceOnly === \"allene\"\n      ? canExportSmiles\n        ? \"可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。\"\n        : \"累积双键手性与扩展注释无法安全导出。\"\n      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n        : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\";"
             }
           ]
+        },
+        {
+          "before_sha256": "50115dbb761b6f1d0eafd058e8860d52da5510beb301a9cdbbfadaf8e5b055ee",
+          "changes": [
+            {
+              "before": "      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"",
+              "after": "      : canExportSmiles\n        ? canExportMol\n          ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n          : \"已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。\""
+            },
+            {
+              "before": "    structureReady,",
+              "after": "    structureReady,\n    drawingFileReady,"
+            },
+            {
+              "before": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);",
+              "after": "  const canExportMol = (structureReady && drawingFileReady) || Boolean(sourceExport?.molfile);"
+            },
+            {
+              "before": "          {sourceExport && <p role=\"note\">{text(sourceNote)}</p>}",
+              "after": "          {sourceExport && <p role=\"note\">{text(sourceNote)}</p>}\n          {structureReady && canExportSmiles && !drawingFileReady && (\n            <p role=\"note\">{text(\"已保留识别结果的双键构型，可复制 SMILES 到 ChemDraw。\")}</p>\n          )}"
+            },
+            {
+              "before": "                disabled={!structureReady}\n                onClick={() => void download(\"sdf\")}",
+              "after": "                disabled={!structureReady || !drawingFileReady}\n                onClick={() => void download(\"sdf\")}"
+            }
+          ]
         }
       ]
     },
@@ -742,7 +767,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "88326190a4d0aebe91837747cde4ab121a71114e587371a8f2a950cba3e2c00b",
+      "after_sha256": "f0f3cc47bea68218b4618bf5ae3fbd980e3c2180eb3d6cb7105de75795dfd4ea",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1291,13 +1316,54 @@
               "after": "readPortableSmiles(current, result, readStructure)"
             }
           ]
+        },
+        {
+          "before_sha256": "88326190a4d0aebe91837747cde4ab121a71114e587371a8f2a950cba3e2c00b",
+          "changes": [
+            {
+              "before": "const MAX_BYTES = 10 * 1024 * 1024;\n",
+              "after": "const MAX_BYTES = 10 * 1024 * 1024;\nconst readStructure = async (editor: Ketcher, struct: string, format?: \"ket\") =>\n  (await editor.structService.convert({\n    struct, output_format: format === \"ket\" ? ChemicalMimeType.KET : ChemicalMimeType.DaylightSmiles,\n  })).struct;\n"
+            },
+            {
+              "before": "      const readStructure = async (struct: string, format?: \"ket\") => (await current.structService.convert({\n        struct, output_format: format === \"ket\" ? ChemicalMimeType.KET : ChemicalMimeType.DaylightSmiles,\n      })).struct;\n      void readPortableSmiles(current, result, readStructure).then(",
+              "after": "      void readPortableSmiles(current, result, (struct, format) => readStructure(current, struct, format)).then("
+            },
+            {
+              "before": "    const safe = await readRecognizedSource(current.structService, source.result);",
+              "after": "    const safe = await readRecognizedSource(current.structService, source.result,\n      (struct) => readStructure(current, struct));"
+            },
+            {
+              "before": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedStereoSource,",
+              "after": "  hasRecognizedRingStereo, hasRelativeStereo, readPortableSmiles,\n  readRecognizedRingDrawing, readRecognizedSource, recognizedStereoSource,"
+            },
+            {
+              "before": "    text?: string;\n    error?: string;",
+              "after": "    text?: string;\n    ringMol?: string;\n    error?: string;"
+            },
+            {
+              "before": "  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;",
+              "after": "  const smilesExport = preparedSmiles?.revision === drawingRevision ? preparedSmiles : null;\n  const ringSourceAt = (revision: number | null) => {\n    const source = recognition.current;\n    return source && source.revision === revision && hasRecognizedRingStereo(source.result)\n      ? source.result : undefined;\n  };\n  const drawingFileReady = !ringSourceAt(drawingRevision) || Boolean(smilesExport?.ringMol);"
+            },
+            {
+              "before": "      void readPortableSmiles(current, result, (struct, format) => readStructure(current, struct, format)).then(\n        (text) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, text });\n        },",
+              "after": "      const read = (struct: string, format?: \"ket\") => readStructure(current, struct, format);\n      const prepare = async () => {\n        if (result && hasRecognizedRingStereo(result)) {\n          const { text, molfile } = await readRecognizedRingDrawing(current, result, read);\n          return { text, ringMol: molfile, error: text ? undefined : \"无法核对双键构型，已停止导出。\" };\n        }\n        return { text: await readPortableSmiles(current, result, read) };\n      };\n      void prepare().then(\n        (value) => {\n          if (!disposed) setPreparedSmiles({ revision: drawingRevision, ...value });\n        },"
+            },
+            {
+              "before": "      const source = recognition.current;\n      if (format !== \"smiles\" && source?.revision === checkpoint",
+              "after": "      if (format !== \"smiles\" && ringSourceAt(checkpoint)) {\n        const molfile = smilesExport?.ringMol;\n        if (!molfile) throw new SmilesHandoffError(\"无法核对双键构型，已停止导出。\");\n        const text = format === \"mol\" ? molfile : molfile.trimEnd() + \"\\n$$$$\\n\";\n        return { text, verify: () => structureGate.verify(checkpoint) };\n      }\n      const source = recognition.current;\n      if (format !== \"smiles\" && source?.revision === checkpoint"
+            },
+            {
+              "before": "    structureReady,\n    setStructureReady,",
+              "after": "    structureReady,\n    drawingFileReady,\n    setStructureReady,"
+            }
+          ]
         }
       ]
     },
     {
       "path": "frontend/src/useXddeBridge.ts",
       "before_sha256": "61d3efcca4ea02d952d791e9abb8fc3af8e1e7b91aabdcea3335799acd0cf110",
-      "after_sha256": "2b62318446422f3e645b2add9e8aee1d69074a20522080f333d74e6a8b3c286a",
+      "after_sha256": "0eacccda51cf6a773a7b79fe1c7319e87a6c1ad90874c60d842d87821bbf592b",
       "changes": [
         {
           "before": "          const molfile = await editor.getMolfile();",
@@ -1452,6 +1518,21 @@
             }
           ]
         }
+      ],
+      "final_steps": [
+        {
+          "before_sha256": "2b62318446422f3e645b2add9e8aee1d69074a20522080f333d74e6a8b3c286a",
+          "changes": [
+            {
+              "before": "          latest.current.structureGate.available &&",
+              "after": "          latest.current.structureGate.available &&\n          latest.current.drawingFileReady &&"
+            },
+            {
+              "before": "work.editorReady, work.structureReady, work.file",
+              "after": "work.editorReady, work.structureReady, work.drawingFileReady, work.file"
+            }
+          ]
+        }
       ]
     }
   ],
@@ -1478,7 +1559,8 @@
       "4944403038e1805bac1cfd2ee0d09bfef8568a3cf277bc4e3a175cbb0cf4ca94",
       "c970fa033b034f156eac287afd5d874aeb45a9d15f7ee60e62347b293305e8dd",
       "42f97ca5ee3e2de2cb9a82046abb450df10c1484acb6e3666d34bade841ee68d",
-      "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc"
+      "885d5e6c0b9397dab53eaa6334a31a01f9e95c0404adbe89ddb997a6e30e87dc",
+      "5b20e10d1d3973b3eced16405f3088267dd37fbb795359dd0de73c8174605f42"
     ],
     "portable-smiles.ts": [
       "8e4dad9208af63d6c13449b695605dbe153f4465e3aa23e0326d624cae6278b4",
@@ -1490,11 +1572,13 @@
       "74f7bffadb670259021f573ae9f2c651df5d1caca41bea381d43fca765fde211",
       "20b756ab4fe0e9a13b3d2d188bc7d695a2f4adb7cf22cfe57803df2c39de5edf",
       "ef1662af5bad34a26ff89a389f81df9f79f38b03d137adb58f64bc6d64f6683c",
-      "389d5a4108582111960945b92f7d24eb96b38b021e5a0352d3ce0ef16ef1b8f6"
+      "389d5a4108582111960945b92f7d24eb96b38b021e5a0352d3ce0ef16ef1b8f6",
+      "c2f11eb078aae0304e9e6d92b96dde94a31d8e6904466a1ba98ee9b33cee288c"
     ],
     "portable-smiles-ring-stereo.ts": [
       "463dfd1a642eca37a922756a72f84f9812ca608fe3f6f9f7a1fb8329c9d19326",
-      "85e1cee679d0a2ba3bf380895b9360c2972e80c190506be342161140c4d4a552"
+      "85e1cee679d0a2ba3bf380895b9360c2972e80c190506be342161140c4d4a552",
+      "6e6b0b80dac69a009040a8d15719b42991ba6afcbdb574464609a964712dcd76"
     ]
   }
 }
