@@ -448,12 +448,14 @@
       min-height: 60px;
       padding-block: 8px;
     }
+  }
 
+  .studio-app .molecular-utility .single-page-task:has(.molecular-input-review) {
     .single-page-main > .single-page-field {
       margin-block-end: 6px;
     }
 
-    .single-page-task:has(.molecular-input-review) .single-page-main {
+    .single-page-main {
       max-height: clamp(240px, calc(100dvh - 342px), 504px);
       overflow-y: auto;
       overscroll-behavior-y: contain;
@@ -461,13 +463,13 @@
       padding-inline-end: 4px;
     }
 
-    .single-page-task:has(.molecular-input-review)
-      .questionnaire-actions:has(> .single-page-readiness) {
+    .questionnaire-actions:has(> .single-page-readiness) {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas: "status details" "recheck run";
       gap: 4px 8px;
       align-items: center;
+      align-content: start;
       padding-block-start: 6px;
 
       .single-page-readiness {

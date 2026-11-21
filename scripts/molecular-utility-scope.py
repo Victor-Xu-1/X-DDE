@@ -675,7 +675,7 @@ UTILITY_QUERY_FILES = {
     "frontend/src/utilities/utilities.css",
     "server_tests/test_utility_image_browser.py",
 }
-UTILITY_QUERY_DIFF = "3630e2d453235cf969472fca6552db0fbf2bc8a9f69c00355610de38a5cb85d6"
+UTILITY_QUERY_DIFF = "20fa3270ac30f0f728baf5414429f57d8396e532705fe40ad213a26913127f29"
 COMPACT_MATERIAL_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/diffsbdd/ReferencePicker.test.tsx",
