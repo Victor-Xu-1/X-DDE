@@ -5,7 +5,7 @@
     {
       "path": "frontend/src/App.tsx",
       "before_sha256": "eaab00b319bb521d64e37274b47771129b9a87767ce6a0f29c930f597a408ab9",
-      "after_sha256": "0d0fb56dc3f83e3e0bc3c17fc11b8a139e3b1c004c114787fe8bc40e4c3ab641",
+      "after_sha256": "50115dbb761b6f1d0eafd058e8860d52da5510beb301a9cdbbfadaf8e5b055ee",
       "changes": [
         {
           "before": "const labels = {",
@@ -520,12 +520,12 @@
           "before_sha256": "cbbe05317496d09b606f3fe5f202a52bbbf02cab38e599d4c8cf77704e494280",
           "changes": [
             {
-              "before": "  const canExportMol = structureReady || Boolean(sourceExport);",
-              "after": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);"
+              "before": "          {sourceExport && (\n            <p role=\"note\">{text(canExportSmiles\n              ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n              : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}",
+              "after": "          {sourceExport && <p role=\"note\">{text(sourceNote)}</p>}"
             },
             {
-              "before": "          {sourceExport && (\n            <p role=\"note\">{text(canExportSmiles\n              ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n              : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}",
-              "after": "          {sourceExport && (\n            <p role=\"note\">{text(sourceExport.allene\n              ? canExportSmiles\n                ? \"可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。\"\n                : \"累积双键手性与扩展注释无法安全导出。\"\n              : canExportSmiles\n                ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n                : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\")}</p>\n          )}"
+              "before": "  const canExportMol = structureReady || Boolean(sourceExport);",
+              "after": "  const canExportMol = structureReady || Boolean(sourceExport?.molfile);\n  const sourceNote = sourceExport?.sourceOnly === \"unverified-stereo\"\n    ? \"绘图组件无法核对原始 SMILES 的立体化学。\"\n    : sourceExport?.sourceOnly === \"allene\"\n      ? canExportSmiles\n        ? \"可复制原始 SMILES，在 ChemDraw 中核对累积双键构型。\"\n        : \"累积双键手性与扩展注释无法安全导出。\"\n      : canExportSmiles\n        ? \"编辑器无法载入此结构。可复制识别结果的 SMILES 或下载 MOL。\"\n        : \"编辑器无法载入此结构。请下载识别结果的 MOL 文件。\";"
             }
           ]
         }
@@ -742,7 +742,7 @@
     {
       "path": "frontend/src/useWorkbench.ts",
       "before_sha256": "fc16b605f3602b92840041e35270ec0e6f567f5a9e97309da234dc8993f9dc81",
-      "after_sha256": "a8256c9ade7cd3b18372d30bf79cd3319559700cf5a514f6f945dab78fd5a8b1",
+      "after_sha256": "1d249fd170a974358823bd66762068feb6cd8253f588a276bd6fdc9678264d98",
       "changes": [
         {
           "before": "import { useCallback, useEffect, useRef, useState } from \"react\";",
@@ -1231,7 +1231,7 @@
           "changes": [
             {
               "before": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedDrawing, readRecognizedStereoFile,",
-              "after": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedAlleneSource,\n  recognizedDrawing, readRecognizedStereoFile,"
+              "after": "  hasRelativeStereo, readPortableSmiles, readRecognizedSource, recognizedStereoSource,\n  recognizedDrawing, readRecognizedStereoFile,"
             },
             {
               "before": "    result: Result; drawing: string; revision?: number; recovery?: symbol;",
@@ -1263,7 +1263,7 @@
             },
             {
               "before": "      const drawing = recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing };",
-              "after": "      const sourceOnly = recognizedAlleneSource(job.result);\n      const drawing = sourceOnly ? \"\" : recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing, sourceOnly: sourceOnly ?? undefined };"
+              "after": "      const sourceOnly = recognizedStereoSource(job.result);\n      const drawing = sourceOnly ? \"\" : recognizedDrawing(job.result);\n      setMolfile(drawing);\n      recognition.current = { result: job.result, drawing, sourceOnly: sourceOnly ?? undefined };"
             },
             {
               "before": "    const source = recognition.current;\n    if (!source || recovered?.owner !== source || recovered.request !== source.recovery || format === \"sdf\")\n      throw new MoleculeReadinessError(\"Export is not available.\");\n    const text = format === \"smiles\" ? recovered.value.text : recovered.value.molfile;",
@@ -1275,7 +1275,7 @@
             },
             {
               "before": "    error,\n    setError,",
-              "after": "    error: inputBridgeOrigin() && sourceExport?.allene\n      ? \"绘图组件无法保留累积双键手性。\"\n      : error,\n    setError,"
+              "after": "    error: inputBridgeOrigin() && sourceExport?.sourceOnly\n      ? \"绘图组件无法核对原始 SMILES 的立体化学。\"\n      : error,\n    setError,"
             }
           ]
         }

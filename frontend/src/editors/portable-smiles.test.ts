@@ -3,7 +3,7 @@ import {
   readPortableSmiles,
   readRecognizedSource,
   readRecognizedStereoFile,
-  recognizedAlleneSource,
+  recognizedStereoSource,
   recognizedDrawing,
   SmilesHandoffError,
 } from "./portable-smiles";
@@ -30,12 +30,13 @@ it.each([
   "FC(Cl)=[C@@](=C(Br)I)",
   "FC(Cl)=[C@@]=C(Br)I.C1.C1",
   "FC(Cl)=[C@@]=C(Br)I.C(C.O)N",
+  "FC(Cl)=[C@@]=C(Br)C=1CCCCC=1",
 ])("retains the original axial marker and atom order for %s", async (rawSmiles) => {
   const result = { rawSmiles, smiles: "FC(Cl)=C=C(Br)I", molfile: generatedMol };
   const source = editor(result.smiles);
   const service = source.structService;
   await expect(readRecognizedSource(service, result)).resolves.toEqual({
-    text: rawSmiles, molfile: "", allene: true,
+    text: rawSmiles, molfile: "", sourceOnly: "allene",
   });
   await expect(readRecognizedStereoFile(service, result, "mol")).rejects.toThrow(SmilesHandoffError);
   await expect(readPortableSmiles(source, result)).rejects.toThrow(SmilesHandoffError);
@@ -44,11 +45,17 @@ it.each([
 
 it("withholds ambiguous axial extensions and leaves tetrahedral chlorine intact", () => {
   const result = { smiles: "CC", molfile: generatedMol };
-  expect(recognizedAlleneSource({
+  expect(recognizedStereoSource({
     ...result, rawSmiles: "FC(Cl)=[C@AL1]=C(Br)I |w:1.0|",
-  })).toEqual({ text: "", molfile: "", allene: true });
-  expect(recognizedAlleneSource({ ...result, rawSmiles: "Cl[C@TH1](F)(Br)I" })).toBeNull();
-  expect(recognizedAlleneSource({ ...result, rawSmiles: "Cl[C@](F)(Br)I" })).toBeNull();
+  })).toEqual({ text: "", molfile: "", sourceOnly: "allene" });
+  expect(recognizedStereoSource({ ...result, rawSmiles: "Cl[C@TH1](F)(Br)I" })).toBeNull();
+  expect(recognizedStereoSource({ ...result, rawSmiles: "Cl[C@](F)(Br)I" })).toBeNull();
+});
+
+it("withholds a shorthand recognition when the bond reader cannot classify its stereo", () => {
+  const rawSmiles = "FC(Cl)=[C@@]=C(Br)C%(101)CCCCC%(101)";
+  expect(recognizedStereoSource({ rawSmiles, smiles: "CC", molfile: generatedMol }))
+    .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
 
 it("marks the generated V2000 depiction absolute without changing its other bytes", () => {

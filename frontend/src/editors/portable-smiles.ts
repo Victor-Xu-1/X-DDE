@@ -18,7 +18,7 @@ export type RecognitionResult = {
 export type RecognizedSourceExport = {
   text: string;
   molfile: string;
-  allene?: true;
+  sourceOnly?: "allene" | "unverified-stereo";
 };
 
 export class SmilesHandoffError extends Error {}
@@ -33,17 +33,17 @@ function isPortableLine(value: string) {
 }
 
 /** Keep the original atom order and axial marker when MOL drops allene stereo. */
-export function recognizedAlleneSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
+export function recognizedStereoSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
   const raw = rawSmiles?.trim();
   if (!raw) return null;
   const molecule = raw.split(/\s|\|/, 1)[0];
   const axial = /\[(?:\d+)?C@AL[12](?:[+-]\d*|:\d+)*\]/.test(molecule) ||
     hasAlleneShorthand(molecule);
-  if (!axial) return null;
+  if (axial === false) return null;
   return {
-    text: raw.length <= 100_000 && isPortableLine(raw) ? raw : "",
+    text: axial && raw.length <= 100_000 && isPortableLine(raw) ? raw : "",
     molfile: "",
-    allene: true,
+    sourceOnly: axial ? "allene" : "unverified-stereo",
   };
 }
 
@@ -138,8 +138,8 @@ export async function readRecognizedSource(
   service: StructureExport["structService"],
   result: RecognitionResult,
 ): Promise<RecognizedSourceExport | null> {
-  const allene = recognizedAlleneSource(result);
-  if (allene) return allene;
+  const sourceOnly = recognizedStereoSource(result);
+  if (sourceOnly) return sourceOnly;
   const raw = result.rawSmiles?.trim();
   if (!raw || raw.length > 100_000 || result.molfile.length > 5 * 1024 ** 2)
     return null;
@@ -188,8 +188,8 @@ export async function readPortableSmiles(
   recognized?: RecognitionResult,
   readSmiles?: ReadSmiles,
 ) {
-  if (recognized && recognizedAlleneSource(recognized))
-    throw new SmilesHandoffError("绘图组件无法保留累积双键手性。");
+  if (recognized && recognizedStereoSource(recognized))
+    throw new SmilesHandoffError("绘图组件无法核对原始 SMILES 的立体化学。");
   let smiles: string;
   let mol: string;
   try {

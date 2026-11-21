@@ -28,7 +28,9 @@ function bondPositions(text: string) {
       if (start) {
         // A direction at the opening marker is already part of the source.
         // Retain it and use its orientation when assigning adjacent slashes.
-        if (pending && start.bond.token) return null;
+        const opening = start.bond.token;
+        const expected = opening === "/" ? "\\" : opening === "\\" ? "/" : opening;
+        if (pending && opening && pending.token !== expected) return null;
         bonds.push(start.bond.token
           ? { from: start.atom, to: current, ...start.bond }
           : { from: current, to: start.atom, ...bond });
@@ -61,7 +63,7 @@ export function hasAlleneShorthand(text: string) {
   const chiralCarbon = /\[(?:\d+)?C@@?(?:[+-]\d*|:\d+)*\]/;
   if (!chiralCarbon.test(text)) return false;
   const graph = bondPositions(text);
-  if (!graph) return false;
+  if (!graph) return null;
   const doubleBonds = new Map<number, number>();
   for (const bond of graph.bonds) {
     if (bond.token !== "=") continue;
