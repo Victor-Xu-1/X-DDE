@@ -33,27 +33,48 @@ def inspect_desktop_structure(page, preview, evidence, language, source_sha256):
     zh = language == "zh"
     inspector = page.locator(".research-inspector-heading")
     frame = preview.locator(".molecular-stage iframe")
-    toolbar = page.locator(".research-file-library .research-file-toolbar")
+    library = page.locator(".research-file-library")
+    toolbar = library.locator(".research-file-toolbar")
     measurements = []
-    for width, height in ((1280, 720), (1600, 775)):
+    for width, height in ((1001, 600), (1110, 580), (1280, 720), (1600, 775)):
         page.set_viewport_size({"width": width, "height": height})
         page.evaluate("window.scrollTo(0, 0)")
         viewer_box = frame.bounding_box()
-        rail = toolbar.bounding_box()
-        assert viewer_box and rail
+        rail = library.bounding_box()
+        file_list = library.locator(".research-node-list").bounding_box()
+        file_actions = toolbar.bounding_box()
+        assert viewer_box and rail and file_list and file_actions
         assert viewer_box["x"] + viewer_box["width"] <= rail["x"]
-        assert viewer_box["height"] >= 520
-        assert height - viewer_box["y"] >= 350, viewer_box
+        assert viewer_box["width"] > rail["width"] * 1.35
+        assert viewer_box["height"] >= 280
+        visible = min(viewer_box["height"], height - viewer_box["y"])
+        assert visible >= max(250, viewer_box["height"] * 0.90), viewer_box
+        assert file_list["y"] <= 300, file_list
+        assert file_list["y"] + file_list["height"] <= file_actions["y"]
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
         upload = toolbar.locator("input[type=file]")
         expect(upload).to_be_enabled()
-        expect(upload).to_be_in_viewport()
+        expect(upload).to_be_in_viewport(ratio=1)
         refresh = toolbar.get_by_role("button", name="刷新" if zh else "Refresh", exact=True)
         expect(refresh).to_be_enabled()
-        assert rail["height"] <= 78, rail
+        expect(refresh).to_be_in_viewport(ratio=1)
         expect(preview.locator(".molecular-stage")).to_have_css("border-top-left-radius", "10px")
         page.screenshot(path=evidence / f"desktop-file-{width}.png")
-        measurements.append({"width": width, "height": height, "viewer": viewer_box})
+        measurements.append({
+            "width": width, "height": height, "viewer": viewer_box,
+            "visible": visible, "file_list": file_list,
+        })
+
+    page.set_viewport_size({"width": 1110, "height": 580})
+    search = library.get_by_role("searchbox")
+    search.fill("fixture-with-no-matching-research-file")
+    expect(library.locator(".research-node-list li")).to_have_count(0)
+    chooser_input = toolbar.locator("input[type=file]")
+    expect(chooser_input).to_be_in_viewport(ratio=1)
+    with page.expect_file_chooser():
+        chooser_input.click()
+    search.fill("")
+    expect(library.locator(".research-node-list li").first).to_be_visible()
 
     page.set_viewport_size({"width": 1280, "height": 800})
     original = frame.element_handle()
@@ -184,6 +205,15 @@ def test_native_selected_file_previews_and_exact_record_switching(language):
             return preview, hashlib.sha256(raw).hexdigest()
 
         warhead, first = drawing("study_ligand")
+        page.set_viewport_size({"width": 1001, "height": 600})
+        page.evaluate("window.scrollTo(0, 0)")
+        drawing_box = warhead.locator(".figure-preview-sheet").bounding_box()
+        assert drawing_box and drawing_box["width"] >= 345
+        visible_drawing = min(drawing_box["height"], 600 - drawing_box["y"])
+        assert visible_drawing >= 220, drawing_box
+        expect(files).to_be_in_viewport()
+        page.screenshot(path=evidence / "desktop-warhead-1001.png")
+        page.set_viewport_size({"width": 1440, "height": 1000})
         export_figure(
             page,
             warhead.get_by_role(

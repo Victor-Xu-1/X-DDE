@@ -312,21 +312,15 @@ export function ResearchWorkspace({
           aria-label={zh ? "研究文件库" : "Research file library"}
           ref={fileLibrary}
         >
-          <ResearchWorkspaceFileToolbar
-            language={language}
-            busy={busy}
-            kind={uploadKind}
-            onKindChange={setUploadKind}
-            onUpload={uploadFile}
-            onRefresh={() => void load()}
-            onClear={selected ? () => setSelected(null) : undefined}
-          />
           {graph?.nodes.length ? (
             <>
               <label className="field">
-                {zh ? "查找研究文件或任务" : "Find research files or tasks"}
+                <span className="sr-only">
+                  {zh ? "查找研究文件或任务" : "Find research files or tasks"}
+                </span>
                 <input
                   type="search"
+                  placeholder={zh ? "搜索文件或任务" : "Search files or tasks"}
                   ref={navigation.search}
                   value={query}
                   onChange={(e) => {
@@ -336,7 +330,7 @@ export function ResearchWorkspace({
                 />
               </label>
               <label className="field">
-                {zh ? "显示内容" : "Show"}
+                <span className="sr-only">{zh ? "显示内容" : "Show"}</span>
                 <select
                   value={assetFilter}
                   onChange={(e) => {
@@ -434,6 +428,8 @@ export function ResearchWorkspace({
               )}
               {graph.truncated && hasOlder && (
                 <button
+                  type="button"
+                  className="text-button research-file-older"
                   disabled={busy}
                   onClick={() =>
                     void mutate(
@@ -460,6 +456,15 @@ export function ResearchWorkspace({
               </p>
             </div>
           ) : null}
+          <ResearchWorkspaceFileToolbar
+            language={language}
+            busy={busy}
+            kind={uploadKind}
+            onKindChange={setUploadKind}
+            onUpload={uploadFile}
+            onRefresh={() => void load()}
+            onClear={selected ? () => setSelected(null) : undefined}
+          />
         </section>
       </StructureWorkbench>
       {graph && graph.nodes.length > 0 && (
