@@ -135,3 +135,17 @@
     display: none;
   }
 }
+
+@media (width > 1000px) and (height <= 620px) {
+  .studio-app .studio-content:has(.detail-panel.has-header-navigation [data-screening-review]) {
+    padding-block-start: 0;
+  }
+
+  .task-history-workspace .detail-panel.has-header-navigation:has([data-screening-review]) {
+    padding-block-start: 8px;
+
+    > .task-detail-header {
+      margin-block-end: 4px;
+    }
+  }
+}

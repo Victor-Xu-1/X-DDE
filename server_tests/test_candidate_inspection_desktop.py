@@ -245,9 +245,11 @@ def test_retained_screening_desktop(language, theme, width, height):
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             if height == 600:
                 page.evaluate("window.scrollTo(0, 0)")
+                page.screenshot(path=evidence / f"{capability}-first-screen.png")
                 verify_short_screening_first_screen(
                     workspace, height, zh, two_dimensional=capability == "library.import"
                 )
+                page.evaluate("window.scrollTo(0, 0)")
             if capability in {"library.import", "drugclip.index"}:
                 verify_library_member(page, workspace, base, zh, capability == "drugclip.index")
                 if capability == "drugclip.index":
@@ -277,6 +279,7 @@ def verify_short_screening_first_screen(workspace, height, zh, *, two_dimensiona
     assert a and b and row
     assert abs(a["y"] - b["y"]) <= 3
     assert row["y"] + row["height"] <= height + 1
+    verify_short_screening_preview(workspace, zh, two_dimensional)
     count_toggle.press("Space")
     expect(counts).to_have_attribute("open", "")
     expect(counts.locator(".dataset-count-values strong").first).to_be_visible()
@@ -287,6 +290,8 @@ def verify_short_screening_first_screen(workspace, height, zh, *, two_dimensiona
     assert downloads.locator("a[href]").count() > 0
     download_toggle.press("Enter")
 
+
+def verify_short_screening_preview(workspace, zh, two_dimensional):
     left = workspace.locator(".structure-workbench-view")
     if not two_dimensional:
         frame = left.locator(".molecular-stage iframe")
