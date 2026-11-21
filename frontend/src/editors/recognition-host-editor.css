@@ -13,7 +13,7 @@
   background: #ffffffed;
   z-index: 5;
 }
-@media (min-width: 800px) {
+@media (min-width: 700px) {
   .application.is-embedded {
     min-height: 100dvh;
     display: flex;
@@ -38,8 +38,8 @@
     display: none;
   }
   .application.is-embedded .workbench {
-    flex: 1 1 auto;
-    grid-template-columns: minmax(278px, 0.85fr) minmax(0, 1.55fr);
+    flex: 1 0 auto;
+    grid-template-columns: minmax(252px, 0.85fr) minmax(0, 1.55fr);
     border-radius: 10px;
   }
   .application.is-embedded :is(.input-panel, .output-panel) {
@@ -53,11 +53,12 @@
   }
   .is-embedded .input-panel {
     border-right: 1px solid var(--border);
+    border-bottom: 0;
   }
   .application.is-embedded :is(.image-stage, .editor-canvas) {
-    flex: 1 1 auto;
-    min-height: 260px;
-    height: calc(100dvh - 174px);
+    flex: 1 0 260px;
+    min-height: 0;
+    height: auto;
     margin-inline: 9px;
   }
   .application.is-embedded :is(.image-meta, .smiles-output, .output-panel > [role="note"]) {
@@ -94,7 +95,26 @@
     padding: 5px 7px;
   }
 }
-@media (min-width: 800px) and (max-width: 999px) {
+@media (min-width: 700px) and (max-height: 480px) {
+  .application.is-embedded :is(.image-stage, .editor-canvas) {
+    flex-basis: 220px;
+  }
+}
+@media (700px <= width <= 820px) {
+  .application.is-embedded .editor-canvas {
+    margin-inline: 5px;
+  }
+  .application.is-embedded .editor-canvas [data-testid="top-toolbar"] {
+    padding-inline: 5px;
+  }
+  .application.is-embedded .editor-canvas [data-testid="top-toolbar"] hr {
+    margin-inline: 2px;
+  }
+  .application.is-embedded .editor-canvas [data-testid="zoom-selector"] {
+    min-width: 54px;
+  }
+}
+@media (min-width: 700px) and (max-width: 999px) {
   .is-embedded .input-panel .toolbar {
     gap: 4px;
   }
