@@ -7,8 +7,10 @@ from runpy import run_path
 
 scope = run_path(str(Path(__file__).with_name("docking-result-scope.py")))
 _WORKFLOW = ".github/workflows/case-bundle-checks.yml"
+_INSTALLATION = ".github/workflows/installation-checks.yml"
 _SCRIPT = "scripts/component-presentation-scope.py"
 _FILES = {
+    _INSTALLATION,
     _SCRIPT,
     "frontend/src/deployment/ComponentCard.tsx",
     "frontend/src/deployment/ComponentLibrary.test.tsx",
@@ -19,7 +21,8 @@ _FILES = {
     "server_tests/test_component_presentation_browser.py",
 }
 _WORKFLOW_BLOBS = ("cdf54ad96c5420fb63b046e670e105855ed79e3b", "cdf54ad96c5420fb63b046e670e105855ed79e3b")
-_SELECTOR_SHA = "b3e1cb78b7f5089435f916eff67e2471138d6dd99d305c8c097f62c5fe569b61"
+_INSTALLATION_BLOBS = ("6a8ba5d380064d0b93696709b61ed198238b0743", "96fd8880a879d15ca48e5715fa5795d3a23f1f6d")
+_SELECTOR_SHA = "69567429a39387931226c55feeeca3857035e4b6f59cbbd9e73ffb729dc46b23"
 
 
 def presentation_only(base, event, ref):
@@ -34,6 +37,8 @@ def presentation_only(base, event, ref):
         return False
     blob = scope["git_blob"]
     if (blob(base, _WORKFLOW), blob("HEAD", _WORKFLOW)) != _WORKFLOW_BLOBS:
+        return False
+    if (blob(base, _INSTALLATION), blob("HEAD", _INSTALLATION)) != _INSTALLATION_BLOBS:
         return False
     source = git("show", f"HEAD:{_SCRIPT}")
     mask = f'_SELECTOR_SHA = "{_SELECTOR_SHA}"'.encode()
