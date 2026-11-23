@@ -155,6 +155,10 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         expect(tool.locator(".utility-result-empty")).to_be_visible()
         tool.get_by_role("button", name="新建任务" if zh else "New task").click()
         expect(tool.locator(".utility-image-pad")).to_be_focused()
+        strip.get_by_role("button", name="ADMET 预测" if zh else "ADMET prediction").click()
+        properties_tab = strip.get_by_role("button", name=properties, exact=True)
+        properties_tab.click()
+        expect(properties_tab).to_be_focused()
         assert not writes and len(submissions) == 1
         assert submissions[0]["operation"] == "properties"
         assert submissions[0]["ligand_files"] == [asset_id] and not submissions[0]["smiles"]

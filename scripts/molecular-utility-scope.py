@@ -1581,7 +1581,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_utility_result_desktop.py",
 }
-UTILITY_RESULT_DESKTOP_DIFF = "2b4773be08b106d278a57c83ac74ff02b1e9be1a3c791264aabde7d8039ace9f"
+UTILITY_RESULT_DESKTOP_DIFF = "b972c5e3610fd06c6b9664bbd65485aa4ca1f310f11f540ea263e679ae039a5f"
 RESULT_HANDOFF_DESKTOP_FILES = {
     "frontend/src/App.tsx",
     "frontend/src/App.test.tsx",

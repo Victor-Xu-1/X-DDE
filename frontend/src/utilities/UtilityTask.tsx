@@ -77,11 +77,16 @@ function UtilityTaskSession({
   const zh = language === "zh";
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const inputWorkspace = useRef<HTMLDivElement>(null);
+  const focusNewInput = useRef(focusInputOnStart);
   const focusResult = useRef(false);
   useLayoutEffect(() => {
-    if (focusInputOnStart && active)
-      imageTarget?.querySelector<HTMLDivElement>(".utility-image-pad")?.focus();
-  }, [active, focusInputOnStart, imageTarget]);
+    if (!focusNewInput.current || !active) return;
+    const pad =
+      imageTarget?.querySelector<HTMLDivElement>(".utility-image-pad");
+    if (!pad) return;
+    focusNewInput.current = false;
+    pad.focus();
+  }, [active, imageTarget]);
   useLayoutEffect(() => {
     if (!active || previewing) focusResult.current = false;
     if (!matched || !focusResult.current) return;
@@ -93,6 +98,7 @@ function UtilityTaskSession({
   useLayoutEffect(() => {
     if (
       !drawing ||
+      !imageTarget ||
       !active ||
       previewing ||
       actions.action ||
@@ -101,7 +107,7 @@ function UtilityTaskSession({
       return;
     shownDrawing.current = drawing.id;
     imageTarget
-      ?.querySelector<HTMLDivElement>(
+      .querySelector<HTMLDivElement>(
         ".utility-image-pad:has(.utility-drawing-offer)",
       )
       ?.focus();
