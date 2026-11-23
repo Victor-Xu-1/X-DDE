@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Hint } from "../guided/Hint";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Language } from "../types";
@@ -36,8 +36,17 @@ export function ClusterInspector({
 }) {
   const zh = language === "zh";
   const [tab, setTab] = useState("poses");
+  const inspector = useRef<HTMLDivElement>(null);
+  function returnToPose() {
+    // The return button disappears with the overlay. The first tab stays mounted.
+    inspector.current
+      ?.querySelector<HTMLButtonElement>('[role="tablist"] > [role="tab"]')
+      ?.focus({ preventScroll: true });
+    onReturn();
+    setTab("poses");
+  }
   return (
-    <div className="cluster-analysis">
+    <div className="cluster-analysis" ref={inspector}>
       <header className="cluster-overview">
         <div className="section-heading">
           <h2>
@@ -127,10 +136,7 @@ export function ClusterInspector({
           <button
             type="button"
             className="secondary-button"
-            onClick={() => {
-              onReturn();
-              setTab("poses");
-            }}
+            onClick={returnToPose}
           >
             {zh ? "返回单个姿势" : "Return to single pose"}
           </button>

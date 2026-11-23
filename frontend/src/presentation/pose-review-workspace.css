@@ -29,6 +29,22 @@
 }
 
 @media (width > 1000px) and (height <= 720px) {
+  .studio-app
+    .detail-panel:has(.cluster-results)
+    > .task-detail-header
+    .panel-heading
+    h2 {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .studio-app
+    .cluster-results.pose-review-workspace
+    .viewer-panel:not(:popover-open)
+    > .molecular-stage {
+    height: clamp(275px, calc(100dvh - 300px), 445px);
+  }
+
   .pose-review-workspace .cluster-analysis {
     gap: 10px;
   }

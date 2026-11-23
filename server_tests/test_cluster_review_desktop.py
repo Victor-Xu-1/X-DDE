@@ -51,15 +51,18 @@ def test_compact_pose_inspector_and_linked_overlay(language, height):
             }"""
         )
         stage = root.locator(".molecular-stage iframe")
-        assert stage.evaluate(
+        bounds = stage.evaluate(
             """frame => {
               const r = frame.getBoundingClientRect();
               const rail = document.querySelector(".cluster-analysis").getBoundingClientRect();
-              return r.height >= 275 && r.top >= 0 && r.bottom <= innerHeight
-                && r.right < rail.left && r.width > rail.width;
+              return {stage: r.toJSON(), rail: rail.toJSON(), viewport: innerHeight};
             }"""
         )
         page.screenshot(path=evidence / f"{language}-poses.png")
+        scene, rail = bounds["stage"], bounds["rail"]
+        assert 275 <= scene["height"] and 0 <= scene["top"], bounds
+        assert scene["bottom"] <= bounds["viewport"], bounds
+        assert scene["right"] < rail["left"] and scene["width"] > rail["width"], bounds
 
         root.get_by_role("tab", name="配对" if zh else "Pairs", exact=True).click()
         pair = result["pairs"][0]
@@ -100,9 +103,10 @@ def test_compact_pose_inspector_and_linked_overlay(language, height):
         expect(stage).to_have_attribute("data-review-receipt", "selected-pair")
         root.get_by_role(
             "button", name="返回单个姿势" if zh else "Return to single pose", exact=True
-        ).click()
+        ).press("Enter")
         poses_tab = root.get_by_role("tab", name="姿势" if zh else "Poses", exact=True)
         expect(poses_tab).to_have_attribute("aria-selected", "true")
+        expect(poses_tab).to_be_focused()
         expect(capture).to_be_enabled(timeout=45000)
         assert before == page.request.get(base + "/api/jobs").json()
         assert not writes and not errors

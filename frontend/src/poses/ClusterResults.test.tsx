@@ -182,15 +182,11 @@ it("keeps the pair table, both matrix cells and actual overlay selection synchro
   expect(screen.getByLabelText("comparison-source")).toHaveTextContent(
     "pose-001.sdf",
   );
-  await user.click(
-    screen.getByRole("button", {
-      name: "Return to single pose",
-    }),
-  );
-  expect(screen.getByRole("tab", { name: "Poses" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  screen.getByRole("button", { name: "Return to single pose" }).focus();
+  await user.keyboard("{Enter}");
+  const posesTab = screen.getByRole("tab", { name: "Poses" });
+  expect(posesTab).toHaveAttribute("aria-selected", "true");
+  expect(posesTab).toHaveFocus();
   expect(row).toHaveAttribute("aria-pressed", "false");
   for (const cell of cells)
     expect(cell).toHaveAttribute("aria-pressed", "false");
