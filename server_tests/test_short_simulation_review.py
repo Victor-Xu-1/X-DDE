@@ -42,9 +42,9 @@ MOLECULAR_PIXELS = """async (encoded) => {
 def check_first_screen(page, root, count=1):
     scenes = root.locator(READY)
     expect(scenes).to_have_count(count, timeout=45000)
-    minimum_height = (270 if count == 1 else 240) if page.viewport_size["width"] < 1180 else (
-        330 if count == 1 else 276
-    )
+    short_width = page.viewport_size["width"] < 1180
+    minimum_single, minimum_pair = (270, 240) if short_width else (330, 276)
+    minimum_height = minimum_single if count == 1 else minimum_pair
     boxes = []
     for scene in scenes.all():
         expect(scene).to_be_in_viewport(ratio=0.99)

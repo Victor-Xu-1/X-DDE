@@ -17,8 +17,13 @@ from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 
 
-@pytest.mark.parametrize("language,width,height", [("en", 1440, 900), ("zh", 1001, 580), ("zh", 390, 775)])
-def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(language, width, height):
+@pytest.mark.parametrize(
+    ("language", "width", "height"),
+    [("en", 1440, 900), ("zh", 1001, 580), ("zh", 390, 775)],
+)
+def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(
+    language, width, height,
+):
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
     store = Store(settings.state_dir / "jobs.sqlite3")

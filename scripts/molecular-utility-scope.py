@@ -1473,7 +1473,7 @@ SIMULATION_COMPACT_DESKTOP_FILES = {
     "server_tests/test_short_simulation_review.py",
     "tests/test_molecular_utility_scope.py",
 }
-SIMULATION_COMPACT_DESKTOP_DIFF = "16bf9b6c12152895f90a3cae6dd94dd1507487ab3ae37b848cd592720a369332"
+SIMULATION_COMPACT_DESKTOP_DIFF = "7fabf3214f01ea1055ebde561dfa7a85abb8dea9a533a0df08e7fc4e5eb87493"
 SIMULATION_FOCUS_FILES = {
     ".github/workflows/simulation-view-checks.yml",
     "docs/frontend-layout.md",
