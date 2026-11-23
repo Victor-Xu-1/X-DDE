@@ -34,7 +34,7 @@ def inspect_layout(result, width, height, minimum, *, check_first_row=True):
     assert view["height"] >= minimum
     assert 0 <= view["y"] and view["y"] + view["height"] <= height + 2
     assert view["x"] + view["width"] < rail["x"]
-    bar = result.locator(".structure-workbench-toolbar")
+    bar = result.locator(".structure-workbench-toolbar:has(.candidate-review-bar)")
     if bar.count():
         switcher = bar.bounding_box()
         assert switcher and abs(switcher["x"] - rail["x"]) < 2
