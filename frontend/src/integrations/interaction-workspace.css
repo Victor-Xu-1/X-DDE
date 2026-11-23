@@ -157,6 +157,10 @@
 .protein-interface-results .research-table .mark-cell {
   padding-inline: 5px 0;
 }
+/* The short unexpanded workbench owns the interface toolbar breakpoint. */
+.protein-interface-results [data-compact-toolbar] {
+  --compact-table-tools: initial;
+}
 @media (min-width: 1001px) {
   .interface-summary .spatial-summary-metrics {
     display: grid;
@@ -205,7 +209,7 @@
     border-radius: 10px;
   }
 }
-@media (min-width: 1080px) and (max-height: 719px) {
+@media (width > 1000px) and (max-height: 719px) {
   .protein-interface-results
     .structure-workbench:not([data-workspace-expanded]) {
     grid-template-rows: auto auto;
@@ -225,7 +229,9 @@
       max-height: max(145px, calc(100dvh - 410px));
     }
   }
+}
 
+@media (min-width: 1080px) and (max-height: 719px) {
   .studio-app .protein-interface-results
     .structure-workbench:not([data-workspace-expanded])
     .viewer-panel:not(:popover-open) .molecular-stage {
@@ -259,6 +265,65 @@
     min-height: 30px;
     padding: 4px 5px;
     font-size: 11px;
+  }
+}
+
+@media (1000px < width < 1080px) and (max-height: 719px) {
+  .studio-app .protein-interface-results
+    > .structure-workbench:not([data-workspace-expanded]) {
+    > .structure-workbench-sequence {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .molecular-stage {
+      flex: none;
+    }
+
+    .research-table-scroll {
+      scrollbar-width: thin;
+    }
+
+    .research-table table {
+      table-layout: fixed;
+    }
+
+    .research-table :is(th, td):not(.mark-cell) {
+      padding-inline: 3px;
+    }
+
+    .research-table th.numeric-cell {
+      width: 60px;
+    }
+
+    .research-table th:has(.interface-contact-type) {
+      width: 72px;
+    }
+
+    .interface-residue-button {
+      max-inline-size: 100%;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      text-align: start;
+    }
+
+    .research-table .column-header-content {
+      display: grid;
+      justify-items: start;
+      gap: 2px;
+    }
+
+    .research-table .column-sort {
+      flex-direction: column;
+      align-items: start;
+      gap: 2px;
+      white-space: normal;
+    }
+
+    .interface-summary .spatial-summary-metrics {
+      display: block;
+    }
   }
 }
 

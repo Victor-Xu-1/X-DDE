@@ -1239,18 +1239,13 @@ SPATIAL_REVIEW_FILES = {
 }
 SPATIAL_REVIEW_DIFF = "26305361549127efd41c495bdf987d43bd0074f5a25a9b9772fc765b17a2bbc7"
 SHORT_STRUCTURE_REVIEW_FILES = {
-    ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/protein-interface-checks.yml",
-    "frontend/src/integrations/ProteinInterfaceResults.tsx",
+    "docs/frontend-layout.md",
+    "frontend/src/integrations/ProteinInterfaceContacts.tsx",
     "frontend/src/integrations/interaction-workspace.css",
-    "frontend/src/presentation/spatial-result-review.css",
-    "frontend/src/structure-comparison/ComparisonPreview.tsx",
-    "frontend/src/structure-comparison/ComparisonResults.tsx",
-    "frontend/src/structure-comparison/comparison-result-view.css",
-    "frontend/src/viewer/StructurePairFigure.tsx",
+    "frontend/src/presentation/spatial-result-narrow.css",
     "server_tests/test_short_protein_viewports.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "5bc1ed47dcbf217a5662df1d20cce2d5912b6f61fff4b6de58f50924fc18d46f"
+SHORT_STRUCTURE_REVIEW_DIFF = "4f9e974be728798bf7c4855ef7ff976589b86b7acf70304a4560d12baa533228"
 SHORT_PAIRED_COMPARISON_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/structure-comparison/ComparisonPreview.tsx",

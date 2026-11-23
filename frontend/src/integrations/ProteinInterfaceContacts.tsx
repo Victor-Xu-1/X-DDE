@@ -28,6 +28,7 @@ export function ProteinInterfaceContacts({
   onSelect(id: string, residue: string): void;
 }) {
   const zh = language === "zh";
+  const contactType = zh ? "作用类型" : "Interaction";
   const rows = active.interactions.map((row, index) => ({
     ...row,
     id: String(index),
@@ -65,6 +66,7 @@ export function ProteinInterfaceContacts({
   }
   return (
     <ResearchTable<ContactRow>
+      compactToolbar
       language={language}
       title={zh ? "完整界面接触" : "Complete interface contacts"}
       rows={rows}
@@ -87,12 +89,14 @@ export function ProteinInterfaceContacts({
         },
         {
           key: "type",
-          label: zh ? "作用类型" : "Interaction",
+          label: <span className="interface-contact-type">{contactType}</span>,
+          exportLabel: contactType,
           value: (row) => interactionNames[row.kind]?.[zh ? 0 : 1] ?? row.kind,
         },
         {
           key: "distance",
-          label: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
+          label: zh ? "距离（Å）" : "Distance (Å)",
+          exportLabel: zh ? "端点距离（Å）" : "Endpoint distance (Å)",
           numeric: true,
           value: (row) => row.distance,
           render: (row) => row.distance.toFixed(2),
