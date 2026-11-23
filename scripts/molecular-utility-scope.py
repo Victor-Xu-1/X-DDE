@@ -669,7 +669,7 @@ ARCHIVED_POSE_REVIEW_FILES = {
     "server_tests/test_pose_cluster_browser.py",
     "server_tests/test_publication_browser.py",
 }
-ARCHIVED_POSE_REVIEW_DIFF = "747e8abfb99ed245289526d4761ac0fdaa603e6dd24d72e89fd5d7658fc2de00"
+ARCHIVED_POSE_REVIEW_DIFF = "f15d0aba9123973863819f355af1cf4546a690a8b1ca01f8d03beee073ab2285"
 GENERATED_DESKTOP_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
