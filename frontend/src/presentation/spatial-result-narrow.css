@@ -7,6 +7,10 @@
           .is-refinement-result,
           .protein-interface-results,
           .receptor-results,
+          .admet-results,
+          .properties-results,
+          .library-screen-results,
+          .state-collection-preview,
           :where(
             :is(.reference-import-results, .prepared-structure-workspace)
               .viewer-panel
@@ -28,6 +32,10 @@
           .is-refinement-result,
           .protein-interface-results,
           .receptor-results,
+          .admet-results,
+          .properties-results,
+          .library-screen-results,
+          .state-collection-preview,
           :where(
             :is(.reference-import-results, .prepared-structure-workspace)
               .viewer-panel
@@ -45,6 +53,10 @@
         .is-refinement-result,
         .protein-interface-results,
         .receptor-results,
+        .admet-results,
+        .properties-results,
+        .library-screen-results,
+        .state-collection-preview,
         :where(
           :is(.reference-import-results, .prepared-structure-workspace)
             .viewer-panel
@@ -72,6 +84,10 @@
           .is-refinement-result,
           .protein-interface-results,
           .receptor-results,
+          .admet-results,
+          .properties-results,
+          .library-screen-results,
+          .state-collection-preview,
           :where(
             :is(.reference-import-results, .prepared-structure-workspace)
               .viewer-panel

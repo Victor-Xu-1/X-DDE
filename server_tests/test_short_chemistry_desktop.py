@@ -1,5 +1,6 @@
 """Render retained chemistry views in short and normal desktop windows."""
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -25,6 +26,18 @@ RAILS = {
     "properties": ".property-descriptors",
     "admet": ".admet-endpoint-scroll",
 }
+UTILITY_EXAMPLES = (
+    ("ADMET prediction", "ADMET 预测", "admet.predict", ".admet-results"),
+    ("Molecular properties", "分子性质", "properties", ".properties-results"),
+    (
+        "Similarity & structural alerts", "相似性与结构筛查",
+        "chemistry.screen", ".library-screen-results",
+    ),
+    (
+        "Protonation & tautomers", "质子化与互变异构",
+        "chemistry.states", ".molecular-state-results",
+    ),
+)
 
 
 def first_view(page, locator, minimum):
@@ -149,4 +162,106 @@ def test_retained_short_chemistry_results(tmp_path, monkeypatch, lang, width, he
         )
         assert page.request.get(f"{base}/api/jobs").json() == before
         (evidence / "desktop.json").write_text(json.dumps(sizes, indent=2))
+        browser.close()
+
+
+def verify_canvas_and_rail(page, root, selector, minimum):
+    bounds = first_view(page, root.locator(selector), minimum)
+    rail = root.locator(".structure-workbench-details")
+    assert bounds["width"] >= 360
+    assert bounds["x"] + bounds["width"] < rail.bounding_box()["x"]
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    return bounds
+
+
+def verify_original_conformer(page, root, native, zh):
+    ready = root.get_by_role(
+        "button", name="生成三维视图图片" if zh else "Capture 3D view", exact=True,
+    )
+    expect(ready).to_be_enabled(timeout=45000)
+    bounds = verify_canvas_and_rail(page, root, ".molecular-stage iframe", 240)
+    conformers = root.get_by_role("combobox", name="游离构象" if zh else "Free conformer")
+    chosen = conformers.select_option(index=1)[0]
+    record = next(row for row in native["conformers"] if str(row["record"]) == chosen)
+    expect(ready).to_be_enabled(timeout=45000)
+    original = root.get_by_role(
+        "button", name="下载所选原始构象 SDF" if zh else "Download selected original conformer SDF",
+    )
+    with page.expect_download() as saved:
+        original.click()
+    assert saved.value.suggested_filename == record["artifact"]
+    assert hashlib.sha256(saved.value.path().read_bytes()).hexdigest() == record["artifact_sha256"]
+    root.get_by_role("tab", name="二维结构" if zh else "2D structure", exact=True).click()
+    expect(root.locator(".molecule-image[data-drawing-state=ready] img")).to_be_visible(
+        timeout=45000,
+    )
+    drawing = verify_canvas_and_rail(page, root, ".figure-preview-sheet", 240)
+    assert abs(drawing["x"] - bounds["x"]) <= 12
+    return bounds
+
+
+@pytest.mark.parametrize("lang,width,height,theme", [
+    ("en", 1001, 600, "warm"),
+    ("zh", 1079, 680, "dark"),
+])
+def test_saved_utility_examples_fit_narrow_desktop(
+    tmp_path, monkeypatch, lang, width, height, theme,
+):
+    zh = lang == "zh"
+    monkeypatch.setenv("WB_HOME", str(tmp_path))
+    monkeypatch.setenv("WB_STATE_DIR", str(tmp_path / "state"))
+    settings = Settings.from_env()
+    restore_bundle(Path(os.environ["WB_REVIEWED_STAT6_ARCHIVE"]), settings, SHA256)
+    (settings.state_dir / "deployment.json").write_bytes(
+        Path(os.environ["WB_UTILITY_GRAPHICS"]).read_bytes()
+    )
+    evidence = Path("outputs/result-handoffs-desktop") / f"utility-{lang}-{width}"
+    evidence.mkdir(parents=True, exist_ok=True)
+    with (
+        platform(settings.state_dir, evidence / "server.log") as base,
+        sync_playwright() as driver,
+    ):
+        browser = launch_review_browser(driver)
+        page = browser.new_page(viewport={"width": width, "height": height})
+        page.add_init_script(
+            f"localStorage.setItem('opendde-workbench.language', '{lang}');"
+            f"localStorage.setItem('x-dde-theme', '{theme}');"
+        )
+        blocked = []
+
+        def read_only(route):
+            if route.request.method in {"GET", "HEAD", "OPTIONS"}:
+                route.continue_()
+            else:
+                blocked.append(route.request.url)
+                route.abort()
+
+        page.route("**/api/**", read_only)
+        before = page.request.get(f"{base}/api/jobs").json()
+        page.goto(f"{base}/#view=utilities")
+        for en, cn, capability, selector in UTILITY_EXAMPLES:
+            tabs = page.locator(".utility-tabs")
+            tabs.get_by_role("button", name=cn if zh else en, exact=True).click()
+            panel = page.locator(".utility-panel:not([hidden])")
+            start = panel.get_by_role("button", name="示例结果" if zh else "Example results")
+            start.click()
+            preview = panel.locator(".module-example-result")
+            root = preview.locator(selector)
+            if capability == "chemistry.states":
+                pin = page.request.get(f"{base}/api/examples/{capability}?profile=stat6").json()
+                native = page.request.get(f"{base}/api/jobs/{pin['pin']['job_id']}/result").json()
+                verify_original_conformer(page, root, native, zh)
+            else:
+                expect(root.locator(".molecule-image[data-drawing-state=ready] img")).to_be_visible(
+                    timeout=45000,
+                )
+                verify_canvas_and_rail(page, root, ".figure-preview-sheet", 216)
+            page.screenshot(path=evidence / f"{capability}.png")
+            panel.get_by_role(
+                "button", name="返回任务填写" if zh else "Return to task form",
+            ).click()
+            expect(start).to_be_focused()
+            expect(panel.locator(".utility-source-pane")).to_be_visible()
+        assert not blocked
+        assert page.request.get(f"{base}/api/jobs").json() == before
         browser.close()
