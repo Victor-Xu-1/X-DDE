@@ -1184,3 +1184,12 @@ uses the existing recognition and structure review flow. Alternate inputs,
 settings and template actions stay below the workspace. Narrow result panes
 stack the structure and measurements. Changing the native request clears
 the displayed result until the current input has a corresponding result.
+
+## Short desktop chemistry inspection
+
+Between 1000 and 1080 CSS pixels wide and below 720 pixels tall, saved property
+and ADMET results, library selections, and molecular-state examples use a
+compact heading and comparable left-preview/right-data proportions. State
+and conformer selection stay adjacent to the native scene, and the right
+rail retains units, sorting and exports. The 2D drawing and the rendered
+native 3D scene use the same left-hand position.
