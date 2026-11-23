@@ -1178,12 +1178,14 @@ handoff use the original retained artifacts.
 ## Screenshot-first utility workspaces
 
 ADMET, brain penetration, molecular properties, structural screening and
-protonation keep the image input on the left and the current result on the
-right, with the tool's run action in the result pane. Image import still
-uses the existing recognition and structure review flow. Alternate inputs,
-settings and template actions stay below the workspace. Narrow result panes
-stack the structure and measurements. Changing the native request clears
-the displayed result until the current input has a corresponding result.
+protonation use one workspace with image input on the left and the current
+result and run action on the right. The left pane continues with the tool's
+text or file inputs and optional settings below the image. On desktop each
+pane scrolls independently so editing inputs keeps the result in view.
+Image import uses the existing recognition and structure review flow.
+Template actions remain below the workspace, and narrow result panes stack
+the structure and measurements. Changing the request clears the displayed
+result until the current input has a corresponding result.
 
 ## Short desktop chemistry inspection
 

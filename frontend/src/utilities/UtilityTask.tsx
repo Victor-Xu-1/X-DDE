@@ -138,6 +138,75 @@ function UtilityTaskSession({
         >
           <h2>{zh ? "图片输入" : "Image input"}</h2>
           <div ref={setImageTarget} className="utility-image-sources" />
+          <div
+            ref={inputWorkspace}
+            className="utility-task-form"
+            tabIndex={-1}
+            role="region"
+            aria-label={zh ? "任务输入" : "Task inputs"}
+          >
+            <h2>{zh ? "其他输入与设置" : "Other inputs and settings"}</h2>
+            {completed && !matched && !example && (
+              <div className="utility-toolbar">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={actions.action === "submission"}
+                  onClick={() => {
+                    if (!actions.isLocked("submission")) onReset();
+                  }}
+                >
+                  {zh ? "新建任务" : "New task"}
+                </button>
+              </div>
+            )}
+            <fieldset
+              className="utility-task-fields"
+              disabled={Boolean(actions.action)}
+            >
+              <legend className="sr-only">
+                {language === "zh"
+                  ? "任务材料与设置"
+                  : "Task inputs and settings"}
+              </legend>
+              <ExampleContext.Provider
+                key={revision}
+                value={
+                  example?.module.capability_id === capability ? example : null
+                }
+              >
+                <TaskPresentationContext.Provider
+                  value={{
+                    layout: "single",
+                    active: active && !previewing,
+                    imageEntry: "workspace",
+                    imageTarget,
+                    submitTarget,
+                    submitLocked: Boolean(actions.action),
+                    onMatchingResult: setMatched,
+                  }}
+                >
+                  <UtilityDrawingContext.Provider
+                    value={
+                      drawing && onDrawingHandled
+                        ? { ...drawing, dismiss: onDrawingHandled }
+                        : null
+                    }
+                  >
+                    <Form
+                      language={language}
+                      {...(tool === "brain" ? { focus: "brain" as const } : {})}
+                      onCreated={(job) => {
+                        setCompleted(true);
+                        focusResult.current = active;
+                        onCreated(job);
+                      }}
+                    />
+                  </UtilityDrawingContext.Provider>
+                </TaskPresentationContext.Provider>
+              </ExampleContext.Provider>
+            </fieldset>
+          </div>
         </section>
         <div className="utility-result-pane">
           <div className="utility-result-scroll">
@@ -187,74 +256,6 @@ function UtilityTaskSession({
           onBusyChange={exampleBusy}
         />
       </fieldset>
-      <div
-        ref={inputWorkspace}
-        className="utility-task-form"
-        hidden={previewing}
-        tabIndex={-1}
-        role="region"
-        aria-label={zh ? "任务输入" : "Task inputs"}
-      >
-        <h2>{zh ? "其他输入与设置" : "Other inputs and settings"}</h2>
-        {completed && !matched && !example && (
-          <div className="utility-toolbar">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={actions.action === "submission"}
-              onClick={() => {
-                if (!actions.isLocked("submission")) onReset();
-              }}
-            >
-              {zh ? "新建任务" : "New task"}
-            </button>
-          </div>
-        )}
-        <fieldset
-          className="utility-task-fields"
-          disabled={Boolean(actions.action)}
-        >
-          <legend className="sr-only">
-            {language === "zh" ? "任务材料与设置" : "Task inputs and settings"}
-          </legend>
-          <ExampleContext.Provider
-            key={revision}
-            value={
-              example?.module.capability_id === capability ? example : null
-            }
-          >
-            <TaskPresentationContext.Provider
-              value={{
-                layout: "single",
-                active: active && !previewing,
-                imageEntry: "workspace",
-                imageTarget,
-                submitTarget,
-                submitLocked: Boolean(actions.action),
-                onMatchingResult: setMatched,
-              }}
-            >
-              <UtilityDrawingContext.Provider
-                value={
-                  drawing && onDrawingHandled
-                    ? { ...drawing, dismiss: onDrawingHandled }
-                    : null
-                }
-              >
-                <Form
-                  language={language}
-                  {...(tool === "brain" ? { focus: "brain" as const } : {})}
-                  onCreated={(job) => {
-                    setCompleted(true);
-                    focusResult.current = active;
-                    onCreated(job);
-                  }}
-                />
-              </UtilityDrawingContext.Provider>
-            </TaskPresentationContext.Provider>
-          </ExampleContext.Provider>
-        </fieldset>
-      </div>
     </section>
   );
 }

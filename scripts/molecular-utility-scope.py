@@ -1566,22 +1566,14 @@ ALIGNED_COMPARISON_FILES = {
 }
 ALIGNED_COMPARISON_DIFF = "30709bb86b677931b8da5c0b16cf5ae6f2d4f166bc75cb947aa3a3e5fef93a63"
 UTILITY_RESULT_DESKTOP_FILES = {
-    ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
-    "frontend/src/guided/Questionnaire.tsx",
-    "frontend/src/guided/TaskPresentation.tsx",
-    "frontend/src/utilities/ImageMoleculeInput.tsx",
-    "frontend/src/utilities/RecognitionBackendEntry.tsx",
-    "frontend/src/utilities/UtilityImageInput.tsx",
-    "frontend/src/utilities/UtilityImagePad.tsx",
-    "frontend/src/utilities/UtilityImageTask.test.tsx",
     "frontend/src/utilities/UtilitySinglePage.test.tsx",
     "frontend/src/utilities/UtilityTask.tsx",
     "frontend/src/utilities/utility-review-workspace.css",
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_utility_result_desktop.py",
 }
-UTILITY_RESULT_DESKTOP_DIFF = "b972c5e3610fd06c6b9664bbd65485aa4ca1f310f11f540ea263e679ae039a5f"
+UTILITY_RESULT_DESKTOP_DIFF = "d565ca24390290adf58e83c43da5b7538df40f71c89f5245143a60eef2489687"
 RESULT_HANDOFF_DESKTOP_FILES = {
     "frontend/src/App.tsx",
     "frontend/src/App.test.tsx",
