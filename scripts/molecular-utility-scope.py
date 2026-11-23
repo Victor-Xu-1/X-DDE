@@ -1237,7 +1237,7 @@ SPATIAL_REVIEW_FILES = {
     "frontend/src/presentation/spatial-result-review.css",
     "server_tests/test_spatial_canvas_review_browser.py",
 }
-SPATIAL_REVIEW_DIFF = "073a6d198cf1a329a3c3c42de588c6cffb7efae33329a048a9c109dc36f9dec3"
+SPATIAL_REVIEW_DIFF = "1567a8708becee619da9a72470a4d51164200dfaf4709a260678b976eff91f1b"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",

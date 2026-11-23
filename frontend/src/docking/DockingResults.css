@@ -14,7 +14,7 @@
   white-space: nowrap;
 }
 
-@media (min-width: 1080px) {
+@media (width > 1000px) {
   .docking-results .structure-workbench-view .viewer-panel,
   .docking-results .structure-workbench-view .viewer-panel .molecular-stage {
     border-radius: 10px;
