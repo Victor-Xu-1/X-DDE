@@ -14,8 +14,14 @@ from server_tests.test_short_protein_viewports import canvas_in_workspace, ready
 
 CASES = (
     ("discovery.import", ".reference-import-results", "artifact", ".reference-import-actions"),
-    ("biopython.prepare", ".prepared-structure-workspace", "artifact", ".prepared-structure-actions"),
-    ("diffsbdd.prepare", ".prepared-structure-workspace", "structure", ".prepared-structure-actions"),
+    (
+        "biopython.prepare", ".prepared-structure-workspace", "artifact",
+        ".prepared-structure-actions",
+    ),
+    (
+        "diffsbdd.prepare", ".prepared-structure-workspace", "structure",
+        ".prepared-structure-actions",
+    ),
 )
 
 
