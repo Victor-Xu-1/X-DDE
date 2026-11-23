@@ -25,15 +25,16 @@ def ready(result, zh):
     expect(capture).to_be_enabled(timeout=45000)
 
 
-def inspect_layout(result, height, minimum):
+def inspect_layout(result, width, height, minimum, *, check_first_row=True):
     scene = result.locator(".structure-workbench-view .molecular-stage iframe")
     view = scene.bounding_box()
     rail = result.locator(".structure-workbench-details").bounding_box()
     assert view and rail
-    assert view["width"] >= 430 and view["height"] >= minimum
+    assert view["width"] >= (350 if width < 1080 else 430)
+    assert view["height"] >= minimum
     assert 0 <= view["y"] and view["y"] + view["height"] <= height + 2
     assert view["x"] + view["width"] < rail["x"]
-    bar = result.locator(".structure-workbench-toolbar")
+    bar = result.locator(".structure-workbench-toolbar:has(.candidate-review-bar)")
     if bar.count():
         switcher = bar.bounding_box()
         assert switcher and abs(switcher["x"] - rail["x"]) < 2
@@ -42,7 +43,11 @@ def inspect_layout(result, height, minimum):
     if table.count():
         toolbar = table.locator(".research-table-toolbar").bounding_box()
         assert toolbar and toolbar["height"] < 65
-        expect(table.locator("tbody tr").first).to_be_in_viewport()
+        assert table.locator(".research-table-scroll").evaluate(
+            "el => el.scrollWidth <= el.clientWidth + 1"
+        )
+        if check_first_row:
+            expect(table.locator("tbody tr").first).to_be_in_viewport()
     return view
 
 
@@ -63,11 +68,15 @@ def next_candidate(result, zh):
     button.click()
 
 
-def review_docking(page, result, zh):
+def review_docking(page, result, zh, native):
     next_candidate(result, zh)
     chosen = result.get_by_role("button", name="预览姿势 2" if zh else "Preview pose 2")
     expect(chosen).to_have_attribute("aria-pressed", "true")
     ready(result, zh)
+    pose = next(entry for entry in native["poses"] if entry["record"] == 1)
+    summary = result.locator(".docking-pose-summary")
+    for score in pose["scores"]:
+        expect(summary).to_contain_text(f"{score['value']:.3f}")
     preview = result.locator(".molecular-preview")
     tabs = preview.get_by_role("tablist")
     frame = preview.locator(".molecular-stage iframe").element_handle()
@@ -76,10 +85,22 @@ def review_docking(page, result, zh):
     tabs.get_by_role("tab", name="三维结构" if zh else "3D structure").click()
     assert frame.evaluate("el => el.isConnected")
     ready(result, zh)
+    if page.viewport_size["width"] < 1080:
+        expand = result.locator("[data-workspace-expand]").first
+        expand.press("Enter")
+        workspace = result.locator(".structure-workbench")
+        expect(workspace).to_have_attribute("data-workspace-expanded", "true")
+        expect(workspace.locator(".pose-result-interpretation > summary")).to_have_css(
+            "padding-block-start", "8px",
+        )
+        page.keyboard.press("Escape")
+        expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+        expect(expand).to_be_focused()
+        assert frame.evaluate("el => el.isConnected")
     artifact = verify_download(page, result.get_by_role(
         "link", name="下载所选姿势 SDF" if zh else "Download selected pose SDF",
     ))
-    assert artifact == "pose-002.sdf"
+    assert artifact == pose["artifact"] == "pose-002.sdf"
     review_docking_comparison(result, zh)
 
 
@@ -91,9 +112,9 @@ def review_docking_comparison(result, zh):
     result.get_by_role("button", name=label, exact=True).click()
     comparison = result.locator(".pose-comparison")
     ready(comparison, zh)
-    # The wider viewport uses the existing 1180 px comparison stage layout.
+    # The paired inspection keeps its existing 1180 px canvas breakpoint.
     expect(comparison.locator(".molecular-stage")).to_have_css(
-        "height", "365px" if zh else "520px",
+        "height", "365px" if result.page.viewport_size["width"] >= 1180 else "520px",
     )
     close = "返回单个姿势" if zh else "Return to single pose"
     comparison.get_by_role("button", name=close, exact=True).click()
@@ -166,7 +187,50 @@ def review_potential(page, result, zh, evidence):
         inspect_png(png)
 
 
+def review_example(page, base, capability, selector, zh, viewport, minimum, evidence):
+    page.goto(f"{base}/?inspection=example#view=new&tool={capability}")
+    page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
+    template = page.locator(".module-template.is-preview")
+    result = template.locator(selector)
+    ready(result, zh)
+    width, height = viewport
+    canvas = inspect_layout(result, width, height, minimum, check_first_row=False)
+    page.screenshot(path=evidence / f"{capability}-example.png")
+    if capability == "gnina.dock":
+        review_example_stages(template, result, zh, height)
+    label = "返回任务填写" if zh else "Return to task form"
+    template.get_by_role("button", name=label, exact=True).click()
+    expect(template).to_have_count(0)
+    return canvas
+
+
+def review_example_stages(template, docking, zh, height):
+    stage = template.get_by_role(
+        "combobox", name="研究阶段结果" if zh else "Study result stage", exact=True,
+    )
+    primary = stage.input_value()
+    frame = docking.locator(".molecular-stage iframe").element_handle()
+    advance = template.get_by_role(
+        "button", name="下一个研究阶段" if zh else "Next study stage", exact=True,
+    )
+    advance.press("Enter")
+    quality = template.locator(".quality-results.spatial-review")
+    ready(quality, zh)
+    expect(docking).to_be_hidden()
+    expect(advance).to_be_focused()
+    expect(stage).not_to_have_value(primary)
+    inspect_layout(
+        quality, template.page.viewport_size["width"], height, 250, check_first_row=False,
+    )
+    stage.select_option(primary)
+    ready(docking, zh)
+    expect(quality).to_have_count(0)
+    expect(stage).to_have_value(primary)
+    assert frame.evaluate("node => node.isConnected")
+
+
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1001, 600), ("zh", "dark", 1001, 580),
     ("en", "warm", 1120, 650), ("zh", "dark", 1280, 700),
 ])
 def test_spatial_canvas_review(language, theme, width, height):
@@ -192,21 +256,35 @@ def test_spatial_canvas_review(language, theme, width, height):
         power = page.request.get(power_url).json()
         observed = {}
         for capability, selector in CASES:
-            open_result(page, base, capability)
+            job = open_result(page, base, capability)
             result = page.locator(".detail-panel " + selector)
             ready(result, zh)
-            minimum = 370 if capability == "gnina.dock" else 400
-            observed[capability] = inspect_layout(result, height, minimum)
+            docking = capability == "gnina.dock"
+            minimum = 370 if docking else 400
+            if width < 1080:
+                minimum = 250 if docking else 285
+            observed[capability] = inspect_layout(result, width, height, minimum)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=evidence / f"{capability}.png")
-            if capability == "gnina.dock":
-                review_docking(page, result, zh)
+            if docking:
+                response = page.request.get(f"{base}/api/jobs/{job}/result")
+                assert response.ok
+                review_docking(page, result, zh, response.json())
             if capability == "p2rank.detect":
                 review_pocket(result, zh)
             if capability == "biopython.exposure":
                 review_surface(page, result, zh)
             if capability == "apbs.potential":
                 review_potential(page, result, zh, evidence)
+            if width < 1080:
+                observed[capability + ".example"] = review_example(
+                    page, base, capability, selector, zh, (width, height), minimum, evidence,
+                )
+        if width < 1080:
+            open_result(page, base, "plip.profile")
+            contacts = page.locator(".plip-result-workspace")
+            ready(contacts, zh)
+            expect(contacts.locator(".molecular-stage")).to_have_css("height", "260px")
         assert not writes and page.request.get(power_url).json() == power
         (evidence / "layout.json").write_text(json.dumps(observed, indent=2), encoding="utf-8")
         browser.close()

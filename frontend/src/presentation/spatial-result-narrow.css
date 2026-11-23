@@ -2,10 +2,8 @@
   .studio-app
     .studio-main:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(
-          .channel-results,
-          .quality-results.spatial-review,
-          .is-refinement-result
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
         )
     )
     > .studio-topbar {
@@ -18,10 +16,8 @@
   .studio-app
     .studio-content:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(
-          .channel-results,
-          .quality-results.spatial-review,
-          .is-refinement-result
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
         )
     ) {
     padding-block-start: 10px;
@@ -30,10 +26,8 @@
   .studio-app
     .task-result-content
     > .detail-panel:has(
-      :is(
-        .channel-results,
-        .quality-results.spatial-review,
-        .is-refinement-result
+      :is(.spatial-review, .is-refinement-result):not(
+        :where(.plip-result-workspace, [hidden], [hidden] *)
       )
     ) {
     padding: 12px 14px 16px;
@@ -52,10 +46,8 @@
   .studio-app
     .module-template.is-preview:has(
       .module-example-result
-        :is(
-          .channel-results,
-          .quality-results.spatial-review,
-          .is-refinement-result
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
         )
     ) {
     margin-block: 4px 8px;
@@ -73,13 +65,46 @@
       min-height: 32px;
       padding-block: 4px;
     }
+
+    > .module-example-result {
+      padding-block-start: 6px;
+    }
+
+    .pocket-result-workspace {
+      --narrow-spatial-reserve: 294px;
+    }
+
+    .example-review-highlight {
+      margin-block-end: 6px;
+      padding: 4px 8px;
+    }
+
+    > .module-example-result:has(> .example-stage-navigation) {
+      display: flex;
+      flex-direction: column;
+
+      > .example-stage-navigation {
+        margin-block: 2px 6px;
+      }
+
+      > .example-review-highlight {
+        order: 1;
+        margin-block: 8px 0;
+      }
+
+      > .example-result-review {
+        order: 2;
+      }
+
+      :is(.docking-results, .quality-results.spatial-review) {
+        --narrow-spatial-reserve: 330px;
+      }
+    }
   }
 
   .studio-app
-    :is(
-      .channel-results,
-      .quality-results.spatial-review,
-      .scientific-results.is-refinement-result
+    :is(.spatial-review, .scientific-results.is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
     )
     > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
     grid-template-columns: minmax(0, 1fr) minmax(288px, 39%);
@@ -91,14 +116,12 @@
   }
 
   .studio-app
-    :is(
-      .channel-results,
-      .quality-results.spatial-review,
-      .is-refinement-result
+    :is(.spatial-review, .is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
     )
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
-    .viewer-panel:not(:popover-open) {
+    .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel) {
     --compact-viewer-tools: enabled;
     padding: 0;
 
@@ -128,13 +151,53 @@
     --narrow-spatial-reserve: 322px;
   }
 
+  .docking-results {
+    --narrow-spatial-reserve: 318px;
+  }
+
   .studio-app
-    :is(
-      .channel-results,
-      .quality-results.spatial-review,
-      .is-refinement-result
+    :is(.docking-results, .pocket-result-workspace)
+    > .structure-workbench:not([data-workspace-expanded])
+    .candidate-review-bar {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0 0 6px;
+
+    .candidate-review-selector {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 6px;
+    }
+
+    nav button {
+      min-width: 30px;
+      min-height: 32px;
+    }
+  }
+
+  .studio-app
+    :is(.spatial-review, .is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
     )
     > .structure-workbench:not([data-workspace-expanded]) {
+    [data-compact-toolbar] {
+      --compact-table-tools: enabled;
+    }
+
+    .pocket-candidates .research-table :is(th, td) {
+      padding-inline: 4px;
+    }
+
+    .pocket-candidates .column-sort {
+      gap: 4px;
+    }
+
+    .docking-result-details .numeric-cell .evidence-description {
+      white-space: normal;
+    }
+
     :is(.spatial-result-summary, .refinement-summary) {
       gap: 7px;
       padding: 0 0 10px;
