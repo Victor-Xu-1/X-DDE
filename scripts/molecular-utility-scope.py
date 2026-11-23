@@ -1309,7 +1309,7 @@ HISTORY_DESKTOP_FILES = {
     "frontend/src/studio/task-history.css",
     "server_tests/test_task_history_browser.py",
 }
-HISTORY_DESKTOP_DIFF = "4b800df7e2afcf377d76acfd274dc4efc78a85d1649723e6a9daf8d4ecdfe6b9"
+HISTORY_DESKTOP_DIFF = "3fda91c7e27d2867f2602a18eea2fd04a6471564dc255e65d2331f0f976b167b"
 CANDIDATE_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",

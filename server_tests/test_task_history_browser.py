@@ -118,9 +118,16 @@ def test_desktop_task_list_keeps_pager_and_scroll_context(language, width, heigh
         top = header.bounding_box()["y"]
         region.focus()
         page.keyboard.press("PageDown")
-        page.wait_for_function(
-            "document.querySelector('.task-history-table-wrap').scrollTop > 10",
-        )
+        # Observe the native keyboard scroll without Playwright's eval-based polling.
+        assert region.evaluate("""node => new Promise(resolve => {
+          const deadline = performance.now() + 3000;
+          function check() {
+            if (node.scrollTop > 10) resolve(true);
+            else if (performance.now() >= deadline) resolve(false);
+            else requestAnimationFrame(check);
+          }
+          check();
+        })""")
         assert header.bounding_box()["y"] == pytest.approx(top, abs=2)
         expect(next_page).to_be_in_viewport(ratio=0.99)
 
