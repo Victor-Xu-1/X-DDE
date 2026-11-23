@@ -1,5 +1,6 @@
 import {
-  alleneHandoffSmiles, directionalRingStereoBonds, ringStereoEntries, writeRingStereo,
+  alleneHandoffSmiles, directionalCarbonPhosphorusBonds, directionalRingStereoBonds,
+  ringStereoEntries, writeRingStereo,
 } from "./portable-smiles-ring-stereo";
 
 type StructureReader = {
@@ -22,7 +23,7 @@ export type RecognitionResult = {
 export type RecognizedSourceExport = {
   text: string;
   molfile: string;
-  sourceOnly?: "allene" | "unverified-stereo";
+  sourceOnly?: "allene" | "directional" | "unverified-stereo";
 };
 
 export class SmilesHandoffError extends Error {}
@@ -37,7 +38,7 @@ function isPortableLine(value: string) {
 }
 
 /** Keep export on the recognized source when the drawing cannot retain its stereo. */
-export function recognizedStereoSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
+export function recognizedStereoSource({ rawSmiles, smiles, molfile }: RecognitionResult): RecognizedSourceExport | null {
   const raw = rawSmiles?.trim();
   if (!raw) return null;
   const [molecule, annotation] = raw.split("|", 2);
@@ -45,11 +46,23 @@ export function recognizedStereoSource({ rawSmiles }: RecognitionResult): Recogn
       /(?:^|,)\^[1-7]:/.test(annotation ?? ""))
     return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
   const body = molecule.split(/\s/, 1)[0];
+  const directional = directionalCarbonPhosphorusBonds(body);
+  const normalizedDirectional = directionalCarbonPhosphorusBonds(smiles);
+  const planarSource = () => raw.length <= 100_000 && stereoSmiles(raw)?.stereo === "";
+  // InChIKey can equate both C=P isomers and the unspecified structure.
+  // Verify that normalization retained the directional bonds before choosing
+  // the source-only representation, including molecules with allene stereo.
+  if ((directional || normalizedDirectional) &&
+      (directional !== normalizedDirectional || body.includes("%(") || !planarSource() ||
+       !isPortableLine(smiles) || hasRelativeStereo(molfile) || hasMolRadical(molfile)))
+    return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
+
   const axial = alleneHandoffSmiles(body);
-  if (axial === false) return null;
+  if (axial === false)
+    return directional ? { text: body, molfile: "", sourceOnly: "directional" } : null;
   // In the source-only path the line carries the stereo. Remove a suffix only
   // when it consists entirely of planar display coordinates.
-  const portable = axial && raw.length <= 100_000 && stereoSmiles(raw)?.stereo === "";
+  const portable = axial && planarSource();
   return {
     text: portable ? axial : "",
     molfile: "",

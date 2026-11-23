@@ -369,6 +369,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "INLINE_MODULE_POWER_FILES",
         "PRINT_LABEL_FILES",
         "UTILITY_DESKTOP_FILES",
+        "PORTABLE_SMILES_FILES",
         "PROXIMITY_PAIR_FILES",
     ],
 )

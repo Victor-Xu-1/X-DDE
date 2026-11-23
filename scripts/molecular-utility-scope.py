@@ -647,12 +647,13 @@ EDITOR_DRAWING_FILES = {
 EDITOR_DRAWING_DIFF = "1dd7db67ba84ae1c82d410769695ad89dd13e3b61c4292bbf471fe3dfdb780f4"
 PORTABLE_SMILES_FILES = {
     "docs/recognition-locale.md",
+    "frontend/src/editors/portable-smiles-ring-stereo.ts",
     "frontend/src/editors/portable-smiles.test.ts",
     "frontend/src/editors/portable-smiles.ts",
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "tests/test_molecular_utility_scope.py",
 }
-PORTABLE_SMILES_DIFF = "7fe2aaaa8285b84feb2056855160f5026965415f3a7358d70d2d5ba13cf35db7"
+PORTABLE_SMILES_DIFF = "d59bab2b01365e5b5772d36e5e6356ee79cd08bc736b362aea0a77384798d3cb"
 ARCHIVED_POSE_REVIEW_FILES = {
     ".github/workflows/ligand-energy-scope.yml",
     ".github/workflows/molecular-utility-checks.yml",
