@@ -1146,3 +1146,13 @@ instead of leaving a small 420px-tall chart centered in a broad confidence panel
 Regular and narrow sizing remain bounded as before. Wide native confidence retains
 linked selection and zoom; the matrix stays square and uses at least 65% of its
 ordinary right pane width while keeping axes and color legend visible.
+
+## Short desktop pocket and surface review
+
+Between 1000 and 1080 CSS pixels wide and below 720 pixels tall, pocket detection
+and docking place the candidate switcher over the right rail. Surface exposure
+and electrostatic potential use the same short spatial workspace. Compact table
+tools keep filters and exports together below the native measurements. In-module
+examples retain the key finding. In multi-stage examples the stage switcher
+precedes the workspace and the key finding follows the current result. Expanded
+workspaces and the paired pose view keep their existing controls.

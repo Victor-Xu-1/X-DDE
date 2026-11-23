@@ -1,7 +1,29 @@
 @import "./spatial-result-narrow.css";
 
+@media (width > 1000px) and (max-height: 719px) {
+  .studio-app .spatial-review
+    > .structure-workbench:not([data-workspace-expanded]) {
+    .pocket-next-actions > button {
+      min-height: 34px;
+      padding: 4px 8px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    [data-compact-toolbar] .result-search {
+      gap: 5px;
+      padding-inline: 6px;
+    }
+
+    [data-compact-toolbar] .result-search input[type="search"] {
+      min-height: 32px;
+      padding: 5px 6px;
+    }
+  }
+}
+
 /* Keep the candidate switcher beside its scene throughout the desktop layout. */
-@media (min-width: 1080px) {
+@media (min-width: 1080px), (1000px < width < 1080px) and (max-height: 719px) {
   :is(.docking-results, .pocket-result-workspace)
     > .structure-workbench:not([data-workspace-expanded]):has(
       > .structure-workbench-toolbar
@@ -208,13 +230,6 @@
     min-height: 32px;
   }
 
-  .studio-app .spatial-review .pocket-next-actions > button {
-    min-height: 34px;
-    padding: 4px 8px;
-    font-size: 12px;
-    text-align: center;
-  }
-
   .spatial-review .spatial-result-summary {
     gap: 7px;
     padding: 0 0 10px;
@@ -225,16 +240,6 @@
 
   .spatial-review .spatial-summary-metrics > div {
     padding-block: 5px;
-  }
-
-  .studio-app .spatial-review [data-compact-toolbar] .result-search {
-    gap: 5px;
-    padding-inline: 6px;
-  }
-
-  .studio-app .spatial-review [data-compact-toolbar] .result-search input[type="search"] {
-    min-height: 32px;
-    padding: 5px 6px;
   }
 
   @container spatial-canvas (min-width: 420px) {
