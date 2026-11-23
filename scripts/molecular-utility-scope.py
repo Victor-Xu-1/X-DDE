@@ -653,7 +653,7 @@ PORTABLE_SMILES_FILES = {
     "src/opendde_workbench/data/recognition_locale/patch.json",
     "tests/test_molecular_utility_scope.py",
 }
-PORTABLE_SMILES_DIFF = "89e4252fc7e397377ed8b5c6efb5d829ae2afb94451c040f65eb233ac9d6b381"
+PORTABLE_SMILES_DIFF = "df43f7fe0ac7451b25d60f27f45441204189506b0fdb79daf41bad443f1fef97"
 ARCHIVED_POSE_REVIEW_FILES = {
     ".github/workflows/ligand-energy-scope.yml",
     ".github/workflows/molecular-utility-checks.yml",
