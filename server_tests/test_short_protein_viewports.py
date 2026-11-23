@@ -1,5 +1,6 @@
 """Exercise the three structure workspaces at short desktop heights."""
 
+import csv
 import hashlib
 import json
 import struct
@@ -34,17 +35,75 @@ def ready(result, zh):
 
 
 def inspect_interface(page, base, height, zh, evidence):
-    open_result(page, base, "structure")
+    job = open_result(page, base, "structure")
+    narrow = page.viewport_size["width"] < 1080
     result = page.locator(".detail-panel .protein-interface-results")
     scene = ready(result, zh)
-    box = canvas_in_workspace(result, scene, height, 350, 455)
+    box = canvas_in_workspace(
+        result, scene, height, 290 if narrow else 350, 350 if narrow else 455,
+    )
     contact = result.locator(".interface-residue-button:enabled").first
     expect(contact).to_be_in_viewport()
     contact.click()
     expect(contact).to_have_attribute("aria-pressed", "true")
     expect(result.locator(".interface-summary")).to_be_in_viewport()
     page.screenshot(path=evidence / "protein-interface.png")
+    if narrow:
+        verify_interface_table(page, result, scene, zh)
+        native = page.request.get(f"{base}/api/jobs/{job}/result").json()
+        assert len(native["protein_interfaces"][0]["interactions"]) == 54
+        for link in result.locator(".spatial-summary-downloads a[download]").all():
+            with page.expect_download() as transfer:
+                link.click()
+            artifact = transfer.value
+            contents = Path(artifact.path()).read_bytes()
+            assert hashlib.sha256(contents).hexdigest() == (
+                native["artifact_sha256"][artifact.suggested_filename]
+            )
+        if not zh:
+            trigger = result.locator(".viewer-panel .figure-export-trigger")
+            inspect_png(export_figure(page, trigger, evidence, "interface-figure", "en"))
+        inspect_example(page, base, "structure", ".protein-interface-results", height, zh, evidence)
     return box
+
+
+def verify_interface_table(page, result, scene, zh):
+    table = result.locator(".research-table-scroll")
+    assert table.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+    numeric = table.locator("th.numeric-cell")
+    expect(numeric).to_contain_text("距离（Å）" if zh else "Distance (Å)")
+    expect(numeric).to_be_in_viewport()
+    result.get_by_role("searchbox").fill("A:PTR641")
+    row = table.locator("tbody tr").filter(has_text="B:ARG562").first
+    frame = scene.element_handle()
+    selection = result.get_by_role(
+        "group", name="当前结构选择" if zh else "Current structure selection",
+    )
+    for label in ("B:ARG562", "A:PTR641"):
+        endpoint = row.get_by_role("button").filter(has_text=label)
+        endpoint.press("Enter")
+        expect(selection.get_by_text(label, exact=True)).to_be_visible()
+        expect(endpoint).to_have_attribute("aria-pressed", "true")
+    export = result.get_by_role("button", name="导出筛选结果" if zh else "Export filtered rows")
+    with page.expect_download() as transfer:
+        export.press("Enter")
+    with Path(transfer.value.path()).open(encoding="utf-8-sig", newline="") as handle:
+        records = list(csv.DictReader(handle))
+    distance = "端点距离（Å）" if zh else "Endpoint distance (Å)"
+    assert records and all(distance in record for record in records)
+    assert frame.evaluate("node => node.isConnected")
+
+
+def inspect_example(page, base, capability, selector, height, zh, evidence):
+    page.goto(f"{base}/?view=protein-example#view=new&tool={capability}")
+    page.get_by_role("button", name="示例结果" if zh else "Example results", exact=True).click()
+    template = page.locator(".module-template.is-preview")
+    result = template.locator(selector)
+    canvas_in_workspace(result, ready(result, zh), height, 285, 350)
+    page.screenshot(path=evidence / f"{capability}-example.png")
+    label = "返回任务填写" if zh else "Return to task form"
+    template.get_by_role("button", name=label, exact=True).click()
+    expect(template).to_have_count(0)
 
 
 def inspect_comparison(page, base, height, zh, evidence):
@@ -139,10 +198,13 @@ def inspect_comparison(page, base, height, zh, evidence):
 
 
 def inspect_receptors(page, base, height, zh, evidence):
-    open_result(page, base, "biopython.ensemble")
+    job = open_result(page, base, "biopython.ensemble")
+    narrow = page.viewport_size["width"] < 1080
     result = page.locator(".detail-panel .receptor-results")
     scene = ready(result, zh)
-    box = canvas_in_workspace(result, scene, height, 350, 455)
+    box = canvas_in_workspace(
+        result, scene, height, 290 if narrow else 350, 350 if narrow else 455,
+    )
     selected = result.get_by_role("combobox", name="预览受体" if zh else "Preview receptor")
     overlay = result.get_by_role("button", name="叠合参照" if zh else "Overlay reference")
     selected.select_option("0")
@@ -158,14 +220,31 @@ def inspect_receptors(page, base, height, zh, evidence):
     expect(result.locator(".ensemble-result-list")).to_be_in_viewport()
     expect(selected).to_have_value("1")
     page.screenshot(path=evidence / "receptor-ensemble.png")
+    if narrow:
+        member = page.request.get(f"{base}/api/jobs/{job}/result").json()["members"][1]
+        label = "下载对齐结构" if zh else "Download aligned structure"
+        link = result.get_by_role("link", name=label, exact=True)
+        expect(link).to_be_in_viewport()
+        with page.expect_download() as transfer:
+            link.press("Enter")
+        artifact = transfer.value
+        assert artifact.suggested_filename == member["artifact"]
+        assert hashlib.sha256(Path(artifact.path()).read_bytes()).hexdigest() == (
+            member["artifact_sha256"]
+        )
+        inspect_example(
+            page, base, "biopython.ensemble", ".receptor-results", height, zh, evidence,
+        )
     return box
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height", "kinds"), [
     ("en", "warm", 1120, 650, ("interface", "comparison", "receptors")),
     ("zh", "dark", 1280, 700, ("interface", "comparison", "receptors")),
-    pytest.param("en", "warm", 1001, 600, ("comparison",), id="paired_short_en"),
-    pytest.param("zh", "dark", 1001, 580, ("comparison",), id="paired_short_zh"),
+    pytest.param("en", "warm", 1001, 600, ("interface", "comparison", "receptors"),
+                 id="paired_short_en"),
+    pytest.param("zh", "dark", 1001, 580, ("interface", "comparison", "receptors"),
+                 id="paired_short_zh"),
 ])
 def test_short_protein_viewports(language, theme, width, height, kinds):
     zh = language == "zh"

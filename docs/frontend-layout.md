@@ -1156,3 +1156,13 @@ tools keep filters and exports together below the native measurements. In-module
 examples retain the key finding. In multi-stage examples the stage switcher
 precedes the workspace and the key finding follows the current result. Expanded
 workspaces and the paired pose view keep their existing controls.
+
+## Short desktop protein inspection
+
+Protein interfaces and receptor ensembles use the same short desktop canvas
+and compact result header. The interface rail reserves room for both contact
+endpoints, the interaction and its distance in Å. The shorter display label
+does not change the native table or the CSV header. The sequence sits beneath
+the workbench, and the receptor controls remain next to the structure they
+affect. Verify keyboard selection, example results and original downloads in
+the reviewed STAT6 cases.

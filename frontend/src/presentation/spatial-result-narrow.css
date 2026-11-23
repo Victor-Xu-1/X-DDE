@@ -2,9 +2,12 @@
   .studio-app
     .studio-main:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(.spatial-review, .is-refinement-result):not(
-          :where(.plip-result-workspace, [hidden], [hidden] *)
-        )
+        :is(
+          .spatial-review,
+          .is-refinement-result,
+          .protein-interface-results,
+          .receptor-results
+        ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     )
     > .studio-topbar {
     min-height: 52px;
@@ -16,9 +19,12 @@
   .studio-app
     .studio-content:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(.spatial-review, .is-refinement-result):not(
-          :where(.plip-result-workspace, [hidden], [hidden] *)
-        )
+        :is(
+          .spatial-review,
+          .is-refinement-result,
+          .protein-interface-results,
+          .receptor-results
+        ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     padding-block-start: 10px;
   }
@@ -26,9 +32,12 @@
   .studio-app
     .task-result-content
     > .detail-panel:has(
-      :is(.spatial-review, .is-refinement-result):not(
-        :where(.plip-result-workspace, [hidden], [hidden] *)
-      )
+      :is(
+        .spatial-review,
+        .is-refinement-result,
+        .protein-interface-results,
+        .receptor-results
+      ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     padding: 12px 14px 16px;
 
@@ -46,9 +55,12 @@
   .studio-app
     .module-template.is-preview:has(
       .module-example-result
-        :is(.spatial-review, .is-refinement-result):not(
-          :where(.plip-result-workspace, [hidden], [hidden] *)
-        )
+        :is(
+          .spatial-review,
+          .is-refinement-result,
+          .protein-interface-results,
+          .receptor-results
+        ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     margin-block: 4px 8px;
 
@@ -103,11 +115,17 @@
   }
 
   .studio-app
-    :is(.spatial-review, .scientific-results.is-refinement-result):not(
-      :where(.plip-result-workspace, [hidden], [hidden] *)
-    )
+    :is(
+      .spatial-review,
+      .scientific-results.is-refinement-result,
+      .protein-interface-results,
+      .receptor-results
+    ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
-    grid-template-columns: minmax(0, 1fr) minmax(288px, 39%);
+    grid-template-columns: minmax(0, 1fr) minmax(
+        var(--narrow-spatial-rail, 288px),
+        39%
+      );
     gap: 12px;
 
     > :is(.structure-workbench-view, .structure-workbench-details) {
@@ -116,9 +134,12 @@
   }
 
   .studio-app
-    :is(.spatial-review, .is-refinement-result):not(
-      :where(.plip-result-workspace, [hidden], [hidden] *)
-    )
+    :is(
+      .spatial-review,
+      .is-refinement-result,
+      .protein-interface-results,
+      .receptor-results
+    ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
     .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel) {
@@ -155,6 +176,25 @@
     --narrow-spatial-reserve: 318px;
   }
 
+  :is(.protein-interface-results, .receptor-results) {
+    --narrow-spatial-reserve: 285px;
+  }
+
+  .protein-interface-results {
+    --narrow-spatial-rail: 304px;
+  }
+
+  .studio-app
+    .receptor-results
+    > .structure-workbench:not([data-workspace-expanded])
+    .receptor-preview-toolbar {
+    padding-block-end: 4px;
+
+    > :is(select, button) {
+      min-height: 32px;
+    }
+  }
+
   .studio-app
     :is(.docking-results, .pocket-result-workspace)
     > .structure-workbench:not([data-workspace-expanded])
@@ -178,9 +218,12 @@
   }
 
   .studio-app
-    :is(.spatial-review, .is-refinement-result):not(
-      :where(.plip-result-workspace, [hidden], [hidden] *)
-    )
+    :is(
+      .spatial-review,
+      .is-refinement-result,
+      .protein-interface-results,
+      .receptor-results
+    ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded]) {
     [data-compact-toolbar] {
       --compact-table-tools: enabled;
