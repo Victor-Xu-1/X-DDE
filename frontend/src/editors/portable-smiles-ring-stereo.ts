@@ -82,7 +82,7 @@ const isDirectional = (bond: Bond) => bond.token === "/" || bond.token === "\\";
 export function directionalCarbonPhosphorusBonds(text: string) {
   if (!text.includes("P") || !/[/\\]/.test(text)) return 0;
   const graph = bondPositions(text);
-  if (!graph) return 0;
+  if (!graph) return null;
   const neighbors = indexNeighbors(graph.bonds);
   const element = (index: number) => /^(?:\[\d*)?([A-Z][a-z]?)/.exec(graph.atoms[index])?.[1];
   return graph.bonds.filter(({ token, from, to }) => {

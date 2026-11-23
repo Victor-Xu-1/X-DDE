@@ -54,15 +54,31 @@ it.each([
   { rawSmiles: phosphalkene.rawSmiles + " |&1:1|" },
   { rawSmiles: phosphalkene.rawSmiles + " |(0,0,1;1,1,)|" },
   { smiles: "CCP=C[C@H](C)O" },
+  { rawSmiles: "C[C@H](O)C=PCC" },
+  {
+    rawSmiles: phosphalkene.rawSmiles + ".C%(123)CCC%(123)",
+    smiles: phosphalkene.smiles + ".C1CCC1",
+  },
   { molfile: generatedMol + "M  V30 MDLV30/STEREL1 ATOMS=(1 2)" },
 ])("withholds the source when the complete configuration cannot be retained", (changes) => {
   expect(recognizedStereoSource({ ...phosphalkene, ...changes }))
     .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
 
+it("preserves allene and C=P geometry together only when C=P survives normalization", () => {
+  const rawSmiles = "FC(Cl)=[C@AL2]=C(Br)I." + phosphalkene.rawSmiles;
+  const normalized = "FC(Cl)=C=C(Br)I.";
+  expect(recognizedStereoSource({
+    ...phosphalkene, rawSmiles, smiles: normalized + phosphalkene.smiles,
+  })).toEqual({ text: rawSmiles.replace("@AL2", "@@"), molfile: "", sourceOnly: "allene" });
+  expect(recognizedStereoSource({
+    ...phosphalkene, rawSmiles, smiles: normalized + "CCP=C[C@H](C)O",
+  })).toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
+});
+
 it.each(["C[C@H](O)C=PCC", "C[C@H](O)C=P/CC", "CCC/C=N/CC", "C[P@](=O)(CC)CC/C=C/Cl"])(
   "leaves normal drawing and export in place for %s",
-  (rawSmiles) => expect(recognizedStereoSource({ ...phosphalkene, rawSmiles })).toBeNull(),
+  (rawSmiles) => expect(recognizedStereoSource({ ...phosphalkene, rawSmiles, smiles: rawSmiles })).toBeNull(),
 );
 
 it.each([
