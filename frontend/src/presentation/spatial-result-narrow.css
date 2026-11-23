@@ -6,7 +6,11 @@
           .spatial-review,
           .is-refinement-result,
           .protein-interface-results,
-          .receptor-results
+          .receptor-results,
+          :where(
+            :is(.reference-import-results, .prepared-structure-workspace)
+              .viewer-panel
+          )
         ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     )
     > .studio-topbar {
@@ -23,7 +27,11 @@
           .spatial-review,
           .is-refinement-result,
           .protein-interface-results,
-          .receptor-results
+          .receptor-results,
+          :where(
+            :is(.reference-import-results, .prepared-structure-workspace)
+              .viewer-panel
+          )
         ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     padding-block-start: 10px;
@@ -36,7 +44,11 @@
         .spatial-review,
         .is-refinement-result,
         .protein-interface-results,
-        .receptor-results
+        .receptor-results,
+        :where(
+          :is(.reference-import-results, .prepared-structure-workspace)
+            .viewer-panel
+        )
       ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     padding: 12px 14px 16px;
@@ -59,7 +71,11 @@
           .spatial-review,
           .is-refinement-result,
           .protein-interface-results,
-          .receptor-results
+          .receptor-results,
+          :where(
+            :is(.reference-import-results, .prepared-structure-workspace)
+              .viewer-panel
+          )
         ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     ) {
     margin-block: 4px 8px;
@@ -119,12 +135,14 @@
       .spatial-review,
       .scientific-results.is-refinement-result,
       .protein-interface-results,
-      .receptor-results
+      .receptor-results,
+      .reference-import-results:where(:has(.viewer-panel)),
+      .prepared-structure-workspace:where(:has(.viewer-panel))
     ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
     grid-template-columns: minmax(0, 1fr) minmax(
         var(--narrow-spatial-rail, 288px),
-        39%
+        var(--narrow-spatial-rail-share, 39%)
       );
     gap: 12px;
 
@@ -138,7 +156,9 @@
       .spatial-review,
       .is-refinement-result,
       .protein-interface-results,
-      .receptor-results
+      .receptor-results,
+      .reference-import-results:where(:has(.viewer-panel)),
+      .prepared-structure-workspace:where(:has(.viewer-panel))
     ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
@@ -184,6 +204,36 @@
     --narrow-spatial-rail: 304px;
   }
 
+  :is(.reference-import-results, .prepared-structure-workspace) {
+    --narrow-spatial-rail: 245px;
+    --narrow-spatial-rail-share: 33%;
+    --narrow-spatial-reserve: 270px;
+  }
+
+  .studio-app
+    :is(.reference-import-results, .prepared-structure-workspace)
+    > .structure-workbench:not([data-workspace-expanded], .is-text-only):where(
+      :has(.viewer-panel)
+    ) {
+    .contact-details table {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .reference-import-actions {
+      gap: 8px;
+      margin-block: 0;
+    }
+
+    .prepared-structure-summary {
+      gap: 8px;
+
+      dl {
+        padding-block: 7px;
+      }
+    }
+  }
+
   .studio-app
     .receptor-results
     > .structure-workbench:not([data-workspace-expanded])
@@ -222,7 +272,9 @@
       .spatial-review,
       .is-refinement-result,
       .protein-interface-results,
-      .receptor-results
+      .receptor-results,
+      .reference-import-results:where(:has(.viewer-panel)),
+      .prepared-structure-workspace:where(:has(.viewer-panel))
     ):not(:where(.plip-result-workspace, [hidden], [hidden] *))
     > .structure-workbench:not([data-workspace-expanded]) {
     [data-compact-toolbar] {

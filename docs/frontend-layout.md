@@ -1166,3 +1166,11 @@ does not change the native table or the CSV header. The sequence sits beneath
 the workbench, and the receptor controls remain next to the structure they
 affect. Verify keyboard selection, example results and original downloads in
 the reviewed STAT6 cases.
+
+## Short desktop reference materials
+
+Imported 3D structures and prepared structures use the short desktop workspace
+in history and module examples. Structure and source actions share the first
+screen. Review the original archive, prepared structure and generation input
+against their recorded checksums. The source verification and preparation
+handoff use the original retained artifacts.

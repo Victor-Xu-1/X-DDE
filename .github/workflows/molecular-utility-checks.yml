@@ -58,6 +58,7 @@ on:
       - "frontend/src/presentation/spatial-result-review.css"
       - "frontend/src/presentation/spatial-result-narrow.css"
       - "server_tests/test_short_protein_viewports.py"
+      - "server_tests/test_short_structure_materials_browser.py"
       - "server_tests/test_spatial_results_desktop.py"
       - "server_tests/test_spatial_canvas_review_browser.py"
       - "server_tests/test_spatial_inspection_followups_browser.py"
@@ -1195,12 +1196,12 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v6
       - run: npm ci --prefix frontend && npm run build --prefix frontend
-      - name: Protein interface, aligned structures and receptor workspace components
+      - name: Reference structure, prepared structure and workspace components
         if: needs.scope.outputs.short_paired_comparison_only != 'true'
         working-directory: frontend
         run: >-
-          npx vitest run src/integrations/ProteinInterfaceResults.test.tsx
-          src/receptors/ReceptorResults.test.tsx src/operations/StructureComparisonResults.test.tsx
+          npx vitest run src/discovery/ReferenceImportResults.test.tsx
+          src/operations/PreparedInputResults.test.tsx
           src/presentation/WorkspaceFullscreenControl.test.tsx
       - name: Paired structure state, camera and figure consumers
         if: needs.scope.outputs.short_paired_comparison_only == 'true'
@@ -1216,7 +1217,7 @@ jobs:
           WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
         run: |
           uv sync --locked --group dev --group browser
-          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_short_protein_viewports.py
+          uv run --locked ruff check scripts/molecular-utility-scope.py tests/test_molecular_utility_scope.py server_tests/test_short_protein_viewports.py server_tests/test_short_structure_materials_browser.py
           uv run --locked pytest -q tests/test_molecular_utility_scope.py
           readarray -t source < <(.venv/bin/python -c 'from opendde_workbench.examples.stat6_bundle_release import URL; print("\n".join(URL.rsplit("/", 2)[-2:]))')
           test "${#source[@]}" -eq 2
@@ -1224,12 +1225,14 @@ jobs:
           [[ "${source[1]}" =~ ^stat6-reviewed-results-v[0-9]+\.zip$ ]]
           gh release download "${source[0]}" --repo "$GITHUB_REPOSITORY" --pattern "${source[1]}" --dir "$RUNNER_TEMP"
           .venv/bin/python server_tests/prepare_reviewed_stat6_cases.py "$RUNNER_TEMP/${source[1]}"
-      - name: Inspect three retained protein results in short desktop Chrome
+      - name: Inspect retained reference and prepared structures in short desktop Chrome
         if: needs.scope.outputs.short_paired_comparison_only != 'true'
         env:
           WB_HOME: ${{ runner.temp }}/short-structure-review
           WB_STATE_DIR: ${{ runner.temp }}/short-structure-review/state
-        run: .venv/bin/python -m pytest -x -q server_tests/test_short_protein_viewports.py
+        run: >-
+          .venv/bin/python -m pytest -x -q server_tests/test_short_structure_materials_browser.py
+          server_tests/test_short_protein_viewports.py -k 'short_structure_materials or paired_short'
       - name: Aligned protein scenes, matched cameras, original CIFs and 600 dpi PNG
         if: needs.scope.outputs.short_paired_comparison_only == 'true'
         env:
@@ -1241,8 +1244,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: short-protein-viewports
-          path: outputs/short-protein-viewports/
+          name: short-structure-viewports
+          path: |
+            outputs/short-protein-viewports/
+            outputs/short-structure-materials/
 
   desktop-refinement:
     needs: scope

@@ -1239,13 +1239,12 @@ SPATIAL_REVIEW_FILES = {
 }
 SPATIAL_REVIEW_DIFF = "26305361549127efd41c495bdf987d43bd0074f5a25a9b9772fc765b17a2bbc7"
 SHORT_STRUCTURE_REVIEW_FILES = {
+    ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
-    "frontend/src/integrations/ProteinInterfaceContacts.tsx",
-    "frontend/src/integrations/interaction-workspace.css",
     "frontend/src/presentation/spatial-result-narrow.css",
-    "server_tests/test_short_protein_viewports.py",
+    "server_tests/test_short_structure_materials_browser.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "4f9e974be728798bf7c4855ef7ff976589b86b7acf70304a4560d12baa533228"
+SHORT_STRUCTURE_REVIEW_DIFF = "28c8c8915f14a36a8b2b201162aa4ef69b8dd9722ced529b362b93365b9fac85"
 SHORT_PAIRED_COMPARISON_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/structure-comparison/ComparisonPreview.tsx",
