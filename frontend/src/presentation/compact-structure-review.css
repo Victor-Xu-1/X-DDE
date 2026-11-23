@@ -1,5 +1,5 @@
 @media (width > 1000px) and (height <= 720px) {
-  .studio-app .studio-main:has(.task-result-content :is(.pose-review-workspace, .generated-review-workspace))
+  .studio-app .studio-main:has(.task-result-content :is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace))
     > .studio-topbar {
     min-height: 52px;
     margin-block: 10px 0;
@@ -7,20 +7,20 @@
     border-radius: 14px;
   }
 
-  .studio-app .studio-content:has(.task-result-content :is(.pose-review-workspace, .generated-review-workspace)) {
+  .studio-app .studio-content:has(.task-result-content :is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace)) {
     padding-block-start: 10px;
   }
 
-  .task-result-content > .detail-panel:has(:is(.pose-review-workspace, .generated-review-workspace)) {
+  .task-result-content > .detail-panel:has(:is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace)) {
     padding: 12px 14px 16px;
   }
 
-  .task-result-content .detail-panel:has(:is(.pose-review-workspace, .generated-review-workspace)) > .task-detail-header {
+  .task-result-content .detail-panel:has(:is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace)) > .task-detail-header {
     gap: 6px 10px;
     margin-block-end: 8px;
   }
 
-  .studio-app .detail-panel:has(.generated-review-workspace) > .task-detail-header .panel-heading h2 {
+  .studio-app .detail-panel:has(:is(.generated-review-workspace, .simulation-result-workspace)) > .task-detail-header .panel-heading h2 {
     font-size: 16px;
     line-height: 1.3;
   }
@@ -58,7 +58,7 @@
     padding: 1px 0;
   }
 
-  .studio-app :is(.pose-review-workspace, .generated-review-workspace) > .structure-workbench:not([data-workspace-expanded]) {
+  .studio-app :is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace) > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
     grid-template-columns: minmax(0, 1fr) minmax(288px, 39%);
     gap: 12px;
   }
@@ -93,7 +93,7 @@
     }
   }
 
-  :is(.pose-review-workspace, .generated-review-workspace) [data-compact-toolbar] {
+  :is(.pose-review-workspace, .generated-review-workspace, .simulation-result-workspace) [data-compact-toolbar] {
     --compact-table-tools: enabled;
   }
 }
