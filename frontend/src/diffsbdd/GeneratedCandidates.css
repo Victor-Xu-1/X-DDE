@@ -141,6 +141,11 @@
     border: 0;
     border-bottom: 1px solid var(--line);
   }
+
+  .generated-candidate-navigation .candidate-review-selector > span {
+    flex: none;
+    white-space: nowrap;
+  }
 }
 
 @media (min-width: 1001px) and (max-height: 720px) {

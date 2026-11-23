@@ -1,3 +1,5 @@
+@import "../presentation/compact-structure-review.css";
+
 .simulation-result-workspace .structure-workbench-details {
   gap: 12px;
 }
@@ -271,5 +273,111 @@
   .simulation-fep-workspace {
     --simulation-stage-reserve: 322px;
     --simulation-pair-reserve: 396px;
+  }
+}
+
+@media (1000px < width < 1180px) and (height <= 720px) {
+  .simulation-result-workspace .structure-workbench-details {
+    gap: 8px;
+  }
+
+  .trajectory-readouts {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .trajectory-readouts > div {
+    display: grid;
+    align-content: space-between;
+  }
+
+  .simulation-result-workspace .trajectory-controls {
+    gap: 6px;
+    margin-block: 2px 4px;
+    padding: 0;
+  }
+
+  .studio-app .simulation-result-workspace .trajectory-controls .secondary-button {
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px 7px;
+  }
+
+  .simulation-result-workspace .trajectory-download-label {
+    display: none;
+  }
+
+  .simulation-result-workspace .simulation-view-controls[data-compact-tools] {
+    min-height: 32px;
+    margin-bottom: 4px;
+    gap: 3px 5px;
+  }
+
+  .simulation-result-workspace .simulation-view-controls[data-compact-tools] > .text-button {
+    min-height: 27px;
+    padding: 3px 4px;
+  }
+
+  .simulation-result-workspace .simulation-view-controls select {
+    min-height: 30px;
+    padding: 3px 5px;
+  }
+
+  .simulation-result-workspace
+    .structure-workbench:not([data-workspace-expanded])
+    .simulation-molecular-viewport:not(:popover-open)
+    .simulation-webgl {
+    height: clamp(272px, calc(100dvh - 287px), 435px);
+  }
+
+  .simulation-fep-workspace
+    .structure-workbench:not([data-workspace-expanded])
+    .simulation-molecular-viewport:not(:popover-open)
+    .simulation-webgl {
+    height: clamp(270px, calc(100dvh - 320px), 418px);
+  }
+
+  .simulation-fep-workspace .structure-workbench-view > .research-tabs > .research-tab-list {
+    margin-block: 0 6px;
+    gap: 12px;
+  }
+
+  .studio-app .simulation-fep-workspace .structure-workbench-view .research-tab-list > button {
+    min-height: 32px;
+    padding-block: 3px;
+  }
+
+  .simulation-fep-workspace .pose-comparison-toolbar {
+    margin-block: 0 5px;
+  }
+
+  .simulation-fep-workspace .structure-workbench-view .pose-comparison-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .simulation-fep-workspace .pose-comparison-panel-heading {
+    margin-block-end: 4px;
+  }
+
+  .simulation-fep-workspace
+    .structure-workbench:not([data-workspace-expanded])
+    .pose-comparison-panels
+    .simulation-molecular-viewport:not(:popover-open)
+    .simulation-webgl {
+    height: clamp(240px, calc(100dvh - 341px), 380px);
+  }
+
+  .studio-app .simulation-fep-workspace .structure-workbench-details > .primary-button {
+    justify-self: start;
+    min-height: 32px;
+    padding: 4px 11px;
+  }
+
+  .simulation-fep-workspace .research-table-scroll {
+    margin-block: 6px 12px;
   }
 }

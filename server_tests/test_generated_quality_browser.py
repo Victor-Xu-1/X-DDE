@@ -17,8 +17,8 @@ from opendde_workbench.store import Store
 from server_tests.browser_platform import platform
 
 
-@pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
-def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(language, width):
+@pytest.mark.parametrize("language,width,height", [("en", 1440, 900), ("zh", 1001, 580), ("zh", 390, 775)])
+def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(language, width, height):
     settings = Settings.from_env()
     assert settings.state_dir.is_relative_to(Path(os.environ["RUNNER_TEMP"]))
     store = Store(settings.state_dir / "jobs.sqlite3")
@@ -50,7 +50,6 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         sync_playwright() as driver,
     ):
         browser = driver.chromium.launch(channel="chrome")
-        height = 900 if width > 1000 else 775
         page = browser.new_page(viewport={"width": width, "height": height})
         page.add_init_script(f"localStorage.setItem('opendde-workbench.language','{language}')")
         page.add_init_script("""window.__nativeViewerLoads = [];
@@ -108,6 +107,13 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         strip = page.get_by_role(
             "region", name="生成候选预览" if zh else "Generated candidate preview"
         )
+        if width == 1001:
+            caption = strip.locator(".candidate-review-selector > span")
+            assert caption.evaluate("""(node) => {
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                return range.getClientRects().length === 1;
+            }""")
         preview_choice = strip.get_by_role(
             "button", name="预览候选 2" if zh else "Preview candidate 2", exact=True
         )
