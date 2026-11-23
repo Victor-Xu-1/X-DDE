@@ -1232,12 +1232,11 @@ SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cd
 SPATIAL_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/frontend-layout.md",
-    "frontend/src/integrations/refinement-summary.css",
     "frontend/src/presentation/spatial-result-narrow.css",
     "frontend/src/presentation/spatial-result-review.css",
     "server_tests/test_spatial_inspection_followups_browser.py",
 }
-SPATIAL_REVIEW_DIFF = "0e4dd901bff4eb772ce12e793a7fdaf19d206d3a71a01476e14b416963b8bde5"
+SPATIAL_REVIEW_DIFF = "4bf896d9a6cec72caac3bc243d780c882fa52d817d8e8681a46d0dd624af411a"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
