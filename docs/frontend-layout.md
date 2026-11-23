@@ -303,7 +303,7 @@ retained cluster case checks both short desktop layouts and the selected map
 as a native vector export.
 
 At desktop widths just above 1000 px, the channel, pose-quality and structure
-refinement results compact the task header and native viewer controls so the
+refinement results compact the task header, example toolbar and viewer controls so the
 3D canvas remains beside the relevant measurements. The channel table retains
 its radius and length units, the pose-quality table keeps its outcome filters
 and source contact disclosure, and the refinement results keep the original

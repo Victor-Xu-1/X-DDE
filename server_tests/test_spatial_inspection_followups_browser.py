@@ -154,6 +154,23 @@ def review_refinement(page, result, zh, original):
         assert float(exported[label]) == metric["value"]
 
 
+def review_example(page, base, capability, selector, zh, width, height, evidence):
+    page.goto(f"{base}/?inspection=example#view=new&tool={capability}")
+    page.get_by_role(
+        "button", name="示例结果" if zh else "Example results", exact=True,
+    ).click()
+    template = page.locator(".module-template.is-preview")
+    result = template.locator(selector)
+    ready(result, zh)
+    canvas = geometry(result, width, height)
+    page.screenshot(path=evidence / f"{capability}-example.png")
+    template.get_by_role(
+        "button", name="返回任务填写" if zh else "Return to task form", exact=True,
+    ).click()
+    expect(template).to_have_count(0)
+    return canvas
+
+
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
     ("en", "warm", 1001, 600), ("zh", "dark", 1001, 580),
     ("en", "warm", 1120, 650), ("zh", "dark", 1280, 700),
@@ -199,6 +216,10 @@ def test_spatial_inspection_followups(language, theme, width, height):
                 native = page.request.get(f"{base}/api/jobs/{job}/result")
                 assert native.ok
                 review_refinement(page, result, zh, native.json())
+            if width < 1080:
+                observed[capability + ".example"] = review_example(
+                    page, base, capability, selector, zh, width, height, evidence,
+                )
         assert not writes and page.request.get(power_url).json() == power
         (evidence / "layout.json").write_text(json.dumps(observed, indent=2), encoding="utf-8")
         browser.close()
