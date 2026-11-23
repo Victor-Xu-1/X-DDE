@@ -85,6 +85,18 @@ def review_docking(page, result, zh, native):
     tabs.get_by_role("tab", name="三维结构" if zh else "3D structure").click()
     assert frame.evaluate("el => el.isConnected")
     ready(result, zh)
+    if page.viewport_size["width"] < 1080:
+        expand = result.locator("[data-workspace-expand]").first
+        expand.press("Enter")
+        workspace = result.locator(".structure-workbench")
+        expect(workspace).to_have_attribute("data-workspace-expanded", "true")
+        expect(workspace.locator(".pose-result-interpretation > summary")).to_have_css(
+            "padding-block-start", "8px",
+        )
+        page.keyboard.press("Escape")
+        expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+        expect(expand).to_be_focused()
+        assert frame.evaluate("el => el.isConnected")
     artifact = verify_download(page, result.get_by_role(
         "link", name="下载所选姿势 SDF" if zh else "Download selected pose SDF",
     ))
@@ -184,10 +196,37 @@ def review_example(page, base, capability, selector, zh, viewport, minimum, evid
     width, height = viewport
     canvas = inspect_layout(result, width, height, minimum, check_first_row=False)
     page.screenshot(path=evidence / f"{capability}-example.png")
+    if capability == "gnina.dock":
+        review_example_stages(template, result, zh, height)
     label = "返回任务填写" if zh else "Return to task form"
     template.get_by_role("button", name=label, exact=True).click()
     expect(template).to_have_count(0)
     return canvas
+
+
+def review_example_stages(template, docking, zh, height):
+    stage = template.get_by_role(
+        "combobox", name="研究阶段结果" if zh else "Study result stage", exact=True,
+    )
+    primary = stage.input_value()
+    frame = docking.locator(".molecular-stage iframe").element_handle()
+    advance = template.get_by_role(
+        "button", name="下一个研究阶段" if zh else "Next study stage", exact=True,
+    )
+    advance.press("Enter")
+    quality = template.locator(".quality-results.spatial-review")
+    ready(quality, zh)
+    expect(docking).to_be_hidden()
+    expect(advance).to_be_focused()
+    expect(stage).not_to_have_value(primary)
+    inspect_layout(
+        quality, template.page.viewport_size["width"], height, 250, check_first_row=False,
+    )
+    stage.select_option(primary)
+    ready(docking, zh)
+    expect(quality).to_have_count(0)
+    expect(stage).to_have_value(primary)
+    assert frame.evaluate("node => node.isConnected")
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
@@ -241,6 +280,11 @@ def test_spatial_canvas_review(language, theme, width, height):
                 observed[capability + ".example"] = review_example(
                     page, base, capability, selector, zh, (width, height), minimum, evidence,
                 )
+        if width < 1080:
+            open_result(page, base, "plip.profile")
+            contacts = page.locator(".plip-result-workspace")
+            ready(contacts, zh)
+            expect(contacts.locator(".molecular-stage")).to_have_css("height", "260px")
         assert not writes and page.request.get(power_url).json() == power
         (evidence / "layout.json").write_text(json.dumps(observed, indent=2), encoding="utf-8")
         browser.close()

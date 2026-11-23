@@ -2,7 +2,9 @@
   .studio-app
     .studio-main:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(.spatial-review, .is-refinement-result)
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
+        )
     )
     > .studio-topbar {
     min-height: 52px;
@@ -14,14 +16,20 @@
   .studio-app
     .studio-content:has(
       :is(.task-result-content, .module-template.is-preview)
-        :is(.spatial-review, .is-refinement-result)
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
+        )
     ) {
     padding-block-start: 10px;
   }
 
   .studio-app
     .task-result-content
-    > .detail-panel:has(:is(.spatial-review, .is-refinement-result)) {
+    > .detail-panel:has(
+      :is(.spatial-review, .is-refinement-result):not(
+        :where(.plip-result-workspace, [hidden], [hidden] *)
+      )
+    ) {
     padding: 12px 14px 16px;
 
     > .task-detail-header {
@@ -37,7 +45,10 @@
 
   .studio-app
     .module-template.is-preview:has(
-      .module-example-result :is(.spatial-review, .is-refinement-result)
+      .module-example-result
+        :is(.spatial-review, .is-refinement-result):not(
+          :where(.plip-result-workspace, [hidden], [hidden] *)
+        )
     ) {
     margin-block: 4px 8px;
 
@@ -85,14 +96,16 @@
         order: 2;
       }
 
-      .docking-results {
+      :is(.docking-results, .quality-results.spatial-review) {
         --narrow-spatial-reserve: 330px;
       }
     }
   }
 
   .studio-app
-    :is(.spatial-review, .scientific-results.is-refinement-result)
+    :is(.spatial-review, .is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
+    )
     > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
     grid-template-columns: minmax(0, 1fr) minmax(288px, 39%);
     gap: 12px;
@@ -103,7 +116,9 @@
   }
 
   .studio-app
-    :is(.spatial-review, .is-refinement-result)
+    :is(.spatial-review, .is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
+    )
     > .structure-workbench:not([data-workspace-expanded])
     > .structure-workbench-view
     .viewer-panel:not(:popover-open, .pose-comparison .viewer-panel) {
@@ -163,7 +178,9 @@
   }
 
   .studio-app
-    :is(.spatial-review, .is-refinement-result)
+    :is(.spatial-review, .is-refinement-result):not(
+      :where(.plip-result-workspace, [hidden], [hidden] *)
+    )
     > .structure-workbench:not([data-workspace-expanded]) {
     [data-compact-toolbar] {
       --compact-table-tools: enabled;
@@ -175,6 +192,10 @@
 
     .pocket-candidates .column-sort {
       gap: 4px;
+    }
+
+    .docking-result-details .numeric-cell .evidence-description {
+      white-space: normal;
     }
 
     :is(.spatial-result-summary, .refinement-summary) {
