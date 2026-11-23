@@ -53,16 +53,10 @@
     grid-template-columns: minmax(0, 2.35fr) minmax(275px, 1fr);
     gap: 16px;
   }
-  .studio-app
-    .is-refinement-result
-    .structure-workbench-view
-    > .viewer-panel:not(:popover-open) {
+  .studio-app .is-refinement-result .structure-workbench-view > .viewer-panel:not(:popover-open) {
     padding: 0;
   }
-  .studio-app
-    .is-refinement-result
-    .viewer-panel:not(:popover-open)
-    > .molecular-stage {
+  .studio-app .is-refinement-result .viewer-panel:not(:popover-open) > .molecular-stage {
     border-radius: 10px;
   }
 }
