@@ -1195,3 +1195,11 @@ compact heading and comparable left-preview/right-data proportions. State
 and conformer selection stay adjacent to the native scene, and the right
 rail retains units, sorting and exports. The 2D drawing and the rendered
 native 3D scene use the same left-hand position.
+
+## Desktop task lists
+
+On desktop layouts, task history keeps the filters and pagination visible
+while long results pages scroll within the task list. Column headers remain
+at the top of the list. Returning from a row restores the list's scroll
+position with its existing page and filters. Selecting another page starts
+that page at the first row.

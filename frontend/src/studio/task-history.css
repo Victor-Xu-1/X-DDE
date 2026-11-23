@@ -415,6 +415,127 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+@media (width >= 961px) and (height >= 520px) and (not (pointer: coarse)) {
+  .studio-app
+    .studio-main:has(
+      > .studio-content
+        > .task-history-workspace
+        > .task-page-content
+        > .task-history-list
+    ) {
+    display: flex;
+    flex-direction: column;
+    block-size: 100dvh;
+
+    > .studio-topbar {
+      flex: none;
+      min-height: 54px;
+      margin-block: 10px 0;
+      padding-block: 4px;
+    }
+
+    > .studio-content {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-block-size: 0;
+      overflow: auto;
+      padding-block: 14px 12px;
+    }
+  }
+
+  .task-history-workspace:has(> .task-page-content > .task-history-list),
+  .task-history-workspace > .task-page-content:has(> .task-history-list),
+  .task-history-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .task-history-heading {
+    margin-block-end: 8px;
+  }
+
+  .studio-app .task-history-heading-actions > button {
+    min-height: 34px;
+    padding-block: 4px;
+  }
+
+  .task-history-controls {
+    flex: none;
+    grid-template-columns:
+      minmax(120px, 1.2fr) minmax(132px, 1fr) minmax(130px, 0.72fr)
+      max-content;
+    gap: 6px 8px;
+    margin-block-end: 8px;
+  }
+
+  .studio-app .task-history-controls > label > :is(select, input),
+  .history-date-trigger,
+  .task-history-clear {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  .studio-app .task-history-controls > label > :is(select, input) {
+    height: 34px;
+  }
+
+  .task-history-date-controls {
+    padding-block: 3px;
+  }
+
+  .task-history-table-wrap {
+    min-block-size: min(124px, 23vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .studio-app .task-history-table :is(th, td) {
+    padding: 6px 10px;
+    line-height: 1.4;
+  }
+
+  .task-history-table th:first-child {
+    width: 42%;
+  }
+
+  .task-history-table th:nth-child(2) {
+    width: 23%;
+  }
+
+  .task-history-table th:nth-child(3) {
+    width: 15%;
+  }
+
+  .task-history-table th:nth-child(4) {
+    width: 20%;
+  }
+
+  .task-history-table button {
+    padding-block: 2px;
+  }
+
+  .task-history-table thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background: var(--surface-muted);
+  }
+
+  .task-history-table button:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .task-history-pagination {
+    flex: none;
+    padding-block: 8px 0;
+  }
+}
+
 @media (max-width: 700px) {
   .task-history-heading {
     align-items: flex-start;

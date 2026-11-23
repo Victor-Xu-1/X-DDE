@@ -1302,25 +1302,14 @@ PROTEIN_DESKTOP_FILES = {
 }
 PROTEIN_DESKTOP_DIFF = "384e184627cc2c834334f8333b981262eb09c46d4e6ca83d73b20255a0fd5120"
 HISTORY_DESKTOP_FILES = {
-    ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/task-history-checks.yml",
-    "frontend/package-lock.json",
-    "frontend/src/App.test.tsx",
-    "frontend/src/App.tsx",
-    "frontend/src/design/research-navigation.css",
-    "frontend/src/studio/TaskHistoryFilters.tsx",
-    "frontend/src/studio/TaskHistoryList.test.tsx",
+    "docs/frontend-layout.md",
     "frontend/src/studio/TaskHistoryList.tsx",
-    "frontend/src/studio/TaskHistoryToolbar.tsx",
-    "frontend/src/studio/TaskWorkspace.test.tsx",
     "frontend/src/studio/TaskWorkspace.tsx",
     "frontend/src/studio/task-history.css",
-    "server_tests/test_prediction_job_archive_browser.py",
     "server_tests/test_task_history_browser.py",
-    "server_tests/test_task_status_browser.py",
-    "tests/test_molecular_utility_scope.py",
 }
-HISTORY_DESKTOP_DIFF = "18924fe5b9696fbe289451636de90669583d80ee60418a347ec52f0f6c3927ff"
+HISTORY_DESKTOP_DIFF = "3fda91c7e27d2867f2602a18eea2fd04a6471564dc255e65d2331f0f976b167b"
 CANDIDATE_DESKTOP_FILES = {
     ".github/workflows/dataset-discovery-checks.yml",
     ".github/workflows/generated-candidate-checks.yml",

@@ -103,6 +103,8 @@ function TaskWorkspaceContent(p: Props) {
   const chosenHere = useRef<string | null>(
     initialRoute.current ? taskIdFromHash(window.location.hash) : null,
   );
+  const listViewport = useRef<HTMLDivElement>(null);
+  const listPosition = useRef<{ filter: string; top: number } | null>(null);
   useEffect(() => {
     function restore() {
       const route = taskHistoryRoute(window.location.hash);
@@ -173,6 +175,7 @@ function TaskWorkspaceContent(p: Props) {
       setChoosing(false);
       return;
     }
+    listPosition.current = null;
     setType("all");
     setStatus("all");
     setQuery("");
@@ -189,7 +192,7 @@ function TaskWorkspaceContent(p: Props) {
     if (lastProject.current !== p.projectId) setPage(0);
     lastProject.current = p.projectId;
   }, [p.projectId]);
-  const history = useTaskHistory({
+  const historyFilter = {
     module,
     type,
     status,
@@ -198,7 +201,9 @@ function TaskWorkspaceContent(p: Props) {
     project: p.projectId,
     startDate,
     endDate,
-  });
+  };
+  const listKey = taskHistoryHash(historyFilter);
+  const history = useTaskHistory(historyFilter);
   const invalidDates = historyDateError({ startDate, endDate });
   useEffect(() => {
     if (
@@ -218,6 +223,7 @@ function TaskWorkspaceContent(p: Props) {
   const currentDetail =
     currentJob && p.detail?.id === currentJob.id ? p.detail : null;
   function changeFilter(action: () => void) {
+    listPosition.current = null;
     action();
     setPage(0);
     setChoosing(true);
@@ -246,11 +252,17 @@ function TaskWorkspaceContent(p: Props) {
         ? "prediction"
         : "detail";
   useLayoutEffect(() => {
-    if (resultView === "history" && returnFocus.current) {
+    if (resultView !== "history") return;
+    if (returnFocus.current) {
       returnFocus.current = false;
       historyTitle.current?.focus();
     }
-  }, [resultView]);
+    if (history.data && listViewport.current && listPosition.current) {
+      if (listPosition.current.filter === listKey)
+        listViewport.current.scrollTop = listPosition.current.top;
+      listPosition.current = null;
+    }
+  }, [history.data, listKey, resultView]);
   const inlineHeader =
     resultView === "detail" &&
     currentJob &&
@@ -377,8 +389,13 @@ function TaskWorkspaceContent(p: Props) {
                   selected={currentJob?.id}
                   page={page}
                   loading={history.loading}
+                  viewportRef={listViewport}
                   onPage={setPage}
                   onJob={(id) => {
+                    listPosition.current = {
+                      filter: listKey,
+                      top: listViewport.current?.scrollTop ?? 0,
+                    };
                     chosenHere.current = id;
                     p.onJob(id);
                     setChoosing(false);

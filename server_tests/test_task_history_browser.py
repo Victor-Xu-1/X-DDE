@@ -67,6 +67,107 @@ def open_module_results(page, language, module):
     ).to_have_attribute("aria-pressed", "true")
 
 
+@pytest.mark.parametrize("language,width,height", [("en", 961, 600), ("zh", 1001, 600)])
+def test_desktop_task_list_keeps_pager_and_scroll_context(language, width, height):
+    zh = language == "zh"
+    base = os.environ["WB_BROWSER_URL"]
+    fixture = json.loads((EVIDENCE / "fixture.json").read_text(encoding="utf-8"))
+    root = EVIDENCE / f"desktop-list-{language}"
+    root.mkdir(exist_ok=True)
+    with sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page(viewport={"width": width, "height": height})
+        page.add_init_script(
+            f"localStorage.setItem('opendde-workbench.language','{language}');"
+            f"localStorage.setItem('x-dde-theme','{'dark' if zh else 'warm'}');",
+        )
+        blocked = []
+
+        def read_only(route):
+            if route.request.method in {"GET", "HEAD", "OPTIONS"}:
+                route.continue_()
+            else:
+                blocked.append(route.request.url)
+                route.abort()
+
+        page.route("**/api/**", read_only)
+        before = page.request.get(base + "/api/task-history").json()["total"]
+        page.goto(base + "/#task=")
+        expect(navigation(page, language).get_by_role(
+            "button", name="任务与结果" if zh else "Tasks and results", exact=True,
+        )).to_have_count(0)
+        open_module_results(page, language, "evaluation")
+        history = base + "/#view=results&module=evaluation&status=cancelled"
+        history += "&from=2026-10-01&to=2026-10-04"
+        page.goto(history)
+        region = page.get_by_role("region", name="任务列表" if zh else "Task list", exact=True)
+        rows = region.locator("tbody tr")
+        expect(rows).to_have_count(20)
+        pager = page.get_by_role("navigation", name="任务分页" if zh else "Task pages")
+        next_page = pager.get_by_role("button", name="下一页" if zh else "Next", exact=True)
+        expect(next_page).to_be_in_viewport(ratio=0.99)
+        assert region.evaluate("node => node.scrollHeight > node.clientHeight")
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        page.screenshot(path=root / "filtered-first-screen.png")
+
+        reveal_dates(page, zh)
+        expect(page.locator(".task-history-date-controls")).to_be_visible()
+        expect(next_page).to_be_in_viewport(ratio=0.99)
+        page.screenshot(path=root / "dates-first-screen.png")
+        header = region.locator("thead th").first
+        top = header.bounding_box()["y"]
+        region.focus()
+        page.keyboard.press("PageDown")
+        # Observe the native keyboard scroll without Playwright's eval-based polling.
+        assert region.evaluate("""node => new Promise(resolve => {
+          const deadline = performance.now() + 3000;
+          function check() {
+            if (node.scrollTop > 10) resolve(true);
+            else if (performance.now() >= deadline) resolve(false);
+            else requestAnimationFrame(check);
+          }
+          check();
+        })""")
+        assert header.bounding_box()["y"] == pytest.approx(top, abs=2)
+        expect(next_page).to_be_in_viewport(ratio=0.99)
+
+        first_task = rows.first.get_by_role("button").inner_text()
+        next_page.click()
+        expect(pager).to_contain_text("2 / 7")
+        expect(rows.first.get_by_role("button")).not_to_have_text(first_task)
+        assert region.evaluate("node => node.scrollTop") == 0
+
+        task = rows.nth(12).get_by_role("button")
+        task.evaluate("node => node.scrollIntoView({block: 'center', behavior: 'instant'})")
+        task_name = task.inner_text()
+        task.focus()
+        position = region.evaluate("node => node.scrollTop")
+        assert position > 10
+        task.press("Enter")
+        expect(page.locator(".detail-panel h2")).to_have_text(task_name)
+        open_list(page, language)
+        expect(rows).to_have_count(20)
+        assert region.evaluate("node => node.scrollTop") == pytest.approx(position, abs=2)
+        context = parse_qs(urlsplit(page.url).fragment)
+        assert context["module"] == ["evaluation"] and context["status"] == ["cancelled"]
+        assert context["page"] == ["1"]
+        assert context["from"] == ["2026-10-01"] and context["to"] == ["2026-10-04"]
+        expect(pager).to_contain_text("2 / 7")
+        expect(next_page).to_be_in_viewport(ratio=0.99)
+        page.screenshot(path=root / "returned-to-page-two.png")
+
+        open_module_results(page, language, "binding")
+        expect(rows).to_have_count(1)
+        expect(rows.first.get_by_role("button")).to_have_text(fixture["native_name"])
+        page.goto(f"{base}/#task={fixture['native_job']}")
+        expect(page.locator(".detail-panel h2")).to_have_text(fixture["native_name"])
+        expect(page.locator(".pocket-candidates")).to_be_visible()
+        expect(region).to_have_count(0)
+        assert not blocked
+        assert page.request.get(base + "/api/task-history").json()["total"] == before
+        browser.close()
+
+
 @pytest.mark.parametrize("language,width", [("en", 1440), ("zh", 390)])
 def test_modules_filters_paging_linked_history_and_unchanged_native_result(language, width):
     zh = language == "zh"
