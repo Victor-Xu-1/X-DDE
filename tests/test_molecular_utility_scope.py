@@ -359,6 +359,7 @@ def test_result_header_scope_only_covers_the_exact_layout_and_direct_consumers()
         "DESKTOP_COMPLEX_REVIEW_FILES",
         "SEQUENCE_COMPARISON_FILES",
         "SIMULATION_SHORT_REVIEW_FILES",
+        "SIMULATION_COMPACT_DESKTOP_FILES",
         "DEL_DESKTOP_FILES",
         "DEL_RESULT_WORKSPACES_FILES",
         "COMPACT_MATERIAL_FILES",

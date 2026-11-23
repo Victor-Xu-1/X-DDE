@@ -42,11 +42,14 @@ MOLECULAR_PIXELS = """async (encoded) => {
 def check_first_screen(page, root, count=1):
     scenes = root.locator(READY)
     expect(scenes).to_have_count(count, timeout=45000)
+    short_width = page.viewport_size["width"] < 1180
+    minimum_single, minimum_pair = (270, 240) if short_width else (330, 276)
+    minimum_height = minimum_single if count == 1 else minimum_pair
     boxes = []
     for scene in scenes.all():
         expect(scene).to_be_in_viewport(ratio=0.99)
         box = scene.bounding_box()
-        assert box and box["height"] >= (330 if count == 1 else 276), box
+        assert box and box["height"] >= minimum_height, box
         boxes.append(box)
         png = scene.screenshot()
         colored = page.evaluate(MOLECULAR_PIXELS, b64encode(png).decode())
@@ -55,6 +58,8 @@ def check_first_screen(page, root, count=1):
 
 
 @pytest.mark.parametrize(("language", "width", "height"), [
+    ("en", 1001, 600),
+    ("zh", 1001, 580),
     ("en", 1180, 720),
     ("zh", 1280, 800),
 ])
@@ -88,7 +93,7 @@ def test_short_native_results(case, language, width, height):
         root = page.get_by_test_id("dynamics-results" if dynamics else "free-energy-results")
         stage = check_first_screen(page, root)[0]
         rail = root.locator(".structure-workbench-details").bounding_box()
-        assert rail and stage["x"] + stage["width"] < rail["x"]
+        assert rail and stage["x"] + stage["width"] < rail["x"] and stage["width"] > rail["width"]
         assert page.evaluate(
             "window.scrollY === 0 && document.documentElement.scrollWidth <= innerWidth"
         )

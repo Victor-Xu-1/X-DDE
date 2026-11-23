@@ -1466,6 +1466,15 @@ SIMULATION_SHORT_REVIEW_FILES = {
     "tests/test_molecular_utility_scope.py",
 }
 SIMULATION_SHORT_REVIEW_DIFF = "eac50d447ca7c6da6f0fb7a5e698be215c86d2cc7c94754bcff4cfe7bef9b11e"
+SIMULATION_COMPACT_DESKTOP_FILES = {
+    "frontend/src/diffsbdd/GeneratedCandidates.css",
+    "frontend/src/presentation/compact-structure-review.css",
+    "frontend/src/simulations/result-workspace.css",
+    "server_tests/test_generated_quality_browser.py",
+    "server_tests/test_short_simulation_review.py",
+    "tests/test_molecular_utility_scope.py",
+}
+SIMULATION_COMPACT_DESKTOP_DIFF = "7fabf3214f01ea1055ebde561dfa7a85abb8dea9a533a0df08e7fc4e5eb87493"
 SIMULATION_FOCUS_FILES = {
     ".github/workflows/simulation-view-checks.yml",
     "docs/frontend-layout.md",
@@ -1994,7 +2003,12 @@ def main():
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         DEL_MEDIUM_DESKTOP_FILES, DEL_MEDIUM_DESKTOP_DIFF, scope_pin="DEL_MEDIUM_DESKTOP_DIFF",
     )
-    simulation_desktop = simulation_focus or reviewed_selected(
+    simulation_compact_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        SIMULATION_COMPACT_DESKTOP_FILES, SIMULATION_COMPACT_DESKTOP_DIFF,
+        scope_pin="SIMULATION_COMPACT_DESKTOP_DIFF",
+    )
+    simulation_desktop = simulation_focus or simulation_compact_desktop or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         SIMULATION_DESKTOP_FILES, SIMULATION_DESKTOP_DIFF, scope_pin="SIMULATION_DESKTOP_DIFF",
     )
@@ -2083,7 +2097,7 @@ def main():
         ARCHIVED_POSE_REVIEW_FILES, ARCHIVED_POSE_REVIEW_DIFF,
         scope_pin="ARCHIVED_POSE_REVIEW_DIFF",
     )
-    generated_desktop = reviewed_selected(
+    generated_desktop = simulation_compact_desktop or reviewed_selected(
         set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
         GENERATED_DESKTOP_FILES, GENERATED_DESKTOP_DIFF,
         scope_pin="GENERATED_DESKTOP_DIFF",
