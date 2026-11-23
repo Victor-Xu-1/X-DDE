@@ -101,9 +101,8 @@ def test_compact_pose_inspector_and_linked_overlay(language, height):
         root.get_by_role(
             "button", name="返回单个姿势" if zh else "Return to single pose", exact=True
         ).click()
-        expect(root.get_by_role("tab", name="姿势" if zh else "Poses", exact=True)).to_have_attribute(
-            "aria-selected", "true"
-        )
+        poses_tab = root.get_by_role("tab", name="姿势" if zh else "Poses", exact=True)
+        expect(poses_tab).to_have_attribute("aria-selected", "true")
         expect(capture).to_be_enabled(timeout=45000)
         assert before == page.request.get(base + "/api/jobs").json()
         assert not writes and not errors
