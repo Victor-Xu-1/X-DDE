@@ -103,7 +103,7 @@
   }
 
   .studio-app
-    :is(.spatial-review, .is-refinement-result):not(
+    :is(.spatial-review, .scientific-results.is-refinement-result):not(
       :where(.plip-result-workspace, [hidden], [hidden] *)
     )
     > .structure-workbench:not([data-workspace-expanded], .is-text-only) {
