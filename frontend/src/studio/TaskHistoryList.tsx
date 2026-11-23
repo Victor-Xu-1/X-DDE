@@ -1,4 +1,5 @@
 import { translator } from "../i18n";
+import type { Ref } from "react";
 import { resultSourceTitle } from "../operations/result-source-labels";
 import type { Language } from "../types";
 import {
@@ -13,6 +14,7 @@ export function TaskHistoryList({
   selected,
   page,
   loading,
+  viewportRef,
   onJob,
   onPage,
 }: {
@@ -21,6 +23,7 @@ export function TaskHistoryList({
   selected: string | undefined;
   page: number;
   loading: boolean;
+  viewportRef?: Ref<HTMLDivElement>;
   onJob(id: string): void;
   onPage(page: number): void;
 }) {
@@ -29,7 +32,13 @@ export function TaskHistoryList({
   const pages = Math.max(1, Math.ceil(data.total / historyPageSize));
   return (
     <>
-      <div className="task-history-table-wrap">
+      <div
+        ref={viewportRef}
+        className="task-history-table-wrap"
+        role="region"
+        aria-label={zh ? "任务列表" : "Task list"}
+        tabIndex={0}
+      >
         <table className="task-history-table">
           <thead>
             <tr>
