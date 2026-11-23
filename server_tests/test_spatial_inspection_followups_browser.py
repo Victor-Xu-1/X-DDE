@@ -23,13 +23,20 @@ CASES = [
 ]
 
 
-def geometry(result, height):
+def geometry(result, width, height):
     canvas = result.locator(".molecular-stage iframe").bounding_box()
     analysis = result.locator(".structure-workbench-details").bounding_box()
     assert canvas and analysis
-    assert canvas["height"] >= 370 and canvas["width"] >= 430
-    assert canvas["y"] >= 0 and canvas["y"] + canvas["height"] <= height + 4
+    minimum_canvas = (285, 350) if width < 1080 else (370, 430)
+    assert canvas["height"] >= minimum_canvas[0] and canvas["width"] >= minimum_canvas[1], (
+        canvas,
+        analysis,
+    )
+    edge_allowance = 0.5 if width < 1080 else 4
+    assert canvas["y"] >= 0 and canvas["y"] + canvas["height"] <= height + edge_allowance, canvas
     assert canvas["x"] + canvas["width"] < analysis["x"]
+    if width < 1080:
+        assert canvas["width"] > analysis["width"] >= 280
     return canvas
 
 
@@ -80,6 +87,13 @@ def review_quality(page, result, zh):
     expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
     expect(expand).to_be_focused()
     assert native.evaluate("frame => frame.isConnected")
+    if page.viewport_size["width"] < 1080:
+        contacts = result.locator(".contact-details")
+        expect(contacts).to_be_visible()
+        if not contacts.evaluate("el => el.open"):
+            contacts.locator("summary").click()
+        expect(contacts.locator("table")).to_be_visible()
+        assert contacts.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
 
 
 def review_channel(page, result, zh, evidence):
@@ -89,6 +103,16 @@ def review_channel(page, result, zh, evidence):
     assert view_modes.count() > 0
     for control in view_modes.all():
         assert control.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+    if page.viewport_size["width"] < 1080:
+        bottleneck = result.locator(".channel-table-wrap th").nth(1)
+        expect(bottleneck).to_be_in_viewport()
+        assert bottleneck.evaluate("""cell => {
+          const label = [...cell.childNodes].find(node => node.nodeType === Node.TEXT_NODE
+            && node.textContent.trim());
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          return range.getClientRects().length === 1;
+        }""")
     focus.click()
     clearance = result.get_by_role(
         "checkbox", name="显示采样空间" if zh else "Show sampled clearance", exact=True,
@@ -131,6 +155,7 @@ def review_refinement(page, result, zh, original):
 
 
 @pytest.mark.parametrize(("language", "theme", "width", "height"), [
+    ("en", "warm", 1001, 600), ("zh", "dark", 1001, 580),
     ("en", "warm", 1120, 650), ("zh", "dark", 1280, 700),
 ])
 def test_spatial_inspection_followups(language, theme, width, height):
@@ -156,10 +181,12 @@ def test_spatial_inspection_followups(language, theme, width, height):
         power = page.request.get(power_url).json()
         observed = {}
         for capability, selector in CASES:
+            if width < 1080 and capability == "plip.profile":
+                continue
             job = open_result(page, base, capability)
             result = page.locator(".detail-panel " + selector)
             ready(result, zh)
-            observed[capability] = geometry(result, height)
+            observed[capability] = geometry(result, width, height)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
             page.screenshot(path=evidence / f"{capability}.png")
             if capability == "plip.profile":

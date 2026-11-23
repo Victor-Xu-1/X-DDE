@@ -1231,18 +1231,13 @@ SPATIAL_DESKTOP_FILES = {
 SPATIAL_DESKTOP_DIFF = "9295ffd4f972f8b6b806cff9a3d2d24e63f1b132c8bafe76e3cde2cdf6ecaa56"
 SPATIAL_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
-    ".github/workflows/sequence-result-checks.yml",
-    "frontend/src/integrations/InteractionResults.tsx",
-    "frontend/src/integrations/interaction-workspace.css",
+    "docs/frontend-layout.md",
     "frontend/src/integrations/refinement-summary.css",
+    "frontend/src/presentation/spatial-result-narrow.css",
     "frontend/src/presentation/spatial-result-review.css",
-    "frontend/src/quality/QualityResults.tsx",
-    "frontend/src/quality/quality-results.css",
-    "frontend/src/space/ChannelResults.tsx",
-    "frontend/src/space/channels.css",
     "server_tests/test_spatial_inspection_followups_browser.py",
 }
-SPATIAL_REVIEW_DIFF = "8d316e20f0ed58917da40f2c3f2d374e725f893200098f48061b20e60b5e1a4c"
+SPATIAL_REVIEW_DIFF = "7965cd62e98557172a1c7b5bcfb9a209f45796bd68ec278eb2e5025d79e78e98"
 SHORT_STRUCTURE_REVIEW_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     ".github/workflows/protein-interface-checks.yml",
