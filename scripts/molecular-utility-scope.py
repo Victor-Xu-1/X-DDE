@@ -1571,6 +1571,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "frontend/src/guided/Questionnaire.tsx",
     "frontend/src/guided/TaskPresentation.tsx",
     "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/RecognitionBackendEntry.tsx",
     "frontend/src/utilities/UtilityImageInput.tsx",
     "frontend/src/utilities/UtilityImagePad.tsx",
     "frontend/src/utilities/UtilityImageTask.test.tsx",
@@ -1580,7 +1581,7 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_utility_result_desktop.py",
 }
-UTILITY_RESULT_DESKTOP_DIFF = "315343b3e00b4fa3fb655d9882f72a4f8fb9922f6963e95c8614188b5a4145f6"
+UTILITY_RESULT_DESKTOP_DIFF = "2b4773be08b106d278a57c83ac74ff02b1e9be1a3c791264aabde7d8039ace9f"
 RESULT_HANDOFF_DESKTOP_FILES = {
     "frontend/src/App.tsx",
     "frontend/src/App.test.tsx",

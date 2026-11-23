@@ -12,10 +12,12 @@ export function RecognitionBackendEntry({
   language,
   powerControl,
   onOpen,
+  disabled = false,
 }: {
   language: Language;
   powerControl: ReturnType<typeof useRecognitionStatus>;
   onOpen?(): void;
+  disabled?: boolean;
 }) {
   const zh = language === "zh";
   const { status, changing, failed, toggle } = powerControl;
@@ -37,7 +39,7 @@ export function RecognitionBackendEntry({
         name="DECIMER"
         status={changing ? (zh ? "正在切换…" : "Switching…") : description}
         enabled={status?.power?.enabled === true}
-        disabled={!status?.idle_power || !phase}
+        disabled={disabled || !status?.idle_power || !phase}
         pending={changing || (phase != null && recognitionPowerBlocked(phase))}
         onToggle={() => void toggle()}
         setup={

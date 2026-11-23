@@ -206,10 +206,7 @@ function UtilityTaskSession({
         )}
         <fieldset
           className="utility-task-fields"
-          disabled={
-            actions.action === "example" ||
-            actions.action === "structure-import"
-          }
+          disabled={Boolean(actions.action)}
         >
           <legend className="sr-only">
             {language === "zh" ? "任务材料与设置" : "Task inputs and settings"}
@@ -227,9 +224,7 @@ function UtilityTaskSession({
                 imageEntry: "workspace",
                 imageTarget,
                 submitTarget,
-                submitLocked:
-                  actions.action === "example" ||
-                  actions.action === "structure-import",
+                submitLocked: Boolean(actions.action),
                 onMatchingResult: setMatched,
               }}
             >

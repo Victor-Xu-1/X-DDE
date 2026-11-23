@@ -189,6 +189,7 @@ export function ImageMoleculeInput({
           <RecognitionBackendEntry
             language={language}
             powerControl={recognition}
+            disabled={session.disabled}
           />
         )}
       </div>
