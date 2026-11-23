@@ -151,7 +151,7 @@ def test_native_generated_candidate_enters_exact_full_receptor_quality_draft(lan
         heavy_atoms = "输出重原子数" if zh else "Output heavy atoms"
         category = table.get_by_role("columnheader", name=heavy_atoms, exact=True)
         expect(category).to_have_count(0)
-        columns = details.get_by_text("显示指标" if zh else "Columns", exact=True)
+        columns = details.locator("summary").filter(has_text="显示指标" if zh else "Columns")
         columns.click()
         details.get_by_role("checkbox", name=heavy_atoms, exact=True).check()
         expect(category).to_be_visible()

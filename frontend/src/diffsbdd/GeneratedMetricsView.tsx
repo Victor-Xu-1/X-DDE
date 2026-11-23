@@ -20,7 +20,7 @@ export function GeneratedMetricsView({
       aria-label={zh ? "所选构象检查" : "Selected structure checks"}
     >
       <header>
-        <strong>{zh ? "所选构象检查" : "Selected structure checks"}</strong>
+        <strong>{zh ? "构象检查" : "Pose checks"}</strong>
         {action}
       </header>
       {active.fragments != null && active.fragments > 1 && (
@@ -38,20 +38,6 @@ export function GeneratedMetricsView({
               : " Fixed-region checks cover the retained core.")}
         </p>
       )}
-      <dl className="native-result-metrics generated-primary-metrics">
-        <div>
-          <dt>QED</dt>
-          <dd>{active.qed}</dd>
-        </div>
-        <div>
-          <dt>{zh ? "结构组分" : "Components"}</dt>
-          <dd>{active.fragments ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>{zh ? "口袋近接 <1.2 Å" : "Pocket pairs <1.2 Å"}</dt>
-          <dd>{active.pocket_atom_pairs_under_1_2_angstrom}</dd>
-        </div>
-      </dl>
       <p
         className={
           active.relaxation_converged === false ? "notice" : "field-help"
@@ -84,6 +70,20 @@ export function GeneratedMetricsView({
       </p>
       <details>
         <summary>{zh ? "更多构象指标" : "More structure metrics"}</summary>
+        <dl className="native-result-metrics generated-primary-metrics">
+          <div>
+            <dt>QED</dt>
+            <dd>{active.qed}</dd>
+          </div>
+          <div>
+            <dt>{zh ? "结构组分" : "Components"}</dt>
+            <dd>{active.fragments ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>{zh ? "口袋近接 <1.2 Å" : "Pocket pairs <1.2 Å"}</dt>
+            <dd>{active.pocket_atom_pairs_under_1_2_angstrom}</dd>
+          </div>
+        </dl>
         <dl className="native-result-metrics">
           <div>
             <dt>LogP</dt>

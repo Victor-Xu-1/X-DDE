@@ -663,6 +663,28 @@ ARCHIVED_POSE_REVIEW_FILES = {
     "frontend/src/viewer/MinimizedPoseResults.test.tsx",
 }
 ARCHIVED_POSE_REVIEW_DIFF = "f5010cb71c2ecde7dc012264275db3c586a90699296198436c3370220c26f770"
+GENERATED_DESKTOP_FILES = {
+    ".github/workflows/generated-candidate-checks.yml",
+    ".github/workflows/molecular-utility-checks.yml",
+    ".github/workflows/property-model-review-checks.yml",
+    ".github/workflows/reference-pocket-checks.yml",
+    "frontend/src/diffsbdd/DiffResults.tsx",
+    "frontend/src/diffsbdd/GeneratedCandidateDownload.tsx",
+    "frontend/src/diffsbdd/GeneratedCandidates.css",
+    "frontend/src/diffsbdd/GeneratedCandidates.test.tsx",
+    "frontend/src/diffsbdd/GeneratedCandidates.tsx",
+    "frontend/src/diffsbdd/GeneratedMetricsView.tsx",
+    "frontend/src/diffsbdd/generated-columns.tsx",
+    "frontend/src/integrations/ScientificResults.test.tsx",
+    "frontend/src/integrations/ScientificResults.tsx",
+    "frontend/src/integrations/results.css",
+    "frontend/src/presentation/SdfArtifactDownload.tsx",
+    "frontend/src/presentation/compact-structure-review.css",
+    "frontend/src/presentation/pose-review-workspace.css",
+    "server_tests/test_generated_quality_browser.py",
+    "tests/test_molecular_utility_scope.py",
+}
+GENERATED_DESKTOP_DIFF = "c09ad3db10c1643206f961383f7514014de59dee7b13bc66f20990a6dfda2bf7"
 GUIDED_DESKTOP_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/guided/desktop-questionnaire.css",
@@ -2060,6 +2082,11 @@ def main():
         ARCHIVED_POSE_REVIEW_FILES, ARCHIVED_POSE_REVIEW_DIFF,
         scope_pin="ARCHIVED_POSE_REVIEW_DIFF",
     )
+    generated_desktop = reviewed_selected(
+        set(changed), os.environ.get("GITHUB_EVENT_NAME"), base,
+        GENERATED_DESKTOP_FILES, GENERATED_DESKTOP_DIFF,
+        scope_pin="GENERATED_DESKTOP_DIFF",
+    )
     prediction_input_layout = (
         "frontend/src/guided/desktop-questionnaire.css" in changed
         and run_path(str(Path(__file__).with_name("prediction-workspace-scope.py")))[
@@ -2075,6 +2102,7 @@ def main():
         output.write("editor_drawing_only=" + str(editor_drawing).lower() + "\n")
         output.write("portable_smiles_only=" + str(portable_smiles).lower() + "\n")
         output.write("archived_pose_review_only=" + str(archived_pose_review).lower() + "\n")
+        output.write("generated_desktop_only=" + str(generated_desktop).lower() + "\n")
         output.write("guided_desktop_only=" + str(guided_desktop).lower() + "\n")
         output.write("prediction_input_layout=" + str(prediction_input_layout).lower() + "\n")
         output.write("utility_query_only=" + str(utility_query).lower() + "\n")
@@ -2173,6 +2201,7 @@ def main():
             or paired_figure
             or native_color_figure
             or archived_pose_review
+            or generated_desktop
             or selected(changed, event, shared=shared)
         )
         output.write("runtime_switch_only=" + str(runtime).lower() + "\n")

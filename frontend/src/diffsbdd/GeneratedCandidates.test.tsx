@@ -106,20 +106,20 @@ it("uses the same verified original record for selected and batch metrics", () =
       onSelect={onSelect}
     />,
   );
-  expect(
-    screen.getByRole("region", { name: "Selected structure checks" }),
-  ).toHaveTextContent("Contains 3 disconnected components");
+  const checks = screen.getByRole("region", {
+    name: "Selected structure checks",
+  });
+  expect(checks).toHaveTextContent("Contains 3 disconnected components");
   const strip = screen.getByRole("region", {
     name: "Generated candidate preview",
   });
   expect(
     within(strip).getByRole("button", { name: "Preview candidate 2" }),
   ).toHaveAttribute("aria-pressed", "true");
-  expect(
-    within(
-      screen.getByRole("region", { name: "Selected structure checks" }),
-    ).getByText("0.2"),
-  ).toBeVisible();
+  const selectedQED = within(checks).getByText("0.2");
+  expect(selectedQED).not.toBeVisible();
+  fireEvent.click(within(checks).getByText("More structure metrics"));
+  expect(selectedQED).toBeVisible();
   fireEvent.click(
     within(strip).getByRole("button", { name: "Preview candidate 1" }),
   );
@@ -381,7 +381,7 @@ it("puts optimization descriptors first without changing native record identity 
   });
   const headers = within(table).getAllByRole("columnheader");
   expect(headers).toHaveLength(5);
-  ["Select for comparison", "Candidate molecule", "QED", "SA", "ΔQED"].forEach(
+  ["Select for comparison", "Candidate", "QED", "SA", "ΔQED"].forEach(
     (name, index) => {
       expect(headers[index]).toHaveAccessibleName(name);
     },

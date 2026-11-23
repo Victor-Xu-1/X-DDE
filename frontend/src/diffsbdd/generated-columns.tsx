@@ -76,7 +76,7 @@ export function generatedColumns({
       label: generated
         ? zh
           ? "候选分子"
-          : "Candidate molecule"
+          : "Candidate"
         : zh
           ? "分子"
           : "Molecule",

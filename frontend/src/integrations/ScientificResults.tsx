@@ -6,6 +6,8 @@ import {
   type ResearchColumn,
 } from "../presentation/ResearchTable";
 import { MolecularPreview } from "../presentation/MolecularPreview";
+import { SdfArtifactDownload } from "../presentation/SdfArtifactDownload";
+import "../presentation/compact-structure-review.css";
 import { StructureViewer } from "../viewer/StructureViewer";
 import { ResearchTabs } from "../presentation/ResearchTabs";
 import type { Job, Language } from "../types";
@@ -193,6 +195,13 @@ export function ScientificResults({
       />
     );
   const url = active?.artifact ? artifactUrl(job.id, active.artifact) : null;
+  const designing = result.operation === "reinvent_design" && rows.length > 0;
+  const conformerDigest =
+    designing &&
+    active?.geometry === "unbound_conformer" &&
+    active.artifact?.endsWith(".sdf")
+      ? result.artifact_sha256[active.artifact]
+      : undefined;
   const structureArtifact =
     active?.artifact && /\.(pdb|cif)$/.test(active.artifact)
       ? active.artifact
@@ -226,6 +235,7 @@ export function ScientificResults({
       // can infer stereochemistry not declared in the generated molecule.
       source={{ smiles: active.smiles }}
       urls={complexUrl ? [complexUrl] : url ? [url] : []}
+      nativeArtifactSha256={conformerDigest}
       defaultView={active.geometry === "none" ? "2d" : "3d"}
     />
   ) : url && structureArtifact ? (
@@ -276,11 +286,13 @@ export function ScientificResults({
     <ResearchTable
       rows={rows}
       columns={columns}
-      initialVisibleColumns={columns.slice(0, 4).map((column) => column.key)}
+      initialVisibleColumns={columns
+        .slice(0, designing ? 3 : 4)
+        .map((column) => column.key)}
       rowId={(row) => row.id}
       language={language}
       title={zh ? "研究候选" : "Research candidates"}
-      compactToolbar={Boolean(result.sequence_design)}
+      compactToolbar={Boolean(result.sequence_design) || designing}
       selected={active?.id}
       onSelect={(row) => setSelected(row.id)}
       exportName="scientific-candidates.csv"
@@ -334,6 +346,7 @@ export function ScientificResults({
     <div
       className={
         "scientific-results" +
+        (designing ? " generated-review-workspace" : "") +
         (prediction ? " prediction-result" : "") +
         (refinement ? " is-refinement-result" : "") +
         (result.sequence_design ? " sequence-review-workspace" : "")
@@ -349,7 +362,7 @@ export function ScientificResults({
       {result.operation === "chemprop_train" && (
         <PropertyModelResults result={result} language={language} />
       )}
-      {!refinement && metricsTable}
+      {!refinement && !designing && metricsTable}
       {rows.length > 0 && (
         <>
           <StructureWorkbench
@@ -418,6 +431,26 @@ export function ScientificResults({
                 language={language}
               />
             )}
+            {designing && url && active.artifact && conformerDigest && (
+              <div className="generated-selection">
+                <span>{zh ? "游离构象" : "Free conformer"}</span>
+                <SdfArtifactDownload
+                  key={url + conformerDigest}
+                  url={url}
+                  sha256={conformerDigest}
+                  filename={active.artifact}
+                  language={language}
+                  label={
+                    zh ? "下载所选候选 SDF" : "Download selected candidate SDF"
+                  }
+                  errorLabel={
+                    zh
+                      ? "未能核对原始候选，请重试。"
+                      : "Could not verify the original candidate. Try again."
+                  }
+                />
+              </div>
+            )}
             {refinement ? (
               <>
                 <RefinementSummary
@@ -429,6 +462,12 @@ export function ScientificResults({
               </>
             ) : (
               !prediction && candidateTable
+            )}
+            {designing && metricsTable && (
+              <details>
+                <summary>{zh ? "生成报告" : "Generation report"}</summary>
+                {metricsTable}
+              </details>
             )}
             {result.mol1 && active && (
               <Mol1Confidence

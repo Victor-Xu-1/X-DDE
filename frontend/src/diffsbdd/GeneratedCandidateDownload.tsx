@@ -26,6 +26,7 @@ export function GeneratedCandidateDownload({
       filename={`candidate-${number}.sdf`}
       language={language}
       label={zh ? "下载所选候选 SDF" : "Download selected candidate SDF"}
+      displayLabel={zh ? "下载 SDF" : "Download SDF"}
       errorLabel={
         zh
           ? "未能核对原始候选，请重试。"

@@ -196,6 +196,8 @@ on:
         value: ${{ jobs.scope.outputs.history_desktop_only }}
       candidate_desktop_only:
         value: ${{ jobs.scope.outputs.candidate_desktop_only }}
+      generated_desktop_only:
+        value: ${{ jobs.scope.outputs.generated_desktop_only }}
       del_desktop_only:
         value: ${{ jobs.scope.outputs.del_desktop_only }}
       simulation_desktop_only:
@@ -233,6 +235,7 @@ jobs:
       protein_desktop_only: ${{ steps.select.outputs.protein_desktop_only }}
       history_desktop_only: ${{ steps.select.outputs.history_desktop_only }}
       candidate_desktop_only: ${{ steps.select.outputs.candidate_desktop_only }}
+      generated_desktop_only: ${{ steps.select.outputs.generated_desktop_only }}
       screening_desktop_only: ${{ steps.select.outputs.screening_desktop_only }}
       del_desktop_only: ${{ steps.select.outputs.del_desktop_only }}
       result_theme_only: ${{ steps.select.outputs.result_theme_only }}
@@ -284,6 +287,7 @@ jobs:
       needs.scope.outputs.editor_drawing_only != 'true' &&
       needs.scope.outputs.portable_smiles_only != 'true' &&
       needs.scope.outputs.archived_pose_review_only != 'true' &&
+      needs.scope.outputs.generated_desktop_only != 'true' &&
       needs.scope.outputs.guided_desktop_only != 'true' &&
       needs.scope.outputs.prediction_input_layout != 'true' &&
       needs.scope.outputs.utility_query_only != 'true' &&
