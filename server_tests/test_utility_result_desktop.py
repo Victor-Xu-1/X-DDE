@@ -123,7 +123,8 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         expect(run).to_be_visible()
         canvas = result.locator(".structure-workbench-view .molecule-image img").first
         expect(canvas).to_be_visible(timeout=35000)
-        assert canvas.bounding_box()["y"] < height * 0.6
+        canvas.scroll_into_view_if_needed()
+        expect(canvas).to_be_in_viewport(ratio=0.9)
         assert canvas.evaluate(
             "node => getComputedStyle(node.closest('.molecule-image')).borderRadius"
         ) == "10px"

@@ -154,6 +154,7 @@
     .utility-task-result
     .structure-workbench:not([data-workspace-expanded]) {
     grid-template-columns: minmax(0, 1fr);
+    height: auto;
     gap: 10px;
   }
 
@@ -177,7 +178,9 @@
     .utility-task-result
     .structure-workbench:not([data-workspace-expanded])
     .molecule-image:not(.is-thumbnail) {
-    min-height: 124px;
+    min-height: 0;
+    padding: 4px;
+    border-radius: var(--utility-surface-radius, 10px);
   }
 
   .studio-app
@@ -188,11 +191,27 @@
     max-height: 160px;
     object-fit: contain;
   }
+
+  .studio-app
+    .utility-task-result
+    .structure-workbench:not([data-workspace-expanded])
+    .figure-preview-sheet {
+    min-height: 118px;
+    height: clamp(118px, calc(100dvh - 465px), 228px);
+  }
+
+  .utility-task-result .molecule-inspection-view .figure-preview-image-space {
+    padding: 4px;
+  }
+
+  .utility-task-result .molecule-drawing-style {
+    margin-block-end: 4px;
+  }
 }
 
 @media (width > 1000px) {
   .utility-review-workspace:not([hidden]) {
-    --utility-review-height: clamp(280px, calc(100dvh - 250px), 650px);
+    --utility-review-height: clamp(280px, calc(100dvh - 202px), 650px);
     grid-template-columns: minmax(236px, 0.85fr) minmax(0, 1.15fr);
     align-items: stretch;
   }
