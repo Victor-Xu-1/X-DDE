@@ -378,11 +378,6 @@
     border-radius: 6px;
   }
   [data-utility="screen"] {
-    .single-page-inputs:not(:has(.molecular-input-review)) > .single-page-main {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 20px;
-    }
     .utility-screen-image-entry .image-molecule-actions {
       gap: 4px 10px;
       margin-block: 4px 0;

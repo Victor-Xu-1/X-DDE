@@ -154,9 +154,12 @@ it.each([
       screen.getByRole("button", { name: input }),
     );
     expect(source.parentElement).toContainElement(output);
-    expect(source.parentElement!.compareDocumentPosition(alternate)).toBe(
+    expect(source).toContainElement(alternate);
+    const pad = source.querySelector(".utility-image-pad")!;
+    expect(pad.compareDocumentPosition(alternate)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
+    expect(output).not.toContainElement(alternate);
     await user.click(screen.getByRole("button", { name: "Edit inputs" }));
     expect(alternate).toHaveFocus();
     expect(output).toBeVisible();

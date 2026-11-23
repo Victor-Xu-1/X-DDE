@@ -33,10 +33,13 @@ def verify_image_workspaces(page, strip, zh):
         expect(source).to_be_in_viewport(ratio=0.95)
         expect(result).to_be_in_viewport(ratio=0.95)
         left, right = source.bounding_box(), result.bounding_box()
-        assert left["x"] + left["width"] < right["x"]
+        assert abs(left["x"] + left["width"] - right["x"]) < 1
         assert abs(left["y"] - right["y"]) < 1 and left["height"] == right["height"]
-        form = tool.locator(".utility-task-form")
-        assert form.bounding_box()["y"] > right["y"] + right["height"]
+        form = source.locator(".utility-task-form")
+        pad = source.locator(".utility-image-pad").last.bounding_box()
+        assert form.bounding_box()["y"] >= pad["y"] + pad["height"]
+        expect(form.get_by_role("heading")).to_be_in_viewport()
+        assert source.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
         run = result.locator(".utility-run-controls button[type=submit]")
         expect(run).to_be_in_viewport()
         assert run.evaluate("node => node.form.closest('.utility-task-form') !== null")
@@ -138,6 +141,7 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         result.get_by_role("button", name="编辑输入" if zh else "Edit inputs").press("Enter")
         expect(inputs).to_be_focused()
         expect(file).to_have_value(asset_id)
+        expect(tool.locator(".utility-result-pane")).to_be_in_viewport(ratio=0.95)
         paste = "粘贴截图" if zh else "Paste screenshot"
         expect(tool.get_by_role("button", name=paste)).to_be_visible()
         expect(result).to_be_visible()
