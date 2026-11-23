@@ -48,6 +48,8 @@ def inspect_interface(page, base, height, zh, evidence):
     expect(contact).to_have_attribute("aria-pressed", "true")
     expect(result.locator(".interface-summary")).to_be_in_viewport()
     page.screenshot(path=evidence / "protein-interface.png")
+    label = result.locator(".result-export .research-table-action-label")
+    assert (label.bounding_box()["width"] <= 1) == narrow
     if narrow:
         verify_interface_table(page, result, scene, zh)
         native = page.request.get(f"{base}/api/jobs/{job}/result").json()
@@ -73,6 +75,15 @@ def verify_interface_table(page, result, scene, zh):
     numeric = table.locator("th.numeric-cell")
     expect(numeric).to_contain_text("距离（Å）" if zh else "Distance (Å)")
     expect(numeric).to_be_in_viewport()
+    assert table.locator(".interface-residue-button").evaluate_all("""buttons =>
+        buttons.every(button => {
+            const cell = button.closest('td');
+            const box = button.getBoundingClientRect();
+            const bounds = cell.getBoundingClientRect();
+            return box.left >= bounds.left && box.right <= bounds.right + 0.5
+                && button.scrollWidth <= button.clientWidth + 1;
+        })
+    """)
     result.get_by_role("searchbox").fill("A:PTR641")
     row = table.locator("tbody tr").filter(has_text="B:ARG562").first
     frame = scene.element_handle()
@@ -91,6 +102,14 @@ def verify_interface_table(page, result, scene, zh):
         records = list(csv.DictReader(handle))
     distance = "端点距离（Å）" if zh else "Endpoint distance (Å)"
     assert records and all(distance in record for record in records)
+    expand = result.locator("[data-workspace-expand]")
+    expand.press("Enter")
+    workspace = result.locator(".structure-workbench")
+    expect(workspace).to_have_attribute("data-workspace-expanded", "true")
+    label = result.locator(".result-export .research-table-action-label")
+    assert label.bounding_box()["width"] > 1
+    page.keyboard.press("Escape")
+    expect(expand).to_be_focused()
     assert frame.evaluate("node => node.isConnected")
 
 

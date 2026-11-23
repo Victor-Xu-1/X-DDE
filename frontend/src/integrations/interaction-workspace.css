@@ -157,6 +157,10 @@
 .protein-interface-results .research-table .mark-cell {
   padding-inline: 5px 0;
 }
+/* The short unexpanded workbench owns the interface toolbar breakpoint. */
+.protein-interface-results [data-compact-toolbar] {
+  --compact-table-tools: initial;
+}
 @media (min-width: 1001px) {
   .interface-summary .spatial-summary-metrics {
     display: grid;
@@ -289,11 +293,18 @@
     }
 
     .research-table th.numeric-cell {
-      width: 68px;
+      width: 64px;
     }
 
     .research-table th:has(.interface-contact-type) {
-      width: 76px;
+      width: 72px;
+    }
+
+    .interface-residue-button {
+      max-inline-size: 100%;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      text-align: start;
     }
 
     .research-table .column-header-content {
