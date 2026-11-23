@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
@@ -153,10 +154,19 @@ it.each([
     render(<UtilityTask tool={tool} language="en" onCreated={vi.fn()} />);
     const uploadLabel =
       tool === "screen" ? "Upload library image" : "Upload structure image";
-    expect(screen.getAllByRole("button", { name: uploadLabel })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: uploadLabel })).toHaveLength(
+      1,
+    );
     if (tool === "screen")
-      expect(screen.getByRole("button", { name: "Upload query image" })).toBeVisible();
-    const surface = screen.getByRole("button", { name: uploadLabel }).closest(".image-molecule-input")!;
+      expect(
+        screen.getByRole("button", { name: "Upload query image" }),
+      ).toBeVisible();
+    const surface = screen
+      .getByRole("button", { name: uploadLabel })
+      .closest<HTMLElement>(".utility-image-pad")!;
+    expect(
+      screen.getByRole("region", { name: "Image input" }),
+    ).toContainElement(surface);
     fireEvent.paste(surface, {
       clipboardData: {
         files: [new File(["transport"], "stat6.png", { type: "image/png" })],
@@ -168,6 +178,12 @@ it.each([
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(upload).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(surface.querySelector("img")).toHaveAttribute(
+        "src",
+        expect.stringContaining("data:image/png"),
+      ),
+    );
     expect(await screen.findByText("Loaded molecular structure")).toBeVisible();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: run })).toBeEnabled(),
@@ -198,7 +214,7 @@ it("switching away preserves the form draft and rejects a delayed image upload",
   const view = render(
     <UtilityTask tool="properties" language="en" onCreated={vi.fn()} />,
   );
-  const surface = document.querySelector(".utility-image-entry")!;
+  const surface = document.querySelector(".utility-image-pad")!;
   fireEvent.drop(surface, {
     dataTransfer: {
       files: [new File(["transport"], "stat6.png", { type: "image/png" })],
@@ -225,9 +241,16 @@ it("switching away preserves the form draft and rejects a delayed image upload",
 
 it("keeps a follow-up screenshot and its pending submission separate from the parent result", async () => {
   const next = { ...asset, id: "followup-image", sha256: "b".repeat(64) };
-  vi.spyOn(client, "request").mockImplementation(
-    async (url) => (String(url).includes(next.id) ? next : asset) as never,
-  );
+  vi.spyOn(client, "request").mockImplementation(async (url) => {
+    if (String(url).startsWith("/utilities/recognition"))
+      return {
+        available: true,
+        idle_power: true,
+        power: { phase: "stopped", enabled: false },
+      } as never;
+    return (String(url).includes(next.id) ? next : asset) as never;
+  });
+  const powerChange = vi.spyOn(client.api, "post");
   vi.spyOn(client.api, "upload")
     .mockResolvedValueOnce(asset)
     .mockResolvedValueOnce(next);
@@ -259,7 +282,7 @@ it("keeps a follow-up screenshot and its pending submission separate from the pa
         files: [new File(["transport"], "stat6.png", { type: "image/png" })],
       },
     });
-  paste(document.querySelector(".utility-image-entry")!);
+  paste(document.querySelector(".utility-image-pad")!);
   await userEvent.click(screen.getByText("Finish protocol import"));
   const run = screen.getByRole("button", { name: "Calculate properties" });
   await waitFor(() => expect(run).toBeEnabled());
@@ -267,9 +290,14 @@ it("keeps a follow-up screenshot and its pending submission separate from the pa
   expect(
     await screen.findByRole("region", { name: "Current results" }),
   ).toBeVisible();
-  const inputs = document.querySelectorAll(".utility-image-entry");
-  expect(inputs).toHaveLength(2);
-  paste(inputs[1]);
+  const result = screen.getByRole("region", { name: "Current results" });
+  const parentPower = within(
+    screen.getByRole("region", { name: "Image input" }),
+  ).getByRole("switch", { name: "DECIMER" });
+  await waitFor(() => expect(parentPower).toBeEnabled());
+  const followupSource = result.querySelector(".utility-image-entry");
+  expect(followupSource).toBeTruthy();
+  paste(followupSource!);
   await userEvent.click(screen.getByText("Finish protocol import"));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(screen.getByRole("region", { name: "Current results" })).toBeVisible();
@@ -282,6 +310,19 @@ it("keeps a follow-up screenshot and its pending submission separate from the pa
   await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
   expect(screen.getByRole("button", { name: "New task" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Edit inputs" })).toBeDisabled();
+  expect(parentPower).toBeDisabled();
+  const parentInputs = within(
+    screen.getByRole("region", { name: "Task inputs" }),
+  );
+  const smiles = parentInputs.getByRole("radio", {
+    name: "Paste molecular structure text (SMILES)",
+  });
+  expect(smiles).toBeDisabled();
+  await userEvent.click(smiles);
+  await userEvent.click(parentPower);
+  expect(parentInputs.queryByRole("textbox", { name: "SMILES" })).toBeNull();
+  expect(result).toBeVisible();
+  expect(powerChange).not.toHaveBeenCalled();
   view.rerender(
     <UtilityTask
       tool="properties"

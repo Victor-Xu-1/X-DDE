@@ -1,0 +1,247 @@
+.utility-review-workspace:not([hidden]) {
+  display: grid;
+  gap: 14px;
+  margin: 8px 0 14px;
+}
+
+.utility-source-pane,
+.utility-result-pane {
+  min-width: 0;
+  min-height: 240px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--utility-surface-radius, 10px);
+  background: var(--surface);
+}
+
+.utility-source-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.utility-result-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.utility-result-scroll {
+  flex: 1;
+  min-height: 0;
+  container: utility-result / inline-size;
+}
+
+.utility-run-controls .questionnaire-actions {
+  position: static;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 8px 0 0;
+}
+
+.utility-run-controls:has(.questionnaire-actions) {
+  border-top: 1px solid var(--line);
+}
+
+.utility-run-controls .questionnaire-actions > .primary-button {
+  min-height: 34px;
+  padding: 6px 10px;
+  white-space: normal;
+}
+
+.utility-run-controls > .error-box {
+  margin: 8px 0 0;
+}
+
+.utility-source-pane > h2,
+.utility-result-empty > h2,
+.molecular-utility .utility-task-result > header h2,
+.utility-task-form > h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.utility-image-sources {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+}
+
+.utility-image-pad {
+  display: flex;
+  flex: 1 0 104px;
+  flex-direction: column;
+  min-width: 0;
+  padding: 9px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft, var(--surface));
+}
+
+.utility-image-pad:focus-visible,
+.utility-image-pad:focus-within {
+  border-color: var(--accent);
+}
+
+.utility-image-pad-preview {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  min-height: 44px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+.utility-image-pad-preview > .anticon {
+  font-size: 21px;
+}
+
+.utility-image-pad-preview > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.utility-image-pad .image-molecule-actions {
+  justify-content: center;
+  gap: 4px 8px;
+  margin: 6px 0 0;
+}
+
+.utility-image-pad .image-molecule-actions > button {
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
+.utility-image-pad .image-molecule-actions > .recognition-backend-entry {
+  margin-inline-start: 0;
+}
+
+.utility-image-pad .error-box {
+  margin: 6px 0 0;
+}
+
+.utility-result-empty {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100%;
+}
+
+.utility-result-empty > p {
+  align-self: center;
+  justify-self: center;
+  margin: 8px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+.utility-task-form > h2 {
+  padding: 6px 0;
+}
+
+@container utility-result (width < 640px) {
+  .studio-app
+    .utility-task-result
+    .structure-workbench:not([data-workspace-expanded]) {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    gap: 10px;
+  }
+
+  .utility-task-result > header {
+    gap: 4px 8px;
+  }
+
+  .utility-task-result .utility-result-actions {
+    gap: 4px 8px;
+    margin-inline-start: 0;
+    font-size: 12px;
+  }
+
+  .utility-task-result .utility-result-actions .secondary-button {
+    min-height: 28px;
+    padding: 3px 7px;
+    font-size: inherit;
+  }
+
+  .studio-app
+    .utility-task-result
+    .structure-workbench:not([data-workspace-expanded])
+    .molecule-image:not(.is-thumbnail) {
+    min-height: 0;
+    padding: 4px;
+    border-radius: var(--utility-surface-radius, 10px);
+  }
+
+  .studio-app
+    .utility-task-result
+    .structure-workbench:not([data-workspace-expanded])
+    .molecule-image:not(.is-thumbnail)
+    > img {
+    max-height: 160px;
+    object-fit: contain;
+  }
+
+  .studio-app
+    .utility-task-result
+    .structure-workbench:not([data-workspace-expanded])
+    .figure-preview-sheet {
+    min-height: 118px;
+    height: clamp(118px, calc(100dvh - 465px), 228px);
+  }
+
+  .utility-task-result .molecule-inspection-view .figure-preview-image-space {
+    padding: 4px;
+  }
+
+  .utility-task-result .molecule-drawing-style {
+    margin-block-end: 4px;
+  }
+}
+
+@media (width > 1000px) {
+  .utility-review-workspace:not([hidden]) {
+    --utility-review-height: clamp(280px, calc(100dvh - 202px), 650px);
+    grid-template-columns: minmax(236px, 0.85fr) minmax(0, 1.15fr);
+    align-items: stretch;
+  }
+
+  .utility-source-pane,
+  .utility-result-scroll {
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .utility-source-pane,
+  .utility-result-pane {
+    height: var(--utility-review-height);
+  }
+
+  .molecular-utility .single-page-inputs:has(.molecular-input-review) {
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 0.55fr);
+    gap: 8px 16px;
+  }
+
+  .molecular-utility .single-page-inputs > .single-page-options {
+    grid-column: 1 / -1;
+  }
+
+  .molecular-utility .single-page-preview .molecule-image {
+    min-height: 132px;
+  }
+
+  .molecular-utility .single-page-preview .molecule-image > img {
+    max-height: 180px;
+  }
+}

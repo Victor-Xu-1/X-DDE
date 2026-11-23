@@ -9,6 +9,7 @@ import { RecognitionBackendEntry } from "./RecognitionBackendEntry";
 import { useRecognitionStatus } from "./recognition-power";
 import "./image-molecule.css";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
+import { UtilityImagePad } from "./UtilityImagePad";
 
 export type ImageInputTarget = "molecule" | "library" | "query";
 
@@ -32,6 +33,8 @@ export function ImageMoleculeInput({
   target = "molecule",
   uploadButton,
   controlsFirst = false,
+  controlsTarget,
+  workspaceFeedback,
   automatic = false,
   pasteLabel,
   cancelOnEdit = false,
@@ -49,6 +52,8 @@ export function ImageMoleculeInput({
   target?: ImageInputTarget;
   uploadButton?: RefObject<HTMLButtonElement | null>;
   controlsFirst?: boolean;
+  controlsTarget?: HTMLElement | null;
+  workspaceFeedback?: ReactNode;
   automatic?: boolean;
   pasteLabel?: string;
   cancelOnEdit?: boolean;
@@ -81,10 +86,14 @@ export function ImageMoleculeInput({
     onImageSelected,
   });
   const image = enabled ? session.selection : null;
-  function owns(target: EventTarget) {
+  function owns(element: EventTarget) {
     return (
-      target instanceof Element &&
-      target.closest(".image-molecule-input") === surface.current
+      element instanceof Element &&
+      (element.closest(".image-molecule-input") === surface.current ||
+        (Boolean(controlsTarget?.contains(element)) &&
+          element
+            .closest(".utility-image-pad")
+            ?.getAttribute("data-utility-image-target") === target))
     );
   }
   function edit(target: EventTarget) {
@@ -92,7 +101,9 @@ export function ImageMoleculeInput({
       !cancelOnEdit ||
       !owns(target) ||
       !(target instanceof Element) ||
-      target.closest(".image-molecule-actions,[data-material-disclosure]") ||
+      target.closest(
+        ".image-molecule-actions,.utility-image-pad,[data-material-disclosure]",
+      ) ||
       target === picker.current
     )
       return;
@@ -159,7 +170,7 @@ export function ImageMoleculeInput({
                 : "Paste screenshot"
               : imageActions[target][1][zh ? 0 : 1])}
         </button>
-        {target === "molecule" && (
+        {target === "molecule" && !controlsTarget && (
           <span>
             {zh ? "也可直接拖入结构图" : "Or drop a structure image here"}
           </span>
@@ -178,6 +189,7 @@ export function ImageMoleculeInput({
           <RecognitionBackendEntry
             language={language}
             powerControl={recognition}
+            disabled={session.disabled}
           />
         )}
       </div>
@@ -246,9 +258,21 @@ export function ImageMoleculeInput({
         }
       }}
     >
-      {controlsFirst && controls}
+      {controlsTarget
+        ? createPortal(
+            <UtilityImagePad
+              language={language}
+              target={target}
+              file={image?.file ?? review?.image}
+            >
+              {controls}
+              {workspaceFeedback}
+            </UtilityImagePad>,
+            controlsTarget,
+          )
+        : controlsFirst && controls}
       {children}
-      {!controlsFirst && controls}
+      {!controlsTarget && !controlsFirst && controls}
       {image &&
         createPortal(
           <ImageMoleculeDialog

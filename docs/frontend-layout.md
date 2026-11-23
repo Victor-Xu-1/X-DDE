@@ -1174,3 +1174,13 @@ in history and module examples. Structure and source actions share the first
 screen. Review the original archive, prepared structure and generation input
 against their recorded checksums. The source verification and preparation
 handoff use the original retained artifacts.
+
+## Screenshot-first utility workspaces
+
+ADMET, brain penetration, molecular properties, structural screening and
+protonation keep the image input on the left and the current result on the
+right, with the tool's run action in the result pane. Image import still
+uses the existing recognition and structure review flow. Alternate inputs,
+settings and template actions stay below the workspace. Narrow result panes
+stack the structure and measurements. Changing the native request clears
+the displayed result until the current input has a corresponding result.

@@ -1422,7 +1422,9 @@ jobs:
           npx vitest run src/utilities/UtilitySinglePage.test.tsx
           src/utilities/UtilityTaskResult.test.tsx src/utilities/UtilityWorkspace.test.tsx
           src/utilities/UtilityImageTask.test.tsx src/guided/SinglePageTask.test.tsx
-          src/guided/Questionnaire.test.tsx
+          src/guided/Questionnaire.test.tsx src/utilities/UtilityTask.test.tsx
+          src/utilities/UtilityBrainSubmission.test.tsx
+          src/utilities/ImageMoleculeInput.test.tsx src/utilities/ImageMoleculeInput.action.test.tsx
       - name: Verify the result workspace against a retained native utility result
         env:
           GH_TOKEN: ${{ github.token }}
