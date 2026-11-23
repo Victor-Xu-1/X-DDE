@@ -289,11 +289,11 @@
     }
 
     .research-table :is(th, td):not(.mark-cell) {
-      padding-inline: 4px;
+      padding-inline: 3px;
     }
 
     .research-table th.numeric-cell {
-      width: 64px;
+      width: 60px;
     }
 
     .research-table th:has(.interface-contact-type) {
@@ -302,6 +302,7 @@
 
     .interface-residue-button {
       max-inline-size: 100%;
+      font-size: 12px;
       overflow-wrap: anywhere;
       white-space: normal;
       text-align: start;

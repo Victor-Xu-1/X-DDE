@@ -80,8 +80,11 @@ def verify_interface_table(page, result, scene, zh):
             const cell = button.closest('td');
             const box = button.getBoundingClientRect();
             const bounds = cell.getBoundingClientRect();
+            const text = document.createRange();
+            text.selectNodeContents(button);
             return box.left >= bounds.left && box.right <= bounds.right + 0.5
-                && button.scrollWidth <= button.clientWidth + 1;
+                && button.scrollWidth <= button.clientWidth + 1
+                && text.getClientRects().length === 1;
         })
     """)
     result.get_by_role("searchbox").fill("A:PTR641")
