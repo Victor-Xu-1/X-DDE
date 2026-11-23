@@ -656,14 +656,20 @@ PORTABLE_SMILES_FILES = {
 PORTABLE_SMILES_DIFF = "d59bab2b01365e5b5772d36e5e6356ee79cd08bc736b362aea0a77384798d3cb"
 ARCHIVED_POSE_REVIEW_FILES = {
     ".github/workflows/ligand-energy-scope.yml",
-    ".github/workflows/molecular-utility-checks.yml",
+    "docs/frontend-layout.md",
+    "frontend/src/poses/ClusterCoverage.tsx",
+    "frontend/src/poses/ClusterInspector.tsx",
+    "frontend/src/poses/ClusterMatrix.tsx",
     "frontend/src/poses/ClusterResults.tsx",
+    "frontend/src/poses/ClusterResults.test.tsx",
     "frontend/src/poses/ClusterTables.tsx",
+    "frontend/src/poses/cluster.css",
     "frontend/src/presentation/pose-review-workspace.css",
-    "frontend/src/viewer/MinimizedPoseResults.tsx",
-    "frontend/src/viewer/MinimizedPoseResults.test.tsx",
+    "server_tests/test_cluster_review_desktop.py",
+    "server_tests/test_pose_cluster_browser.py",
+    "server_tests/test_publication_browser.py",
 }
-ARCHIVED_POSE_REVIEW_DIFF = "f5010cb71c2ecde7dc012264275db3c586a90699296198436c3370220c26f770"
+ARCHIVED_POSE_REVIEW_DIFF = "b3aca6492d5b6991be62776d79cc4812c0c43a7ca6a930ec74c81f9b59bae1f7"
 GENERATED_DESKTOP_FILES = {
     ".github/workflows/generated-candidate-checks.yml",
     ".github/workflows/molecular-utility-checks.yml",
