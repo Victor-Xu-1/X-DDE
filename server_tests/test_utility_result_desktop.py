@@ -38,7 +38,8 @@ def verify_image_workspaces(page, strip, zh):
         form = source.locator(".utility-task-form")
         pad = source.locator(".utility-image-pad").last.bounding_box()
         assert form.bounding_box()["y"] >= pad["y"] + pad["height"]
-        expect(form.get_by_role("heading")).to_be_in_viewport()
+        heading = "其他输入与设置" if zh else "Other inputs and settings"
+        expect(form.get_by_role("heading", name=heading, exact=True)).to_be_in_viewport()
         assert source.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
         run = result.locator(".utility-run-controls button[type=submit]")
         expect(run).to_be_in_viewport()
