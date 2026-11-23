@@ -6,8 +6,13 @@ on:
       - 'frontend/src/viewer/MinimizedPoseResults.test.tsx'
       - 'frontend/src/poses/ClusterResults.tsx'
       - 'frontend/src/poses/ClusterResults.test.tsx'
+      - 'frontend/src/poses/ClusterInspector.tsx'
+      - 'frontend/src/poses/ClusterMatrix.tsx'
+      - 'frontend/src/poses/ClusterCoverage.tsx'
       - 'frontend/src/poses/ClusterTables.tsx'
+      - 'frontend/src/poses/cluster.css'
       - 'frontend/src/presentation/pose-review-workspace.css'
+      - 'server_tests/test_cluster_review_desktop.py'
       - '.github/workflows/ligand-energy-scope.yml'
   push:
     paths: *paths
@@ -17,6 +22,10 @@ jobs:
   ligand-energy:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      WB_HOME: ${{ runner.temp }}/retained-pose-inspection
+      WB_STATE_DIR: ${{ runner.temp }}/retained-pose-inspection/state
+      WB_AUTO_DEPLOY: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,3 +35,16 @@ jobs:
       - name: Archived pose, cluster selection and source download
         working-directory: frontend
         run: npx vitest run src/viewer/MinimizedPoseResults.test.tsx src/poses/ClusterResults.test.tsx
+      - uses: astral-sh/setup-uv@v6
+      - name: Open retained clustering results in English and Chinese
+        run: |
+          uv sync --locked --group dev --group browser
+          uv run --locked ruff check server_tests/test_cluster_review_desktop.py server_tests/test_pose_cluster_browser.py server_tests/test_publication_browser.py
+          uv run --locked python server_tests/prepare_visual_components.py --components public-pose-examples
+          uv run --locked python -m playwright install --with-deps chromium
+          uv run --locked python -m pytest -q server_tests/test_cluster_review_desktop.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cluster-desktop-evidence
+          path: outputs/cluster-review-desktop

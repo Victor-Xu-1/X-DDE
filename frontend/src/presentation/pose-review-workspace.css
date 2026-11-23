@@ -55,7 +55,19 @@
 
   .pose-review-workspace .cluster-selected-downloads {
     gap: 4px 12px;
-    margin-block: 6px 0;
     font-size: 12px;
+  }
+
+  .pose-review-workspace .cluster-file-actions {
+    font-size: 12px;
+  }
+
+  .pose-review-workspace .cluster-analysis .research-tab-list {
+    gap: 2px;
+    margin-block: 0 4px;
+  }
+
+  .pose-review-workspace .cluster-analysis .research-tab-list > button {
+    padding-inline: 8px;
   }
 }

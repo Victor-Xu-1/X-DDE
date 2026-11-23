@@ -291,6 +291,17 @@ leave the canvas and right analysis in view. The trajectory and pose previews
 keep their loading state until Mol* draws committed geometry. The focused Chrome
 check uses archived structures and checks the visible canvas, trajectory frame
 identity, and paired views.
+
+Binding-mode clustering keeps the structure on the left and places poses,
+pair measurements, the comparison map, and residue contacts in one inspector.
+Opening an inspector tab retains the current 3D source and previously entered
+table filters. Selecting a pair in either comparison view updates the same
+real overlay. Selecting **Return to single pose** opens the pose list with the
+first pose of that pair and its original paired receptor. Source geometry,
+coverage, unknown comparisons, and native downloads stay available. The
+retained cluster case checks both short desktop layouts and the selected map
+as a native vector export.
+
 The manual popover promotes the same DOM without moving or cloning the iframe;
 native browser fullscreen is no longer requested. Background branches are inert
 and keyboard focus stays inside the workspace. An open figure dialog handles its

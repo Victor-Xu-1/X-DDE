@@ -100,6 +100,7 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
   expect(
     screen.getByRole("link", { name: "下载原始姿势" }).getAttribute("href"),
   ).toContain("pose-000.sdf");
+  await user.click(screen.getByRole("tab", { name: "比较图" }));
   await user.click(
     screen.getAllByRole("button", { name: "姿势 1 / 2 · 未知" })[0],
   );
@@ -114,6 +115,7 @@ it("keeps unknown pair metrics explicit and previews exact source poses rather t
     "1,2",
   );
   expect(screen.getByText(/三维差异 —/)).toBeInTheDocument();
+  await user.click(screen.getByText("分群文件", { exact: true }));
   expect(
     screen.getByRole("link", { name: "下载全部接触" }).getAttribute("href"),
   ).toContain("contacts.csv");
@@ -157,16 +159,18 @@ it("keeps the pair table, both matrix cells and actual overlay selection synchro
       language="en"
     />,
   );
+  await user.click(screen.getByRole("tab", { name: "Pairs" }));
   const row = screen.getByRole("button", { name: "1 ↔ 2" });
+  expect(row).toHaveAttribute("aria-pressed", "false");
+  await user.click(row);
+  expect(row).toHaveAttribute("aria-pressed", "true");
+  await user.click(screen.getByRole("tab", { name: "Map" }));
   const cells = screen
     .getAllByRole("button", { name: "Pose 1 / 2 · Unknown" })
     .concat(screen.getAllByRole("button", { name: "Pose 2 / 1 · Unknown" }));
   const colors = cells.map((cell) =>
     cell.querySelector("rect")?.getAttribute("fill"),
   );
-  expect(row).toHaveAttribute("aria-pressed", "false");
-  await user.click(row);
-  expect(row).toHaveAttribute("aria-pressed", "true");
   for (const cell of cells)
     expect(cell).toHaveAttribute("aria-pressed", "true");
   expect(
@@ -180,13 +184,42 @@ it("keeps the pair table, both matrix cells and actual overlay selection synchro
   );
   await user.click(
     screen.getByRole("button", {
-      name: "Inspect a single pose with its paired receptor",
+      name: "Return to single pose",
     }),
+  );
+  expect(screen.getByRole("tab", { name: "Poses" })).toHaveAttribute(
+    "aria-selected",
+    "true",
   );
   expect(row).toHaveAttribute("aria-pressed", "false");
   for (const cell of cells)
     expect(cell).toHaveAttribute("aria-pressed", "false");
   expect(screen.queryByLabelText("comparison-source")).toBeNull();
+  await user.click(screen.getByRole("tab", { name: "Map" }));
   await user.click(cells[1]);
   expect(row).toHaveAttribute("aria-pressed", "true");
+});
+
+it("keeps the current source and pose filter while checking contacts and returning to poses", async () => {
+  const user = userEvent.setup();
+  render(
+    <ClusterResults
+      job={{ id: "native-job" } as Job}
+      result={result}
+      language="en"
+    />,
+  );
+  const search = screen.getByRole("searchbox");
+  await user.type(search, "2");
+  await user.click(screen.getByRole("button", { name: "2" }));
+  const source = screen.getByLabelText("paired-source");
+  expect(source).toHaveTextContent("/api/assets/pose-source-1");
+  await user.click(screen.getByRole("tab", { name: "Contacts" }));
+  expect(screen.getByText("Pose 2 · 0 / 0 geometric contacts")).toBeVisible();
+  expect(screen.getByLabelText("paired-source")).toBe(source);
+  expect(
+    screen.getByRole("link", { name: "Download original pose" }),
+  ).toHaveAttribute("href", expect.stringContaining("pose-001.sdf"));
+  await user.click(screen.getByRole("tab", { name: "Poses" }));
+  expect(search).toHaveValue("2");
 });

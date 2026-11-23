@@ -78,12 +78,14 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                 expected_label = "姿势 1 / 2 · " + (
                     "未知" if distance is None else f"{distance:.3f} Å"
                 )
+                result.get_by_role("tab", name="比较图", exact=True).click()
                 pair = result.get_by_role("button", name=expected_label, exact=True)
                 pair.click()
                 expect(pair).to_have_attribute("aria-pressed", "true")
+                result.get_by_role("tab", name="配对", exact=True).click()
                 pair_row = result.get_by_role("button", name="1 ↔ 2", exact=True)
                 expect(pair_row).to_have_attribute("aria-pressed", "true")
-                metrics = result.locator(".cluster-preview > p")
+                metrics = result.locator(".cluster-pair-metrics")
                 expect(metrics).to_be_visible()
                 expect(metrics).to_contain_text(
                     "三维差异 " + ("—" if distance is None else f"{distance:.3f} Å")
@@ -99,10 +101,12 @@ def test_real_pose_clustering_questionnaire_preview_and_download():
                     result.get_by_role("button", name="定位比较姿势", exact=True)
                 ).to_be_visible()
                 page.screenshot(path=output / "native-pair-overlay.png", full_page=True)
+                result.locator(".cluster-export > summary").click()
                 with page.expect_download() as downloaded:
                     result.get_by_role("link", name="下载两两比较", exact=True).click()
                 downloaded.value.save_as(output / "downloaded-pairs.csv")
                 assert "rmsd_angstrom" in (output / "downloaded-pairs.csv").read_text()
+                result.get_by_role("tab", name="比较图", exact=True).click()
                 comparison = export_figure(
                     page,
                     result.locator(".cluster-matrix").get_by_role(

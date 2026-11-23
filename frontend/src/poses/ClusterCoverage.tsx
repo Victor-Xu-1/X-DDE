@@ -47,8 +47,8 @@ export function ClusterCoverage({
           className="cluster-comparison-note"
         >
           {zh
-            ? `${missingContacts} / ${total} 对姿势的接触无法比较。缺失比较不会当作零相似度；分组表示当前尺度下的计算样本。`
-            : `Contact comparison is unavailable for ${missingContacts} of ${total} pose pairs. Missing comparisons are not zero similarity; groups describe the sampled poses.`}
+            ? `${missingContacts} / ${total} 对姿势的接触无法比较。缺失比较不会当作零相似度。`
+            : `Contact comparison unavailable for ${missingContacts} / ${total} pairs. Missing comparisons are not zero similarity.`}
         </p>
       )}
     </div>

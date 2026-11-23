@@ -24,7 +24,9 @@ export function ClusterMatrix({
     <section className="cluster-matrix">
       <div className="editor-toolbar">
         <label className="field">
-          {zh ? "姿势比较图" : "Pose comparison map"}
+          <span className="sr-only">
+            {zh ? "姿势比较图" : "Pose comparison map"}
+          </span>
           <select
             value={metric}
             onChange={(e) => setMetric(e.target.value as typeof metric)}

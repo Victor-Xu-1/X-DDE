@@ -159,6 +159,9 @@ def test_retained_matrix_and_channel_vectors(capability, language):
                 name="Binding mode clustering results" if language == "en" else "结合模式分群结果",
                 exact=True,
             )
+            region.get_by_role(
+                "tab", name="比较图" if language == "zh" else "Map", exact=True
+            ).click()
             chart = region.locator(".cluster-matrix")
         else:
             region = page.get_by_role(
