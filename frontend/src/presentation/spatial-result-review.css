@@ -1,3 +1,5 @@
+@import "./spatial-result-narrow.css";
+
 /* Keep the candidate switcher beside its scene throughout the desktop layout. */
 @media (min-width: 1080px) {
   :is(.docking-results, .pocket-result-workspace)

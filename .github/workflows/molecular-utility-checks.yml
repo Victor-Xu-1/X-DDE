@@ -56,6 +56,7 @@ on:
       - "frontend/src/presentation/SpatialResultSummary.tsx"
       - "frontend/src/presentation/spatial-results.css"
       - "frontend/src/presentation/spatial-result-review.css"
+      - "frontend/src/presentation/spatial-result-narrow.css"
       - "server_tests/test_short_protein_viewports.py"
       - "server_tests/test_spatial_results_desktop.py"
       - "server_tests/test_spatial_canvas_review_browser.py"
