@@ -1244,7 +1244,7 @@ SHORT_STRUCTURE_REVIEW_FILES = {
     "frontend/src/presentation/spatial-result-narrow.css",
     "server_tests/test_short_structure_materials_browser.py",
 }
-SHORT_STRUCTURE_REVIEW_DIFF = "1cc312fd09fa68549bd7d97c55ad190179bfb686935f369a2ee5b731d6cc88fc"
+SHORT_STRUCTURE_REVIEW_DIFF = "8ef935b3d774a85a292d336dce13a364716bfc81f66505cce7f3ab7077e48ece"
 SHORT_PAIRED_COMPARISON_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "frontend/src/structure-comparison/ComparisonPreview.tsx",

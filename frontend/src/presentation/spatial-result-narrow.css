@@ -171,7 +171,8 @@
       margin-block-end: 5px;
     }
 
-    > .molecular-stage {
+    &:not(:where(.reference-import-results .viewer-panel:has(.viewer-error)))
+      > .molecular-stage {
       height: clamp(
         250px,
         calc(100dvh - var(--narrow-spatial-reserve, 288px)),
