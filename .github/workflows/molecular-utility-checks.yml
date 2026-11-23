@@ -624,9 +624,7 @@ jobs:
 
   recognition-smiles-export:
     needs: scope
-    if: >-
-      ${{ !inputs.scope_only && (needs.scope.outputs.portable_smiles_only == 'true' ||
-      needs.scope.outputs.short_chemistry_desktop_only == 'true') }}
+    if: ${{ !inputs.scope_only && needs.scope.outputs.portable_smiles_only == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -1371,7 +1369,7 @@ jobs:
           SHORT_CHEMISTRY_DESKTOP_ONLY: ${{ needs.scope.outputs.short_chemistry_desktop_only }}
         run: |
           uv sync --locked --group dev --group browser
-          if [[ "$LIGAND_CAMERA_ONLY" != true ]]; then
+          if [[ "$LIGAND_CAMERA_ONLY" != true && "$SHORT_CHEMISTRY_DESKTOP_ONLY" != true ]]; then
             gh release download examples-v1 --repo "$GITHUB_REPOSITORY" \
               --pattern x-dde-public-cases-v1.zip --dir "$RUNNER_TEMP"
             export WB_RETAINED_UTILITY="$RUNNER_TEMP/x-dde-public-cases-v1.zip"

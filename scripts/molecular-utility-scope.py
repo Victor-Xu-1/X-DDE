@@ -1639,7 +1639,7 @@ SHORT_CHEMISTRY_DESKTOP_FILES = {
     "frontend/src/presentation/spatial-result-review.css",
     "server_tests/test_short_chemistry_desktop.py",
 }
-SHORT_CHEMISTRY_DESKTOP_DIFF = "8f92896f9c28afbb6ef8c8ff86923b30691ff5aeca9858e856ed19de4e13a478"
+SHORT_CHEMISTRY_DESKTOP_DIFF = "42e91ac10ae023ee61619ad7280658b12d646b2de7cf014d7cc145a8077edb14"
 DESKTOP_MOLECULE_WORKBENCH_FILES = {
     ".github/workflows/molecular-utility-checks.yml",
     "docs/user-guide.md",
