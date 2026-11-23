@@ -1,5 +1,6 @@
 import {
-  alleneHandoffSmiles, directionalRingStereoBonds, ringStereoEntries, writeRingStereo,
+  alleneHandoffSmiles, directionalCarbonPhosphorusBonds, directionalRingStereoBonds,
+  ringStereoEntries, writeRingStereo,
 } from "./portable-smiles-ring-stereo";
 
 type StructureReader = {
@@ -22,7 +23,7 @@ export type RecognitionResult = {
 export type RecognizedSourceExport = {
   text: string;
   molfile: string;
-  sourceOnly?: "allene" | "unverified-stereo";
+  sourceOnly?: "allene" | "directional" | "unverified-stereo";
 };
 
 export class SmilesHandoffError extends Error {}
@@ -37,7 +38,8 @@ function isPortableLine(value: string) {
 }
 
 /** Keep export on the recognized source when the drawing cannot retain its stereo. */
-export function recognizedStereoSource({ rawSmiles }: RecognitionResult): RecognizedSourceExport | null {
+export function recognizedStereoSource(result: RecognitionResult): RecognizedSourceExport | null {
+  const { rawSmiles } = result;
   const raw = rawSmiles?.trim();
   if (!raw) return null;
   const [molecule, annotation] = raw.split("|", 2);
@@ -46,7 +48,7 @@ export function recognizedStereoSource({ rawSmiles }: RecognitionResult): Recogn
     return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
   const body = molecule.split(/\s/, 1)[0];
   const axial = alleneHandoffSmiles(body);
-  if (axial === false) return null;
+  if (axial === false) return recognizedDirectionalSource(body, raw, result);
   // In the source-only path the line carries the stereo. Remove a suffix only
   // when it consists entirely of planar display coordinates.
   const portable = axial && raw.length <= 100_000 && stereoSmiles(raw)?.stereo === "";
@@ -55,6 +57,24 @@ export function recognizedStereoSource({ rawSmiles }: RecognitionResult): Recogn
     molfile: "",
     sourceOnly: axial ? "allene" : "unverified-stereo",
   };
+}
+
+function recognizedDirectionalSource(
+  body: string,
+  raw: string,
+  { smiles, molfile }: RecognitionResult,
+): RecognizedSourceExport | null {
+  const count = directionalCarbonPhosphorusBonds(body);
+  if (!count) return null;
+
+  // InChIKey can equate both C=P isomers and the unspecified structure.
+  // Keep the original traversal and stereo markers when the normalized
+  // recognition result confirms that directional C=P bonds are present.
+  const source = raw.length <= 100_000 ? stereoSmiles(raw) : null;
+  if (source?.stereo !== "" || hasRelativeStereo(molfile) || hasMolRadical(molfile) ||
+      !isPortableLine(smiles) || directionalCarbonPhosphorusBonds(smiles) !== count)
+    return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
+  return { text: source.text, molfile: "", sourceOnly: "directional" };
 }
 
 const coordinateNumber = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;

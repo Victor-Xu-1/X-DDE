@@ -23,6 +23,48 @@ const partialAbsoluteMol = [
   "M  V30 END COLLECTION", "M  V30 END CTAB", "M  END", "",
 ].join("\n");
 
+const phosphalkene = {
+  rawSmiles: "C[C@H](O)/C=P/CC",
+  smiles: "CC/P=C/[C@H](C)O",
+  molfile: generatedMol,
+};
+
+it.each([
+  [phosphalkene.rawSmiles, phosphalkene.smiles],
+  ["C[C@H](O)/C=P\\CC", "CC/P=C\\[C@H](C)O"],
+  ["CC/C=C/[C@H](O)/C=P/CC", "CC/C=C/[C@H](O)/C=P/CC"],
+])("keeps the recognized configuration from %s independently of the drawing", async (rawSmiles, smiles) => {
+  const result = { ...phosphalkene, rawSmiles, smiles };
+  const canvas = editor("C[C@H](O)C=PCC");
+  await expect(readRecognizedSource(canvas.structService, result)).resolves.toEqual({
+    text: rawSmiles, molfile: "", sourceOnly: "directional",
+  });
+  await expect(readPortableSmiles(canvas, result)).rejects.toThrow(SmilesHandoffError);
+  await expect(readRecognizedStereoFile(canvas.structService, result, "mol")).rejects.toThrow(SmilesHandoffError);
+  expect(canvas.structService.getInChIKey).not.toHaveBeenCalled();
+});
+
+it("keeps plain SMILES when the recognized phosphalkene has only 2D coordinates", () => {
+  expect(recognizedStereoSource({
+    ...phosphalkene, rawSmiles: phosphalkene.rawSmiles + " |(0,0,;1,1,)|",
+  })).toEqual({ text: phosphalkene.rawSmiles, molfile: "", sourceOnly: "directional" });
+});
+
+it.each([
+  { rawSmiles: phosphalkene.rawSmiles + " |&1:1|" },
+  { rawSmiles: phosphalkene.rawSmiles + " |(0,0,1;1,1,)|" },
+  { smiles: "CCP=C[C@H](C)O" },
+  { molfile: generatedMol + "M  V30 MDLV30/STEREL1 ATOMS=(1 2)" },
+])("withholds the source when the complete configuration cannot be retained", (changes) => {
+  expect(recognizedStereoSource({ ...phosphalkene, ...changes }))
+    .toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
+});
+
+it.each(["C[C@H](O)C=PCC", "C[C@H](O)C=P/CC", "CCC/C=N/CC", "C[P@](=O)(CC)CC/C=C/Cl"])(
+  "leaves normal drawing and export in place for %s",
+  (rawSmiles) => expect(recognizedStereoSource({ ...phosphalkene, rawSmiles })).toBeNull(),
+);
+
 it.each([
   "FC(Cl)=[C@@]=C(Br)I",
   "[C@](=C(F)Cl)=C(Br)I",

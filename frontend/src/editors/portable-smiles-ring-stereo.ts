@@ -76,6 +76,24 @@ function indexNeighbors(bonds: Bond[]) {
   return neighbors;
 }
 
+const isDirectional = (bond: Bond) => bond.token === "/" || bond.token === "\\";
+
+/** Indigo can read phosphalkene connectivity while discarding its direction. */
+export function directionalCarbonPhosphorusBonds(text: string) {
+  if (!text.includes("P") || !/[/\\]/.test(text)) return 0;
+  const graph = bondPositions(text);
+  if (!graph) return 0;
+  const neighbors = indexNeighbors(graph.bonds);
+  const element = (index: number) => /^(?:\[\d*)?([A-Z][a-z]?)/.exec(graph.atoms[index])?.[1];
+  return graph.bonds.filter(({ token, from, to }) => {
+    if (token !== "=") return false;
+    const a = element(from);
+    const b = element(to);
+    return ((a === "C" && b === "P") || (a === "P" && b === "C")) &&
+      neighbors.get(from)?.some(isDirectional) && neighbors.get(to)?.some(isDirectional);
+  }).length;
+}
+
 function canAbbreviateTetrahedral(atom: string, index: number, bonds: Bond[]) {
   const match = tetrahedralClass.exec(atom);
   if (!match) return false;
@@ -94,7 +112,7 @@ export function directionalRingStereoBonds(text: string) {
   if (!graph) return [];
   const neighbors = indexNeighbors(graph.bonds);
   const directed = (atom: number) => neighbors.get(atom)
-    ?.some((bond) => bond.token === "/" || bond.token === "\\");
+    ?.some(isDirectional);
   const inRing = (double: Bond) => {
     const visited = new Set([double.from]);
     const pending = [double.from];
