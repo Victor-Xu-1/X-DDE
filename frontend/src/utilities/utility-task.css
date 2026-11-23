@@ -27,7 +27,8 @@
   flex-direction: column;
   min-width: 0;
 }
-:is(.utility-task-fields, .utility-task-fields > .utility-image-entry) > .questionnaire {
+:is(.utility-task-fields, .utility-task-fields > .utility-image-entry)
+  > .questionnaire {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -103,7 +104,8 @@
   gap: 10px;
   align-items: start;
 }
-:is(.utility-task-fields, .utility-task-fields > .utility-image-entry) > .single-page-task {
+:is(.utility-task-fields, .utility-task-fields > .utility-image-entry)
+  > .single-page-task {
   flex: 1;
 }
 .molecular-utility .single-page-task .questionnaire-actions {
@@ -126,7 +128,9 @@
   margin-top: 8px;
 }
 /* The empty review has no controls; keep its semantic siblings, such as ADMET help. */
-.single-page-preview:not(:has(.molecular-input-review)) .single-page-field > .field-help,
+.single-page-preview:not(:has(.molecular-input-review))
+  .single-page-field
+  > .field-help,
 .single-page-preview:not(:has(.single-page-field > :not(legend, .field-help))) {
   display: none;
 }
@@ -163,7 +167,9 @@
 .molecular-utility .single-page-task .reference-material-body {
   padding: 0;
 }
-.molecular-utility .reference-material :is(.reference-material-heading, .reference-material-body)[hidden] {
+.molecular-utility
+  .reference-material
+  :is(.reference-material-heading, .reference-material-body)[hidden] {
   display: none;
 }
 .reference-material-summary {
@@ -297,7 +303,9 @@
     gap: 10px;
     margin: 4px 0 8px;
   }
-  .utility-task-result .structure-workbench-view :is(.molecular-preview, .molecule-image),
+  .utility-task-result
+    .structure-workbench-view
+    :is(.molecular-preview, .molecule-image),
   .studio-app .utility-task-result .viewer-panel .molecular-stage {
     border-radius: var(--utility-surface-radius);
   }
@@ -316,16 +324,20 @@
 }
 @media (max-width: 520px) {
   /* Case identity remains in the guide and in the open example's heading. */
-  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
+  .utility-template-controls
+    .example-toolbar:not(.example-preview-toolbar)
     .example-case:not(:has(button)) {
     display: none;
   }
-  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
+  .utility-template-controls
+    .example-toolbar:not(.example-preview-toolbar)
     .example-controls {
     gap: 4px;
   }
-  .utility-template-controls .example-toolbar:not(.example-preview-toolbar)
-    .example-controls > button {
+  .utility-template-controls
+    .example-toolbar:not(.example-preview-toolbar)
+    .example-controls
+    > button {
     padding-inline: 6px;
   }
   .utility-template-controls .example-guide > summary {
@@ -345,7 +357,9 @@
     padding: 6px 8px;
     white-space: normal;
   }
-  .utility-image-entry > .image-molecule-actions > :is(span, button:nth-of-type(3)) {
+  .utility-image-entry
+    > .image-molecule-actions
+    > :is(span, button:nth-of-type(3)) {
     grid-column: 1 / -1;
   }
 }
@@ -355,7 +369,8 @@
 }
 
 @media (width > 1000px) {
-  :is(.utility-task-fields, .utility-task-fields > .utility-image-entry) > .questionnaire {
+  :is(.utility-task-fields, .utility-task-fields > .utility-image-entry)
+    > .questionnaire {
     padding-top: 4px;
     border-radius: var(--utility-surface-radius);
   }
@@ -376,65 +391,6 @@
       min-height: 32px;
       padding: 4px 8px;
     }
-  }
-  /* Allocate a separate left-hand stage once a molecular input is ready. */
-  :is(.utility-task-fields, .utility-task-fields > .utility-image-entry) >
-    .single-page-task:has(.single-page-preview .molecular-input-review) {
-    display: grid;
-    flex: 0 0 auto;
-    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
-    grid-template-rows: auto auto auto auto minmax(0, 1fr);
-    min-height: calc(100dvh - 260px);
-    column-gap: 24px;
-    row-gap: 0;
-  }
-  .single-page-inputs:has(.molecular-input-review) {
-    display: contents;
-  }
-  .single-page-inputs:has(.molecular-input-review) > .single-page-main {
-    grid-column: 2;
-    grid-row: 1;
-    container: utility-materials / inline-size;
-  }
-  .single-page-inputs:has(.molecular-input-review) > .single-page-preview {
-    grid-column: 1;
-    grid-row: 1 / 6;
-  }
-  .single-page-preview:has(.molecular-input-review) > .single-page-field {
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-    margin-bottom: 0;
-  }
-  .single-page-preview .molecule-image {
-    min-height: clamp(320px, calc(100dvh - 300px), 760px);
-  }
-  .single-page-inputs:has(.molecular-input-review) > .single-page-options {
-    grid-column: 2;
-    grid-row: 2;
-    margin-block-start: 8px;
-  }
-  .molecular-utility .single-page-task:has(.molecular-input-review) > .error-box {
-    grid-column: 2;
-    grid-row: 3;
-    margin-block: 8px 0;
-  }
-  .molecular-utility .single-page-task:has(.molecular-input-review)
-    .questionnaire-actions {
-    grid-column: 2;
-    grid-row: 4;
-    margin-top: 0;
-    padding-top: 8px;
-    align-items: center;
-  }
-  .molecular-utility .single-page-task:has(.molecular-input-review)
-    .questionnaire-actions > .primary-button {
-    max-width: 70%;
-    min-height: 38px;
-    padding: 7px 10px;
-    font-size: 13px;
-    line-height: 1.4;
-    white-space: normal;
   }
 }
 
@@ -466,30 +422,5 @@
       min-height: 60px;
       padding-block: 8px;
     }
-  }
-}
-
-@media (min-width: 1001px) and (max-height: 760px) {
-  .studio-app .molecular-utility .single-page-task:has(.molecular-input-review) {
-    .single-page-main > .single-page-field {
-      margin-block-end: 6px;
-    }
-
-    .single-page-main {
-      max-height: clamp(200px, calc(100dvh - 366px), 504px);
-      overflow-y: auto;
-      overscroll-behavior-y: contain;
-      scrollbar-width: thin;
-      padding-inline-end: 4px;
-    }
-  }
-}
-@container utility-materials (max-width: 430px) {
-  .molecular-utility .single-page-task .single-page-main .questionnaire-choices {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
-  .molecular-utility .single-page-task .single-page-main .questionnaire-choices label {
-    padding-block: 5px;
   }
 }

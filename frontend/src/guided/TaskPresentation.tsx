@@ -6,6 +6,9 @@ export const TaskPresentationContext = createContext<{
   layout: "single";
   active?: boolean;
   imageEntry?: "workspace";
+  imageTarget?: HTMLElement | null;
+  submitTarget?: HTMLElement | null;
+  submitLocked?: boolean;
   renderResult?(job: Job): ReactNode;
   onMatchingResult?(job: Job | null): void;
 } | null>(null);

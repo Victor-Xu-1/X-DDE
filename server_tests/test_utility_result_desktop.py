@@ -14,11 +14,38 @@ from opendde_workbench.settings import Settings
 from server_tests.browser_platform import platform
 
 JOB = "5c35e148-cb26-4e46-b5ab-2231e228ccea"
+TOOLS = (
+    ("admet", "ADMET prediction", "ADMET 预测"),
+    ("brain", "Brain penetration", "透脑评估"),
+    ("properties", "Molecular properties", "分子性质"),
+    ("screen", "Similarity & structural alerts", "相似性与结构筛查"),
+    ("states", "Protonation & tautomers", "质子化与互变异构"),
+)
+
+
+def verify_image_workspaces(page, strip, zh):
+    for key, en, cn in TOOLS:
+        strip.get_by_role("button", name=cn if zh else en, exact=True).click()
+        tool = page.locator(f'.utility-panel[data-utility="{key}"]')
+        source = tool.locator(".utility-source-pane")
+        result = tool.locator(".utility-result-pane")
+        expect(source.locator(".utility-image-pad")).to_have_count(2 if key == "screen" else 1)
+        expect(source).to_be_in_viewport(ratio=0.95)
+        expect(result).to_be_in_viewport(ratio=0.95)
+        left, right = source.bounding_box(), result.bounding_box()
+        assert left["x"] + left["width"] < right["x"]
+        assert abs(left["y"] - right["y"]) < 1 and left["height"] == right["height"]
+        form = tool.locator(".utility-task-form")
+        assert form.bounding_box()["y"] > right["y"] + right["height"]
+        run = result.locator(".utility-run-controls button[type=submit]")
+        expect(run).to_be_in_viewport()
+        assert run.evaluate("node => node.form.closest('.utility-task-form') !== null")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
 
 
 @pytest.mark.parametrize(("language", "width", "height"), [
-    ("en", 1280, 800),
-    ("zh", 1600, 900),
+    ("en", 1001, 600),
+    ("zh", 1440, 900),
 ])
 def test_utility_uses_the_workspace_for_the_accepted_result(
     tmp_path, monkeypatch, language, width, height,
@@ -72,6 +99,7 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         before = page.request.get(power).json()
         page.goto(f"{base}/#view=utilities")
         strip = page.locator(".utility-tabs")
+        verify_image_workspaces(page, strip, zh)
         properties = "分子性质" if zh else "Molecular properties"
         strip.get_by_role("button", name=properties, exact=True).click()
         tool = page.locator('.utility-panel[data-utility="properties"]')
@@ -88,11 +116,11 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         heading = result.get_by_role("heading", name="结果" if zh else "Results", exact=True)
         expect(heading).to_be_focused()
         assert heading.bounding_box()["y"] <= 160
-        assert strip.evaluate("node => node.scrollWidth <= node.clientWidth + 1")
+        expect(strip.get_by_role("button", name=properties, exact=True)).to_be_in_viewport()
         download = "任务详情与下载" if zh else "Task details & downloads"
         link = result.get_by_role("link", name=download)
         expect(link).to_have_attribute("href", f"/#task={JOB}")
-        expect(run).to_have_count(0)
+        expect(run).to_be_visible()
         canvas = result.locator(".structure-workbench-view .molecule-image img").first
         expect(canvas).to_be_visible(timeout=35000)
         assert canvas.bounding_box()["y"] < height * 0.6
@@ -111,10 +139,7 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
         expect(file).to_have_value(asset_id)
         paste = "粘贴截图" if zh else "Paste screenshot"
         expect(tool.get_by_role("button", name=paste)).to_be_visible()
-        reopen_name = "查看本次结果" if zh else "View current results"
-        reopen = tool.get_by_role("button", name=reopen_name)
-        reopen.press("Enter")
-        expect(heading).to_be_focused()
+        expect(result).to_be_visible()
         strip.get_by_role("button", name="ADMET 预测" if zh else "ADMET prediction").click()
         strip.get_by_role("button", name=properties, exact=True).click()
         expect(result).to_be_visible()
@@ -125,10 +150,10 @@ def test_utility_uses_the_workspace_for_the_accepted_result(
             ),
         ).check()
         tool.get_by_role("textbox", name="SMILES", exact=True).fill("c1ccccc1")
-        expect(reopen).to_have_count(0)
-        expect(result).to_have_count(0)
+        expect(result.locator(".properties-results")).to_have_count(0)
+        expect(tool.locator(".utility-result-empty")).to_be_visible()
         tool.get_by_role("button", name="新建任务" if zh else "New task").click()
-        expect(inputs).to_be_focused()
+        expect(tool.locator(".utility-image-pad")).to_be_focused()
         assert not writes and len(submissions) == 1
         assert submissions[0]["operation"] == "properties"
         assert submissions[0]["ligand_files"] == [asset_id] and not submissions[0]["smiles"]

@@ -1570,16 +1570,17 @@ UTILITY_RESULT_DESKTOP_FILES = {
     "docs/frontend-layout.md",
     "frontend/src/guided/Questionnaire.tsx",
     "frontend/src/guided/TaskPresentation.tsx",
+    "frontend/src/utilities/ImageMoleculeInput.tsx",
+    "frontend/src/utilities/UtilityImageInput.tsx",
+    "frontend/src/utilities/UtilityImagePad.tsx",
     "frontend/src/utilities/UtilityImageTask.test.tsx",
     "frontend/src/utilities/UtilitySinglePage.test.tsx",
     "frontend/src/utilities/UtilityTask.tsx",
-    "frontend/src/utilities/UtilityTaskResult.tsx",
-    "frontend/src/utilities/UtilityWorkspace.tsx",
+    "frontend/src/utilities/utility-review-workspace.css",
     "frontend/src/utilities/utility-task.css",
     "server_tests/test_utility_result_desktop.py",
-    "tests/test_molecular_utility_scope.py",
 }
-UTILITY_RESULT_DESKTOP_DIFF = "fb5f54ef07da82c9a1d62e451534535e8c0f735ff99ea82f65a741a05286da1a"
+UTILITY_RESULT_DESKTOP_DIFF = "1ff79a5d3df0a8e642df99605e7c8852e6bb47ee7039f176b7093b8e067d8a0d"
 RESULT_HANDOFF_DESKTOP_FILES = {
     "frontend/src/App.tsx",
     "frontend/src/App.test.tsx",

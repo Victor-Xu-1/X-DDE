@@ -12,6 +12,7 @@ import {
   useInputActionScope,
 } from "../guided/InputActionScope";
 import "./utility-task.css";
+import "./utility-review-workspace.css";
 import { TaskPresentationContext } from "../guided/TaskPresentation";
 import { UtilityTaskResult } from "./UtilityTaskResult";
 import { UtilityDrawingContext } from "./UtilityDrawingContext";
@@ -71,31 +72,22 @@ function UtilityTaskSession({
   const [previewing, setPreviewing] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [matched, setMatched] = useState<Job | null>(null);
-  const [view, setView] = useState<"inputs" | "results">("inputs");
+  const [imageTarget, setImageTarget] = useState<HTMLDivElement | null>(null);
+  const [submitTarget, setSubmitTarget] = useState<HTMLDivElement | null>(null);
   const zh = language === "zh";
-  const visibleResult = view === "results" && !previewing ? matched : null;
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const inputWorkspace = useRef<HTMLDivElement>(null);
-  const focusNext = useRef<"inputs" | "results" | null>(
-    focusInputOnStart ? "inputs" : null,
-  );
-  function open(target: "inputs" | "results") {
-    focusNext.current = active ? target : null;
-    setView(target);
-  }
+  const focusResult = useRef(false);
   useLayoutEffect(() => {
-    if (!active || previewing) {
-      focusNext.current = null;
-      return;
-    }
-    const section = visibleResult ? "results" : "inputs";
-    if (focusNext.current !== section) return;
-    const target = visibleResult
-      ? resultHeading.current
-      : inputWorkspace.current;
-    target?.focus();
-    focusNext.current = null;
-  }, [active, previewing, visibleResult]);
+    if (focusInputOnStart && active)
+      imageTarget?.querySelector<HTMLDivElement>(".utility-image-pad")?.focus();
+  }, [active, focusInputOnStart, imageTarget]);
+  useLayoutEffect(() => {
+    if (!active || previewing) focusResult.current = false;
+    if (!matched || !focusResult.current) return;
+    resultHeading.current?.focus();
+    focusResult.current = false;
+  }, [active, previewing, matched]);
   const actions = useInputActionScope()!;
   const shownDrawing = useRef<string | null>(null);
   useLayoutEffect(() => {
@@ -108,11 +100,12 @@ function UtilityTaskSession({
     )
       return;
     shownDrawing.current = drawing.id;
-    if (visibleResult) {
-      focusNext.current = "inputs";
-      setView("inputs");
-    } else inputWorkspace.current?.focus();
-  }, [drawing, active, previewing, actions.action, visibleResult]);
+    imageTarget
+      ?.querySelector<HTMLDivElement>(
+        ".utility-image-pad:has(.utility-drawing-offer)",
+      )
+      ?.focus();
+  }, [drawing, active, previewing, actions.action, imageTarget]);
   const finishExample = useRef<(() => void) | null>(null);
   const exampleBusy = useCallback(
     (pending: boolean) => {
@@ -129,13 +122,50 @@ function UtilityTaskSession({
     setRevision((current) => current + 1);
     setCompleted(false);
     setMatched(null);
-    setView("inputs");
   }
   return (
     <section className="molecular-utility">
+      <div className="utility-review-workspace" hidden={previewing}>
+        <section
+          className="utility-source-pane"
+          aria-label={zh ? "图片输入" : "Image input"}
+        >
+          <h2>{zh ? "图片输入" : "Image input"}</h2>
+          <div ref={setImageTarget} className="utility-image-sources" />
+        </section>
+        <div className="utility-result-pane">
+          <div className="utility-result-scroll">
+            {matched ? (
+              <UtilityTaskResult
+                accepted={matched}
+                jobs={jobs}
+                active={active && !previewing}
+                hidden={previewing}
+                language={language}
+                onCreated={onCreated}
+                headingRef={resultHeading}
+                onEdit={() => inputWorkspace.current?.focus()}
+                onNewTask={onReset}
+              />
+            ) : (
+              <section
+                className="utility-result-empty"
+                aria-label={zh ? "本次结果" : "Current results"}
+              >
+                <h2>{zh ? "结果" : "Results"}</h2>
+                <p>
+                  {zh
+                    ? "运行后在这里查看结果。"
+                    : "Results appear here after you run the tool."}
+                </p>
+              </section>
+            )}
+          </div>
+          <div ref={setSubmitTarget} className="utility-run-controls" />
+        </div>
+      </div>
       <fieldset
         className="utility-template-controls"
-        hidden={Boolean(visibleResult)}
         disabled={actions.action === "submission"}
       >
         <legend className="sr-only">
@@ -147,42 +177,31 @@ function UtilityTaskSession({
           onLoad={replace}
           onClear={() => replace(null)}
           onPreviewChange={setPreviewing}
-          active={active && !visibleResult}
+          active={active}
           onBusyChange={exampleBusy}
         />
       </fieldset>
       <div
         ref={inputWorkspace}
         className="utility-task-form"
-        hidden={previewing || Boolean(visibleResult)}
+        hidden={previewing}
         tabIndex={-1}
         role="region"
         aria-label={zh ? "任务输入" : "Task inputs"}
       >
-        {completed && (
+        <h2>{zh ? "其他输入与设置" : "Other inputs and settings"}</h2>
+        {completed && !matched && !example && (
           <div className="utility-toolbar">
-            {matched && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={actions.action === "submission"}
-                onClick={() => open("results")}
-              >
-                {zh ? "查看本次结果" : "View current results"}
-              </button>
-            )}
-            {!example && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={actions.action === "submission"}
-                onClick={() => {
-                  if (!actions.isLocked("submission")) onReset();
-                }}
-              >
-                {zh ? "新建任务" : "New task"}
-              </button>
-            )}
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={actions.action === "submission"}
+              onClick={() => {
+                if (!actions.isLocked("submission")) onReset();
+              }}
+            >
+              {zh ? "新建任务" : "New task"}
+            </button>
           </div>
         )}
         <fieldset
@@ -204,8 +223,13 @@ function UtilityTaskSession({
             <TaskPresentationContext.Provider
               value={{
                 layout: "single",
-                active: active && !previewing && !visibleResult,
+                active: active && !previewing,
                 imageEntry: "workspace",
+                imageTarget,
+                submitTarget,
+                submitLocked:
+                  actions.action === "example" ||
+                  actions.action === "structure-import",
                 onMatchingResult: setMatched,
               }}
             >
@@ -221,7 +245,7 @@ function UtilityTaskSession({
                   {...(tool === "brain" ? { focus: "brain" as const } : {})}
                   onCreated={(job) => {
                     setCompleted(true);
-                    open("results");
+                    focusResult.current = active;
                     onCreated(job);
                   }}
                 />
@@ -230,19 +254,6 @@ function UtilityTaskSession({
           </ExampleContext.Provider>
         </fieldset>
       </div>
-      {matched && (
-        <UtilityTaskResult
-          accepted={matched}
-          jobs={jobs}
-          active={active && !previewing}
-          hidden={!visibleResult}
-          language={language}
-          onCreated={onCreated}
-          headingRef={resultHeading}
-          onEdit={() => open("inputs")}
-          onNewTask={onReset}
-        />
-      )}
     </section>
   );
 }

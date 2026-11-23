@@ -78,6 +78,7 @@ export function UtilityImageInput({
 }) {
   const source = useRef(new AbortController());
   const scope = useInputActionScope();
+  const { imageTarget } = useContext(TaskPresentationContext) ?? {};
   const importAttempt = useRef<AbortController | null>(null);
   const uploadButton = useRef<HTMLButtonElement>(null);
   const acceptDrawing = useRef<HTMLButtonElement>(null);
@@ -149,6 +150,57 @@ export function UtilityImageInput({
     }
   }
   const zh = language === "zh";
+  const feedback = (
+    <>
+      {drawing && (
+        <div
+          className="utility-drawing-offer"
+          role="group"
+          aria-label={zh ? "待用绘图" : "Drawing ready"}
+        >
+          <span>
+            {zh ? "来自分子编辑器的绘图" : "Drawing from the molecular editor"}
+          </span>
+          <button
+            ref={acceptDrawing}
+            className="secondary-button"
+            type="button"
+            disabled={!active || upload.busy || Boolean(scope?.action)}
+            onClick={() => void importDrawing(drawing)}
+          >
+            {upload.busy
+              ? zh
+                ? "正在添加…"
+                : "Adding…"
+              : target === "query"
+                ? zh
+                  ? "用作参照分子"
+                  : "Use as query"
+                : zh
+                  ? "用作输入"
+                  : "Use as input"}
+          </button>
+          <button
+            className="text-button"
+            type="button"
+            disabled={!active || upload.busy || Boolean(scope?.action)}
+            onClick={() => {
+              restoreFocus.current = "upload";
+              drawing.dismiss(drawing.id);
+              upload.clearError();
+            }}
+          >
+            {zh ? "忽略" : "Dismiss"}
+          </button>
+        </div>
+      )}
+      {upload.error && (
+        <p role="alert" className="error-box">
+          {researchError(upload.error, language === "zh")}
+        </p>
+      )}
+    </>
+  );
   return (
     <ImageInputSourceContext.Provider value={getSourceSignal}>
       <ImageMoleculeInput
@@ -165,6 +217,8 @@ export function UtilityImageInput({
         disabled={upload.busy}
         inputOwner
         controlsFirst={target === "molecule"}
+        controlsTarget={imageTarget}
+        workspaceFeedback={imageTarget ? feedback : null}
         automatic
         cancelOnEdit
         review={review ?? undefined}
@@ -180,55 +234,7 @@ export function UtilityImageInput({
           if (!signal.aborted) setReview({ molecule, image });
         }}
       >
-        {drawing && (
-          <div
-            className="utility-drawing-offer"
-            role="group"
-            aria-label={zh ? "待用绘图" : "Drawing ready"}
-          >
-            <span>
-              {zh
-                ? "来自分子编辑器的绘图"
-                : "Drawing from the molecular editor"}
-            </span>
-            <button
-              ref={acceptDrawing}
-              className="secondary-button"
-              type="button"
-              disabled={!active || upload.busy || Boolean(scope?.action)}
-              onClick={() => void importDrawing(drawing)}
-            >
-              {upload.busy
-                ? zh
-                  ? "正在添加…"
-                  : "Adding…"
-                : target === "query"
-                  ? zh
-                    ? "用作参照分子"
-                    : "Use as query"
-                  : zh
-                    ? "用作输入"
-                    : "Use as input"}
-            </button>
-            <button
-              className="text-button"
-              type="button"
-              disabled={!active || upload.busy || Boolean(scope?.action)}
-              onClick={() => {
-                restoreFocus.current = "upload";
-                drawing.dismiss(drawing.id);
-                upload.clearError();
-              }}
-            >
-              {zh ? "忽略" : "Dismiss"}
-            </button>
-          </div>
-        )}
-        {upload.error && (
-          <p role="alert" className="error-box">
-            {researchError(upload.error, language === "zh")}
-          </p>
-        )}
+        {!imageTarget && feedback}
         {children}
       </ImageMoleculeInput>
     </ImageInputSourceContext.Provider>

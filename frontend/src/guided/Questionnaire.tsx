@@ -7,6 +7,7 @@ import {
   useContext,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import type { Job, Language } from "../types";
 import "./questionnaire.css";
 import { TemplatePreviewContext } from "../examples/context";
@@ -67,7 +68,10 @@ export function GuidedSteps<T extends { id: string }>({
   onMatchingResult?(result: T | null): void;
 }) {
   const preview = useContext(TemplatePreviewContext);
-  const singlePage = useContext(TaskPresentationContext)?.layout === "single";
+  const presentation = useContext(TaskPresentationContext);
+  const singlePage = presentation?.layout === "single";
+  const submitTarget = singlePage ? presentation?.submitTarget : null;
+  const submitLocked = Boolean(submitTarget && presentation?.submitLocked);
   const zh = language === "zh",
     id = useId(),
     resultIndex = steps.length,
@@ -120,7 +124,7 @@ export function GuidedSteps<T extends { id: string }>({
     setVisited((v) => Math.max(v, target));
   }
   async function submit(reviewedSend?: () => Promise<T | undefined>) {
-    if (preview) return;
+    if (preview || submitLocked) return;
     if (!singlePage && current !== lastQuestion) {
       if (!reviewedSend) move(current + 1);
       return;
@@ -177,9 +181,66 @@ export function GuidedSteps<T extends { id: string }>({
     ...steps.map((s) => s.title),
     resultTitle ?? (zh ? "查看结果" : "View results"),
   ];
+  const failure = (notice || error) && (
+    <p role="alert" className="error-box">
+      {researchError(availabilityError(error || notice, zh), zh)}
+    </p>
+  );
+  const controls = (singlePage || current < resultIndex) && (
+    <div className="questionnaire-actions">
+      {singlePage && (
+        <SinglePageReadiness
+          ready={ready}
+          unavailable={unavailable}
+          onRecheck={preview ? undefined : onCheckEnvironment}
+          language={language}
+          busy={busy}
+        />
+      )}
+      {!singlePage && current > 0 && (
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={busy}
+          onClick={() => move(current - 1)}
+        >
+          {zh ? "上一步" : "Back"}
+        </button>
+      )}
+      {!singlePage && current < lastQuestion ? (
+        <button
+          key="next-question"
+          type="button"
+          className="primary-button"
+          disabled={busy || !steps[current].valid}
+          onClick={() => move(current + 1)}
+        >
+          {zh ? "下一步" : "Next"}
+        </button>
+      ) : (
+        <button
+          key="submit-task"
+          ref={submitTrigger}
+          form={submitTarget ? id : undefined}
+          type="submit"
+          className="primary-button"
+          disabled={
+            preview ||
+            busy ||
+            submitLocked ||
+            !complete ||
+            (!renderReview && !ready)
+          }
+        >
+          {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
+        </button>
+      )}
+    </div>
+  );
   return (
     <>
       <form
+        id={id}
         className={
           "questionnaire tool-form" + (singlePage ? " single-page-task" : "")
         }
@@ -220,11 +281,7 @@ export function GuidedSteps<T extends { id: string }>({
           />
         )}
         {!singlePage && current === resultIndex && job && renderResult(job)}
-        {(notice || error) && (
-          <p role="alert" className="error-box">
-            {researchError(availabilityError(error || notice, zh), zh)}
-          </p>
-        )}
+        {!submitTarget && failure}
         {!singlePage && current === lastQuestion && !ready && !error && (
           <div role="status" className="notice">
             {ready === undefined
@@ -242,52 +299,7 @@ export function GuidedSteps<T extends { id: string }>({
             busy={busy}
           />
         )}
-        {(singlePage || current < resultIndex) && (
-          <div className="questionnaire-actions">
-            {singlePage && (
-              <SinglePageReadiness
-                ready={ready}
-                unavailable={unavailable}
-                onRecheck={preview ? undefined : onCheckEnvironment}
-                language={language}
-                busy={busy}
-              />
-            )}
-            {!singlePage && current > 0 && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={busy}
-                onClick={() => move(current - 1)}
-              >
-                {zh ? "上一步" : "Back"}
-              </button>
-            )}
-            {!singlePage && current < lastQuestion ? (
-              <button
-                key="next-question"
-                type="button"
-                className="primary-button"
-                disabled={busy || !steps[current].valid}
-                onClick={() => move(current + 1)}
-              >
-                {zh ? "下一步" : "Next"}
-              </button>
-            ) : (
-              <button
-                key="submit-task"
-                ref={submitTrigger}
-                type="submit"
-                className="primary-button"
-                disabled={
-                  preview || busy || !complete || (!renderReview && !ready)
-                }
-              >
-                {busy ? (zh ? "正在提交…" : "Submitting…") : submitLabel}
-              </button>
-            )}
-          </div>
-        )}
+        {!submitTarget && controls}
         {reviewing &&
           !preview &&
           renderReview?.({
@@ -298,6 +310,14 @@ export function GuidedSteps<T extends { id: string }>({
             },
           })}
       </form>
+      {submitTarget &&
+        createPortal(
+          <>
+            {failure}
+            {controls}
+          </>,
+          submitTarget,
+        )}
       {!onMatchingResult && matchingResult && renderResult(matchingResult)}
     </>
   );

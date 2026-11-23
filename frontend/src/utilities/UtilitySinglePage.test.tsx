@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Asset } from "../operations/types";
@@ -129,6 +129,11 @@ it.each([
     expect(screen.queryByRole("navigation", { name: "Task steps" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
     expect(screen.getByRole("button", { name: run })).toBeDisabled();
+    const start = screen.getByRole<HTMLButtonElement>("button", { name: run });
+    expect(start.closest(".utility-run-controls")).toBeTruthy();
+    expect(start.form).toBe(
+      screen.getByRole("region", { name: "Task inputs" }).querySelector("form"),
+    );
     expect(screen.getByText("More settings (optional)")).toBeVisible();
     await user.click(screen.getByRole("button", { name: input }));
     expect(await screen.findByText("Actual input structure")).toBeVisible();
@@ -141,14 +146,20 @@ it.each([
       expect.objectContaining({ operation }),
       expect.any(String),
     );
-    expect(screen.queryByRole("button", { name: input })).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Edit inputs" }));
-    expect(screen.getByRole("region", { name: "Task inputs" })).toHaveFocus();
-    expect(screen.getByRole("button", { name: input })).toBeVisible();
-    await user.click(
-      screen.getByRole("button", { name: "View current results" }),
+    const output = screen.getByRole("region", { name: "Current results" });
+    const source = screen.getByRole("region", { name: "Image input" });
+    const alternate = screen.getByRole("region", { name: "Task inputs" });
+    expect(within(output).getByText("Native computed output")).toBeVisible();
+    expect(alternate).toContainElement(
+      screen.getByRole("button", { name: input }),
     );
-    expect(screen.getByRole("heading", { name: "Results" })).toHaveFocus();
+    expect(source.parentElement).toContainElement(output);
+    expect(source.parentElement!.compareDocumentPosition(alternate)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    await user.click(screen.getByRole("button", { name: "Edit inputs" }));
+    expect(alternate).toHaveFocus();
+    expect(output).toBeVisible();
     expect(send).toHaveBeenCalledOnce();
     expect(document.querySelector("form form")).toBeNull();
   },
@@ -170,17 +181,15 @@ it("withdraws the result action when the edited inputs no longer match its task"
     screen.getByRole("button", { name: "Calculate properties" }),
   );
   await user.click(screen.getByRole("button", { name: "Edit inputs" }));
-  expect(
-    screen.getByRole("button", { name: "View current results" }),
-  ).toBeVisible();
+  expect(screen.getByText("Native computed output")).toBeVisible();
   await user.click(
     screen.getByRole("radio", {
       name: "Paste molecular structure text (SMILES)",
     }),
   );
   await user.type(screen.getByRole("textbox", { name: "SMILES" }), "c1ccccc1");
-  expect(
-    screen.queryByRole("button", { name: "View current results" }),
-  ).toBeNull();
   expect(screen.queryByText("Native computed output")).not.toBeInTheDocument();
+  expect(
+    screen.getByText("Results appear here after you run the tool."),
+  ).toBeVisible();
 });
