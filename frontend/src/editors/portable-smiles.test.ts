@@ -76,6 +76,13 @@ it("preserves allene and C=P geometry together only when C=P survives normalizat
   })).toEqual({ text: "", molfile: "", sourceOnly: "unverified-stereo" });
 });
 
+it("does not treat an unrelated alkene and phosphorus as a configured C=P bond", () => {
+  const chain = "C[P@](=O)(CC)CC/C=C/Cl";
+  expect(recognizedStereoSource({
+    ...phosphalkene, rawSmiles: chain + ".C%(123)CCC%(123)", smiles: chain + ".C1CCC1",
+  })).toBeNull();
+});
+
 it.each(["C[C@H](O)C=PCC", "C[C@H](O)C=P/CC", "CCC/C=N/CC", "C[P@](=O)(CC)CC/C=C/Cl"])(
   "leaves normal drawing and export in place for %s",
   (rawSmiles) => expect(recognizedStereoSource({ ...phosphalkene, rawSmiles, smiles: rawSmiles })).toBeNull(),

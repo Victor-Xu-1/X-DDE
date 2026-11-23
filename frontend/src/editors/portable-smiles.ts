@@ -52,8 +52,8 @@ export function recognizedStereoSource({ rawSmiles, smiles, molfile }: Recogniti
   // InChIKey can equate both C=P isomers and the unspecified structure.
   // Verify that normalization retained the directional bonds before choosing
   // the source-only representation, including molecules with allene stereo.
-  if ((directional !== 0 || normalizedDirectional !== 0) &&
-      (!directional || directional !== normalizedDirectional || !planarSource() ||
+  if ((directional || normalizedDirectional) &&
+      (directional !== normalizedDirectional || body.includes("%(") || !planarSource() ||
        !isPortableLine(smiles) || hasRelativeStereo(molfile) || hasMolRadical(molfile)))
     return { text: "", molfile: "", sourceOnly: "unverified-stereo" };
 
