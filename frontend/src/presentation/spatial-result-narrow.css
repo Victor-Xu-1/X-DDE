@@ -128,64 +128,68 @@
     --narrow-spatial-reserve: 322px;
   }
 
-  :is(
-    .channel-results .spatial-result-summary,
-    .is-refinement-result .refinement-summary
-  ) {
-    gap: 7px;
-    padding: 0 0 10px;
-    border: 0;
-    border-block-end: 1px solid var(--line);
-    border-radius: 0;
-  }
+  .studio-app
+    :is(
+      .channel-results,
+      .quality-results.spatial-review,
+      .is-refinement-result
+    )
+    > .structure-workbench:not([data-workspace-expanded]) {
+    :is(.spatial-result-summary, .refinement-summary) {
+      gap: 7px;
+      padding: 0 0 10px;
+      border: 0;
+      border-block-end: 1px solid var(--line);
+      border-radius: 0;
+    }
 
-  .channel-results .spatial-summary-metrics > div {
-    padding-block: 5px;
-  }
+    .spatial-summary-metrics > div {
+      padding-block: 5px;
+    }
 
-  .studio-app .channel-results .channel-table-wrap :is(th, td) {
-    padding: 6px 4px;
-    font-size: 12px;
-    overflow-wrap: normal;
-  }
+    .channel-table-wrap :is(th, td) {
+      padding: 6px 4px;
+      font-size: 12px;
+      overflow-wrap: normal;
+    }
 
-  .channel-results .channel-profile {
-    margin-block-start: 10px;
-    padding-block-start: 8px;
-  }
+    .channel-profile {
+      margin-block-start: 10px;
+      padding-block-start: 8px;
+    }
 
-  .quality-results.spatial-review
     :is(.quality-review, .quality-assessment-bar) {
-    gap: 8px;
-  }
+      gap: 8px;
+    }
 
-  .quality-results.spatial-review .quality-measurements dl > div {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 2px 10px;
-  }
+    .quality-measurements dl > div {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2px 10px;
+    }
 
-  .quality-results.spatial-review .quality-measurements dd {
-    margin: 0;
-    font-size: 16px;
-  }
+    .quality-measurements dd {
+      margin: 0;
+      font-size: 16px;
+    }
 
-  .quality-results.spatial-review .quality-checks {
-    gap: 8px;
-  }
+    .quality-checks {
+      gap: 8px;
+    }
 
-  .quality-results.spatial-review .quality-scene .contact-details table {
-    width: 100%;
-    min-width: 0;
-  }
+    .quality-scene .contact-details table {
+      width: 100%;
+      min-width: 0;
+    }
 
-  .is-refinement-result .refinement-summary h3 {
-    margin-block-end: 6px;
-  }
+    .refinement-summary h3 {
+      margin-block-end: 6px;
+    }
 
-  .is-refinement-result .refinement-summary :is(th, td) {
-    padding-block: 6px;
+    .refinement-summary :is(th, td) {
+      padding-block: 6px;
+    }
   }
 }

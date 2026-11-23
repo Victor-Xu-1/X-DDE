@@ -67,10 +67,23 @@ def review_contacts(page, result, zh, evidence):
         inspect_png(export_figure(page, figure, evidence, "plip-contact", "en"))
 
 
+def check_expansion(page, result, expanded_style=None):
+    native = result.locator(".molecular-stage iframe").element_handle()
+    expand = result.locator("[data-workspace-expand]").first
+    expand.click()
+    workspace = result.locator(".structure-workbench")
+    expect(workspace).to_have_attribute("data-workspace-expanded", "true")
+    if expanded_style:
+        selector, property_name, expected = expanded_style
+        expect(workspace.locator(selector).first).to_have_css(property_name, expected)
+    page.keyboard.press("Escape")
+    expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
+    expect(expand).to_be_focused()
+    assert native.evaluate("frame => frame.isConnected")
+
+
 def review_quality(page, result, zh):
     control = result.get_by_role("combobox", name="显示哪些检查？" if zh else "Which checks?")
-    frame = result.locator(".molecular-stage iframe")
-    native = frame.element_handle()
     expect(control).to_have_value("attention")
     rows = result.locator(".quality-checks tbody tr")
     expect(rows).to_have_count(6)
@@ -79,15 +92,10 @@ def review_quality(page, result, zh):
     expect(rows).to_have_count(22)
     control.select_option("unassessed")
     expect(rows).to_have_count(6)
-    expand = result.locator("[data-workspace-expand]").first
-    expand.click()
-    workspace = result.locator(".structure-workbench")
-    expect(workspace).to_have_attribute("data-workspace-expanded", "true")
-    page.keyboard.press("Escape")
-    expect(workspace).not_to_have_attribute("data-workspace-expanded", "true")
-    expect(expand).to_be_focused()
-    assert native.evaluate("frame => frame.isConnected")
-    if page.viewport_size["width"] < 1080:
+    narrow = page.viewport_size["width"] < 1080
+    expanded = (".quality-measurements dd", "font-size", "24px") if narrow else None
+    check_expansion(page, result, expanded)
+    if narrow:
         contacts = result.locator(".contact-details")
         expect(contacts).to_be_visible()
         if not contacts.evaluate("el => el.open"):
@@ -113,6 +121,7 @@ def review_channel(page, result, zh, evidence):
           range.selectNodeContents(label);
           return range.getClientRects().length === 1;
         }""")
+        check_expansion(page, result, (".channel-table-wrap th", "padding-inline-start", "12px"))
     focus.click()
     clearance = result.get_by_role(
         "checkbox", name="显示采样空间" if zh else "Show sampled clearance", exact=True,
@@ -134,6 +143,8 @@ def review_channel(page, result, zh, evidence):
 def review_refinement(page, result, zh, original):
     summary = result.locator(".refinement-summary")
     expect(summary).to_be_in_viewport()
+    if page.viewport_size["width"] < 1080:
+        check_expansion(page, result, (".refinement-summary", "border-radius", "10px"))
     download = "下载优化后结构" if zh else "Download refined structure"
     structure = summary.get_by_role("link", name=download)
     response = page.request.get(structure.evaluate("anchor => anchor.href"))
